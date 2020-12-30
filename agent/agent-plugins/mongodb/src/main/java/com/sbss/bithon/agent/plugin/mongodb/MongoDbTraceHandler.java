@@ -1,16 +1,21 @@
-//package com.sbss.commons.agent.plugin.mongodb;
+//package com.keruyun.commons.agent.plugin.mongodb;
 //
-//import com.sbss.SpanScopeHolder;
-//import com.sbss.TraceHolder;
+//import com.keruyun.SpanScopeHolder;
+//import com.keruyun.TraceHolder;
 //import com.sbs.apm.javaagent.core.interceptor.EventCallback;
-//import com.sbs.apm.javaagent.core.model.aop.AopContext;
-//import com.sbs.apm.javaagent.core.model.aop.AopContext;
+//import com.sbs.apm.javaagent.core.model.aop.AfterJoinPoint;
+//import com.sbs.apm.javaagent.core.model.aop.BeforeJoinPoint;
 //
 //import brave.Span;
 //import brave.Tracer;
 //import shaded.org.slf4j.Logger;
 //import shaded.org.slf4j.LoggerFactory;
 //
+///**
+// * Description : mongodb plugin
+// * <br>Date: 17/11/3
+// *
+// * @author 马至远
 // */
 //public class MongoDbTraceHandler extends EventCallback {
 //    private static final Logger log = LoggerFactory.getLogger(MongoDbTraceHandler.class);
@@ -21,7 +26,7 @@
 //    }
 //
 //    @Override
-//    protected void before(AopContext joinPoint) {
+//    protected void before(BeforeJoinPoint joinPoint) {
 //        Tracer trace = null;
 //        Tracer.SpanInScope scope = null;
 //        try{
@@ -45,7 +50,7 @@
 //
 //
 //    @Override
-//    protected void after(AopContext joinPoint) {
+//    protected void after(AfterJoinPoint joinPoint) {
 //
 //        Tracer trace = null;
 //        try{

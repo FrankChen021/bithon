@@ -4,9 +4,10 @@ public interface Constant {
 
     enum VMOption {
         JAVA_CLASS_PATH("java.class.path"),
+        CONF("conf"),
         CATALINA_HOME("catalina.home");
 
-        private final String value;
+        private String value;
 
         VMOption(String value) {
             this.value = value;
@@ -20,7 +21,7 @@ public interface Constant {
     enum ProgramOption {
         LOGGING_CONFIG("logging.config");
 
-        private final String value;
+        private String value;
 
         ProgramOption(String value) {
             this.value = value;
@@ -32,10 +33,10 @@ public interface Constant {
     }
 
     enum ManifestAttribute {
-        PLUGIN_CLASS("Plugin-Class"),
+        TRANSFORMER_CLASS("Transformer-Class"),
         SPRING_BOOT_CLASSES("Spring-Boot-Classes");
 
-        private final String value;
+        private String value;
 
         ManifestAttribute(String value) {
             this.value = value;
@@ -49,7 +50,7 @@ public interface Constant {
     enum Suffix {
         JAR(".jar");
 
-        private final String value;
+        private String value;
 
         Suffix(String value) {
             this.value = value;

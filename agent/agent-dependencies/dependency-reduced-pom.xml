@@ -66,18 +66,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>3.2.1</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
   <repositories>
@@ -86,14 +74,6 @@
       <url>https://github.com/bulldog2011/bigqueue/releases/</url>
     </repository>
   </repositories>
-  <dependencies>
-    <dependency>
-      <groupId>net.bytebuddy</groupId>
-      <artifactId>byte-buddy-agent</artifactId>
-      <version>1.10.19</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
   <properties>
     <apache.kafka.version>2.6.0</apache.kafka.version>
     <maven.compiler.source>8</maven.compiler.source>

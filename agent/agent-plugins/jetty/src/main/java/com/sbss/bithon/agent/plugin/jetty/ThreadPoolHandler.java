@@ -1,16 +1,27 @@
 package com.sbss.bithon.agent.plugin.jetty;
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.core.interceptor.AbstractMethodIntercepted;
+import com.sbss.bithon.agent.core.interceptor.AfterJoinPoint;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
-/**
- * @author frankchen
- */
-public class ThreadPoolHandler extends AbstractInterceptor {
+public class ThreadPoolHandler extends AbstractMethodIntercepted {
+
+    private QueuedThreadPool threadPool;
 
     @Override
-    public void onMethodLeave(AopContext context) {
-        WebServerMetricProvider.getInstance().setThreadPool((QueuedThreadPool) context.getTarget());
+    public boolean init() throws Exception {
+        return true;
     }
+
+    @Override
+    protected void after(AfterJoinPoint joinPoint) {
+        if (null == threadPool) {
+            threadPool = (QueuedThreadPool) joinPoint.getTarget();
+        }
+    }
+
+    QueuedThreadPool getThreadPool() {
+        return threadPool;
+    }
+
 }

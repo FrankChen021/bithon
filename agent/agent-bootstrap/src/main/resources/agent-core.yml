@@ -1,0 +1,35 @@
+bootstrap:
+  # 主业务APP名称，必须唯一。空表示将从环境变量CURRENT_ENV和CURRENT_NAME读取
+  appName:
+  # 主业务APP默认日志文件
+  appLogs:
+    - log4j2.xml
+    - log4j2.yml
+    - log4j2.yaml
+    - log4j2.json
+    - log4j2.jsn
+    - logback.groovy
+    - logback.xml
+
+dispatcher:
+
+  # 文件队列
+  queue:
+    # 消息有效期（单位：秒），过期消息将被丢弃
+    validityPeriod: 1800
+
+    # 每间隔多长时间（单位：秒）执行一次GC，以回收磁盘空间
+    gcPeriod: 60
+
+  # 采集端
+  client:
+
+    # 连接超时(单位：毫秒)
+    timeout: 3000
+
+  # 接收端
+  servers:
+
+    - host: vpcprod.apm-collector.cnhz.keruyun.com
+      port: 9898
+      httpPort: 9899

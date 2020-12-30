@@ -14,50 +14,44 @@
         <java.version>8</java.version>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <spring.boot.version>2.3.7.RELEASE</spring.boot.version>
     </properties>
 
     <modules>
-        <module>component/agent-rpc-thrift</module>
-        <module>component/component-db</module>
-        <module>agent</module>
-        <module>server/collector</module>
-        <module>server/alerting</module>
-        <module>server/web-server</module>
+<!--        <module>data-querier</module>-->
+<!--        <module>web-console</module>-->
+<!--        <module>data-collector/data-collector-grpc</module>-->
+<!--        <module>data-collector/data-collector-grpc-server</module>-->
+<!--        <module>data-collector/data-collector-grpc-client</module>-->
+
     </modules>
 
     <dependencyManagement>
         <dependencies>
 
+            <!-- Collector Client -->
+
+            <!-- Dependency -->
             <dependency>
                 <groupId>com.sbss.bithon</groupId>
-                <artifactId>agent-rpc-thrift</artifactId>
+                <artifactId>collector-client-dependency</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- interface -->
             <dependency>
                 <groupId>com.sbss.bithon</groupId>
-                <artifactId>component-db</artifactId>
+                <artifactId>collector-client-interface</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!-- kafka client -->
+            <dependency>
+                <groupId>com.sbss.bithon</groupId>
+                <artifactId>collector-kafka-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

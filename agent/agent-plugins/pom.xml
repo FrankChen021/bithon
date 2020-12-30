@@ -14,32 +14,40 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>alibaba-druid</module>
         <module>tomcat</module>
         <module>undertow</module>
         <module>jetty</module>
         <module>jvm</module>
         <module>mysql</module>
-        <module>mysql8</module>
         <module>quartz2</module>
-        <module>jdk-thread</module>
+        <module>thread</module>
         <module>okhttp3</module>
         <module>okhttp32</module>
-        <module>jdk-httpclient</module>
-        <module>apache-httpclient</module>
+        <module>http-connection</module>
+        <module>http-component</module>
         <module>jedis</module>
-        <module>lettuce-5.x</module>
         <module>mongodb</module>
-        <module>mongodb38</module>
         <module>log4j2</module>
         <module>logback</module>
         <module>springweb</module>
+
+        <!--        <module>mysql-8</module>-->
+        <!--        <module>druid</module>-->
+
+        <!--        <module>redis-lettuce</module>-->
+        <!--        <module>mongodb-38</module>-->
+        <!--        <module>kafka</module>-->
+        <!--        <module>spring-mvc</module>-->
+        <!--        <module>spring-webflux</module>-->
+        <!--        <module>kmetrics</module>-->
+        <!--        <module>spring-cloud</module>-->
+        <!--        <module>ktrace</module>-->
+        <!--        &lt;!&ndash;<module>netty</module>&ndash;&gt;-->
+        <!--        <module>netty-webserver</module>-->
     </modules>
 
     <dependencies>
-        <!-- Use to publish -->
-
-        <!-- Web Container-->
+        <!-- 仅用于发布，代码未做依赖 begin-->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>agent-plugin-tomcat</artifactId>
@@ -50,13 +58,10 @@
             <artifactId>agent-plugin-undertow</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-jetty</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- JDK -->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-jetty</artifactId>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>agent-plugin-jvm</artifactId>
@@ -64,34 +69,27 @@
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-jdk-thread</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- SQL -->
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-alibaba-druid</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
             <artifactId>agent-plugin-mysql</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-mysql8</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-mysql-8</artifactId>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-druid</artifactId>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>agent-plugin-quartz2</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- HTTP Client -->
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-thread</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>agent-plugin-okhttp3</artifactId>
@@ -104,28 +102,43 @@
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-jdk-httpclient</artifactId>
+            <artifactId>agent-plugin-http-connection</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-apache-httpclient</artifactId>
+            <artifactId>agent-plugin-http-component</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- Redis -->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>agent-plugin-jedis</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-lettuce-5.x</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- Log -->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-redis-lettuce</artifactId>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-mongodb-34</artifactId>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-mongodb-38</artifactId>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-kafka</artifactId>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-spring-mvc</artifactId>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-spring-webflux</artifactId>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>agent-plugin-logback</artifactId>
@@ -136,20 +149,30 @@
             <artifactId>agent-plugin-log4j2</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-kmetrics</artifactId>-->
+        <!--            <version>${project.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-ktrace</artifactId>-->
+        <!--            <version>${project.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-netty-webserver</artifactId>-->
+        <!--            <version>${project.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>${project.parent.groupId}</groupId>-->
+        <!--            <artifactId>agent-plugin-spring-cloud</artifactId>-->
+        <!--        </dependency>-->
+        <!--<dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-springweb</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- end-->
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.5.2</version>
-            <scope>test</scope>
-        </dependency>
+            <artifactId>agent-plugin-netty</artifactId>
+        </dependency>-->
+        <!-- 仅用于发布，代码未做依赖 end-->
     </dependencies>
 
     <build>

@@ -14,8 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-core</artifactId>
-            <scope>provided</scope>
+            <artifactId>agent-dispatcher</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
@@ -33,23 +32,10 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Plugin-Class>com.sbss.bithon.agent.plugin.tomcat.TomcatPlugin</Plugin-Class>
+                            <Transformer-Class>com.sbss.bithon.agent.plugin.tomcat.TomcatTransformer</Transformer-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
         <finalName>${project.artifactId}</finalName>

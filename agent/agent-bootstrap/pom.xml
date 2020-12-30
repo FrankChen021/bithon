@@ -14,25 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.sbss.bithon.agent</groupId>
-            <artifactId>agent-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.sbss.bithon.agent</groupId>
-            <artifactId>agent-dispatcher-thrift</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>httpclient</artifactId>
-                    <groupId>org.apache.httpcomponents</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>httpcore</artifactId>
-                    <groupId>org.apache.httpcomponents</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>slf4j-api</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
+            <artifactId>agent-dispatcher</artifactId>
         </dependency>
         <dependency>
             <groupId>com.sbss.bithon.agent</groupId>
@@ -100,19 +82,6 @@
                                       tofile="../${project.distribution.dir}" overwrite="true"/>
                             </target>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>
