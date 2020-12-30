@@ -1,0 +1,89 @@
+{
+  "displayText": "HTTP Client",
+  "name": "http-client-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "field": "appName",
+      "name": "appName",
+      "displayText": "应用ID",
+      "required": true
+    },
+    {
+      "field": "instanceName",
+      "name": "instanceName",
+      "displayText": "实例ID",
+      "required": true
+    },
+    {
+      "field": "uri",
+      "name": "uri",
+      "displayText": "URL",
+      "required": true
+    },
+    {
+      "field": "method",
+      "name": "method",
+      "displayText": "Request Method",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "costTime",
+      "displayText": "Cost Time",
+      "field": "costTime",
+      "unit": "ns"
+    },
+    {
+      "type": "longSum",
+      "name": "count4xx",
+      "displayText": "Count of Request(400~499)",
+      "field": "count4xx",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "count5xx",
+      "displayText": "Count of Request(500~)",
+      "field": "count5xx",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "countException",
+      "displayText": "Count of Exception",
+      "field": "countException",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "requestCount",
+      "displayText": "Count Requests",
+      "field": "requestCount",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "requestBytes",
+      "displayText": "Bytes sent",
+      "field": "requestBytes",
+      "unit": "Byte"
+    },
+    {
+      "type": "longSum",
+      "name": "responseBytes",
+      "displayText": "Bytes received",
+      "field": "requestCount",
+      "unit": "Byte"
+    }
+  ]
+}
+
+
+
+

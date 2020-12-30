@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <parent>
+        <groupId>com.sbss.bithon.agent</groupId>
+        <artifactId>agent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>agent-plugin</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>alibaba-druid</module>
+        <module>tomcat</module>
+        <module>undertow</module>
+        <module>jetty</module>
+        <module>jvm</module>
+        <module>mysql</module>
+        <module>mysql8</module>
+        <module>quartz2</module>
+        <module>jdk-thread</module>
+        <module>okhttp3</module>
+        <module>okhttp32</module>
+        <module>jdk-httpclient</module>
+        <module>apache-httpclient</module>
+        <module>jedis</module>
+        <module>lettuce-5.x</module>
+        <module>mongodb</module>
+        <module>mongodb38</module>
+        <module>log4j2</module>
+        <module>logback</module>
+        <module>springweb</module>
+    </modules>
+
+    <dependencies>
+        <!-- Use to publish -->
+
+        <!-- Web Container-->
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-tomcat</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-undertow</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-jetty</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- JDK -->
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-jvm</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-jdk-thread</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- SQL -->
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-alibaba-druid</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-mysql</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-mysql8</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-quartz2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- HTTP Client -->
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-okhttp3</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-okhttp32</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-jdk-httpclient</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-apache-httpclient</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Redis -->
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-jedis</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-lettuce-5.x</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Log -->
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-logback</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-log4j2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>agent-plugin-springweb</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- end-->
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.5.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>agent-plugin</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>distribution.xml</descriptor>
+                    </descriptors>
+                    <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-distribution</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <move file="${project.build.directory}/${project.name}/"
+                                      tofile="../${project.distribution.dir}" overwrite="true"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

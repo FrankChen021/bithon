@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}">
+<head>
+    <title>Bithon</title>
+    <script th:src="@{/js/metric/jvm/dashboard-config.js}"></script>
+</head>
+<body>
+
+<div layout:fragment="content" id="dashboard">
+<script th:inline="javascript">
+/*<![CDATA[*/
+var appName = /*[[${appName}]]*/;
+/*]]>*/
+</script>
+
+<script>
+$(document).ready(function(){
+
+    var dashboard = new Dashboard('dashboard', appName, new SchemaApi());
+    dashboard.load(jvmDashboard);
+/*
+    var instanceInfo = new CardComponent('instanceInfo').header('<b>Instance Info</b>');
+    gCpuChart = new ChartComponent({containerId:'cpuChart'}).header('<b>CPU</b>');
+    gThreadsChart = new ChartComponent({containerId:'threadsChart'}).header('<b>Threads</b>');
+    gHeapMemChart = new ChartComponent({containerId:'heapMemChart'}).header('<b>Memory</b>');
+    var gcChart = new CardComponent('gcChart').header('<b>Garbage Collection</b>');
+    var threadChart = new CardComponent('threadChart').header('<b>Threads</b>');
+    refresh();*/
+});
+</script>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<assembly>
+    <id>bootstrap</id>
+
+    <formats>
+        <format>dir</format>
+    </formats>
+
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <dependencySets>
+        <dependencySet>
+            <includes>
+                <include>${project.parent.groupId}:agent-bootstrap</include>
+            </includes>
+            <outputDirectory>/</outputDirectory>
+            <outputFileNameMapping>agent-bootstrap.jar</outputFileNameMapping>
+        </dependencySet>
+
+        <dependencySet>
+            <excludes>
+                <exclude>${project.parent.groupId}:agent-bootstrap</exclude>
+                <exclude>org.slf4j:slf4j-api</exclude>
+            </excludes>
+            <outputDirectory>/lib</outputDirectory>
+        </dependencySet>
+    </dependencySets>
+
+    <fileSets>
+        <fileSet>
+            <directory>${project.build.outputDirectory}</directory>
+            <outputDirectory>/conf</outputDirectory>
+            <includes>
+                <include>*.yml</include>
+                <include>*.xml</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+
+</assembly>

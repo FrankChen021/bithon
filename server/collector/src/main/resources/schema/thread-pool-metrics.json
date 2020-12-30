@@ -1,0 +1,107 @@
+{
+  "displayText": "Thread Pool",
+  "name": "thread-pool-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application Name",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance Name",
+      "required": true
+    },
+    {
+      "name": "executorClass",
+      "displayText": "Executor Class",
+      "required": true
+    },
+    {
+      "name": "poolName",
+      "displayText": "Thread Pool Name",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "callerRunTaskCount",
+      "displayText": "Count of CallerRun",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "abortedTaskCount",
+      "displayText": "Count of Aborted",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "discardedTaskCount",
+      "displayText": "Count of Discarded",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "discardedOldestTaskCount",
+      "displayText": "discardedOldestTaskCount",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "exceptionTaskCount",
+      "displayText": "exceptionTaskCount",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "successfulTaskCount",
+      "displayText": "successfulTaskCount",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "totalTaskCount",
+      "displayText": "totalTaskCount",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "activeThreads",
+      "displayText": "activeThreads",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "currentPoolSize",
+      "displayText": "currentPoolSize",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "maxPoolSize",
+      "displayText": "maxPoolSize",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "largestPoolSize",
+      "displayText": "largestPoolSize",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "queuedTaskCount",
+      "displayText": "queuedTaskCount",
+      "unit": ""
+    }
+  ]
+}
+
+
+

@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}">
+<head>
+    <title>Bithon</title>
+    <script th:src="@{/js/metric/webrequest/dashboard-config.js}"></script>
+</head>
+<body>
+
+<div layout:fragment="content" id="dashboard">
+<script th:inline="javascript">
+/*<![CDATA[*/
+var appName = /*[[${appName}]]*/;
+/*]]>*/
+</script>
+
+<script>
+$(document).ready(function(){
+    var dashboard = new Dashboard('dashboard', appName, new SchemaApi());
+    dashboard.load(webRequestMetricsDashboard);
+});
+</script>
+
+</div>
+</body>
+</html>

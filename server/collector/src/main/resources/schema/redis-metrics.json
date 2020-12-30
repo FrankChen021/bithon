@@ -1,0 +1,72 @@
+{
+  "displayText": "Redis",
+  "name": "redis-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application Name",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance Name",
+      "required": true
+    },
+    {
+      "name": "uri",
+      "displayText": "Redis Server",
+      "required": true
+    },
+    {
+      "name": "command",
+      "displayText": "Redis Command",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "exceptionCount",
+      "displayText": "Exception Command",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "totalCount",
+      "displayText": "Total Commands",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "requestTime",
+      "displayText": "requestTime",
+      "unit": "Nano"
+    },
+    {
+      "type": "longSum",
+      "name": "responseTime",
+      "displayText": "responseTime",
+      "unit": "Nano"
+    },
+    {
+      "type": "longSum",
+      "name": "requestBytes",
+      "displayText": "Request Bytes",
+      "unit": "Byte"
+    },
+    {
+      "type": "longSum",
+      "name": "responseBytes",
+      "displayText": "Response Bytes",
+      "unit": "Byte"
+    }
+  ]
+}
+
+
+

@@ -1,0 +1,43 @@
+package com.sbss.bithon.agent.plugin.mysql.metrics;
+
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.plugin.mysql.Utils;
+
+import java.net.URISyntaxException;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+/**
+ * @author frankchen
+ */
+public class PreparedStatementInterceptor extends AbstractInterceptor {
+    private SqlMetricProvider counter;
+    private StatementCounterStorage sqlCounter;
+
+    @Override
+    public boolean initialize() {
+        counter = SqlMetricProvider.getInstance();
+        sqlCounter = StatementCounterStorage.getInstance();
+        return true;
+    }
+
+    @Override
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        try {
+            Statement statement = (Statement) aopContext.getTarget();
+            String connectionString = statement.getConnection().getMetaData().getURL();
+            aopContext.setUserContext(Utils.extractHostAndPort(connectionString));
+        } catch (URISyntaxException | SQLException ignored) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+        return InterceptionDecision.CONTINUE;
+    }
+
+    @Override
+    public void onMethodLeave(AopContext aopContext) {
+        counter.recordExecution(aopContext, (String) aopContext.getUserContext());
+        sqlCounter.sqlStats(aopContext, (String) aopContext.getUserContext());
+    }
+}

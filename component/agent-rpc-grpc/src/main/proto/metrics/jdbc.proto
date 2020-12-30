@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+import "metrics/instance.proto";
+
+package com.sbss.bithon.agent.grpc.metrics;
+
+option java_multiple_files = true;
+
+message JdbcMetrics {
+  Instance instance = 1;
+
+  // 活跃连接数
+  int64 activedCount = 2;
+  // 已使用连接数
+  int64 usedCount = 3;
+  // datasource uri
+  string uri = 4;
+  // 新建的连接数
+  int64 createCount = 5;
+  // 尝试关闭的连接数
+  int64 destroyCount = 6;
+  // 池中连接数
+  int64 poolingCount = 7;
+  // 池连接数峰值
+  int64 poolingPeak = 8;
+  // 活跃连接数峰值
+  int64 activePeak = 9;
+  // 逻辑新建连接数
+  int64 logicConnectCount = 10;
+  // 逻辑关闭连接数
+  int64 logicCloseCount = 11;
+  // 等待线程数
+  int64 waitThreadCount = 12;
+  // 物理连接新建失败数
+  int64 createErrorCount = 13;
+  // 执行次数
+  int64 executeCount = 14;
+  // commit次数
+  int64 commitCount = 15;
+  // 回滚次数
+  int64 rollbackCount = 16;
+  // preparedStatement缓存命中次数
+  int64 pstmtCacheHitCount = 17;
+  // preparedStatement缓存未命中次数
+  int64 pstmtCacheMissCount = 18;
+  // 启动事务数
+  int64 startTransactionCount = 19;
+  // sql状态详情统计
+  repeated JdbcSqlStatEntity sqlStats = 20;
+  // driverType分类
+  string driverType = 21;
+}
+
+message JdbcSqlStatEntity {
+  // 执行的sql语句
+  string sql = 1;
+  // sql调用次数
+  int64 executeCount = 2;
+  // sql调用错误次数
+  int64 executeErrorCount = 3;
+  // sql总执行时间
+  int64 totalTime = 4;
+  // sql最后执行时间
+  int64 lastTime = 5;
+  // sql单次执行时间峰值
+  int64 maxTimespan = 6;
+  // 总影响行数
+  int64 effectRowCount = 7;
+  // 总fetch行数
+  int64 fetchRowCount = 8;
+  // 批量执行最大数量
+  int64 batchSizeMax = 9;
+  // 批量执行总次数
+  int64 batchSizeTotal = 10;
+  // 最大并发数
+  int64 concurrentMax = 11;
+}

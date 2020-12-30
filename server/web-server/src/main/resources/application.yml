@@ -1,0 +1,20 @@
+server:
+    port: 9999
+spring:
+    application:
+        name: bithon-web-server
+    profiles:
+        active: dev
+    thymeleaf:
+        cache: false
+        prefix: classpath:/templates/
+        check-template-location: true
+        suffix: .html
+        encoding: UTF-8
+        servlet:
+            content-type: text/html
+        mode: HTML
+    devtools:
+        restart:
+            # 热部署开关
+            enabled: true

@@ -1,0 +1,192 @@
+syntax = "proto3";
+
+package com.sbss.bithon.agent.grpc.metrics;
+
+import "metrics/jdbc.proto";
+import "metrics/jvm.proto";
+import "metrics/webserver.proto";
+import "metrics/webrequest.proto";
+
+message RpcReply {
+
+}
+service IMetricsCollector {
+
+    rpc sendJvmMetrics(metrics.JvmMetrics) returns(RpcReply) {};
+
+    rpc sendJdbcMetrics(metrics.JdbcMetrics) returns(RpcReply) {};
+
+    rpc sendWebContainerMetrics(metrics.WebServerMetrics) returns(RpcReply) {};
+
+    rpc sendWebRequestMetrics(metrics.WebRequestMetrics) returns(RpcReply) {};
+//
+//    /**
+//    * 写入容器采集指标
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeServerInfo(1:required Entities.ServerInfoEntity serverInfoEntity);
+//
+//    /**
+//    * 写入请求采集指标
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeRequest(1:required Entities.RequestInfoEntity requestEntity);
+//
+//    /**
+//    * 写入数据库连接采集指标
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeJdbcConnection(1:required Entities.JdbcConnectionEntity jdbcEntity);
+//
+//    /**
+//    * 吸入SQL采集指标
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeSql(1:required Entities.SqlInfoEntity sqlEntity);
+//
+//    /**
+//    * 写入Quartz定时任务采集指标
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeQuartz(1:required Entities.QuartzEntity quartzEntity);
+//
+//    /**
+//    * 写入扩展采集指标
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeExtends(1:required Entities.ExtendEntity extendEntity);
+//
+//    /**
+//    * 写入服务调用Redis、MongoDB、Mysql采集指标
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeMiddlewareInfo(1:required Entities.MiddlewareEntity middlewareEntity);
+//
+//    /**
+//    * 写入Redis、MongoDB、Mysql集群采集指标
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeClusterInfo(1:required Entities.ClusterEntity clusterEntity);
+//
+//    /**
+//    * 写入Http采集指标
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeHttpInfo(1:required Entities.HttpEntity httpEntity);
+//
+//    /**
+//    * 写入Kafka采集指标
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeKafkaInfo(1:required Entities.KafkaEntity kafkaEntity);
+//
+//    /**
+//    * 写入Quartz Job&Trigger列表和执行日志
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeQuartzInfo(1:required Entities.QuartzInfoEntity quartzInfoEntity);
+//
+//    /**
+//    * 写入JVM明细和系统明细
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeDetail(1:required Entities.DetailEntity detailEntity);
+//
+//    /**
+//    * 写入应用调用Kafka信息
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeAppKafka(1:required Entities.AppKafkaEntity appKafkaEntity);
+//
+//    /**
+//    * 写入Zookeeper信息
+//    *
+//    * 返回数据格式：{"code": 200, "message": "success"}
+//    **/
+//    string writeZookeeperInfo(1:required Entities.ZookeeperEntity zookeeperEntity);
+//
+//    /**
+//    * 写入错误信息
+//    **/
+//    string writeFailureMessage(1:required Entities.FailureMessageEntity failureMessageEntity);
+//
+//    /**
+//    * 写入spring restful风格uri pattern
+//    **/
+//    string writeSpringRestfulUriPattern(1:required Entities.SpringRestfulUriPatternEntity springRestfulUriPatternEntity);
+//
+//    /**
+//    * 写入Channel指标
+//    **/
+//    string writeChannel(1:required Entities.ChannelEntity channelEntity);
+//
+//    /**
+//    * 服务器健康状况检查
+//    **/
+//    Entities.ResponseResultEntity ping();
+//
+//    /**
+//    * 写入Trace全链路数据
+//    **/
+//    Entities.ResponseResultEntity writeTrace(1:required list<string> traces);
+//
+//    /**
+//    * 写入Netty数据
+//    **/
+//    string writeNetty(1:required Entities.NettyEntity nettyEntity);
+//
+//    /**
+//    * 获取agent配置
+//    **/
+//    string getAgentConfig(1:required string appName);
+//
+//    /**
+//    * 写入业务自定义指标数据
+//    */
+//    string writeKMetrics(1:required Entities.KMetricsEntity kMetricsEntity);
+//
+//    /**
+//    * 写入Kafka Client指标数据
+//    */
+//    string writeKafkaClientMetrics(1:required Entities.KafkaClientEntity kafkaClientEntity);
+//
+//    /**
+//    * 写入Kafka Properties配置
+//    */
+//    string writeClientProperties(1:required Entities.ClientPropertiesEntity clientPropertiesEntity);
+//
+//    /*
+//     * 写入业务跟踪数据
+//     */
+//    string writeTraceLogs(1:required Entities.TraceLogEntities traces);
+}
+//
+//// The greeting service definition.
+//service ICollector {
+//  // Sends a greeting
+//  rpc send (JvmEntity) returns (HelloReply) {
+//  }
+//}
+//
+//// The request message containing the user's name.
+//message HelloRequest {
+//  string name = 1;
+//}
+//
+//// The response message containing the greetings
+//message HelloReply {
+//  string message = 1;
+//}

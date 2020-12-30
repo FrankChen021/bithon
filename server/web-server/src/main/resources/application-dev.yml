@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    druid:
+      biz-datasource:
+        url: jdbc:mysql://localhost:3306/bithon?useUnicode=true&useSSL=false&autoReconnect=TRUE
+        username: root
+        password:

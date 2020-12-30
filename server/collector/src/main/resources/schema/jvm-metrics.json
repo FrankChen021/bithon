@@ -1,0 +1,97 @@
+{
+  "displayText": "JVM",
+  "name": "jvm-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "field": "appName",
+      "name": "appName",
+      "displayText": "应用ID",
+      "required": true
+    },
+    {
+      "field": "instanceName",
+      "name": "instanceName",
+      "displayText": "实例ID",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "doubleSum",
+      "name": "processCpuLoad",
+      "displayText": "CPU负载",
+      "field": "processCpuLoad",
+      "unit": "%"
+    },
+    {
+      "type": "longSum",
+      "name": "instanceUpTime",
+      "displayText": "启动时间",
+      "field": "instanceUpTime",
+      "unit": "Milli Second"
+    },
+    {
+      "type": "longSum",
+      "name": "heap",
+      "displayText": "堆内存(-Xmx)",
+      "field": "heap",
+      "unit": "字节"
+    },
+    {
+      "type": "longSum",
+      "name": "heapInit",
+      "displayText": "堆内存(-Xms)",
+      "field": "heapInit",
+      "unit": "字节"
+    },
+    {
+      "type": "longSum",
+      "name": "heapUsed",
+      "displayText": "已用堆内存",
+      "field": "heapUsed",
+      "unit": "字节"
+    },
+    {
+      "type": "longSum",
+      "name": "heapCommitted",
+      "displayText": "可用堆内存",
+      "field": "heapCommitted",
+      "unit": "字节"
+    },
+    {
+      "type": "longSum",
+      "name": "peakThreads",
+      "displayText": "峰值线程数",
+      "field": "peakThreads",
+      "unit": "Count"
+    },
+    {
+      "type": "longSum",
+      "name": "daemonThreads",
+      "displayText": "守护线程",
+      "field": "peakThreads",
+      "unit": "Count"
+    },
+    {
+      "type": "longSum",
+      "name": "totalThreads",
+      "displayText": "总线程",
+      "field": "totalThreads",
+      "unit": "Count"
+    },
+    {
+      "type": "longSum",
+      "name": "activeThreads",
+      "displayText": "活动线程",
+      "field": "activeThreads",
+      "unit": "Count"
+    }
+  ]
+}
+
+
+

@@ -1,0 +1,82 @@
+{
+  "displayText": "Web Request",
+  "name": "web-request-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "field": "appName",
+      "name": "appName",
+      "displayText": "Application Name",
+      "required": true
+    },
+    {
+      "field": "instanceName",
+      "name": "instanceName",
+      "displayText": "Instance Name",
+      "required": true
+    },
+    {
+      "field": "uri",
+      "name": "uri",
+      "displayText": "Request URI",
+      "required": false
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "costTime",
+      "displayText": "Connection Count",
+      "field": "connectionCount",
+      "unit": "Nano Second"
+    },
+    {
+      "type": "longSum",
+      "name": "requestCount",
+      "displayText": "count of max connections",
+      "field": "requestCount",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "errorCount",
+      "displayText": "Active Threads",
+      "field": "errorCount",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "count4xx",
+      "displayText": "Max Threads",
+      "field": "count4xx",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "count5xx",
+      "displayText": "Max Threads",
+      "field": "count5xx",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "requestByteSize",
+      "displayText": "Bytes of Request",
+      "field": "requestByteSize",
+      "unit": "Byte"
+    },
+    {
+      "type": "longSum",
+      "name": "responseByteSize",
+      "displayText": "Bytes of Responses",
+      "field": "responseByteSize",
+      "unit": "Byte"
+    }
+  ]
+}
+
+
+

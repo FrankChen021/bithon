@@ -1,0 +1,88 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}">
+<head>
+    <title>Bithon</title>
+    <script th:src="@{/js/metric/webserver/component.js}"></script>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="row">
+        <div class="form-group col-md-12" id="cpuChart">
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+/*<![CDATA[*/
+var appName = /*[[${appName}]]*/;
+/*]]>*/
+
+
+    </script>
+
+    <script>
+
+var webserverCard;
+
+$(document).ready(function(){
+
+    webserverCard = new ChartComponent({containerId:'cpuChart'}).header('<b>Web Server</b>');
+
+    refresh();
+});
+
+function refresh() {
+    if ( this._interval == null ) {
+        this._interval = setInterval(()=>{refresh();}, 10*1000);
+    }
+    console.log('===Refreshing===');
+
+    webserverCard.showLoading();
+
+    $.ajax({
+        type: 'POST',
+        url: apiHost + "/api/datasource/sql",
+        data: JSON.stringify({
+            dataSource: 'web-server-metrics',
+            sql: 'SELECT "appName", \"timestamp\"' +
+                 ' ,"connectionCount" ' +
+                 ' ,"activeThreads" ' +
+                 ' FROM "web-server-metrics" WHERE "timestamp" >= \'' + moment().utc().subtract(10, 'minute').local().toISOString() + '\' AND "timestamp" < \'' + moment().utc().local().toISOString() +
+                 '\' AND "appName" = \'' + appName + '\''
+        }),
+        async: true,
+        dataType: "json",
+        contentType: "application/json",
+        success: (data) => {
+
+            var timeLabels = data.map(d=> {
+                    var text = moment(d.timestamp)
+                                .local()
+                                .format('HH:mm:ss');
+                    return text;});
+
+            optionOfWebServer.xAxis.data = timeLabels;
+            optionOfWebServer.series[0].data = data.map(d=>d.activeThreads.toFixed(2));
+            optionOfWebServer.series[1].data = data.map(d=>d.connectionCount.toFixed(2));
+            webserverCard.hideLoading();
+            webserverCard.setChartOption(optionOfWebServer);
+        },
+        error: (data) => {
+            webserverCard.showLoading('default', {
+                text:data.responseText,
+                showSpinner:false,
+                textColor: 'red'
+            });
+        }
+    });
+}
+
+
+    </script>
+
+</div>
+</body>
+</html>

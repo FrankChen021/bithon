@@ -1,0 +1,177 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}">
+<head>
+    <title>Bithon</title>
+    <script th:src="@{/js/metric/httpclient/component.js}"></script>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="row">
+        <div class="form-group col-md-12" id="httpClientRequests">
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-md-12" id="httpClientError">
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-md-12" id="httpClientIO">
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+/*<![CDATA[*/
+var appName = /*[[${appName}]]*/;
+/*]]>*/
+
+
+    </script>
+
+    <script>
+
+var httpClientRequestCard;
+var httpClientErrorCard;
+var httpClientIoCard;
+
+$(document).ready(function(){
+
+    httpClientRequestCard = new ChartComponent({containerId:'httpClientRequests'}).header('<b>Http Requests</b>');
+    httpClientErrorCard = new ChartComponent({containerId:'httpClientError'}).header('<b>Http Request Error</b>');
+    httpClientIoCard = new ChartComponent({containerId:'httpClientIO'}).header('<b>Http Request IO</b>');
+
+    refresh();
+});
+
+function refresh() {
+    if ( this._interval == null ) {
+        this._interval = setInterval(()=>{refresh();}, 10*1000);
+    }
+    console.log('===Refreshing===');
+
+    httpClientRequestCard.showLoading();
+
+    $.ajax({
+        type: 'POST',
+        url: apiHost + "/api/datasource/sql",
+        data: JSON.stringify({
+            dataSource: 'http-client-metrics',
+            sql: 'SELECT "timestamp"' +
+                 ' ,sum("requestCount") "requestCount" ' +
+                 ' , avg("costTime")/sum("requestCount")/1000/1000 "costTime" ' +
+                 ' FROM "http-client-metrics" WHERE "timestamp" >= \'' + moment().utc().subtract(10, 'minute').local().toISOString() + '\' AND "timestamp" < \'' + moment().utc().local().toISOString() +
+                 '\' AND "appName" = \'' + appName + '\'' +
+                 ' GROUP BY "timestamp"'
+        }),
+        async: true,
+        dataType: "json",
+        contentType: "application/json",
+        success: (data) => {
+
+            var timeLabels = data.map(d=> {
+                    var text = moment(d.timestamp)
+                                .local()
+                                .format('HH:mm:ss');
+                    return text;});
+
+            httpClientRequestsOption.xAxis.data = timeLabels;
+            httpClientRequestsOption.series[0].data = data.map(d=>d.requestCount);
+            httpClientRequestsOption.series[1].data = data.map(d=>d.costTime.toFixed(2));
+            httpClientRequestCard.hideLoading();
+            httpClientRequestCard.setChartOption(httpClientRequestsOption);
+        },
+        error: (data) => {
+            httpClientRequestCard.showLoading('default', {
+                text:data.responseText,
+                showSpinner:false,
+                textColor: 'red'
+            });
+        }
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: apiHost + "/api/datasource/sql",
+        data: JSON.stringify({
+            dataSource: 'http-client-metrics',
+            sql: 'SELECT "timestamp"' +
+                 ' ,sum("count4xx") "count4xx" ' +
+                 ' ,sum("count5xx") "count5xx" ' +
+                 ' ,sum("countException") "countException" ' +
+                 ' FROM "http-client-metrics" WHERE "timestamp" >= \'' + moment().utc().subtract(10, 'minute').local().toISOString() + '\' AND "timestamp" < \'' + moment().utc().local().toISOString() +
+                 '\' AND "appName" = \'' + appName + '\'' +
+                 ' GROUP BY "timestamp"'
+        }),
+        async: true,
+        dataType: "json",
+        contentType: "application/json",
+        success: (data) => {
+
+            var timeLabels = data.map(d=> {
+                    var text = moment(d.timestamp)
+                                .local()
+                                .format('HH:mm:ss');
+                    return text;});
+
+            httpClientErrorOption.xAxis.data = timeLabels;
+            httpClientErrorOption.series[0].data = data.map(d=>d.count4xx);
+            httpClientErrorOption.series[1].data = data.map(d=>d.count5xx);
+            httpClientErrorOption.series[2].data = data.map(d=>d.countException);
+            httpClientErrorCard.hideLoading();
+            httpClientErrorCard.setChartOption(httpClientErrorOption);
+        },
+        error: (data) => {
+            httpClientErrorOption.showLoading('default', {
+                text:data.responseText,
+                showSpinner:false,
+                textColor: 'red'
+            });
+        }
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: apiHost + "/api/datasource/sql",
+        data: JSON.stringify({
+            dataSource: 'http-client-metrics',
+            sql: 'SELECT "timestamp"' +
+                 ' ,sum("requestBytes") "requestBytes" ' +
+                 ' ,sum("responseBytes") "responseBytes" ' +
+                 ' FROM "http-client-metrics" WHERE "timestamp" >= \'' + moment().utc().subtract(10, 'minute').local().toISOString() + '\' AND "timestamp" < \'' + moment().utc().local().toISOString() +
+                 '\' AND "appName" = \'' + appName + '\'' +
+                 ' GROUP BY "timestamp"'
+        }),
+        async: true,
+        dataType: "json",
+        contentType: "application/json",
+        success: (data) => {
+
+            var timeLabels = data.map(d=> {
+                    var text = moment(d.timestamp)
+                                .local()
+                                .format('HH:mm:ss');
+                    return text;});
+
+            httpClientIoOption.xAxis.data = timeLabels;
+            httpClientIoOption.series[0].data = data.map(d=>d.requestBytes);
+            httpClientIoOption.series[1].data = data.map(d=>d.responseBytes);
+            httpClientIoCard.hideLoading();
+            httpClientIoCard.setChartOption(httpClientIoOption);
+        },
+        error: (data) => {
+            httpClientIoCard.showLoading('default', {
+                text:data.responseText,
+                showSpinner:false,
+                textColor: 'red'
+            });
+        }
+    });
+}
+    </script>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,7 @@
+server:
+    port: 9900
+spring:
+    application:
+        name: bithon-alerting-server
+    profiles:
+        active: dev

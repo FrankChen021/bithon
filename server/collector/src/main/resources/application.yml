@@ -1,0 +1,16 @@
+server:
+    port: 9897
+spring:
+    application:
+        name: collector-server
+    profiles:
+        active: dev
+service:
+    port:
+        trace:   9895
+        events:  9896
+        metrics: 9898
+        setting: 9899
+logging:
+    level:
+        com.sbss.bithon.collector: debug

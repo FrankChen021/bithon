@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+import "metrics/instance.proto";
+
+package com.sbss.bithon.agent.grpc.metrics;
+
+option java_multiple_files = true;
+
+message JvmMetrics {
+  Instance instance = 1;
+  TimeMetrics timeMetrics = 2;
+  CpuMetrics cpuMetrics = 3;
+  MemoryMetrics memoryMetrics = 4;
+  repeated GcMetrics gcMetrics = 5;
+  ThreadMetrics threadMetrics = 6;
+  ClassMetrics classMetrics = 7;
+}
+
+message TimeMetrics {
+  // when the process starts in Unix epoch
+  int64 startAt = 1;
+
+  // instance up time from start
+  int64 upTime = 2;
+}
+
+message CpuMetrics {
+  // how many processors
+  int32 processors = 1;
+  double systemLoadAverage = 2;
+  int64 processCpuNanoTime = 3;
+  double processCpuLoadRatio = 4;
+}
+
+message MemoryMetrics {
+  int64 totalAllocationBytes = 1;
+  int64 freeBytes = 2;
+
+  // 约等于-Xmx的值（单位：字节）
+  int64 heapBytes = 3;
+  // 约等于-Xms的值（单位：字节）
+  int64 heapInitBytes = 4;
+  // 已经被使用的内存大小（单位：字节）
+  int64 heapUsedBytes = 5;
+  // 当前可使用的内存大小，包括used（单位：字节）
+  int64 heapCommittedBytes = 6;
+
+  // 约等于XX:MaxPermSize的值（单位：字节）
+  int64 nonHeapBytes = 7;
+  // 约等于-XX:PermSize的值（单位：字节）
+  int64 nonHeapInitBytes = 8;
+  // 已经被使用的内存大小（单位：字节）
+  int64 nonHeapUsedBytes = 9;
+  // 当前可使用的内存大小，包括used（单位：字节）
+  int64 nonHeapCommittedBytes = 10;
+
+  // metaspace已分配的内存大小（单位：字节）
+  int64 metaspaceCommitted = 11;
+  // metaspace已使用的内存大小（单位：字节）
+  int64 metaspaceUsed = 12;
+}
+
+message GcMetrics {
+  string gcName = 1;
+  enum Generation {
+    YOUNG = 0;
+    OLD = 1;
+  }
+  Generation generation = 2;
+  int64 count = 3;
+  int64 time = 4;
+}
+
+message ThreadMetrics {
+  // 从JVM启动或峰值重置以来峰值活动线程计数
+  int64 peakCount = 1;
+  // 活动守护线程的当前数目
+  int64 daemonCount = 2;
+  // 从JVM启动以来创建和启动的线程总数目
+  int64 totalStartedCount = 3;
+  // 活动线程的当前数目，包括守护线程和非守护线程
+  int64 activeCount = 4;
+}
+
+message ClassMetrics {
+  // 当前加载到JVM中的类的数量
+  int64 classes = 1;
+  // 自JVM开始执行到目前已经加载的类的总数
+  int64 loaded = 2;
+  // 自JVM开始执行到目前已经卸载的类的总数
+  int64 unloaded = 3;
+}
+
