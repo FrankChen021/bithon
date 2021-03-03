@@ -2,6 +2,9 @@ package com.sbss.bithon.agent.core.config;
 
 import java.util.List;
 
+/**
+ * @author frankchen
+ */
 public class BootstrapConfig {
 
     private String env;
@@ -25,7 +28,6 @@ public class BootstrapConfig {
     public void setAppLogs(List<String> appLogs) {
         this.appLogs = appLogs;
     }
-
 
     public String getEnv() {
         return env;

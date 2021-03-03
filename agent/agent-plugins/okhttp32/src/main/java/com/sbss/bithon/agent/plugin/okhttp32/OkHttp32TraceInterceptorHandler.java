@@ -1,11 +1,11 @@
 //package com.sbss.apm.javaagent.plugin.okhttp32;
 //
-//import com.keruyun.SpanScopeHolder;
-//import com.keruyun.TraceHolder;
-//import com.keruyun.TracingHolder;
+//import com.sbss.SpanScopeHolder;
+//import com.sbss.TraceHolder;
+//import com.sbss.TracingHolder;
 //import com.sbs.apm.javaagent.core.interceptor.EventCallback;
-//import com.sbs.apm.javaagent.core.model.aop.AfterJoinPoint;
-//import com.sbs.apm.javaagent.core.model.aop.BeforeJoinPoint;
+//import com.sbs.apm.javaagent.core.model.aop.AopContext;
+//import com.sbs.apm.javaagent.core.model.aop.AopContext;
 //
 //import brave.Span;
 //import brave.Tracer;
@@ -16,9 +16,6 @@
 //import shaded.org.slf4j.Logger;
 //import shaded.org.slf4j.LoggerFactory;
 //
-///**
-// * Created by shiweilu on 2018/7/17.
-// */
 //public class OkHttp32TraceInterceptorHandler extends EventCallback {
 //    private static final Logger log = LoggerFactory.getLogger(OkHttp32TraceInterceptorHandler.class);
 //    private static final String KEY = "okhttp";
@@ -27,7 +24,7 @@
 //        return true;
 //    }
 //    @Override
-//    protected void before(BeforeJoinPoint joinPoint) {
+//    protected void before(AopContext joinPoint) {
 //        Tracer trace = null;
 //        Tracer.SpanInScope scope = null;
 //        try{
@@ -72,7 +69,7 @@
 //    }
 //
 //    @Override
-//    protected void after(AfterJoinPoint joinPoint) {
+//    protected void after(AopContext joinPoint) {
 //        Tracer trace = null;
 //        try{
 //            trace = TraceHolder.get();

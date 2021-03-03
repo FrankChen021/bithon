@@ -2,5 +2,10 @@
 /**/target/
 /.idea/
 **/*.iml
+/**/.settings/
+/**/.classpath
+/**/.project
+/**/.sts4-cache/
 
 
+/server/web-server/src/main/resources/static/bower_components/

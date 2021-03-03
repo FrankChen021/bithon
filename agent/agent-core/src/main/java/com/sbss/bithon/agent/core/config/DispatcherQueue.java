@@ -1,5 +1,8 @@
 package com.sbss.bithon.agent.core.config;
 
+/**
+ * @author frankchen
+ */
 public class DispatcherQueue {
 
     private int validityPeriod;

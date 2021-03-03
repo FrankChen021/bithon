@@ -1,37 +1,39 @@
 package com.sbss.bithon.agent.plugin.logback;
 
-import com.sbss.bithon.agent.core.interceptor.AbstractMethodIntercepted;
-import com.sbss.bithon.agent.core.interceptor.AfterJoinPoint;
-import com.sbss.bithon.agent.dispatcher.metrics.counter.AgentCounterRepository;
-import com.sbss.bithon.agent.dispatcher.metrics.counter.IAgentCounter;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.IThrowableProxy;
+import com.sbss.bithon.agent.core.context.InterceptorContext;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
 
 /**
- * Description : logback handler, intercept log action <br>
- * Date: 18/4/13
- *
- * @author 马至远
+ * @author frankchen
  */
-public class LogbackHandler extends AbstractMethodIntercepted {
-    private static final String LOGBACK_PLUGIN = "logback";
-
-    /**
-     * 数据记录器, 用于统计数据
-     */
-    private IAgentCounter counter;
+public class LogbackHandler extends AbstractInterceptor {
+    private LogMetricProvider counter;
 
     @Override
-    public boolean init() throws Exception {
-        // 获取CounterRepository 实例
-        AgentCounterRepository counterRepository = AgentCounterRepository.getInstance();
-
-        // 向counterRepository注册, 开始统计request信息
-        counter = new LogCounter();
-        counterRepository.register(LOGBACK_PLUGIN, counter);
+    public boolean initialize() throws Exception {
+        counter = (LogMetricProvider)
+            MetricProviderManager.getInstance().register("logback", new LogMetricProvider());
         return true;
     }
 
     @Override
-    protected void after(AfterJoinPoint joinPoint) {
-        counter.add(joinPoint);
+    public void onMethodLeave(AopContext context) {
+        ILoggingEvent iLoggingEvent = (ILoggingEvent) context.getArgs()[0];
+        if (iLoggingEvent.getLevel().toInt() != Level.ERROR.toInt()) {
+            return;
+        }
+        IThrowableProxy exception = iLoggingEvent.getThrowableProxy();
+        if (null != exception) {
+            counter.addException((String) InterceptorContext.get("uri"),
+                                 exception);
+            //this.addTrace(exception.getMessage());
+        } else if (iLoggingEvent.getMessage() != null) {
+            //this.addTrace(iLoggingEvent.getMessage());
+        }
     }
 }

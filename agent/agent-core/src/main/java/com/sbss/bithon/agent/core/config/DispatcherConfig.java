@@ -1,12 +1,17 @@
 package com.sbss.bithon.agent.core.config;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+/**
+ * @author frankchen
+ */
 public class DispatcherConfig {
 
+    private Map<String, Boolean> messageDebug = new HashMap<>();
     private DispatcherQueue queue;
 
-    private List<DispatcherServer> servers;
+    private String servers;
 
     private DispatcherClient client;
 
@@ -18,11 +23,11 @@ public class DispatcherConfig {
         this.queue = queue;
     }
 
-    public List<DispatcherServer> getServers() {
+    public String getServers() {
         return servers;
     }
 
-    public void setServers(List<DispatcherServer> servers) {
+    public void setServers(String servers) {
         this.servers = servers;
     }
 
@@ -32,5 +37,13 @@ public class DispatcherConfig {
 
     public void setClient(DispatcherClient client) {
         this.client = client;
+    }
+
+    public Map<String, Boolean> getMessageDebug() {
+        return messageDebug;
+    }
+
+    public void setMessageDebug(Map<String, Boolean> messageDebug) {
+        this.messageDebug = messageDebug;
     }
 }
