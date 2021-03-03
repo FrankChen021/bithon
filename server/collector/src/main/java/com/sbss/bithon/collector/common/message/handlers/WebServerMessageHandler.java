@@ -1,14 +1,11 @@
 package com.sbss.bithon.collector.common.message.handlers;
 
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage;
-import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
-import com.sbss.bithon.collector.datasource.input.InputRow;
-import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
-import com.sbss.bithon.collector.datasource.storage.IMetricWriter;
-import com.sbss.bithon.collector.meta.IMetaStorage;
-import com.sbss.bithon.collector.meta.MetadataType;
 import com.sbss.bithon.collector.common.utils.ReflectionUtils;
 import com.sbss.bithon.collector.common.utils.datetime.DateTimeUtils;
+import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
+import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
+import com.sbss.bithon.collector.meta.IMetaStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -23,37 +20,48 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class WebServerMessageHandler extends AbstractThreadPoolMessageHandler<WebServerMessage> {
-
-    private final IMetaStorage metaStorage;
-    private final IMetricWriter metricWriter;
+public class WebServerMessageHandler extends AbstractMetricMessageHandler<WebServerMessage> {
 
     public WebServerMessageHandler(IMetaStorage metaStorage,
-                                   DataSourceSchemaManager dataSourceSchemaManager,
-                                   IMetricStorage metricStorage) throws IOException {
-        super(5, 10, Duration.ofMinutes(1), 1024);
-        this.metaStorage = metaStorage;
-        this.metricWriter = metricStorage.createMetricWriter(dataSourceSchemaManager.loadFromResource("web-server-metrics"));
+                                   IMetricStorage metricStorage,
+                                   DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("web-server-metrics",
+              metaStorage,
+              metricStorage,
+              dataSourceSchemaManager,
+              5,
+              10,
+              Duration.ofMinutes(1),
+              1024);
     }
 
     @Override
-    protected void onMessage(WebServerMessage message) throws IOException {
+    SizedIterator toIterator(WebServerMessage message) {
         String appName = message.getAppName() + "-" + message.getEnv();
         String instanceName = message.getHostName() + ":" + message.getPort();
 
-        long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
-        long instanceId = metaStorage.getOrCreateMetadataId(instanceName, MetadataType.INSTANCE, appId);
+        return new SizedIterator() {
+            @Override
+            public int size() {
+                return 1;
+            }
 
-        Map<String, Object> metrics = new HashMap<>();
-        metrics.put("appId", appId);
-        metrics.put("appName", appName);
-        metrics.put("instanceId", instanceId);
-        metrics.put("instanceName", instanceName);
-        metrics.put("interval", message.getInterval());
-        metrics.put("timestamp", DateTimeUtils.dropMilliseconds(message.getTimestamp()));
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
 
-        ReflectionUtils.getFields(message.getServerEntity(), metrics);
+            @Override
+            public Map<String, Object> next() {
+                Map<String, Object> metrics = new HashMap<>();
+                metrics.put("appName", appName);
+                metrics.put("instanceName", instanceName);
+                metrics.put("interval", message.getInterval());
+                metrics.put("timestamp", DateTimeUtils.dropMilliseconds(message.getTimestamp()));
 
-        this.metricWriter.write(new InputRow(metrics));
+                ReflectionUtils.getFields(message.getServerEntity(), metrics);
+                return metrics;
+            }
+        };
     }
 }

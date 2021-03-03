@@ -6,7 +6,7 @@ import com.sbss.bithon.collector.datasource.storage.jdbc.MetricsJdbcStorage;
 import com.sbss.bithon.collector.events.storage.IEventStorage;
 import com.sbss.bithon.collector.events.storage.jdbc.EventJdbcStorage;
 import com.sbss.bithon.collector.meta.IMetaStorage;
-import com.sbss.bithon.collector.meta.builtin.BuiltinMetaStorage;
+import com.sbss.bithon.collector.meta.jdbc.MetadataJdbcStorage;
 import com.sbss.bithon.collector.tracing.storage.ITraceStorage;
 import com.sbss.bithon.collector.tracing.storage.jdbc.TraceJdbcStorage;
 import org.jooq.DSLContext;
@@ -26,7 +26,7 @@ public class StorageConfig {
 
     @Bean
     public IMetaStorage metaStorage(DSLContext dslContext) {
-        return new BuiltinMetaStorage();
+        return new MetadataJdbcStorage(dslContext);
     }
 
     @Bean

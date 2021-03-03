@@ -51,14 +51,6 @@ public class DataSourceSchemaManager {
     }
 
     public DataSourceSchema getDataSourceSchema(String name) {
-        return schemas.get(name);
-    }
-
-    public Map<String, DataSourceSchema> getDataSources() {
-        return new HashMap<>(schemas);
-    }
-
-    public DataSourceSchema loadFromResource(String name) {
         DataSourceSchema schema = schemas.get(name);
         if (schema != null) {
             return schema;
@@ -74,6 +66,10 @@ public class DataSourceSchemaManager {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Map<String, DataSourceSchema> getDataSources() {
+        return new HashMap<>(schemas);
     }
 
     public void addListener(IDataSourceSchemaListener listener) {

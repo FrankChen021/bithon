@@ -1,15 +1,12 @@
 package com.sbss.bithon.collector.common.message.handlers;
 
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage;
-import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
-import com.sbss.bithon.collector.datasource.input.InputRow;
-import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
-import com.sbss.bithon.collector.datasource.storage.IMetricWriter;
-import com.sbss.bithon.collector.meta.IMetaStorage;
-import com.sbss.bithon.collector.meta.MetadataType;
 import com.sbss.bithon.collector.common.service.UriNormalizer;
 import com.sbss.bithon.collector.common.utils.ReflectionUtils;
 import com.sbss.bithon.collector.common.utils.datetime.DateTimeUtils;
+import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
+import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
+import com.sbss.bithon.collector.meta.IMetaStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -23,50 +20,59 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class WebRequestMessageHandler extends AbstractThreadPoolMessageHandler<WebRequestMessage> {
+public class WebRequestMessageHandler extends AbstractMetricMessageHandler<WebRequestMessage> {
 
     private final UriNormalizer uriNormalizer;
-    private final IMetaStorage metaStorage;
-    private final IMetricWriter metricWriter;
 
     public WebRequestMessageHandler(UriNormalizer uriNormalizer,
                                     IMetaStorage metaStorage,
-                                    DataSourceSchemaManager dataSourceSchemaManager,
-                                    IMetricStorage metricStorage) throws IOException {
-        super(2, 20, Duration.ofSeconds(60), 4096);
+                                    IMetricStorage metricStorage,
+                                    DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("web-request-metrics",
+              metaStorage,
+              metricStorage,
+              dataSourceSchemaManager,
+              2, 20, Duration.ofSeconds(60), 4096);
         this.uriNormalizer = uriNormalizer;
-        this.metaStorage = metaStorage;
-        this.metricWriter = metricStorage.createMetricWriter(dataSourceSchemaManager.loadFromResource("web-request-metrics"));
     }
 
     @Override
-    protected void onMessage(WebRequestMessage message) throws IOException {
-        if ( message.getRequestEntity().getRequestCount() <= 0 ) {
-            return;
+    SizedIterator toIterator(WebRequestMessage message) {
+        if (message.getRequestEntity().getRequestCount() <= 0) {
+            return null;
         }
-
-        Map<String, Object> metrics = ReflectionUtils.getFields(message.getRequestEntity());
 
         String appName = message.getAppName() + "-" + message.getEnv();
         String instanceName = message.getHostName() + ":" + message.getPort();
 
-        UriNormalizer.NormalizedResult result = uriNormalizer.normalize(message.getAppName(), message.getRequestEntity().getUri());
-        if (result.getUri() == null) {
-            return;
-        }
-        long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0);
-        long instanceId = metaStorage.getOrCreateMetadataId(instanceName, MetadataType.INSTANCE, appId);
-        long uriId = metaStorage.getOrCreateMetadataId(result.getUri(), MetadataType.URI, appId);
+        return new SizedIterator() {
+            @Override
+            public int size() {
+                return 1;
+            }
 
-        metrics.put("appId", appId);
-        metrics.put("appName", appName);
-        metrics.put("instanceId", instanceId);
-        metrics.put("instanceName", instanceName);
-        metrics.put("interval", message.getInterval());
-        metrics.put("timestamp", DateTimeUtils.dropMilliseconds(message.getTimestamp()));
-        metrics.put("uriId", uriId);
-        metrics.put("uri", result.getUri());
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
 
-        this.metricWriter.write(new InputRow(metrics));
+            @Override
+            public Map<String, Object> next() {
+                UriNormalizer.NormalizedResult result = uriNormalizer.normalize(message.getAppName(), message.getRequestEntity().getUri());
+                if (result.getUri() == null) {
+                    return null;
+                }
+
+                Map<String, Object> metrics = ReflectionUtils.getFields(message.getRequestEntity());
+
+                metrics.put("appName", appName);
+                metrics.put("instanceName", instanceName);
+                metrics.put("interval", message.getInterval());
+                metrics.put("timestamp", DateTimeUtils.dropMilliseconds(message.getTimestamp()));
+                metrics.put("uri", result.getUri());
+
+                return metrics;
+            }
+        };
     }
 }

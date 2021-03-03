@@ -5,11 +5,8 @@ import com.sbss.bithon.collector.common.service.UriNormalizer;
 import com.sbss.bithon.collector.common.utils.ReflectionUtils;
 import com.sbss.bithon.collector.common.utils.datetime.DateTimeUtils;
 import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
-import com.sbss.bithon.collector.datasource.input.InputRow;
 import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
-import com.sbss.bithon.collector.datasource.storage.IMetricWriter;
 import com.sbss.bithon.collector.meta.IMetaStorage;
-import com.sbss.bithon.collector.meta.MetadataType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -23,50 +20,60 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class HttpClientMessageHandler extends AbstractThreadPoolMessageHandler<HttpClientMessage> {
+public class HttpClientMessageHandler extends AbstractMetricMessageHandler<HttpClientMessage> {
 
     private final UriNormalizer uriNormalizer;
-    private final IMetaStorage metaStorage;
-    private final IMetricWriter metricWriter;
 
     public HttpClientMessageHandler(UriNormalizer uriNormalizer,
                                     IMetaStorage metaStorage,
-                                    DataSourceSchemaManager dataSourceSchemaManager,
-                                    IMetricStorage metricStorage) throws IOException {
-        super(2, 20, Duration.ofSeconds(60), 4096);
+                                    IMetricStorage metricStorage,
+                                    DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("http-client-metrics",
+              metaStorage,
+              metricStorage,
+              dataSourceSchemaManager,
+              2,
+              20,
+              Duration.ofSeconds(60), 4096);
         this.uriNormalizer = uriNormalizer;
-        this.metaStorage = metaStorage;
-        this.metricWriter = metricStorage.createMetricWriter(dataSourceSchemaManager.loadFromResource("http-client-metrics"));
     }
 
     @Override
-    protected void onMessage(HttpClientMessage message) throws IOException {
+    SizedIterator toIterator(HttpClientMessage message) {
         if (message.getHttpClient().getRequestCount() <= 0) {
-            return;
+            return null;
         }
-
-        Map<String, Object> metrics = ReflectionUtils.getFields(message.getHttpClient());
 
         String appName = message.getAppName() + "-" + message.getEnv();
         String instanceName = message.getHostName() + ":" + message.getPort();
 
-        UriNormalizer.NormalizedResult result = uriNormalizer.normalize(message.getAppName(), message.getHttpClient().getUri());
-        if (result.getUri() == null) {
-            return;
-        }
-        long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0);
-        long instanceId = metaStorage.getOrCreateMetadataId(instanceName, MetadataType.INSTANCE, appId);
-        long uriId = metaStorage.getOrCreateMetadataId(result.getUri(), MetadataType.URI, appId);
+        return new SizedIterator() {
+            @Override
+            public int size() {
+                return 1;
+            }
 
-        metrics.put("appId", appId);
-        metrics.put("appName", appName);
-        metrics.put("instanceId", instanceId);
-        metrics.put("instanceName", instanceName);
-        metrics.put("interval", message.getInterval());
-        metrics.put("timestamp", DateTimeUtils.dropMilliseconds(message.getTimestamp()));
-        metrics.put("uriId", uriId);
-        metrics.put("uri", result.getUri());
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
 
-        this.metricWriter.write(new InputRow(metrics));
+            @Override
+            public Map<String, Object> next() {
+                Map<String, Object> metrics = ReflectionUtils.getFields(message.getHttpClient());
+
+                UriNormalizer.NormalizedResult result = uriNormalizer.normalize(message.getAppName(), message.getHttpClient().getUri());
+                if (result.getUri() == null) {
+                    return null;
+                }
+
+                metrics.put("appName", appName);
+                metrics.put("instanceName", instanceName);
+                metrics.put("interval", message.getInterval());
+                metrics.put("timestamp", DateTimeUtils.dropMilliseconds(message.getTimestamp()));
+                metrics.put("uri", result.getUri());
+                return metrics;
+            }
+        };
     }
 }

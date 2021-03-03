@@ -12,4 +12,8 @@ public interface IMetaStorage {
     long getOrCreateMetadataId(String name, MetadataType type, long parent);
 
     Collection<Metadata> getMetadataByType(MetadataType type);
+
+    void saveMetricDimension(String dataSource,
+                             String dimensionName,
+                             String dimensionValue, long timestamp);
 }

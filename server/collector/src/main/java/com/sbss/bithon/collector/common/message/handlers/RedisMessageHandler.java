@@ -5,17 +5,15 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage;
 import com.sbss.bithon.collector.common.utils.ReflectionUtils;
 import com.sbss.bithon.collector.common.utils.datetime.DateTimeUtils;
 import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
-import com.sbss.bithon.collector.datasource.input.InputRow;
 import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
-import com.sbss.bithon.collector.datasource.storage.IMetricWriter;
 import com.sbss.bithon.collector.meta.IMetaStorage;
-import com.sbss.bithon.collector.meta.MetadataType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -24,46 +22,51 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class RedisMessageHandler extends AbstractThreadPoolMessageHandler<RedisMessage> {
-
-    private final IMetaStorage metaStorage;
-    private final IMetricWriter metricStorageWriter;
+public class RedisMessageHandler extends AbstractMetricMessageHandler<RedisMessage> {
 
     public RedisMessageHandler(IMetaStorage metaStorage,
-                               DataSourceSchemaManager dataSourceSchemaManager,
-                               IMetricStorage storage) throws IOException {
-        super(2, 20, Duration.ofSeconds(60), 4096);
-
-        this.metaStorage = metaStorage;
-        this.metricStorageWriter = storage.createMetricWriter(dataSourceSchemaManager.loadFromResource("redis-metrics"));
+                               IMetricStorage metricStorage,
+                               DataSourceSchemaManager dataSourceSchemaManager
+    ) throws IOException {
+        super("redis-metrics",
+              metaStorage,
+              metricStorage,
+              dataSourceSchemaManager,
+              2,
+              20,
+              Duration.ofSeconds(60),
+              4096);
     }
 
     @Override
-    protected void onMessage(RedisMessage message) throws IOException {
+    SizedIterator toIterator(RedisMessage message) {
         String appName = message.getAppName() + "-" + message.getEnv();
         String instanceName = message.getHostName() + ":" + message.getPort();
 
-        long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
-        long instanceId = metaStorage.getOrCreateMetadataId(instanceName, MetadataType.INSTANCE, appId);
+        Iterator<RedisEntity> delegate = message.getRedisListIterator();
+        return delegate == null ? null : new SizedIterator() {
+            @Override
+            public int size() {
+                return message.getRedisList().size();
+            }
 
-        for (RedisEntity redisEntity : message.getRedisList()) {
-            this.execute(() -> {
+            @Override
+            public boolean hasNext() {
+                return delegate.hasNext();
+            }
+
+            @Override
+            public Map<String, Object> next() {
                 Map<String, Object> metrics = new HashMap<>();
                 metrics.put("appName", appName);
                 metrics.put("instanceName", instanceName);
-                metrics.put("appId", appId);
-                metrics.put("instanceId", instanceId);
                 metrics.put("interval", message.getInterval());
                 metrics.put("timestamp", DateTimeUtils.dropMilliseconds(message.getTimestamp()));
 
-                ReflectionUtils.getFields(redisEntity, metrics);
+                ReflectionUtils.getFields(delegate.next(), metrics);
 
-                try {
-                    this.metricStorageWriter.write(new InputRow(metrics));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
+                return metrics;
+            }
+        };
     }
 }

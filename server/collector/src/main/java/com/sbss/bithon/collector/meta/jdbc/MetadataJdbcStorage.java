@@ -25,10 +25,6 @@ public class MetadataJdbcStorage implements IMetaStorage {
         metaCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build();
     }
 
-    public long getOrCreateApplicationId(String name) {
-        return getOrCreateMetadataId(name, MetadataType.APPLICATION, 0L);
-    }
-
     @Override
     public long getOrCreateMetadataId(String name, MetadataType type, long parent) {
         Metadata key = new Metadata(name, type, parent);
@@ -43,5 +39,13 @@ public class MetadataJdbcStorage implements IMetaStorage {
     @Override
     public Collection<Metadata> getMetadataByType(MetadataType type) {
         return null;
+    }
+
+    @Override
+    public void saveMetricDimension(String dataSource,
+                                    String dimensionName,
+                                    String dimensionValue,
+                                    long timestamp) {
+
     }
 }
