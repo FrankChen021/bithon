@@ -1,16 +1,14 @@
 package com.sbss.bithon.collector.datasource.storage.jdbc;
 
+import com.sbss.bithon.collector.common.matcher.*;
+import com.sbss.bithon.collector.common.utils.datetime.TimeSpan;
 import com.sbss.bithon.collector.datasource.DataSourceSchema;
 import com.sbss.bithon.collector.datasource.storage.DimensionCondition;
 import com.sbss.bithon.collector.datasource.storage.IMetricReader;
-import com.sbss.bithon.collector.common.utils.datetime.TimeSpan;
-import com.sbss.bithon.collector.common.matcher.*;
-import com.sbss.bithon.component.db.jooq.Tables;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.SQLDialect;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,25 +25,6 @@ class MetricReader implements IMetricReader {
 
     public MetricReader(DSLContext dsl) {
         this.dsl = dsl;
-
-        if (dsl.configuration().dialect().equals(SQLDialect.H2)) {
-            dsl.createTableIfNotExists(Tables.BITHON_JVM_METRICS)
-                .columns(Tables.BITHON_JVM_METRICS.TIMESTAMP,
-                         Tables.BITHON_JVM_METRICS.APPNAME,
-                         Tables.BITHON_JVM_METRICS.INSTANCENAME,
-                         Tables.BITHON_JVM_METRICS.PROCESSCPULOAD,
-                         Tables.BITHON_JVM_METRICS.INSTANCEUPTIME,
-                         Tables.BITHON_JVM_METRICS.INSTANCESTARTTIME,
-                         Tables.BITHON_JVM_METRICS.HEAP,
-                         Tables.BITHON_JVM_METRICS.HEAPCOMMITTED,
-                         Tables.BITHON_JVM_METRICS.HEAPINIT,
-                         Tables.BITHON_JVM_METRICS.HEAPUSED,
-                         Tables.BITHON_JVM_METRICS.PEAKTHREADS,
-                         Tables.BITHON_JVM_METRICS.DAEMONTHREADS,
-                         Tables.BITHON_JVM_METRICS.TOTALTHREADS,
-                         Tables.BITHON_JVM_METRICS.ACTIVETHREADS)
-                .execute();
-        }
     }
 
     static class SqlConditionBuilder implements IMatcherVisitor<String> {
@@ -123,7 +102,7 @@ class MetricReader implements IMetricReader {
     @Override
     public List<Map<String, Object>> getMetricValueList(String sql) {
         List<Record> records = dsl.fetch(sql);
-        return (List<Map<String,Object>>)records.stream().map(record -> {
+        return (List<Map<String, Object>>) records.stream().map(record -> {
             Map<String, Object> mapObject = new HashMap<>();
             for (Field field : record.fields()) {
                 mapObject.put(field.getName(), record.get(field));

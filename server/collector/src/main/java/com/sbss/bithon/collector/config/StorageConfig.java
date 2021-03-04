@@ -6,6 +6,7 @@ import com.sbss.bithon.collector.datasource.storage.jdbc.MetricsJdbcStorage;
 import com.sbss.bithon.collector.events.storage.IEventStorage;
 import com.sbss.bithon.collector.events.storage.jdbc.EventJdbcStorage;
 import com.sbss.bithon.collector.meta.IMetaStorage;
+import com.sbss.bithon.collector.meta.cache.CachableMetadataStorage;
 import com.sbss.bithon.collector.meta.jdbc.MetadataJdbcStorage;
 import com.sbss.bithon.collector.tracing.storage.ITraceStorage;
 import com.sbss.bithon.collector.tracing.storage.jdbc.TraceJdbcStorage;
@@ -14,19 +15,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * TODO：采用jackson反序列化方式创建，storage的参数放在一起
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/1/30 8:34 下午
  */
 @Configuration
 public class StorageConfig {
     @Bean
-    public IMetricStorage createStorage(DSLContext dslContext) {
+    public IMetricStorage createMetricStorage(DSLContext dslContext) {
         return new MetricsJdbcStorage(dslContext);
     }
 
     @Bean
     public IMetaStorage metaStorage(DSLContext dslContext) {
-        return new MetadataJdbcStorage(dslContext);
+        return new CachableMetadataStorage(new MetadataJdbcStorage(dslContext));
     }
 
     @Bean

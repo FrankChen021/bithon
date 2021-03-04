@@ -1,7 +1,8 @@
 package com.sbss.bithon.collector.meta;
 
+import com.sbss.bithon.component.db.dao.EndPointType;
+
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -13,7 +14,19 @@ public interface IMetaStorage {
 
     Collection<Metadata> getMetadataByType(MetadataType type);
 
-    void saveMetricDimension(String dataSource,
-                             String dimensionName,
-                             String dimensionValue, long timestamp);
+    long createMetricDimension(String dataSource,
+                               String dimensionName,
+                               String dimensionValue, long timestamp);
+
+    long createTopo(EndPointType srcEndpointType,
+                    String srcEndpoint,
+                    EndPointType dstEndpointType,
+                    String dstEndpoint);
+
+    /**
+     * @param instanceName host+port
+     */
+    String getApplicationByInstance(String instanceName);
+
+    boolean isApplicationExist(String applicationName);
 }

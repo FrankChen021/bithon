@@ -1,6 +1,5 @@
 package com.sbss.bithon.collector.meta;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -3,18 +3,16 @@ package com.sbss.bithon.collector.common.message.handlers;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage;
 import com.sbss.bithon.collector.common.utils.ReflectionUtils;
-import com.sbss.bithon.collector.common.utils.datetime.DateTimeUtils;
 import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
 import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
 import com.sbss.bithon.collector.meta.IMetaStorage;
+import com.sbss.bithon.component.db.dao.EndPointType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -56,14 +54,16 @@ public class RedisMessageHandler extends AbstractMetricMessageHandler<RedisMessa
             }
 
             @Override
-            public Map<String, Object> next() {
-                Map<String, Object> metrics = new HashMap<>();
-                metrics.put("appName", appName);
-                metrics.put("instanceName", instanceName);
-                metrics.put("interval", message.getInterval());
-                metrics.put("timestamp", DateTimeUtils.dropMilliseconds(message.getTimestamp()));
+            public GenericMetricObject next() {
+                RedisEntity redisEntity = delegate.next();
 
-                ReflectionUtils.getFields(delegate.next(), metrics);
+                GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
+                                                                      appName,
+                                                                      instanceName);
+                metrics.put("interval", message.getInterval());
+                metrics.setTargetEndpoint(EndPointType.REDIS, redisEntity.getUri());
+
+                ReflectionUtils.getFields(redisEntity, metrics);
 
                 return metrics;
             }

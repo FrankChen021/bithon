@@ -14,11 +14,11 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan implements Serializable {
 
-    private static final long serialVersionUID = 1031308786;
+    private static final long serialVersionUID = -1345552142;
 
     private Long      id;
-    private String    appname;
-    private String    instancename;
+    private String    appName;
+    private String    instanceName;
     private String    name;
     private String    clazz;
     private String    method;
@@ -34,8 +34,8 @@ public class BithonTraceSpan implements Serializable {
 
     public BithonTraceSpan(BithonTraceSpan value) {
         this.id = value.id;
-        this.appname = value.appname;
-        this.instancename = value.instancename;
+        this.appName = value.appName;
+        this.instanceName = value.instanceName;
         this.name = value.name;
         this.clazz = value.clazz;
         this.method = value.method;
@@ -50,8 +50,8 @@ public class BithonTraceSpan implements Serializable {
 
     public BithonTraceSpan(
         Long      id,
-        String    appname,
-        String    instancename,
+        String    appName,
+        String    instanceName,
         String    name,
         String    clazz,
         String    method,
@@ -64,8 +64,8 @@ public class BithonTraceSpan implements Serializable {
         Timestamp timestamp
     ) {
         this.id = id;
-        this.appname = appname;
-        this.instancename = instancename;
+        this.appName = appName;
+        this.instanceName = instanceName;
         this.name = name;
         this.clazz = clazz;
         this.method = method;
@@ -86,20 +86,20 @@ public class BithonTraceSpan implements Serializable {
         this.id = id;
     }
 
-    public String getAppname() {
-        return this.appname;
+    public String getAppName() {
+        return this.appName;
     }
 
-    public void setAppname(String appname) {
-        this.appname = appname;
+    public void setAppName(String appName) {
+        this.appName = appName;
     }
 
-    public String getInstancename() {
-        return this.instancename;
+    public String getInstanceName() {
+        return this.instanceName;
     }
 
-    public void setInstancename(String instancename) {
-        this.instancename = instancename;
+    public void setInstanceName(String instanceName) {
+        this.instanceName = instanceName;
     }
 
     public String getName() {
@@ -187,8 +187,8 @@ public class BithonTraceSpan implements Serializable {
         StringBuilder sb = new StringBuilder("BithonTraceSpan (");
 
         sb.append(id);
-        sb.append(", ").append(appname);
-        sb.append(", ").append(instancename);
+        sb.append(", ").append(appName);
+        sb.append(", ").append(instanceName);
         sb.append(", ").append(name);
         sb.append(", ").append(clazz);
         sb.append(", ").append(method);

@@ -34,7 +34,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
-    private static final long serialVersionUID = 725983538;
+    private static final long serialVersionUID = -586484093;
 
     /**
      * The reference instance of <code>bithon_trace_span</code>
@@ -55,14 +55,14 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     public final TableField<BithonTraceSpanRecord, Long> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).identity(true), this, "");
 
     /**
-     * The column <code>bithon_trace_span.appName</code>.
+     * The column <code>bithon_trace_span.app_name</code>.
      */
-    public final TableField<BithonTraceSpanRecord, String> APPNAME = createField(DSL.name("appName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<BithonTraceSpanRecord, String> APP_NAME = createField(DSL.name("app_name"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_trace_span.instanceName</code>.
+     * The column <code>bithon_trace_span.instance_name</code>.
      */
-    public final TableField<BithonTraceSpanRecord, String> INSTANCENAME = createField(DSL.name("instanceName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<BithonTraceSpanRecord, String> INSTANCE_NAME = createField(DSL.name("instance_name"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>bithon_trace_span.name</code>.
@@ -154,7 +154,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_APPNAME, Indexes.BITHON_TRACE_SPAN_IDX_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_KEY, Indexes.BITHON_TRACE_SPAN_IDX_PARENTSPANID, Indexes.BITHON_TRACE_SPAN_PRIMARY);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_APP_NAME, Indexes.BITHON_TRACE_SPAN_IDX_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_KEY, Indexes.BITHON_TRACE_SPAN_IDX_PARENTSPANID, Indexes.BITHON_TRACE_SPAN_PRIMARY);
     }
 
     @Override

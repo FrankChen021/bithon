@@ -3,7 +3,6 @@ package com.sbss.bithon.collector.common.message.handlers;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage;
 import com.sbss.bithon.collector.common.service.UriNormalizer;
 import com.sbss.bithon.collector.common.utils.ReflectionUtils;
-import com.sbss.bithon.collector.common.utils.datetime.DateTimeUtils;
 import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
 import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
 import com.sbss.bithon.collector.meta.IMetaStorage;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -57,19 +55,19 @@ public class WebRequestMessageHandler extends AbstractMetricMessageHandler<WebRe
             }
 
             @Override
-            public Map<String, Object> next() {
+            public GenericMetricObject next() {
                 UriNormalizer.NormalizedResult result = uriNormalizer.normalize(message.getAppName(), message.getRequestEntity().getUri());
                 if (result.getUri() == null) {
                     return null;
                 }
 
-                Map<String, Object> metrics = ReflectionUtils.getFields(message.getRequestEntity());
-
-                metrics.put("appName", appName);
-                metrics.put("instanceName", instanceName);
+                GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
+                                                                      appName,
+                                                                      instanceName);
                 metrics.put("interval", message.getInterval());
-                metrics.put("timestamp", DateTimeUtils.dropMilliseconds(message.getTimestamp()));
                 metrics.put("uri", result.getUri());
+
+                ReflectionUtils.getFields(message.getRequestEntity(), metrics);
 
                 return metrics;
             }

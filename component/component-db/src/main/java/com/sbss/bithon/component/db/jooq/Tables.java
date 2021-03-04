@@ -6,12 +6,11 @@ package com.sbss.bithon.component.db.jooq;
 
 import com.sbss.bithon.component.db.jooq.tables.BithonAgentSetting;
 import com.sbss.bithon.component.db.jooq.tables.BithonApplication;
+import com.sbss.bithon.component.db.jooq.tables.BithonApplicationTopo;
 import com.sbss.bithon.component.db.jooq.tables.BithonEvent;
-import com.sbss.bithon.component.db.jooq.tables.BithonJvmMetrics;
 import com.sbss.bithon.component.db.jooq.tables.BithonMetadata;
+import com.sbss.bithon.component.db.jooq.tables.BithonMetricDimension;
 import com.sbss.bithon.component.db.jooq.tables.BithonTraceSpan;
-import com.sbss.bithon.component.db.jooq.tables.BithonWebRequestMetrics;
-import com.sbss.bithon.component.db.jooq.tables.BithonWebServerMetrics;
 
 
 /**
@@ -31,14 +30,14 @@ public class Tables {
     public static final BithonApplication BITHON_APPLICATION = BithonApplication.BITHON_APPLICATION;
 
     /**
+     * TOPO
+     */
+    public static final BithonApplicationTopo BITHON_APPLICATION_TOPO = BithonApplicationTopo.BITHON_APPLICATION_TOPO;
+
+    /**
      * The table <code>bithon_event</code>.
      */
     public static final BithonEvent BITHON_EVENT = BithonEvent.BITHON_EVENT;
-
-    /**
-     * The table <code>bithon_jvm_metrics</code>.
-     */
-    public static final BithonJvmMetrics BITHON_JVM_METRICS = BithonJvmMetrics.BITHON_JVM_METRICS;
 
     /**
      * 应用
@@ -46,17 +45,12 @@ public class Tables {
     public static final BithonMetadata BITHON_METADATA = BithonMetadata.BITHON_METADATA;
 
     /**
+     * Metric Dimension
+     */
+    public static final BithonMetricDimension BITHON_METRIC_DIMENSION = BithonMetricDimension.BITHON_METRIC_DIMENSION;
+
+    /**
      * The table <code>bithon_trace_span</code>.
      */
     public static final BithonTraceSpan BITHON_TRACE_SPAN = BithonTraceSpan.BITHON_TRACE_SPAN;
-
-    /**
-     * The table <code>bithon_web_request_metrics</code>.
-     */
-    public static final BithonWebRequestMetrics BITHON_WEB_REQUEST_METRICS = BithonWebRequestMetrics.BITHON_WEB_REQUEST_METRICS;
-
-    /**
-     * The table <code>bithon_web_server_metrics</code>.
-     */
-    public static final BithonWebServerMetrics BITHON_WEB_SERVER_METRICS = BithonWebServerMetrics.BITHON_WEB_SERVER_METRICS;
 }

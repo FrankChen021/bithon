@@ -9,20 +9,23 @@ import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
 import com.sbss.bithon.collector.datasource.storage.IMetricWriter;
 import com.sbss.bithon.collector.meta.IMetaStorage;
 import com.sbss.bithon.collector.meta.MetadataType;
+import com.sbss.bithon.component.db.dao.EndPointType;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import sun.net.www.content.text.Generic;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/3 11:17 下午
  */
 @Slf4j
+@Getter
 public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThreadPoolMessageHandler<MSG_TYPE> {
 
-    interface SizedIterator extends CloseableIterator<Map<String, Object>> {
+    interface SizedIterator extends CloseableIterator<GenericMetricObject> {
         int size();
 
         @Override
@@ -52,27 +55,51 @@ public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThr
     abstract SizedIterator toIterator(MSG_TYPE message);
 
     @Override
-    final protected void onMessage(MSG_TYPE message) throws IOException {
+    final protected void onMessage(MSG_TYPE message) throws Exception {
         SizedIterator iterator = toIterator(message);
-        if (iterator == null) {
+        if (iterator == null || iterator.size() <= 0) {
             return;
         }
-        if (iterator.size() > 1) {
-            while (iterator.hasNext()) {
-                this.execute(() -> processMetricObject(iterator.next()));
+        if (iterator.size() == 1) {
+            // a fast path to avoid submit this task into thread pool again
+            try {
+                processMetricObject(iterator.next());
+            } catch (Exception e) {
+                log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}", this.schema.getName(), message, e);
             }
-        } else {
-            processMetricObject(iterator.next());
+            return;
+        }
+
+        while (iterator.hasNext()) {
+            GenericMetricObject metricObject = iterator.next();
+            this.execute(() -> {
+                try {
+                    processMetricObject(metricObject);
+                } catch (Exception e) {
+                    log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}", this.schema.getName(), message, e);
+                }
+            });
         }
     }
 
-    private void processMetricObject(Map<String, Object> metricObject) {
+    protected boolean beforeProcessMetricObject(GenericMetricObject metricObject) throws Exception {
+        return true;
+    }
+
+    private void processMetricObject(GenericMetricObject metricObject) throws Exception {
         if (metricObject == null) {
             return;
         }
 
-        String appName = (String) metricObject.get("appName");
-        String instanceName = (String) metricObject.get("instanceName");
+        if (!beforeProcessMetricObject(metricObject)) {
+            return;
+        }
+
+        //
+        // save application
+        //
+        String appName = metricObject.getApplicationName();
+        String instanceName = metricObject.getInstanceName();
         try {
             long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
             long instanceId = metaStorage.getOrCreateMetadataId(instanceName, MetadataType.INSTANCE, appId);
@@ -83,17 +110,19 @@ public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThr
                       e);
         }
 
+        //
         // save dimensions in meta data storage
+        //
         for (IDimensionSpec dimensionSpec : this.schema.getDimensionsSpec()) {
             Object dimensionValue = metricObject.get(dimensionSpec.getName());
             if (dimensionValue == null) {
                 continue;
             }
             try {
-                this.metaStorage.saveMetricDimension(this.schema.getName(),
-                                                     dimensionSpec.getName(),
-                                                     dimensionValue.toString(),
-                                                     (long) metricObject.get("timestamp"));
+                this.metaStorage.createMetricDimension(this.schema.getName(),
+                                                       dimensionSpec.getName(),
+                                                       dimensionValue.toString(),
+                                                       metricObject.getTimestamp());
             } catch (Exception e) {
                 log.error("Failed to save metrics dimension[dataSource={}, name={}, value={}] due to: {}",
                           this.schema.getName(),
@@ -103,7 +132,20 @@ public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThr
             }
         }
 
+        //
+        // save topo
+        //
+        String dstEndpoint = metricObject.getTargetEndpoint();
+        if (dstEndpoint != null) {
+            metaStorage.createTopo(EndPointType.APPLICATION,
+                                   metricObject.getApplicationName(),
+                                   metricObject.getTargetEndpointType(),
+                                   dstEndpoint);
+        }
+
+        //
         // save metrics
+        //
         try {
             this.metricStorageWriter.write(new InputRow(metricObject));
         } catch (IOException e) {

@@ -6,12 +6,11 @@ package com.sbss.bithon.component.db.jooq;
 
 import com.sbss.bithon.component.db.jooq.tables.BithonAgentSetting;
 import com.sbss.bithon.component.db.jooq.tables.BithonApplication;
+import com.sbss.bithon.component.db.jooq.tables.BithonApplicationTopo;
 import com.sbss.bithon.component.db.jooq.tables.BithonEvent;
-import com.sbss.bithon.component.db.jooq.tables.BithonJvmMetrics;
 import com.sbss.bithon.component.db.jooq.tables.BithonMetadata;
+import com.sbss.bithon.component.db.jooq.tables.BithonMetricDimension;
 import com.sbss.bithon.component.db.jooq.tables.BithonTraceSpan;
-import com.sbss.bithon.component.db.jooq.tables.BithonWebRequestMetrics;
-import com.sbss.bithon.component.db.jooq.tables.BithonWebServerMetrics;
 
 import org.jooq.Index;
 import org.jooq.OrderField;
@@ -33,22 +32,27 @@ public class Indexes {
     public static final Index BITHON_APPLICATION_IDX_GROUP = Indexes0.BITHON_APPLICATION_IDX_GROUP;
     public static final Index BITHON_APPLICATION_PRIMARY = Indexes0.BITHON_APPLICATION_PRIMARY;
     public static final Index BITHON_APPLICATION_UQ_NAME = Indexes0.BITHON_APPLICATION_UQ_NAME;
+    public static final Index BITHON_APPLICATION_TOPO_IDX_CREATED_AT = Indexes0.BITHON_APPLICATION_TOPO_IDX_CREATED_AT;
+    public static final Index BITHON_APPLICATION_TOPO_IDX_TOPO = Indexes0.BITHON_APPLICATION_TOPO_IDX_TOPO;
+    public static final Index BITHON_APPLICATION_TOPO_IDX_UPDATED_AT = Indexes0.BITHON_APPLICATION_TOPO_IDX_UPDATED_AT;
+    public static final Index BITHON_APPLICATION_TOPO_PRIMARY = Indexes0.BITHON_APPLICATION_TOPO_PRIMARY;
     public static final Index BITHON_EVENT_IDX_APPNAME = Indexes0.BITHON_EVENT_IDX_APPNAME;
     public static final Index BITHON_EVENT_IDX_INSTANCENAME = Indexes0.BITHON_EVENT_IDX_INSTANCENAME;
     public static final Index BITHON_EVENT_IDX_TIMESTAMP = Indexes0.BITHON_EVENT_IDX_TIMESTAMP;
     public static final Index BITHON_EVENT_IDX_TYPE = Indexes0.BITHON_EVENT_IDX_TYPE;
     public static final Index BITHON_EVENT_PRIMARY = Indexes0.BITHON_EVENT_PRIMARY;
-    public static final Index BITHON_JVM_METRICS_IDX_KEY = Indexes0.BITHON_JVM_METRICS_IDX_KEY;
     public static final Index BITHON_METADATA_IDX_PARENT_ID = Indexes0.BITHON_METADATA_IDX_PARENT_ID;
     public static final Index BITHON_METADATA_PRIMARY = Indexes0.BITHON_METADATA_PRIMARY;
     public static final Index BITHON_METADATA_UQ_NAME = Indexes0.BITHON_METADATA_UQ_NAME;
-    public static final Index BITHON_TRACE_SPAN_IDX_APPNAME = Indexes0.BITHON_TRACE_SPAN_IDX_APPNAME;
+    public static final Index BITHON_METRIC_DIMENSION_IDX_CREATED_AT = Indexes0.BITHON_METRIC_DIMENSION_IDX_CREATED_AT;
+    public static final Index BITHON_METRIC_DIMENSION_IDX_DIMENSION = Indexes0.BITHON_METRIC_DIMENSION_IDX_DIMENSION;
+    public static final Index BITHON_METRIC_DIMENSION_IDX_UPDATED_AT = Indexes0.BITHON_METRIC_DIMENSION_IDX_UPDATED_AT;
+    public static final Index BITHON_METRIC_DIMENSION_PRIMARY = Indexes0.BITHON_METRIC_DIMENSION_PRIMARY;
+    public static final Index BITHON_TRACE_SPAN_IDX_APP_NAME = Indexes0.BITHON_TRACE_SPAN_IDX_APP_NAME;
     public static final Index BITHON_TRACE_SPAN_IDX_INSTANCENAME = Indexes0.BITHON_TRACE_SPAN_IDX_INSTANCENAME;
     public static final Index BITHON_TRACE_SPAN_IDX_KEY = Indexes0.BITHON_TRACE_SPAN_IDX_KEY;
     public static final Index BITHON_TRACE_SPAN_IDX_PARENTSPANID = Indexes0.BITHON_TRACE_SPAN_IDX_PARENTSPANID;
     public static final Index BITHON_TRACE_SPAN_PRIMARY = Indexes0.BITHON_TRACE_SPAN_PRIMARY;
-    public static final Index BITHON_WEB_REQUEST_METRICS_IDX_KEY = Indexes0.BITHON_WEB_REQUEST_METRICS_IDX_KEY;
-    public static final Index BITHON_WEB_SERVER_METRICS_IDX_KEY = Indexes0.BITHON_WEB_SERVER_METRICS_IDX_KEY;
 
     // -------------------------------------------------------------------------
     // [#1459] distribute members to avoid static initialisers > 64kb
@@ -60,21 +64,26 @@ public class Indexes {
         public static Index BITHON_APPLICATION_IDX_GROUP = Internal.createIndex("idx_group", BithonApplication.BITHON_APPLICATION, new OrderField[] { BithonApplication.BITHON_APPLICATION.GROUP }, false);
         public static Index BITHON_APPLICATION_PRIMARY = Internal.createIndex("PRIMARY", BithonApplication.BITHON_APPLICATION, new OrderField[] { BithonApplication.BITHON_APPLICATION.ID }, true);
         public static Index BITHON_APPLICATION_UQ_NAME = Internal.createIndex("uq_name", BithonApplication.BITHON_APPLICATION, new OrderField[] { BithonApplication.BITHON_APPLICATION.NAME, BithonApplication.BITHON_APPLICATION.ENV }, true);
-        public static Index BITHON_EVENT_IDX_APPNAME = Internal.createIndex("idx_appName", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.APPNAME }, false);
-        public static Index BITHON_EVENT_IDX_INSTANCENAME = Internal.createIndex("idx_instanceName", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.INSTANCENAME }, false);
+        public static Index BITHON_APPLICATION_TOPO_IDX_CREATED_AT = Internal.createIndex("idx_created_at", BithonApplicationTopo.BITHON_APPLICATION_TOPO, new OrderField[] { BithonApplicationTopo.BITHON_APPLICATION_TOPO.CREATED_AT }, false);
+        public static Index BITHON_APPLICATION_TOPO_IDX_TOPO = Internal.createIndex("idx_topo", BithonApplicationTopo.BITHON_APPLICATION_TOPO, new OrderField[] { BithonApplicationTopo.BITHON_APPLICATION_TOPO.SRC_ENDPOINT, BithonApplicationTopo.BITHON_APPLICATION_TOPO.SRC_ENDPOINT_TYPE, BithonApplicationTopo.BITHON_APPLICATION_TOPO.DST_ENDPOINT, BithonApplicationTopo.BITHON_APPLICATION_TOPO.DST_ENDPOINT_TYPE }, true);
+        public static Index BITHON_APPLICATION_TOPO_IDX_UPDATED_AT = Internal.createIndex("idx_updated_at", BithonApplicationTopo.BITHON_APPLICATION_TOPO, new OrderField[] { BithonApplicationTopo.BITHON_APPLICATION_TOPO.UPDATED_AT }, false);
+        public static Index BITHON_APPLICATION_TOPO_PRIMARY = Internal.createIndex("PRIMARY", BithonApplicationTopo.BITHON_APPLICATION_TOPO, new OrderField[] { BithonApplicationTopo.BITHON_APPLICATION_TOPO.ID }, true);
+        public static Index BITHON_EVENT_IDX_APPNAME = Internal.createIndex("idx_appName", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.APP_NAME }, false);
+        public static Index BITHON_EVENT_IDX_INSTANCENAME = Internal.createIndex("idx_instanceName", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.INSTANCE_NAME }, false);
         public static Index BITHON_EVENT_IDX_TIMESTAMP = Internal.createIndex("idx_timestamp", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.TIMESTAMP }, false);
         public static Index BITHON_EVENT_IDX_TYPE = Internal.createIndex("idx_type", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.TYPE }, false);
         public static Index BITHON_EVENT_PRIMARY = Internal.createIndex("PRIMARY", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.ID }, true);
-        public static Index BITHON_JVM_METRICS_IDX_KEY = Internal.createIndex("idx_key", BithonJvmMetrics.BITHON_JVM_METRICS, new OrderField[] { BithonJvmMetrics.BITHON_JVM_METRICS.TIMESTAMP, BithonJvmMetrics.BITHON_JVM_METRICS.APPNAME, BithonJvmMetrics.BITHON_JVM_METRICS.INSTANCENAME }, true);
         public static Index BITHON_METADATA_IDX_PARENT_ID = Internal.createIndex("idx_parent_id", BithonMetadata.BITHON_METADATA, new OrderField[] { BithonMetadata.BITHON_METADATA.PARENT_ID }, false);
         public static Index BITHON_METADATA_PRIMARY = Internal.createIndex("PRIMARY", BithonMetadata.BITHON_METADATA, new OrderField[] { BithonMetadata.BITHON_METADATA.ID }, true);
         public static Index BITHON_METADATA_UQ_NAME = Internal.createIndex("uq_name", BithonMetadata.BITHON_METADATA, new OrderField[] { BithonMetadata.BITHON_METADATA.NAME, BithonMetadata.BITHON_METADATA.TYPE }, true);
-        public static Index BITHON_TRACE_SPAN_IDX_APPNAME = Internal.createIndex("idx_appName", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.APPNAME }, false);
-        public static Index BITHON_TRACE_SPAN_IDX_INSTANCENAME = Internal.createIndex("idx_instanceName", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.INSTANCENAME }, false);
+        public static Index BITHON_METRIC_DIMENSION_IDX_CREATED_AT = Internal.createIndex("idx_created_at", BithonMetricDimension.BITHON_METRIC_DIMENSION, new OrderField[] { BithonMetricDimension.BITHON_METRIC_DIMENSION.CREATED_AT }, false);
+        public static Index BITHON_METRIC_DIMENSION_IDX_DIMENSION = Internal.createIndex("idx_dimension", BithonMetricDimension.BITHON_METRIC_DIMENSION, new OrderField[] { BithonMetricDimension.BITHON_METRIC_DIMENSION.DATA_SOURCE, BithonMetricDimension.BITHON_METRIC_DIMENSION.DIMENSION_NAME, BithonMetricDimension.BITHON_METRIC_DIMENSION.DIMENSION_VALUE }, true);
+        public static Index BITHON_METRIC_DIMENSION_IDX_UPDATED_AT = Internal.createIndex("idx_updated_at", BithonMetricDimension.BITHON_METRIC_DIMENSION, new OrderField[] { BithonMetricDimension.BITHON_METRIC_DIMENSION.UPDATED_AT }, false);
+        public static Index BITHON_METRIC_DIMENSION_PRIMARY = Internal.createIndex("PRIMARY", BithonMetricDimension.BITHON_METRIC_DIMENSION, new OrderField[] { BithonMetricDimension.BITHON_METRIC_DIMENSION.ID }, true);
+        public static Index BITHON_TRACE_SPAN_IDX_APP_NAME = Internal.createIndex("idx_app_name", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.APP_NAME }, false);
+        public static Index BITHON_TRACE_SPAN_IDX_INSTANCENAME = Internal.createIndex("idx_instanceName", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.INSTANCE_NAME }, false);
         public static Index BITHON_TRACE_SPAN_IDX_KEY = Internal.createIndex("idx_key", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.TRACEID, BithonTraceSpan.BITHON_TRACE_SPAN.SPANID }, true);
         public static Index BITHON_TRACE_SPAN_IDX_PARENTSPANID = Internal.createIndex("idx_parentSpanId", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.PARENTSPANID }, false);
         public static Index BITHON_TRACE_SPAN_PRIMARY = Internal.createIndex("PRIMARY", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.ID }, true);
-        public static Index BITHON_WEB_REQUEST_METRICS_IDX_KEY = Internal.createIndex("idx_key", BithonWebRequestMetrics.BITHON_WEB_REQUEST_METRICS, new OrderField[] { BithonWebRequestMetrics.BITHON_WEB_REQUEST_METRICS.TIMESTAMP, BithonWebRequestMetrics.BITHON_WEB_REQUEST_METRICS.APPNAME, BithonWebRequestMetrics.BITHON_WEB_REQUEST_METRICS.INSTANCENAME, BithonWebRequestMetrics.BITHON_WEB_REQUEST_METRICS.URI }, true);
-        public static Index BITHON_WEB_SERVER_METRICS_IDX_KEY = Internal.createIndex("idx_key", BithonWebServerMetrics.BITHON_WEB_SERVER_METRICS, new OrderField[] { BithonWebServerMetrics.BITHON_WEB_SERVER_METRICS.TIMESTAMP, BithonWebServerMetrics.BITHON_WEB_SERVER_METRICS.APPNAME, BithonWebServerMetrics.BITHON_WEB_SERVER_METRICS.INSTANCENAME }, true);
     }
 }

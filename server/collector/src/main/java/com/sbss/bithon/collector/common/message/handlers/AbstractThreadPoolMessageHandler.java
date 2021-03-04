@@ -43,7 +43,7 @@ public abstract class AbstractThreadPoolMessageHandler<MSG_TYPE> implements IMes
         });
     }
 
-    protected abstract void onMessage(MSG_TYPE message) throws IOException;
+    protected abstract void onMessage(MSG_TYPE message) throws Exception;
 
     protected void execute(Runnable runnable) {
         executor.submit(runnable);

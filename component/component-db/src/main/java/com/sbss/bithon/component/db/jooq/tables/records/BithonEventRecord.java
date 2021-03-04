@@ -21,7 +21,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonEventRecord extends UpdatableRecordImpl<BithonEventRecord> implements Record6<Long, String, String, String, String, Timestamp> {
 
-    private static final long serialVersionUID = 2035592292;
+    private static final long serialVersionUID = 841252736;
 
     /**
      * Setter for <code>bithon_event.id</code>.
@@ -38,30 +38,30 @@ public class BithonEventRecord extends UpdatableRecordImpl<BithonEventRecord> im
     }
 
     /**
-     * Setter for <code>bithon_event.appName</code>.
+     * Setter for <code>bithon_event.app_name</code>.
      */
-    public void setAppname(String value) {
+    public void setAppName(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>bithon_event.appName</code>.
+     * Getter for <code>bithon_event.app_name</code>.
      */
-    public String getAppname() {
+    public String getAppName() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>bithon_event.instanceName</code>.
+     * Setter for <code>bithon_event.instance_name</code>.
      */
-    public void setInstancename(String value) {
+    public void setInstanceName(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>bithon_event.instanceName</code>.
+     * Getter for <code>bithon_event.instance_name</code>.
      */
-    public String getInstancename() {
+    public String getInstanceName() {
         return (String) get(2);
     }
 
@@ -137,12 +137,12 @@ public class BithonEventRecord extends UpdatableRecordImpl<BithonEventRecord> im
 
     @Override
     public Field<String> field2() {
-        return BithonEvent.BITHON_EVENT.APPNAME;
+        return BithonEvent.BITHON_EVENT.APP_NAME;
     }
 
     @Override
     public Field<String> field3() {
-        return BithonEvent.BITHON_EVENT.INSTANCENAME;
+        return BithonEvent.BITHON_EVENT.INSTANCE_NAME;
     }
 
     @Override
@@ -167,12 +167,12 @@ public class BithonEventRecord extends UpdatableRecordImpl<BithonEventRecord> im
 
     @Override
     public String component2() {
-        return getAppname();
+        return getAppName();
     }
 
     @Override
     public String component3() {
-        return getInstancename();
+        return getInstanceName();
     }
 
     @Override
@@ -197,12 +197,12 @@ public class BithonEventRecord extends UpdatableRecordImpl<BithonEventRecord> im
 
     @Override
     public String value2() {
-        return getAppname();
+        return getAppName();
     }
 
     @Override
     public String value3() {
-        return getInstancename();
+        return getInstanceName();
     }
 
     @Override
@@ -228,13 +228,13 @@ public class BithonEventRecord extends UpdatableRecordImpl<BithonEventRecord> im
 
     @Override
     public BithonEventRecord value2(String value) {
-        setAppname(value);
+        setAppName(value);
         return this;
     }
 
     @Override
     public BithonEventRecord value3(String value) {
-        setInstancename(value);
+        setInstanceName(value);
         return this;
     }
 
@@ -281,12 +281,12 @@ public class BithonEventRecord extends UpdatableRecordImpl<BithonEventRecord> im
     /**
      * Create a detached, initialised BithonEventRecord
      */
-    public BithonEventRecord(Long id, String appname, String instancename, String type, String arguments, Timestamp timestamp) {
+    public BithonEventRecord(Long id, String appName, String instanceName, String type, String arguments, Timestamp timestamp) {
         super(BithonEvent.BITHON_EVENT);
 
         set(0, id);
-        set(1, appname);
-        set(2, instancename);
+        set(1, appName);
+        set(2, instanceName);
         set(3, type);
         set(4, arguments);
         set(5, timestamp);
