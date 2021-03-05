@@ -6,6 +6,7 @@ package com.sbss.bithon.component.db.dao;
  */
 public enum EndPointType {
 
+    UNKNOWN(-1),
     APPLICATION(0),
     MYSQL(1),
     REDIS(2),

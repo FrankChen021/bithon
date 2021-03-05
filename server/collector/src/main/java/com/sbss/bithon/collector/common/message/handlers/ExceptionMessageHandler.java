@@ -34,7 +34,7 @@ public class ExceptionMessageHandler extends AbstractThreadPoolMessageHandler<Ex
             return;
         }
 
-        String appName = message.getAppName() + "-" + message.getEnv();
+        String appName = message.getAppName();
         String instanceName = message.getHostName() + ":" + message.getPort();
 
         long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);

@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class OkHttp3Interceptor extends AbstractInterceptor {
     private static Logger log = LoggerFactory.getLogger(OkHttp3Interceptor.class);
 
-    private HttpClientMetricProvider datasource;
+    private HttpClientMetricProvider metricProvider;
     private Set<String> ignoredSuffixes;
 
     @Override
@@ -37,7 +37,7 @@ public class OkHttp3Interceptor extends AbstractInterceptor {
             .map(x -> x.trim().toLowerCase())
             .collect(Collectors.toSet());
 
-        datasource = MetricProviderManager.getInstance().register("okhttp3", new HttpClientMetricProvider());
+        metricProvider = MetricProviderManager.getInstance().register("okhttp3", new HttpClientMetricProvider());
 
         return true;
     }
@@ -47,6 +47,7 @@ public class OkHttp3Interceptor extends AbstractInterceptor {
         Call realCall = (Call) aopContext.getTarget();
         Request request = realCall.request();
         String uri = request.url().uri().toString().split("\\?")[0];
+
         return needIgnore(uri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
     }
 
@@ -55,20 +56,19 @@ public class OkHttp3Interceptor extends AbstractInterceptor {
         Call realCall = (Call) aopContext.getTarget();
         Request request = realCall.request();
 
-
         String uri = request.url().uri().toString().split("\\?")[0];
         String httpMethod = request.method().toUpperCase();
 
         if (aopContext.getException() != null) {
-            datasource.addExceptionRequest(uri,
-                                           httpMethod,
-                                           aopContext.getCostTime());
+            metricProvider.addExceptionRequest(uri,
+                                               httpMethod,
+                                               aopContext.getCostTime());
         } else {
             Response response = aopContext.castReturningAs();
-            datasource.addRequest(uri,
-                                  httpMethod,
-                                  response.code(),
-                                  aopContext.getCostTime());
+            metricProvider.addRequest(uri,
+                                      httpMethod,
+                                      response.code(),
+                                      aopContext.getCostTime());
         }
 
         this.addBytes(uri,
@@ -116,7 +116,7 @@ public class OkHttp3Interceptor extends AbstractInterceptor {
 
             log.debug("OKHttp ,request requestByteSize {},responseByteSize {}", requestByteSize, responseByteSize);
 
-            datasource.addBytes(uri, httpMethod, requestByteSize, responseByteSize);
+            metricProvider.addBytes(uri, httpMethod, requestByteSize, responseByteSize);
         } catch (Exception e) {
             log.error("OKHttp getByteSize", e);
         }

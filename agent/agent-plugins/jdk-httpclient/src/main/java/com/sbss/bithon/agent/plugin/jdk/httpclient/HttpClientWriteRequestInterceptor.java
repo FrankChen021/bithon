@@ -1,5 +1,7 @@
 package com.sbss.bithon.agent.plugin.jdk.httpclient;
 
+import com.sbss.bithon.agent.core.context.AgentContext;
+import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
@@ -17,9 +19,19 @@ import java.net.HttpURLConnection;
  */
 public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
 
+    private String srcApplication;
+
+    @Override
+    public boolean initialize() throws Exception {
+        srcApplication = AgentContext.getInstance().getAppInstance().getAppName();
+        return super.initialize();
+    }
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
+        headers.set(InterceptorContext.HEADER_SRC_APPLICATION_NAME, srcApplication);
+
         TraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -45,9 +57,8 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
         //
         // propagate tracing after span creation
         //
-        MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
         traceContext.propagate(headers, (headersArgs, key, value) -> {
-            headersArgs.add(key, value);
+            headersArgs.set(key, value);
         });
 
         return InterceptionDecision.CONTINUE;

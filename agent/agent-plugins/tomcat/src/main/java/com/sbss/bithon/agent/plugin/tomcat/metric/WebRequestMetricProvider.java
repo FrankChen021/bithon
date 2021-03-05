@@ -1,6 +1,7 @@
 package com.sbss.bithon.agent.plugin.tomcat.metric;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
+import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metrics.IMetricProvider;
 import com.sbss.bithon.agent.core.metrics.web.WebRequestMetric;
@@ -24,6 +25,7 @@ public class WebRequestMetricProvider implements IMetricProvider {
     }
 
     public void update(Request request, Response response, long costTime) {
+        String srcApplication = request.getHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME);
         String uri = request.requestURI().toString();
         if (uri == null) {
             return;
@@ -36,9 +38,9 @@ public class WebRequestMetricProvider implements IMetricProvider {
         long requestByteSize = request.getBytesRead();
         long responseByteSize = response.getBytesWritten(false);
 
-        WebRequestMetric metric = metricsMap.computeIfAbsent(uri, WebRequestMetric::new);
+        WebRequestMetric metric = metricsMap.computeIfAbsent(srcApplication + "|" + uri, key -> new WebRequestMetric(srcApplication, uri));
         metric.add(costTime, errorCount, count4xx, count5xx);
-        metric.addByteSize(requestByteSize, responseByteSize);
+        metric.addBytes(requestByteSize, responseByteSize);
     }
 
     @Override

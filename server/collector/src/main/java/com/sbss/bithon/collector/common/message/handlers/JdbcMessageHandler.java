@@ -37,7 +37,7 @@ public class JdbcMessageHandler extends AbstractMetricMessageHandler<JdbcMessage
 
     @Override
     SizedIterator toIterator(JdbcMessage message) {
-        String appName = message.getAppName() + "-" + message.getEnv();
+        String appName = message.getAppName();
         String instanceName = message.getHostName() + ":" + message.getPort();
 
         Iterator<JdbcEntity> delegate = message.getJdbcList().iterator();
@@ -63,7 +63,10 @@ public class JdbcMessageHandler extends AbstractMetricMessageHandler<JdbcMessage
                                                                       appName,
                                                                       instanceName);
                 metrics.put("interval", message.getInterval());
-                metrics.setTargetEndpoint(EndPointType.MYSQL, jdbcEntity.getUri());
+                metrics.setEndpointLink(EndPointType.APPLICATION,
+                                        message.getAppName(),
+                                        EndPointType.MYSQL,
+                                        jdbcEntity.getUri());
 
                 ReflectionUtils.getFields(jdbcEntity, metrics);
 

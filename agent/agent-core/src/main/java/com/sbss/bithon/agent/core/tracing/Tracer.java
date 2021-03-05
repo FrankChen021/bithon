@@ -84,7 +84,7 @@ public class Tracer {
                     try {
                         final Dispatcher traceDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_TRACING);
 
-                        INSTANCE = new Tracer(appInstance.getAppName() + "-" + appInstance.getEnv(),
+                        INSTANCE = new Tracer(appInstance.getAppName(),
                                               appInstance.getHostIp() + ":" + appInstance.getPort())
                             .propagator(new DefaultPropagator())
                             .traceIdGenerator(new UUIDGenerator())

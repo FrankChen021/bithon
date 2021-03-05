@@ -2,10 +2,10 @@ package com.sbss.bithon.collector.meta.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.sbss.bithon.collector.meta.EndPointLink;
 import com.sbss.bithon.collector.meta.IMetaStorage;
 import com.sbss.bithon.collector.meta.Metadata;
 import com.sbss.bithon.collector.meta.MetadataType;
-import com.sbss.bithon.component.db.dao.EndPointType;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -28,22 +28,12 @@ public class CachableMetadataStorage implements IMetaStorage {
         private final String value;
     }
 
-    @Getter
-    @EqualsAndHashCode
-    @AllArgsConstructor
-    static class TopoLink {
-        private final EndPointType srcEndpointType;
-        private final String srcEndpoint;
-        private final EndPointType dstEndpointType;
-        private final String dstEndpoint;
-    }
-
     private final IMetaStorage delegate;
 
     // TODO: replace with LoadingCache
     private final Cache<Metadata, Long> metaCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build();
     private final Cache<DimensionValue, Long> dimensionCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build();
-    private final Cache<TopoLink, Long> topoCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build();
+    private final Cache<EndPointLink, Long> topoCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build();
     private final Cache<String, String> instanceCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(5)).build();
 
     public CachableMetadataStorage(IMetaStorage delegate) {
@@ -85,15 +75,11 @@ public class CachableMetadataStorage implements IMetaStorage {
     }
 
     @Override
-    public long createTopo(EndPointType srcEndpointType,
-                           String srcEndpoint,
-                           EndPointType dstEndpointType,
-                           String dstEndpoint) {
-        TopoLink topo = new TopoLink(srcEndpointType, srcEndpoint, dstEndpointType, dstEndpoint);
-        Long id = topoCache.getIfPresent(topo);
+    public long createTopo(EndPointLink link) {
+        Long id = topoCache.getIfPresent(link);
         if (id == null) {
-            id = delegate.createTopo(srcEndpointType, srcEndpoint, dstEndpointType, dstEndpoint);
-            topoCache.put(topo, id);
+            id = delegate.createTopo(link);
+            topoCache.put(link, id);
         }
         return id;
     }

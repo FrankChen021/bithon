@@ -1,7 +1,5 @@
 package com.sbss.bithon.collector.meta;
 
-import com.sbss.bithon.component.db.dao.EndPointType;
-
 import java.util.Collection;
 
 /**
@@ -18,10 +16,7 @@ public interface IMetaStorage {
                                String dimensionName,
                                String dimensionValue, long timestamp);
 
-    long createTopo(EndPointType srcEndpointType,
-                    String srcEndpoint,
-                    EndPointType dstEndpointType,
-                    String dstEndpoint);
+    long createTopo(EndPointLink link);
 
     /**
      * @param instanceName host+port

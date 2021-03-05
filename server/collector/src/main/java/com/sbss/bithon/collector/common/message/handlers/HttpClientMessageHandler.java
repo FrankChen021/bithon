@@ -46,7 +46,7 @@ public class HttpClientMessageHandler extends AbstractMetricMessageHandler<HttpC
             return null;
         }
 
-        String appName = message.getAppName() + "-" + message.getEnv();
+        String appName = message.getAppName();
         String instanceName = message.getHostName() + ":" + message.getPort();
 
         return new SizedIterator() {
@@ -74,7 +74,7 @@ public class HttpClientMessageHandler extends AbstractMetricMessageHandler<HttpC
 
     @Override
     protected boolean beforeProcessMetricObject(GenericMetricObject metricObject) throws Exception {
-        URI uri = new URI(metricObject.getString("uri"));
+        URI uri = new URI(metricObject.getDimension("uri"));
 
         UriNormalizer.NormalizedResult result = uriNormalizer.normalize(metricObject.getApplicationName(),
                                                                         NetworkUtils.formatUri(uri));
@@ -94,20 +94,32 @@ public class HttpClientMessageHandler extends AbstractMetricMessageHandler<HttpC
             String targetApplicationName = getMetaStorage().getApplicationByInstance(targetHostPort);
 
             if (targetApplicationName != null) {
-                metricObject.setTargetEndpoint(EndPointType.APPLICATION, targetApplicationName);
+                metricObject.setEndpointLink(EndPointType.APPLICATION,
+                                             metricObject.getApplicationName(),
+                                             EndPointType.APPLICATION,
+                                             targetApplicationName);
             } else {
                 //
                 // if the target application has not been in service yet,
                 // it of course can't be found in the metadata storage
                 //
                 // TODO: This record should be fixed when a new instance is inserted into the metadata storage
-                metricObject.setTargetEndpoint(EndPointType.WEB_SERVICE, targetHostPort);
+                metricObject.setEndpointLink(EndPointType.APPLICATION,
+                                             metricObject.getApplicationName(),
+                                             EndPointType.WEB_SERVICE,
+                                             targetHostPort);
             }
         } else {
             if (getMetaStorage().isApplicationExist(targetHostPort)) {
-                metricObject.setTargetEndpoint(EndPointType.APPLICATION, targetHostPort);
+                metricObject.setEndpointLink(EndPointType.APPLICATION,
+                                             metricObject.getApplicationName(),
+                                             EndPointType.APPLICATION,
+                                             targetHostPort);
             } else {
-                metricObject.setTargetEndpoint(EndPointType.DOMAIN, targetHostPort);
+                metricObject.setEndpointLink(EndPointType.APPLICATION,
+                                             metricObject.getApplicationName(),
+                                             EndPointType.DOMAIN,
+                                             targetHostPort);
             }
         }
 

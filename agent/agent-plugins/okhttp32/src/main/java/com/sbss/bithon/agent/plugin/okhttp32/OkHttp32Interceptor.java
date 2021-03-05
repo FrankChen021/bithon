@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class OkHttp32Interceptor extends AbstractInterceptor {
     private static final Logger log = LoggerFactory.getLogger(OkHttp32Interceptor.class);
 
-    private HttpClientMetricProvider dataSource;
+    private HttpClientMetricProvider metricProvider;
     private Set<String> ignoredSuffixes;
 
     @Override
@@ -37,7 +37,7 @@ public class OkHttp32Interceptor extends AbstractInterceptor {
             .map(x -> x.trim().toLowerCase())
             .collect(Collectors.toSet());
 
-        dataSource = MetricProviderManager.getInstance().register("okhttp3.2", new HttpClientMetricProvider());
+        metricProvider = MetricProviderManager.getInstance().register("okhttp3.2", new HttpClientMetricProvider());
 
         return true;
     }
@@ -59,12 +59,12 @@ public class OkHttp32Interceptor extends AbstractInterceptor {
         String requestMethod = originRequest.method().toUpperCase();
 
         if (aopContext.getException() != null) {
-            dataSource.addExceptionRequest(requestUri,
-                                           requestMethod,
-                                           aopContext.getCostTime());
+            metricProvider.addExceptionRequest(requestUri,
+                                               requestMethod,
+                                               aopContext.getCostTime());
         } else {
             Response response = aopContext.castReturningAs();
-            dataSource.addRequest(requestUri, requestMethod, response.code(), aopContext.getCostTime());
+            metricProvider.addRequest(requestUri, requestMethod, response.code(), aopContext.getCostTime());
         }
 
         addBytes(requestUri, requestMethod, originRequest, realCall);
@@ -92,7 +92,7 @@ public class OkHttp32Interceptor extends AbstractInterceptor {
                     .size();
             }
 
-            dataSource.addBytes(uri, method, requestByteSize, responseByteSize);
+            metricProvider.addBytes(uri, method, requestByteSize, responseByteSize);
         } catch (Exception e) {
             log.warn("OKHttp getByteSize", e);
         }

@@ -36,7 +36,7 @@ public class ThreadPoolMessageHandler extends AbstractMetricMessageHandler<Threa
 
     @Override
     SizedIterator toIterator(ThreadPoolMessage message) {
-        String appName = message.getAppName() + "-" + message.getEnv();
+        String appName = message.getAppName();
         String instanceName = message.getHostName() + ":" + message.getPort();
 
         Iterator<ThreadPoolEntity> delegate = message.getPoolsIterator();

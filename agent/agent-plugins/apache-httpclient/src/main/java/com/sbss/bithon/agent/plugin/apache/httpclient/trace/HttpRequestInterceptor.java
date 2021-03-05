@@ -1,15 +1,16 @@
 package com.sbss.bithon.agent.plugin.apache.httpclient.trace;
 
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.core.context.AgentContext;
+import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
 import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
-import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import shaded.org.slf4j.Logger;
@@ -21,8 +22,22 @@ import shaded.org.slf4j.LoggerFactory;
 public class HttpRequestInterceptor extends AbstractInterceptor {
     private static final Logger log = LoggerFactory.getLogger(HttpRequestInterceptor.class);
 
+    private String srcApplication;
+
+    @Override
+    public boolean initialize() throws Exception {
+        srcApplication = AgentContext.getInstance().getAppInstance().getAppName();
+        return super.initialize();
+    }
+
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[0];
+        httpRequest.setHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME, srcApplication);
+
+        //
+        // Trace
+        //
         TraceContext tracer = TraceContextHolder.get();
         if (tracer == null) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -34,7 +49,6 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
         }
 
         // create a span and save it in user-context
-        HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[0];
         TraceSpan thisSpan = parentSpan.newChildSpan("httpClient")
             .clazz(aopContext.getTargetClass())
             .method(aopContext.getMethod())
@@ -46,11 +60,7 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
         // propagate tracing
         Tracer.get()
             .propagator()
-            .inject(tracer, httpRequest, (PropagationSetter<HttpRequest>) (request, key, value) -> {
-                if (!request.containsHeader(key)) {
-                    request.addHeader(key, value);
-                }
-            });
+            .inject(tracer, httpRequest, (request, key, value) -> request.setHeader(key, value));
 
         return InterceptionDecision.CONTINUE;
     }
@@ -63,7 +73,7 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
         }
 
         try {
-            HttpResponse response = (HttpResponse) context.castReturningAs();
+            HttpResponse response = context.castReturningAs();
             thisSpan.tag("status", Integer.toString(response.getStatusLine().getStatusCode()));
             if (context.hasException()) {
                 thisSpan.tag("exception", context.getException().getClass().getSimpleName());
@@ -71,8 +81,8 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
         } finally {
             try {
                 thisSpan.finish();
-            } catch (Exception ignored) {
-                log.warn("error to finish span", ignored);
+            } catch (Exception e) {
+                log.warn("error to finish span", e);
             }
         }
     }

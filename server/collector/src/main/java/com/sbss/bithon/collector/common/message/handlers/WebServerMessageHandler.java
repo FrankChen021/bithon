@@ -34,7 +34,7 @@ public class WebServerMessageHandler extends AbstractMetricMessageHandler<WebSer
 
     @Override
     SizedIterator toIterator(WebServerMessage message) {
-        String appName = message.getAppName() + "-" + message.getEnv();
+        String appName = message.getAppName();
         String instanceName = message.getHostName() + ":" + message.getPort();
 
         return new SizedIterator() {

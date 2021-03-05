@@ -38,7 +38,7 @@ public class RedisMessageHandler extends AbstractMetricMessageHandler<RedisMessa
 
     @Override
     SizedIterator toIterator(RedisMessage message) {
-        String appName = message.getAppName() + "-" + message.getEnv();
+        String appName = message.getAppName();
         String instanceName = message.getHostName() + ":" + message.getPort();
 
         Iterator<RedisEntity> delegate = message.getRedisListIterator();
@@ -61,7 +61,10 @@ public class RedisMessageHandler extends AbstractMetricMessageHandler<RedisMessa
                                                                       appName,
                                                                       instanceName);
                 metrics.put("interval", message.getInterval());
-                metrics.setTargetEndpoint(EndPointType.REDIS, redisEntity.getUri());
+                metrics.setEndpointLink(EndPointType.APPLICATION,
+                                        message.getAppName(),
+                                        EndPointType.REDIS,
+                                        redisEntity.getUri());
 
                 ReflectionUtils.getFields(redisEntity, metrics);
 

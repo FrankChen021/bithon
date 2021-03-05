@@ -1,10 +1,11 @@
 package com.sbss.bithon.agent.plugin.tomcat.interceptor;
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
 import com.sbss.bithon.agent.core.metrics.web.RequestUriFilter;
 import com.sbss.bithon.agent.core.metrics.web.UserAgentFilter;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
 import com.sbss.bithon.agent.plugin.tomcat.metric.WebRequestMetricProvider;
 import org.apache.coyote.Request;
 import org.apache.coyote.Response;
@@ -30,15 +31,26 @@ public class CoyoteAdapterService extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext context) {
-        Request request = (Request) context.getArgs()[0];
+    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+        Request request = (Request) aopContext.getArgs()[0];
+        if (userAgentFilter.isFiltered(request.getHeader("User-Agent"))
+            || uriFilter.isFiltered(request.requestURI().toString())) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        return super.onMethodEnter(aopContext);
+    }
+
+    @Override
+    public void onMethodLeave(AopContext aopContext) {
+        Request request = (Request) aopContext.getArgs()[0];
         if (userAgentFilter.isFiltered(request.getHeader("User-Agent"))
             || uriFilter.isFiltered(request.requestURI().toString())) {
             return;
         }
 
         metricProvider.update(request,
-                              (Response) context.getArgs()[1],
-                              context.getCostTime());
+                              (Response) aopContext.getArgs()[1],
+                              aopContext.getCostTime());
     }
 }

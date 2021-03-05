@@ -1,6 +1,7 @@
 package com.sbss.bithon.collector.common.message.handlers;
 
 import com.sbss.bithon.collector.common.utils.datetime.DateTimeUtils;
+import com.sbss.bithon.collector.meta.EndPointLink;
 import com.sbss.bithon.component.db.dao.EndPointType;
 
 import java.util.HashMap;
@@ -27,25 +28,30 @@ public class GenericMetricObject extends HashMap<String, Object> {
         return (String) get("appName");
     }
 
+    public String getApplicationEnv() {
+        return (String) get("env");
+    }
+
     public String getInstanceName() {
         return (String) get("instanceName");
     }
 
-    public String getTargetEndpoint() {
-        return (String) get("targetEndpoint");
+    public EndPointLink getEndPointLink() {
+        return (EndPointLink) get("endpointLink");
     }
 
-    public EndPointType getTargetEndpointType() {
-        return (EndPointType) get("targetEndpointType");
+    public void setEndpointLink(EndPointType srcEndPointType,
+                                String srcEndpoint,
+                                EndPointType dstEndPointType,
+                                String dstEndpoint) {
+
+        put("endpointLink", new EndPointLink(srcEndPointType,
+                                             srcEndpoint,
+                                             dstEndPointType,
+                                             dstEndpoint));
     }
 
-    public void setTargetEndpoint(EndPointType endPointType,
-                                  String endpoint) {
-        put("targetEndpoint", endpoint);
-        put("targetEndpointType", endPointType);
-    }
-
-    public String getString(String name) {
-        return (String)get(name);
+    public String getDimension(String name) {
+        return (String) get(name);
     }
 }

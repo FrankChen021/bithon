@@ -11,7 +11,6 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.SocketException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -121,14 +120,18 @@ public abstract class AbstractThriftClient<T extends TServiceClient> {
             if (null != client && null != client.getInputProtocol() && null != client.getInputProtocol().getTransport()) {
                 client.getInputProtocol().getTransport().close();
             }
+        } catch (Exception e) {
+            log.warn("Failed to close client for [{}]: {}", this.clientName, e.getMessage());
+        }
+
+        try {
             if (null != client && null != client.getOutputProtocol() && null != client.getOutputProtocol().getTransport()) {
                 client.getOutputProtocol().getTransport().close();
             }
-            client = null;
         } catch (Exception e) {
-            log.warn(String.format("Failed to close client for [%s]", this.clientName), e);
-            client = null;
+            log.warn("Failed to close client for [{}]: {}", this.clientName, e.getMessage());
         }
+        client = null;
     }
 
     abstract protected T createClient(org.apache.thrift.protocol.TProtocol protocol);

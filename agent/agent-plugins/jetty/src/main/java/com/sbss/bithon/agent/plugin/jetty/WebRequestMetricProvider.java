@@ -1,6 +1,7 @@
 package com.sbss.bithon.agent.plugin.jetty;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
+import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metrics.IMetricProvider;
 import com.sbss.bithon.agent.core.metrics.web.WebRequestMetric;
@@ -30,6 +31,7 @@ public class WebRequestMetricProvider implements IMetricProvider {
         HttpServletResponse response,
         long costTime
     ) {
+        String srcApplication = request.getHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME);
         String uri = httpServletRequest.getRequestURI();
         int httpStatus = response.getStatus();
         int errorCount = response.getStatus() >= 400 ? 1 : 0;
@@ -42,9 +44,9 @@ public class WebRequestMetricProvider implements IMetricProvider {
             responseByteSize = jettyResponse.getContentCount();
         }
 
-        WebRequestMetric webRequestMetrics = metricsMap.computeIfAbsent(uri, WebRequestMetric::new);
+        WebRequestMetric webRequestMetrics = metricsMap.computeIfAbsent(srcApplication + "|" + uri, key -> new WebRequestMetric(srcApplication, uri));
         webRequestMetrics.add(costTime, errorCount, count4xx, count5xx);
-        webRequestMetrics.addByteSize(requestByteSize, responseByteSize);
+        webRequestMetrics.addBytes(requestByteSize, responseByteSize);
     }
 
     @Override

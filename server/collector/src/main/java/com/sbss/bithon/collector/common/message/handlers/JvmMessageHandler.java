@@ -47,7 +47,7 @@ public class JvmMessageHandler extends AbstractMetricMessageHandler<JvmMessage> 
 
             @Override
             public GenericMetricObject next() {
-                String appName = message.getAppName() + "-" + message.getEnv();
+                String appName = message.getAppName();
                 String instanceName = message.getHostName() + ":" + message.getPort();
 
                 GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),

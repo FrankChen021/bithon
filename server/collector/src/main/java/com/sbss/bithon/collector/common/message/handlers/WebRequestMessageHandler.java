@@ -6,8 +6,10 @@ import com.sbss.bithon.collector.common.utils.ReflectionUtils;
 import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
 import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
 import com.sbss.bithon.collector.meta.IMetaStorage;
+import com.sbss.bithon.component.db.dao.EndPointType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -40,7 +42,7 @@ public class WebRequestMessageHandler extends AbstractMetricMessageHandler<WebRe
             return null;
         }
 
-        String appName = message.getAppName() + "-" + message.getEnv();
+        String appName = message.getAppName();
         String instanceName = message.getHostName() + ":" + message.getPort();
 
         return new SizedIterator() {
@@ -66,8 +68,21 @@ public class WebRequestMessageHandler extends AbstractMetricMessageHandler<WebRe
                                                                       instanceName);
                 metrics.put("interval", message.getInterval());
                 metrics.put("uri", result.getUri());
-
                 ReflectionUtils.getFields(message.getRequestEntity(), metrics);
+
+                String srcApplication;
+                EndPointType srcEndPointType;
+                if (StringUtils.isEmpty(message.getRequestEntity().getSrcApplication())) {
+                    srcApplication = "Bithon-Unknown";
+                    srcEndPointType = EndPointType.UNKNOWN;
+                } else {
+                    srcApplication = message.getRequestEntity().getSrcApplication();
+                    srcEndPointType = EndPointType.APPLICATION;
+                }
+                metrics.setEndpointLink(srcEndPointType,
+                                        srcApplication,
+                                        EndPointType.APPLICATION,
+                                        message.getAppName());
 
                 return metrics;
             }

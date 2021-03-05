@@ -42,7 +42,11 @@ public class InputRow {
     }
 
     public Object getColumnValue(String columnName, Object defaultValue) {
-        return columns.getOrDefault(columnName, defaultValue);
+        Object obj = columns.getOrDefault(columnName, defaultValue);
+
+        // when columnName exist but its value is null, the returned obj above is NOT null
+        // So, additional check is needed to return correct default value
+        return obj == null ? defaultValue : obj;
     }
 
     public Long getColumnValueAsLong(String columnName) {

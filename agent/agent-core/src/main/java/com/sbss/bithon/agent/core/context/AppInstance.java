@@ -23,7 +23,7 @@ public class AppInstance {
     private final List<IAppInstanceChangedListener> listeners = new ArrayList<>();
 
     AppInstance(String appName, String env) {
-        this.appName = appName;
+        this.appName = appName + "-" + env;
         this.env = env;
         this.port = 0;
 

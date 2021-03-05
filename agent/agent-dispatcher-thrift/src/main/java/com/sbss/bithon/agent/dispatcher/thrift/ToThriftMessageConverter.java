@@ -105,6 +105,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
         thriftMessage.setInterval(interval);
         thriftMessage.setTimestamp(timestamp);
         WebRequestEntity entity = new WebRequestEntity();
+        entity.setSrcApplication(metric.getSrcApplication());
         entity.setUri(metric.getUri());
         entity.setCostTime(metric.getCostTime());
         entity.setRequestCount(metric.getRequestCount());

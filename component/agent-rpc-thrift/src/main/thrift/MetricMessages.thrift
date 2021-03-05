@@ -15,14 +15,15 @@ struct WebRequestMessage {
 }
 
 struct WebRequestEntity {
-    1:string uri;
-    2:i64 costTime;
-    3:i64 requestCount;
-    4:i64 errorCount;
-    5:i64 count4xx;
-    6:i64 count5xx;
-    7:i64 requestByteSize;
-    8:i64 responseByteSize;
+    1:optional string srcApplication;
+    2:string uri;
+    3:i64 costTime;
+    4:i64 requestCount;
+    5:i64 errorCount;
+    6:i64 count4xx;
+    7:i64 count5xx;
+    8:i64 requestByteSize;
+    9:i64 responseByteSize;
 }
 
 /***************************************************************************/

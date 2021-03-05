@@ -1,9 +1,9 @@
 package com.sbss.bithon.collector.meta.jdbc;
 
+import com.sbss.bithon.collector.meta.EndPointLink;
 import com.sbss.bithon.collector.meta.IMetaStorage;
 import com.sbss.bithon.collector.meta.Metadata;
 import com.sbss.bithon.collector.meta.MetadataType;
-import com.sbss.bithon.component.db.dao.EndPointType;
 import com.sbss.bithon.component.db.dao.MetadataDAO;
 import com.sbss.bithon.component.db.jooq.tables.records.BithonMetadataRecord;
 import org.jooq.DSLContext;
@@ -41,14 +41,11 @@ public class MetadataJdbcStorage implements IMetaStorage {
     }
 
     @Override
-    public long createTopo(EndPointType srcEndpointType,
-                           String srcEndpoint,
-                           EndPointType dstEndpointType,
-                           String dstEndpoint) {
-        return metadataDao.upsertTopo(srcEndpointType,
-                                      srcEndpoint,
-                                      dstEndpointType,
-                                      dstEndpoint);
+    public long createTopo(EndPointLink link) {
+        return metadataDao.upsertTopo(link.getSrcEndPointType(),
+                                      link.getSrcEndpoint(),
+                                      link.getDstEndpointType(),
+                                      link.getDstEndpoint());
     }
 
     @Override

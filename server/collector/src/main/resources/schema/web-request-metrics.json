@@ -7,22 +7,24 @@
   },
   "dimensionsSpec": [
     {
-      "field": "appName",
       "name": "appName",
       "displayText": "Application Name",
       "required": true
     },
     {
-      "field": "instanceName",
       "name": "instanceName",
       "displayText": "Instance Name",
       "required": true
     },
     {
-      "field": "uri",
+      "name": "srcApplication",
+      "displayText": "Source Application",
+      "required": true
+    },
+    {
       "name": "uri",
       "displayText": "Request URI",
-      "required": false
+      "required": true
     }
   ],
   "metricsSpec": [

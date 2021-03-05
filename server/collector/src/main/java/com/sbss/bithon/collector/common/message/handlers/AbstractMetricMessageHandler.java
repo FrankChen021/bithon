@@ -7,12 +7,11 @@ import com.sbss.bithon.collector.datasource.dimension.IDimensionSpec;
 import com.sbss.bithon.collector.datasource.input.InputRow;
 import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
 import com.sbss.bithon.collector.datasource.storage.IMetricWriter;
+import com.sbss.bithon.collector.meta.EndPointLink;
 import com.sbss.bithon.collector.meta.IMetaStorage;
 import com.sbss.bithon.collector.meta.MetadataType;
-import com.sbss.bithon.component.db.dao.EndPointType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import sun.net.www.content.text.Generic;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -135,12 +134,9 @@ public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThr
         //
         // save topo
         //
-        String dstEndpoint = metricObject.getTargetEndpoint();
-        if (dstEndpoint != null) {
-            metaStorage.createTopo(EndPointType.APPLICATION,
-                                   metricObject.getApplicationName(),
-                                   metricObject.getTargetEndpointType(),
-                                   dstEndpoint);
+        EndPointLink link = metricObject.getEndPointLink();
+        if (link != null) {
+            metaStorage.createTopo(link);
         }
 
         //
