@@ -34,7 +34,7 @@ public class ThriftMetricsMessageChannel implements IMessageChannel {
                 && m.getParameterCount() == 1)
             .collect(Collectors.toMap(m -> m.getParameterTypes()[0].getName(), method -> method));
 
-        this.client = new AbstractThriftClient<IMetricCollector.Client>("metrics",
+        this.client = new AbstractThriftClient<IMetricCollector.Client>("metric",
                                                                         dispatcherConfig.getServers(),
                                                                         dispatcherConfig.getClient().getTimeout()) {
             @Override

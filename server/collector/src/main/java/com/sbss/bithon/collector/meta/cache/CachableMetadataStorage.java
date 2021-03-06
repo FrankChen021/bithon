@@ -2,6 +2,7 @@ package com.sbss.bithon.collector.meta.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.sbss.bithon.collector.common.pojo.DisplayableText;
 import com.sbss.bithon.collector.meta.EndPointLink;
 import com.sbss.bithon.collector.meta.IMetaStorage;
 import com.sbss.bithon.collector.meta.Metadata;
@@ -101,5 +102,10 @@ public class CachableMetadataStorage implements IMetaStorage {
     public boolean isApplicationExist(String applicationName) {
         //TODO: cache
         return delegate.isApplicationExist(applicationName);
+    }
+
+    @Override
+    public Collection<DisplayableText> getMetricDimensions(String dataSourceName, String dimensionName, String startISO8601, String endISO8601) {
+        return null;
     }
 }

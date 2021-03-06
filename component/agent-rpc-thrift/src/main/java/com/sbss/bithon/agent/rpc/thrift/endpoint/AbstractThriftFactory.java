@@ -10,8 +10,6 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractThriftFactory {
 
-    protected static Logger logger = LoggerFactory.getLogger(AbstractThriftFactory.class);
-
     protected TProtocolFactory createProtocolFactory(TransportProtocolEnum protocolEnum) {
         switch (protocolEnum) {
             case JSON:

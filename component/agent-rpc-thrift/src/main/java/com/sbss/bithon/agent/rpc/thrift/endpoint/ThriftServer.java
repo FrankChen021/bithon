@@ -8,15 +8,18 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author frankchen
  */
 public class ThriftServer extends AbstractThriftFactory {
+    protected static Logger logger = LoggerFactory.getLogger(AbstractThriftFactory.class);
 
     public static final String SPLIT = "$";
 
-    public void start(TBaseProcessor baseProcessor, int port) {
+    public void start(TProcessor baseProcessor, int port) {
         try {
             TNonblockingServerTransport serverTransport = new TNonblockingServerSocket(port);
             TThreadedSelectorServer.Args args = new TThreadedSelectorServer.Args(serverTransport);
@@ -29,7 +32,7 @@ public class ThriftServer extends AbstractThriftFactory {
             TThreadedSelectorServer server = new TThreadedSelectorServer(args);
             if (!server.isServing()) {
                 new Thread(() -> {
-                    logger.info("Listening thrift server on port {}...", port);
+                    logger.info("Starting thrift server on port {}...", port);
                     server.serve();
                     logger.info("Thrift server stopped");
                 }, "thrift-server-thread").start();

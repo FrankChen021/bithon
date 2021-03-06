@@ -5,12 +5,15 @@ spring:
         name: collector-server
     profiles:
         active: dev
-service:
+
+collector-service:
+    enabled: true
     port:
-        trace:   9895
-        events:  9896
-        metrics: 9898
+        tracing: 9895
+        event:   9896
+        metric:  9898
         setting: 9899
+
 logging:
     level:
         com.sbss.bithon.collector: debug

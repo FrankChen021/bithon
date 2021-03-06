@@ -12,7 +12,7 @@ import java.util.Map;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "service")
-public class ServiceConfig {
+@ConfigurationProperties(prefix = "collector-service")
+public class CollectorServiceConfig {
     private Map<String, Integer> port;
 }

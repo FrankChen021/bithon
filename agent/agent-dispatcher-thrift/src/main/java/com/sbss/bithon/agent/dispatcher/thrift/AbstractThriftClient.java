@@ -3,6 +3,7 @@ package com.sbss.bithon.agent.dispatcher.thrift;
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TServiceClient;
 import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
@@ -98,7 +99,9 @@ public abstract class AbstractThriftClient<T extends TServiceClient> {
                 if (!transport.isOpen()) {
                     transport.open();
                 }
-                client = createClient(new TCompactProtocol(transport));
+
+                client = createClient(new TMultiplexedProtocol(new TCompactProtocol(transport),
+                                                               clientName));
             } catch (TTransportException e) {
                 if (e.getCause() instanceof IOException) {
                     log.error("Failed to connect to server[{}:{}] for [{}], cause:[{}] message:{}",
