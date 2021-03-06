@@ -333,33 +333,37 @@
     <!-- page-content  -->
     <main class="page-content pt-2" style="padding-top:57px!important">
         <div id="overlay" class="overlay"></div>
-        <div class="container-fluid p-5" layout:fragment="content">
-            <div class="row">
-                <div class="form-group col-md-6" id="cpuChart">
-                </div>
+        <nav class="navbar" style="padding-top:.6em">
+            <!-- AppSelector Component -->
+            <select id="appSelector"></select>
 
-                <div class="form-group col-md-6" id="threadsChart">
+            <!-- Dimensions -->
+
+            <form class="form-inline">
+
+                <!-- TimeInterval Component -->
+                <div id="intervalSelector" class="dropdown">
+                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Time Interval
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="#">Action</a>
+                        <a class="dropdown-item" href="#">Another action</a>
+                        <a class="dropdown-item" href="#">Something else here</a>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="form-group col-md-12" id="heapMemChart">
-                </div>
-            </div>
-            <div class="row">
-                <div class="form-group col-md-12" id="gcChart">
-                </div>
-            </div>
-            <div class="row">
-                <div class="form-group col-md-12" id="threadChart">
-                </div>
-            </div>
+            </form>
+        </nav>
+        <div>
+            <div class="container-fluid p-3" layout:fragment="content"></div>
         </div>
     </main>
     <!-- page-content" -->
 
     <script th:src="@{/lib/custom-scrollbar/jquery.mCustomScrollbar.concat.min.js}"></script>
     <script th:src="@{/lib/pro-sidebar/src/js/main.js}"></script>
-    <script th:src="@{/js/sidebar/component.js}"></script>
+    <script th:src="@{/js/component/sidebar/component.js}"></script>
+    <script th:src="@{/js/component/utils/AutoRefresher.js}"></script>
 </div>
 </body>
 <script th:inline="javascript">
@@ -371,6 +375,15 @@ var appName = /*[[${appName}]]*/;
     var metricSidebar = new MetricSidebar("metricSidebar", appName);
     $(document).ready(()=>{
         metricSidebar.load();
+    });
+
+    new AutoRefresher({
+        timerLength: 10
+    }).before('intervalSelector')
+    .registerRefreshListener(()=>{
+        if ( window.dashboard != null ) {
+            window.dashboard.refreshDashboard();
+        }
     });
 </script>
 </html>

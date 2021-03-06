@@ -120,14 +120,26 @@ class Dashboard {
 
     // PRIVATE
     refreshDashboard() {
-        if ( this._interval == null ) {
-            this._interval = setInterval(()=>{this.refreshDashboard();}, 10*1000);
-        }
-
         // refresh each chart
         for(var id in this._chartComponents) {
             this.refreshChart(id);
         }
+    }
+
+    // PUBLIC
+    /*
+     * {
+     *     "dimension": "appName",
+     *     "matcher": {
+     *         "type": "equal",
+     *         "pattern": this._appName
+     *     }
+     * }
+     */
+    addDimension(dimensionName, dimension) {
+    }
+
+    rmvDimension(dimensionName) {
     }
 
     refreshChart(chartId) {
@@ -138,13 +150,15 @@ class Dashboard {
                 dataSource: this._dashboard.dataSource,
                 startTimeISO8601: moment().utc().subtract(10, 'minute').local().toISOString(),
                 endTimeISO8601: moment().utc().local().toISOString(),
-                dimensions: [{
-                    "dimension": "appName",
-                    "matcher": {
-                        "type": "equal",
-                        "pattern": this._appName
+                dimensions: {
+                    "appName": {
+                        "dimension": "appName",
+                        "matcher": {
+                            "type": "equal",
+                            "pattern": this._appName
+                        }
                     }
-                }],
+                },
                 metrics: chartComponent.getOption().metrics,
             }),
             processResult: (data)=>{

@@ -5,8 +5,7 @@
       layout:decorate="~{app/app-layout}">
 <head>
     <title>Bithon</title>
-    <script th:src="@{/js/metric/webserver/component.js}"></script>
-    <script th:src="@{/js/metric/webserver/dashboard-config.js}"></script>
+    <script th:src="@{/js/metric/redis/dashboard-config.js}"></script>
 </head>
 <body>
 
@@ -22,7 +21,7 @@ var appName = /*[[${appName}]]*/;
 <script>
 $(document).ready(function(){
     var dashboard = new Dashboard('dashboard', appName, new SchemaApi());
-    dashboard.load(webServerDashboardConfig)
+    dashboard.load(redisMetricsDashboard)
 });
 </script>
 

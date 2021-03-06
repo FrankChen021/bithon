@@ -18,17 +18,10 @@ var appName = /*[[${appName}]]*/;
 
 <script>
 $(document).ready(function(){
-
     var dashboard = new Dashboard('dashboard', appName, new SchemaApi());
     dashboard.load(jvmDashboard);
-/*
-    var instanceInfo = new CardComponent('instanceInfo').header('<b>Instance Info</b>');
-    gCpuChart = new ChartComponent({containerId:'cpuChart'}).header('<b>CPU</b>');
-    gThreadsChart = new ChartComponent({containerId:'threadsChart'}).header('<b>Threads</b>');
-    gHeapMemChart = new ChartComponent({containerId:'heapMemChart'}).header('<b>Memory</b>');
-    var gcChart = new CardComponent('gcChart').header('<b>Garbage Collection</b>');
-    var threadChart = new CardComponent('threadChart').header('<b>Threads</b>');
-    refresh();*/
+
+    window.dashboard = dashboard;
 });
 </script>
 

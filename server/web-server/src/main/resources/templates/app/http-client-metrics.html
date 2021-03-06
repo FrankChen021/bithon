@@ -5,45 +5,26 @@
       layout:decorate="~{app/app-layout}">
 <head>
     <title>Bithon</title>
-    <script th:src="@{/js/metric/httpclient/component.js}"></script>
+    <script th:src="@{/js/metric/httpclient/dashboard-config.js}"></script>
 </head>
 <body>
 
-<div layout:fragment="content">
-    <div class="row">
-        <div class="form-group col-md-12" id="httpClientRequests">
-        </div>
-    </div>
-    <div class="row">
-        <div class="form-group col-md-12" id="httpClientError">
-        </div>
-    </div>
-    <div class="row">
-        <div class="form-group col-md-12" id="httpClientIO">
-        </div>
-    </div>
+<div layout:fragment="content" id="dashboard">
 
-    <script th:inline="javascript">
+
+<script th:inline="javascript">
 /*<![CDATA[*/
 var appName = /*[[${appName}]]*/;
 /*]]>*/
-
-
-    </script>
+</script>
 
     <script>
 
-var httpClientRequestCard;
-var httpClientErrorCard;
-var httpClientIoCard;
-
 $(document).ready(function(){
 
-    httpClientRequestCard = new ChartComponent({containerId:'httpClientRequests'}).header('<b>Http Requests</b>');
-    httpClientErrorCard = new ChartComponent({containerId:'httpClientError'}).header('<b>Http Request Error</b>');
-    httpClientIoCard = new ChartComponent({containerId:'httpClientIO'}).header('<b>Http Request IO</b>');
+    var dashboard = new Dashboard('dashboard', appName, new SchemaApi());
+    dashboard.load(httpClientMetricsDashboard);
 
-    refresh();
 });
 
 function refresh() {

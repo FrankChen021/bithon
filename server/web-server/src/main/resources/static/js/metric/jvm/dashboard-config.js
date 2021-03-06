@@ -37,5 +37,15 @@ var jvmDashboard = {
         },{
              "name": "heapCommitted"
          }]
-     }]
+     },{
+        "title": "Garbage Collection",
+        "width": 4,
+        "metrics":[{
+            "name": "heap",
+        },{
+           "name": "heapUsed"
+       },{
+            "name": "heapCommitted"
+        }]
+    }]
 }
