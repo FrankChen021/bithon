@@ -49,7 +49,7 @@ class MetricWriter implements IMetricWriter {
         private final List<Field> metrics = new ArrayList<>();
 
         public MetricTable(DataSourceSchema schema) {
-            super(DSL.name(schema.getName()));
+            super(DSL.name("bithon_" + schema.getName().replace("-", "_")));
 
             timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP);
 
