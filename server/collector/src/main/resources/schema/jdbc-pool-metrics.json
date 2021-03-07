@@ -1,6 +1,6 @@
 {
-  "displayText": "JDBC",
-  "name": "jdbc-metrics",
+  "displayText": "JDBC Pool",
+  "name": "jdbc-pool-metrics",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"

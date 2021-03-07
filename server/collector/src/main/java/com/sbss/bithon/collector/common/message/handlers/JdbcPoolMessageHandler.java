@@ -20,12 +20,12 @@ import java.util.Iterator;
  */
 @Slf4j
 @Service
-public class JdbcMessageHandler extends AbstractMetricMessageHandler<JdbcMessage> {
+public class JdbcPoolMessageHandler extends AbstractMetricMessageHandler<JdbcMessage> {
 
-    public JdbcMessageHandler(IMetaStorage metaStorage,
-                              IMetricStorage metricStorage,
-                              DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
-        super("jdbc-metrics",
+    public JdbcPoolMessageHandler(IMetaStorage metaStorage,
+                                  IMetricStorage metricStorage,
+                                  DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("jdbc-pool-metrics",
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
