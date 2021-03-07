@@ -28,9 +28,16 @@
       "unit": "%"
     },
     {
-      "type": "longSum",
-      "name": "instanceUpTime",
+      "type": "longLast",
+      "name": "instanceStartTime",
       "displayText": "启动时间",
+      "field": "instanceUpTime",
+      "unit": "Milli Second"
+    },
+    {
+      "type": "longLast",
+      "name": "instanceUpTime",
+      "displayText": "运行时长",
       "field": "instanceUpTime",
       "unit": "Milli Second"
     },

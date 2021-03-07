@@ -1,5 +1,6 @@
 package com.sbss.bithon.collector.common.message.handlers;
 
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.GcEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage;
 import com.sbss.bithon.collector.common.utils.ReflectionUtils;
 import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Iterator;
 
 /**
  * @author frank.chen021@outlook.com
@@ -17,12 +19,12 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class JvmMessageHandler extends AbstractMetricMessageHandler<JvmMessage> {
+public class JvmGcMessageHandler extends AbstractMetricMessageHandler<JvmMessage> {
 
-    public JvmMessageHandler(IMetaStorage metaStorage,
-                             IMetricStorage metricStorage,
-                             DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
-        super("jvm-metrics",
+    public JvmGcMessageHandler(IMetaStorage metaStorage,
+                               IMetricStorage metricStorage,
+                               DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("jvm-gc-metrics",
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
@@ -34,15 +36,16 @@ public class JvmMessageHandler extends AbstractMetricMessageHandler<JvmMessage> 
 
     @Override
     SizedIterator toIterator(JvmMessage message) {
-        return new SizedIterator() {
+        Iterator<GcEntity> delegate = message.getGcEntitiesIterator();
+        return delegate == null ? null : new SizedIterator() {
             @Override
             public int size() {
-                return 1;
+                return message.getGcEntitiesSize();
             }
 
             @Override
             public boolean hasNext() {
-                return false;
+                return delegate.hasNext();
             }
 
             @Override
@@ -55,14 +58,7 @@ public class JvmMessageHandler extends AbstractMetricMessageHandler<JvmMessage> 
                                                                       instanceName);
                 metrics.put("interval", message.getInterval());
 
-                ReflectionUtils.getFields(message.getClassesEntity(), metrics);
-                ReflectionUtils.getFields(message.getCpuEntity(), metrics);
-                ReflectionUtils.getFields(message.getHeapEntity(), metrics);
-                ReflectionUtils.getFields(message.getNonHeapEntity(), metrics);
-                ReflectionUtils.getFields(message.getMemoryEntity(), metrics);
-                ReflectionUtils.getFields(message.getThreadEntity(), metrics);
-                ReflectionUtils.getFields(message.getInstanceTimeEntity(), metrics);
-                ReflectionUtils.getFields(message.getMetaspaceEntity(), metrics);
+                ReflectionUtils.getFields(delegate.next(), metrics);
 
                 return metrics;
             }

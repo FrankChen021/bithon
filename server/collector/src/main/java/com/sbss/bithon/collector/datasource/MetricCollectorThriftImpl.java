@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class MetricCollectorThriftImpl implements IMetricCollector.Iface {
 
     private final JvmMessageHandler jvmMessageHandler;
+    private final JvmGcMessageHandler jvmGcMessageHandler;
     private final WebRequestMessageHandler webRequestMessageHandler;
     private final WebServerMessageHandler webServerMessageHandler;
     private final ExceptionMessageHandler exceptionMessageHandler;
@@ -24,6 +25,7 @@ public class MetricCollectorThriftImpl implements IMetricCollector.Iface {
     private final RedisMessageHandler redisMessageHandler;
 
     public MetricCollectorThriftImpl(JvmMessageHandler jvmMessageHandler,
+                                     JvmGcMessageHandler jvmGcMessageHandler,
                                      WebRequestMessageHandler webRequestMessageHandler,
                                      WebServerMessageHandler webServerMessageHandler,
                                      ExceptionMessageHandler exceptionMessageHandler,
@@ -32,6 +34,7 @@ public class MetricCollectorThriftImpl implements IMetricCollector.Iface {
                                      JdbcMessageHandler jdbcMessageHandler,
                                      RedisMessageHandler redisMessageHandler) {
         this.jvmMessageHandler = jvmMessageHandler;
+        this.jvmGcMessageHandler = jvmGcMessageHandler;
         this.webRequestMessageHandler = webRequestMessageHandler;
         this.webServerMessageHandler = webServerMessageHandler;
         this.exceptionMessageHandler = exceptionMessageHandler;
@@ -49,6 +52,7 @@ public class MetricCollectorThriftImpl implements IMetricCollector.Iface {
     @Override
     public void sendJvm(JvmMessage message) {
         jvmMessageHandler.submit(message);
+        jvmGcMessageHandler.submit(message);
     }
 
     @Override
