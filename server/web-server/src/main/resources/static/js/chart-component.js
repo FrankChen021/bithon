@@ -9,7 +9,7 @@ class ChartComponent {
         this._chartId = option.containerId + '_chart';
         this._card = $('#'+ option.containerId).append(
         '    <div class="card card-block">                             ' +
-        '        <div class="card-body">                    ' +
+        '        <div class="card-body" style="padding: 0.25em">                    ' +
         '            <div class="card-chart"></div> ' +
         '        </div>                                     ' +
         '    </div>                                         ')
@@ -24,7 +24,28 @@ class ChartComponent {
 
     header(text) {
         if ( this._header == null ) {
-            this._header = $(this._card).prepend('<div class="card-header"></div>').find('.card-header');
+            var rnd = Math.random();
+            this._header = $(this._card).prepend(
+            '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
+            '<span class="header-text btn-sm"></span>' +
+//            '<div id="intervalSelector" class="dropdown ml-auto">                                                                                         ' +
+//            '<button class="btn btn-sm"><span class="far fa-bell"></span></button>' +
+//            '    <button class="btn btn-sm dropdown-toggle" id="dropdownMenuButton-"' + rnd + ' type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> ' +
+//            '        Time Interval                                                                                                                ' +
+//            '    </button>                                                                                                                        ' +
+//            '    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton-' + rnd + '">                                                                 ' +
+//            '        <a class="dropdown-item" href="#">5 min</a>                                                                                  ' +
+//            '        <a class="dropdown-item" href="#">15 min</a>                                                                                 ' +
+//            '        <a class="dropdown-item" href="#">30 min</a>                                                                                 ' +
+//            '        <a class="dropdown-item" href="#">1 hour</a>                                                                                 ' +
+//            '        <a class="dropdown-item" href="#">3 hour</a>                                                                                 ' +
+//            '        <a class="dropdown-item" href="#">6 hour</a>                                                                                 ' +
+//            '        <a class="dropdown-item" href="#">12 hour</a>                                                                                ' +
+//            '        <a class="dropdown-item" href="#">24 hour</a>                                                                                ' +
+//            '        <a class="dropdown-item" href="#">Today</a>                                                                                  ' +
+//            '    </div>      ' +
+//            '</div></div>          ' +
+            '</div>').find('.header-text');
         }
         $(this._header).html(text);
         return this;

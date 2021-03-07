@@ -9,12 +9,12 @@
   "dimensionsSpec": [
     {
       "name": "appName",
-      "displayText": "Application Name",
+      "displayText": "Application",
       "required": true
     },
     {
       "name": "instanceName",
-      "displayText": "Instance Name",
+      "displayText": "Instance",
       "required": true
     },
     {

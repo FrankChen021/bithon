@@ -9,13 +9,13 @@
     {
       "field": "appName",
       "name": "appName",
-      "displayText": "应用ID",
+      "displayText": "Application",
       "required": true
     },
     {
       "field": "instanceName",
       "name": "instanceName",
-      "displayText": "实例ID",
+      "displayText": "Instance",
       "required": true
     }
   ],
@@ -23,42 +23,42 @@
     {
       "type": "doubleSum",
       "name": "processCpuLoad",
-      "displayText": "CPU负载",
+      "displayText": "CPU Load",
       "field": "processCpuLoad",
       "unit": "%"
     },
     {
       "type": "longLast",
       "name": "instanceStartTime",
-      "displayText": "启动时间",
+      "displayText": "Start Time",
       "field": "instanceUpTime",
       "unit": "Milli Second"
     },
     {
       "type": "longLast",
       "name": "instanceUpTime",
-      "displayText": "运行时长",
+      "displayText": "Running Time",
       "field": "instanceUpTime",
       "unit": "Milli Second"
     },
     {
       "type": "longSum",
       "name": "heap",
-      "displayText": "堆内存(-Xmx)",
+      "displayText": "Heap(-Xmx)",
       "field": "heap",
       "unit": "字节"
     },
     {
       "type": "longSum",
       "name": "heapInit",
-      "displayText": "堆内存(-Xms)",
+      "displayText": "Init Heap Size(-Xms)",
       "field": "heapInit",
       "unit": "字节"
     },
     {
       "type": "longSum",
       "name": "heapUsed",
-      "displayText": "已用堆内存",
+      "displayText": "Heap Used",
       "field": "heapUsed",
       "unit": "字节"
     },

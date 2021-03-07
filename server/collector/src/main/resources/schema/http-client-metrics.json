@@ -9,13 +9,13 @@
     {
       "field": "appName",
       "name": "appName",
-      "displayText": "应用ID",
+      "displayText": "Application",
       "required": true
     },
     {
       "field": "instanceName",
       "name": "instanceName",
-      "displayText": "实例ID",
+      "displayText": "Instance",
       "required": true
     },
     {
@@ -28,7 +28,8 @@
       "field": "method",
       "name": "method",
       "displayText": "Request Method",
-      "required": true
+      "required": true,
+      "visible": false
     }
   ],
   "metricsSpec": [

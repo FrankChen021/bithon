@@ -1,24 +1,26 @@
 var redisMetricsDashboard = {
     "title": "",
-    "dataSource": "redis-metrics",
     "charts":[{
+        "dataSource": "redis-metrics",
         "title": "Commands",
         "width": 4, //1,2,3,4
         "metrics":[{
             "name": "totalCount"
         }]
     },{
-         "title": "Time",
-         "width": 4, //1,2,3,4
-         "yAxis": [{
-             "formatter": "nano2Millisecond"
-         }],
-         "metrics":[{
-            "name": "requestTime"
-         },{
-            "name": "responseTime"
-         }]
+        "dataSource": "redis-metrics",
+        "title": "Time",
+        "width": 4, //1,2,3,4
+        "yAxis": [{
+            "formatter": "nano2Millisecond"
+        }],
+        "metrics":[{
+           "name": "requestTime"
+        },{
+           "name": "responseTime"
+        }]
      },{
+        "dataSource": "redis-metrics",
         "title": "IO",
         "width": 4, //1,2,3,4
         "yAxis": [ {

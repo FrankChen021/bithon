@@ -8,6 +8,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
+    <!-- JQuery -->
     <script type="text/javascript" th:src="@{/lib/jquery3.5.1/jquery-3.5.1.js}"></script>
     <script type="text/javascript" th:src="@{/lib/jquery-validation.1.19.2/jquery.validate.js}"></script>
 
@@ -15,6 +16,8 @@
     <script type="text/javascript" th:src="@{/lib/moment/moment.js}"></script>
     <script type="text/javascript" th:src="@{/lib/moment-timezone/moment-timezone.js}"></script>
 
+    <!-- Bootstrap -->
+    <script type="text/javascript" th:src="@{/lib/popper-2.9/popper.min.js}"></script>
     <link rel="stylesheet" type="text/css" th:href="@{/lib/bootstrap4.6/css/bootstrap.min.css}"/>
     <script type="text/javascript" th:src="@{/lib/bootstrap4.6/js/bootstrap.min.js}"></script>
 
@@ -42,7 +45,7 @@
     <script th:src="@{/js/utils/time.js}"></script>
     <script th:src="@{/js/global.js}"></script>
     <script th:src="@{/js/metric/dashboard.js}"></script>
-    <script th:src="@{/js/schema/schema-api.js}"></script>
+    <script th:src="@{/js/api-client/metric-client.js}"></script>
 </head>
 <body>
 
@@ -336,28 +339,17 @@
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
 
             <div class="collapse navbar-collapse">
-                <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                <ul class="navbar-nav mr-auto mt-2 mt-lg-0" id="filterBar">
                     <li class="nav-item active" id="appSelector">
                         <!-- App Selector -->
                     </li>
                     <li class="nav-item">
                     </li>
                 </ul>
-                <form class="form-inline my-2 my-lg-0">
+                <form class="form-inline my-2 my-lg-0" id="filterBarForm">
                     <!-- Auto Refresher -->
 
                     <!-- TimeInterval Component -->
-                    <div id="intervalSelector" class="dropdown">
-                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Time Interval
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="#">Action</a>
-                            <a class="dropdown-item" href="#">Another action</a>
-                            <a class="dropdown-item" href="#">Something else here</a>
-                        </div>
-                    </div>
-
                 </form>
             </div>
         </nav>
@@ -370,10 +362,11 @@
 
     <script th:src="@{/lib/custom-scrollbar/jquery.mCustomScrollbar.concat.min.js}"></script>
     <script th:src="@{/lib/pro-sidebar/src/js/main.js}"></script>
-    <script th:src="@{/js/api-client/MetadataClient.js}"></script>
+    <script th:src="@{/js/api-client/metadata-client.js}"></script>
     <script th:src="@{/js/component/sidebar/component.js}"></script>
-    <script th:src="@{/js/component/utils/AutoRefresher.js}"></script>
-    <script th:src="@{/js/component/app/AppSelector.js}"></script>
+    <script th:src="@{/js/component/auto-refresher/component.js}"></script>
+    <script th:src="@{/js/component/time-interval/component.js}"></script>
+    <script th:src="@{/js/component/app-selector/component.js}"></script>
 </div>
 </body>
 <script th:inline="javascript">
@@ -386,16 +379,5 @@ var appName = /*[[${appName}]]*/;
     $(document).ready(()=>{
         metricSidebar.load();
     });
-
-    new AutoRefresher({
-        timerLength: 10
-    }).before('intervalSelector')
-    .registerRefreshListener(()=>{
-        if ( window.dashboard != null ) {
-            window.dashboard.refreshDashboard();
-        }
-    });
-
-    new AppSelector(apiHost).childOf('appSelector');
 </script>
 </html>

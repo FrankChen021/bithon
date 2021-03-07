@@ -1,7 +1,7 @@
 var httpClientMetricsDashboard = {
     "title": "",
-    "dataSource": "http-client-metrics",
     "charts":[{
+        "dataSource": "http-client-metrics",
         "title": "Requests",
         "width": 4, //1,2,3,4
         "yAxis": [ {
@@ -16,16 +16,18 @@ var httpClientMetricsDashboard = {
           "yAxis": 1
         }]
     },{
-         "title": "Error",
-         "width": 4, //1,2,3,4
-         "metrics":[{
-            "name": "count4xx"
-         },{
-            "name": "count5xx"
-         },{
-            "name": "countException"
-         }]
+        "dataSource": "http-client-metrics",
+        "title": "Error",
+        "width": 4, //1,2,3,4
+        "metrics":[{
+          "name": "count4xx"
+        },{
+           "name": "count5xx"
+        },{
+           "name": "countException"
+        }]
      },{
+        "dataSource": "http-client-metrics",
         "title": "IO",
         "width": 4, //1,2,3,4
         "yAxis": [ {

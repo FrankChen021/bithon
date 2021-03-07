@@ -1,11 +1,11 @@
 package com.sbss.bithon.collector.datasource.api;
 
+import com.sbss.bithon.collector.common.pojo.DisplayableText;
 import com.sbss.bithon.collector.common.utils.datetime.TimeSpan;
 import com.sbss.bithon.collector.datasource.DataSourceSchema;
 import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
 import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.sbss.bithon.collector.meta.IMetaStorage;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -24,7 +24,8 @@ public class DataSourceApi {
     private final IMetricStorage metricStorage;
     private final DataSourceSchemaManager schemaManager;
 
-    public DataSourceApi(IMetricStorage metricStorage,
+    public DataSourceApi(IMetaStorage metaStorage,
+                         IMetricStorage metricStorage,
                          DataSourceSchemaManager schemaManager) {
         this.metricStorage = metricStorage;
         this.schemaManager = schemaManager;
@@ -39,7 +40,7 @@ public class DataSourceApi {
             TimeSpan.fromISO8601(request.getStartTimeISO8601()),
             TimeSpan.fromISO8601(request.getEndTimeISO8601()),
             schema,
-            request.getDimensions(),
+            request.getDimensions().values(),
             request.getMetrics()
         );
     }
@@ -61,19 +62,25 @@ public class DataSourceApi {
         return schemaManager.getDataSourceSchema(schemaName);
     }
 
-    @Getter
-    @AllArgsConstructor
-    static class DataSourceName {
-        private final String name;
-        private final String displayText;
-    }
-
     @PostMapping("/api/datasource/name")
-    public Collection<DataSourceName> getSchemaNames() {
+    public Collection<DisplayableText> getSchemaNames() {
         return schemaManager.getDataSources()
             .values()
             .stream()
-            .map(schema -> new DataSourceName(schema.getName(), schema.getDisplayText()))
+            .map(schema -> new DisplayableText(schema.getName(), schema.getDisplayText()))
             .collect(Collectors.toList());
+    }
+
+    @PostMapping("/api/datasource/dimensions")
+    public Collection<Map<String, String>> getDimensions(@Valid GetDimensionRequest request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        return this.metricStorage.createMetricReader(schema).getDimensionValueList(
+            TimeSpan.fromISO8601(request.getStartTimeISO8601()),
+            TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+            schema,
+            request.getConditions(),
+            request.getDimension()
+        );
     }
 }

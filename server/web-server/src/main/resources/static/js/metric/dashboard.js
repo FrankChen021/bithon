@@ -13,19 +13,60 @@ class Dashboard {
 
         this._chartComponents = new Object();
         this._chartDescriptors = new Object();
+
+        this._intervalFn = ()=>{
+            return {
+                start: moment().utc().subtract(10, 'minute').local().toISOString(),
+                end: moment().utc().local().toISOString()
+            };
+        };
     }
 
     // PUBLIC
     load(dashboard) {
         this._dashboard = dashboard;
+        //
+        // App Filter
+        //
+        new AppSelector().childOf('appSelector').registerAppChangedListener((app)=>{
+            alert(app);
+        });
 
+        //
+        // Dimension Filter
+        //
         this._schemaApi.getSchema(
-            this._dashboard.dataSource,
+            this._dashboard.charts[0].dataSource,
             (schema)=>{
-                // create filter
+                // create dimension filter
+                // Note: first two dimensions MUST be app/instance
+                var filterBar = $('#filterBar');
+                for(var index = 1; index < schema.dimensionsSpec.length; index++) {
+                    var dimension = schema.dimensionsSpec[index];
+                    if ( dimension.visible ) {
+                        filterBar.append(`<li class="nav-item"><select class="form-control"><option>-- ${dimension.displayText} --</option></select></li>`);
+                    }
+                }
             },
             (error)=>{}
         );
+
+        //
+        // Create AutoRefresher
+        //
+        var parent = $('#filterBarForm');
+        new AutoRefresher({
+                timerLength: 10
+        }).childOf(parent).registerRefreshListener(()=>{
+            this.refreshDashboard();
+        });
+
+        //
+        // Create TimeInterval
+        //
+        new TimeInterval().childOf(parent).registerIntervalChangedListener((fn)=>{
+            this.setInterval(fn);
+        });
 
         $.each(dashboard.charts, (index, chart)=>{
             this.createChartComponent(index, chart);
@@ -94,6 +135,9 @@ class Dashboard {
                 },
             }];
         }
+        if ( chartOption.yAxis.length == 1 ) {
+            chartOption.grid.right = 15;
+        }
 
         var chartComponent = new ChartComponent({
             containerId: chartDescriptor.id,
@@ -118,7 +162,14 @@ class Dashboard {
         return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}"></div>`);
     }
 
-    // PRIVATE
+    //
+    setInterval(intervalFn) {
+        this._intervalFn = intervalFn;
+
+        this.refreshDashboard();
+    }
+
+    // PUBLIC
     refreshDashboard() {
         // refresh each chart
         for(var id in this._chartComponents) {
@@ -143,13 +194,16 @@ class Dashboard {
     }
 
     refreshChart(chartId) {
+        var interval = this._intervalFn.apply();
+
+        var chartDescriptor = this._chartDescriptors[chartId];
         var chartComponent = this._chartComponents[chartId];
         chartComponent.load({
             url: apiHost + "/api/datasource/metrics",
             ajaxData: JSON.stringify({
-                dataSource: this._dashboard.dataSource,
-                startTimeISO8601: moment().utc().subtract(10, 'minute').local().toISOString(),
-                endTimeISO8601: moment().utc().local().toISOString(),
+                dataSource: chartDescriptor.dataSource,
+                startTimeISO8601: interval.start,
+                endTimeISO8601: interval.end,
                 dimensions: {
                     "appName": {
                         "dimension": "appName",
