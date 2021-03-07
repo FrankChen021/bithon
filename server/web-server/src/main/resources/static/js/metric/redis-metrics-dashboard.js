@@ -1,4 +1,4 @@
-var redisMetricsDashboard = {
+var redis_metrics_dashboard = {
     "title": "",
     "charts":[{
         "dataSource": "redis-metrics",

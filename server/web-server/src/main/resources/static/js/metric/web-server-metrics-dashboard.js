@@ -1,4 +1,4 @@
-var webServerDashboardConfig = {
+var web_server_metrics_dashboard = {
     "title": "",
     "charts":[{
         "dataSource": "web-server-metrics",

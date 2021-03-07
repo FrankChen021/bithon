@@ -44,8 +44,7 @@
     <script th:src="@{/js/utils/number.js}"></script>
     <script th:src="@{/js/utils/time.js}"></script>
     <script th:src="@{/js/global.js}"></script>
-    <script th:src="@{/js/metric/dashboard.js}"></script>
-    <script th:src="@{/js/api-client/metric-client.js}"></script>
+    <script th:src="@{/js/component/dashboard/component.js}"></script>
 </head>
 <body>
 
@@ -370,14 +369,10 @@
 </div>
 </body>
 <script th:inline="javascript">
-/*<![CDATA[*/
-var appName = /*[[${appName}]]*/;
-/*]]>*/
-</script>
-<script>
+var appName = [[${appName}]];
+$(document).ready(()=>{
     var metricSidebar = new MetricSidebar("metricSidebar", appName);
-    $(document).ready(()=>{
-        metricSidebar.load();
-    });
+    metricSidebar.load();
+});
 </script>
 </html>

@@ -17,12 +17,13 @@ public class AppController {
         return "app/index";
     }
 
-    @GetMapping("/ui/app/{appName}/{module}")
+    @GetMapping("/ui/app/metric/{appName}/{metricName}")
     public String webServerPage(@PathVariable("appName") String appName,
-                                @PathVariable("module") String module,
+                                @PathVariable("metricName") String metricName,
                                 Model model) {
         model.addAttribute("appName", appName);
-        return "app/" + module;
+        model.addAttribute("metricName", metricName);
+        return "app/metric-template";
     }
 
     @GetMapping("/ui/app/{appName}/trace")

@@ -1,4 +1,4 @@
-var webRequestMetricsDashboard = {
+var web_request_metrics_dashboard = {
     "title": "",
     "charts":[{
         "dataSource": "web-request-metrics",

@@ -32,7 +32,7 @@ class AppCardComponent {
                     this._container.append(card)
                         .find('.card').attr('id', app.name)
                         .find('.app-name').html('<a href="#">'+app.name+'</a>').click(()=> {
-                            window.location.href = '/ui/app/' + app.name + '/jvm-metrics';
+                            window.location.href = '/ui/app/metric/' + app.name + '/jvm-metrics';
                         });
                 });
 

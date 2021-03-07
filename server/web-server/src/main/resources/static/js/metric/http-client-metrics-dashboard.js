@@ -1,4 +1,4 @@
-var httpClientMetricsDashboard = {
+var http_client_metrics_dashboard = {
     "title": "",
     "charts":[{
         "dataSource": "http-client-metrics",

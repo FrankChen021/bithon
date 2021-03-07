@@ -5,7 +5,8 @@
       layout:decorate="~{app/app-layout}">
 <head>
     <title>Bithon</title>
-    <script th:src="@{/js/metric/httpclient/dashboard-config.js}"></script>
+    <script th:src="@{/js/api-client/metric-client.js}"></script>
+    <script th:src="@{'/js/metric/' + ${metricName} + '-dashboard.js'}"></script>
 </head>
 <body>
 
@@ -13,17 +14,10 @@
 
 
 <script th:inline="javascript">
-/*<![CDATA[*/
-var appName = /*[[${appName}]]*/;
-/*]]>*/
-</script>
-
-<script>
+var appName = [[${appName}]];
 $(document).ready(function(){
-    var dashboard = new Dashboard('dashboard', appName, new SchemaApi());
-    dashboard.load(httpClientMetricsDashboard);
-
-    window.dashboard = dashboard;
+    var dashboard = new Dashboard('dashboard', [[${appName}]], new SchemaApi());
+    dashboard.load([(${#strings.replace(metricName,'-','_')})]_dashboard);
 });
 </script>
 

@@ -1,4 +1,4 @@
-var jdbcPoolMetricsDashboard = {
+var jdbc_pool_metrics_dashboard = {
     "title": "",
     "charts":[{
         "dataSource": "jdbc-pool-metrics",

@@ -1,4 +1,4 @@
-var jvmDashboard = {
+var jvm_metrics_dashboard = {
     "title": "",
     "charts":[{
         "dataSource": "jvm-metrics",
