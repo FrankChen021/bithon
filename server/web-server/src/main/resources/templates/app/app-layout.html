@@ -333,27 +333,35 @@
     <!-- page-content  -->
     <main class="page-content pt-2" style="padding-top:57px!important">
         <div id="overlay" class="overlay"></div>
-        <nav class="navbar" style="padding-top:.6em">
-            <!-- AppSelector Component -->
-            <select id="appSelector"></select>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
 
-            <!-- Dimensions -->
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                    <li class="nav-item active" id="appSelector">
+                        <!-- App Selector -->
+                    </li>
+                    <li class="nav-item">
+                    </li>
+                </ul>
+                <form class="form-inline my-2 my-lg-0">
+                    <!-- Auto Refresher -->
 
-            <form class="form-inline">
-
-                <!-- TimeInterval Component -->
-                <div id="intervalSelector" class="dropdown">
-                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Time Interval
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <a class="dropdown-item" href="#">Something else here</a>
+                    <!-- TimeInterval Component -->
+                    <div id="intervalSelector" class="dropdown">
+                        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Time Interval
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="#">Action</a>
+                            <a class="dropdown-item" href="#">Another action</a>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                        </div>
                     </div>
-                </div>
-            </form>
+
+                </form>
+            </div>
         </nav>
+
         <div>
             <div class="container-fluid p-3" layout:fragment="content"></div>
         </div>
@@ -362,8 +370,10 @@
 
     <script th:src="@{/lib/custom-scrollbar/jquery.mCustomScrollbar.concat.min.js}"></script>
     <script th:src="@{/lib/pro-sidebar/src/js/main.js}"></script>
+    <script th:src="@{/js/api-client/MetadataClient.js}"></script>
     <script th:src="@{/js/component/sidebar/component.js}"></script>
     <script th:src="@{/js/component/utils/AutoRefresher.js}"></script>
+    <script th:src="@{/js/component/app/AppSelector.js}"></script>
 </div>
 </body>
 <script th:inline="javascript">
@@ -385,5 +395,7 @@ var appName = /*[[${appName}]]*/;
             window.dashboard.refreshDashboard();
         }
     });
+
+    new AppSelector(apiHost).childOf('appSelector');
 </script>
 </html>

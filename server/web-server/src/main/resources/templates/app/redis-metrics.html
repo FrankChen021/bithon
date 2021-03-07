@@ -22,6 +22,8 @@ var appName = /*[[${appName}]]*/;
 $(document).ready(function(){
     var dashboard = new Dashboard('dashboard', appName, new SchemaApi());
     dashboard.load(redisMetricsDashboard)
+
+    window.dashboard = dashboard;
 });
 </script>
 
