@@ -1,0 +1,43 @@
+{
+  "displayText": "Garbage Collection",
+  "name": "jvm-gc-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance",
+      "required": true
+    },
+    {
+      "name": "gcName",
+      "displayText": "GC Name",
+      "required": true,
+      "visible": false
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "gcCount",
+      "displayText": "GC Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "gcTime",
+      "displayText": "Accumulative GC Time",
+      "unit": "Nano Second"
+    }
+  ]
+}
+
+
+
