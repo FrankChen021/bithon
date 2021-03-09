@@ -38,7 +38,7 @@ public class ExceptionMessageHandler extends AbstractThreadPoolMessageHandler<Ex
         String instanceName = message.getHostName() + ":" + message.getPort();
 
         long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
-        long instanceId = metaStorage.getOrCreateMetadataId(instanceName, MetadataType.INSTANCE, appId);
+        long instanceId = metaStorage.getOrCreateMetadataId(instanceName, MetadataType.APP_INSTANCE, appId);
 
         message.getExceptionList().forEach(exceptionEntity->{
             Map<String, Object> metrics = new HashMap<>();

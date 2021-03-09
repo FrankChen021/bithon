@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.sbss.bithon.collector.datasource.DataSourceSchema;
 import com.sbss.bithon.collector.common.utils.datetime.TimeSpan;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -21,8 +22,14 @@ public interface IMetricReader {
     List<Map<String, Object>> getMetricValueList(TimeSpan start,
                                                  TimeSpan end,
                                                  DataSourceSchema dataSourceSchema,
-                                                 List<DimensionCondition> dimensions,
-                                                 List<String> metrics);
+                                                 Collection<DimensionCondition> dimensions,
+                                                 Collection<String> metrics);
 
     List<Map<String, Object>> getMetricValueList(String sql);
+
+    List<Map<String, String>> getDimensionValueList(TimeSpan start,
+                                                    TimeSpan end,
+                                                    DataSourceSchema dataSourceSchema,
+                                                    Collection<DimensionCondition> dimensions,
+                                                    String dimension);
 }

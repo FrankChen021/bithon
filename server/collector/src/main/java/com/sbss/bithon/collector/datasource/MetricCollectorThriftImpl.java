@@ -21,7 +21,7 @@ public class MetricCollectorThriftImpl implements IMetricCollector.Iface {
     private final ExceptionMessageHandler exceptionMessageHandler;
     private final HttpClientMessageHandler httpClientMessageHandler;
     private final ThreadPoolMessageHandler threadPoolMessageHandler;
-    private final JdbcMessageHandler jdbcMessageHandler;
+    private final JdbcPoolMessageHandler jdbcPoolMessageHandler;
     private final RedisMessageHandler redisMessageHandler;
 
     public MetricCollectorThriftImpl(JvmMessageHandler jvmMessageHandler,
@@ -31,7 +31,7 @@ public class MetricCollectorThriftImpl implements IMetricCollector.Iface {
                                      ExceptionMessageHandler exceptionMessageHandler,
                                      HttpClientMessageHandler httpClientMessageHandler,
                                      ThreadPoolMessageHandler threadPoolMessageHandler,
-                                     JdbcMessageHandler jdbcMessageHandler,
+                                     JdbcPoolMessageHandler jdbcPoolMessageHandler,
                                      RedisMessageHandler redisMessageHandler) {
         this.jvmMessageHandler = jvmMessageHandler;
         this.jvmGcMessageHandler = jvmGcMessageHandler;
@@ -40,7 +40,7 @@ public class MetricCollectorThriftImpl implements IMetricCollector.Iface {
         this.exceptionMessageHandler = exceptionMessageHandler;
         this.httpClientMessageHandler = httpClientMessageHandler;
         this.threadPoolMessageHandler = threadPoolMessageHandler;
-        this.jdbcMessageHandler = jdbcMessageHandler;
+        this.jdbcPoolMessageHandler = jdbcPoolMessageHandler;
         this.redisMessageHandler = redisMessageHandler;
     }
 
@@ -77,7 +77,7 @@ public class MetricCollectorThriftImpl implements IMetricCollector.Iface {
 
     @Override
     public void sendJdbc(JdbcMessage message) {
-        jdbcMessageHandler.submit(message);
+        jdbcPoolMessageHandler.submit(message);
     }
 
     @Override

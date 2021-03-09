@@ -2,6 +2,8 @@ package com.sbss.bithon.component.db.dao;
 
 import com.sbss.bithon.component.db.jooq.DefaultSchema;
 import com.sbss.bithon.component.db.jooq.Tables;
+import com.sbss.bithon.component.db.jooq.tables.pojos.BithonMetadata;
+import com.sbss.bithon.component.db.jooq.tables.pojos.BithonMetricDimension;
 import com.sbss.bithon.component.db.jooq.tables.records.BithonApplicationTopoRecord;
 import com.sbss.bithon.component.db.jooq.tables.records.BithonMetadataRecord;
 import com.sbss.bithon.component.db.jooq.tables.records.BithonMetricDimensionRecord;
@@ -10,6 +12,10 @@ import org.jooq.SQLDialect;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -139,5 +145,26 @@ public class MetadataDAO {
             .orderBy(Tables.BITHON_METADATA.UPDATED_AT.desc())
             .limit(1)
             .fetchOne();
+    }
+
+    public List<BithonMetricDimension> getMetricDimensions(String dataSourceName,
+                                                           String dimensionName,
+                                                           long startTimestamp,
+                                                           long endTimestamp) throws Exception {
+        return dsl.select(Tables.BITHON_METRIC_DIMENSION.ID,
+                          Tables.BITHON_METRIC_DIMENSION.DIMENSION_NAME)
+            .from(Tables.BITHON_METRIC_DIMENSION)
+            .where(Tables.BITHON_METRIC_DIMENSION.DATA_SOURCE.eq(dataSourceName))
+            .and(Tables.BITHON_METRIC_DIMENSION.DIMENSION_NAME.eq(dimensionName))
+            .and(Tables.BITHON_METRIC_DIMENSION.CREATED_AT.between(new Timestamp(startTimestamp), new Timestamp(endTimestamp)))
+            .fetchInto(BithonMetricDimension.class);
+    }
+
+    public Collection<BithonMetadata> getMetadata(String type) {
+        return dsl.selectFrom(Tables.BITHON_METADATA)
+            .where(Tables.BITHON_METADATA.TYPE.eq(type))
+            .orderBy(Tables.BITHON_METADATA.UPDATED_AT.desc())
+            .limit(10)
+            .fetchInto(BithonMetadata.class);
     }
 }

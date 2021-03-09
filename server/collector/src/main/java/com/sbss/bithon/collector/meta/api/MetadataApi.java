@@ -1,5 +1,6 @@
 package com.sbss.bithon.collector.meta.api;
 
+import com.sbss.bithon.collector.common.pojo.DisplayableText;
 import com.sbss.bithon.collector.meta.IMetaStorage;
 import com.sbss.bithon.collector.meta.Metadata;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -27,5 +28,13 @@ public class MetadataApi {
     @PostMapping("/api/meta/getMetadataList")
     public Collection<Metadata> getMetadataList(@Valid @RequestBody GetMetadataListRequest request) {
         return metaStorage.getMetadataByType(request.getType());
+    }
+
+    @PostMapping("/api/meta/dimensions")
+    public Collection<DisplayableText> getDimensionValues(@Valid GetDimensionValueRequest request) {
+        return metaStorage.getMetricDimensions(request.getDataSourceName(),
+                                               request.getDimensionName(),
+                                               request.getStartISO8601(),
+                                               request.getEndISO8601());
     }
 }

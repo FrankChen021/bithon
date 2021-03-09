@@ -67,7 +67,7 @@ public class AgentSettingManager {
 
     private void start() {
         if (settingFetcher != null) {
-            new Timer("bithon-setting-fetcher").schedule(new TimerTask() {
+            new Timer("setting-fetcher").schedule(new TimerTask() {
                 @Override
                 public void run() {
                     try {

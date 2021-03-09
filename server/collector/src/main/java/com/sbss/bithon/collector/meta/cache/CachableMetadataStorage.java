@@ -47,7 +47,7 @@ public class CachableMetadataStorage implements IMetaStorage {
     // 中间采用一个队列，新数据覆盖队列中的数据（时间）
     @Override
     public long getOrCreateMetadataId(String name, MetadataType type, long parent) {
-        Metadata key = new Metadata(name, type, parent);
+        Metadata key = new Metadata(name, type.getType(), parent);
         Long id = metaCache.getIfPresent(key);
         if (id == null) {
             id = delegate.getOrCreateMetadataId(name, type, parent);
@@ -58,7 +58,7 @@ public class CachableMetadataStorage implements IMetaStorage {
 
     @Override
     public Collection<Metadata> getMetadataByType(MetadataType type) {
-        return null;
+        return delegate.getMetadataByType(type);
     }
 
     @Override

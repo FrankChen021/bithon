@@ -10,6 +10,7 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,19 +83,19 @@ class MetricReader implements IMetricReader {
     public List<Map<String, Object>> getMetricValueList(TimeSpan start,
                                                         TimeSpan end,
                                                         DataSourceSchema dataSourceSchema,
-                                                        List<DimensionCondition> dimensions,
-                                                        List<String> metrics) {
+                                                        Collection<DimensionCondition> dimensions,
+                                                        Collection<String> metrics) {
         String condition = dimensions.stream().map(d -> d.getMatcher().accept(new SqlConditionBuilder(d.getDimension()))).collect(Collectors.joining(" AND "));
         String metricList = metrics.stream().map(m -> "\"" + m + "\"").collect(Collectors.joining(", "));
         String sql = String.format(
             "SELECT \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' ",
             metricList,
-            dataSourceSchema.getName(),
+            "bithon_" + dataSourceSchema.getName().replace("-", "_"),
             condition,
             start.toISO8601(),
             end.toISO8601()
         );
-        log.info("Excuting {}", sql);
+        log.info("Executing {}", sql);
         return getMetricValueList(sql);
     }
 
@@ -102,10 +103,40 @@ class MetricReader implements IMetricReader {
     @Override
     public List<Map<String, Object>> getMetricValueList(String sql) {
         List<Record> records = dsl.fetch(sql);
-        return (List<Map<String, Object>>) records.stream().map(record -> {
+
+        // although the explicit cast seems unnecessary, it must be kept so that compilation can pass
+        return (List<Map<String, Object>>)records.stream().map(record -> {
             Map<String, Object> mapObject = new HashMap<>();
             for (Field field : record.fields()) {
                 mapObject.put(field.getName(), record.get(field));
+            }
+            return mapObject;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Map<String, String>> getDimensionValueList(TimeSpan start,
+                                                           TimeSpan end,
+                                                           DataSourceSchema dataSourceSchema,
+                                                           Collection<DimensionCondition> conditions,
+                                                           String dimension) {
+        String condition = conditions.stream().map(d -> d.getMatcher().accept(new SqlConditionBuilder(d.getDimension()))).collect(Collectors.joining(" AND "));
+        String sql = String.format(
+            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' ",
+            dimension,
+            dimension,
+            "bithon_" + dataSourceSchema.getName().replace("-", "_"),
+            condition,
+            start.toISO8601(),
+            end.toISO8601()
+        );
+
+        log.info("Executing {}", sql);
+        List<Record> records = dsl.fetch(sql);
+        return records.stream().map(record -> {
+            Map<String, String> mapObject = new HashMap<>();
+            for (Field field : record.fields()) {
+                mapObject.put("value", record.get(field).toString());
             }
             return mapObject;
         }).collect(Collectors.toList());

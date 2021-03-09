@@ -1,5 +1,7 @@
 package com.sbss.bithon.collector.common.utils.datetime;
 
+import org.joda.time.DateTime;
+
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -15,7 +17,7 @@ public class DateTimeUtils {
     public static long dropMilliseconds(long timestamp) {
         return timestamp / 1000 * 1000;
     }
-    
+
     public static long align2Minute() {
         return align2Minute(1);
     }
@@ -56,5 +58,9 @@ public class DateTimeUtils {
             default:
                 throw new RuntimeException("not supported");
         }
+    }
+
+    public static long fromISO8601(String dateTime) {
+        return DateTime.parse(dateTime).getMillis();
     }
 }

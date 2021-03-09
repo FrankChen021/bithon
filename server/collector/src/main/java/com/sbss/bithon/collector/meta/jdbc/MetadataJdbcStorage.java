@@ -1,5 +1,7 @@
 package com.sbss.bithon.collector.meta.jdbc;
 
+import com.sbss.bithon.collector.common.pojo.DisplayableText;
+import com.sbss.bithon.collector.common.utils.datetime.DateTimeUtils;
 import com.sbss.bithon.collector.meta.EndPointLink;
 import com.sbss.bithon.collector.meta.IMetaStorage;
 import com.sbss.bithon.collector.meta.Metadata;
@@ -9,6 +11,7 @@ import com.sbss.bithon.component.db.jooq.tables.records.BithonMetadataRecord;
 import org.jooq.DSLContext;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -29,7 +32,8 @@ public class MetadataJdbcStorage implements IMetaStorage {
 
     @Override
     public Collection<Metadata> getMetadataByType(MetadataType type) {
-        return null;
+        return metadataDao.getMetadata(type.getType())
+            .stream().map(r->new Metadata(r.getName(), r.getType(), r.getParentId())).collect(Collectors.toList());
     }
 
     @Override
@@ -51,7 +55,7 @@ public class MetadataJdbcStorage implements IMetaStorage {
     @Override
     public String getApplicationByInstance(String instanceName) {
         BithonMetadataRecord application = metadataDao.getMetaByNameAndType(instanceName,
-                                                                            MetadataType.INSTANCE.getType());
+                                                                            MetadataType.APP_INSTANCE.getType());
         return application == null ? null : application.getName();
     }
 
@@ -60,5 +64,22 @@ public class MetadataJdbcStorage implements IMetaStorage {
         BithonMetadataRecord application = metadataDao.getMetaByNameAndType(applicationName,
                                                                             MetadataType.APPLICATION.getType());
         return application != null;
+    }
+
+    @Override
+    public Collection<DisplayableText> getMetricDimensions(String dataSourceName,
+                                                           String dimensionName,
+                                                           String startISO8601,
+                                                           String endISO8601) {
+        try {
+            return metadataDao.getMetricDimensions(dataSourceName,
+                                                   dimensionName,
+                                                   DateTimeUtils.fromISO8601(startISO8601),
+                                                   DateTimeUtils.fromISO8601(endISO8601))
+                .stream().map(r -> new DisplayableText(r.getId().toString(),
+                                                       r.getDimensionValue())).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

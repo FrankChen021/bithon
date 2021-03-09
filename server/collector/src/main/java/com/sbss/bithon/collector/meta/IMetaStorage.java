@@ -1,5 +1,7 @@
 package com.sbss.bithon.collector.meta;
 
+import com.sbss.bithon.collector.common.pojo.DisplayableText;
+
 import java.util.Collection;
 
 /**
@@ -24,4 +26,9 @@ public interface IMetaStorage {
     String getApplicationByInstance(String instanceName);
 
     boolean isApplicationExist(String applicationName);
+
+    Collection<DisplayableText> getMetricDimensions(String dataSourceName,
+                                                    String dimensionName,
+                                                    String startISO8601,
+                                                    String endISO8601);
 }

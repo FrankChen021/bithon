@@ -3,7 +3,6 @@ package com.sbss.bithon.collector.common.message.handlers;
 import com.sbss.bithon.collector.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.collector.datasource.DataSourceSchema;
 import com.sbss.bithon.collector.datasource.DataSourceSchemaManager;
-import com.sbss.bithon.collector.datasource.dimension.IDimensionSpec;
 import com.sbss.bithon.collector.datasource.input.InputRow;
 import com.sbss.bithon.collector.datasource.storage.IMetricStorage;
 import com.sbss.bithon.collector.datasource.storage.IMetricWriter;
@@ -54,7 +53,7 @@ public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThr
     abstract SizedIterator toIterator(MSG_TYPE message);
 
     @Override
-    final protected void onMessage(MSG_TYPE message) throws Exception {
+    final protected void onMessage(MSG_TYPE message) {
         SizedIterator iterator = toIterator(message);
         if (iterator == null || iterator.size() <= 0) {
             return;
@@ -101,7 +100,7 @@ public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThr
         String instanceName = metricObject.getInstanceName();
         try {
             long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
-            long instanceId = metaStorage.getOrCreateMetadataId(instanceName, MetadataType.INSTANCE, appId);
+            metaStorage.getOrCreateMetadataId(instanceName, MetadataType.APP_INSTANCE, appId);
         } catch (Exception e) {
             log.error("Failed to save app info[appName={}, instance={}] due to: {}",
                       appName,
@@ -112,6 +111,7 @@ public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThr
         //
         // save dimensions in meta data storage
         //
+        /*
         for (IDimensionSpec dimensionSpec : this.schema.getDimensionsSpec()) {
             Object dimensionValue = metricObject.get(dimensionSpec.getName());
             if (dimensionValue == null) {
@@ -130,6 +130,7 @@ public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThr
                           e);
             }
         }
+        */
 
         //
         // save topo

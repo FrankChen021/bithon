@@ -16,7 +16,7 @@ class Dashboard {
 
         this._intervalFn = ()=>{
             return {
-                start: moment().utc().subtract(10, 'minute').local().toISOString(),
+                start: moment().utc().subtract(5, 'minute').local().toISOString(),
                 end: moment().utc().local().toISOString()
             };
         };

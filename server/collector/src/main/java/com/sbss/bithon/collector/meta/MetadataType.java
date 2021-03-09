@@ -8,8 +8,13 @@ import lombok.Getter;
  */
 public enum MetadataType {
     APPLICATION("application"),
-    INSTANCE("instance"),
-    URI("uri");
+    APP_INSTANCE("app-instance"),
+    HTTP_TARGET_HOST("http-target-host"),
+    HTTP_URI("http-uri"),
+    DB_INSTANCE("db-instance"),
+    DB_DATABASE("db-database"),
+
+    ;
 
     @Getter
     private final String type;

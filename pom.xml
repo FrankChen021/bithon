@@ -19,6 +19,7 @@
 
     <modules>
         <module>component/agent-rpc-thrift</module>
+        <module>component/component-commons</module>
         <module>component/component-db</module>
         <module>agent</module>
         <module>server/collector</module>
@@ -34,7 +35,11 @@
                 <artifactId>agent-rpc-thrift</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>com.sbss.bithon</groupId>
+                <artifactId>component-commons</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.sbss.bithon</groupId>
                 <artifactId>component-db</artifactId>

@@ -19,12 +19,12 @@ public class Metadata {
     private final String name;
 
     @Getter
-    private final MetadataType type;
+    private final String type;
 
     @Getter
     private final Long parent;
 
-    public Metadata(String name, MetadataType type, Long parent) {
+    public Metadata(String name, String type, Long parent) {
         this.name = name;
         this.type = type;
         this.parent = parent;

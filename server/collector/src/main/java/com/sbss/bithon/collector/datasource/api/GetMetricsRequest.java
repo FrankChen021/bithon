@@ -2,12 +2,12 @@ package com.sbss.bithon.collector.datasource.api;
 
 import com.sbss.bithon.collector.datasource.storage.DimensionCondition;
 import lombok.Data;
-import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -25,8 +25,8 @@ public class GetMetricsRequest {
     private String dataSource;
 
     @Valid
-    @Size(min=1)
-    private List<DimensionCondition> dimensions;
+    @Size(min = 1)
+    private Map<String, DimensionCondition> dimensions;
 
     @Size(min = 1)
     private List<String> metrics;
