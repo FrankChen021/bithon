@@ -2,7 +2,6 @@ package com.sbss.bithon.server.metric.collector;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
-import com.sbss.bithon.server.common.utils.ReflectionUtils;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -34,36 +33,22 @@ public class JvmMessageHandler extends AbstractMetricMessageHandler<MessageHeade
     }
 
     @Override
-    SizedIterator toIterator(MessageHeader header, JvmMetricMessage body) {
-        return new SizedIterator() {
-            @Override
-            public int size() {
-                return 1;
-            }
+    GenericMetricObject toMetricObject(MessageHeader header, JvmMetricMessage message) {
 
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
+        GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
+                                                              header.getAppName(),
+                                                              header.getHostName(),
+                                                              message);
 
-            @Override
-            public GenericMetricObject next() {
-                GenericMetricObject metrics = new GenericMetricObject(body.getTimestamp(),
-                                                                      header.getAppName(),
-                                                                      header.getHostName());
-                metrics.put("interval", body.getInterval());
+        metrics.merge(message.getClassesEntity());
+        metrics.merge(message.getCpuEntity());
+        metrics.merge(message.getHeapEntity());
+        metrics.merge(message.getNonHeapEntity());
+        metrics.merge(message.getMemoryEntity());
+        metrics.merge(message.getThreadEntity());
+        metrics.merge(message.getInstanceTimeEntity());
+        metrics.merge(message.getMetaspaceEntity());
 
-                ReflectionUtils.getFields(body.getClassesEntity(), metrics);
-                ReflectionUtils.getFields(body.getCpuEntity(), metrics);
-                ReflectionUtils.getFields(body.getHeapEntity(), metrics);
-                ReflectionUtils.getFields(body.getNonHeapEntity(), metrics);
-                ReflectionUtils.getFields(body.getMemoryEntity(), metrics);
-                ReflectionUtils.getFields(body.getThreadEntity(), metrics);
-                ReflectionUtils.getFields(body.getInstanceTimeEntity(), metrics);
-                ReflectionUtils.getFields(body.getMetaspaceEntity(), metrics);
-
-                return metrics;
-            }
-        };
+        return metrics;
     }
 }

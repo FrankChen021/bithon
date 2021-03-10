@@ -2,7 +2,6 @@ package com.sbss.bithon.server.metric.collector;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
-import com.sbss.bithon.server.common.utils.ReflectionUtils;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -34,26 +33,11 @@ public class JvmGcMessageHandler extends AbstractMetricMessageHandler<MessageHea
     }
 
     @Override
-    SizedIterator toIterator(MessageHeader header, JvmMetricMessage body) {
-        return new SizedIterator() {
-            @Override
-            public int size() {
-                return 1;
-            }
-
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public GenericMetricObject next() {
-                GenericMetricObject metrics = new GenericMetricObject(body.getTimestamp(),
-                                                                      header.getAppName(),
-                                                                      header.getHostName());
-                ReflectionUtils.getFields(body, metrics);
-                return metrics;
-            }
-        };
+    GenericMetricObject toMetricObject(MessageHeader header, JvmMetricMessage message) {
+        GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
+                                                              header.getAppName(),
+                                                              header.getHostName(),
+                                                              message);
+        return metrics;
     }
 }

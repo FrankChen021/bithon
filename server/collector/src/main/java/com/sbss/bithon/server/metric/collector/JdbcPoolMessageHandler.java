@@ -3,7 +3,6 @@ package com.sbss.bithon.server.metric.collector;
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.component.db.dao.EndPointType;
-import com.sbss.bithon.server.common.utils.ReflectionUtils;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -49,39 +48,18 @@ public class JdbcPoolMessageHandler extends AbstractMetricMessageHandler<Message
     }
 
     @Override
-    SizedIterator toIterator(MessageHeader header, JdbcPoolMetricMessage body) {
+    GenericMetricObject toMetricObject(MessageHeader header, JdbcPoolMetricMessage message) {
 
-        return new SizedIterator() {
-            @Override
-            public int size() {
-                return 1;
-            }
+        GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
+                                                              header.getAppName(),
+                                                              header.getHostName(),
+                                                              message);
+        metrics.setEndpointLink(EndPointType.APPLICATION,
+                                header.getAppName(),
+                                EndPointType.MYSQL,
 
-            @Override
-            public void close() {
-            }
-
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public GenericMetricObject next() {
-                GenericMetricObject metrics = new GenericMetricObject(body.getTimestamp(),
-                                                                      header.getAppName(),
-                                                                      header.getHostName());
-                metrics.setEndpointLink(EndPointType.APPLICATION,
-                                        header.getAppName(),
-                                        EndPointType.MYSQL,
-
-                                        //TODO: extract host and port
-                                        body.getConnectionString());
-
-                ReflectionUtils.getFields(body, metrics);
-
-                return metrics;
-            }
-        };
+                                //TODO: extract host and port
+                                message.getConnectionString());
+        return metrics;
     }
 }

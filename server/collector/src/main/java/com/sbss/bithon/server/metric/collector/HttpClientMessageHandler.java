@@ -5,7 +5,6 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricM
 import com.sbss.bithon.component.db.dao.EndPointType;
 import com.sbss.bithon.server.common.service.UriNormalizer;
 import com.sbss.bithon.server.common.utils.NetworkUtils;
-import com.sbss.bithon.server.common.utils.ReflectionUtils;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -42,47 +41,27 @@ public class HttpClientMessageHandler extends AbstractMetricMessageHandler<Messa
     }
 
     @Override
-    SizedIterator toIterator(MessageHeader header, HttpClientMetricMessage body) {
-        if (body.getRequestCount() <= 0) {
+    GenericMetricObject toMetricObject(MessageHeader header, HttpClientMetricMessage message) throws Exception {
+        if (message.getRequestCount() <= 0) {
             return null;
         }
 
-        return new SizedIterator() {
-            @Override
-            public int size() {
-                return 1;
-            }
+        GenericMetricObject metricObject = new GenericMetricObject(message.getTimestamp(),
+                                                                   header.getAppName(),
+                                                                   header.getHostName(),
+                                                                   message);
 
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public GenericMetricObject next() {
-                GenericMetricObject metrics = new GenericMetricObject(body.getTimestamp(),
-                                                                      header.getAppName(),
-                                                                      header.getHostName());
-                ReflectionUtils.getFields(body, metrics);
-                return metrics;
-            }
-        };
-    }
-
-    @Override
-    protected boolean beforeProcessMetricObject(GenericMetricObject metricObject) throws Exception {
         URI uri = new URI(metricObject.getDimension("uri"));
-
         UriNormalizer.NormalizedResult result = uriNormalizer.normalize(metricObject.getApplicationName(),
                                                                         NetworkUtils.formatUri(uri));
         if (result.getUri() == null) {
-            return false;
+            return null;
         }
 
         String targetHostPort = parseHostPort(uri.getHost(), uri.getPort());
         if (targetHostPort == null) {
             log.warn("TargetHost is blank. {}", metricObject);
-            return false;
+            return null;
         }
 
         if (NetworkUtils.isIpAddress(uri.getHost())) {
@@ -120,7 +99,7 @@ public class HttpClientMessageHandler extends AbstractMetricMessageHandler<Messa
             }
         }
 
-        return true;
+        return metricObject;
     }
 
     private String parseHostPort(String targetHost, int targetPort) {

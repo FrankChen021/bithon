@@ -1,7 +1,6 @@
 package com.sbss.bithon.server.metric.collector;
 
 import com.sbss.bithon.server.collector.AbstractThreadPoolMessageHandler;
-import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.MetadataType;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
@@ -24,14 +23,6 @@ import java.time.Duration;
 @Getter
 public abstract class AbstractMetricMessageHandler<MSG_HEADER, MSG_BODY> extends AbstractThreadPoolMessageHandler<MSG_HEADER, MSG_BODY> {
 
-    interface SizedIterator extends CloseableIterator<GenericMetricObject> {
-        int size();
-
-        @Override
-        default void close() {
-        }
-    }
-
     private final DataSourceSchema schema;
     private final IMetaStorage metaStorage;
     private final IMetricWriter metricStorageWriter;
@@ -51,33 +42,14 @@ public abstract class AbstractMetricMessageHandler<MSG_HEADER, MSG_BODY> extends
         this.metricStorageWriter = storage.createMetricWriter(schema);
     }
 
-    abstract SizedIterator toIterator(MSG_HEADER header, MSG_BODY body);
+    abstract GenericMetricObject toMetricObject(MSG_HEADER header, MSG_BODY message) throws Exception;
 
     @Override
-    final protected void onMessage(MSG_HEADER header, MSG_BODY body) {
-        SizedIterator iterator = toIterator(header, body);
-        if (iterator == null || iterator.size() <= 0) {
-            return;
-        }
-        if (iterator.size() == 1) {
-            // a fast path to avoid submit this task into thread pool again
-            try {
-                processMetricObject(iterator.next());
-            } catch (Exception e) {
-                log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}", this.schema.getName(), body, e);
-            }
-            return;
-        }
-
-        while (iterator.hasNext()) {
-            GenericMetricObject metricObject = iterator.next();
-            this.execute(() -> {
-                try {
-                    processMetricObject(metricObject);
-                } catch (Exception e) {
-                    log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}", this.schema.getName(), body, e);
-                }
-            });
+    final protected void onMessage(MSG_HEADER header, MSG_BODY message) {
+        try {
+            processMetricObject(toMetricObject(header, message));
+        } catch (Exception e) {
+            log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}", this.schema.getName(), message, e);
         }
     }
 
@@ -145,7 +117,7 @@ public abstract class AbstractMetricMessageHandler<MSG_HEADER, MSG_BODY> extends
         // save metrics
         //
         try {
-            this.metricStorageWriter.write(new InputRow(metricObject));
+            this.metricStorageWriter.write(new InputRow(metricObject.getValues()));
         } catch (IOException e) {
             log.error("Failed to save metrics [dataSource={}] due to: {}",
                       this.schema.getName(),

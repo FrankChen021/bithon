@@ -4,7 +4,6 @@ import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
 import com.sbss.bithon.component.db.dao.EndPointType;
 import com.sbss.bithon.server.common.service.UriNormalizer;
-import com.sbss.bithon.server.common.utils.ReflectionUtils;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -38,52 +37,37 @@ public class WebRequestMessageHandler extends AbstractMetricMessageHandler<Messa
     }
 
     @Override
-    SizedIterator toIterator(MessageHeader header, WebRequestMetricMessage message) {
+    GenericMetricObject toMetricObject(MessageHeader header, WebRequestMetricMessage message) {
         if (message.getRequestCount() <= 0) {
             return null;
         }
 
-        return new SizedIterator() {
-            @Override
-            public int size() {
-                return 1;
-            }
+        UriNormalizer.NormalizedResult result = uriNormalizer.normalize(header.getAppName(),
+                                                                        message.getUri());
+        if (result.getUri() == null) {
+            return null;
+        }
 
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
+        GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
+                                                              header.getAppName(),
+                                                              header.getHostName(),
+                                                              message);
+        metrics.put("uri", result.getUri());
 
-            @Override
-            public GenericMetricObject next() {
-                UriNormalizer.NormalizedResult result = uriNormalizer.normalize(header.getAppName(),
-                                                                                message.getUri());
-                if (result.getUri() == null) {
-                    return null;
-                }
+        String srcApplication;
+        EndPointType srcEndPointType;
+        if (StringUtils.isEmpty(message.getSrcApplication())) {
+            srcApplication = "Bithon-Unknown";
+            srcEndPointType = EndPointType.UNKNOWN;
+        } else {
+            srcApplication = message.getSrcApplication();
+            srcEndPointType = EndPointType.APPLICATION;
+        }
+        metrics.setEndpointLink(srcEndPointType,
+                                srcApplication,
+                                EndPointType.APPLICATION,
+                                header.getAppName());
 
-                GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                                      header.getAppName(),
-                                                                      header.getHostName());
-                ReflectionUtils.getFields(message, metrics);
-                metrics.put("uri", result.getUri());
-
-                String srcApplication;
-                EndPointType srcEndPointType;
-                if (StringUtils.isEmpty(message.getSrcApplication())) {
-                    srcApplication = "Bithon-Unknown";
-                    srcEndPointType = EndPointType.UNKNOWN;
-                } else {
-                    srcApplication = message.getSrcApplication();
-                    srcEndPointType = EndPointType.APPLICATION;
-                }
-                metrics.setEndpointLink(srcEndPointType,
-                                        srcApplication,
-                                        EndPointType.APPLICATION,
-                                        header.getAppName());
-
-                return metrics;
-            }
-        };
+        return metrics;
     }
 }

@@ -34,26 +34,11 @@ public class WebServerMessageHandler extends AbstractMetricMessageHandler<Messag
     }
 
     @Override
-    SizedIterator toIterator(MessageHeader header, WebServerMetricMessage body) {
-        return new SizedIterator() {
-            @Override
-            public int size() {
-                return 1;
-            }
-
-            @Override
-            public boolean hasNext() {
-                return false;
-            }
-
-            @Override
-            public GenericMetricObject next() {
-                GenericMetricObject metrics = new GenericMetricObject(body.getTimestamp(),
-                                                                      header.getAppName(),
-                                                                      header.getHostName());
-                ReflectionUtils.getFields(body, metrics);
-                return metrics;
-            }
-        };
+    GenericMetricObject toMetricObject(MessageHeader header, WebServerMetricMessage message) {
+        GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
+                                                              header.getAppName(),
+                                                              header.getHostName(),
+                                                              message);
+        return metrics;
     }
 }
