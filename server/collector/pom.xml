@@ -129,7 +129,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>2.3.7.RELEASE</version>
                 <configuration>
-                    <mainClass>com.sbss.bithon.collector.protocol.thrift.CollectorApplication</mainClass>
+                    <mainClass>com.sbss.bithon.server.protocol.thrift.CollectorApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
