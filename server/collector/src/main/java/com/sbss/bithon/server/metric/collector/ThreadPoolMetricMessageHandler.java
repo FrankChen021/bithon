@@ -1,7 +1,7 @@
 package com.sbss.bithon.server.metric.collector;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -17,38 +17,27 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class JvmMessageHandler extends AbstractMetricMessageHandler<MessageHeader, JvmMetricMessage> {
+public class ThreadPoolMetricMessageHandler extends AbstractMetricMessageHandler<MessageHeader, ThreadPoolMetricMessage> {
 
-    public JvmMessageHandler(IMetaStorage metaStorage,
-                             IMetricStorage metricStorage,
-                             DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
-        super("jvm-metrics",
+    public ThreadPoolMetricMessageHandler(IMetaStorage metaStorage,
+                                          DataSourceSchemaManager dataSourceSchemaManager,
+                                          IMetricStorage metricStorage) throws IOException {
+        super("thread-pool-metrics",
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
-              2,
-              10,
+              5,
+              20,
               Duration.ofSeconds(60),
               4096);
     }
 
     @Override
-    GenericMetricObject toMetricObject(MessageHeader header, JvmMetricMessage message) {
-
+    GenericMetricObject toMetricObject(MessageHeader header, ThreadPoolMetricMessage message) {
         GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
                                                               header.getAppName(),
                                                               header.getHostName(),
                                                               message);
-
-        metrics.merge(message.getClassesEntity());
-        metrics.merge(message.getCpuEntity());
-        metrics.merge(message.getHeapEntity());
-        metrics.merge(message.getNonHeapEntity());
-        metrics.merge(message.getMemoryEntity());
-        metrics.merge(message.getThreadEntity());
-        metrics.merge(message.getInstanceTimeEntity());
-        metrics.merge(message.getMetaspaceEntity());
-
         return metrics;
     }
 }

@@ -19,11 +19,11 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class ExceptionMessageHandler extends AbstractThreadPoolMessageHandler<MessageHeader, ExceptionMetricMessage> {
+public class ExceptionMetricMessageHandler extends AbstractThreadPoolMessageHandler<MessageHeader, ExceptionMetricMessage> {
 
     private final IMetaStorage metaStorage;
 
-    ExceptionMessageHandler(IMetaStorage metaStorage) {
+    ExceptionMetricMessageHandler(IMetaStorage metaStorage) {
         super(1, 5, Duration.ofMinutes(3), 4096);
         this.metaStorage = metaStorage;
     }

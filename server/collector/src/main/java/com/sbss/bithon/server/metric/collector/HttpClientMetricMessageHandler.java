@@ -22,14 +22,14 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class HttpClientMessageHandler extends AbstractMetricMessageHandler<MessageHeader, HttpClientMetricMessage> {
+public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler<MessageHeader, HttpClientMetricMessage> {
 
     private final UriNormalizer uriNormalizer;
 
-    public HttpClientMessageHandler(UriNormalizer uriNormalizer,
-                                    IMetaStorage metaStorage,
-                                    IMetricStorage metricStorage,
-                                    DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+    public HttpClientMetricMessageHandler(UriNormalizer uriNormalizer,
+                                          IMetaStorage metaStorage,
+                                          IMetricStorage metricStorage,
+                                          DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
         super("http-client-metrics",
               metaStorage,
               metricStorage,

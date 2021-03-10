@@ -1,7 +1,8 @@
 package com.sbss.bithon.server.metric.collector;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
+import com.sbss.bithon.component.db.dao.EndPointType;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -17,27 +18,33 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class ThreadPoolMessageHandler extends AbstractMetricMessageHandler<MessageHeader, ThreadPoolMetricMessage> {
+public class RedisMetricMessageHandler extends AbstractMetricMessageHandler<MessageHeader, RedisMetricMessage> {
 
-    public ThreadPoolMessageHandler(IMetaStorage metaStorage,
-                                    DataSourceSchemaManager dataSourceSchemaManager,
-                                    IMetricStorage metricStorage) throws IOException {
-        super("thread-pool-metrics",
+    public RedisMetricMessageHandler(IMetaStorage metaStorage,
+                                     IMetricStorage metricStorage,
+                                     DataSourceSchemaManager dataSourceSchemaManager
+    ) throws IOException {
+        super("redis-metrics",
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
-              5,
+              2,
               20,
               Duration.ofSeconds(60),
               4096);
     }
 
     @Override
-    GenericMetricObject toMetricObject(MessageHeader header, ThreadPoolMetricMessage message) {
+    GenericMetricObject toMetricObject(MessageHeader header, RedisMetricMessage message) {
         GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
                                                               header.getAppName(),
                                                               header.getHostName(),
                                                               message);
+        metrics.setEndpointLink(EndPointType.APPLICATION,
+                                header.getAppName(),
+                                EndPointType.REDIS,
+                                message.getUri());
+
         return metrics;
     }
 }

@@ -16,74 +16,74 @@ import java.util.List;
 @Service
 public class MetricCollectorThriftImpl implements IMetricCollector.Iface {
 
-    private final JvmMessageHandler jvmMessageHandler;
-    private final JvmGcMessageHandler jvmGcMessageHandler;
-    private final WebRequestMessageHandler webRequestMessageHandler;
-    private final WebServerMessageHandler webServerMessageHandler;
-    private final ExceptionMessageHandler exceptionMessageHandler;
-    private final HttpClientMessageHandler httpClientMessageHandler;
-    private final ThreadPoolMessageHandler threadPoolMessageHandler;
-    private final JdbcPoolMessageHandler jdbcPoolMessageHandler;
-    private final RedisMessageHandler redisMessageHandler;
+    private final JvmMetricMessageHandler jvmMetricMessageHandler;
+    private final JvmGcMetricMessageHandler jvmGcMetricMessageHandler;
+    private final WebRequestMetricMessageHandler webRequestMetricMessageHandler;
+    private final WebServerMetricMessageHandler webServerMetricMessageHandler;
+    private final ExceptionMetricMessageHandler exceptionMetricMessageHandler;
+    private final HttpClientMetricMessageHandler httpClientMetricMessageHandler;
+    private final ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler;
+    private final JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler;
+    private final RedisMetricMessageHandler redisMetricMessageHandler;
 
-    public MetricCollectorThriftImpl(JvmMessageHandler jvmMessageHandler,
-                                     JvmGcMessageHandler jvmGcMessageHandler,
-                                     WebRequestMessageHandler webRequestMessageHandler,
-                                     WebServerMessageHandler webServerMessageHandler,
-                                     ExceptionMessageHandler exceptionMessageHandler,
-                                     HttpClientMessageHandler httpClientMessageHandler,
-                                     ThreadPoolMessageHandler threadPoolMessageHandler,
-                                     JdbcPoolMessageHandler jdbcPoolMessageHandler,
-                                     RedisMessageHandler redisMessageHandler) {
-        this.jvmMessageHandler = jvmMessageHandler;
-        this.jvmGcMessageHandler = jvmGcMessageHandler;
-        this.webRequestMessageHandler = webRequestMessageHandler;
-        this.webServerMessageHandler = webServerMessageHandler;
-        this.exceptionMessageHandler = exceptionMessageHandler;
-        this.httpClientMessageHandler = httpClientMessageHandler;
-        this.threadPoolMessageHandler = threadPoolMessageHandler;
-        this.jdbcPoolMessageHandler = jdbcPoolMessageHandler;
-        this.redisMessageHandler = redisMessageHandler;
+    public MetricCollectorThriftImpl(JvmMetricMessageHandler jvmMetricMessageHandler,
+                                     JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
+                                     WebRequestMetricMessageHandler webRequestMetricMessageHandler,
+                                     WebServerMetricMessageHandler webServerMetricMessageHandler,
+                                     ExceptionMetricMessageHandler exceptionMetricMessageHandler,
+                                     HttpClientMetricMessageHandler httpClientMetricMessageHandler,
+                                     ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
+                                     JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
+                                     RedisMetricMessageHandler redisMetricMessageHandler) {
+        this.jvmMetricMessageHandler = jvmMetricMessageHandler;
+        this.jvmGcMetricMessageHandler = jvmGcMetricMessageHandler;
+        this.webRequestMetricMessageHandler = webRequestMetricMessageHandler;
+        this.webServerMetricMessageHandler = webServerMetricMessageHandler;
+        this.exceptionMetricMessageHandler = exceptionMetricMessageHandler;
+        this.httpClientMetricMessageHandler = httpClientMetricMessageHandler;
+        this.threadPoolMetricMessageHandler = threadPoolMetricMessageHandler;
+        this.jdbcPoolMetricMessageHandler = jdbcPoolMetricMessageHandler;
+        this.redisMetricMessageHandler = redisMetricMessageHandler;
     }
 
     @Override
     public void sendWebRequest(MessageHeader header, List<WebRequestMetricMessage> message) {
-        webRequestMessageHandler.submit(header, message);
+        webRequestMetricMessageHandler.submit(header, message);
     }
 
     @Override
     public void sendJvm(MessageHeader header, List<JvmMetricMessage> message) {
-        jvmMessageHandler.submit(header, message);
-        jvmGcMessageHandler.submit(header, message);
+        jvmMetricMessageHandler.submit(header, message);
+        jvmGcMetricMessageHandler.submit(header, message);
     }
 
     @Override
     public void sendWebServer(MessageHeader header, List<WebServerMetricMessage> message) {
-        webServerMessageHandler.submit(header, message);
+        webServerMetricMessageHandler.submit(header, message);
     }
 
     @Override
     public void sendException(MessageHeader header, List<ExceptionMetricMessage> message) {
-        exceptionMessageHandler.submit(header, message);
+        exceptionMetricMessageHandler.submit(header, message);
     }
 
     @Override
     public void sendHttpClient(MessageHeader header, List<HttpClientMetricMessage> message) {
-        httpClientMessageHandler.submit(header, message);
+        httpClientMetricMessageHandler.submit(header, message);
     }
 
     @Override
     public void sendThreadPool(MessageHeader header, List<ThreadPoolMetricMessage> message) {
-        threadPoolMessageHandler.submit(header, message);
+        threadPoolMetricMessageHandler.submit(header, message);
     }
 
     @Override
     public void sendJdbc(MessageHeader header, List<JdbcPoolMetricMessage> message) {
-        jdbcPoolMessageHandler.submit(header, message);
+        jdbcPoolMetricMessageHandler.submit(header, message);
     }
 
     @Override
     public void sendRedis(MessageHeader header, List<RedisMetricMessage> message) {
-        redisMessageHandler.submit(header, message);
+        redisMetricMessageHandler.submit(header, message);
     }
 }

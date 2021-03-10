@@ -20,14 +20,14 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class WebRequestMessageHandler extends AbstractMetricMessageHandler<MessageHeader, WebRequestMetricMessage> {
+public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler<MessageHeader, WebRequestMetricMessage> {
 
     private final UriNormalizer uriNormalizer;
 
-    public WebRequestMessageHandler(UriNormalizer uriNormalizer,
-                                    IMetaStorage metaStorage,
-                                    IMetricStorage metricStorage,
-                                    DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+    public WebRequestMetricMessageHandler(UriNormalizer uriNormalizer,
+                                          IMetaStorage metaStorage,
+                                          IMetricStorage metricStorage,
+                                          DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
         super("web-request-metrics",
               metaStorage,
               metricStorage,

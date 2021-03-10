@@ -1,7 +1,7 @@
 package com.sbss.bithon.server.metric.collector;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.component.db.dao.EndPointType;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
@@ -18,13 +18,26 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class RedisMessageHandler extends AbstractMetricMessageHandler<MessageHeader, RedisMetricMessage> {
+public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler<MessageHeader, JdbcPoolMetricMessage> {
 
-    public RedisMessageHandler(IMetaStorage metaStorage,
-                               IMetricStorage metricStorage,
-                               DataSourceSchemaManager dataSourceSchemaManager
-    ) throws IOException {
-        super("redis-metrics",
+    private enum DriverType {
+        MYSQL("com.mysql", "mysql"),
+        KYLIN("org.apache.kylin", "kylin"),
+        UNKNOWN("unknown", "unknown_jdbc");
+
+        private final String classIdentifier;
+        private final String driverType;
+
+        DriverType(String classIdentifier, String driverType) {
+            this.classIdentifier = classIdentifier;
+            this.driverType = driverType;
+        }
+    }
+
+    public JdbcPoolMetricMessageHandler(IMetaStorage metaStorage,
+                                        IMetricStorage metricStorage,
+                                        DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("jdbc-pool-metrics",
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
@@ -35,16 +48,18 @@ public class RedisMessageHandler extends AbstractMetricMessageHandler<MessageHea
     }
 
     @Override
-    GenericMetricObject toMetricObject(MessageHeader header, RedisMetricMessage message) {
+    GenericMetricObject toMetricObject(MessageHeader header, JdbcPoolMetricMessage message) {
+
         GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
                                                               header.getAppName(),
                                                               header.getHostName(),
                                                               message);
         metrics.setEndpointLink(EndPointType.APPLICATION,
                                 header.getAppName(),
-                                EndPointType.REDIS,
-                                message.getUri());
+                                EndPointType.MYSQL,
 
+                                //TODO: extract host and port
+                                message.getConnectionString());
         return metrics;
     }
 }

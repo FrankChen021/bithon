@@ -17,12 +17,12 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class JvmGcMessageHandler extends AbstractMetricMessageHandler<MessageHeader, JvmMetricMessage> {
+public class JvmMetricMessageHandler extends AbstractMetricMessageHandler<MessageHeader, JvmMetricMessage> {
 
-    public JvmGcMessageHandler(IMetaStorage metaStorage,
-                               IMetricStorage metricStorage,
-                               DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
-        super("jvm-gc-metrics",
+    public JvmMetricMessageHandler(IMetaStorage metaStorage,
+                                   IMetricStorage metricStorage,
+                                   DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("jvm-metrics",
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
@@ -34,10 +34,21 @@ public class JvmGcMessageHandler extends AbstractMetricMessageHandler<MessageHea
 
     @Override
     GenericMetricObject toMetricObject(MessageHeader header, JvmMetricMessage message) {
+
         GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
                                                               header.getAppName(),
                                                               header.getHostName(),
                                                               message);
+
+        metrics.merge(message.getClassesEntity());
+        metrics.merge(message.getCpuEntity());
+        metrics.merge(message.getHeapEntity());
+        metrics.merge(message.getNonHeapEntity());
+        metrics.merge(message.getMemoryEntity());
+        metrics.merge(message.getThreadEntity());
+        metrics.merge(message.getInstanceTimeEntity());
+        metrics.merge(message.getMetaspaceEntity());
+
         return metrics;
     }
 }

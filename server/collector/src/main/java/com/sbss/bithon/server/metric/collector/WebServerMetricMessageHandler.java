@@ -18,11 +18,11 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class WebServerMessageHandler extends AbstractMetricMessageHandler<MessageHeader, WebServerMetricMessage> {
+public class WebServerMetricMessageHandler extends AbstractMetricMessageHandler<MessageHeader, WebServerMetricMessage> {
 
-    public WebServerMessageHandler(IMetaStorage metaStorage,
-                                   IMetricStorage metricStorage,
-                                   DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+    public WebServerMetricMessageHandler(IMetaStorage metaStorage,
+                                         IMetricStorage metricStorage,
+                                         DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
         super("web-server-metrics",
               metaStorage,
               metricStorage,
