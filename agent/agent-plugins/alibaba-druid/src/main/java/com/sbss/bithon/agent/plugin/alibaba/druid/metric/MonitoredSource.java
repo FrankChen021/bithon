@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.alibaba.druid.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.sbss.bithon.agent.core.metrics.jdbc.JdbcMetric;
+import com.sbss.bithon.agent.core.metrics.jdbc.JdbcPoolMetric;
 import com.sbss.bithon.agent.core.metrics.sql.SqlMetric;
 
 /**
@@ -10,35 +10,35 @@ import com.sbss.bithon.agent.core.metrics.sql.SqlMetric;
  */
 public class MonitoredSource {
     private final DruidDataSource dataSource;
-    private final String driverType;
-    private final String uri;
-    private final JdbcMetric jdbcMetric;
+    private final String driverClass;
+    private final String connectionString;
+    private final JdbcPoolMetric jdbcPoolMetric;
     private final SqlMetric sqlMetric;
 
-    MonitoredSource(String driverType,
-                    String uri,
+    MonitoredSource(String driverClass,
+                    String connectionString,
                     DruidDataSource dataSource) {
         this.dataSource = dataSource;
-        this.driverType = driverType;
-        this.uri = uri;
-        this.jdbcMetric = new JdbcMetric(uri, driverType);
-        this.sqlMetric = new SqlMetric(uri, driverType);
+        this.driverClass = driverClass;
+        this.connectionString = connectionString;
+        this.jdbcPoolMetric = new JdbcPoolMetric(connectionString, driverClass);
+        this.sqlMetric = new SqlMetric(connectionString, driverClass);
     }
 
     public DruidDataSource getDataSource() {
         return dataSource;
     }
 
-    public String getDriverType() {
-        return driverType;
+    public String getDriverClass() {
+        return driverClass;
     }
 
-    public String getUri() {
-        return uri;
+    public String getConnectionString() {
+        return connectionString;
     }
 
-    public JdbcMetric getJdbcMetric() {
-        return jdbcMetric;
+    public JdbcPoolMetric getJdbcMetric() {
+        return jdbcPoolMetric;
     }
 
     public SqlMetric getSqlMetric() {

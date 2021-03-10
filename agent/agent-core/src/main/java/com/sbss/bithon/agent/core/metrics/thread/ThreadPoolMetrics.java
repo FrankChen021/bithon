@@ -7,7 +7,7 @@ import com.sbss.bithon.agent.core.metrics.Gauge;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 10:48 下午
  */
-public abstract class AbstractThreadPoolMetrics {
+public abstract class ThreadPoolMetrics {
 
     private final String executorClass;
     private final String threadPoolName;
@@ -20,7 +20,7 @@ public abstract class AbstractThreadPoolMetrics {
     public Counter successfulTaskCount = new Counter();
     public Gauge totalTaskCount = new Gauge();
 
-    public AbstractThreadPoolMetrics(String executorClass, String threadPoolName) {
+    public ThreadPoolMetrics(String executorClass, String threadPoolName) {
         this.executorClass = executorClass;
         this.threadPoolName = threadPoolName;
     }

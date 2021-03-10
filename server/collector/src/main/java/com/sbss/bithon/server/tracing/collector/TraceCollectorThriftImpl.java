@@ -1,11 +1,12 @@
 package com.sbss.bithon.server.tracing.collector;
 
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.ITraceCollector;
-import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceMessage;
-import com.sbss.bithon.server.tracing.storage.TraceSpan;
+import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.thrift.TException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -22,8 +23,8 @@ public class TraceCollectorThriftImpl implements ITraceCollector.Iface {
     }
 
     @Override
-    public void sendTrace(TraceMessage message) throws TException {
-        log.info("Receiving trace message:{}", message);
-        handler.submit(TraceSpan.from(message));
+    public void sendTrace(MessageHeader header, List<TraceSpanMessage> spans) {
+        log.info("Receiving trace message:{}", spans);
+        handler.submit(header, spans);
     }
 }

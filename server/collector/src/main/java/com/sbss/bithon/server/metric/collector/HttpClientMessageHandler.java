@@ -1,13 +1,14 @@
 package com.sbss.bithon.server.metric.collector;
 
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
+import com.sbss.bithon.component.db.dao.EndPointType;
 import com.sbss.bithon.server.common.service.UriNormalizer;
 import com.sbss.bithon.server.common.utils.NetworkUtils;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
-import com.sbss.bithon.component.db.dao.EndPointType;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.tools.StringUtils;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class HttpClientMessageHandler extends AbstractMetricMessageHandler<HttpClientMessage> {
+public class HttpClientMessageHandler extends AbstractMetricMessageHandler<MessageHeader, HttpClientMetricMessage> {
 
     private final UriNormalizer uriNormalizer;
 
@@ -41,13 +42,10 @@ public class HttpClientMessageHandler extends AbstractMetricMessageHandler<HttpC
     }
 
     @Override
-    SizedIterator toIterator(HttpClientMessage message) {
-        if (message.getHttpClient().getRequestCount() <= 0) {
+    SizedIterator toIterator(MessageHeader header, HttpClientMetricMessage body) {
+        if (body.getRequestCount() <= 0) {
             return null;
         }
-
-        String appName = message.getAppName();
-        String instanceName = message.getHostName() + ":" + message.getPort();
 
         return new SizedIterator() {
             @Override
@@ -62,11 +60,10 @@ public class HttpClientMessageHandler extends AbstractMetricMessageHandler<HttpC
 
             @Override
             public GenericMetricObject next() {
-                GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                                      appName,
-                                                                      instanceName);
-                metrics.put("interval", message.getInterval());
-                ReflectionUtils.getFields(message.getHttpClient(), metrics);
+                GenericMetricObject metrics = new GenericMetricObject(body.getTimestamp(),
+                                                                      header.getAppName(),
+                                                                      header.getHostName());
+                ReflectionUtils.getFields(body, metrics);
                 return metrics;
             }
         };

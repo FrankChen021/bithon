@@ -1,18 +1,17 @@
 package com.sbss.bithon.server.metric.collector;
 
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcEntity;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
+import com.sbss.bithon.component.db.dao.EndPointType;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
-import com.sbss.bithon.component.db.dao.EndPointType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Iterator;
 
 /**
  * @author frank.chen021@outlook.com
@@ -20,7 +19,21 @@ import java.util.Iterator;
  */
 @Slf4j
 @Service
-public class JdbcPoolMessageHandler extends AbstractMetricMessageHandler<JdbcMessage> {
+public class JdbcPoolMessageHandler extends AbstractMetricMessageHandler<MessageHeader, JdbcPoolMetricMessage> {
+
+    private enum DriverType {
+        MYSQL("com.mysql", "mysql"),
+        KYLIN("org.apache.kylin", "kylin"),
+        UNKNOWN("unknown", "unknown_jdbc");
+
+        private final String classIdentifier;
+        private final String driverType;
+
+        DriverType(String classIdentifier, String driverType) {
+            this.classIdentifier = classIdentifier;
+            this.driverType = driverType;
+        }
+    }
 
     public JdbcPoolMessageHandler(IMetaStorage metaStorage,
                                   IMetricStorage metricStorage,
@@ -36,15 +49,12 @@ public class JdbcPoolMessageHandler extends AbstractMetricMessageHandler<JdbcMes
     }
 
     @Override
-    SizedIterator toIterator(JdbcMessage message) {
-        String appName = message.getAppName();
-        String instanceName = message.getHostName() + ":" + message.getPort();
+    SizedIterator toIterator(MessageHeader header, JdbcPoolMetricMessage body) {
 
-        Iterator<JdbcEntity> delegate = message.getJdbcList().iterator();
         return new SizedIterator() {
             @Override
             public int size() {
-                return message.getJdbcList().size();
+                return 1;
             }
 
             @Override
@@ -53,22 +63,22 @@ public class JdbcPoolMessageHandler extends AbstractMetricMessageHandler<JdbcMes
 
             @Override
             public boolean hasNext() {
-                return delegate.hasNext();
+                return false;
             }
 
             @Override
             public GenericMetricObject next() {
-                JdbcEntity jdbcEntity = delegate.next();
-                GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                                      appName,
-                                                                      instanceName);
-                metrics.put("interval", message.getInterval());
+                GenericMetricObject metrics = new GenericMetricObject(body.getTimestamp(),
+                                                                      header.getAppName(),
+                                                                      header.getHostName());
                 metrics.setEndpointLink(EndPointType.APPLICATION,
-                                        message.getAppName(),
+                                        header.getAppName(),
                                         EndPointType.MYSQL,
-                                        jdbcEntity.getUri());
 
-                ReflectionUtils.getFields(jdbcEntity, metrics);
+                                        //TODO: extract host and port
+                                        body.getConnectionString());
+
+                ReflectionUtils.getFields(body, metrics);
 
                 return metrics;
             }

@@ -12,13 +12,13 @@ public class IEventCollector {
 
   public interface Iface {
 
-    public void sendEvent(ThriftEventMessage message) throws org.apache.thrift.TException;
+    public void sendEvent(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, ThriftEventMessage body) throws org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface {
 
-    public void sendEvent(ThriftEventMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
+    public void sendEvent(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, ThriftEventMessage body, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -42,15 +42,16 @@ public class IEventCollector {
       super(iprot, oprot);
     }
 
-    public void sendEvent(ThriftEventMessage message) throws org.apache.thrift.TException
+    public void sendEvent(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, ThriftEventMessage body) throws org.apache.thrift.TException
     {
-      send_sendEvent(message);
+      send_sendEvent(header, body);
     }
 
-    public void send_sendEvent(ThriftEventMessage message) throws org.apache.thrift.TException
+    public void send_sendEvent(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, ThriftEventMessage body) throws org.apache.thrift.TException
     {
       sendEvent_args args = new sendEvent_args();
-      args.setMessage(message);
+      args.setHeader(header);
+      args.setBody(body);
       sendBaseOneway("sendEvent", args);
     }
 
@@ -72,24 +73,27 @@ public class IEventCollector {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void sendEvent(ThriftEventMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+    public void sendEvent(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, ThriftEventMessage body, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sendEvent_call method_call = new sendEvent_call(message, resultHandler, this, ___protocolFactory, ___transport);
+      sendEvent_call method_call = new sendEvent_call(header, body, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class sendEvent_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
-      private ThriftEventMessage message;
-      public sendEvent_call(ThriftEventMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header;
+      private ThriftEventMessage body;
+      public sendEvent_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, ThriftEventMessage body, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
-        this.message = message;
+        this.header = header;
+        this.body = body;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendEvent", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
         sendEvent_args args = new sendEvent_args();
-        args.setMessage(message);
+        args.setHeader(header);
+        args.setBody(body);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -140,7 +144,7 @@ public class IEventCollector {
       }
 
       public org.apache.thrift.TBase getResult(I iface, sendEvent_args args) throws org.apache.thrift.TException {
-        iface.sendEvent(args.message);
+        iface.sendEvent(args.header, args.body);
         return null;
       }
     }
@@ -192,7 +196,7 @@ public class IEventCollector {
       }
 
       public void start(I iface, sendEvent_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
-        iface.sendEvent(args.message,resultHandler);
+        iface.sendEvent(args.header, args.body,resultHandler);
       }
     }
 
@@ -201,16 +205,19 @@ public class IEventCollector {
   public static class sendEvent_args implements org.apache.thrift.TBase<sendEvent_args, sendEvent_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendEvent_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendEvent_args");
 
-    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField HEADER_FIELD_DESC = new org.apache.thrift.protocol.TField("header", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField BODY_FIELD_DESC = new org.apache.thrift.protocol.TField("body", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendEvent_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendEvent_argsTupleSchemeFactory();
 
-    public @org.apache.thrift.annotation.Nullable ThriftEventMessage message; // required
+    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header; // required
+    public @org.apache.thrift.annotation.Nullable ThriftEventMessage body; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      MESSAGE((short)1, "message");
+      HEADER((short)1, "header"),
+      BODY((short)2, "body");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -226,8 +233,10 @@ public class IEventCollector {
       @org.apache.thrift.annotation.Nullable
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // MESSAGE
-            return MESSAGE;
+          case 1: // HEADER
+            return HEADER;
+          case 2: // BODY
+            return BODY;
           default:
             return null;
         }
@@ -272,7 +281,9 @@ public class IEventCollector {
     public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+      tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.MessageHeader.class)));
+      tmpMap.put(_Fields.BODY, new org.apache.thrift.meta_data.FieldMetaData("body", org.apache.thrift.TFieldRequirementType.REQUIRED, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ThriftEventMessage.class)));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendEvent_args.class, metaDataMap);
@@ -282,18 +293,23 @@ public class IEventCollector {
     }
 
     public sendEvent_args(
-      ThriftEventMessage message)
+      com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header,
+      ThriftEventMessage body)
     {
       this();
-      this.message = message;
+      this.header = header;
+      this.body = body;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public sendEvent_args(sendEvent_args other) {
-      if (other.isSetMessage()) {
-        this.message = new ThriftEventMessage(other.message);
+      if (other.isSetHeader()) {
+        this.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader(other.header);
+      }
+      if (other.isSetBody()) {
+        this.body = new ThriftEventMessage(other.body);
       }
     }
 
@@ -303,41 +319,75 @@ public class IEventCollector {
 
     @Override
     public void clear() {
-      this.message = null;
+      this.header = null;
+      this.body = null;
     }
 
     @org.apache.thrift.annotation.Nullable
-    public ThriftEventMessage getMessage() {
-      return this.message;
+    public com.sbss.bithon.agent.rpc.thrift.service.MessageHeader getHeader() {
+      return this.header;
     }
 
-    public sendEvent_args setMessage(@org.apache.thrift.annotation.Nullable ThriftEventMessage message) {
-      this.message = message;
+    public sendEvent_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
+      this.header = header;
       return this;
     }
 
-    public void unsetMessage() {
-      this.message = null;
+    public void unsetHeader() {
+      this.header = null;
     }
 
-    /** Returns true if field message is set (has been assigned a value) and false otherwise */
-    public boolean isSetMessage() {
-      return this.message != null;
+    /** Returns true if field header is set (has been assigned a value) and false otherwise */
+    public boolean isSetHeader() {
+      return this.header != null;
     }
 
-    public void setMessageIsSet(boolean value) {
+    public void setHeaderIsSet(boolean value) {
       if (!value) {
-        this.message = null;
+        this.header = null;
+      }
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public ThriftEventMessage getBody() {
+      return this.body;
+    }
+
+    public sendEvent_args setBody(@org.apache.thrift.annotation.Nullable ThriftEventMessage body) {
+      this.body = body;
+      return this;
+    }
+
+    public void unsetBody() {
+      this.body = null;
+    }
+
+    /** Returns true if field body is set (has been assigned a value) and false otherwise */
+    public boolean isSetBody() {
+      return this.body != null;
+    }
+
+    public void setBodyIsSet(boolean value) {
+      if (!value) {
+        this.body = null;
       }
     }
 
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
-      case MESSAGE:
+      case HEADER:
         if (value == null) {
-          unsetMessage();
+          unsetHeader();
         } else {
-          setMessage((ThriftEventMessage)value);
+          setHeader((com.sbss.bithon.agent.rpc.thrift.service.MessageHeader)value);
+        }
+        break;
+
+      case BODY:
+        if (value == null) {
+          unsetBody();
+        } else {
+          setBody((ThriftEventMessage)value);
         }
         break;
 
@@ -347,8 +397,11 @@ public class IEventCollector {
     @org.apache.thrift.annotation.Nullable
     public java.lang.Object getFieldValue(_Fields field) {
       switch (field) {
-      case MESSAGE:
-        return getMessage();
+      case HEADER:
+        return getHeader();
+
+      case BODY:
+        return getBody();
 
       }
       throw new java.lang.IllegalStateException();
@@ -361,8 +414,10 @@ public class IEventCollector {
       }
 
       switch (field) {
-      case MESSAGE:
-        return isSetMessage();
+      case HEADER:
+        return isSetHeader();
+      case BODY:
+        return isSetBody();
       }
       throw new java.lang.IllegalStateException();
     }
@@ -382,12 +437,21 @@ public class IEventCollector {
       if (this == that)
         return true;
 
-      boolean this_present_message = true && this.isSetMessage();
-      boolean that_present_message = true && that.isSetMessage();
-      if (this_present_message || that_present_message) {
-        if (!(this_present_message && that_present_message))
+      boolean this_present_header = true && this.isSetHeader();
+      boolean that_present_header = true && that.isSetHeader();
+      if (this_present_header || that_present_header) {
+        if (!(this_present_header && that_present_header))
           return false;
-        if (!this.message.equals(that.message))
+        if (!this.header.equals(that.header))
+          return false;
+      }
+
+      boolean this_present_body = true && this.isSetBody();
+      boolean that_present_body = true && that.isSetBody();
+      if (this_present_body || that_present_body) {
+        if (!(this_present_body && that_present_body))
+          return false;
+        if (!this.body.equals(that.body))
           return false;
       }
 
@@ -398,9 +462,13 @@ public class IEventCollector {
     public int hashCode() {
       int hashCode = 1;
 
-      hashCode = hashCode * 8191 + ((isSetMessage()) ? 131071 : 524287);
-      if (isSetMessage())
-        hashCode = hashCode * 8191 + message.hashCode();
+      hashCode = hashCode * 8191 + ((isSetHeader()) ? 131071 : 524287);
+      if (isSetHeader())
+        hashCode = hashCode * 8191 + header.hashCode();
+
+      hashCode = hashCode * 8191 + ((isSetBody()) ? 131071 : 524287);
+      if (isSetBody())
+        hashCode = hashCode * 8191 + body.hashCode();
 
       return hashCode;
     }
@@ -413,12 +481,22 @@ public class IEventCollector {
 
       int lastComparison = 0;
 
-      lastComparison = java.lang.Boolean.valueOf(isSetMessage()).compareTo(other.isSetMessage());
+      lastComparison = java.lang.Boolean.valueOf(isSetHeader()).compareTo(other.isSetHeader());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetMessage()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.message, other.message);
+      if (isSetHeader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.header, other.header);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = java.lang.Boolean.valueOf(isSetBody()).compareTo(other.isSetBody());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetBody()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.body, other.body);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -444,11 +522,19 @@ public class IEventCollector {
       java.lang.StringBuilder sb = new java.lang.StringBuilder("sendEvent_args(");
       boolean first = true;
 
-      sb.append("message:");
-      if (this.message == null) {
+      sb.append("header:");
+      if (this.header == null) {
         sb.append("null");
       } else {
-        sb.append(this.message);
+        sb.append(this.header);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("body:");
+      if (this.body == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.body);
       }
       first = false;
       sb.append(")");
@@ -457,12 +543,18 @@ public class IEventCollector {
 
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
-      if (message == null) {
-        throw new org.apache.thrift.protocol.TProtocolException("Required field 'message' was not present! Struct: " + toString());
+      if (header == null) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'header' was not present! Struct: " + toString());
+      }
+      if (body == null) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'body' was not present! Struct: " + toString());
       }
       // check for sub-struct validity
-      if (message != null) {
-        message.validate();
+      if (header != null) {
+        header.validate();
+      }
+      if (body != null) {
+        body.validate();
       }
     }
 
@@ -500,11 +592,20 @@ public class IEventCollector {
             break;
           }
           switch (schemeField.id) {
-            case 1: // MESSAGE
+            case 1: // HEADER
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.message = new ThriftEventMessage();
-                struct.message.read(iprot);
-                struct.setMessageIsSet(true);
+                struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+                struct.header.read(iprot);
+                struct.setHeaderIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // BODY
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.body = new ThriftEventMessage();
+                struct.body.read(iprot);
+                struct.setBodyIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -524,9 +625,14 @@ public class IEventCollector {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.message != null) {
-          oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
-          struct.message.write(oprot);
+        if (struct.header != null) {
+          oprot.writeFieldBegin(HEADER_FIELD_DESC);
+          struct.header.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.body != null) {
+          oprot.writeFieldBegin(BODY_FIELD_DESC);
+          struct.body.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -546,15 +652,19 @@ public class IEventCollector {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, sendEvent_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message.write(oprot);
+        struct.header.write(oprot);
+        struct.body.write(oprot);
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, sendEvent_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message = new ThriftEventMessage();
-        struct.message.read(iprot);
-        struct.setMessageIsSet(true);
+        struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+        struct.header.read(iprot);
+        struct.setHeaderIsSet(true);
+        struct.body = new ThriftEventMessage();
+        struct.body.read(iprot);
+        struct.setBodyIsSet(true);
       }
     }
 

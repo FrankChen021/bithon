@@ -29,21 +29,21 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author frankchen
  */
-public class SqlStatementCounterStorage implements IMetricProvider, IAgentSettingRefreshListener {
-    private static final Logger log = LoggerFactory.getLogger(SqlStatementCounterStorage.class);
+public class SqlStatementMetricProvider implements IMetricProvider, IAgentSettingRefreshListener {
+    private static final Logger log = LoggerFactory.getLogger(SqlStatementMetricProvider.class);
 
     private static final String MYSQL_COUNTER_NAME = "mysql8_sql_stats";
 
-    private final Map<String, Map<String, SqlStatementMetric>> counters = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, SqlStatementMetric>> metricMap = new ConcurrentHashMap<>();
     private int sqlTimeThreshold = 1000;
 
-    static final SqlStatementCounterStorage INSTANCE = new SqlStatementCounterStorage();
+    static final SqlStatementMetricProvider INSTANCE = new SqlStatementMetricProvider();
 
-    static SqlStatementCounterStorage getInstance() {
+    static SqlStatementMetricProvider getInstance() {
         return INSTANCE;
     }
 
-    private SqlStatementCounterStorage() {
+    private SqlStatementMetricProvider() {
         try {
             MetricProviderManager.getInstance().register(MYSQL_COUNTER_NAME, this);
         } catch (Exception e) {
@@ -88,12 +88,12 @@ public class SqlStatementCounterStorage implements IMetricProvider, IAgentSettin
 
         sql = ParameterizedOutputVisitorUtils.parameterize(sql, JdbcConstants.MYSQL).replace("\n", "");
         Map<String, SqlStatementMetric> map;
-        if ((map = counters.get(dataSourceUrl)) == null) {
+        if ((map = metricMap.get(dataSourceUrl)) == null) {
             synchronized (this) {
-                if ((map = counters.get(dataSourceUrl)) == null) {
-                    map = counters.putIfAbsent(dataSourceUrl, new ConcurrentHashMap<>());
+                if ((map = metricMap.get(dataSourceUrl)) == null) {
+                    map = metricMap.putIfAbsent(dataSourceUrl, new ConcurrentHashMap<>());
                     if (map == null) {
-                        map = counters.get(dataSourceUrl);
+                        map = metricMap.get(dataSourceUrl);
                     }
                 }
             }
@@ -119,7 +119,7 @@ public class SqlStatementCounterStorage implements IMetricProvider, IAgentSettin
 
     @Override
     public boolean isEmpty() {
-        return counters.isEmpty();
+        return metricMap.isEmpty();
     }
 
     @Override
@@ -128,7 +128,7 @@ public class SqlStatementCounterStorage implements IMetricProvider, IAgentSettin
                                       int interval,
                                       long timestamp) {
         List<Object> messages = new ArrayList<>();
-        counters.forEach((dataSourceUrl, statementCounters) -> {
+        metricMap.forEach((dataSourceUrl, statementCounters) -> {
             statementCounters.forEach((sql, counter) -> messages.add(messageConverter.from(counter)));
         });
         return messages;

@@ -1,18 +1,17 @@
 package com.sbss.bithon.server.metric.collector;
 
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisEntity;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
+import com.sbss.bithon.component.db.dao.EndPointType;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
-import com.sbss.bithon.component.db.dao.EndPointType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Iterator;
 
 /**
  * @author frank.chen021@outlook.com
@@ -20,7 +19,7 @@ import java.util.Iterator;
  */
 @Slf4j
 @Service
-public class RedisMessageHandler extends AbstractMetricMessageHandler<RedisMessage> {
+public class RedisMessageHandler extends AbstractMetricMessageHandler<MessageHeader, RedisMetricMessage> {
 
     public RedisMessageHandler(IMetaStorage metaStorage,
                                IMetricStorage metricStorage,
@@ -37,36 +36,30 @@ public class RedisMessageHandler extends AbstractMetricMessageHandler<RedisMessa
     }
 
     @Override
-    SizedIterator toIterator(RedisMessage message) {
-        String appName = message.getAppName();
-        String instanceName = message.getHostName() + ":" + message.getPort();
-
-        Iterator<RedisEntity> delegate = message.getRedisListIterator();
-        return delegate == null ? null : new SizedIterator() {
+    SizedIterator toIterator(MessageHeader header, RedisMetricMessage body) {
+        return new SizedIterator() {
             @Override
             public int size() {
-                return message.getRedisList().size();
+                return 1;
             }
 
             @Override
             public boolean hasNext() {
-                return delegate.hasNext();
+                return false;
             }
 
             @Override
             public GenericMetricObject next() {
-                RedisEntity redisEntity = delegate.next();
-
-                GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                                      appName,
-                                                                      instanceName);
-                metrics.put("interval", message.getInterval());
+                GenericMetricObject metrics = new GenericMetricObject(body.getTimestamp(),
+                                                                      header.getAppName(),
+                                                                      header.getHostName());
                 metrics.setEndpointLink(EndPointType.APPLICATION,
-                                        message.getAppName(),
+                                        header.getAppName(),
                                         EndPointType.REDIS,
-                                        redisEntity.getUri());
+                                        body.getUri());
 
-                ReflectionUtils.getFields(redisEntity, metrics);
+                //TODO: timestamp is overrided
+                ReflectionUtils.getFields(body, metrics);
 
                 return metrics;
             }

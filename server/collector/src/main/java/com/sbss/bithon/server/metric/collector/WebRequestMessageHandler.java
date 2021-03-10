@@ -1,12 +1,13 @@
 package com.sbss.bithon.server.metric.collector;
 
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
+import com.sbss.bithon.component.db.dao.EndPointType;
 import com.sbss.bithon.server.common.service.UriNormalizer;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
-import com.sbss.bithon.component.db.dao.EndPointType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -20,7 +21,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class WebRequestMessageHandler extends AbstractMetricMessageHandler<WebRequestMessage> {
+public class WebRequestMessageHandler extends AbstractMetricMessageHandler<MessageHeader, WebRequestMetricMessage> {
 
     private final UriNormalizer uriNormalizer;
 
@@ -37,13 +38,10 @@ public class WebRequestMessageHandler extends AbstractMetricMessageHandler<WebRe
     }
 
     @Override
-    SizedIterator toIterator(WebRequestMessage message) {
-        if (message.getRequestEntity().getRequestCount() <= 0) {
+    SizedIterator toIterator(MessageHeader header, WebRequestMetricMessage message) {
+        if (message.getRequestCount() <= 0) {
             return null;
         }
-
-        String appName = message.getAppName();
-        String instanceName = message.getHostName() + ":" + message.getPort();
 
         return new SizedIterator() {
             @Override
@@ -58,31 +56,31 @@ public class WebRequestMessageHandler extends AbstractMetricMessageHandler<WebRe
 
             @Override
             public GenericMetricObject next() {
-                UriNormalizer.NormalizedResult result = uriNormalizer.normalize(message.getAppName(), message.getRequestEntity().getUri());
+                UriNormalizer.NormalizedResult result = uriNormalizer.normalize(header.getAppName(),
+                                                                                message.getUri());
                 if (result.getUri() == null) {
                     return null;
                 }
 
                 GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                                      appName,
-                                                                      instanceName);
-                metrics.put("interval", message.getInterval());
+                                                                      header.getAppName(),
+                                                                      header.getHostName());
+                ReflectionUtils.getFields(message, metrics);
                 metrics.put("uri", result.getUri());
-                ReflectionUtils.getFields(message.getRequestEntity(), metrics);
 
                 String srcApplication;
                 EndPointType srcEndPointType;
-                if (StringUtils.isEmpty(message.getRequestEntity().getSrcApplication())) {
+                if (StringUtils.isEmpty(message.getSrcApplication())) {
                     srcApplication = "Bithon-Unknown";
                     srcEndPointType = EndPointType.UNKNOWN;
                 } else {
-                    srcApplication = message.getRequestEntity().getSrcApplication();
+                    srcApplication = message.getSrcApplication();
                     srcEndPointType = EndPointType.APPLICATION;
                 }
                 metrics.setEndpointLink(srcEndPointType,
                                         srcApplication,
                                         EndPointType.APPLICATION,
-                                        message.getAppName());
+                                        header.getAppName());
 
                 return metrics;
             }

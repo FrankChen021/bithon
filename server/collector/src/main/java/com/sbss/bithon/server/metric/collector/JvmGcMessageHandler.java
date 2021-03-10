@@ -1,17 +1,16 @@
 package com.sbss.bithon.server.metric.collector;
 
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.GcEntity;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Iterator;
 
 /**
  * @author frank.chen021@outlook.com
@@ -19,7 +18,7 @@ import java.util.Iterator;
  */
 @Slf4j
 @Service
-public class JvmGcMessageHandler extends AbstractMetricMessageHandler<JvmMessage> {
+public class JvmGcMessageHandler extends AbstractMetricMessageHandler<MessageHeader, JvmMetricMessage> {
 
     public JvmGcMessageHandler(IMetaStorage metaStorage,
                                IMetricStorage metricStorage,
@@ -35,31 +34,24 @@ public class JvmGcMessageHandler extends AbstractMetricMessageHandler<JvmMessage
     }
 
     @Override
-    SizedIterator toIterator(JvmMessage message) {
-        Iterator<GcEntity> delegate = message.getGcEntitiesIterator();
-        return delegate == null ? null : new SizedIterator() {
+    SizedIterator toIterator(MessageHeader header, JvmMetricMessage body) {
+        return new SizedIterator() {
             @Override
             public int size() {
-                return message.getGcEntitiesSize();
+                return 1;
             }
 
             @Override
             public boolean hasNext() {
-                return delegate.hasNext();
+                return false;
             }
 
             @Override
             public GenericMetricObject next() {
-                String appName = message.getAppName();
-                String instanceName = message.getHostName() + ":" + message.getPort();
-
-                GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                                      appName,
-                                                                      instanceName);
-                metrics.put("interval", message.getInterval());
-
-                ReflectionUtils.getFields(delegate.next(), metrics);
-
+                GenericMetricObject metrics = new GenericMetricObject(body.getTimestamp(),
+                                                                      header.getAppName(),
+                                                                      header.getHostName());
+                ReflectionUtils.getFields(body, metrics);
                 return metrics;
             }
         };

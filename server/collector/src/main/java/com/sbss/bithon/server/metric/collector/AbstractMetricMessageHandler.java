@@ -2,14 +2,14 @@ package com.sbss.bithon.server.metric.collector;
 
 import com.sbss.bithon.server.collector.AbstractThreadPoolMessageHandler;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
+import com.sbss.bithon.server.meta.EndPointLink;
+import com.sbss.bithon.server.meta.MetadataType;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchema;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.input.InputRow;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
 import com.sbss.bithon.server.metric.storage.IMetricWriter;
-import com.sbss.bithon.server.meta.EndPointLink;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
-import com.sbss.bithon.server.meta.MetadataType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,7 +22,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Getter
-public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThreadPoolMessageHandler<MSG_TYPE> {
+public abstract class AbstractMetricMessageHandler<MSG_HEADER, MSG_BODY> extends AbstractThreadPoolMessageHandler<MSG_HEADER, MSG_BODY> {
 
     interface SizedIterator extends CloseableIterator<GenericMetricObject> {
         int size();
@@ -51,11 +51,11 @@ public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThr
         this.metricStorageWriter = storage.createMetricWriter(schema);
     }
 
-    abstract SizedIterator toIterator(MSG_TYPE message);
+    abstract SizedIterator toIterator(MSG_HEADER header, MSG_BODY body);
 
     @Override
-    final protected void onMessage(MSG_TYPE message) {
-        SizedIterator iterator = toIterator(message);
+    final protected void onMessage(MSG_HEADER header, MSG_BODY body) {
+        SizedIterator iterator = toIterator(header, body);
         if (iterator == null || iterator.size() <= 0) {
             return;
         }
@@ -64,7 +64,7 @@ public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThr
             try {
                 processMetricObject(iterator.next());
             } catch (Exception e) {
-                log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}", this.schema.getName(), message, e);
+                log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}", this.schema.getName(), body, e);
             }
             return;
         }
@@ -75,7 +75,7 @@ public abstract class AbstractMetricMessageHandler<MSG_TYPE> extends AbstractThr
                 try {
                     processMetricObject(metricObject);
                 } catch (Exception e) {
-                    log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}", this.schema.getName(), message, e);
+                    log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}", this.schema.getName(), body, e);
                 }
             });
         }

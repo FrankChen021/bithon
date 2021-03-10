@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.plugin.thread.threadpool;
 
-import com.sbss.bithon.agent.core.metrics.thread.AbstractThreadPoolMetrics;
+import com.sbss.bithon.agent.core.metrics.thread.ThreadPoolMetrics;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 10:48 下午
  */
-class ThreadPoolExecutorMetrics extends AbstractThreadPoolMetrics {
+class ThreadPoolExecutorMetrics extends ThreadPoolMetrics {
 
     ThreadPoolExecutorMetrics(ThreadPoolExecutor executor) {
         super(executor.getThreadFactory().getClass().getName(),

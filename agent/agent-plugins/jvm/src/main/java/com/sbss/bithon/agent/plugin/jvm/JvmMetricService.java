@@ -13,10 +13,7 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.TreeMap;
+import java.util.*;
 
 import static com.sbss.bithon.agent.plugin.jvm.JmxBeans.osBean;
 import static com.sbss.bithon.agent.plugin.jvm.JmxBeans.runtimeBean;
@@ -44,7 +41,7 @@ public class JvmMetricService {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-            sendJvmMetrics();
+                sendJvmMetrics();
             }
         }, checkIntervalSeconds * 1000, checkIntervalSeconds * 1000);
     }
@@ -56,10 +53,10 @@ public class JvmMetricService {
 
         try {
             IMessageConverter converter = metricsDispatcher.getMessageConverter();
-            metricsDispatcher.sendMessage(converter.from(AgentContext.getInstance().getAppInstance(),
-                                                         System.currentTimeMillis(),
-                                                         10,
-                                                         buildJvmMetrics()));
+            metricsDispatcher.sendMessage(Collections.singletonList(converter.from(AgentContext.getInstance().getAppInstance(),
+                                                                                   System.currentTimeMillis(),
+                                                                                   10,
+                                                                                   buildJvmMetrics())));
             if (!jvmStarted) {
                 sendJvmStartedEvent();
                 jvmStarted = true;

@@ -1,17 +1,16 @@
 package com.sbss.bithon.server.metric.collector;
 
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolEntity;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Iterator;
 
 /**
  * @author frank.chen021@outlook.com
@@ -19,7 +18,7 @@ import java.util.Iterator;
  */
 @Slf4j
 @Service
-public class ThreadPoolMessageHandler extends AbstractMetricMessageHandler<ThreadPoolMessage> {
+public class ThreadPoolMessageHandler extends AbstractMetricMessageHandler<MessageHeader, ThreadPoolMetricMessage> {
 
     public ThreadPoolMessageHandler(IMetaStorage metaStorage,
                                     DataSourceSchemaManager dataSourceSchemaManager,
@@ -35,30 +34,24 @@ public class ThreadPoolMessageHandler extends AbstractMetricMessageHandler<Threa
     }
 
     @Override
-    SizedIterator toIterator(ThreadPoolMessage message) {
-        String appName = message.getAppName();
-        String instanceName = message.getHostName() + ":" + message.getPort();
-
-        Iterator<ThreadPoolEntity> delegate = message.getPoolsIterator();
+    SizedIterator toIterator(MessageHeader header, ThreadPoolMetricMessage message) {
         return new SizedIterator() {
             @Override
             public int size() {
-                return message.getPoolsSize();
+                return 1;
             }
 
             @Override
             public boolean hasNext() {
-                return delegate.hasNext();
+                return false;
             }
 
             @Override
             public GenericMetricObject next() {
                 GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                                      appName,
-                                                                      instanceName);
-                metrics.put("interval", message.getInterval());
-
-                ReflectionUtils.getFields(delegate.next(), metrics);
+                                                                      header.getAppName(),
+                                                                      header.getHostName());
+                ReflectionUtils.getFields(message, metrics);
                 return metrics;
             }
         };

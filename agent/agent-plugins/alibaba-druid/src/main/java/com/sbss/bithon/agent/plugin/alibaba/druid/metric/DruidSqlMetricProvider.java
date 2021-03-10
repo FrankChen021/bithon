@@ -43,7 +43,7 @@ public class DruidSqlMetricProvider implements IMetricProvider {
         }
 
         // check if metrics provider for this driver exists
-        if (MetricProviderManager.getInstance().isProviderExists(monitoredSource.getDriverType())) {
+        if (MetricProviderManager.getInstance().isProviderExists(monitoredSource.getDriverClass())) {
             log.debug("Underlying Metric Provider Exists");
             return;
         }

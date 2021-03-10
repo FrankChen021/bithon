@@ -1,5 +1,7 @@
 package com.sbss.bithon.server.tracing.collector;
 
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
+import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 import com.sbss.bithon.server.collector.AbstractThreadPoolMessageHandler;
 import com.sbss.bithon.server.tracing.storage.ITraceStorage;
 import com.sbss.bithon.server.tracing.storage.ITraceWriter;
@@ -15,7 +17,7 @@ import java.util.List;
  * @date 2021/2/4 8:21 下午
  */
 @Component
-public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<List<TraceSpan>> {
+public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<MessageHeader, List<TraceSpanMessage>> {
 
     final ITraceWriter traceWriter;
 
@@ -29,7 +31,8 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<List<T
     }
 
     @Override
-    protected void onMessage(List<TraceSpan> traceSpans) throws IOException {
-        traceWriter.write(traceSpans);
+    protected void onMessage(MessageHeader header,
+                             List<TraceSpanMessage> traceSpans) throws IOException {
+        traceWriter.write(TraceSpan.from(header, traceSpans));
     }
 }

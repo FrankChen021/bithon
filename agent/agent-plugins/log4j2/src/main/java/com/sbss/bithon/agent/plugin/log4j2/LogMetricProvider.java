@@ -7,6 +7,7 @@ import com.sbss.bithon.agent.core.metrics.exception.ExceptionMetric;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -41,7 +42,7 @@ public class LogMetricProvider implements IMetricProvider {
         }
     }
 
-    private Queue<AppException> exceptionList = new ConcurrentLinkedDeque<>();
+    private final Queue<AppException> exceptionList = new ConcurrentLinkedDeque<>();
 
     public void addException(String uri, Throwable exception) {
         exceptionList.offer(new AppException(uri, exception));
@@ -76,7 +77,7 @@ public class LogMetricProvider implements IMetricProvider {
                                       AppInstance appInstance,
                                       int interval,
                                       long now) {
-        Map<String, ExceptionMetric> counters = new HashMap<>();
+        Map<String, ExceptionMetric> metricMap = new HashMap<>();
 
         //
         // merge exception together
@@ -90,15 +91,21 @@ public class LogMetricProvider implements IMetricProvider {
 
             ExceptionMetric counter = appException.toExceptionCounter();
 
-            counters.computeIfAbsent(appException.getUri() + counter.getExceptionId(), key -> counter)
+            metricMap.computeIfAbsent(appException.getUri() + counter.getExceptionId(), key -> counter)
                 .incrCount();
 
         } while (appException.getTimestamp() <= now);
 
-        if (counters.isEmpty()) {
+        if (metricMap.isEmpty()) {
             return Collections.emptyList();
         }
 
-        return messageConverter.from(appInstance, now, interval, counters.values());
+        return metricMap.values()
+            .stream()
+            .map(metric -> messageConverter.from(appInstance,
+                                                 now,
+                                                 interval,
+                                                 metric))
+            .collect(Collectors.toList());
     }
 }

@@ -1,6 +1,8 @@
 namespace java com.sbss.bithon.agent.rpc.thrift.service.trace
 
-struct TraceSpan {
+include "HeaderMessages.thrift"
+
+struct TraceSpanMessage {
     6:string traceId;
     7:string spanId;
     8:string parentSpanId;
@@ -14,16 +16,6 @@ struct TraceSpan {
     16:i64 endTime;
 }
 
-struct TraceMessage {
-    1:string appName;
-    2:string env;
-    3:string hostName;
-    4:i32 port;
-    5:i64 timestamp;
-
-    6:list<TraceSpan> spans;
-}
-
 service ITraceCollector {
-    oneway void sendTrace(1:required TraceMessage message);
+    oneway void sendTrace(1:required HeaderMessages.MessageHeader header, 2:list<TraceSpanMessage> spans);
 }

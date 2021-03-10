@@ -6,10 +6,10 @@ import com.sbss.bithon.agent.core.metrics.Gauge;
 /**
  * @author frankchen
  */
-public class JdbcMetric {
+public class JdbcPoolMetric {
     // dimension
-    private final String uri;
-    private final String driverType;
+    private final String connectionString;
+    private final String driverClass;
 
     // metrics
     public Counter activeCount = new Counter();
@@ -25,16 +25,16 @@ public class JdbcMetric {
     public Counter rollbackCount = new Counter();
     public Counter startTransactionCount = new Counter();
 
-    public JdbcMetric(String uri, String driverType) {
-        this.uri = uri;
-        this.driverType = driverType;
+    public JdbcPoolMetric(String connectionString, String driverClass) {
+        this.connectionString = connectionString;
+        this.driverClass = driverClass;
     }
 
-    public String getUri() {
-        return uri;
+    public String getConnectionString() {
+        return connectionString;
     }
 
-    public String getDriverType() {
-        return driverType;
+    public String getDriverClass() {
+        return driverClass;
     }
 }

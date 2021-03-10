@@ -12,41 +12,41 @@ public class IMetricCollector {
 
   public interface Iface {
 
-    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage message) throws org.apache.thrift.TException;
+    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> message) throws org.apache.thrift.TException;
 
-    public void sendJvm(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage message) throws org.apache.thrift.TException;
+    public void sendJvm(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> message) throws org.apache.thrift.TException;
 
-    public void sendWebServer(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage message) throws org.apache.thrift.TException;
+    public void sendWebServer(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> message) throws org.apache.thrift.TException;
 
-    public void sendException(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage message) throws org.apache.thrift.TException;
+    public void sendException(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> message) throws org.apache.thrift.TException;
 
-    public void sendHttpClient(com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage message) throws org.apache.thrift.TException;
+    public void sendHttpClient(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> message) throws org.apache.thrift.TException;
 
-    public void sendThreadPool(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage message) throws org.apache.thrift.TException;
+    public void sendThreadPool(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> message) throws org.apache.thrift.TException;
 
-    public void sendJdbc(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage message) throws org.apache.thrift.TException;
+    public void sendJdbc(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> message) throws org.apache.thrift.TException;
 
-    public void sendRedis(com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage message) throws org.apache.thrift.TException;
+    public void sendRedis(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> message) throws org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface {
 
-    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
+    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
-    public void sendJvm(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
+    public void sendJvm(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
-    public void sendWebServer(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
+    public void sendWebServer(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
-    public void sendException(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
+    public void sendException(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
-    public void sendHttpClient(com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
+    public void sendHttpClient(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
-    public void sendThreadPool(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
+    public void sendThreadPool(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
-    public void sendJdbc(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
+    public void sendJdbc(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
-    public void sendRedis(com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
+    public void sendRedis(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -70,98 +70,106 @@ public class IMetricCollector {
       super(iprot, oprot);
     }
 
-    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage message) throws org.apache.thrift.TException
+    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> message) throws org.apache.thrift.TException
     {
-      send_sendWebRequest(message);
+      send_sendWebRequest(header, message);
     }
 
-    public void send_sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage message) throws org.apache.thrift.TException
+    public void send_sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> message) throws org.apache.thrift.TException
     {
       sendWebRequest_args args = new sendWebRequest_args();
+      args.setHeader(header);
       args.setMessage(message);
       sendBaseOneway("sendWebRequest", args);
     }
 
-    public void sendJvm(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage message) throws org.apache.thrift.TException
+    public void sendJvm(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> message) throws org.apache.thrift.TException
     {
-      send_sendJvm(message);
+      send_sendJvm(header, message);
     }
 
-    public void send_sendJvm(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage message) throws org.apache.thrift.TException
+    public void send_sendJvm(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> message) throws org.apache.thrift.TException
     {
       sendJvm_args args = new sendJvm_args();
+      args.setHeader(header);
       args.setMessage(message);
       sendBaseOneway("sendJvm", args);
     }
 
-    public void sendWebServer(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage message) throws org.apache.thrift.TException
+    public void sendWebServer(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> message) throws org.apache.thrift.TException
     {
-      send_sendWebServer(message);
+      send_sendWebServer(header, message);
     }
 
-    public void send_sendWebServer(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage message) throws org.apache.thrift.TException
+    public void send_sendWebServer(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> message) throws org.apache.thrift.TException
     {
       sendWebServer_args args = new sendWebServer_args();
+      args.setHeader(header);
       args.setMessage(message);
       sendBaseOneway("sendWebServer", args);
     }
 
-    public void sendException(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage message) throws org.apache.thrift.TException
+    public void sendException(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> message) throws org.apache.thrift.TException
     {
-      send_sendException(message);
+      send_sendException(header, message);
     }
 
-    public void send_sendException(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage message) throws org.apache.thrift.TException
+    public void send_sendException(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> message) throws org.apache.thrift.TException
     {
       sendException_args args = new sendException_args();
+      args.setHeader(header);
       args.setMessage(message);
       sendBaseOneway("sendException", args);
     }
 
-    public void sendHttpClient(com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage message) throws org.apache.thrift.TException
+    public void sendHttpClient(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> message) throws org.apache.thrift.TException
     {
-      send_sendHttpClient(message);
+      send_sendHttpClient(header, message);
     }
 
-    public void send_sendHttpClient(com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage message) throws org.apache.thrift.TException
+    public void send_sendHttpClient(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> message) throws org.apache.thrift.TException
     {
       sendHttpClient_args args = new sendHttpClient_args();
+      args.setHeader(header);
       args.setMessage(message);
       sendBaseOneway("sendHttpClient", args);
     }
 
-    public void sendThreadPool(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage message) throws org.apache.thrift.TException
+    public void sendThreadPool(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> message) throws org.apache.thrift.TException
     {
-      send_sendThreadPool(message);
+      send_sendThreadPool(header, message);
     }
 
-    public void send_sendThreadPool(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage message) throws org.apache.thrift.TException
+    public void send_sendThreadPool(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> message) throws org.apache.thrift.TException
     {
       sendThreadPool_args args = new sendThreadPool_args();
+      args.setHeader(header);
       args.setMessage(message);
       sendBaseOneway("sendThreadPool", args);
     }
 
-    public void sendJdbc(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage message) throws org.apache.thrift.TException
+    public void sendJdbc(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> message) throws org.apache.thrift.TException
     {
-      send_sendJdbc(message);
+      send_sendJdbc(header, message);
     }
 
-    public void send_sendJdbc(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage message) throws org.apache.thrift.TException
+    public void send_sendJdbc(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> message) throws org.apache.thrift.TException
     {
       sendJdbc_args args = new sendJdbc_args();
+      args.setHeader(header);
       args.setMessage(message);
       sendBaseOneway("sendJdbc", args);
     }
 
-    public void sendRedis(com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage message) throws org.apache.thrift.TException
+    public void sendRedis(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> message) throws org.apache.thrift.TException
     {
-      send_sendRedis(message);
+      send_sendRedis(header, message);
     }
 
-    public void send_sendRedis(com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage message) throws org.apache.thrift.TException
+    public void send_sendRedis(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> message) throws org.apache.thrift.TException
     {
       sendRedis_args args = new sendRedis_args();
+      args.setHeader(header);
       args.setMessage(message);
       sendBaseOneway("sendRedis", args);
     }
@@ -184,23 +192,26 @@ public class IMetricCollector {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sendWebRequest_call method_call = new sendWebRequest_call(message, resultHandler, this, ___protocolFactory, ___transport);
+      sendWebRequest_call method_call = new sendWebRequest_call(header, message, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class sendWebRequest_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
-      private com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage message;
-      public sendWebRequest_call(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header;
+      private java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> message;
+      public sendWebRequest_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
+        this.header = header;
         this.message = message;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendWebRequest", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
         sendWebRequest_args args = new sendWebRequest_args();
+        args.setHeader(header);
         args.setMessage(message);
         args.write(prot);
         prot.writeMessageEnd();
@@ -216,23 +227,26 @@ public class IMetricCollector {
       }
     }
 
-    public void sendJvm(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+    public void sendJvm(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sendJvm_call method_call = new sendJvm_call(message, resultHandler, this, ___protocolFactory, ___transport);
+      sendJvm_call method_call = new sendJvm_call(header, message, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class sendJvm_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
-      private com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage message;
-      public sendJvm_call(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header;
+      private java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> message;
+      public sendJvm_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
+        this.header = header;
         this.message = message;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendJvm", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
         sendJvm_args args = new sendJvm_args();
+        args.setHeader(header);
         args.setMessage(message);
         args.write(prot);
         prot.writeMessageEnd();
@@ -248,23 +262,26 @@ public class IMetricCollector {
       }
     }
 
-    public void sendWebServer(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+    public void sendWebServer(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sendWebServer_call method_call = new sendWebServer_call(message, resultHandler, this, ___protocolFactory, ___transport);
+      sendWebServer_call method_call = new sendWebServer_call(header, message, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class sendWebServer_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
-      private com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage message;
-      public sendWebServer_call(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header;
+      private java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> message;
+      public sendWebServer_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
+        this.header = header;
         this.message = message;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendWebServer", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
         sendWebServer_args args = new sendWebServer_args();
+        args.setHeader(header);
         args.setMessage(message);
         args.write(prot);
         prot.writeMessageEnd();
@@ -280,23 +297,26 @@ public class IMetricCollector {
       }
     }
 
-    public void sendException(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+    public void sendException(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sendException_call method_call = new sendException_call(message, resultHandler, this, ___protocolFactory, ___transport);
+      sendException_call method_call = new sendException_call(header, message, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class sendException_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
-      private com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage message;
-      public sendException_call(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header;
+      private java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> message;
+      public sendException_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
+        this.header = header;
         this.message = message;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendException", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
         sendException_args args = new sendException_args();
+        args.setHeader(header);
         args.setMessage(message);
         args.write(prot);
         prot.writeMessageEnd();
@@ -312,23 +332,26 @@ public class IMetricCollector {
       }
     }
 
-    public void sendHttpClient(com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+    public void sendHttpClient(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sendHttpClient_call method_call = new sendHttpClient_call(message, resultHandler, this, ___protocolFactory, ___transport);
+      sendHttpClient_call method_call = new sendHttpClient_call(header, message, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class sendHttpClient_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
-      private com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage message;
-      public sendHttpClient_call(com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header;
+      private java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> message;
+      public sendHttpClient_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
+        this.header = header;
         this.message = message;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendHttpClient", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
         sendHttpClient_args args = new sendHttpClient_args();
+        args.setHeader(header);
         args.setMessage(message);
         args.write(prot);
         prot.writeMessageEnd();
@@ -344,23 +367,26 @@ public class IMetricCollector {
       }
     }
 
-    public void sendThreadPool(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+    public void sendThreadPool(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sendThreadPool_call method_call = new sendThreadPool_call(message, resultHandler, this, ___protocolFactory, ___transport);
+      sendThreadPool_call method_call = new sendThreadPool_call(header, message, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class sendThreadPool_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
-      private com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage message;
-      public sendThreadPool_call(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header;
+      private java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> message;
+      public sendThreadPool_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
+        this.header = header;
         this.message = message;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendThreadPool", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
         sendThreadPool_args args = new sendThreadPool_args();
+        args.setHeader(header);
         args.setMessage(message);
         args.write(prot);
         prot.writeMessageEnd();
@@ -376,23 +402,26 @@ public class IMetricCollector {
       }
     }
 
-    public void sendJdbc(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+    public void sendJdbc(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sendJdbc_call method_call = new sendJdbc_call(message, resultHandler, this, ___protocolFactory, ___transport);
+      sendJdbc_call method_call = new sendJdbc_call(header, message, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class sendJdbc_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
-      private com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage message;
-      public sendJdbc_call(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header;
+      private java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> message;
+      public sendJdbc_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
+        this.header = header;
         this.message = message;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendJdbc", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
         sendJdbc_args args = new sendJdbc_args();
+        args.setHeader(header);
         args.setMessage(message);
         args.write(prot);
         prot.writeMessageEnd();
@@ -408,23 +437,26 @@ public class IMetricCollector {
       }
     }
 
-    public void sendRedis(com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+    public void sendRedis(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sendRedis_call method_call = new sendRedis_call(message, resultHandler, this, ___protocolFactory, ___transport);
+      sendRedis_call method_call = new sendRedis_call(header, message, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class sendRedis_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
-      private com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage message;
-      public sendRedis_call(com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header;
+      private java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> message;
+      public sendRedis_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
+        this.header = header;
         this.message = message;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendRedis", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
         sendRedis_args args = new sendRedis_args();
+        args.setHeader(header);
         args.setMessage(message);
         args.write(prot);
         prot.writeMessageEnd();
@@ -483,7 +515,7 @@ public class IMetricCollector {
       }
 
       public org.apache.thrift.TBase getResult(I iface, sendWebRequest_args args) throws org.apache.thrift.TException {
-        iface.sendWebRequest(args.message);
+        iface.sendWebRequest(args.header, args.message);
         return null;
       }
     }
@@ -507,7 +539,7 @@ public class IMetricCollector {
       }
 
       public org.apache.thrift.TBase getResult(I iface, sendJvm_args args) throws org.apache.thrift.TException {
-        iface.sendJvm(args.message);
+        iface.sendJvm(args.header, args.message);
         return null;
       }
     }
@@ -531,7 +563,7 @@ public class IMetricCollector {
       }
 
       public org.apache.thrift.TBase getResult(I iface, sendWebServer_args args) throws org.apache.thrift.TException {
-        iface.sendWebServer(args.message);
+        iface.sendWebServer(args.header, args.message);
         return null;
       }
     }
@@ -555,7 +587,7 @@ public class IMetricCollector {
       }
 
       public org.apache.thrift.TBase getResult(I iface, sendException_args args) throws org.apache.thrift.TException {
-        iface.sendException(args.message);
+        iface.sendException(args.header, args.message);
         return null;
       }
     }
@@ -579,7 +611,7 @@ public class IMetricCollector {
       }
 
       public org.apache.thrift.TBase getResult(I iface, sendHttpClient_args args) throws org.apache.thrift.TException {
-        iface.sendHttpClient(args.message);
+        iface.sendHttpClient(args.header, args.message);
         return null;
       }
     }
@@ -603,7 +635,7 @@ public class IMetricCollector {
       }
 
       public org.apache.thrift.TBase getResult(I iface, sendThreadPool_args args) throws org.apache.thrift.TException {
-        iface.sendThreadPool(args.message);
+        iface.sendThreadPool(args.header, args.message);
         return null;
       }
     }
@@ -627,7 +659,7 @@ public class IMetricCollector {
       }
 
       public org.apache.thrift.TBase getResult(I iface, sendJdbc_args args) throws org.apache.thrift.TException {
-        iface.sendJdbc(args.message);
+        iface.sendJdbc(args.header, args.message);
         return null;
       }
     }
@@ -651,7 +683,7 @@ public class IMetricCollector {
       }
 
       public org.apache.thrift.TBase getResult(I iface, sendRedis_args args) throws org.apache.thrift.TException {
-        iface.sendRedis(args.message);
+        iface.sendRedis(args.header, args.message);
         return null;
       }
     }
@@ -710,7 +742,7 @@ public class IMetricCollector {
       }
 
       public void start(I iface, sendWebRequest_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
-        iface.sendWebRequest(args.message,resultHandler);
+        iface.sendWebRequest(args.header, args.message,resultHandler);
       }
     }
 
@@ -744,7 +776,7 @@ public class IMetricCollector {
       }
 
       public void start(I iface, sendJvm_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
-        iface.sendJvm(args.message,resultHandler);
+        iface.sendJvm(args.header, args.message,resultHandler);
       }
     }
 
@@ -778,7 +810,7 @@ public class IMetricCollector {
       }
 
       public void start(I iface, sendWebServer_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
-        iface.sendWebServer(args.message,resultHandler);
+        iface.sendWebServer(args.header, args.message,resultHandler);
       }
     }
 
@@ -812,7 +844,7 @@ public class IMetricCollector {
       }
 
       public void start(I iface, sendException_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
-        iface.sendException(args.message,resultHandler);
+        iface.sendException(args.header, args.message,resultHandler);
       }
     }
 
@@ -846,7 +878,7 @@ public class IMetricCollector {
       }
 
       public void start(I iface, sendHttpClient_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
-        iface.sendHttpClient(args.message,resultHandler);
+        iface.sendHttpClient(args.header, args.message,resultHandler);
       }
     }
 
@@ -880,7 +912,7 @@ public class IMetricCollector {
       }
 
       public void start(I iface, sendThreadPool_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
-        iface.sendThreadPool(args.message,resultHandler);
+        iface.sendThreadPool(args.header, args.message,resultHandler);
       }
     }
 
@@ -914,7 +946,7 @@ public class IMetricCollector {
       }
 
       public void start(I iface, sendJdbc_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
-        iface.sendJdbc(args.message,resultHandler);
+        iface.sendJdbc(args.header, args.message,resultHandler);
       }
     }
 
@@ -948,7 +980,7 @@ public class IMetricCollector {
       }
 
       public void start(I iface, sendRedis_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
-        iface.sendRedis(args.message,resultHandler);
+        iface.sendRedis(args.header, args.message,resultHandler);
       }
     }
 
@@ -957,16 +989,19 @@ public class IMetricCollector {
   public static class sendWebRequest_args implements org.apache.thrift.TBase<sendWebRequest_args, sendWebRequest_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendWebRequest_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendWebRequest_args");
 
-    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField HEADER_FIELD_DESC = new org.apache.thrift.protocol.TField("header", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.LIST, (short)2);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendWebRequest_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendWebRequest_argsTupleSchemeFactory();
 
-    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage message; // required
+    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header; // required
+    public @org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> message; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      MESSAGE((short)1, "message");
+      HEADER((short)1, "header"),
+      MESSAGE((short)2, "message");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -982,7 +1017,9 @@ public class IMetricCollector {
       @org.apache.thrift.annotation.Nullable
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // MESSAGE
+          case 1: // HEADER
+            return HEADER;
+          case 2: // MESSAGE
             return MESSAGE;
           default:
             return null;
@@ -1028,8 +1065,11 @@ public class IMetricCollector {
     public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.MessageHeader.class)));
       tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage.class)));
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage.class))));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendWebRequest_args.class, metaDataMap);
     }
@@ -1038,9 +1078,11 @@ public class IMetricCollector {
     }
 
     public sendWebRequest_args(
-      com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage message)
+      com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header,
+      java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> message)
     {
       this();
+      this.header = header;
       this.message = message;
     }
 
@@ -1048,8 +1090,15 @@ public class IMetricCollector {
      * Performs a deep copy on <i>other</i>.
      */
     public sendWebRequest_args(sendWebRequest_args other) {
+      if (other.isSetHeader()) {
+        this.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader(other.header);
+      }
       if (other.isSetMessage()) {
-        this.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage(other.message);
+        java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> __this__message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage>(other.message.size());
+        for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage other_element : other.message) {
+          __this__message.add(new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage(other_element));
+        }
+        this.message = __this__message;
       }
     }
 
@@ -1059,15 +1108,57 @@ public class IMetricCollector {
 
     @Override
     public void clear() {
+      this.header = null;
       this.message = null;
     }
 
     @org.apache.thrift.annotation.Nullable
-    public com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage getMessage() {
+    public com.sbss.bithon.agent.rpc.thrift.service.MessageHeader getHeader() {
+      return this.header;
+    }
+
+    public sendWebRequest_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
+      this.header = header;
+      return this;
+    }
+
+    public void unsetHeader() {
+      this.header = null;
+    }
+
+    /** Returns true if field header is set (has been assigned a value) and false otherwise */
+    public boolean isSetHeader() {
+      return this.header != null;
+    }
+
+    public void setHeaderIsSet(boolean value) {
+      if (!value) {
+        this.header = null;
+      }
+    }
+
+    public int getMessageSize() {
+      return (this.message == null) ? 0 : this.message.size();
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.Iterator<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> getMessageIterator() {
+      return (this.message == null) ? null : this.message.iterator();
+    }
+
+    public void addToMessage(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage elem) {
+      if (this.message == null) {
+        this.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage>();
+      }
+      this.message.add(elem);
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> getMessage() {
       return this.message;
     }
 
-    public sendWebRequest_args setMessage(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage message) {
+    public sendWebRequest_args setMessage(@org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> message) {
       this.message = message;
       return this;
     }
@@ -1089,11 +1180,19 @@ public class IMetricCollector {
 
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
+      case HEADER:
+        if (value == null) {
+          unsetHeader();
+        } else {
+          setHeader((com.sbss.bithon.agent.rpc.thrift.service.MessageHeader)value);
+        }
+        break;
+
       case MESSAGE:
         if (value == null) {
           unsetMessage();
         } else {
-          setMessage((com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage)value);
+          setMessage((java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage>)value);
         }
         break;
 
@@ -1103,6 +1202,9 @@ public class IMetricCollector {
     @org.apache.thrift.annotation.Nullable
     public java.lang.Object getFieldValue(_Fields field) {
       switch (field) {
+      case HEADER:
+        return getHeader();
+
       case MESSAGE:
         return getMessage();
 
@@ -1117,6 +1219,8 @@ public class IMetricCollector {
       }
 
       switch (field) {
+      case HEADER:
+        return isSetHeader();
       case MESSAGE:
         return isSetMessage();
       }
@@ -1138,6 +1242,15 @@ public class IMetricCollector {
       if (this == that)
         return true;
 
+      boolean this_present_header = true && this.isSetHeader();
+      boolean that_present_header = true && that.isSetHeader();
+      if (this_present_header || that_present_header) {
+        if (!(this_present_header && that_present_header))
+          return false;
+        if (!this.header.equals(that.header))
+          return false;
+      }
+
       boolean this_present_message = true && this.isSetMessage();
       boolean that_present_message = true && that.isSetMessage();
       if (this_present_message || that_present_message) {
@@ -1154,6 +1267,10 @@ public class IMetricCollector {
     public int hashCode() {
       int hashCode = 1;
 
+      hashCode = hashCode * 8191 + ((isSetHeader()) ? 131071 : 524287);
+      if (isSetHeader())
+        hashCode = hashCode * 8191 + header.hashCode();
+
       hashCode = hashCode * 8191 + ((isSetMessage()) ? 131071 : 524287);
       if (isSetMessage())
         hashCode = hashCode * 8191 + message.hashCode();
@@ -1169,6 +1286,16 @@ public class IMetricCollector {
 
       int lastComparison = 0;
 
+      lastComparison = java.lang.Boolean.valueOf(isSetHeader()).compareTo(other.isSetHeader());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetHeader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.header, other.header);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = java.lang.Boolean.valueOf(isSetMessage()).compareTo(other.isSetMessage());
       if (lastComparison != 0) {
         return lastComparison;
@@ -1200,6 +1327,14 @@ public class IMetricCollector {
       java.lang.StringBuilder sb = new java.lang.StringBuilder("sendWebRequest_args(");
       boolean first = true;
 
+      sb.append("header:");
+      if (this.header == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.header);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("message:");
       if (this.message == null) {
         sb.append("null");
@@ -1213,12 +1348,15 @@ public class IMetricCollector {
 
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
+      if (header == null) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'header' was not present! Struct: " + toString());
+      }
       if (message == null) {
         throw new org.apache.thrift.protocol.TProtocolException("Required field 'message' was not present! Struct: " + toString());
       }
       // check for sub-struct validity
-      if (message != null) {
-        message.validate();
+      if (header != null) {
+        header.validate();
       }
     }
 
@@ -1256,10 +1394,29 @@ public class IMetricCollector {
             break;
           }
           switch (schemeField.id) {
-            case 1: // MESSAGE
+            case 1: // HEADER
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage();
-                struct.message.read(iprot);
+                struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+                struct.header.read(iprot);
+                struct.setHeaderIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // MESSAGE
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
+                  struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage>(_list0.size);
+                  @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage _elem1;
+                  for (int _i2 = 0; _i2 < _list0.size; ++_i2)
+                  {
+                    _elem1 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage();
+                    _elem1.read(iprot);
+                    struct.message.add(_elem1);
+                  }
+                  iprot.readListEnd();
+                }
                 struct.setMessageIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -1280,9 +1437,21 @@ public class IMetricCollector {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.header != null) {
+          oprot.writeFieldBegin(HEADER_FIELD_DESC);
+          struct.header.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.message != null) {
           oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
-          struct.message.write(oprot);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.message.size()));
+            for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage _iter3 : struct.message)
+            {
+              _iter3.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -1302,14 +1471,33 @@ public class IMetricCollector {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, sendWebRequest_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message.write(oprot);
+        struct.header.write(oprot);
+        {
+          oprot.writeI32(struct.message.size());
+          for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage _iter4 : struct.message)
+          {
+            _iter4.write(oprot);
+          }
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, sendWebRequest_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMessage();
-        struct.message.read(iprot);
+        struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+        struct.header.read(iprot);
+        struct.setHeaderIsSet(true);
+        {
+          org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage>(_list5.size);
+          @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage _elem6;
+          for (int _i7 = 0; _i7 < _list5.size; ++_i7)
+          {
+            _elem6 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage();
+            _elem6.read(iprot);
+            struct.message.add(_elem6);
+          }
+        }
         struct.setMessageIsSet(true);
       }
     }
@@ -1322,16 +1510,19 @@ public class IMetricCollector {
   public static class sendJvm_args implements org.apache.thrift.TBase<sendJvm_args, sendJvm_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendJvm_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendJvm_args");
 
-    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField HEADER_FIELD_DESC = new org.apache.thrift.protocol.TField("header", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.LIST, (short)2);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendJvm_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendJvm_argsTupleSchemeFactory();
 
-    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage message; // required
+    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header; // required
+    public @org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> message; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      MESSAGE((short)1, "message");
+      HEADER((short)1, "header"),
+      MESSAGE((short)2, "message");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -1347,7 +1538,9 @@ public class IMetricCollector {
       @org.apache.thrift.annotation.Nullable
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // MESSAGE
+          case 1: // HEADER
+            return HEADER;
+          case 2: // MESSAGE
             return MESSAGE;
           default:
             return null;
@@ -1393,8 +1586,11 @@ public class IMetricCollector {
     public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.MessageHeader.class)));
       tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage.class)));
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage.class))));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendJvm_args.class, metaDataMap);
     }
@@ -1403,9 +1599,11 @@ public class IMetricCollector {
     }
 
     public sendJvm_args(
-      com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage message)
+      com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header,
+      java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> message)
     {
       this();
+      this.header = header;
       this.message = message;
     }
 
@@ -1413,8 +1611,15 @@ public class IMetricCollector {
      * Performs a deep copy on <i>other</i>.
      */
     public sendJvm_args(sendJvm_args other) {
+      if (other.isSetHeader()) {
+        this.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader(other.header);
+      }
       if (other.isSetMessage()) {
-        this.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage(other.message);
+        java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> __this__message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage>(other.message.size());
+        for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage other_element : other.message) {
+          __this__message.add(new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage(other_element));
+        }
+        this.message = __this__message;
       }
     }
 
@@ -1424,15 +1629,57 @@ public class IMetricCollector {
 
     @Override
     public void clear() {
+      this.header = null;
       this.message = null;
     }
 
     @org.apache.thrift.annotation.Nullable
-    public com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage getMessage() {
+    public com.sbss.bithon.agent.rpc.thrift.service.MessageHeader getHeader() {
+      return this.header;
+    }
+
+    public sendJvm_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
+      this.header = header;
+      return this;
+    }
+
+    public void unsetHeader() {
+      this.header = null;
+    }
+
+    /** Returns true if field header is set (has been assigned a value) and false otherwise */
+    public boolean isSetHeader() {
+      return this.header != null;
+    }
+
+    public void setHeaderIsSet(boolean value) {
+      if (!value) {
+        this.header = null;
+      }
+    }
+
+    public int getMessageSize() {
+      return (this.message == null) ? 0 : this.message.size();
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.Iterator<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> getMessageIterator() {
+      return (this.message == null) ? null : this.message.iterator();
+    }
+
+    public void addToMessage(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage elem) {
+      if (this.message == null) {
+        this.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage>();
+      }
+      this.message.add(elem);
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> getMessage() {
       return this.message;
     }
 
-    public sendJvm_args setMessage(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage message) {
+    public sendJvm_args setMessage(@org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> message) {
       this.message = message;
       return this;
     }
@@ -1454,11 +1701,19 @@ public class IMetricCollector {
 
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
+      case HEADER:
+        if (value == null) {
+          unsetHeader();
+        } else {
+          setHeader((com.sbss.bithon.agent.rpc.thrift.service.MessageHeader)value);
+        }
+        break;
+
       case MESSAGE:
         if (value == null) {
           unsetMessage();
         } else {
-          setMessage((com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage)value);
+          setMessage((java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage>)value);
         }
         break;
 
@@ -1468,6 +1723,9 @@ public class IMetricCollector {
     @org.apache.thrift.annotation.Nullable
     public java.lang.Object getFieldValue(_Fields field) {
       switch (field) {
+      case HEADER:
+        return getHeader();
+
       case MESSAGE:
         return getMessage();
 
@@ -1482,6 +1740,8 @@ public class IMetricCollector {
       }
 
       switch (field) {
+      case HEADER:
+        return isSetHeader();
       case MESSAGE:
         return isSetMessage();
       }
@@ -1503,6 +1763,15 @@ public class IMetricCollector {
       if (this == that)
         return true;
 
+      boolean this_present_header = true && this.isSetHeader();
+      boolean that_present_header = true && that.isSetHeader();
+      if (this_present_header || that_present_header) {
+        if (!(this_present_header && that_present_header))
+          return false;
+        if (!this.header.equals(that.header))
+          return false;
+      }
+
       boolean this_present_message = true && this.isSetMessage();
       boolean that_present_message = true && that.isSetMessage();
       if (this_present_message || that_present_message) {
@@ -1519,6 +1788,10 @@ public class IMetricCollector {
     public int hashCode() {
       int hashCode = 1;
 
+      hashCode = hashCode * 8191 + ((isSetHeader()) ? 131071 : 524287);
+      if (isSetHeader())
+        hashCode = hashCode * 8191 + header.hashCode();
+
       hashCode = hashCode * 8191 + ((isSetMessage()) ? 131071 : 524287);
       if (isSetMessage())
         hashCode = hashCode * 8191 + message.hashCode();
@@ -1534,6 +1807,16 @@ public class IMetricCollector {
 
       int lastComparison = 0;
 
+      lastComparison = java.lang.Boolean.valueOf(isSetHeader()).compareTo(other.isSetHeader());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetHeader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.header, other.header);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = java.lang.Boolean.valueOf(isSetMessage()).compareTo(other.isSetMessage());
       if (lastComparison != 0) {
         return lastComparison;
@@ -1565,6 +1848,14 @@ public class IMetricCollector {
       java.lang.StringBuilder sb = new java.lang.StringBuilder("sendJvm_args(");
       boolean first = true;
 
+      sb.append("header:");
+      if (this.header == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.header);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("message:");
       if (this.message == null) {
         sb.append("null");
@@ -1578,12 +1869,15 @@ public class IMetricCollector {
 
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
+      if (header == null) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'header' was not present! Struct: " + toString());
+      }
       if (message == null) {
         throw new org.apache.thrift.protocol.TProtocolException("Required field 'message' was not present! Struct: " + toString());
       }
       // check for sub-struct validity
-      if (message != null) {
-        message.validate();
+      if (header != null) {
+        header.validate();
       }
     }
 
@@ -1621,10 +1915,29 @@ public class IMetricCollector {
             break;
           }
           switch (schemeField.id) {
-            case 1: // MESSAGE
+            case 1: // HEADER
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage();
-                struct.message.read(iprot);
+                struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+                struct.header.read(iprot);
+                struct.setHeaderIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // MESSAGE
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
+                  struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage>(_list8.size);
+                  @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage _elem9;
+                  for (int _i10 = 0; _i10 < _list8.size; ++_i10)
+                  {
+                    _elem9 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage();
+                    _elem9.read(iprot);
+                    struct.message.add(_elem9);
+                  }
+                  iprot.readListEnd();
+                }
                 struct.setMessageIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -1645,9 +1958,21 @@ public class IMetricCollector {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.header != null) {
+          oprot.writeFieldBegin(HEADER_FIELD_DESC);
+          struct.header.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.message != null) {
           oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
-          struct.message.write(oprot);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.message.size()));
+            for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage _iter11 : struct.message)
+            {
+              _iter11.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -1667,14 +1992,33 @@ public class IMetricCollector {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, sendJvm_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message.write(oprot);
+        struct.header.write(oprot);
+        {
+          oprot.writeI32(struct.message.size());
+          for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage _iter12 : struct.message)
+          {
+            _iter12.write(oprot);
+          }
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, sendJvm_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage();
-        struct.message.read(iprot);
+        struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+        struct.header.read(iprot);
+        struct.setHeaderIsSet(true);
+        {
+          org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage>(_list13.size);
+          @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage _elem14;
+          for (int _i15 = 0; _i15 < _list13.size; ++_i15)
+          {
+            _elem14 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage();
+            _elem14.read(iprot);
+            struct.message.add(_elem14);
+          }
+        }
         struct.setMessageIsSet(true);
       }
     }
@@ -1687,16 +2031,19 @@ public class IMetricCollector {
   public static class sendWebServer_args implements org.apache.thrift.TBase<sendWebServer_args, sendWebServer_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendWebServer_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendWebServer_args");
 
-    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField HEADER_FIELD_DESC = new org.apache.thrift.protocol.TField("header", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.LIST, (short)2);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendWebServer_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendWebServer_argsTupleSchemeFactory();
 
-    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage message; // required
+    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header; // required
+    public @org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> message; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      MESSAGE((short)1, "message");
+      HEADER((short)1, "header"),
+      MESSAGE((short)2, "message");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -1712,7 +2059,9 @@ public class IMetricCollector {
       @org.apache.thrift.annotation.Nullable
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // MESSAGE
+          case 1: // HEADER
+            return HEADER;
+          case 2: // MESSAGE
             return MESSAGE;
           default:
             return null;
@@ -1758,8 +2107,11 @@ public class IMetricCollector {
     public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.MessageHeader.class)));
       tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage.class)));
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage.class))));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendWebServer_args.class, metaDataMap);
     }
@@ -1768,9 +2120,11 @@ public class IMetricCollector {
     }
 
     public sendWebServer_args(
-      com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage message)
+      com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header,
+      java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> message)
     {
       this();
+      this.header = header;
       this.message = message;
     }
 
@@ -1778,8 +2132,15 @@ public class IMetricCollector {
      * Performs a deep copy on <i>other</i>.
      */
     public sendWebServer_args(sendWebServer_args other) {
+      if (other.isSetHeader()) {
+        this.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader(other.header);
+      }
       if (other.isSetMessage()) {
-        this.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage(other.message);
+        java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> __this__message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage>(other.message.size());
+        for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage other_element : other.message) {
+          __this__message.add(new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage(other_element));
+        }
+        this.message = __this__message;
       }
     }
 
@@ -1789,15 +2150,57 @@ public class IMetricCollector {
 
     @Override
     public void clear() {
+      this.header = null;
       this.message = null;
     }
 
     @org.apache.thrift.annotation.Nullable
-    public com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage getMessage() {
+    public com.sbss.bithon.agent.rpc.thrift.service.MessageHeader getHeader() {
+      return this.header;
+    }
+
+    public sendWebServer_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
+      this.header = header;
+      return this;
+    }
+
+    public void unsetHeader() {
+      this.header = null;
+    }
+
+    /** Returns true if field header is set (has been assigned a value) and false otherwise */
+    public boolean isSetHeader() {
+      return this.header != null;
+    }
+
+    public void setHeaderIsSet(boolean value) {
+      if (!value) {
+        this.header = null;
+      }
+    }
+
+    public int getMessageSize() {
+      return (this.message == null) ? 0 : this.message.size();
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.Iterator<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> getMessageIterator() {
+      return (this.message == null) ? null : this.message.iterator();
+    }
+
+    public void addToMessage(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage elem) {
+      if (this.message == null) {
+        this.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage>();
+      }
+      this.message.add(elem);
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> getMessage() {
       return this.message;
     }
 
-    public sendWebServer_args setMessage(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage message) {
+    public sendWebServer_args setMessage(@org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage> message) {
       this.message = message;
       return this;
     }
@@ -1819,11 +2222,19 @@ public class IMetricCollector {
 
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
+      case HEADER:
+        if (value == null) {
+          unsetHeader();
+        } else {
+          setHeader((com.sbss.bithon.agent.rpc.thrift.service.MessageHeader)value);
+        }
+        break;
+
       case MESSAGE:
         if (value == null) {
           unsetMessage();
         } else {
-          setMessage((com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage)value);
+          setMessage((java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage>)value);
         }
         break;
 
@@ -1833,6 +2244,9 @@ public class IMetricCollector {
     @org.apache.thrift.annotation.Nullable
     public java.lang.Object getFieldValue(_Fields field) {
       switch (field) {
+      case HEADER:
+        return getHeader();
+
       case MESSAGE:
         return getMessage();
 
@@ -1847,6 +2261,8 @@ public class IMetricCollector {
       }
 
       switch (field) {
+      case HEADER:
+        return isSetHeader();
       case MESSAGE:
         return isSetMessage();
       }
@@ -1868,6 +2284,15 @@ public class IMetricCollector {
       if (this == that)
         return true;
 
+      boolean this_present_header = true && this.isSetHeader();
+      boolean that_present_header = true && that.isSetHeader();
+      if (this_present_header || that_present_header) {
+        if (!(this_present_header && that_present_header))
+          return false;
+        if (!this.header.equals(that.header))
+          return false;
+      }
+
       boolean this_present_message = true && this.isSetMessage();
       boolean that_present_message = true && that.isSetMessage();
       if (this_present_message || that_present_message) {
@@ -1884,6 +2309,10 @@ public class IMetricCollector {
     public int hashCode() {
       int hashCode = 1;
 
+      hashCode = hashCode * 8191 + ((isSetHeader()) ? 131071 : 524287);
+      if (isSetHeader())
+        hashCode = hashCode * 8191 + header.hashCode();
+
       hashCode = hashCode * 8191 + ((isSetMessage()) ? 131071 : 524287);
       if (isSetMessage())
         hashCode = hashCode * 8191 + message.hashCode();
@@ -1899,6 +2328,16 @@ public class IMetricCollector {
 
       int lastComparison = 0;
 
+      lastComparison = java.lang.Boolean.valueOf(isSetHeader()).compareTo(other.isSetHeader());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetHeader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.header, other.header);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = java.lang.Boolean.valueOf(isSetMessage()).compareTo(other.isSetMessage());
       if (lastComparison != 0) {
         return lastComparison;
@@ -1930,6 +2369,14 @@ public class IMetricCollector {
       java.lang.StringBuilder sb = new java.lang.StringBuilder("sendWebServer_args(");
       boolean first = true;
 
+      sb.append("header:");
+      if (this.header == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.header);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("message:");
       if (this.message == null) {
         sb.append("null");
@@ -1943,12 +2390,15 @@ public class IMetricCollector {
 
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
+      if (header == null) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'header' was not present! Struct: " + toString());
+      }
       if (message == null) {
         throw new org.apache.thrift.protocol.TProtocolException("Required field 'message' was not present! Struct: " + toString());
       }
       // check for sub-struct validity
-      if (message != null) {
-        message.validate();
+      if (header != null) {
+        header.validate();
       }
     }
 
@@ -1986,10 +2436,29 @@ public class IMetricCollector {
             break;
           }
           switch (schemeField.id) {
-            case 1: // MESSAGE
+            case 1: // HEADER
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage();
-                struct.message.read(iprot);
+                struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+                struct.header.read(iprot);
+                struct.setHeaderIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // MESSAGE
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list16 = iprot.readListBegin();
+                  struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage>(_list16.size);
+                  @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage _elem17;
+                  for (int _i18 = 0; _i18 < _list16.size; ++_i18)
+                  {
+                    _elem17 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage();
+                    _elem17.read(iprot);
+                    struct.message.add(_elem17);
+                  }
+                  iprot.readListEnd();
+                }
                 struct.setMessageIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -2010,9 +2479,21 @@ public class IMetricCollector {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.header != null) {
+          oprot.writeFieldBegin(HEADER_FIELD_DESC);
+          struct.header.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.message != null) {
           oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
-          struct.message.write(oprot);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.message.size()));
+            for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage _iter19 : struct.message)
+            {
+              _iter19.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -2032,14 +2513,33 @@ public class IMetricCollector {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, sendWebServer_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message.write(oprot);
+        struct.header.write(oprot);
+        {
+          oprot.writeI32(struct.message.size());
+          for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage _iter20 : struct.message)
+          {
+            _iter20.write(oprot);
+          }
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, sendWebServer_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage();
-        struct.message.read(iprot);
+        struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+        struct.header.read(iprot);
+        struct.setHeaderIsSet(true);
+        {
+          org.apache.thrift.protocol.TList _list21 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage>(_list21.size);
+          @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage _elem22;
+          for (int _i23 = 0; _i23 < _list21.size; ++_i23)
+          {
+            _elem22 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage();
+            _elem22.read(iprot);
+            struct.message.add(_elem22);
+          }
+        }
         struct.setMessageIsSet(true);
       }
     }
@@ -2052,16 +2552,19 @@ public class IMetricCollector {
   public static class sendException_args implements org.apache.thrift.TBase<sendException_args, sendException_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendException_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendException_args");
 
-    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField HEADER_FIELD_DESC = new org.apache.thrift.protocol.TField("header", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.LIST, (short)2);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendException_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendException_argsTupleSchemeFactory();
 
-    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage message; // required
+    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header; // required
+    public @org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> message; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      MESSAGE((short)1, "message");
+      HEADER((short)1, "header"),
+      MESSAGE((short)2, "message");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -2077,7 +2580,9 @@ public class IMetricCollector {
       @org.apache.thrift.annotation.Nullable
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // MESSAGE
+          case 1: // HEADER
+            return HEADER;
+          case 2: // MESSAGE
             return MESSAGE;
           default:
             return null;
@@ -2123,8 +2628,11 @@ public class IMetricCollector {
     public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.MessageHeader.class)));
       tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage.class)));
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage.class))));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendException_args.class, metaDataMap);
     }
@@ -2133,9 +2641,11 @@ public class IMetricCollector {
     }
 
     public sendException_args(
-      com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage message)
+      com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header,
+      java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> message)
     {
       this();
+      this.header = header;
       this.message = message;
     }
 
@@ -2143,8 +2653,15 @@ public class IMetricCollector {
      * Performs a deep copy on <i>other</i>.
      */
     public sendException_args(sendException_args other) {
+      if (other.isSetHeader()) {
+        this.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader(other.header);
+      }
       if (other.isSetMessage()) {
-        this.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage(other.message);
+        java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> __this__message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage>(other.message.size());
+        for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage other_element : other.message) {
+          __this__message.add(new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage(other_element));
+        }
+        this.message = __this__message;
       }
     }
 
@@ -2154,15 +2671,57 @@ public class IMetricCollector {
 
     @Override
     public void clear() {
+      this.header = null;
       this.message = null;
     }
 
     @org.apache.thrift.annotation.Nullable
-    public com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage getMessage() {
+    public com.sbss.bithon.agent.rpc.thrift.service.MessageHeader getHeader() {
+      return this.header;
+    }
+
+    public sendException_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
+      this.header = header;
+      return this;
+    }
+
+    public void unsetHeader() {
+      this.header = null;
+    }
+
+    /** Returns true if field header is set (has been assigned a value) and false otherwise */
+    public boolean isSetHeader() {
+      return this.header != null;
+    }
+
+    public void setHeaderIsSet(boolean value) {
+      if (!value) {
+        this.header = null;
+      }
+    }
+
+    public int getMessageSize() {
+      return (this.message == null) ? 0 : this.message.size();
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.Iterator<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> getMessageIterator() {
+      return (this.message == null) ? null : this.message.iterator();
+    }
+
+    public void addToMessage(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage elem) {
+      if (this.message == null) {
+        this.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage>();
+      }
+      this.message.add(elem);
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> getMessage() {
       return this.message;
     }
 
-    public sendException_args setMessage(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage message) {
+    public sendException_args setMessage(@org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage> message) {
       this.message = message;
       return this;
     }
@@ -2184,11 +2743,19 @@ public class IMetricCollector {
 
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
+      case HEADER:
+        if (value == null) {
+          unsetHeader();
+        } else {
+          setHeader((com.sbss.bithon.agent.rpc.thrift.service.MessageHeader)value);
+        }
+        break;
+
       case MESSAGE:
         if (value == null) {
           unsetMessage();
         } else {
-          setMessage((com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage)value);
+          setMessage((java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage>)value);
         }
         break;
 
@@ -2198,6 +2765,9 @@ public class IMetricCollector {
     @org.apache.thrift.annotation.Nullable
     public java.lang.Object getFieldValue(_Fields field) {
       switch (field) {
+      case HEADER:
+        return getHeader();
+
       case MESSAGE:
         return getMessage();
 
@@ -2212,6 +2782,8 @@ public class IMetricCollector {
       }
 
       switch (field) {
+      case HEADER:
+        return isSetHeader();
       case MESSAGE:
         return isSetMessage();
       }
@@ -2233,6 +2805,15 @@ public class IMetricCollector {
       if (this == that)
         return true;
 
+      boolean this_present_header = true && this.isSetHeader();
+      boolean that_present_header = true && that.isSetHeader();
+      if (this_present_header || that_present_header) {
+        if (!(this_present_header && that_present_header))
+          return false;
+        if (!this.header.equals(that.header))
+          return false;
+      }
+
       boolean this_present_message = true && this.isSetMessage();
       boolean that_present_message = true && that.isSetMessage();
       if (this_present_message || that_present_message) {
@@ -2249,6 +2830,10 @@ public class IMetricCollector {
     public int hashCode() {
       int hashCode = 1;
 
+      hashCode = hashCode * 8191 + ((isSetHeader()) ? 131071 : 524287);
+      if (isSetHeader())
+        hashCode = hashCode * 8191 + header.hashCode();
+
       hashCode = hashCode * 8191 + ((isSetMessage()) ? 131071 : 524287);
       if (isSetMessage())
         hashCode = hashCode * 8191 + message.hashCode();
@@ -2264,6 +2849,16 @@ public class IMetricCollector {
 
       int lastComparison = 0;
 
+      lastComparison = java.lang.Boolean.valueOf(isSetHeader()).compareTo(other.isSetHeader());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetHeader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.header, other.header);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = java.lang.Boolean.valueOf(isSetMessage()).compareTo(other.isSetMessage());
       if (lastComparison != 0) {
         return lastComparison;
@@ -2295,6 +2890,14 @@ public class IMetricCollector {
       java.lang.StringBuilder sb = new java.lang.StringBuilder("sendException_args(");
       boolean first = true;
 
+      sb.append("header:");
+      if (this.header == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.header);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("message:");
       if (this.message == null) {
         sb.append("null");
@@ -2308,12 +2911,15 @@ public class IMetricCollector {
 
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
+      if (header == null) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'header' was not present! Struct: " + toString());
+      }
       if (message == null) {
         throw new org.apache.thrift.protocol.TProtocolException("Required field 'message' was not present! Struct: " + toString());
       }
       // check for sub-struct validity
-      if (message != null) {
-        message.validate();
+      if (header != null) {
+        header.validate();
       }
     }
 
@@ -2351,10 +2957,29 @@ public class IMetricCollector {
             break;
           }
           switch (schemeField.id) {
-            case 1: // MESSAGE
+            case 1: // HEADER
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage();
-                struct.message.read(iprot);
+                struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+                struct.header.read(iprot);
+                struct.setHeaderIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // MESSAGE
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list24 = iprot.readListBegin();
+                  struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage>(_list24.size);
+                  @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage _elem25;
+                  for (int _i26 = 0; _i26 < _list24.size; ++_i26)
+                  {
+                    _elem25 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage();
+                    _elem25.read(iprot);
+                    struct.message.add(_elem25);
+                  }
+                  iprot.readListEnd();
+                }
                 struct.setMessageIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -2375,9 +3000,21 @@ public class IMetricCollector {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.header != null) {
+          oprot.writeFieldBegin(HEADER_FIELD_DESC);
+          struct.header.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.message != null) {
           oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
-          struct.message.write(oprot);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.message.size()));
+            for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage _iter27 : struct.message)
+            {
+              _iter27.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -2397,14 +3034,33 @@ public class IMetricCollector {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, sendException_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message.write(oprot);
+        struct.header.write(oprot);
+        {
+          oprot.writeI32(struct.message.size());
+          for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage _iter28 : struct.message)
+          {
+            _iter28.write(oprot);
+          }
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, sendException_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage();
-        struct.message.read(iprot);
+        struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+        struct.header.read(iprot);
+        struct.setHeaderIsSet(true);
+        {
+          org.apache.thrift.protocol.TList _list29 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage>(_list29.size);
+          @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage _elem30;
+          for (int _i31 = 0; _i31 < _list29.size; ++_i31)
+          {
+            _elem30 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage();
+            _elem30.read(iprot);
+            struct.message.add(_elem30);
+          }
+        }
         struct.setMessageIsSet(true);
       }
     }
@@ -2417,16 +3073,19 @@ public class IMetricCollector {
   public static class sendHttpClient_args implements org.apache.thrift.TBase<sendHttpClient_args, sendHttpClient_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendHttpClient_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendHttpClient_args");
 
-    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField HEADER_FIELD_DESC = new org.apache.thrift.protocol.TField("header", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.LIST, (short)2);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendHttpClient_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendHttpClient_argsTupleSchemeFactory();
 
-    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage message; // required
+    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header; // required
+    public @org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> message; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      MESSAGE((short)1, "message");
+      HEADER((short)1, "header"),
+      MESSAGE((short)2, "message");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -2442,7 +3101,9 @@ public class IMetricCollector {
       @org.apache.thrift.annotation.Nullable
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // MESSAGE
+          case 1: // HEADER
+            return HEADER;
+          case 2: // MESSAGE
             return MESSAGE;
           default:
             return null;
@@ -2488,8 +3149,11 @@ public class IMetricCollector {
     public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.MessageHeader.class)));
       tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage.class)));
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage.class))));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendHttpClient_args.class, metaDataMap);
     }
@@ -2498,9 +3162,11 @@ public class IMetricCollector {
     }
 
     public sendHttpClient_args(
-      com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage message)
+      com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header,
+      java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> message)
     {
       this();
+      this.header = header;
       this.message = message;
     }
 
@@ -2508,8 +3174,15 @@ public class IMetricCollector {
      * Performs a deep copy on <i>other</i>.
      */
     public sendHttpClient_args(sendHttpClient_args other) {
+      if (other.isSetHeader()) {
+        this.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader(other.header);
+      }
       if (other.isSetMessage()) {
-        this.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage(other.message);
+        java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> __this__message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage>(other.message.size());
+        for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage other_element : other.message) {
+          __this__message.add(new com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage(other_element));
+        }
+        this.message = __this__message;
       }
     }
 
@@ -2519,15 +3192,57 @@ public class IMetricCollector {
 
     @Override
     public void clear() {
+      this.header = null;
       this.message = null;
     }
 
     @org.apache.thrift.annotation.Nullable
-    public com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage getMessage() {
+    public com.sbss.bithon.agent.rpc.thrift.service.MessageHeader getHeader() {
+      return this.header;
+    }
+
+    public sendHttpClient_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
+      this.header = header;
+      return this;
+    }
+
+    public void unsetHeader() {
+      this.header = null;
+    }
+
+    /** Returns true if field header is set (has been assigned a value) and false otherwise */
+    public boolean isSetHeader() {
+      return this.header != null;
+    }
+
+    public void setHeaderIsSet(boolean value) {
+      if (!value) {
+        this.header = null;
+      }
+    }
+
+    public int getMessageSize() {
+      return (this.message == null) ? 0 : this.message.size();
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.Iterator<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> getMessageIterator() {
+      return (this.message == null) ? null : this.message.iterator();
+    }
+
+    public void addToMessage(com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage elem) {
+      if (this.message == null) {
+        this.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage>();
+      }
+      this.message.add(elem);
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> getMessage() {
       return this.message;
     }
 
-    public sendHttpClient_args setMessage(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage message) {
+    public sendHttpClient_args setMessage(@org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage> message) {
       this.message = message;
       return this;
     }
@@ -2549,11 +3264,19 @@ public class IMetricCollector {
 
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
+      case HEADER:
+        if (value == null) {
+          unsetHeader();
+        } else {
+          setHeader((com.sbss.bithon.agent.rpc.thrift.service.MessageHeader)value);
+        }
+        break;
+
       case MESSAGE:
         if (value == null) {
           unsetMessage();
         } else {
-          setMessage((com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage)value);
+          setMessage((java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage>)value);
         }
         break;
 
@@ -2563,6 +3286,9 @@ public class IMetricCollector {
     @org.apache.thrift.annotation.Nullable
     public java.lang.Object getFieldValue(_Fields field) {
       switch (field) {
+      case HEADER:
+        return getHeader();
+
       case MESSAGE:
         return getMessage();
 
@@ -2577,6 +3303,8 @@ public class IMetricCollector {
       }
 
       switch (field) {
+      case HEADER:
+        return isSetHeader();
       case MESSAGE:
         return isSetMessage();
       }
@@ -2598,6 +3326,15 @@ public class IMetricCollector {
       if (this == that)
         return true;
 
+      boolean this_present_header = true && this.isSetHeader();
+      boolean that_present_header = true && that.isSetHeader();
+      if (this_present_header || that_present_header) {
+        if (!(this_present_header && that_present_header))
+          return false;
+        if (!this.header.equals(that.header))
+          return false;
+      }
+
       boolean this_present_message = true && this.isSetMessage();
       boolean that_present_message = true && that.isSetMessage();
       if (this_present_message || that_present_message) {
@@ -2614,6 +3351,10 @@ public class IMetricCollector {
     public int hashCode() {
       int hashCode = 1;
 
+      hashCode = hashCode * 8191 + ((isSetHeader()) ? 131071 : 524287);
+      if (isSetHeader())
+        hashCode = hashCode * 8191 + header.hashCode();
+
       hashCode = hashCode * 8191 + ((isSetMessage()) ? 131071 : 524287);
       if (isSetMessage())
         hashCode = hashCode * 8191 + message.hashCode();
@@ -2629,6 +3370,16 @@ public class IMetricCollector {
 
       int lastComparison = 0;
 
+      lastComparison = java.lang.Boolean.valueOf(isSetHeader()).compareTo(other.isSetHeader());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetHeader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.header, other.header);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = java.lang.Boolean.valueOf(isSetMessage()).compareTo(other.isSetMessage());
       if (lastComparison != 0) {
         return lastComparison;
@@ -2660,6 +3411,14 @@ public class IMetricCollector {
       java.lang.StringBuilder sb = new java.lang.StringBuilder("sendHttpClient_args(");
       boolean first = true;
 
+      sb.append("header:");
+      if (this.header == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.header);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("message:");
       if (this.message == null) {
         sb.append("null");
@@ -2673,12 +3432,15 @@ public class IMetricCollector {
 
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
+      if (header == null) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'header' was not present! Struct: " + toString());
+      }
       if (message == null) {
         throw new org.apache.thrift.protocol.TProtocolException("Required field 'message' was not present! Struct: " + toString());
       }
       // check for sub-struct validity
-      if (message != null) {
-        message.validate();
+      if (header != null) {
+        header.validate();
       }
     }
 
@@ -2716,10 +3478,29 @@ public class IMetricCollector {
             break;
           }
           switch (schemeField.id) {
-            case 1: // MESSAGE
+            case 1: // HEADER
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage();
-                struct.message.read(iprot);
+                struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+                struct.header.read(iprot);
+                struct.setHeaderIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // MESSAGE
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list32 = iprot.readListBegin();
+                  struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage>(_list32.size);
+                  @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage _elem33;
+                  for (int _i34 = 0; _i34 < _list32.size; ++_i34)
+                  {
+                    _elem33 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage();
+                    _elem33.read(iprot);
+                    struct.message.add(_elem33);
+                  }
+                  iprot.readListEnd();
+                }
                 struct.setMessageIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -2740,9 +3521,21 @@ public class IMetricCollector {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.header != null) {
+          oprot.writeFieldBegin(HEADER_FIELD_DESC);
+          struct.header.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.message != null) {
           oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
-          struct.message.write(oprot);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.message.size()));
+            for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage _iter35 : struct.message)
+            {
+              _iter35.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -2762,14 +3555,33 @@ public class IMetricCollector {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, sendHttpClient_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message.write(oprot);
+        struct.header.write(oprot);
+        {
+          oprot.writeI32(struct.message.size());
+          for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage _iter36 : struct.message)
+          {
+            _iter36.write(oprot);
+          }
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, sendHttpClient_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMessage();
-        struct.message.read(iprot);
+        struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+        struct.header.read(iprot);
+        struct.setHeaderIsSet(true);
+        {
+          org.apache.thrift.protocol.TList _list37 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage>(_list37.size);
+          @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage _elem38;
+          for (int _i39 = 0; _i39 < _list37.size; ++_i39)
+          {
+            _elem38 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage();
+            _elem38.read(iprot);
+            struct.message.add(_elem38);
+          }
+        }
         struct.setMessageIsSet(true);
       }
     }
@@ -2782,16 +3594,19 @@ public class IMetricCollector {
   public static class sendThreadPool_args implements org.apache.thrift.TBase<sendThreadPool_args, sendThreadPool_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendThreadPool_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendThreadPool_args");
 
-    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField HEADER_FIELD_DESC = new org.apache.thrift.protocol.TField("header", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.LIST, (short)2);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendThreadPool_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendThreadPool_argsTupleSchemeFactory();
 
-    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage message; // required
+    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header; // required
+    public @org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> message; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      MESSAGE((short)1, "message");
+      HEADER((short)1, "header"),
+      MESSAGE((short)2, "message");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -2807,7 +3622,9 @@ public class IMetricCollector {
       @org.apache.thrift.annotation.Nullable
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // MESSAGE
+          case 1: // HEADER
+            return HEADER;
+          case 2: // MESSAGE
             return MESSAGE;
           default:
             return null;
@@ -2853,8 +3670,11 @@ public class IMetricCollector {
     public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.MessageHeader.class)));
       tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage.class)));
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage.class))));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendThreadPool_args.class, metaDataMap);
     }
@@ -2863,9 +3683,11 @@ public class IMetricCollector {
     }
 
     public sendThreadPool_args(
-      com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage message)
+      com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header,
+      java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> message)
     {
       this();
+      this.header = header;
       this.message = message;
     }
 
@@ -2873,8 +3695,15 @@ public class IMetricCollector {
      * Performs a deep copy on <i>other</i>.
      */
     public sendThreadPool_args(sendThreadPool_args other) {
+      if (other.isSetHeader()) {
+        this.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader(other.header);
+      }
       if (other.isSetMessage()) {
-        this.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage(other.message);
+        java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> __this__message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage>(other.message.size());
+        for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage other_element : other.message) {
+          __this__message.add(new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage(other_element));
+        }
+        this.message = __this__message;
       }
     }
 
@@ -2884,15 +3713,57 @@ public class IMetricCollector {
 
     @Override
     public void clear() {
+      this.header = null;
       this.message = null;
     }
 
     @org.apache.thrift.annotation.Nullable
-    public com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage getMessage() {
+    public com.sbss.bithon.agent.rpc.thrift.service.MessageHeader getHeader() {
+      return this.header;
+    }
+
+    public sendThreadPool_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
+      this.header = header;
+      return this;
+    }
+
+    public void unsetHeader() {
+      this.header = null;
+    }
+
+    /** Returns true if field header is set (has been assigned a value) and false otherwise */
+    public boolean isSetHeader() {
+      return this.header != null;
+    }
+
+    public void setHeaderIsSet(boolean value) {
+      if (!value) {
+        this.header = null;
+      }
+    }
+
+    public int getMessageSize() {
+      return (this.message == null) ? 0 : this.message.size();
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.Iterator<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> getMessageIterator() {
+      return (this.message == null) ? null : this.message.iterator();
+    }
+
+    public void addToMessage(com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage elem) {
+      if (this.message == null) {
+        this.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage>();
+      }
+      this.message.add(elem);
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> getMessage() {
       return this.message;
     }
 
-    public sendThreadPool_args setMessage(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage message) {
+    public sendThreadPool_args setMessage(@org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage> message) {
       this.message = message;
       return this;
     }
@@ -2914,11 +3785,19 @@ public class IMetricCollector {
 
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
+      case HEADER:
+        if (value == null) {
+          unsetHeader();
+        } else {
+          setHeader((com.sbss.bithon.agent.rpc.thrift.service.MessageHeader)value);
+        }
+        break;
+
       case MESSAGE:
         if (value == null) {
           unsetMessage();
         } else {
-          setMessage((com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage)value);
+          setMessage((java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage>)value);
         }
         break;
 
@@ -2928,6 +3807,9 @@ public class IMetricCollector {
     @org.apache.thrift.annotation.Nullable
     public java.lang.Object getFieldValue(_Fields field) {
       switch (field) {
+      case HEADER:
+        return getHeader();
+
       case MESSAGE:
         return getMessage();
 
@@ -2942,6 +3824,8 @@ public class IMetricCollector {
       }
 
       switch (field) {
+      case HEADER:
+        return isSetHeader();
       case MESSAGE:
         return isSetMessage();
       }
@@ -2963,6 +3847,15 @@ public class IMetricCollector {
       if (this == that)
         return true;
 
+      boolean this_present_header = true && this.isSetHeader();
+      boolean that_present_header = true && that.isSetHeader();
+      if (this_present_header || that_present_header) {
+        if (!(this_present_header && that_present_header))
+          return false;
+        if (!this.header.equals(that.header))
+          return false;
+      }
+
       boolean this_present_message = true && this.isSetMessage();
       boolean that_present_message = true && that.isSetMessage();
       if (this_present_message || that_present_message) {
@@ -2979,6 +3872,10 @@ public class IMetricCollector {
     public int hashCode() {
       int hashCode = 1;
 
+      hashCode = hashCode * 8191 + ((isSetHeader()) ? 131071 : 524287);
+      if (isSetHeader())
+        hashCode = hashCode * 8191 + header.hashCode();
+
       hashCode = hashCode * 8191 + ((isSetMessage()) ? 131071 : 524287);
       if (isSetMessage())
         hashCode = hashCode * 8191 + message.hashCode();
@@ -2994,6 +3891,16 @@ public class IMetricCollector {
 
       int lastComparison = 0;
 
+      lastComparison = java.lang.Boolean.valueOf(isSetHeader()).compareTo(other.isSetHeader());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetHeader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.header, other.header);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = java.lang.Boolean.valueOf(isSetMessage()).compareTo(other.isSetMessage());
       if (lastComparison != 0) {
         return lastComparison;
@@ -3025,6 +3932,14 @@ public class IMetricCollector {
       java.lang.StringBuilder sb = new java.lang.StringBuilder("sendThreadPool_args(");
       boolean first = true;
 
+      sb.append("header:");
+      if (this.header == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.header);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("message:");
       if (this.message == null) {
         sb.append("null");
@@ -3038,12 +3953,15 @@ public class IMetricCollector {
 
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
+      if (header == null) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'header' was not present! Struct: " + toString());
+      }
       if (message == null) {
         throw new org.apache.thrift.protocol.TProtocolException("Required field 'message' was not present! Struct: " + toString());
       }
       // check for sub-struct validity
-      if (message != null) {
-        message.validate();
+      if (header != null) {
+        header.validate();
       }
     }
 
@@ -3081,10 +3999,29 @@ public class IMetricCollector {
             break;
           }
           switch (schemeField.id) {
-            case 1: // MESSAGE
+            case 1: // HEADER
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage();
-                struct.message.read(iprot);
+                struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+                struct.header.read(iprot);
+                struct.setHeaderIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // MESSAGE
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list40 = iprot.readListBegin();
+                  struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage>(_list40.size);
+                  @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage _elem41;
+                  for (int _i42 = 0; _i42 < _list40.size; ++_i42)
+                  {
+                    _elem41 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage();
+                    _elem41.read(iprot);
+                    struct.message.add(_elem41);
+                  }
+                  iprot.readListEnd();
+                }
                 struct.setMessageIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -3105,9 +4042,21 @@ public class IMetricCollector {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.header != null) {
+          oprot.writeFieldBegin(HEADER_FIELD_DESC);
+          struct.header.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.message != null) {
           oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
-          struct.message.write(oprot);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.message.size()));
+            for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage _iter43 : struct.message)
+            {
+              _iter43.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -3127,14 +4076,33 @@ public class IMetricCollector {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, sendThreadPool_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message.write(oprot);
+        struct.header.write(oprot);
+        {
+          oprot.writeI32(struct.message.size());
+          for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage _iter44 : struct.message)
+          {
+            _iter44.write(oprot);
+          }
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, sendThreadPool_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMessage();
-        struct.message.read(iprot);
+        struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+        struct.header.read(iprot);
+        struct.setHeaderIsSet(true);
+        {
+          org.apache.thrift.protocol.TList _list45 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage>(_list45.size);
+          @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage _elem46;
+          for (int _i47 = 0; _i47 < _list45.size; ++_i47)
+          {
+            _elem46 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage();
+            _elem46.read(iprot);
+            struct.message.add(_elem46);
+          }
+        }
         struct.setMessageIsSet(true);
       }
     }
@@ -3147,16 +4115,19 @@ public class IMetricCollector {
   public static class sendJdbc_args implements org.apache.thrift.TBase<sendJdbc_args, sendJdbc_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendJdbc_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendJdbc_args");
 
-    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField HEADER_FIELD_DESC = new org.apache.thrift.protocol.TField("header", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.LIST, (short)2);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendJdbc_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendJdbc_argsTupleSchemeFactory();
 
-    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage message; // required
+    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header; // required
+    public @org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> message; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      MESSAGE((short)1, "message");
+      HEADER((short)1, "header"),
+      MESSAGE((short)2, "message");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -3172,7 +4143,9 @@ public class IMetricCollector {
       @org.apache.thrift.annotation.Nullable
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // MESSAGE
+          case 1: // HEADER
+            return HEADER;
+          case 2: // MESSAGE
             return MESSAGE;
           default:
             return null;
@@ -3218,8 +4191,11 @@ public class IMetricCollector {
     public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.MessageHeader.class)));
       tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage.class)));
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage.class))));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendJdbc_args.class, metaDataMap);
     }
@@ -3228,9 +4204,11 @@ public class IMetricCollector {
     }
 
     public sendJdbc_args(
-      com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage message)
+      com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header,
+      java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> message)
     {
       this();
+      this.header = header;
       this.message = message;
     }
 
@@ -3238,8 +4216,15 @@ public class IMetricCollector {
      * Performs a deep copy on <i>other</i>.
      */
     public sendJdbc_args(sendJdbc_args other) {
+      if (other.isSetHeader()) {
+        this.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader(other.header);
+      }
       if (other.isSetMessage()) {
-        this.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage(other.message);
+        java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> __this__message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage>(other.message.size());
+        for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage other_element : other.message) {
+          __this__message.add(new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage(other_element));
+        }
+        this.message = __this__message;
       }
     }
 
@@ -3249,15 +4234,57 @@ public class IMetricCollector {
 
     @Override
     public void clear() {
+      this.header = null;
       this.message = null;
     }
 
     @org.apache.thrift.annotation.Nullable
-    public com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage getMessage() {
+    public com.sbss.bithon.agent.rpc.thrift.service.MessageHeader getHeader() {
+      return this.header;
+    }
+
+    public sendJdbc_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
+      this.header = header;
+      return this;
+    }
+
+    public void unsetHeader() {
+      this.header = null;
+    }
+
+    /** Returns true if field header is set (has been assigned a value) and false otherwise */
+    public boolean isSetHeader() {
+      return this.header != null;
+    }
+
+    public void setHeaderIsSet(boolean value) {
+      if (!value) {
+        this.header = null;
+      }
+    }
+
+    public int getMessageSize() {
+      return (this.message == null) ? 0 : this.message.size();
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.Iterator<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> getMessageIterator() {
+      return (this.message == null) ? null : this.message.iterator();
+    }
+
+    public void addToMessage(com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage elem) {
+      if (this.message == null) {
+        this.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage>();
+      }
+      this.message.add(elem);
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> getMessage() {
       return this.message;
     }
 
-    public sendJdbc_args setMessage(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage message) {
+    public sendJdbc_args setMessage(@org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage> message) {
       this.message = message;
       return this;
     }
@@ -3279,11 +4306,19 @@ public class IMetricCollector {
 
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
+      case HEADER:
+        if (value == null) {
+          unsetHeader();
+        } else {
+          setHeader((com.sbss.bithon.agent.rpc.thrift.service.MessageHeader)value);
+        }
+        break;
+
       case MESSAGE:
         if (value == null) {
           unsetMessage();
         } else {
-          setMessage((com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage)value);
+          setMessage((java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage>)value);
         }
         break;
 
@@ -3293,6 +4328,9 @@ public class IMetricCollector {
     @org.apache.thrift.annotation.Nullable
     public java.lang.Object getFieldValue(_Fields field) {
       switch (field) {
+      case HEADER:
+        return getHeader();
+
       case MESSAGE:
         return getMessage();
 
@@ -3307,6 +4345,8 @@ public class IMetricCollector {
       }
 
       switch (field) {
+      case HEADER:
+        return isSetHeader();
       case MESSAGE:
         return isSetMessage();
       }
@@ -3328,6 +4368,15 @@ public class IMetricCollector {
       if (this == that)
         return true;
 
+      boolean this_present_header = true && this.isSetHeader();
+      boolean that_present_header = true && that.isSetHeader();
+      if (this_present_header || that_present_header) {
+        if (!(this_present_header && that_present_header))
+          return false;
+        if (!this.header.equals(that.header))
+          return false;
+      }
+
       boolean this_present_message = true && this.isSetMessage();
       boolean that_present_message = true && that.isSetMessage();
       if (this_present_message || that_present_message) {
@@ -3344,6 +4393,10 @@ public class IMetricCollector {
     public int hashCode() {
       int hashCode = 1;
 
+      hashCode = hashCode * 8191 + ((isSetHeader()) ? 131071 : 524287);
+      if (isSetHeader())
+        hashCode = hashCode * 8191 + header.hashCode();
+
       hashCode = hashCode * 8191 + ((isSetMessage()) ? 131071 : 524287);
       if (isSetMessage())
         hashCode = hashCode * 8191 + message.hashCode();
@@ -3359,6 +4412,16 @@ public class IMetricCollector {
 
       int lastComparison = 0;
 
+      lastComparison = java.lang.Boolean.valueOf(isSetHeader()).compareTo(other.isSetHeader());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetHeader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.header, other.header);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = java.lang.Boolean.valueOf(isSetMessage()).compareTo(other.isSetMessage());
       if (lastComparison != 0) {
         return lastComparison;
@@ -3390,6 +4453,14 @@ public class IMetricCollector {
       java.lang.StringBuilder sb = new java.lang.StringBuilder("sendJdbc_args(");
       boolean first = true;
 
+      sb.append("header:");
+      if (this.header == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.header);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("message:");
       if (this.message == null) {
         sb.append("null");
@@ -3403,12 +4474,15 @@ public class IMetricCollector {
 
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
+      if (header == null) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'header' was not present! Struct: " + toString());
+      }
       if (message == null) {
         throw new org.apache.thrift.protocol.TProtocolException("Required field 'message' was not present! Struct: " + toString());
       }
       // check for sub-struct validity
-      if (message != null) {
-        message.validate();
+      if (header != null) {
+        header.validate();
       }
     }
 
@@ -3446,10 +4520,29 @@ public class IMetricCollector {
             break;
           }
           switch (schemeField.id) {
-            case 1: // MESSAGE
+            case 1: // HEADER
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage();
-                struct.message.read(iprot);
+                struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+                struct.header.read(iprot);
+                struct.setHeaderIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // MESSAGE
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list48 = iprot.readListBegin();
+                  struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage>(_list48.size);
+                  @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage _elem49;
+                  for (int _i50 = 0; _i50 < _list48.size; ++_i50)
+                  {
+                    _elem49 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage();
+                    _elem49.read(iprot);
+                    struct.message.add(_elem49);
+                  }
+                  iprot.readListEnd();
+                }
                 struct.setMessageIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -3470,9 +4563,21 @@ public class IMetricCollector {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.header != null) {
+          oprot.writeFieldBegin(HEADER_FIELD_DESC);
+          struct.header.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.message != null) {
           oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
-          struct.message.write(oprot);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.message.size()));
+            for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage _iter51 : struct.message)
+            {
+              _iter51.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -3492,14 +4597,33 @@ public class IMetricCollector {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, sendJdbc_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message.write(oprot);
+        struct.header.write(oprot);
+        {
+          oprot.writeI32(struct.message.size());
+          for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage _iter52 : struct.message)
+          {
+            _iter52.write(oprot);
+          }
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, sendJdbc_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcMessage();
-        struct.message.read(iprot);
+        struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+        struct.header.read(iprot);
+        struct.setHeaderIsSet(true);
+        {
+          org.apache.thrift.protocol.TList _list53 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage>(_list53.size);
+          @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage _elem54;
+          for (int _i55 = 0; _i55 < _list53.size; ++_i55)
+          {
+            _elem54 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage();
+            _elem54.read(iprot);
+            struct.message.add(_elem54);
+          }
+        }
         struct.setMessageIsSet(true);
       }
     }
@@ -3512,16 +4636,19 @@ public class IMetricCollector {
   public static class sendRedis_args implements org.apache.thrift.TBase<sendRedis_args, sendRedis_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendRedis_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendRedis_args");
 
-    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField HEADER_FIELD_DESC = new org.apache.thrift.protocol.TField("header", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.LIST, (short)2);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendRedis_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendRedis_argsTupleSchemeFactory();
 
-    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage message; // required
+    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header; // required
+    public @org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> message; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      MESSAGE((short)1, "message");
+      HEADER((short)1, "header"),
+      MESSAGE((short)2, "message");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -3537,7 +4664,9 @@ public class IMetricCollector {
       @org.apache.thrift.annotation.Nullable
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // MESSAGE
+          case 1: // HEADER
+            return HEADER;
+          case 2: // MESSAGE
             return MESSAGE;
           default:
             return null;
@@ -3583,8 +4712,11 @@ public class IMetricCollector {
     public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.MessageHeader.class)));
       tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage.class)));
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage.class))));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendRedis_args.class, metaDataMap);
     }
@@ -3593,9 +4725,11 @@ public class IMetricCollector {
     }
 
     public sendRedis_args(
-      com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage message)
+      com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header,
+      java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> message)
     {
       this();
+      this.header = header;
       this.message = message;
     }
 
@@ -3603,8 +4737,15 @@ public class IMetricCollector {
      * Performs a deep copy on <i>other</i>.
      */
     public sendRedis_args(sendRedis_args other) {
+      if (other.isSetHeader()) {
+        this.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader(other.header);
+      }
       if (other.isSetMessage()) {
-        this.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage(other.message);
+        java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> __this__message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage>(other.message.size());
+        for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage other_element : other.message) {
+          __this__message.add(new com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage(other_element));
+        }
+        this.message = __this__message;
       }
     }
 
@@ -3614,15 +4755,57 @@ public class IMetricCollector {
 
     @Override
     public void clear() {
+      this.header = null;
       this.message = null;
     }
 
     @org.apache.thrift.annotation.Nullable
-    public com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage getMessage() {
+    public com.sbss.bithon.agent.rpc.thrift.service.MessageHeader getHeader() {
+      return this.header;
+    }
+
+    public sendRedis_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
+      this.header = header;
+      return this;
+    }
+
+    public void unsetHeader() {
+      this.header = null;
+    }
+
+    /** Returns true if field header is set (has been assigned a value) and false otherwise */
+    public boolean isSetHeader() {
+      return this.header != null;
+    }
+
+    public void setHeaderIsSet(boolean value) {
+      if (!value) {
+        this.header = null;
+      }
+    }
+
+    public int getMessageSize() {
+      return (this.message == null) ? 0 : this.message.size();
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.Iterator<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> getMessageIterator() {
+      return (this.message == null) ? null : this.message.iterator();
+    }
+
+    public void addToMessage(com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage elem) {
+      if (this.message == null) {
+        this.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage>();
+      }
+      this.message.add(elem);
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> getMessage() {
       return this.message;
     }
 
-    public sendRedis_args setMessage(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage message) {
+    public sendRedis_args setMessage(@org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage> message) {
       this.message = message;
       return this;
     }
@@ -3644,11 +4827,19 @@ public class IMetricCollector {
 
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
+      case HEADER:
+        if (value == null) {
+          unsetHeader();
+        } else {
+          setHeader((com.sbss.bithon.agent.rpc.thrift.service.MessageHeader)value);
+        }
+        break;
+
       case MESSAGE:
         if (value == null) {
           unsetMessage();
         } else {
-          setMessage((com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage)value);
+          setMessage((java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage>)value);
         }
         break;
 
@@ -3658,6 +4849,9 @@ public class IMetricCollector {
     @org.apache.thrift.annotation.Nullable
     public java.lang.Object getFieldValue(_Fields field) {
       switch (field) {
+      case HEADER:
+        return getHeader();
+
       case MESSAGE:
         return getMessage();
 
@@ -3672,6 +4866,8 @@ public class IMetricCollector {
       }
 
       switch (field) {
+      case HEADER:
+        return isSetHeader();
       case MESSAGE:
         return isSetMessage();
       }
@@ -3693,6 +4889,15 @@ public class IMetricCollector {
       if (this == that)
         return true;
 
+      boolean this_present_header = true && this.isSetHeader();
+      boolean that_present_header = true && that.isSetHeader();
+      if (this_present_header || that_present_header) {
+        if (!(this_present_header && that_present_header))
+          return false;
+        if (!this.header.equals(that.header))
+          return false;
+      }
+
       boolean this_present_message = true && this.isSetMessage();
       boolean that_present_message = true && that.isSetMessage();
       if (this_present_message || that_present_message) {
@@ -3709,6 +4914,10 @@ public class IMetricCollector {
     public int hashCode() {
       int hashCode = 1;
 
+      hashCode = hashCode * 8191 + ((isSetHeader()) ? 131071 : 524287);
+      if (isSetHeader())
+        hashCode = hashCode * 8191 + header.hashCode();
+
       hashCode = hashCode * 8191 + ((isSetMessage()) ? 131071 : 524287);
       if (isSetMessage())
         hashCode = hashCode * 8191 + message.hashCode();
@@ -3724,6 +4933,16 @@ public class IMetricCollector {
 
       int lastComparison = 0;
 
+      lastComparison = java.lang.Boolean.valueOf(isSetHeader()).compareTo(other.isSetHeader());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetHeader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.header, other.header);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = java.lang.Boolean.valueOf(isSetMessage()).compareTo(other.isSetMessage());
       if (lastComparison != 0) {
         return lastComparison;
@@ -3755,6 +4974,14 @@ public class IMetricCollector {
       java.lang.StringBuilder sb = new java.lang.StringBuilder("sendRedis_args(");
       boolean first = true;
 
+      sb.append("header:");
+      if (this.header == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.header);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("message:");
       if (this.message == null) {
         sb.append("null");
@@ -3768,12 +4995,15 @@ public class IMetricCollector {
 
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
+      if (header == null) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'header' was not present! Struct: " + toString());
+      }
       if (message == null) {
         throw new org.apache.thrift.protocol.TProtocolException("Required field 'message' was not present! Struct: " + toString());
       }
       // check for sub-struct validity
-      if (message != null) {
-        message.validate();
+      if (header != null) {
+        header.validate();
       }
     }
 
@@ -3811,10 +5041,29 @@ public class IMetricCollector {
             break;
           }
           switch (schemeField.id) {
-            case 1: // MESSAGE
+            case 1: // HEADER
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage();
-                struct.message.read(iprot);
+                struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+                struct.header.read(iprot);
+                struct.setHeaderIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // MESSAGE
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list56 = iprot.readListBegin();
+                  struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage>(_list56.size);
+                  @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage _elem57;
+                  for (int _i58 = 0; _i58 < _list56.size; ++_i58)
+                  {
+                    _elem57 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage();
+                    _elem57.read(iprot);
+                    struct.message.add(_elem57);
+                  }
+                  iprot.readListEnd();
+                }
                 struct.setMessageIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -3835,9 +5084,21 @@ public class IMetricCollector {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.header != null) {
+          oprot.writeFieldBegin(HEADER_FIELD_DESC);
+          struct.header.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.message != null) {
           oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
-          struct.message.write(oprot);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.message.size()));
+            for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage _iter59 : struct.message)
+            {
+              _iter59.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -3857,14 +5118,33 @@ public class IMetricCollector {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, sendRedis_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message.write(oprot);
+        struct.header.write(oprot);
+        {
+          oprot.writeI32(struct.message.size());
+          for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage _iter60 : struct.message)
+          {
+            _iter60.write(oprot);
+          }
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, sendRedis_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMessage();
-        struct.message.read(iprot);
+        struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+        struct.header.read(iprot);
+        struct.setHeaderIsSet(true);
+        {
+          org.apache.thrift.protocol.TList _list61 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.message = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage>(_list61.size);
+          @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage _elem62;
+          for (int _i63 = 0; _i63 < _list61.size; ++_i63)
+          {
+            _elem62 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage();
+            _elem62.read(iprot);
+            struct.message.add(_elem62);
+          }
+        }
         struct.setMessageIsSet(true);
       }
     }

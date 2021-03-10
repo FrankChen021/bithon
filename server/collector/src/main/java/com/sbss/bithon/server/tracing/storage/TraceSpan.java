@@ -1,6 +1,7 @@
 package com.sbss.bithon.server.tracing.storage;
 
-import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
+import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
 
@@ -30,16 +31,16 @@ public class TraceSpan {
     public String clazz;
     public String method;
 
-    public static List<TraceSpan> from(TraceMessage message) {
-        if ( CollectionUtils.isEmpty(message.getSpans()) ) {
+    public static List<TraceSpan> from(MessageHeader header, List<TraceSpanMessage> message) {
+        if (CollectionUtils.isEmpty(message)) {
             return Collections.emptyList();
         }
 
         List<TraceSpan> spans = new ArrayList<>();
-        message.getSpans().forEach((spanMessage)->{
+        message.forEach((spanMessage) -> {
             TraceSpan traceSpan = new TraceSpan();
-            traceSpan.appName = message.appName + "-" + message.env;
-            traceSpan.instanceName = message.hostName;
+            traceSpan.appName = header.appName + "-" + header.env;
+            traceSpan.instanceName = header.hostName;
             traceSpan.kind = spanMessage.kind;
             traceSpan.name = spanMessage.name;
             traceSpan.traceId = spanMessage.traceId;

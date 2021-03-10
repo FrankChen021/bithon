@@ -1,10 +1,11 @@
 package com.sbss.bithon.server.metric.collector;
 
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class WebServerMessageHandler extends AbstractMetricMessageHandler<WebServerMessage> {
+public class WebServerMessageHandler extends AbstractMetricMessageHandler<MessageHeader, WebServerMetricMessage> {
 
     public WebServerMessageHandler(IMetaStorage metaStorage,
                                    IMetricStorage metricStorage,
@@ -33,10 +34,7 @@ public class WebServerMessageHandler extends AbstractMetricMessageHandler<WebSer
     }
 
     @Override
-    SizedIterator toIterator(WebServerMessage message) {
-        String appName = message.getAppName();
-        String instanceName = message.getHostName() + ":" + message.getPort();
-
+    SizedIterator toIterator(MessageHeader header, WebServerMetricMessage body) {
         return new SizedIterator() {
             @Override
             public int size() {
@@ -50,12 +48,10 @@ public class WebServerMessageHandler extends AbstractMetricMessageHandler<WebSer
 
             @Override
             public GenericMetricObject next() {
-                GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                                      appName,
-                                                                      instanceName);
-                metrics.put("interval", message.getInterval());
-
-                ReflectionUtils.getFields(message.getServerEntity(), metrics);
+                GenericMetricObject metrics = new GenericMetricObject(body.getTimestamp(),
+                                                                      header.getAppName(),
+                                                                      header.getHostName());
+                ReflectionUtils.getFields(body, metrics);
                 return metrics;
             }
         };

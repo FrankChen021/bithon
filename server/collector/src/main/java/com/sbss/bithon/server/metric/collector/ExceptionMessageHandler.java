@@ -1,17 +1,16 @@
 package com.sbss.bithon.server.metric.collector;
 
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
 import com.sbss.bithon.server.collector.AbstractThreadPoolMessageHandler;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
-import com.sbss.bithon.server.meta.MetadataType;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
 import com.sbss.bithon.server.common.utils.datetime.DateTimeUtils;
+import com.sbss.bithon.server.meta.MetadataType;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -20,7 +19,7 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class ExceptionMessageHandler extends AbstractThreadPoolMessageHandler<ExceptionMessage> {
+public class ExceptionMessageHandler extends AbstractThreadPoolMessageHandler<MessageHeader, ExceptionMetricMessage> {
 
     private final IMetaStorage metaStorage;
 
@@ -30,29 +29,16 @@ public class ExceptionMessageHandler extends AbstractThreadPoolMessageHandler<Ex
     }
 
     @Override
-    protected void onMessage(ExceptionMessage message) {
-        if (CollectionUtils.isEmpty(message.getExceptionList())) {
-            return;
-        }
+    protected void onMessage(MessageHeader header, ExceptionMetricMessage body) {
+        long appId = metaStorage.getOrCreateMetadataId(header.getAppName(), MetadataType.APPLICATION, 0L);
+        long instanceId = metaStorage.getOrCreateMetadataId(header.getHostName(), MetadataType.APP_INSTANCE, appId);
 
-        String appName = message.getAppName();
-        String instanceName = message.getHostName() + ":" + message.getPort();
-
-        long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
-        long instanceId = metaStorage.getOrCreateMetadataId(instanceName, MetadataType.APP_INSTANCE, appId);
-
-        message.getExceptionList().forEach(exceptionEntity->{
-            Map<String, Object> metrics = new HashMap<>();
-            metrics.put("appName", appName);
-            metrics.put("instanceName", instanceName);
-            metrics.put("appId", appId);
-            metrics.put("instanceId", instanceId);
-            metrics.put("interval", message.getInterval());
-            metrics.put("timestamp", DateTimeUtils.dropMilliseconds(message.getTimestamp()));
-
-            ReflectionUtils.getFields(exceptionEntity, metrics);
-
-            log.debug("onExceptionMessage {}", metrics);
-        });
+        Map<String, Object> metrics = ReflectionUtils.getFields(body);
+        metrics.put("appName", header.getAppName());
+        metrics.put("instanceName", header.getHostName());
+        metrics.put("appId", appId);
+        metrics.put("instanceId", instanceId);
+        metrics.put("interval", body.getInterval());
+        metrics.put("timestamp", DateTimeUtils.dropMilliseconds(body.getTimestamp()));
     }
 }

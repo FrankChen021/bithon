@@ -4,6 +4,7 @@ import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
 import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
+import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.tracing.context.ITraceIdGenerator;
 import com.sbss.bithon.agent.core.tracing.context.impl.UUIDGenerator;
 import com.sbss.bithon.agent.core.tracing.propagation.DefaultPropagator;
@@ -12,6 +13,9 @@ import com.sbss.bithon.agent.core.tracing.report.ITraceReporter;
 import com.sbss.bithon.agent.core.tracing.sampling.ISamplingDecisionMaker;
 import com.sbss.bithon.agent.core.tracing.sampling.RatioSamplingDecisionMaker;
 import shaded.org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -89,11 +93,10 @@ public class Tracer {
                             .propagator(new DefaultPropagator())
                             .traceIdGenerator(new UUIDGenerator())
                             .reporter((spans) -> {
-                                spans.forEach(span -> {
-                                    LoggerFactory.getLogger(Tracer.class).info("Sending Trace Message: {}", span);
-                                });
-                                Object traceMessage = traceDispatcher.getMessageConverter().from(appInstance, spans);
-                                traceDispatcher.sendMessage(traceMessage);
+                                List<Object> traceMessages = spans.stream()
+                                    .map(span -> traceDispatcher.getMessageConverter().from(span))
+                                    .collect(Collectors.toList());
+                                traceDispatcher.sendMessage(traceMessages);
                             })
                             .samplingDecisionMaker(new RatioSamplingDecisionMaker(100));
                     } catch (Exception e) {

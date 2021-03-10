@@ -1,7 +1,10 @@
 package com.sbss.bithon.agent.dispatcher.thrift;
 
 import com.sbss.bithon.agent.core.config.DispatcherConfig;
+import com.sbss.bithon.agent.core.context.AgentContext;
+import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannel;
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.event.IEventCollector;
 import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import org.apache.thrift.TException;
@@ -16,6 +19,7 @@ public class ThriftEventMessageChannel implements IMessageChannel {
     private static final int MAX_RETRY = 3;
 
     private final AbstractThriftClient<IEventCollector.Client> client;
+    private final MessageHeader header;
 
     public ThriftEventMessageChannel(DispatcherConfig dispatcherConfig) {
         client = new AbstractThriftClient<IEventCollector.Client>("event",
@@ -26,13 +30,24 @@ public class ThriftEventMessageChannel implements IMessageChannel {
                 return new IEventCollector.Client(protocol);
             }
         };
+
+        AppInstance appInstance = AgentContext.getInstance().getAppInstance();
+        this.header = new MessageHeader();
+        this.header.setAppName(appInstance.getAppName());
+        this.header.setEnv(appInstance.getEnv());
+        this.header.setHostName(appInstance.getHostIp() + ":" + appInstance.getPort());
+        this.header.setPort(appInstance.getPort());
+        appInstance.addListener(port -> {
+            this.header.setPort(appInstance.getPort());
+            this.header.setHostName(appInstance.getHostIp() + ":" + appInstance.getPort());
+        });
     }
 
     @Override
     public void sendMessage(Object message) {
         client.ensureClient((client) -> {
             try {
-                client.sendEvent((ThriftEventMessage) message);
+                client.sendEvent(this.header, (ThriftEventMessage) message);
                 return null;
             } catch (TException e) {
                 throw new RuntimeException(e);

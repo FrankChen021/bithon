@@ -13,20 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MonitoredSourceManager {
 
-    private enum DriverType {
-        MYSQL("com.mysql", "mysql"),
-        KYLIN("org.apache.kylin", "kylin"),
-        UNKNOWN("unknown", "unknown_jdbc");
-
-        private final String classIdentifier;
-        private final String driverType;
-
-        DriverType(String classIdentifier, String driverType) {
-            this.classIdentifier = classIdentifier;
-            this.driverType = driverType;
-        }
-    }
-
     private final Map<String, MonitoredSource> uriMap = new ConcurrentHashMap<>();
     private final Map<DruidDataSource, MonitoredSource> dataSourceMap = new ConcurrentHashMap<>();
 
@@ -42,7 +28,7 @@ public class MonitoredSourceManager {
             return false;
         }
 
-        MonitoredSource monitoredSource = new MonitoredSource(getDriverType(dataSource.getDriverClassName()),
+        MonitoredSource monitoredSource = new MonitoredSource(dataSource.getDriverClassName(),
                                                               uri,
                                                               dataSource);
         uriMap.putIfAbsent(uri, monitoredSource);
@@ -53,7 +39,7 @@ public class MonitoredSourceManager {
     public void rmvDataSource(DruidDataSource dataSource) {
         MonitoredSource monitoredSource = dataSourceMap.remove(dataSource);
         if (monitoredSource != null) {
-            uriMap.remove(monitoredSource.getUri());
+            uriMap.remove(monitoredSource.getConnectionString());
         }
     }
 
@@ -67,16 +53,6 @@ public class MonitoredSourceManager {
 
     public Collection<MonitoredSource> getDataSources() {
         return uriMap.values();
-    }
-
-    String getDriverType(String driverClassName) {
-        for (DriverType driverType : DriverType.values()) {
-            if (driverClassName.toLowerCase().contains(driverType.classIdentifier)) {
-                return driverType.driverType;
-            }
-        }
-
-        return DriverType.UNKNOWN.driverType;
     }
 
     public boolean isEmpty() {

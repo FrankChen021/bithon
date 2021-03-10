@@ -12,9 +12,7 @@ import org.jooq.SQLDialect;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -68,7 +66,9 @@ public class MetadataDAO {
                 .fetchOne();
             return meta.getId();
         } catch (DuplicateKeyException e) {
-            long id = dsl.select(Tables.BITHON_METADATA.ID).from(Tables.BITHON_METADATA).where(Tables.BITHON_METADATA.NAME.eq(name))
+            long id = dsl.select(Tables.BITHON_METADATA.ID)
+                .from(Tables.BITHON_METADATA)
+                .where(Tables.BITHON_METADATA.NAME.eq(name))
                 .and(Tables.BITHON_METADATA.TYPE.eq(type))
                 .and(Tables.BITHON_METADATA.PARENT_ID.eq(parent))
                 .fetchOne(Tables.BITHON_METADATA.ID);

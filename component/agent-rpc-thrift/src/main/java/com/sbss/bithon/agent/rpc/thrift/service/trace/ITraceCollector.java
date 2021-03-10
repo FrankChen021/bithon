@@ -12,13 +12,13 @@ public class ITraceCollector {
 
   public interface Iface {
 
-    public void sendTrace(TraceMessage message) throws org.apache.thrift.TException;
+    public void sendTrace(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<TraceSpanMessage> spans) throws org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface {
 
-    public void sendTrace(TraceMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
+    public void sendTrace(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<TraceSpanMessage> spans, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -42,15 +42,16 @@ public class ITraceCollector {
       super(iprot, oprot);
     }
 
-    public void sendTrace(TraceMessage message) throws org.apache.thrift.TException
+    public void sendTrace(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<TraceSpanMessage> spans) throws org.apache.thrift.TException
     {
-      send_sendTrace(message);
+      send_sendTrace(header, spans);
     }
 
-    public void send_sendTrace(TraceMessage message) throws org.apache.thrift.TException
+    public void send_sendTrace(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<TraceSpanMessage> spans) throws org.apache.thrift.TException
     {
       sendTrace_args args = new sendTrace_args();
-      args.setMessage(message);
+      args.setHeader(header);
+      args.setSpans(spans);
       sendBaseOneway("sendTrace", args);
     }
 
@@ -72,24 +73,27 @@ public class ITraceCollector {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void sendTrace(TraceMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+    public void sendTrace(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<TraceSpanMessage> spans, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sendTrace_call method_call = new sendTrace_call(message, resultHandler, this, ___protocolFactory, ___transport);
+      sendTrace_call method_call = new sendTrace_call(header, spans, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class sendTrace_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
-      private TraceMessage message;
-      public sendTrace_call(TraceMessage message, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header;
+      private java.util.List<TraceSpanMessage> spans;
+      public sendTrace_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<TraceSpanMessage> spans, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
-        this.message = message;
+        this.header = header;
+        this.spans = spans;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendTrace", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
         sendTrace_args args = new sendTrace_args();
-        args.setMessage(message);
+        args.setHeader(header);
+        args.setSpans(spans);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -140,7 +144,7 @@ public class ITraceCollector {
       }
 
       public org.apache.thrift.TBase getResult(I iface, sendTrace_args args) throws org.apache.thrift.TException {
-        iface.sendTrace(args.message);
+        iface.sendTrace(args.header, args.spans);
         return null;
       }
     }
@@ -192,7 +196,7 @@ public class ITraceCollector {
       }
 
       public void start(I iface, sendTrace_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
-        iface.sendTrace(args.message,resultHandler);
+        iface.sendTrace(args.header, args.spans,resultHandler);
       }
     }
 
@@ -201,16 +205,19 @@ public class ITraceCollector {
   public static class sendTrace_args implements org.apache.thrift.TBase<sendTrace_args, sendTrace_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendTrace_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendTrace_args");
 
-    private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField HEADER_FIELD_DESC = new org.apache.thrift.protocol.TField("header", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField SPANS_FIELD_DESC = new org.apache.thrift.protocol.TField("spans", org.apache.thrift.protocol.TType.LIST, (short)2);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendTrace_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendTrace_argsTupleSchemeFactory();
 
-    public @org.apache.thrift.annotation.Nullable TraceMessage message; // required
+    public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header; // required
+    public @org.apache.thrift.annotation.Nullable java.util.List<TraceSpanMessage> spans; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      MESSAGE((short)1, "message");
+      HEADER((short)1, "header"),
+      SPANS((short)2, "spans");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -226,8 +233,10 @@ public class ITraceCollector {
       @org.apache.thrift.annotation.Nullable
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // MESSAGE
-            return MESSAGE;
+          case 1: // HEADER
+            return HEADER;
+          case 2: // SPANS
+            return SPANS;
           default:
             return null;
         }
@@ -272,8 +281,11 @@ public class ITraceCollector {
     public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.MESSAGE, new org.apache.thrift.meta_data.FieldMetaData("message", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, TraceMessage.class)));
+      tmpMap.put(_Fields.HEADER, new org.apache.thrift.meta_data.FieldMetaData("header", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.MessageHeader.class)));
+      tmpMap.put(_Fields.SPANS, new org.apache.thrift.meta_data.FieldMetaData("spans", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, TraceSpanMessage.class))));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendTrace_args.class, metaDataMap);
     }
@@ -282,18 +294,27 @@ public class ITraceCollector {
     }
 
     public sendTrace_args(
-      TraceMessage message)
+      com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header,
+      java.util.List<TraceSpanMessage> spans)
     {
       this();
-      this.message = message;
+      this.header = header;
+      this.spans = spans;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public sendTrace_args(sendTrace_args other) {
-      if (other.isSetMessage()) {
-        this.message = new TraceMessage(other.message);
+      if (other.isSetHeader()) {
+        this.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader(other.header);
+      }
+      if (other.isSetSpans()) {
+        java.util.List<TraceSpanMessage> __this__spans = new java.util.ArrayList<TraceSpanMessage>(other.spans.size());
+        for (TraceSpanMessage other_element : other.spans) {
+          __this__spans.add(new TraceSpanMessage(other_element));
+        }
+        this.spans = __this__spans;
       }
     }
 
@@ -303,41 +324,91 @@ public class ITraceCollector {
 
     @Override
     public void clear() {
-      this.message = null;
+      this.header = null;
+      this.spans = null;
     }
 
     @org.apache.thrift.annotation.Nullable
-    public TraceMessage getMessage() {
-      return this.message;
+    public com.sbss.bithon.agent.rpc.thrift.service.MessageHeader getHeader() {
+      return this.header;
     }
 
-    public sendTrace_args setMessage(@org.apache.thrift.annotation.Nullable TraceMessage message) {
-      this.message = message;
+    public sendTrace_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
+      this.header = header;
       return this;
     }
 
-    public void unsetMessage() {
-      this.message = null;
+    public void unsetHeader() {
+      this.header = null;
     }
 
-    /** Returns true if field message is set (has been assigned a value) and false otherwise */
-    public boolean isSetMessage() {
-      return this.message != null;
+    /** Returns true if field header is set (has been assigned a value) and false otherwise */
+    public boolean isSetHeader() {
+      return this.header != null;
     }
 
-    public void setMessageIsSet(boolean value) {
+    public void setHeaderIsSet(boolean value) {
       if (!value) {
-        this.message = null;
+        this.header = null;
+      }
+    }
+
+    public int getSpansSize() {
+      return (this.spans == null) ? 0 : this.spans.size();
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.Iterator<TraceSpanMessage> getSpansIterator() {
+      return (this.spans == null) ? null : this.spans.iterator();
+    }
+
+    public void addToSpans(TraceSpanMessage elem) {
+      if (this.spans == null) {
+        this.spans = new java.util.ArrayList<TraceSpanMessage>();
+      }
+      this.spans.add(elem);
+    }
+
+    @org.apache.thrift.annotation.Nullable
+    public java.util.List<TraceSpanMessage> getSpans() {
+      return this.spans;
+    }
+
+    public sendTrace_args setSpans(@org.apache.thrift.annotation.Nullable java.util.List<TraceSpanMessage> spans) {
+      this.spans = spans;
+      return this;
+    }
+
+    public void unsetSpans() {
+      this.spans = null;
+    }
+
+    /** Returns true if field spans is set (has been assigned a value) and false otherwise */
+    public boolean isSetSpans() {
+      return this.spans != null;
+    }
+
+    public void setSpansIsSet(boolean value) {
+      if (!value) {
+        this.spans = null;
       }
     }
 
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
-      case MESSAGE:
+      case HEADER:
         if (value == null) {
-          unsetMessage();
+          unsetHeader();
         } else {
-          setMessage((TraceMessage)value);
+          setHeader((com.sbss.bithon.agent.rpc.thrift.service.MessageHeader)value);
+        }
+        break;
+
+      case SPANS:
+        if (value == null) {
+          unsetSpans();
+        } else {
+          setSpans((java.util.List<TraceSpanMessage>)value);
         }
         break;
 
@@ -347,8 +418,11 @@ public class ITraceCollector {
     @org.apache.thrift.annotation.Nullable
     public java.lang.Object getFieldValue(_Fields field) {
       switch (field) {
-      case MESSAGE:
-        return getMessage();
+      case HEADER:
+        return getHeader();
+
+      case SPANS:
+        return getSpans();
 
       }
       throw new java.lang.IllegalStateException();
@@ -361,8 +435,10 @@ public class ITraceCollector {
       }
 
       switch (field) {
-      case MESSAGE:
-        return isSetMessage();
+      case HEADER:
+        return isSetHeader();
+      case SPANS:
+        return isSetSpans();
       }
       throw new java.lang.IllegalStateException();
     }
@@ -382,12 +458,21 @@ public class ITraceCollector {
       if (this == that)
         return true;
 
-      boolean this_present_message = true && this.isSetMessage();
-      boolean that_present_message = true && that.isSetMessage();
-      if (this_present_message || that_present_message) {
-        if (!(this_present_message && that_present_message))
+      boolean this_present_header = true && this.isSetHeader();
+      boolean that_present_header = true && that.isSetHeader();
+      if (this_present_header || that_present_header) {
+        if (!(this_present_header && that_present_header))
           return false;
-        if (!this.message.equals(that.message))
+        if (!this.header.equals(that.header))
+          return false;
+      }
+
+      boolean this_present_spans = true && this.isSetSpans();
+      boolean that_present_spans = true && that.isSetSpans();
+      if (this_present_spans || that_present_spans) {
+        if (!(this_present_spans && that_present_spans))
+          return false;
+        if (!this.spans.equals(that.spans))
           return false;
       }
 
@@ -398,9 +483,13 @@ public class ITraceCollector {
     public int hashCode() {
       int hashCode = 1;
 
-      hashCode = hashCode * 8191 + ((isSetMessage()) ? 131071 : 524287);
-      if (isSetMessage())
-        hashCode = hashCode * 8191 + message.hashCode();
+      hashCode = hashCode * 8191 + ((isSetHeader()) ? 131071 : 524287);
+      if (isSetHeader())
+        hashCode = hashCode * 8191 + header.hashCode();
+
+      hashCode = hashCode * 8191 + ((isSetSpans()) ? 131071 : 524287);
+      if (isSetSpans())
+        hashCode = hashCode * 8191 + spans.hashCode();
 
       return hashCode;
     }
@@ -413,12 +502,22 @@ public class ITraceCollector {
 
       int lastComparison = 0;
 
-      lastComparison = java.lang.Boolean.valueOf(isSetMessage()).compareTo(other.isSetMessage());
+      lastComparison = java.lang.Boolean.valueOf(isSetHeader()).compareTo(other.isSetHeader());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetMessage()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.message, other.message);
+      if (isSetHeader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.header, other.header);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = java.lang.Boolean.valueOf(isSetSpans()).compareTo(other.isSetSpans());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSpans()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.spans, other.spans);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -444,11 +543,19 @@ public class ITraceCollector {
       java.lang.StringBuilder sb = new java.lang.StringBuilder("sendTrace_args(");
       boolean first = true;
 
-      sb.append("message:");
-      if (this.message == null) {
+      sb.append("header:");
+      if (this.header == null) {
         sb.append("null");
       } else {
-        sb.append(this.message);
+        sb.append(this.header);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("spans:");
+      if (this.spans == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.spans);
       }
       first = false;
       sb.append(")");
@@ -457,12 +564,12 @@ public class ITraceCollector {
 
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
-      if (message == null) {
-        throw new org.apache.thrift.protocol.TProtocolException("Required field 'message' was not present! Struct: " + toString());
+      if (header == null) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'header' was not present! Struct: " + toString());
       }
       // check for sub-struct validity
-      if (message != null) {
-        message.validate();
+      if (header != null) {
+        header.validate();
       }
     }
 
@@ -500,11 +607,30 @@ public class ITraceCollector {
             break;
           }
           switch (schemeField.id) {
-            case 1: // MESSAGE
+            case 1: // HEADER
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.message = new TraceMessage();
-                struct.message.read(iprot);
-                struct.setMessageIsSet(true);
+                struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+                struct.header.read(iprot);
+                struct.setHeaderIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // SPANS
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list10 = iprot.readListBegin();
+                  struct.spans = new java.util.ArrayList<TraceSpanMessage>(_list10.size);
+                  @org.apache.thrift.annotation.Nullable TraceSpanMessage _elem11;
+                  for (int _i12 = 0; _i12 < _list10.size; ++_i12)
+                  {
+                    _elem11 = new TraceSpanMessage();
+                    _elem11.read(iprot);
+                    struct.spans.add(_elem11);
+                  }
+                  iprot.readListEnd();
+                }
+                struct.setSpansIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -524,9 +650,21 @@ public class ITraceCollector {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.message != null) {
-          oprot.writeFieldBegin(MESSAGE_FIELD_DESC);
-          struct.message.write(oprot);
+        if (struct.header != null) {
+          oprot.writeFieldBegin(HEADER_FIELD_DESC);
+          struct.header.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.spans != null) {
+          oprot.writeFieldBegin(SPANS_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.spans.size()));
+            for (TraceSpanMessage _iter13 : struct.spans)
+            {
+              _iter13.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -546,15 +684,44 @@ public class ITraceCollector {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, sendTrace_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message.write(oprot);
+        struct.header.write(oprot);
+        java.util.BitSet optionals = new java.util.BitSet();
+        if (struct.isSetSpans()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetSpans()) {
+          {
+            oprot.writeI32(struct.spans.size());
+            for (TraceSpanMessage _iter14 : struct.spans)
+            {
+              _iter14.write(oprot);
+            }
+          }
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, sendTrace_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        struct.message = new TraceMessage();
-        struct.message.read(iprot);
-        struct.setMessageIsSet(true);
+        struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
+        struct.header.read(iprot);
+        struct.setHeaderIsSet(true);
+        java.util.BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          {
+            org.apache.thrift.protocol.TList _list15 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.spans = new java.util.ArrayList<TraceSpanMessage>(_list15.size);
+            @org.apache.thrift.annotation.Nullable TraceSpanMessage _elem16;
+            for (int _i17 = 0; _i17 < _list15.size; ++_i17)
+            {
+              _elem16 = new TraceSpanMessage();
+              _elem16.read(iprot);
+              struct.spans.add(_elem16);
+            }
+          }
+          struct.setSpansIsSet(true);
+        }
       }
     }
 

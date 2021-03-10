@@ -1,10 +1,11 @@
 package com.sbss.bithon.server.metric.collector;
 
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class JvmMessageHandler extends AbstractMetricMessageHandler<JvmMessage> {
+public class JvmMessageHandler extends AbstractMetricMessageHandler<MessageHeader, JvmMetricMessage> {
 
     public JvmMessageHandler(IMetaStorage metaStorage,
                              IMetricStorage metricStorage,
@@ -33,7 +34,7 @@ public class JvmMessageHandler extends AbstractMetricMessageHandler<JvmMessage> 
     }
 
     @Override
-    SizedIterator toIterator(JvmMessage message) {
+    SizedIterator toIterator(MessageHeader header, JvmMetricMessage body) {
         return new SizedIterator() {
             @Override
             public int size() {
@@ -47,22 +48,19 @@ public class JvmMessageHandler extends AbstractMetricMessageHandler<JvmMessage> 
 
             @Override
             public GenericMetricObject next() {
-                String appName = message.getAppName();
-                String instanceName = message.getHostName() + ":" + message.getPort();
+                GenericMetricObject metrics = new GenericMetricObject(body.getTimestamp(),
+                                                                      header.getAppName(),
+                                                                      header.getHostName());
+                metrics.put("interval", body.getInterval());
 
-                GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                                      appName,
-                                                                      instanceName);
-                metrics.put("interval", message.getInterval());
-
-                ReflectionUtils.getFields(message.getClassesEntity(), metrics);
-                ReflectionUtils.getFields(message.getCpuEntity(), metrics);
-                ReflectionUtils.getFields(message.getHeapEntity(), metrics);
-                ReflectionUtils.getFields(message.getNonHeapEntity(), metrics);
-                ReflectionUtils.getFields(message.getMemoryEntity(), metrics);
-                ReflectionUtils.getFields(message.getThreadEntity(), metrics);
-                ReflectionUtils.getFields(message.getInstanceTimeEntity(), metrics);
-                ReflectionUtils.getFields(message.getMetaspaceEntity(), metrics);
+                ReflectionUtils.getFields(body.getClassesEntity(), metrics);
+                ReflectionUtils.getFields(body.getCpuEntity(), metrics);
+                ReflectionUtils.getFields(body.getHeapEntity(), metrics);
+                ReflectionUtils.getFields(body.getNonHeapEntity(), metrics);
+                ReflectionUtils.getFields(body.getMemoryEntity(), metrics);
+                ReflectionUtils.getFields(body.getThreadEntity(), metrics);
+                ReflectionUtils.getFields(body.getInstanceTimeEntity(), metrics);
+                ReflectionUtils.getFields(body.getMetaspaceEntity(), metrics);
 
                 return metrics;
             }
