@@ -1,5 +1,8 @@
 package com.sbss.bithon.server.metric.typing;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 /**
  * @author
  * @date
@@ -10,7 +13,7 @@ public class DoubleValueType implements IValueType {
 
     @Override
     public String format(Number value) {
-        return String.format("%.2f", value.doubleValue());
+        return new DecimalFormat("#,###.00").format(value.doubleValue());
     }
 
     @Override
@@ -41,5 +44,9 @@ public class DoubleValueType implements IValueType {
     @Override
     public Number diff(Number left, Number right) {
         return left.doubleValue() - right.doubleValue();
+    }
+    @Override
+    public Number scaleTo(Number value, int scale) {
+        return BigDecimal.valueOf(value.doubleValue()).setScale(scale, RoundingMode.HALF_UP).doubleValue();
     }
 }

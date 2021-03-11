@@ -91,6 +91,13 @@
             <artifactId>h2</artifactId>
             <version>1.4.200</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.9</version>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>

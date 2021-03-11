@@ -3,6 +3,9 @@ package com.sbss.bithon.server.metric.storage.jdbc;
 import com.sbss.bithon.server.common.matcher.*;
 import com.sbss.bithon.server.common.utils.datetime.TimeSpan;
 import com.sbss.bithon.server.metric.DataSourceSchema;
+import com.sbss.bithon.server.metric.metric.*;
+import com.sbss.bithon.server.metric.metric.aggregator.PostAggregatorExpressionVisitor;
+import com.sbss.bithon.server.metric.metric.aggregator.PostAggregatorMetricSpec;
 import com.sbss.bithon.server.metric.storage.DimensionCondition;
 import com.sbss.bithon.server.metric.storage.IMetricReader;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +82,95 @@ class MetricJdbcReader implements IMetricReader {
         }
     }
 
+    public static class MetricFieldsClauseBuilder implements IMetricSpecVisitor<String> {
+
+        private final DataSourceSchema dataSource;
+        private final boolean addAlias;
+
+        public MetricFieldsClauseBuilder(DataSourceSchema dataSource) {
+            this.dataSource = dataSource;
+            this.addAlias = true;
+        }
+
+        public MetricFieldsClauseBuilder(DataSourceSchema dataSource, boolean addAlias) {
+            this.dataSource = dataSource;
+            this.addAlias = addAlias;
+        }
+
+        @Override
+        public String visit(LongSumMetricSpec metricSpec) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("sum(\"%s\")", metricSpec.getField()));
+            if (addAlias) {
+                sb.append(String.format(" \"%s\"", metricSpec.getName()));
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public String visit(DoubleSumMetricSpec metricSpec) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("sum(\"%s\")", metricSpec.getField()));
+            if (addAlias) {
+                sb.append(String.format(" \"%s\"", metricSpec.getName()));
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public String visit(PostAggregatorMetricSpec metricSpec) {
+            StringBuilder sb = new StringBuilder();
+            metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
+                @Override
+                public void visitMetric(IMetricSpec metricSpec) {
+                    sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(dataSource, false)));
+                }
+
+                @Override
+                public void visitConst(String constant) {
+                    sb.append(constant);
+                }
+
+                @Override
+                public void visit(String operator) {
+                    sb.append(operator);
+                }
+
+                @Override
+                public void startBrace() {
+                    sb.append('(');
+                }
+
+                @Override
+                public void endBrace() {
+                    sb.append(')');
+                }
+            });
+            sb.append(String.format(" \"%s\"", metricSpec.getName()));
+            return sb.toString();
+        }
+
+        @Override
+        public String visit(CountMetricSpec metricSpec) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("sum(\"%s\")", metricSpec.getName()));
+            if (addAlias) {
+                sb.append(String.format(" \"%s\"", metricSpec.getName()));
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public <T> T visit(LongLastMetricSpec metricSpec) {
+            return null;
+        }
+
+        @Override
+        public <T> T visit(DoubleLastMetricSpec metricSpec) {
+            return null;
+        }
+    }
+
     @Override
     public List<Map<String, Object>> getMetricValueList(TimeSpan start,
                                                         TimeSpan end,
@@ -86,14 +178,14 @@ class MetricJdbcReader implements IMetricReader {
                                                         Collection<DimensionCondition> dimensions,
                                                         Collection<String> metrics) {
         String condition = dimensions.stream().map(d -> d.getMatcher().accept(new SqlConditionBuilder(d.getDimension()))).collect(Collectors.joining(" AND "));
-        String metricList = metrics.stream().map(m -> "\"" + m + "\"").collect(Collectors.joining(", "));
+        String metricList = metrics.stream().map(m -> dataSourceSchema.getMetricSpecByName(m).accept(new MetricFieldsClauseBuilder(dataSourceSchema))).collect(Collectors.joining(", "));
         String sql = String.format(
-            "SELECT \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' ",
-            metricList,
-            "bithon_" + dataSourceSchema.getName().replace("-", "_"),
-            condition,
-            start.toISO8601(),
-            end.toISO8601()
+                "SELECT \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' ",
+                metricList,
+                "bithon_" + dataSourceSchema.getName().replace("-", "_"),
+                condition,
+                start.toISO8601(),
+                end.toISO8601()
         );
         log.info("Executing {}", sql);
         return getMetricValueList(sql);
@@ -105,7 +197,7 @@ class MetricJdbcReader implements IMetricReader {
         List<Record> records = dsl.fetch(sql);
 
         // although the explicit cast seems unnecessary, it must be kept so that compilation can pass
-        return (List<Map<String, Object>>)records.stream().map(record -> {
+        return (List<Map<String, Object>>) records.stream().map(record -> {
             Map<String, Object> mapObject = new HashMap<>();
             for (Field field : record.fields()) {
                 mapObject.put(field.getName(), record.get(field));
@@ -122,13 +214,13 @@ class MetricJdbcReader implements IMetricReader {
                                                            String dimension) {
         String condition = conditions.stream().map(d -> d.getMatcher().accept(new SqlConditionBuilder(d.getDimension()))).collect(Collectors.joining(" AND "));
         String sql = String.format(
-            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' ",
-            dimension,
-            dimension,
-            "bithon_" + dataSourceSchema.getName().replace("-", "_"),
-            condition,
-            start.toISO8601(),
-            end.toISO8601()
+                "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' ",
+                dimension,
+                dimension,
+                "bithon_" + dataSourceSchema.getName().replace("-", "_"),
+                condition,
+                start.toISO8601(),
+                end.toISO8601()
         );
 
         log.info("Executing {}", sql);

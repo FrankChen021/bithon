@@ -44,4 +44,8 @@ public class LongValueType implements IValueType {
     public Number diff(Number left, Number right) {
         return left.longValue() - right.longValue();
     }
+    @Override
+    public Number scaleTo(Number value, int scale) {
+        return value;
+    }
 }

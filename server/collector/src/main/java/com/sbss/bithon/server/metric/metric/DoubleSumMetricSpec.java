@@ -42,7 +42,7 @@ public class DoubleSumMetricSpec implements ISimpleMetricSpec {
         this.displayText = displayText;
         this.unit = unit;
         this.field = field;
-        this.visible = visible == null || visible;
+        this.visible = visible == null ? true : visible;
     }
 
     @JsonIgnore
@@ -67,7 +67,7 @@ public class DoubleSumMetricSpec implements ISimpleMetricSpec {
     }
 
     @Override
-    public <T> T accept(IMetricSpecVisitor visitor) {
+    public <T> T accept(IMetricSpecVisitor<T> visitor) {
         return visitor.visit(this);
     }
 

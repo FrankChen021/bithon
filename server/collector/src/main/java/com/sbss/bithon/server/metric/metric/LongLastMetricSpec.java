@@ -66,7 +66,7 @@ public class LongLastMetricSpec implements ISimpleMetricSpec {
     }
 
     @Override
-    public <T> T accept(IMetricSpecVisitor visitor) {
+    public <T> T accept(IMetricSpecVisitor<T> visitor) {
         return visitor.visit(this);
     }
 

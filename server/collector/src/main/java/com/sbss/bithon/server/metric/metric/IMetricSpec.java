@@ -65,5 +65,5 @@ public interface IMetricSpec {
      */
     String validate(Object input);
 
-    <T> T accept(IMetricSpecVisitor visitor);
+    <T> T accept(IMetricSpecVisitor<T> visitor);
 }

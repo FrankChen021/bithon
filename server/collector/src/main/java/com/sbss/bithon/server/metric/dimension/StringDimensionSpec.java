@@ -20,9 +20,9 @@ public class StringDimensionSpec extends AbstractDimensionSpec {
                                @JsonProperty("name") @NotNull String name,
                                @JsonProperty("displayText") @NotNull String displayText,
                                @JsonProperty("isRequired") Boolean isRequired,
-                               @JsonProperty("isVisible") Boolean isVisible,
+                               @JsonProperty("visible") Boolean visible,
                                @JsonProperty("transformer") @Nullable IDimensionTransformer transformer) {
-        super(field, name, displayText, isRequired, isVisible, transformer);
+        super(field, name, displayText, isRequired, visible, transformer);
     }
 
     @Override
