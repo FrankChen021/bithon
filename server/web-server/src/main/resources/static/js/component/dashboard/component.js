@@ -102,7 +102,6 @@ class Dashboard {
 
     // PRIVATE
     getDimensionAjaxOptions(dataSourceName, dimensionName) {
-        var interval = this._intervalFn.apply();
         var filters = [{
             dimension: 'appName',
             matcher: {
@@ -125,13 +124,16 @@ class Dashboard {
             cache: true,
             type: 'POST',
             url: apiHost + '/api/datasource/dimensions',
-            data: JSON.stringify({
-                dataSource: dataSourceName,
-                dimension: dimensionName,
-                conditions: filters,
-                startTimeISO8601: interval.start,
-                endTimeISO8601: interval.end,
-            }),
+            data: () => {
+                var interval = this._intervalFn.apply();
+                return JSON.stringify({
+                    dataSource: dataSourceName,
+                    dimension: dimensionName,
+                    conditions: filters,
+                    startTimeISO8601: interval.start,
+                    endTimeISO8601: interval.end,
+                })
+            },
             dataType: "json",
             contentType: "application/json",
             processResults: (data) => {
