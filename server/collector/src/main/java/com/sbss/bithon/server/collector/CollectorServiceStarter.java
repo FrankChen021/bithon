@@ -42,7 +42,7 @@ public class CollectorServiceStarter {
                     processor = new IEventCollector.Processor<>(eventsCollector);
                     break;
 
-                case "trace":
+                case "tracing":
                     processor = new ITraceCollector.Processor<>(traceCollector);
                     break;
 

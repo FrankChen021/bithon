@@ -39,7 +39,7 @@ public class TraceSpan {
         List<TraceSpan> spans = new ArrayList<>();
         message.forEach((spanMessage) -> {
             TraceSpan traceSpan = new TraceSpan();
-            traceSpan.appName = header.appName + "-" + header.env;
+            traceSpan.appName = header.appName;
             traceSpan.instanceName = header.hostName;
             traceSpan.kind = spanMessage.kind;
             traceSpan.name = spanMessage.name;

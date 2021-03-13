@@ -61,9 +61,9 @@ class AppCardComponent {
 
                 $.each(data, (index, overview)=>{
                     var appCard = $('#' + overview.appName);
-                    $(appCard).find('.instance-count').text('实例个数：' + overview.instanceCount);
-                    $(appCard).find('.start-time').text('启动时间：' + moment(overview.instanceStartTime).local().format('YYYY-MM-DD HH:mm:ss'));
-                    $(appCard).find('.up-time').text('运行时长：' + this.timeDiff(overview.instanceStartTime) );
+                    $(appCard).find('.instance-count').html('<b>Instances</b>：' + overview.instanceCount);
+                    $(appCard).find('.start-time').html('<b>Started at</b>：' + moment(overview.instanceStartTime).local().format('YYYY-MM-DD HH:mm:ss'));
+                    $(appCard).find('.up-time').html('<b>Up Time</b>：' + this.timeDiff(overview.instanceStartTime) );
                 });
             }
         });
@@ -84,13 +84,13 @@ class AppCardComponent {
 
         var text = '';
         if ( days > 0 )
-            text += days + '天';
+            text += days + ' Day';
         if ( text.length > 0 || hours != 0 )
-            text += hours + '小时';
+            text += ' ' + hours + ' Hour';
         if ( text.length > 0 || minutes > 0 )
-            text += minutes + '分钟';
+            text += ' ' + minutes + ' Min';
         if ( text.length > 0 || seconds > 0 )
-            text += seconds + '秒';
+            text += ' ' + seconds + ' Sec';
 
         return text;
     }

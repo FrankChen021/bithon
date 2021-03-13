@@ -65,13 +65,13 @@
         title: 'Application'
       }, {
         field: 'name',
-        title: 'name'
+        title: 'Component'
       }, {
         field: 'clazz',
-        title: 'clazz'
-      }, {
-        field: 'method',
-        title: 'method'
+        title: 'Method',
+        formatter: function(value, row) {
+            return row.clazz.split('.').pop() + '.' + row.method;
+        }
       }, {
         field: 'costTime',
         title: 'Duration',
@@ -86,7 +86,7 @@
         }
       },{
         field: 'tags',
-        title: 'URL',
+        title: 'Tags',
         formatter: function(value, row) {
             return '<pre>' + JSON.stringify(value,null,2) + '</pre>';
         }

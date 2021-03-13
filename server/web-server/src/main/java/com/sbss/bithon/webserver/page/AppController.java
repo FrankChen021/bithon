@@ -26,7 +26,7 @@ public class AppController {
         return "app/metric-template";
     }
 
-    @GetMapping("/ui/app/{appName}/trace")
+    @GetMapping("/ui/app/trace/{appName}")
     public String traceHomePage(@PathVariable("appName") String appName) {
         return "app/trace";
     }

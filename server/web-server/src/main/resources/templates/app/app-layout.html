@@ -55,7 +55,7 @@
 <div class="page-wrapper cool-theme sidebar-bg bg1 toggled">
     <nav class="navbar navbar-dark bg-dark fixed-top">
         <!-- Navbar content -->
-        <a class="navbar-brand" href="#">Bithon</a>
+        <a class="navbar-brand" href="/ui/home">Bithon</a>
     </nav>
     <nav id="sidebar" class="sidebar-wrapper cool-theme" style="padding-top:57px">
         <div class="sidebar-content">
@@ -63,7 +63,7 @@
             <div class=" sidebar-item sidebar-menu">
                 <ul>
                     <li class="header-menu">
-                        <span>Metrics</span>
+                        <span>Application Monitor</span>
                     </li>
                     <li class="sidebar-dropdown active">
                         <a href="#">
@@ -81,13 +81,13 @@
                     <li class="sidebar-dropdown">
                         <a href="#">
                             <i class="fa fa-shopping-cart"></i>
-                            <span class="menu-text">Tracing</span>
+                            <span class="menu-text">Trace</span>
                             <span class="badge badge-pill badge-danger">3</span>
                         </a>
                         <div class="sidebar-submenu">
                             <ul>
                                 <li>
-                                    <a th:href="@{${appName} + '/trace'}">Request List</a>
+                                    <a th:href="@{'/ui/app/trace/' + ${appName}}">Request List</a>
                                 </li>
                                 <li>
                                     <a href="#">Orders</a>
@@ -101,7 +101,7 @@
                     <li class="sidebar-dropdown">
                         <a href="#">
                             <i class="far fa-gem"></i>
-                            <span class="menu-text">Components</span>
+                            <span class="menu-text">Alert</span>
                         </a>
                         <div class="sidebar-submenu">
                             <ul>
@@ -126,7 +126,7 @@
                     <li class="sidebar-dropdown">
                         <a href="#">
                             <i class="fa fa-chart-line"></i>
-                            <span class="menu-text">Charts</span>
+                            <span class="menu-text">Log</span>
                         </a>
                         <div class="sidebar-submenu">
                             <ul>
@@ -144,44 +144,6 @@
                                 </li>
                             </ul>
                         </div>
-                    </li>
-                    <li class="sidebar-dropdown">
-                        <a href="#">
-                            <i class="fa fa-globe"></i>
-                            <span class="menu-text">Maps</span>
-                        </a>
-                        <div class="sidebar-submenu">
-                            <ul>
-                                <li>
-                                    <a href="#">Google maps</a>
-                                </li>
-                                <li>
-                                    <a href="#">Open street map</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                    <li class="header-menu">
-                        <span>Extra</span>
-                    </li>
-                    <li>
-                        <a href="#">
-                            <i class="fa fa-book"></i>
-                            <span class="menu-text">Documentation</span>
-                            <span class="badge badge-pill badge-primary">Beta</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#">
-                            <i class="fa fa-calendar"></i>
-                            <span class="menu-text">Calendar</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#">
-                            <i class="fa fa-folder"></i>
-                            <span class="menu-text">Examples</span>
-                        </a>
                     </li>
                 </ul>
             </div>

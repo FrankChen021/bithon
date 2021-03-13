@@ -105,20 +105,18 @@ class ThreadPoolMetricsProvider implements IMetricProvider {
         ThreadPoolMetrics flushedMetric = this.flushed.poll();
         while (flushedMetric != null) {
             messageList.add(messageConverter.from(appInstance,
-                                                  timestamp,
-                                                  interval,
-                                                  flushedMetric));
+                    timestamp,
+                    interval,
+                    flushedMetric));
             flushedMetric = this.flushed.poll();
         }
 
-        messageList.add(this.executorMetrics
-                            .values()
-                            .stream()
-                            .map(metric -> messageConverter.from(appInstance,
-                                                                 timestamp,
-                                                                 interval,
-                                                                 metric))
-                            .collect(Collectors.toList()));
+        for (ThreadPoolMetrics threadPoolMetric : this.executorMetrics.values()) {
+            messageList.add(messageConverter.from(appInstance,
+                    timestamp,
+                    interval,
+                    threadPoolMetric));
+        }
 
         return messageList;
     }
