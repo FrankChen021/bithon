@@ -83,7 +83,7 @@
   <repositories>
     <repository>
       <id>github.release.repo</id>
-      <url>https://github.com/bulldog2011/bigqueue/releases/</url>
+      <url>https://repository.mulesoft.org/nexus/content/repositories/public/</url>
     </repository>
   </repositories>
   <dependencies>
@@ -95,9 +95,8 @@
     </dependency>
   </dependencies>
   <properties>
-    <apache.kafka.version>2.6.0</apache.kafka.version>
-    <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
+    <maven.compiler.source>8</maven.compiler.source>
+    <apache.kafka.version>2.6.0</apache.kafka.version>
   </properties>
 </project>
-

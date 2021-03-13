@@ -7,13 +7,11 @@
   },
   "dimensionsSpec": [
     {
-      "field": "appName",
       "name": "appName",
       "displayText": "Application",
       "required": true
     },
     {
-      "field": "instanceName",
       "name": "instanceName",
       "displayText": "Instance",
       "required": true
@@ -21,10 +19,9 @@
   ],
   "metricsSpec": [
     {
-      "type": "doubleSum",
+      "type": "doubleLast",
       "name": "processCpuLoad",
       "displayText": "CPU Load",
-      "field": "processCpuLoad",
       "unit": "%"
     },
     {
@@ -42,56 +39,56 @@
       "unit": "Milli Second"
     },
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "heap",
       "displayText": "Heap(-Xmx)",
       "field": "heap",
       "unit": "字节"
     },
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "heapInit",
       "displayText": "Init Heap Size(-Xms)",
       "field": "heapInit",
       "unit": "字节"
     },
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "heapUsed",
       "displayText": "Heap Used",
       "field": "heapUsed",
       "unit": "字节"
     },
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "heapCommitted",
       "displayText": "可用堆内存",
       "field": "heapCommitted",
       "unit": "字节"
     },
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "peakThreads",
       "displayText": "峰值线程数",
       "field": "peakThreads",
       "unit": "Count"
     },
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "daemonThreads",
       "displayText": "守护线程",
       "field": "peakThreads",
       "unit": "Count"
     },
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "totalThreads",
       "displayText": "总线程",
       "field": "totalThreads",
       "unit": "Count"
     },
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "activeThreads",
       "displayText": "活动线程",
       "field": "activeThreads",

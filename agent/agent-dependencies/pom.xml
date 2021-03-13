@@ -170,7 +170,8 @@
 
                             </relocations>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer">
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -195,8 +196,9 @@
 
     <repositories>
         <repository>
-            <id>github.release.repo</id>
-            <url>https://github.com/bulldog2011/bigqueue/releases/</url>
+            <id>BigQueueRepo</id>
+            <url>https://repository.mulesoft.org/nexus/content/repositories/public/</url>
         </repository>
     </repositories>
+
 </project>

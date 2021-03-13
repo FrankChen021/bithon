@@ -4,7 +4,6 @@ import com.sbss.bithon.server.common.matcher.*;
 import com.sbss.bithon.server.common.utils.datetime.TimeSpan;
 import com.sbss.bithon.server.metric.DataSourceSchema;
 import com.sbss.bithon.server.metric.metric.*;
-import com.sbss.bithon.server.metric.metric.aggregator.PostAggregatorExpressionVisitor;
 import com.sbss.bithon.server.metric.metric.aggregator.PostAggregatorMetricSpec;
 import com.sbss.bithon.server.metric.storage.DimensionCondition;
 import com.sbss.bithon.server.metric.storage.IMetricReader;
@@ -84,15 +83,24 @@ class MetricJdbcReader implements IMetricReader {
 
     public static class MetricFieldsClauseBuilder implements IMetricSpecVisitor<String> {
 
+        private final String sqlTableName;
+        private final String tableAlias;
         private final DataSourceSchema dataSource;
         private final boolean addAlias;
 
-        public MetricFieldsClauseBuilder(DataSourceSchema dataSource) {
-            this.dataSource = dataSource;
-            this.addAlias = true;
+
+        public MetricFieldsClauseBuilder(String sqlTableName,
+                                         String tableAlias,
+                                         DataSourceSchema dataSource) {
+            this(sqlTableName, tableAlias, dataSource, true);
         }
 
-        public MetricFieldsClauseBuilder(DataSourceSchema dataSource, boolean addAlias) {
+        public MetricFieldsClauseBuilder(String sqlTableName,
+                                         String tableAlias,
+                                         DataSourceSchema dataSource,
+                                         boolean addAlias) {
+            this.sqlTableName = sqlTableName;
+            this.tableAlias = tableAlias;
             this.dataSource = dataSource;
             this.addAlias = addAlias;
         }
@@ -100,7 +108,7 @@ class MetricJdbcReader implements IMetricReader {
         @Override
         public String visit(LongSumMetricSpec metricSpec) {
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("sum(\"%s\")", metricSpec.getField()));
+            sb.append(String.format("sum(\"%s\")", metricSpec.getName()));
             if (addAlias) {
                 sb.append(String.format(" \"%s\"", metricSpec.getName()));
             }
@@ -110,7 +118,7 @@ class MetricJdbcReader implements IMetricReader {
         @Override
         public String visit(DoubleSumMetricSpec metricSpec) {
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("sum(\"%s\")", metricSpec.getField()));
+            sb.append(String.format("sum(\"%s\")", metricSpec.getName()));
             if (addAlias) {
                 sb.append(String.format(" \"%s\"", metricSpec.getName()));
             }
@@ -120,32 +128,32 @@ class MetricJdbcReader implements IMetricReader {
         @Override
         public String visit(PostAggregatorMetricSpec metricSpec) {
             StringBuilder sb = new StringBuilder();
-            metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
-                @Override
-                public void visitMetric(IMetricSpec metricSpec) {
-                    sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(dataSource, false)));
-                }
-
-                @Override
-                public void visitConst(String constant) {
-                    sb.append(constant);
-                }
-
-                @Override
-                public void visit(String operator) {
-                    sb.append(operator);
-                }
-
-                @Override
-                public void startBrace() {
-                    sb.append('(');
-                }
-
-                @Override
-                public void endBrace() {
-                    sb.append(')');
-                }
-            });
+//            metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
+//                @Override
+//                public void visitMetric(IMetricSpec metricSpec) {
+//                    sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(dataSource, false)));
+//                }
+//
+//                @Override
+//                public void visitConst(String constant) {
+//                    sb.append(constant);
+//                }
+//
+//                @Override
+//                public void visit(String operator) {
+//                    sb.append(operator);
+//                }
+//
+//                @Override
+//                public void startBrace() {
+//                    sb.append('(');
+//                }
+//
+//                @Override
+//                public void endBrace() {
+//                    sb.append(')');
+//                }
+//            });
             sb.append(String.format(" \"%s\"", metricSpec.getName()));
             return sb.toString();
         }
@@ -160,29 +168,54 @@ class MetricJdbcReader implements IMetricReader {
             return sb.toString();
         }
 
+        /**
+         * Since FIRST/LAST aggregators are not supported in many SQL databases,
+         * A embedded query is created to simulate FIRST/LAST
+         */
         @Override
-        public <T> T visit(LongLastMetricSpec metricSpec) {
-            return null;
+        public String visit(LongLastMetricSpec metricSpec) {
+            return visitLast(metricSpec.getName());
         }
 
         @Override
-        public <T> T visit(DoubleLastMetricSpec metricSpec) {
-            return null;
+        public String visit(DoubleLastMetricSpec metricSpec) {
+            return visitLast(metricSpec.getName());
+        }
+
+        private String visitLast(String metricName) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("(SELECT \"%s\" FROM \"%s\" B WHERE B.\"timestamp\" = \"%s\".\"timestamp\" ORDER BY \"timestamp\" DESC LIMIT 1)",
+                    metricName,
+                    sqlTableName,
+                    tableAlias));
+
+            if (addAlias) {
+                sb.append(' ');
+                sb.append('"');
+                sb.append(metricName);
+                sb.append('"');
+            }
+            return sb.toString();
         }
     }
 
+    // TODO: 具有多个纬度的聚合条件下，last/first应该按多个纬度分组求last/first，再聚合求和
     @Override
     public List<Map<String, Object>> getMetricValueList(TimeSpan start,
                                                         TimeSpan end,
                                                         DataSourceSchema dataSourceSchema,
                                                         Collection<DimensionCondition> dimensions,
                                                         Collection<String> metrics) {
-        String condition = dimensions.stream().map(d -> d.getMatcher().accept(new SqlConditionBuilder(d.getDimension()))).collect(Collectors.joining(" AND "));
-        String metricList = metrics.stream().map(m -> dataSourceSchema.getMetricSpecByName(m).accept(new MetricFieldsClauseBuilder(dataSourceSchema))).collect(Collectors.joining(", "));
+        String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
+        MetricFieldsClauseBuilder fieldsClauseBuilder = new MetricFieldsClauseBuilder(sqlTableName, "OUTER", dataSourceSchema);
+        String metricList = metrics.stream().map(m -> dataSourceSchema.getMetricSpecByName(m).accept(fieldsClauseBuilder)).collect(Collectors.joining(", "));
+
+        String condition = dimensions.stream().map(dimension -> dimension.getMatcher().accept(new SqlConditionBuilder(dimension.getDimension()))).collect(Collectors.joining(" AND "));
         String sql = String.format(
-                "SELECT \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' ",
+                "SELECT \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY \"timestamp\"",
                 metricList,
-                "bithon_" + dataSourceSchema.getName().replace("-", "_"),
+                sqlTableName,
+                "OUTER",
                 condition,
                 start.toISO8601(),
                 end.toISO8601()

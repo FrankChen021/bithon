@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.sbss.bithon</groupId>
-            <artifactId>collector-client-dependency</artifactId>
+            <artifactId>agent-dependency</artifactId>
         </dependency>
         <dependency>
             <groupId>com.sbss.bithon</groupId>

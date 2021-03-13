@@ -7,15 +7,15 @@ import com.sbss.bithon.server.metric.metric.aggregator.PostAggregatorMetricSpec;
  * @date 2020/12/23
  */
 public interface IMetricSpecVisitor<T> {
-    <T> T visit(LongSumMetricSpec metricSpec);
+    T visit(LongSumMetricSpec metricSpec);
 
-    <T> T visit(CountMetricSpec metricSpec);
+    T visit(CountMetricSpec metricSpec);
 
-    <T> T visit(DoubleSumMetricSpec metricSpec);
+    T visit(DoubleSumMetricSpec metricSpec);
 
-    <T> T visit(PostAggregatorMetricSpec metricSpec);
+    T visit(PostAggregatorMetricSpec metricSpec);
 
-    <T> T visit(LongLastMetricSpec metricSpec);
+    T visit(LongLastMetricSpec metricSpec);
 
-    <T> T visit(DoubleLastMetricSpec metricSpec);
+    T visit(DoubleLastMetricSpec metricSpec);
 }
