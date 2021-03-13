@@ -72,7 +72,7 @@ public class DataSourceApi {
     }
 
     @PostMapping("/api/datasource/dimensions")
-    public Collection<Map<String, String>> getDimensions(@Valid GetDimensionRequest request) {
+    public Collection<Map<String, String>> getDimensions(@Valid @RequestBody GetDimensionRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         return this.metricStorage.createMetricReader(schema).getDimensionValueList(

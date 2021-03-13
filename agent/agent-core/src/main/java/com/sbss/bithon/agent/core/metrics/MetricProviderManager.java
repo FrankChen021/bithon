@@ -3,9 +3,11 @@ package com.sbss.bithon.agent.core.metrics;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
 import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
+import com.sbss.bithon.agent.core.utils.CollectionUtils;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,7 +38,8 @@ public class MetricProviderManager {
         this.providers = new ConcurrentHashMap<>();
         this.dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_METRICS);
 
-        new Timer("metrics-collector-and-sender").schedule(new TimerTask() {
+        // Collect metrics
+        new Timer("metrics-collector").schedule(new TimerTask() {
             @Override
             public void run() {
                 if (!dispatcher.isReady()) {
@@ -49,13 +52,12 @@ public class MetricProviderManager {
                     }
 
                     try {
-                        for (Object message : provider.buildMessages(dispatcher.getMessageConverter(),
-                                                                     AgentContext.getInstance().getAppInstance(),
-                                                                     INTERVAL,
-                                                                     System.currentTimeMillis())) {
-                            if (null != message) {
-                                dispatcher.sendMessage(message);
-                            }
+                        List<Object> messages = provider.buildMessages(dispatcher.getMessageConverter(),
+                                AgentContext.getInstance().getAppInstance(),
+                                INTERVAL,
+                                System.currentTimeMillis());
+                        if (CollectionUtils.isNotEmpty(messages)) {
+                            dispatcher.sendMessage(messages);
                         }
                     } catch (Throwable e) {
                         log.error("Throwable(unrecoverable) exception occurred when dispatching!", e);
@@ -79,10 +81,11 @@ public class MetricProviderManager {
         return provider;
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends IMetricProvider> T getOrRegister(String providerName, Class<T> providerClass) {
         IMetricProvider provider = providers.get(providerName);
         if (provider != null) {
-            return (T)provider;
+            return (T) provider;
         }
         try {
             return register(providerName, providerClass.newInstance());

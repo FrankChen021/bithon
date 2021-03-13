@@ -1,18 +1,21 @@
 
 class Dashboard {
     constructor(containerId, appName, schemaApi) {
-        this._containerId = containerId;
         this._appName = appName;
         this._schemaApi = schemaApi;
 
+        // View
+        this._containerId = containerId;
         this._container = $('#'+containerId);
-
         this._stackLayoutRowFill = 0;
         this._stackLayoutRow = $('<div class="row"></div>');
         this._container.append(this._stackLayoutRow);
 
+        // Model
         this._chartComponents = new Object();
         this._chartDescriptors = new Object();
+        this._dimensions = new Object();
+        this.addDimension('appName', appName);
 
         this._intervalFn = ()=>{
             return {
@@ -43,9 +46,10 @@ class Dashboard {
                 var filterBar = $('#filterBar');
                 for(var index = 1; index < schema.dimensionsSpec.length; index++) {
                     var dimension = schema.dimensionsSpec[index];
-                    if ( dimension.visible ) {
-                        filterBar.append(`<li class="nav-item"><select class="form-control"><option>-- ${dimension.displayText} --</option></select></li>`);
-                    }
+                    if ( !dimension.visible )
+                        continue;
+
+                    this.createDimensionFilter(filterBar, dimension.name, dimension.displayText);
                 }
             },
             (error)=>{}
@@ -73,6 +77,72 @@ class Dashboard {
         });
 
         this.refreshDashboard();
+    }
+
+    // PRIVATE
+    createDimensionFilter(filterBar, dimensionName, displayText) {
+        var appendedSelect = filterBar.append(`<li class="nav-item"><select style="width:150px"></select></li>`).find('select').last();
+        appendedSelect.select2({
+            theme: 'bootstrap4',
+            allowClear: true,
+            dropdownAutoWidth : true,
+            placeholder: displayText,
+            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionName)
+       }).on('change', (event) => {
+             if ( event.target.selectedIndex == null || event.target.selectedIndex < 0 ) {
+                 this.rmvDimension(dimensionName);
+                 return;
+             }
+
+             // get selected dimension
+             var dimensionValue = event.target.selectedOptions[0].value;
+             this.addDimension(dimensionName, dimensionValue);
+         });
+    }
+
+    // PRIVATE
+    getDimensionAjaxOptions(dataSourceName, dimensionName) {
+        var interval = this._intervalFn.apply();
+        var filters = [{
+            dimension: 'appName',
+            matcher: {
+                type: 'equal',
+                pattern: this._appName
+            }
+        }];
+//                for(var p = 0; p < dimensionIndex; p++) {
+//                    var dim = dataSource.dimensions[p];
+//                    filters.push({
+//                        type: '==',
+//                        dimension: dim.name,
+//                        expected: {
+//                            value: gEditingConditions[rowId].dimensions[dim.name].expected.value
+//                        }
+//                    });
+//                }
+
+        return {
+            cache: true,
+            type: 'POST',
+            url: apiHost + '/api/datasource/dimensions',
+            data: JSON.stringify({
+                dataSource: dataSourceName,
+                dimension: dimensionName,
+                conditions: filters,
+                startTimeISO8601: interval.start,
+                endTimeISO8601: interval.end,
+            }),
+            dataType: "json",
+            contentType: "application/json",
+            processResults: (data) => {
+                return { results: data.map(dimension => {
+                    return {
+                        "id": dimension.value,
+                        "text": dimension.value
+                    };
+                }) };
+            }
+        }
     }
 
     // PRIVATE
@@ -171,6 +241,10 @@ class Dashboard {
 
     // PUBLIC
     refreshDashboard() {
+        if ( this._dashboard == null ) {
+            return;
+        }
+
         // refresh each chart
         for(var id in this._chartComponents) {
             this.refreshChart(id);
@@ -187,10 +261,20 @@ class Dashboard {
      *     }
      * }
      */
-    addDimension(dimensionName, dimension) {
+    addDimension(dimensionName, dimensionValue) {
+        this._dimensions[dimensionName] = {
+            dimension: dimensionName,
+            matcher: {
+                type: 'equal',
+                pattern: dimensionValue
+            }
+        };
+        this.refreshDashboard();
     }
 
     rmvDimension(dimensionName) {
+        delete this._dimensions[dimensionName];
+        this.refreshDashboard();
     }
 
     refreshChart(chartId) {
@@ -204,15 +288,7 @@ class Dashboard {
                 dataSource: chartDescriptor.dataSource,
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                dimensions: {
-                    "appName": {
-                        "dimension": "appName",
-                        "matcher": {
-                            "type": "equal",
-                            "pattern": this._appName
-                        }
-                    }
-                },
+                dimensions: this._dimensions,
                 metrics: chartComponent.getOption().metrics,
             }),
             processResult: (data)=>{
