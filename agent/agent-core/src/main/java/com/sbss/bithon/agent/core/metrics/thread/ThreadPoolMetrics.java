@@ -18,7 +18,7 @@ public abstract class ThreadPoolMetrics {
     public Counter discardedOldestTaskCount = new Counter();
     public Counter exceptionTaskCount = new Counter();
     public Counter successfulTaskCount = new Counter();
-    public Gauge totalTaskCount = new Gauge();
+    public Counter totalTaskCount = new Counter();
 
     public ThreadPoolMetrics(String executorClass, String threadPoolName) {
         this.executorClass = executorClass;

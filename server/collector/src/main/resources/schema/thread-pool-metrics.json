@@ -65,7 +65,7 @@
       "unit": ""
     },
     {
-      "type": "longLast",
+      "type": "longSum",
       "name": "totalTaskCount",
       "displayText": "totalTaskCount",
       "unit": ""
