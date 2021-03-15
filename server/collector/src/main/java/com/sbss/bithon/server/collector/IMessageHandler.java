@@ -6,9 +6,12 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/1/10 4:40 下午
  */
-public interface IMessageHandler<MSG_HEADER, MSG_BODY> {
+public interface IMessageHandler<MESSAGE> {
 
-    void submit(MSG_HEADER header, MSG_BODY body);
-
-    void submit(MSG_HEADER header, List<MSG_BODY> body);
+    /**
+     * get type of messages that are handled by this handler
+     */
+    String getType();
+    
+    void submit(MESSAGE message);
 }

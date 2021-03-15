@@ -2,6 +2,7 @@ package com.sbss.bithon.server.metric.collector;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
+import com.sbss.bithon.server.collector.GenericMessage;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -17,7 +18,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class JvmGcMetricMessageHandler extends AbstractMetricMessageHandler<MessageHeader, JvmMetricMessage> {
+public class JvmGcMetricMessageHandler extends AbstractMetricMessageHandler {
 
     public JvmGcMetricMessageHandler(IMetaStorage metaStorage,
                                      IMetricStorage metricStorage,
@@ -33,11 +34,7 @@ public class JvmGcMetricMessageHandler extends AbstractMetricMessageHandler<Mess
     }
 
     @Override
-    GenericMetricObject toMetricObject(MessageHeader header, JvmMetricMessage message) {
-        GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                              header.getAppName(),
-                                                              header.getHostName(),
-                                                              message);
-        return metrics;
+    void toMetricObject(GenericMessage message) {
+        return;
     }
 }

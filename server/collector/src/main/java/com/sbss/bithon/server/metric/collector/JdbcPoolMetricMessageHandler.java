@@ -3,6 +3,8 @@ package com.sbss.bithon.server.metric.collector;
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.component.db.dao.EndPointType;
+import com.sbss.bithon.server.collector.GenericMessage;
+import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -18,7 +20,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler<MessageHeader, JdbcPoolMetricMessage> {
+public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler {
 
     private enum DriverType {
         MYSQL("com.mysql", "mysql"),
@@ -48,18 +50,13 @@ public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler<M
     }
 
     @Override
-    GenericMetricObject toMetricObject(MessageHeader header, JdbcPoolMetricMessage message) {
+    void toMetricObject(GenericMessage message) {
 
-        GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                              header.getAppName(),
-                                                              header.getHostName(),
-                                                              message);
-        metrics.setEndpointLink(EndPointType.APPLICATION,
-                                header.getAppName(),
+        message.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
+                                message.getApplicationName(),
                                 EndPointType.MYSQL,
 
                                 //TODO: extract host and port
-                                message.getConnectionString());
-        return metrics;
+                                message.getString("connectionString")));
     }
 }

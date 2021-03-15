@@ -3,7 +3,9 @@ package com.sbss.bithon.server.metric.collector;
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
 import com.sbss.bithon.component.db.dao.EndPointType;
+import com.sbss.bithon.server.collector.GenericMessage;
 import com.sbss.bithon.server.common.service.UriNormalizer;
+import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -20,7 +22,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler<MessageHeader, WebRequestMetricMessage> {
+public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler {
 
     private final UriNormalizer uriNormalizer;
 
@@ -37,37 +39,30 @@ public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler
     }
 
     @Override
-    GenericMetricObject toMetricObject(MessageHeader header, WebRequestMetricMessage message) {
-        if (message.getRequestCount() <= 0) {
-            return null;
+    void toMetricObject(GenericMessage message) {
+        if (message.getLong("requestCount") <= 0 ) {
+            return;
         }
 
-        UriNormalizer.NormalizedResult result = uriNormalizer.normalize(header.getAppName(),
-                                                                        message.getUri());
+        UriNormalizer.NormalizedResult result = uriNormalizer.normalize(message.getApplicationName(),
+                                                                        message.getString("uri"));
         if (result.getUri() == null) {
-            return null;
+            return;
         }
-
-        GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                              header.getAppName(),
-                                                              header.getHostName(),
-                                                              message);
-        metrics.put("uri", result.getUri());
+        message.set("uri", result.getUri());
 
         String srcApplication;
         EndPointType srcEndPointType;
-        if (StringUtils.isEmpty(message.getSrcApplication())) {
+        if (StringUtils.isEmpty(message.getString("srcApplication"))) {
             srcApplication = "Bithon-Unknown";
             srcEndPointType = EndPointType.UNKNOWN;
         } else {
-            srcApplication = message.getSrcApplication();
+            srcApplication = message.getString("srcApplication");
             srcEndPointType = EndPointType.APPLICATION;
         }
-        metrics.setEndpointLink(srcEndPointType,
+        message.set("endpoint", new EndPointLink(srcEndPointType,
                                 srcApplication,
                                 EndPointType.APPLICATION,
-                                header.getAppName());
-
-        return metrics;
+                                message.getApplicationName()));
     }
 }

@@ -1,8 +1,9 @@
-package com.sbss.bithon.server.tracing.collector;
+package com.sbss.bithon.server.collector.protocol;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.ITraceCollector;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
+import com.sbss.bithon.server.tracing.collector.TraceMessageHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

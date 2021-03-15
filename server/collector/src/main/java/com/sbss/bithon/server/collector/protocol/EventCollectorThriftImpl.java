@@ -1,8 +1,10 @@
-package com.sbss.bithon.server.events.collector;
+package com.sbss.bithon.server.collector.protocol;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.event.IEventCollector;
 import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
+import com.sbss.bithon.server.events.collector.EventMessage;
+import com.sbss.bithon.server.events.collector.EventsMessageHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

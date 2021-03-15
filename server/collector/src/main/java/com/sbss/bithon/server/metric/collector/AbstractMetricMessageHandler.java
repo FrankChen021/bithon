@@ -1,6 +1,7 @@
 package com.sbss.bithon.server.metric.collector;
 
 import com.sbss.bithon.server.collector.AbstractThreadPoolMessageHandler;
+import com.sbss.bithon.server.collector.GenericMessage;
 import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.MetadataType;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
@@ -21,7 +22,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Getter
-public abstract class AbstractMetricMessageHandler<MSG_HEADER, MSG_BODY> extends AbstractThreadPoolMessageHandler<MSG_HEADER, MSG_BODY> {
+public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMessageHandler<GenericMessage> {
 
     private final DataSourceSchema schema;
     private final IMetaStorage metaStorage;
@@ -42,22 +43,28 @@ public abstract class AbstractMetricMessageHandler<MSG_HEADER, MSG_BODY> extends
         this.metricStorageWriter = storage.createMetricWriter(schema);
     }
 
-    abstract GenericMetricObject toMetricObject(MSG_HEADER header, MSG_BODY message) throws Exception;
+    @Override
+    public String getType() {
+        return this.schema.getName();
+    }
+
+    abstract void toMetricObject(GenericMessage message) throws Exception;
 
     @Override
-    final protected void onMessage(MSG_HEADER header, MSG_BODY message) {
+    final protected void onMessage(GenericMessage message) {
         try {
-            processMetricObject(toMetricObject(header, message));
+            toMetricObject(message);
+            processMetricObject(message);
         } catch (Exception e) {
             log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}", this.schema.getName(), message, e);
         }
     }
 
-    protected boolean beforeProcessMetricObject(GenericMetricObject metricObject) throws Exception {
+    protected boolean beforeProcessMetricObject(GenericMessage metricObject) throws Exception {
         return true;
     }
 
-    private void processMetricObject(GenericMetricObject metricObject) throws Exception {
+    private void processMetricObject(GenericMessage metricObject) throws Exception {
         if (metricObject == null) {
             return;
         }
@@ -108,7 +115,7 @@ public abstract class AbstractMetricMessageHandler<MSG_HEADER, MSG_BODY> extends
         //
         // save topo
         //
-        EndPointLink link = metricObject.getEndPointLink();
+        EndPointLink link = metricObject.getAs("endpoint");
         if (link != null) {
             metaStorage.createTopo(link);
         }

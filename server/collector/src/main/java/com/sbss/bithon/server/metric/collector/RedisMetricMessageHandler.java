@@ -3,6 +3,8 @@ package com.sbss.bithon.server.metric.collector;
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
 import com.sbss.bithon.component.db.dao.EndPointType;
+import com.sbss.bithon.server.collector.GenericMessage;
+import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -18,12 +20,11 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class RedisMetricMessageHandler extends AbstractMetricMessageHandler<MessageHeader, RedisMetricMessage> {
+public class RedisMetricMessageHandler extends AbstractMetricMessageHandler {
 
     public RedisMetricMessageHandler(IMetaStorage metaStorage,
                                      IMetricStorage metricStorage,
-                                     DataSourceSchemaManager dataSourceSchemaManager
-    ) throws IOException {
+                                     DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
         super("redis-metrics",
               metaStorage,
               metricStorage,
@@ -35,16 +36,10 @@ public class RedisMetricMessageHandler extends AbstractMetricMessageHandler<Mess
     }
 
     @Override
-    GenericMetricObject toMetricObject(MessageHeader header, RedisMetricMessage message) {
-        GenericMetricObject metrics = new GenericMetricObject(message.getTimestamp(),
-                                                              header.getAppName(),
-                                                              header.getHostName(),
-                                                              message);
-        metrics.setEndpointLink(EndPointType.APPLICATION,
-                                header.getAppName(),
+    void toMetricObject(GenericMessage message) {
+        message.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
+                                message.getApplicationName(),
                                 EndPointType.REDIS,
-                                message.getUri());
-
-        return metrics;
+                                message.getString("uri")));
     }
 }

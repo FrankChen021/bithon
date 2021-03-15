@@ -3,13 +3,18 @@ package com.sbss.bithon.server.metric.collector;
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
 import com.sbss.bithon.server.collector.AbstractThreadPoolMessageHandler;
+import com.sbss.bithon.server.collector.GenericMessage;
+import com.sbss.bithon.server.common.service.UriNormalizer;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
 import com.sbss.bithon.server.common.utils.datetime.DateTimeUtils;
 import com.sbss.bithon.server.meta.MetadataType;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
+import com.sbss.bithon.server.metric.DataSourceSchemaManager;
+import com.sbss.bithon.server.metric.storage.IMetricStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 
@@ -19,26 +24,23 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class ExceptionMetricMessageHandler extends AbstractThreadPoolMessageHandler<MessageHeader, ExceptionMetricMessage> {
+public class ExceptionMetricMessageHandler extends AbstractMetricMessageHandler {
 
-    private final IMetaStorage metaStorage;
-
-    ExceptionMetricMessageHandler(IMetaStorage metaStorage) {
-        super(1, 5, Duration.ofMinutes(3), 4096);
-        this.metaStorage = metaStorage;
+    public ExceptionMetricMessageHandler( IMetaStorage metaStorage,
+                                          IMetricStorage metricStorage,
+                                          DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("exception-metrics",
+                metaStorage,
+                metricStorage,
+                dataSourceSchemaManager,
+                1,
+                5,
+                Duration.ofSeconds(60),
+                4096);
     }
 
     @Override
-    protected void onMessage(MessageHeader header, ExceptionMetricMessage body) {
-        long appId = metaStorage.getOrCreateMetadataId(header.getAppName(), MetadataType.APPLICATION, 0L);
-        long instanceId = metaStorage.getOrCreateMetadataId(header.getHostName(), MetadataType.APP_INSTANCE, appId);
+    void toMetricObject(GenericMessage message) throws Exception {
 
-        Map<String, Object> metrics = ReflectionUtils.getFields(body);
-        metrics.put("appName", header.getAppName());
-        metrics.put("instanceName", header.getHostName());
-        metrics.put("appId", appId);
-        metrics.put("instanceId", instanceId);
-        metrics.put("interval", body.getInterval());
-        metrics.put("timestamp", DateTimeUtils.dropMilliseconds(body.getTimestamp()));
     }
 }

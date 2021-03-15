@@ -32,7 +32,7 @@ public class CollectorServiceStarter {
             String service = entry.getKey();
             Integer value = entry.getValue();
 
-            TBaseProcessor processor = null;
+            TBaseProcessor<?> processor = null;
             switch (service) {
                 case "metric":
                     processor = new IMetricCollector.Processor<>(metricCollector);
@@ -59,8 +59,6 @@ public class CollectorServiceStarter {
             }
         }
 
-        processors.forEach((port, processor) -> {
-            new ThriftServer().start(processor, port);
-        });
+        processors.forEach((port, processor) -> new ThriftServer().start(processor, port));
     }
 }
