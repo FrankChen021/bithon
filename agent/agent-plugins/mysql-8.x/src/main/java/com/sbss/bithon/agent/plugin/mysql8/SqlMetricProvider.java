@@ -131,7 +131,10 @@ public class SqlMetricProvider implements IMetricProvider {
                                       long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (Map.Entry<String, SqlMetric> entry : counters.entrySet()) {
-            messages.add(messageConverter.from(appInstance, timestamp, interval,entry.getValue()));
+            Object message = messageConverter.from(appInstance, timestamp, interval,entry.getValue());
+            if ( message != null ) {
+                messages.add(message);
+            }
         }
         return messages;
     }

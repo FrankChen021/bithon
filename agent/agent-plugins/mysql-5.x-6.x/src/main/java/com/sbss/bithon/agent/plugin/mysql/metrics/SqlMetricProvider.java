@@ -28,7 +28,7 @@ public class SqlMetricProvider implements IMetricProvider {
     private static final String MYSQL_COUNTER_NAME = "mysql";
     private static final String DRIVER_TYPE_MYSQL = "mysql";
 
-    private final Map<String, SqlMetric> counters;
+    private final Map<String, SqlMetric> metricMap;
 
     static final SqlMetricProvider INSTANCE = new SqlMetricProvider();
 
@@ -37,7 +37,7 @@ public class SqlMetricProvider implements IMetricProvider {
     }
 
     private SqlMetricProvider() {
-        counters = new ConcurrentHashMap<>();
+        metricMap = new ConcurrentHashMap<>();
 
         try {
             MetricProviderManager.getInstance().register(MYSQL_COUNTER_NAME, this);
@@ -56,7 +56,7 @@ public class SqlMetricProvider implements IMetricProvider {
             String hostPort = host + ":" + port;
 
             // 尝试记录新的mysql连接
-            SqlMetric counter = counters.computeIfAbsent(hostPort,
+            SqlMetric counter = metricMap.computeIfAbsent(hostPort,
                                                          k -> new SqlMetric(k, DRIVER_TYPE_MYSQL));
 
             if (MySqlPlugin.METHOD_SEND_COMMAND.equals(methodName)) {
@@ -65,7 +65,7 @@ public class SqlMetricProvider implements IMetricProvider {
                     counter.addBytesOut(queryPacket.getPosition());
                 }
             } else {
-                ResultSetImpl resultSet = (ResultSetImpl) aopContext.castReturningAs();
+                ResultSetImpl resultSet = aopContext.castReturningAs();
                 int bytesIn = resultSet.getBytesSize();
                 if (bytesIn > 0) {
                     counter.addBytesIn(resultSet.getBytesSize());
@@ -95,7 +95,7 @@ public class SqlMetricProvider implements IMetricProvider {
             }
         }
 
-        counters.computeIfAbsent(hostAndPort,
+        metricMap.computeIfAbsent(hostAndPort,
                                  k -> new SqlMetric(k, DRIVER_TYPE_MYSQL))
             .add(isQuery,
                  aopContext.getException() != null,
@@ -104,7 +104,7 @@ public class SqlMetricProvider implements IMetricProvider {
 
     @Override
     public boolean isEmpty() {
-        return counters.isEmpty();
+        return metricMap.isEmpty();
     }
 
     @Override
@@ -113,8 +113,11 @@ public class SqlMetricProvider implements IMetricProvider {
                                       int interval,
                                       long timestamp) {
         List<Object> messages = new ArrayList<>();
-        for (Map.Entry<String, SqlMetric> entry : counters.entrySet()) {
-            messageConverter.from(appInstance, timestamp, interval, entry.getValue());
+        for (Map.Entry<String, SqlMetric> entry : metricMap.entrySet()) {
+            Object message = messageConverter.from(appInstance, timestamp, interval, entry.getValue());
+            if ( message != null ) {
+                messages.add(message);
+            }
         }
         return messages;
     }

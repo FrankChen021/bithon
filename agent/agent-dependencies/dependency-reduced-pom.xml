@@ -82,7 +82,7 @@
   </build>
   <repositories>
     <repository>
-      <id>github.release.repo</id>
+      <id>BigQueueRepo</id>
       <url>https://repository.mulesoft.org/nexus/content/repositories/public/</url>
     </repository>
   </repositories>
@@ -100,3 +100,4 @@
     <apache.kafka.version>2.6.0</apache.kafka.version>
   </properties>
 </project>
+

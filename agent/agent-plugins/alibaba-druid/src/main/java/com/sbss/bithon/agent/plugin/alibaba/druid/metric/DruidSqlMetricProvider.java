@@ -78,7 +78,10 @@ public class DruidSqlMetricProvider implements IMetricProvider {
         for (MonitoredSource source : MonitoredSourceManager.getInstance().getDataSources()) {
             SqlMetric metric = source.getSqlMetric();
             if (metric.peekTotalCount() > 0) {
-                messages.add(messageConverter.from(appInstance, timestamp, interval, source.getSqlMetric()));
+                Object message = messageConverter.from(appInstance, timestamp, interval, source.getSqlMetric());
+                if ( message != null ) {
+                    messages.add(message);
+                }
             }
         }
         return messages;

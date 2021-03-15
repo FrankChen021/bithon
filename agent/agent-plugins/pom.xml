@@ -19,8 +19,8 @@
         <module>undertow</module>
         <module>jetty</module>
         <module>jvm</module>
-        <module>mysql</module>
-        <module>mysql8</module>
+        <module>mysql-5.x-6.x</module>
+        <module>mysql-8.x</module>
         <module>quartz2</module>
         <module>jdk-thread</module>
         <module>okhttp3</module>
@@ -76,12 +76,12 @@
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-mysql</artifactId>
+            <artifactId>agent-plugin-mysql-5.x-6.x</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-mysql8</artifactId>
+            <artifactId>agent-plugin-mysql-8.x</artifactId>
             <version>${project.version}</version>
         </dependency>
 
