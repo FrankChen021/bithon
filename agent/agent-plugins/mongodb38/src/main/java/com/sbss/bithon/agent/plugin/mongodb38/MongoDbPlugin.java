@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.mongodb38;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
-import com.sbss.bithon.agent.core.plugin.precondition.IPluginLoadMatcher;
+import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,9 +17,9 @@ import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor
 public class MongoDbPlugin extends AbstractPlugin {
 
     @Override
-    public List<IPluginLoadMatcher> getLoadables() {
+    public List<IPluginInstallationChecker> getCheckers() {
         return Collections.singletonList(
-            IPluginLoadMatcher.hasClass("com.mongodb.internal.connection.DefaultServerConnection")
+            IPluginInstallationChecker.hasClass("com.mongodb.internal.connection.DefaultServerConnection")
         );
     }
 

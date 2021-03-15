@@ -6,7 +6,7 @@ package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
  */
 public interface IBithonObject {
 
-    String INJECTED_FIELD_NAME = "_$BITHON_INJECTED_FIELD_";
+    String INJECTED_FIELD_NAME = "_$BITHON_INJECTED_OBJECT$_";
 
     Object getInjectedObject();
 

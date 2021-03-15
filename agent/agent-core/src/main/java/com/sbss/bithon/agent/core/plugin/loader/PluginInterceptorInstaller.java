@@ -8,6 +8,8 @@ import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
+import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
+import com.sbss.bithon.agent.core.utils.CollectionUtils;
 import com.sbss.bithon.agent.core.utils.expt.AgentException;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.description.type.TypeDescription;
@@ -84,12 +86,24 @@ public class PluginInterceptorInstaller {
                                     InterceptorDescriptor interceptor) {
 
         agentBuilder = agentBuilder
+            // make sure the target class is not ignored by Bytebuddy's default ignore rule
             .ignore(new IgnoreExclusionMatcher(interceptor.getClassMatcher()))
             .type(interceptor.getClassMatcher())
             .transform((DynamicType.Builder<?> builder,
                         TypeDescription typeDescription,
                         ClassLoader classLoader,
                         JavaModule javaModule) -> {
+
+                //
+                // Run checkers first to see if a plugin can be installed
+                //
+                if (CollectionUtils.isNotEmpty(plugin.getCheckers())) {
+                    for (IPluginInstallationChecker checker : plugin.getCheckers()) {
+                        if (!checker.canInstall(plugin, classLoader, typeDescription)) {
+                            return null;
+                        }
+                    }
+                }
 
                 //
                 // Class instrumentation
@@ -100,6 +114,9 @@ public class PluginInterceptorInstaller {
                         .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
                 }
 
+                //
+                // Install interceptor
+                //
                 for (MethodPointCutDescriptor pointCut : interceptor.getMethodPointCutDescriptors()) {
                     if (interceptor.isBootstrapClass()) {
                         builder = installBootstrapInterceptor(builder,

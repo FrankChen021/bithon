@@ -3,11 +3,15 @@ package com.sbss.bithon.agent.plugin.mysql;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
+import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptorBuilder.forClass;
+import static com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker.hasClass;
+import static com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker.or;
 
 /**
  * @author frankchen
@@ -42,6 +46,17 @@ public class MySqlPlugin extends AbstractPlugin {
         "com.mysql.jdbc.Buffer",
         "boolean", "long",
         "[Lcom.mysql.jdbc.Field;"};
+
+    @Override
+    public List<IPluginInstallationChecker> getCheckers() {
+        return Collections.singletonList(or(
+                // mysql 5
+                hasClass("org.gjt.mm.mysql.Driver", true),
+                // mysql 6
+                hasClass("com.mysql.cj.x.package-info", true)
+                )
+        );
+    }
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {

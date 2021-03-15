@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.mysql8;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
-import com.sbss.bithon.agent.core.plugin.precondition.IPluginLoadMatcher;
+import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,11 +20,11 @@ public class MySql8Plugin extends AbstractPlugin {
     static final String METHOD_EXECUTE_INTERNAL = "executeInternal";
     static final String METHOD_EXECUTE_UPDATE_INTERNAL = "executeUpdateInternal";
     static final String METHOD_SEND_COMMAND = "sendCommand";
-    
+
     @Override
-    public List<IPluginLoadMatcher> getLoadables() {
+    public List<IPluginInstallationChecker> getCheckers() {
         return Collections.singletonList(
-            IPluginLoadMatcher.hasClass("com.mysql.cj.interceptors.QueryInterceptor")
+            IPluginInstallationChecker.hasClass("com.mysql.cj.interceptors.QueryInterceptor", true)
         );
     }
 
