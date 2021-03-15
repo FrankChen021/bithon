@@ -38,15 +38,15 @@ public class MySql8Plugin extends AbstractPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                         .onAllMethods("execute")
-                        .to(MySql8Plugin.class.getPackage() + ".PreparedStatementInterceptor"),
+                        .to("com.sbss.bithon.agent.plugin.mysql8.PreparedStatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
                         .onAllMethods("executeQuery")
-                        .to(MySql8Plugin.class.getPackage() + ".PreparedStatementInterceptor"),
+                        .to("com.sbss.bithon.agent.plugin.mysql8.PreparedStatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
                         .onAllMethods("executeUpdate")
-                        .to(MySql8Plugin.class.getPackage() + ".PreparedStatementInterceptor")
+                        .to("com.sbss.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
                 ),
 
             //
@@ -60,7 +60,7 @@ public class MySql8Plugin extends AbstractPlugin {
                                          "com.mysql.cj.protocol.Message",
                                          "boolean",
                                          "int")
-                        .to(MySql8Plugin.class.getPackage() + ".IoInterceptor"),
+                        .to("com.sbss.bithon.agent.plugin.mysql8.IoInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
                         .onMethodAndArgs("readAllResults",
@@ -70,7 +70,7 @@ public class MySql8Plugin extends AbstractPlugin {
                                          "boolean",
                                          "com.mysql.cj.protocol.ColumnDefinition",
                                          "com.mysql.cj.protocol.ProtocolEntityFactory")
-                        .to(MySql8Plugin.class.getPackage() + ".IoInterceptor")
+                        .to("com.sbss.bithon.agent.plugin.mysql8.IoInterceptor")
                 ),
 
 
@@ -83,26 +83,26 @@ public class MySql8Plugin extends AbstractPlugin {
 
                         .onMethodAndArgs("executeInternal",
                                          "java.lang.String", "boolean")
-                        .to(MySql8Plugin.class.getPackage() + ".StatementInterceptor"),
+                        .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
                         .onMethodAndArgs("executeQuery",
                                          "java.lang.String")
-                        .to(MySql8Plugin.class.getPackage() + ".StatementInterceptor"),
+                        .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
                         .onMethodAndArgs("executeUpdate",
                                          "java.lang.String",
                                          "boolean",
                                          "boolean")
-                        .to(MySql8Plugin.class.getPackage() + ".StatementInterceptor"),
+                        .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
                         .onMethodAndArgs("executeUpdateInternal",
                                          "java.lang.String",
                                          "boolean",
                                          "boolean")
-                        .to(MySql8Plugin.class.getPackage() + ".StatementInterceptor"))
+                        .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"))
         );
     }
 }
