@@ -2,13 +2,13 @@ package com.sbss.bithon.agent.core.plugin.descriptor;
 
 import shaded.net.bytebuddy.description.annotation.AnnotationSource;
 import shaded.net.bytebuddy.description.method.MethodDescription;
+import shaded.net.bytebuddy.description.method.ParameterDescription;
 import shaded.net.bytebuddy.description.method.ParameterList;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
+import shaded.net.bytebuddy.matcher.MethodParametersMatcher;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
-
-import java.util.Set;
 
 import static shaded.net.bytebuddy.matcher.ElementMatchers.isAnnotatedWith;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
@@ -20,15 +20,35 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
 public class MatcherUtils {
     private static final Logger log = LoggerFactory.getLogger(MatcherUtils.class);
 
-    public static ElementMatcher<MethodDescription> takesArgument(int index, String typeName) {
-        return (MethodDescription target) -> {
-            ParameterList<?> parameters = target.getParameters();
+    public static MethodParametersMatcher takesArgument(int index, String typeName) {
+        return new MethodParametersMatcher((ElementMatcher<ParameterList<? extends ParameterDescription>>) parameters -> {
             if (index < parameters.size()) {
                 return typeName.equals(parameters.get(index).getType().asErasure().getName());
             }
-
             return false;
-        };
+        });
+    }
+
+    public static MethodParametersMatcher takesFirstArgument(String typeName) {
+        return new MethodParametersMatcher((ElementMatcher<ParameterList<? extends ParameterDescription>>) parameters -> {
+            int lastIndex = parameters.size() - 1;
+            if ( lastIndex < 0 ) {
+                return false;
+            } else {
+                return typeName.equals(parameters.get(lastIndex).getType().asErasure().getName());
+            }
+        });
+    }
+
+    public static MethodParametersMatcher takesLastArgument(String typeName) {
+        return new MethodParametersMatcher((ElementMatcher<ParameterList<? extends ParameterDescription>>) parameters -> {
+            int lastIndex = parameters.size() - 1;
+            if ( lastIndex < 0 ) {
+                return false;
+            } else {
+                return typeName.equals(parameters.get(lastIndex).getType().asErasure().getName());
+            }
+        });
     }
 
     public static <T extends AnnotationSource> ElementMatcher.Junction<T> createAnnotationMatchers(String... annotations) {
@@ -90,10 +110,10 @@ public class MatcherUtils {
                         if (!paramType.equals(args[i])) {
                             if (debug) {
                                 log.info("matching [{}]: type of parameter {} not match. Given is {}, actual is {}",
-                                         methodDescription,
-                                         i,
-                                         args[i],
-                                         paramType);
+                                        methodDescription,
+                                        i,
+                                        args[i],
+                                        paramType);
                             }
                             return false;
                         }
