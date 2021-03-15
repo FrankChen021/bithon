@@ -10,7 +10,6 @@ import org.apache.http.HttpConnectionMetrics;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.impl.client.DefaultRequestDirector;
 import org.apache.http.impl.execchain.MinimalClientExec;
 import org.apache.http.impl.execchain.RedirectExec;
 import org.apache.http.protocol.HttpContext;
@@ -26,15 +25,15 @@ import java.util.Set;
  * @author frankchen
  */
 public class HttpClientExecuteInterceptor extends AbstractInterceptor {
-    private static Logger log = LoggerFactory.getLogger(HttpClientExecuteInterceptor.class);
+    private static final Logger log = LoggerFactory.getLogger(HttpClientExecuteInterceptor.class);
 
     private HttpClientMetricProvider metricProvider;
-    private final Set<String> ignoredSuffixes = new HashSet<>();
+    private final static Set<String> ignoredSuffixes = new HashSet<>();
     private boolean isNewVersion = true;
 
     @Override
-    public boolean initialize() throws Exception {
-        metricProvider = MetricProviderManager.getInstance().register("apache-httpClient", new HttpClientMetricProvider());
+    public boolean initialize() {
+        metricProvider = MetricProviderManager.getInstance().register("apache-http-client", new HttpClientMetricProvider());
 
         try {
             Class.forName("org.apache.http.impl.execchain.MinimalClientExec");
@@ -44,7 +43,7 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
         return true;
     }
 
-    private boolean filter(String uri) {
+    public static boolean filter(String uri) {
         String suffix = uri.substring(uri.lastIndexOf(".") + 1).toLowerCase();
         return ignoredSuffixes.contains(suffix);
     }
@@ -54,15 +53,7 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
         Object targetObject = aopContext.getTarget();
         Object[] args = aopContext.getArgs();
 
-        if (targetObject instanceof DefaultRequestDirector) {
-            //
-            // "old http client 4.0.1~4.2.5"
-            //
-            HttpRequest httpRequest = (HttpRequest) args[1];
-            String requestUri = httpRequest.getRequestLine().getUri();
-            return filter(requestUri) ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
-
-        } else if (isNewVersion && targetObject instanceof MinimalClientExec) {
+        if (isNewVersion && targetObject instanceof MinimalClientExec) {
             //
             // "http client 4.3.4~4.5.3: MinimalClientExec"
             //
@@ -97,31 +88,7 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
         boolean hasException = aopContext.getException() != null;
         long costTime = aopContext.getCostTime();
 
-        if (targetObject instanceof DefaultRequestDirector) {
-            //
-            // "old http client 4.0.1~4.2.5"
-            //
-            HttpRequest httpRequest = (HttpRequest) args[1];
-            String requestUri = httpRequest.getRequestLine().getUri();
-            String requestMethod = httpRequest.getRequestLine().getMethod();
-
-            if (hasException) {
-                metricProvider.addExceptionRequest(requestUri, requestMethod, costTime);
-            } else {
-                HttpResponse httpResponse = aopContext.castReturningAs();
-                metricProvider.addRequest(requestUri, requestMethod, httpResponse.getStatusLine().getStatusCode(), costTime);
-
-                HttpContext httpContext = (HttpContext) args[2];
-                if (httpContext != null && httpContext.getAttribute("http.connection") != null) {
-                    HttpConnection httpConnection = (HttpConnection) httpContext.getAttribute("http.connection");
-
-                    HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
-                    long requestBytes = connectionMetrics.getSentBytesCount();
-                    long responseBytes = connectionMetrics.getReceivedBytesCount();
-                    metricProvider.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
-                }
-            }
-        } else if (isNewVersion && targetObject instanceof MinimalClientExec) {
+        if (isNewVersion && targetObject instanceof MinimalClientExec) {
             //
             // "http client 4.3.4~4.5.3: MinimalClientExec"
             //
@@ -182,9 +149,9 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
                 metricProvider.addExceptionRequest(requestUri, requestMethod, costTime);
             } else {
                 metricProvider.addRequest(requestUri,
-                                          requestMethod,
-                                          ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
-                                          costTime);
+                        requestMethod,
+                        ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
+                        costTime);
             }
         } else {
             log.warn("http client version not supported!");

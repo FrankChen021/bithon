@@ -59,7 +59,11 @@ public class HttpClientPlugin extends AbstractPlugin {
                                          "org.apache.http.HttpHost",
                                          "org.apache.http.HttpRequest",
                                          "org.apache.http.protocol.HttpContext")
-                        .to("com.sbss.bithon.agent.plugin.apache.httpclient.metrics.HttpClientExecuteInterceptor")
+                        .to("com.sbss.bithon.agent.plugin.apache.httpclient.metrics.DefaultRequestDirectorExecute"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                        .onMethodAndNoArgs("releaseConnection")
+                        .to("com.sbss.bithon.agent.plugin.apache.httpclient.metrics.DefaultRequestDirectorReleaseConnection")
                 ),
 
             //
