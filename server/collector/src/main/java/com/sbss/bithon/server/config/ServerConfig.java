@@ -13,6 +13,7 @@ import com.sbss.bithon.server.meta.storage.jdbc.MetadataJdbcStorage;
 import com.sbss.bithon.server.metric.collector.*;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
 import com.sbss.bithon.server.metric.storage.jdbc.MetricJdbcStorage;
+import com.sbss.bithon.server.tracing.collector.TraceMessageHandler;
 import com.sbss.bithon.server.tracing.storage.ITraceStorage;
 import com.sbss.bithon.server.tracing.storage.jdbc.TraceJdbcStorage;
 import org.jooq.DSLContext;
@@ -74,7 +75,7 @@ public class ServerConfig {
     }
 
     @Bean("traceSink")
-    public IMessageSink traceSink() {
-        return new LocalTraceSink();
+    public IMessageSink traceSink(TraceMessageHandler traceMessageHandler) {
+        return new LocalTraceSink(traceMessageHandler);
     }
 }
