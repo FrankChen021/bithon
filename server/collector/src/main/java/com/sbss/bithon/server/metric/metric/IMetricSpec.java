@@ -14,8 +14,10 @@ import com.sbss.bithon.server.metric.typing.IValueType;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = IMetricSpec.LONG_SUM, value = LongSumMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_SUM, value = DoubleSumMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.LONG_LAST, value = LongLastMetricSpec.class),
+    @JsonSubTypes.Type(name = IMetricSpec.LONG_MIN, value = LongMinMetricSpec.class),
+    @JsonSubTypes.Type(name = IMetricSpec.LONG_MAX, value = LongMaxMetricSpec.class),
+    @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_SUM, value = DoubleSumMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_LAST, value = DoubleLastMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.POST_AGGREGATOR, value = PostAggregatorMetricSpec.class),
 })
@@ -34,6 +36,8 @@ public interface IMetricSpec {
     String DOUBLE_SUM = "doubleSum";
     String POST_AGGREGATOR = "postAggregator";
     String COUNT = "count";
+    String LONG_MIN = "longMin";
+    String LONG_MAX = "longMax";
 
 
     String getType();

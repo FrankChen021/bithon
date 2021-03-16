@@ -41,21 +41,21 @@ public class HttpClientMetric {
     }
 
     public void add(long costTime, int count4xx, int count5xx) {
-        this.costTime.add(costTime);
-        this.count4xx.add(count4xx);
-        this.count5xx.add(count5xx);
+        this.costTime.update(costTime);
+        this.count4xx.update(count4xx);
+        this.count5xx.update(count5xx);
         this.requestCount.incr();
     }
 
     public void addException(long costTime, int exceptionCount) {
-        this.costTime.add(costTime);
-        this.countException.add(exceptionCount);
+        this.costTime.update(costTime);
+        this.countException.update(exceptionCount);
         this.requestCount.incr();
     }
 
     public void addByteSize(long requestByteSize, long responseByteSize) {
-        this.requestBytes.add(requestByteSize);
-        this.responseBytes.add(responseByteSize);
+        this.requestBytes.update(requestByteSize);
+        this.responseBytes.update(responseByteSize);
     }
 
     public String getUri() {

@@ -18,4 +18,8 @@ public interface IMetricSpecVisitor<T> {
     T visit(LongLastMetricSpec metricSpec);
 
     T visit(DoubleLastMetricSpec metricSpec);
+
+    T visit(LongMinMetricSpec metricSpec);
+
+    T visit(LongMaxMetricSpec metricSpec);
 }

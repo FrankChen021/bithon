@@ -1,5 +1,6 @@
 package com.sbss.bithon.agent.core.metrics.web;
 
+import com.sbss.bithon.agent.core.metrics.Compund;
 import com.sbss.bithon.agent.core.metrics.Counter;
 
 /**
@@ -17,7 +18,7 @@ public class WebRequestMetric {
     /**
      * metrics
      */
-    private final Counter costTime = new Counter();
+    private final Compund costTime = new Compund();
     private final Counter requestCount = new Counter();
     private final Counter errorCount = new Counter();
     private final Counter count4xx = new Counter();
@@ -31,23 +32,23 @@ public class WebRequestMetric {
     }
 
     public void add(long costTime, int errorCount) {
-        this.costTime.add(costTime);
-        this.errorCount.add(errorCount);
+        this.costTime.update(costTime);
+        this.errorCount.update(errorCount);
         this.requestCount.incr();
     }
 
     public void add(long costTime, int errorCount, int count4xx, int count5xx) {
         this.add(costTime, errorCount);
-        this.count4xx.add(count4xx);
-        this.count5xx.add(count5xx);
+        this.count4xx.update(count4xx);
+        this.count5xx.update(count5xx);
     }
 
     public void addBytes(long requestByteSize, long responseByteSize) {
         if (requestByteSize > 0) {
-            this.requestByteSize.add(requestByteSize);
+            this.requestByteSize.update(requestByteSize);
         }
         if (responseByteSize > 0) {
-            this.responseByteSize.add(responseByteSize);
+            this.responseByteSize.update(responseByteSize);
         }
     }
 
@@ -59,8 +60,8 @@ public class WebRequestMetric {
         return uri;
     }
 
-    public long getCostTime() {
-        return costTime.get();
+    public Compund getCostTime() {
+        return costTime;
     }
 
     public long getRequestCount() {

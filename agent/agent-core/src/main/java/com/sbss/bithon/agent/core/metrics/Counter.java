@@ -23,7 +23,7 @@ public class Counter {
         value.incrementAndGet();
     }
 
-    public void add(long delta) {
+    public void update(long delta) {
         value.addAndGet(delta);
     }
 

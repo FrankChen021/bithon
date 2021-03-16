@@ -23,14 +23,14 @@ public class RedisMetric {
     }
 
     public void addRequest(long writeCostTime, int exceptionCount) {
-        this.requestTime.add(writeCostTime);
-        this.exceptionCount.add(exceptionCount);
+        this.requestTime.update(writeCostTime);
+        this.exceptionCount.update(exceptionCount);
         this.totalCount.incr();
     }
 
     public void addResponse(long readCostTime, int exceptionCount) {
-        this.responseTime.add(readCostTime);
-        this.exceptionCount.add(exceptionCount);
+        this.responseTime.update(readCostTime);
+        this.exceptionCount.update(exceptionCount);
     }
 
     public long getRequestTime() {
@@ -66,10 +66,10 @@ public class RedisMetric {
     }
 
     public void addResponseBytes(int responseBytes) {
-        this.responseBytes.add(responseBytes);
+        this.responseBytes.update(responseBytes);
     }
 
     public void addRequestBytes(int requestBytes) {
-        this.requestBytes.add(requestBytes);
+        this.requestBytes.update(requestBytes);
     }
 }

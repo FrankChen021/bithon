@@ -183,6 +183,26 @@ class MetricJdbcReader implements IMetricReader {
             return visitLast(metricSpec.getName());
         }
 
+        @Override
+        public String visit(LongMinMetricSpec metricSpec) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("min(\"%s\")", metricSpec.getName()));
+            if (addAlias) {
+                sb.append(String.format(" \"%s\"", metricSpec.getName()));
+            }
+            return sb.toString();
+        }
+
+        @Override
+        public String visit(LongMaxMetricSpec metricSpec) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("max(\"%s\")", metricSpec.getName()));
+            if (addAlias) {
+                sb.append(String.format(" \"%s\"", metricSpec.getName()));
+            }
+            return sb.toString();
+        }
+
         private String visitLast(String metricName) {
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("(SELECT \"%s\" FROM \"%s\" B WHERE B.\"timestamp\" = \"%s\".\"timestamp\" ORDER BY \"timestamp\" DESC LIMIT 1)",

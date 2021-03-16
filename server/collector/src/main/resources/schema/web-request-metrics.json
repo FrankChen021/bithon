@@ -31,8 +31,28 @@
     {
       "type": "longSum",
       "name": "costTime",
-      "displayText": "Connection Count",
+      "displayText": "Accumulative cost Time",
+      "unit": "Nano Second",
+      "visible": false
+    },
+    {
+      "type": "longMin",
+      "name": "minCostTime",
+      "displayText": "min cost time",
       "unit": "Nano Second"
+    },
+    {
+      "type": "longMax",
+      "name": "maxCostTime",
+      "displayText": "Max cost time",
+      "unit": "Nano Second"
+    },
+    {
+      "type": "longSum",
+      "name": "interval",
+      "displayText": "Period of metric",
+      "unit": "second",
+      "visible": false
     },
     {
       "type": "longSum",
@@ -76,6 +96,14 @@
       "expression": "costTime/1000.0/1000/requestCount",
       "displayText": "Avg cost time",
       "unit": "Milli",
+      "valueType": "double"
+    },
+    {
+      "type": "postAggregator",
+      "name": "qps",
+      "expression": "requestCount/interval",
+      "displayText": "QPS",
+      "unit": "",
       "valueType": "double"
     }
   ]

@@ -14,6 +14,12 @@ var web_request_metrics_dashboard = {
         },{
           "name": "avgCostTime",
           "yAxis": 1
+        },{
+            "name": "minCostTime",
+            "yAxis": 1
+        },{
+            "name": "maxCostTime",
+            "yAxis": 1
         }]
     }]
 }

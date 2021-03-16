@@ -26,7 +26,7 @@ public class SqlMetric {
     }
 
     public void add(boolean isQuery, boolean failed, long costTime) {
-        this.totalCostTime.add(costTime);
+        this.totalCostTime.update(costTime);
         if (isQuery) {
             this.totalQueryCount.incr();
         } else {
@@ -65,11 +65,11 @@ public class SqlMetric {
     }
 
     public void addBytesIn(int bytesIn) {
-        this.totalBytesIn.add(bytesIn);
+        this.totalBytesIn.update(bytesIn);
     }
 
     public void addBytesOut(int bytesOut) {
-        this.totalBytesOut.add(bytesOut);
+        this.totalBytesOut.update(bytesOut);
     }
 
     public String getDriverType() {

@@ -22,6 +22,8 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
   private static final org.apache.thrift.protocol.TField COUNT5XX_FIELD_DESC = new org.apache.thrift.protocol.TField("count5xx", org.apache.thrift.protocol.TType.I64, (short)9);
   private static final org.apache.thrift.protocol.TField REQUEST_BYTE_SIZE_FIELD_DESC = new org.apache.thrift.protocol.TField("requestByteSize", org.apache.thrift.protocol.TType.I64, (short)10);
   private static final org.apache.thrift.protocol.TField RESPONSE_BYTE_SIZE_FIELD_DESC = new org.apache.thrift.protocol.TField("responseByteSize", org.apache.thrift.protocol.TType.I64, (short)11);
+  private static final org.apache.thrift.protocol.TField MIN_COST_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("minCostTime", org.apache.thrift.protocol.TType.I64, (short)12);
+  private static final org.apache.thrift.protocol.TField MAX_COST_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("maxCostTime", org.apache.thrift.protocol.TType.I64, (short)13);
 
   private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new WebRequestMetricMessageStandardSchemeFactory();
   private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new WebRequestMetricMessageTupleSchemeFactory();
@@ -37,6 +39,8 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
   public long count5xx; // required
   public long requestByteSize; // required
   public long responseByteSize; // required
+  public long minCostTime; // required
+  public long maxCostTime; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -50,7 +54,9 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     COUNT4XX((short)8, "count4xx"),
     COUNT5XX((short)9, "count5xx"),
     REQUEST_BYTE_SIZE((short)10, "requestByteSize"),
-    RESPONSE_BYTE_SIZE((short)11, "responseByteSize");
+    RESPONSE_BYTE_SIZE((short)11, "responseByteSize"),
+    MIN_COST_TIME((short)12, "minCostTime"),
+    MAX_COST_TIME((short)13, "maxCostTime");
 
     private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -88,6 +94,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
           return REQUEST_BYTE_SIZE;
         case 11: // RESPONSE_BYTE_SIZE
           return RESPONSE_BYTE_SIZE;
+        case 12: // MIN_COST_TIME
+          return MIN_COST_TIME;
+        case 13: // MAX_COST_TIME
+          return MAX_COST_TIME;
         default:
           return null;
       }
@@ -138,6 +148,8 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
   private static final int __COUNT5XX_ISSET_ID = 6;
   private static final int __REQUESTBYTESIZE_ISSET_ID = 7;
   private static final int __RESPONSEBYTESIZE_ISSET_ID = 8;
+  private static final int __MINCOSTTIME_ISSET_ID = 9;
+  private static final int __MAXCOSTTIME_ISSET_ID = 10;
   private short __isset_bitfield = 0;
   private static final _Fields optionals[] = {_Fields.SRC_APPLICATION};
   public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
@@ -165,6 +177,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.RESPONSE_BYTE_SIZE, new org.apache.thrift.meta_data.FieldMetaData("responseByteSize", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.MIN_COST_TIME, new org.apache.thrift.meta_data.FieldMetaData("minCostTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.MAX_COST_TIME, new org.apache.thrift.meta_data.FieldMetaData("maxCostTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(WebRequestMetricMessage.class, metaDataMap);
   }
@@ -182,7 +198,9 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     long count4xx,
     long count5xx,
     long requestByteSize,
-    long responseByteSize)
+    long responseByteSize,
+    long minCostTime,
+    long maxCostTime)
   {
     this();
     this.timestamp = timestamp;
@@ -204,6 +222,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     setRequestByteSizeIsSet(true);
     this.responseByteSize = responseByteSize;
     setResponseByteSizeIsSet(true);
+    this.minCostTime = minCostTime;
+    setMinCostTimeIsSet(true);
+    this.maxCostTime = maxCostTime;
+    setMaxCostTimeIsSet(true);
   }
 
   /**
@@ -226,6 +248,8 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     this.count5xx = other.count5xx;
     this.requestByteSize = other.requestByteSize;
     this.responseByteSize = other.responseByteSize;
+    this.minCostTime = other.minCostTime;
+    this.maxCostTime = other.maxCostTime;
   }
 
   public WebRequestMetricMessage deepCopy() {
@@ -254,6 +278,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     this.requestByteSize = 0;
     setResponseByteSizeIsSet(false);
     this.responseByteSize = 0;
+    setMinCostTimeIsSet(false);
+    this.minCostTime = 0;
+    setMaxCostTimeIsSet(false);
+    this.maxCostTime = 0;
   }
 
   public long getTimestamp() {
@@ -513,6 +541,52 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __RESPONSEBYTESIZE_ISSET_ID, value);
   }
 
+  public long getMinCostTime() {
+    return this.minCostTime;
+  }
+
+  public WebRequestMetricMessage setMinCostTime(long minCostTime) {
+    this.minCostTime = minCostTime;
+    setMinCostTimeIsSet(true);
+    return this;
+  }
+
+  public void unsetMinCostTime() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __MINCOSTTIME_ISSET_ID);
+  }
+
+  /** Returns true if field minCostTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetMinCostTime() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __MINCOSTTIME_ISSET_ID);
+  }
+
+  public void setMinCostTimeIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __MINCOSTTIME_ISSET_ID, value);
+  }
+
+  public long getMaxCostTime() {
+    return this.maxCostTime;
+  }
+
+  public WebRequestMetricMessage setMaxCostTime(long maxCostTime) {
+    this.maxCostTime = maxCostTime;
+    setMaxCostTimeIsSet(true);
+    return this;
+  }
+
+  public void unsetMaxCostTime() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __MAXCOSTTIME_ISSET_ID);
+  }
+
+  /** Returns true if field maxCostTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetMaxCostTime() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __MAXCOSTTIME_ISSET_ID);
+  }
+
+  public void setMaxCostTimeIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __MAXCOSTTIME_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
     switch (field) {
     case TIMESTAMP:
@@ -603,6 +677,22 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       }
       break;
 
+    case MIN_COST_TIME:
+      if (value == null) {
+        unsetMinCostTime();
+      } else {
+        setMinCostTime((java.lang.Long)value);
+      }
+      break;
+
+    case MAX_COST_TIME:
+      if (value == null) {
+        unsetMaxCostTime();
+      } else {
+        setMaxCostTime((java.lang.Long)value);
+      }
+      break;
+
     }
   }
 
@@ -642,6 +732,12 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     case RESPONSE_BYTE_SIZE:
       return getResponseByteSize();
 
+    case MIN_COST_TIME:
+      return getMinCostTime();
+
+    case MAX_COST_TIME:
+      return getMaxCostTime();
+
     }
     throw new java.lang.IllegalStateException();
   }
@@ -675,6 +771,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       return isSetRequestByteSize();
     case RESPONSE_BYTE_SIZE:
       return isSetResponseByteSize();
+    case MIN_COST_TIME:
+      return isSetMinCostTime();
+    case MAX_COST_TIME:
+      return isSetMaxCostTime();
     }
     throw new java.lang.IllegalStateException();
   }
@@ -791,6 +891,24 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
         return false;
     }
 
+    boolean this_present_minCostTime = true;
+    boolean that_present_minCostTime = true;
+    if (this_present_minCostTime || that_present_minCostTime) {
+      if (!(this_present_minCostTime && that_present_minCostTime))
+        return false;
+      if (this.minCostTime != that.minCostTime)
+        return false;
+    }
+
+    boolean this_present_maxCostTime = true;
+    boolean that_present_maxCostTime = true;
+    if (this_present_maxCostTime || that_present_maxCostTime) {
+      if (!(this_present_maxCostTime && that_present_maxCostTime))
+        return false;
+      if (this.maxCostTime != that.maxCostTime)
+        return false;
+    }
+
     return true;
   }
 
@@ -823,6 +941,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(requestByteSize);
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(responseByteSize);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(minCostTime);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(maxCostTime);
 
     return hashCode;
   }
@@ -945,6 +1067,26 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
         return lastComparison;
       }
     }
+    lastComparison = java.lang.Boolean.compare(isSetMinCostTime(), other.isSetMinCostTime());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMinCostTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.minCostTime, other.minCostTime);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetMaxCostTime(), other.isSetMaxCostTime());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMaxCostTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.maxCostTime, other.maxCostTime);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -1018,6 +1160,14 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     if (!first) sb.append(", ");
     sb.append("responseByteSize:");
     sb.append(this.responseByteSize);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("minCostTime:");
+    sb.append(this.minCostTime);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("maxCostTime:");
+    sb.append(this.maxCostTime);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -1152,6 +1302,22 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 12: // MIN_COST_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.minCostTime = iprot.readI64();
+              struct.setMinCostTimeIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 13: // MAX_COST_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.maxCostTime = iprot.readI64();
+              struct.setMaxCostTimeIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -1206,6 +1372,12 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       oprot.writeFieldBegin(RESPONSE_BYTE_SIZE_FIELD_DESC);
       oprot.writeI64(struct.responseByteSize);
       oprot.writeFieldEnd();
+      oprot.writeFieldBegin(MIN_COST_TIME_FIELD_DESC);
+      oprot.writeI64(struct.minCostTime);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(MAX_COST_TIME_FIELD_DESC);
+      oprot.writeI64(struct.maxCostTime);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1257,7 +1429,13 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       if (struct.isSetResponseByteSize()) {
         optionals.set(10);
       }
-      oprot.writeBitSet(optionals, 11);
+      if (struct.isSetMinCostTime()) {
+        optionals.set(11);
+      }
+      if (struct.isSetMaxCostTime()) {
+        optionals.set(12);
+      }
+      oprot.writeBitSet(optionals, 13);
       if (struct.isSetTimestamp()) {
         oprot.writeI64(struct.timestamp);
       }
@@ -1291,12 +1469,18 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       if (struct.isSetResponseByteSize()) {
         oprot.writeI64(struct.responseByteSize);
       }
+      if (struct.isSetMinCostTime()) {
+        oprot.writeI64(struct.minCostTime);
+      }
+      if (struct.isSetMaxCostTime()) {
+        oprot.writeI64(struct.maxCostTime);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, WebRequestMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-      java.util.BitSet incoming = iprot.readBitSet(11);
+      java.util.BitSet incoming = iprot.readBitSet(13);
       if (incoming.get(0)) {
         struct.timestamp = iprot.readI64();
         struct.setTimestampIsSet(true);
@@ -1340,6 +1524,14 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       if (incoming.get(10)) {
         struct.responseByteSize = iprot.readI64();
         struct.setResponseByteSizeIsSet(true);
+      }
+      if (incoming.get(11)) {
+        struct.minCostTime = iprot.readI64();
+        struct.setMinCostTimeIsSet(true);
+      }
+      if (incoming.get(12)) {
+        struct.maxCostTime = iprot.readI64();
+        struct.setMaxCostTimeIsSet(true);
       }
     }
   }

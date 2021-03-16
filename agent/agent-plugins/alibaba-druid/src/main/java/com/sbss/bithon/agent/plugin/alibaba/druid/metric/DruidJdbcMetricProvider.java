@@ -37,18 +37,18 @@ public class DruidJdbcMetricProvider implements IMetricProvider {
         if (source == null) {
             return;
         }
-        source.getJdbcMetric().activeCount.add(dataSource.getActiveCount());
-        source.getJdbcMetric().createCount.add(statistic.getPhysicalConnectCount());
-        source.getJdbcMetric().destroyCount.add(statistic.getPhysicalCloseCount());
-        source.getJdbcMetric().createErrorCount.add(statistic.getPhysicalConnectErrorCount());
+        source.getJdbcMetric().activeCount.update(dataSource.getActiveCount());
+        source.getJdbcMetric().createCount.update(statistic.getPhysicalConnectCount());
+        source.getJdbcMetric().destroyCount.update(statistic.getPhysicalCloseCount());
+        source.getJdbcMetric().createErrorCount.update(statistic.getPhysicalConnectErrorCount());
         source.getJdbcMetric().poolingPeak.add(statistic.getPoolingPeak());
         source.getJdbcMetric().activePeak.add(statistic.getActivePeak());
-        source.getJdbcMetric().logicConnectionCount.add(statistic.getConnectCount());
-        source.getJdbcMetric().logicCloseCount.add(statistic.getCloseCount());
-        source.getJdbcMetric().executeCount.add(statistic.getExecuteCount());
-        source.getJdbcMetric().commitCount.add(statistic.getCommitCount());
-        source.getJdbcMetric().rollbackCount.add(statistic.getRollbackCount());
-        source.getJdbcMetric().startTransactionCount.add(statistic.getStartTransactionCount());
+        source.getJdbcMetric().logicConnectionCount.update(statistic.getConnectCount());
+        source.getJdbcMetric().logicCloseCount.update(statistic.getCloseCount());
+        source.getJdbcMetric().executeCount.update(statistic.getExecuteCount());
+        source.getJdbcMetric().commitCount.update(statistic.getCommitCount());
+        source.getJdbcMetric().rollbackCount.update(statistic.getRollbackCount());
+        source.getJdbcMetric().startTransactionCount.update(statistic.getStartTransactionCount());
     }
 
     @Override
