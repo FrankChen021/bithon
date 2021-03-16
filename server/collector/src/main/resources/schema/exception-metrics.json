@@ -1,0 +1,42 @@
+{
+  "displayText": "Exception",
+  "name": "exception-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance",
+      "required": true
+    },
+    {
+      "name": "uri",
+      "displayText": "URL",
+      "required": true
+    },
+    {
+      "name": "className",
+      "displayText": "Class Name",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "exceptionCount",
+      "displayText": "Exception Count",
+      "unit": ""
+    }
+  ]
+}
+
+
+
+

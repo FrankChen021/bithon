@@ -1,6 +1,5 @@
 package com.sbss.bithon.server.events.collector;
 
-import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.server.collector.AbstractThreadPoolMessageHandler;
 import com.sbss.bithon.server.events.storage.IEventStorage;
 import com.sbss.bithon.server.events.storage.IEventWriter;
@@ -16,7 +15,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Component
-public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<MessageHeader, EventMessage> {
+public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<EventMessage> {
 
     final IEventWriter eventWriter;
 
@@ -26,8 +25,13 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Messa
     }
 
     @Override
-    protected void onMessage(MessageHeader header, EventMessage body) throws IOException {
+    protected void onMessage(EventMessage body) throws IOException {
         log.info("Receiving Event Message: {}", body);
         eventWriter.write(body);
+    }
+
+    @Override
+    public String getType() {
+        return "event";
     }
 }

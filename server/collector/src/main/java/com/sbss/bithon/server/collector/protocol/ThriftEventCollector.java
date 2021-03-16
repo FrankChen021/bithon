@@ -3,9 +3,10 @@ package com.sbss.bithon.server.collector.protocol;
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.event.IEventCollector;
 import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
+import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.events.collector.EventMessage;
-import com.sbss.bithon.server.events.collector.EventsMessageHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,12 +15,12 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class EventCollectorThriftImpl implements IEventCollector.Iface {
+public class ThriftEventCollector implements IEventCollector.Iface {
 
-    private final EventsMessageHandler messageHandler;
+    private final IMessageSink<EventMessage> eventSink;
 
-    public EventCollectorThriftImpl(EventsMessageHandler messageHandler) {
-        this.messageHandler = messageHandler;
+    public ThriftEventCollector(@Qualifier("eventSink") IMessageSink<EventMessage> eventSink) {
+        this.eventSink = eventSink;
     }
 
     @Override
@@ -30,6 +31,6 @@ public class EventCollectorThriftImpl implements IEventCollector.Iface {
             .type(message.getEventType())
             .args(message.getArguments())
             .build();
-        messageHandler.submit(header, eventMessage);
+        eventSink.process("event", eventMessage);
     }
 }

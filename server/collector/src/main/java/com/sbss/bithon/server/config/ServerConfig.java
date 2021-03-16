@@ -2,7 +2,9 @@ package com.sbss.bithon.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
-import com.sbss.bithon.server.collector.sink.LocalSink;
+import com.sbss.bithon.server.collector.sink.local.LocalEventSink;
+import com.sbss.bithon.server.collector.sink.local.LocalMetricSink;
+import com.sbss.bithon.server.collector.sink.local.LocalTraceSink;
 import com.sbss.bithon.server.events.storage.IEventStorage;
 import com.sbss.bithon.server.events.storage.jdbc.EventJdbcStorage;
 import com.sbss.bithon.server.meta.storage.CachableMetadataStorage;
@@ -45,8 +47,8 @@ public class ServerConfig {
         return new EventJdbcStorage(dslContext, objectMapper);
     }
 
-    @Bean
-    public IMessageSink collectorSink(JvmMetricMessageHandler jvmMetricMessageHandler,
+    @Bean("metricSink")
+    public IMessageSink metricSink(JvmMetricMessageHandler jvmMetricMessageHandler,
                                       JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
                                       WebRequestMetricMessageHandler webRequestMetricMessageHandler,
                                       WebServerMetricMessageHandler webServerMetricMessageHandler,
@@ -55,7 +57,7 @@ public class ServerConfig {
                                       ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
                                       JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
                                       RedisMetricMessageHandler redisMetricMessageHandler) {
-        return new LocalSink(jvmMetricMessageHandler,
+        return new LocalMetricSink(jvmMetricMessageHandler,
                 jvmGcMetricMessageHandler,
                 webRequestMetricMessageHandler,
                 webServerMetricMessageHandler,
@@ -64,5 +66,15 @@ public class ServerConfig {
                 threadPoolMetricMessageHandler,
                 jdbcPoolMetricMessageHandler,
                 redisMetricMessageHandler);
+    }
+
+    @Bean("eventSink")
+    public IMessageSink eventSink() {
+        return new LocalEventSink();
+    }
+
+    @Bean("traceSink")
+    public IMessageSink traceSink() {
+        return new LocalTraceSink();
     }
 }

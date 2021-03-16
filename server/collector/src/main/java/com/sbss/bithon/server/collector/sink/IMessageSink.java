@@ -5,6 +5,6 @@ import java.util.Map;
 /**
  * @author frankchen
  */
-public interface IMessageSink {
-    void process(String messageType, Map<String, Object> message);
+public interface IMessageSink<MSG> {
+    void process(String messageType, MSG message);
 }
