@@ -4,6 +4,7 @@ import com.sbss.bithon.server.common.matcher.*;
 import com.sbss.bithon.server.common.utils.datetime.TimeSpan;
 import com.sbss.bithon.server.metric.DataSourceSchema;
 import com.sbss.bithon.server.metric.metric.*;
+import com.sbss.bithon.server.metric.metric.aggregator.PostAggregatorExpressionVisitor;
 import com.sbss.bithon.server.metric.metric.aggregator.PostAggregatorMetricSpec;
 import com.sbss.bithon.server.metric.storage.DimensionCondition;
 import com.sbss.bithon.server.metric.storage.IMetricReader;
@@ -128,32 +129,32 @@ class MetricJdbcReader implements IMetricReader {
         @Override
         public String visit(PostAggregatorMetricSpec metricSpec) {
             StringBuilder sb = new StringBuilder();
-//            metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
-//                @Override
-//                public void visitMetric(IMetricSpec metricSpec) {
-//                    sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(dataSource, false)));
-//                }
-//
-//                @Override
-//                public void visitConst(String constant) {
-//                    sb.append(constant);
-//                }
-//
-//                @Override
-//                public void visit(String operator) {
-//                    sb.append(operator);
-//                }
-//
-//                @Override
-//                public void startBrace() {
-//                    sb.append('(');
-//                }
-//
-//                @Override
-//                public void endBrace() {
-//                    sb.append(')');
-//                }
-//            });
+            metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
+                @Override
+                public void visitMetric(IMetricSpec metricSpec) {
+                    sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(null, null, dataSource, false)));
+                }
+
+                @Override
+                public void visitConst(String constant) {
+                    sb.append(constant);
+                }
+
+                @Override
+                public void visit(String operator) {
+                    sb.append(operator);
+                }
+
+                @Override
+                public void startBrace() {
+                    sb.append('(');
+                }
+
+                @Override
+                public void endBrace() {
+                    sb.append(')');
+                }
+            });
             sb.append(String.format(" \"%s\"", metricSpec.getName()));
             return sb.toString();
         }

@@ -6,13 +6,13 @@ var web_request_metrics_dashboard = {
         "width": 4, //1,2,3,4
         "yAxis": [ {
             },{
-            "formatter": "nano2Millisecond"
+            "formatter": "millisecond"
           }
         ],
         "metrics":[{
             "name": "requestCount"
         },{
-          "name": "costTime",
+          "name": "avgCostTime",
           "yAxis": 1
         }]
     }]

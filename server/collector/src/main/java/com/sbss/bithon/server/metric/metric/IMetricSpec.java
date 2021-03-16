@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.sbss.bithon.server.metric.DataSourceSchema;
+import com.sbss.bithon.server.metric.metric.aggregator.PostAggregatorMetricSpec;
 import com.sbss.bithon.server.metric.typing.IValueType;
 
 /**
@@ -15,7 +16,8 @@ import com.sbss.bithon.server.metric.typing.IValueType;
     @JsonSubTypes.Type(name = IMetricSpec.LONG_SUM, value = LongSumMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_SUM, value = DoubleSumMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.LONG_LAST, value = LongLastMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_LAST, value = DoubleLastMetricSpec.class)
+    @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_LAST, value = DoubleLastMetricSpec.class),
+    @JsonSubTypes.Type(name = IMetricSpec.POST_AGGREGATOR, value = PostAggregatorMetricSpec.class),
 })
 public interface IMetricSpec {
 

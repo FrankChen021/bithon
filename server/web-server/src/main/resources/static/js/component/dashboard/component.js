@@ -382,6 +382,9 @@ class Dashboard {
             case 'nano2Millisecond': return function(v) {
                 return (v / 1000 / 1000).toFixed(2) + 'ms';
             }
+            case 'millisecond': return function(v) {
+                return v + 'ms';
+            }
             default: return null;
         }
     }
