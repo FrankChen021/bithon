@@ -40,7 +40,7 @@ public class TraceSpan {
         message.forEach((spanMessage) -> {
             TraceSpan traceSpan = new TraceSpan();
             traceSpan.appName = header.appName;
-            traceSpan.instanceName = header.hostName;
+            traceSpan.instanceName = header.instanceName;
             traceSpan.kind = spanMessage.kind;
             traceSpan.name = spanMessage.name;
             traceSpan.traceId = spanMessage.traceId;

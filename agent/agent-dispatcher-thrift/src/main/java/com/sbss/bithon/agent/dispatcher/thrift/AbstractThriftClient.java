@@ -1,13 +1,14 @@
 package com.sbss.bithon.agent.dispatcher.thrift;
 
 import org.apache.thrift.TApplicationException;
+import org.apache.thrift.TConfiguration;
 import org.apache.thrift.TServiceClient;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
-import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.transport.layered.TFramedTransport;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -93,23 +94,24 @@ public abstract class AbstractThriftClient<T extends TServiceClient> {
         if (null == client) {
             HostAndPort hostAndPort = this.servers.get(++serverSelector % servers.size());
             try {
-                TTransport transport = new TFramedTransport(new TSocket(hostAndPort.host,
-                                                                        hostAndPort.port,
-                                                                        timeout));
+                TTransport transport = new TFramedTransport(new TSocket(new TConfiguration(),
+                        hostAndPort.host,
+                        hostAndPort.port,
+                        timeout));
                 if (!transport.isOpen()) {
                     transport.open();
                 }
 
                 client = createClient(new TMultiplexedProtocol(new TCompactProtocol(transport),
-                                                               clientName));
+                        clientName));
             } catch (TTransportException e) {
                 if (e.getCause() instanceof IOException) {
                     log.error("Failed to connect to server[{}:{}] for [{}], cause:[{}] message:{}",
-                              hostAndPort.host,
-                              hostAndPort.port,
-                              this.clientName,
-                              e.getCause().getClass().getSimpleName(),
-                              e.getCause().getMessage());
+                            hostAndPort.host,
+                            hostAndPort.port,
+                            this.clientName,
+                            e.getCause().getClass().getSimpleName(),
+                            e.getCause().getMessage());
                 } else {
                     log.error(e.getMessage(), e);
                 }
