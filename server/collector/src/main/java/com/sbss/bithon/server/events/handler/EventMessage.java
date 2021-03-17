@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.events.collector;
+package com.sbss.bithon.server.events.handler;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

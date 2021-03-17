@@ -2,7 +2,7 @@ package com.sbss.bithon.server.tracing.api;
 
 import com.sbss.bithon.server.tracing.storage.ITraceReader;
 import com.sbss.bithon.server.tracing.storage.ITraceStorage;
-import com.sbss.bithon.server.tracing.storage.TraceSpan;
+import com.sbss.bithon.server.tracing.handler.TraceSpan;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;

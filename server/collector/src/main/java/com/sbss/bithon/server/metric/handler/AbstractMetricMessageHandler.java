@@ -1,7 +1,6 @@
-package com.sbss.bithon.server.metric.collector;
+package com.sbss.bithon.server.metric.handler;
 
-import com.sbss.bithon.server.collector.AbstractThreadPoolMessageHandler;
-import com.sbss.bithon.server.collector.GenericMessage;
+import com.sbss.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.MetadataType;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
@@ -22,7 +21,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Getter
-public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMessageHandler<GenericMessage> {
+public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMessageHandler<GenericMetricMessage> {
 
     private final DataSourceSchema schema;
     private final IMetaStorage metaStorage;
@@ -48,10 +47,10 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
         return this.schema.getName();
     }
 
-    abstract void toMetricObject(GenericMessage message) throws Exception;
+    abstract void toMetricObject(GenericMetricMessage message) throws Exception;
 
     @Override
-    final protected void onMessage(GenericMessage message) {
+    final protected void onMessage(GenericMetricMessage message) {
         try {
             toMetricObject(message);
             processMetricObject(message);
@@ -60,11 +59,11 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
         }
     }
 
-    protected boolean beforeProcessMetricObject(GenericMessage metricObject) throws Exception {
+    protected boolean beforeProcessMetricObject(GenericMetricMessage metricObject) throws Exception {
         return true;
     }
 
-    private void processMetricObject(GenericMessage metricObject) throws Exception {
+    private void processMetricObject(GenericMetricMessage metricObject) throws Exception {
         if (metricObject == null) {
             return;
         }

@@ -1,9 +1,6 @@
-package com.sbss.bithon.server.metric.collector;
+package com.sbss.bithon.server.metric.handler;
 
-import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
 import com.sbss.bithon.component.db.dao.EndPointType;
-import com.sbss.bithon.server.collector.GenericMessage;
 import com.sbss.bithon.server.common.service.UriNormalizer;
 import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
@@ -39,7 +36,7 @@ public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler
     }
 
     @Override
-    void toMetricObject(GenericMessage message) {
+    void toMetricObject(GenericMetricMessage message) {
         if (message.getLong("requestCount") <= 0 ) {
             return;
         }

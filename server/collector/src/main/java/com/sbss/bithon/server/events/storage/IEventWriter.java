@@ -1,6 +1,6 @@
 package com.sbss.bithon.server.events.storage;
 
-import com.sbss.bithon.server.events.collector.EventMessage;
+import com.sbss.bithon.server.events.handler.EventMessage;
 
 import java.io.IOException;
 

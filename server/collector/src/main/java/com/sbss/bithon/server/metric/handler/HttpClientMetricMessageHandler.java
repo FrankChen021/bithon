@@ -1,7 +1,6 @@
-package com.sbss.bithon.server.metric.collector;
+package com.sbss.bithon.server.metric.handler;
 
 import com.sbss.bithon.component.db.dao.EndPointType;
-import com.sbss.bithon.server.collector.GenericMessage;
 import com.sbss.bithon.server.common.service.UriNormalizer;
 import com.sbss.bithon.server.common.utils.NetworkUtils;
 import com.sbss.bithon.server.meta.EndPointLink;
@@ -41,7 +40,7 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
     }
 
     @Override
-    void toMetricObject(GenericMessage metricObject) throws Exception {
+    void toMetricObject(GenericMetricMessage metricObject) throws Exception {
         if (metricObject.getLong("requestCount") <= 0 ) {
             return;
         }

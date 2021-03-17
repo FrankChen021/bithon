@@ -1,7 +1,7 @@
 package com.sbss.bithon.server.events.storage.jdbc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sbss.bithon.server.events.collector.EventMessage;
+import com.sbss.bithon.server.events.handler.EventMessage;
 import com.sbss.bithon.server.events.storage.IEventReader;
 import com.sbss.bithon.server.events.storage.IEventStorage;
 import com.sbss.bithon.server.events.storage.IEventWriter;

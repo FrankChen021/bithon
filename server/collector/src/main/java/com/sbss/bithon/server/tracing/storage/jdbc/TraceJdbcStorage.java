@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sbss.bithon.server.tracing.storage.ITraceReader;
 import com.sbss.bithon.server.tracing.storage.ITraceStorage;
 import com.sbss.bithon.server.tracing.storage.ITraceWriter;
-import com.sbss.bithon.server.tracing.storage.TraceSpan;
+import com.sbss.bithon.server.tracing.handler.TraceSpan;
 import com.sbss.bithon.component.db.jooq.Indexes;
 import com.sbss.bithon.component.db.jooq.Tables;
 import com.sbss.bithon.component.db.jooq.tables.records.BithonTraceSpanRecord;

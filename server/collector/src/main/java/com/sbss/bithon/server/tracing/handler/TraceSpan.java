@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.tracing.storage;
+package com.sbss.bithon.server.tracing.handler;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;

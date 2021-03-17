@@ -1,5 +1,7 @@
 package com.sbss.bithon.server.tracing.storage;
 
+import com.sbss.bithon.server.tracing.handler.TraceSpan;
+
 import java.util.List;
 
 /**

@@ -4,7 +4,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.ITraceCollector;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
-import com.sbss.bithon.server.tracing.storage.TraceSpan;
+import com.sbss.bithon.server.tracing.handler.TraceSpan;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -17,11 +17,11 @@ import java.util.List;
  */
 @Slf4j
 @Service
-public class ThriftTraceCollectorThriftImpl implements ITraceCollector.Iface {
+public class ThriftTraceCollector implements ITraceCollector.Iface {
 
     private final IMessageSink<List<TraceSpan>> traceSink;
 
-    public ThriftTraceCollectorThriftImpl(@Qualifier("traceSink") IMessageSink<List<TraceSpan>> traceSink) {
+    public ThriftTraceCollector(@Qualifier("traceSink") IMessageSink<List<TraceSpan>> traceSink) {
         this.traceSink = traceSink;
     }
 

@@ -1,8 +1,8 @@
 package com.sbss.bithon.server.collector.sink.local;
 
 import com.sbss.bithon.server.collector.sink.IMessageSink;
-import com.sbss.bithon.server.tracing.collector.TraceMessageHandler;
-import com.sbss.bithon.server.tracing.storage.TraceSpan;
+import com.sbss.bithon.server.tracing.handler.TraceMessageHandler;
+import com.sbss.bithon.server.tracing.handler.TraceSpan;
 
 import java.util.List;
 

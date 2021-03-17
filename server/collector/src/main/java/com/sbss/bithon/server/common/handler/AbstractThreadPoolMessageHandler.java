@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.collector;
+package com.sbss.bithon.server.common.handler;
 
 import lombok.extern.slf4j.Slf4j;
 

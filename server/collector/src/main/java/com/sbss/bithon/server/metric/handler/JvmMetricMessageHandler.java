@@ -1,8 +1,5 @@
-package com.sbss.bithon.server.metric.collector;
+package com.sbss.bithon.server.metric.handler;
 
-import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
-import com.sbss.bithon.server.collector.GenericMessage;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -34,7 +31,7 @@ public class JvmMetricMessageHandler extends AbstractMetricMessageHandler {
     }
 
     @Override
-    void toMetricObject(GenericMessage message) {
+    void toMetricObject(GenericMetricMessage message) {
 
     }
 }

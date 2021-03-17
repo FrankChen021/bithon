@@ -1,13 +1,5 @@
-package com.sbss.bithon.server.metric.collector;
+package com.sbss.bithon.server.metric.handler;
 
-import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
-import com.sbss.bithon.server.collector.AbstractThreadPoolMessageHandler;
-import com.sbss.bithon.server.collector.GenericMessage;
-import com.sbss.bithon.server.common.service.UriNormalizer;
-import com.sbss.bithon.server.common.utils.ReflectionUtils;
-import com.sbss.bithon.server.common.utils.datetime.DateTimeUtils;
-import com.sbss.bithon.server.meta.MetadataType;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -16,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -40,7 +31,7 @@ public class ExceptionMetricMessageHandler extends AbstractMetricMessageHandler 
     }
 
     @Override
-    void toMetricObject(GenericMessage message) throws Exception {
+    void toMetricObject(GenericMetricMessage message) throws Exception {
 
     }
 }

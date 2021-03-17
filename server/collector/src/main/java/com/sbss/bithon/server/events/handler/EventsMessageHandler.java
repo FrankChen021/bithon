@@ -1,6 +1,6 @@
-package com.sbss.bithon.server.events.collector;
+package com.sbss.bithon.server.events.handler;
 
-import com.sbss.bithon.server.collector.AbstractThreadPoolMessageHandler;
+import com.sbss.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import com.sbss.bithon.server.events.storage.IEventStorage;
 import com.sbss.bithon.server.events.storage.IEventWriter;
 import lombok.extern.slf4j.Slf4j;

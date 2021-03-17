@@ -1,6 +1,6 @@
 package com.sbss.bithon.server.tracing.api;
 
-import com.sbss.bithon.server.tracing.storage.TraceSpan;
+import com.sbss.bithon.server.tracing.handler.TraceSpan;
 import lombok.Data;
 
 import java.util.ArrayList;

@@ -1,9 +1,9 @@
 package com.sbss.bithon.server.collector.sink.local;
 
-import com.sbss.bithon.server.collector.GenericMessage;
-import com.sbss.bithon.server.collector.IMessageHandler;
+import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
+import com.sbss.bithon.server.common.handler.IMessageHandler;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
-import com.sbss.bithon.server.metric.collector.*;
+import com.sbss.bithon.server.metric.handler.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +15,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class LocalMetricSink implements IMessageSink<GenericMessage> {
+public class LocalMetricSink implements IMessageSink<GenericMetricMessage> {
 
     private final Map<String, IMessageHandler> handlers = new HashMap<>();
 
@@ -44,7 +44,7 @@ public class LocalMetricSink implements IMessageSink<GenericMessage> {
     }
 
     @Override
-    public void process(String messageType, GenericMessage message) {
+    public void process(String messageType, GenericMetricMessage message) {
         IMessageHandler handler = handlers.get(messageType);
         if (handler != null) {
             handler.submit(message);

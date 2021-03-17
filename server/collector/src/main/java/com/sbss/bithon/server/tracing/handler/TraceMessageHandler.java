@@ -1,9 +1,8 @@
-package com.sbss.bithon.server.tracing.collector;
+package com.sbss.bithon.server.tracing.handler;
 
-import com.sbss.bithon.server.collector.AbstractThreadPoolMessageHandler;
+import com.sbss.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import com.sbss.bithon.server.tracing.storage.ITraceStorage;
 import com.sbss.bithon.server.tracing.storage.ITraceWriter;
-import com.sbss.bithon.server.tracing.storage.TraceSpan;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;

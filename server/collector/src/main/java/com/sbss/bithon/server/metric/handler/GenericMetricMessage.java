@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.collector;
+package com.sbss.bithon.server.metric.handler;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.*;
@@ -12,11 +12,11 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class GenericMessage {
+public class GenericMetricMessage {
 
     protected Map<String, Object> values;
 
-    public GenericMessage(Map<String, Object> values) {
+    public GenericMetricMessage(Map<String, Object> values) {
         this.values = values;
     }
 
@@ -56,12 +56,12 @@ public class GenericMessage {
         return (String) values.get(prop);
     }
 
-    public static GenericMessage of(MessageHeader header, WebRequestMetricMessage message) {
+    public static GenericMetricMessage of(MessageHeader header, WebRequestMetricMessage message) {
         Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMessage(ReflectionUtils.getFields(message, map));
+        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
     }
 
-    public static GenericMessage of(MessageHeader header, JvmMetricMessage message) {
+    public static GenericMetricMessage of(MessageHeader header, JvmMetricMessage message) {
         Map<String, Object> map = ReflectionUtils.getFields(header);
         ReflectionUtils.getFields(message.classesEntity, map);
         ReflectionUtils.getFields(message.cpuEntity, map);
@@ -75,37 +75,37 @@ public class GenericMessage {
 
         map.put("interval", message.interval);
         map.put("timestamp", message.timestamp);
-        return new GenericMessage(map);
+        return new GenericMetricMessage(map);
     }
 
-    public static GenericMessage of(MessageHeader header, ExceptionMetricMessage message) {
+    public static GenericMetricMessage of(MessageHeader header, ExceptionMetricMessage message) {
         Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMessage(ReflectionUtils.getFields(message, map));
+        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
     }
 
-    public static GenericMessage of(MessageHeader header, HttpClientMetricMessage message) {
+    public static GenericMetricMessage of(MessageHeader header, HttpClientMetricMessage message) {
         Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMessage(ReflectionUtils.getFields(message, map));
+        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
     }
 
-    public static GenericMessage of(MessageHeader header, WebServerMetricMessage message) {
+    public static GenericMetricMessage of(MessageHeader header, WebServerMetricMessage message) {
         Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMessage(ReflectionUtils.getFields(message, map));
+        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
     }
 
-    public static GenericMessage of(MessageHeader header, JdbcPoolMetricMessage message) {
+    public static GenericMetricMessage of(MessageHeader header, JdbcPoolMetricMessage message) {
         Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMessage(ReflectionUtils.getFields(message, map));
+        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
     }
 
-    public static GenericMessage of(MessageHeader header, RedisMetricMessage message) {
+    public static GenericMetricMessage of(MessageHeader header, RedisMetricMessage message) {
         Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMessage(ReflectionUtils.getFields(message, map));
+        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
     }
 
-    public static GenericMessage of(MessageHeader header, ThreadPoolMetricMessage message) {
+    public static GenericMetricMessage of(MessageHeader header, ThreadPoolMetricMessage message) {
         Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMessage(ReflectionUtils.getFields(message, map));
+        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
     }
 
     public Map<String, Object> getValues() {

@@ -1,9 +1,7 @@
 package com.sbss.bithon.server.collector.sink.local;
 
 import com.sbss.bithon.server.collector.sink.IMessageSink;
-import com.sbss.bithon.server.events.collector.EventMessage;
-
-import java.util.Map;
+import com.sbss.bithon.server.events.handler.EventMessage;
 
 /**
  * @author frank.chen021@outlook.com
