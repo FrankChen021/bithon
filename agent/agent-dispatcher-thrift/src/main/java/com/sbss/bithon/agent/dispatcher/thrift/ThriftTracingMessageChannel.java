@@ -19,10 +19,8 @@ import java.util.List;
  * @date 2021/1/6 11:40 下午
  */
 public class ThriftTracingMessageChannel implements IMessageChannel {
-    static Logger log = LoggerFactory.getLogger(ThriftTracingMessageChannel.class);
-
     private static final int MAX_RETRY = 3;
-
+    static Logger log = LoggerFactory.getLogger(ThriftTracingMessageChannel.class);
     private final AbstractThriftClient<ITraceCollector.Client> client;
     private final MessageHeader header;
 

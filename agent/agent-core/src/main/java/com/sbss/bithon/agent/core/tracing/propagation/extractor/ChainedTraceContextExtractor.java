@@ -14,7 +14,7 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
     private final ITraceContextExtractor[] extractors = new ITraceContextExtractor[]{
         new B3Extractor(),
         new BithonExtractor(),
-    };
+        };
 
     @Override
     public <R> TraceContext extract(R request, PropagationGetter<R> getter) {
@@ -38,7 +38,7 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
                                                 Tracer.get().reporter(),
                                                 Tracer.get().traceIdGenerator());
         context.currentSpan()
-            .parentApplication(getter.get(request, ITracePropagator.BITHON_SOURCE_APPLICATION));
+               .parentApplication(getter.get(request, ITracePropagator.BITHON_SOURCE_APPLICATION));
         return context;
     }
 

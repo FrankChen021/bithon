@@ -1,7 +1,14 @@
 package com.sbss.bithon.server.metric.handler;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.*;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
 
 import java.util.Map;
@@ -18,42 +25,6 @@ public class GenericMetricMessage {
 
     public GenericMetricMessage(Map<String, Object> values) {
         this.values = values;
-    }
-
-    public long getTimestamp() {
-        return (long) values.get("timestamp");
-    }
-
-    public String getApplicationName() {
-        return (String) values.get("appName");
-    }
-
-    public String getApplicationEnv() {
-        return (String) values.get("env");
-    }
-
-    public String getInstanceName() {
-        return (String) values.get("instanceName");
-    }
-
-    public long getLong(String prop) {
-        return (long) values.getOrDefault(prop, 0L);
-    }
-
-    public Object get(String prop) {
-        return values.get(prop);
-    }
-
-    public <T> T getAs(String prop) {
-        return (T) values.get(prop);
-    }
-
-    public void set(String prop, Object value) {
-        values.put(prop, value);
-    }
-
-    public String getString(String prop) {
-        return (String) values.get(prop);
     }
 
     public static GenericMetricMessage of(MessageHeader header, WebRequestMetricMessage message) {
@@ -106,6 +77,42 @@ public class GenericMetricMessage {
     public static GenericMetricMessage of(MessageHeader header, ThreadPoolMetricMessage message) {
         Map<String, Object> map = ReflectionUtils.getFields(header);
         return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
+    }
+
+    public long getTimestamp() {
+        return (long) values.get("timestamp");
+    }
+
+    public String getApplicationName() {
+        return (String) values.get("appName");
+    }
+
+    public String getApplicationEnv() {
+        return (String) values.get("env");
+    }
+
+    public String getInstanceName() {
+        return (String) values.get("instanceName");
+    }
+
+    public long getLong(String prop) {
+        return (long) values.getOrDefault(prop, 0L);
+    }
+
+    public Object get(String prop) {
+        return values.get(prop);
+    }
+
+    public <T> T getAs(String prop) {
+        return (T) values.get(prop);
+    }
+
+    public void set(String prop, Object value) {
+        values.put(prop, value);
+    }
+
+    public String getString(String prop) {
+        return (String) values.get(prop);
     }
 
     public Map<String, Object> getValues() {

@@ -22,7 +22,9 @@ public class CoyoteAdapterService extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricProviderManager.getInstance().register(TOMCAT_REQUEST_BUFFER_MANAGER_NAME, new WebRequestMetricProvider());
+        metricProvider = MetricProviderManager.getInstance()
+                                              .register(TOMCAT_REQUEST_BUFFER_MANAGER_NAME,
+                                                        new WebRequestMetricProvider());
 
         uriFilter = new RequestUriFilter();
         userAgentFilter = new UserAgentFilter();

@@ -6,7 +6,11 @@ import shaded.org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.jar.JarEntry;
 
 /**
@@ -21,6 +25,10 @@ public class AgentClassloader extends ClassLoader {
     private static final List<JarFileItem> SEARCH_JARS = new ArrayList<>();
     private static AgentClassloader DEFAULT_INSTANCE;
 
+    AgentClassloader(ClassLoader parent) {
+        super(parent);
+    }
+
     public static AgentClassloader createInstance() {
         DEFAULT_INSTANCE = new AgentClassloader(Thread.currentThread().getContextClassLoader());
         AgentClassloaderManager.register(Thread.currentThread().getContextClassLoader(), DEFAULT_INSTANCE);
@@ -29,10 +37,6 @@ public class AgentClassloader extends ClassLoader {
 
     public static ClassLoader getDefaultInstance() {
         return DEFAULT_INSTANCE;
-    }
-
-    AgentClassloader(ClassLoader parent) {
-        super(parent);
     }
 
     public static void appendSearchFiles(List<JarFileItem> files) {

@@ -34,7 +34,9 @@ public class ThreadPoolUtils {
         if (fieldName != null) {
             return getThreadPoolName(threadFactory, factoryClass, new String[]{fieldName});
         } else {
-            return getThreadPoolName(threadFactory, threadFactory.getClass(), THREAD_FACTORY_NAMES.values().toArray(new String[0]));
+            return getThreadPoolName(threadFactory,
+                                     threadFactory.getClass(),
+                                     THREAD_FACTORY_NAMES.values().toArray(new String[0]));
         }
     }
 

@@ -17,17 +17,17 @@ import java.time.Duration;
 @Service
 public class ExceptionMetricMessageHandler extends AbstractMetricMessageHandler {
 
-    public ExceptionMetricMessageHandler( IMetaStorage metaStorage,
-                                          IMetricStorage metricStorage,
-                                          DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+    public ExceptionMetricMessageHandler(IMetaStorage metaStorage,
+                                         IMetricStorage metricStorage,
+                                         DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
         super("exception-metrics",
-                metaStorage,
-                metricStorage,
-                dataSourceSchemaManager,
-                1,
-                5,
-                Duration.ofSeconds(60),
-                4096);
+              metaStorage,
+              metricStorage,
+              dataSourceSchemaManager,
+              1,
+              5,
+              Duration.ofSeconds(60),
+              4096);
     }
 
     @Override

@@ -55,7 +55,10 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
             toMetricObject(message);
             processMetricObject(message);
         } catch (Exception e) {
-            log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}", this.schema.getName(), message, e);
+            log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}",
+                      this.schema.getName(),
+                      message,
+                      e);
         }
     }
 

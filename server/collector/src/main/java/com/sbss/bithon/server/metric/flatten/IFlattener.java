@@ -10,10 +10,11 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-        //@JsonSubTypes.Type(name = "path", value = JSONPathFlattener.class),
+    //@JsonSubTypes.Type(name = "path", value = JSONPathFlattener.class),
 })
 public interface IFlattener {
 
     String getName();
+
     Object flatten(JsonNode jsonNode);
 }

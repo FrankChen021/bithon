@@ -8,21 +8,25 @@ import com.sbss.bithon.agent.core.metrics.thread.ThreadPoolMetrics;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Queue;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 9:13 下午
  */
 class ThreadPoolMetricsProvider implements IMetricProvider {
-    private final Logger log = LoggerFactory.getLogger(ThreadPoolMetricsProvider.class);
-
     static ThreadPoolMetricsProvider INSTANCE;
+    private final Logger log = LoggerFactory.getLogger(ThreadPoolMetricsProvider.class);
+    private final Map<AbstractExecutorService, ThreadPoolMetrics> executorMetrics = new ConcurrentHashMap<>();
+    private final Queue<ThreadPoolMetrics> flushed = new ConcurrentLinkedQueue<>();
 
     public static ThreadPoolMetricsProvider getInstance() {
         if (INSTANCE != null) {
@@ -39,9 +43,6 @@ class ThreadPoolMetricsProvider implements IMetricProvider {
             return INSTANCE;
         }
     }
-
-    private final Map<AbstractExecutorService, ThreadPoolMetrics> executorMetrics = new ConcurrentHashMap<>();
-    private final Queue<ThreadPoolMetrics> flushed = new ConcurrentLinkedQueue<>();
 
     public void insertThreadPoolMetrics(AbstractExecutorService pool, ThreadPoolMetrics metrics) {
         executorMetrics.put(pool, metrics);
@@ -105,17 +106,17 @@ class ThreadPoolMetricsProvider implements IMetricProvider {
         ThreadPoolMetrics flushedMetric = this.flushed.poll();
         while (flushedMetric != null) {
             messageList.add(messageConverter.from(appInstance,
-                    timestamp,
-                    interval,
-                    flushedMetric));
+                                                  timestamp,
+                                                  interval,
+                                                  flushedMetric));
             flushedMetric = this.flushed.poll();
         }
 
         for (ThreadPoolMetrics threadPoolMetric : this.executorMetrics.values()) {
             messageList.add(messageConverter.from(appInstance,
-                    timestamp,
-                    interval,
-                    threadPoolMetric));
+                                                  timestamp,
+                                                  interval,
+                                                  threadPoolMetric));
         }
 
         return messageList;

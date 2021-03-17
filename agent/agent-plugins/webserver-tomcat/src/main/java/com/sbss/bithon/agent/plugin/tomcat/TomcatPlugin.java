@@ -22,8 +22,8 @@ public class TomcatPlugin extends AbstractPlugin {
             forClass("org.apache.tomcat.util.net.AbstractEndpoint")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("start")
-                        .to("com.sbss.bithon.agent.plugin.tomcat.interceptor.AbstractEndpointStart")
+                                                   .onAllMethods("start")
+                                                   .to("com.sbss.bithon.agent.plugin.tomcat.interceptor.AbstractEndpointStart")
                 ),
 
             // statistics
@@ -31,30 +31,30 @@ public class TomcatPlugin extends AbstractPlugin {
             forClass("org.apache.catalina.connector.CoyoteAdapter")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("service")
-                        .onArgs("org.apache.coyote.Request", "org.apache.coyote.Response")
-                        .to("com.sbss.bithon.agent.plugin.tomcat.interceptor.CoyoteAdapterService")
+                                                   .onAllMethods("service")
+                                                   .onArgs("org.apache.coyote.Request", "org.apache.coyote.Response")
+                                                   .to("com.sbss.bithon.agent.plugin.tomcat.interceptor.CoyoteAdapterService")
                 ),
 
             //exception
             forClass("org.apache.catalina.core.StandardWrapperValve")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("exception")
-                        .onArgs("org.apache.catalina.connector.Request",
-                                "org.apache.catalina.connector.Response",
-                                "java.lang.Throwable")
-                        .to("com.sbss.bithon.agent.plugin.tomcat.interceptor.StandardWrapperValveException")
+                                                   .onAllMethods("exception")
+                                                   .onArgs("org.apache.catalina.connector.Request",
+                                                           "org.apache.catalina.connector.Response",
+                                                           "java.lang.Throwable")
+                                                   .to("com.sbss.bithon.agent.plugin.tomcat.interceptor.StandardWrapperValveException")
                 ),
 
             //trace
             forClass("org.apache.catalina.core.StandardHostValve")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("invoke")
-                        .onArgs("org.apache.catalina.connector.Request",
-                                "org.apache.catalina.connector.Response")
-                        .to("com.sbss.bithon.agent.plugin.tomcat.interceptor.StandardHostValveInvoke")
+                                                   .onAllMethods("invoke")
+                                                   .onArgs("org.apache.catalina.connector.Request",
+                                                           "org.apache.catalina.connector.Response")
+                                                   .to("com.sbss.bithon.agent.plugin.tomcat.interceptor.StandardHostValveInvoke")
                 )
         );
     }

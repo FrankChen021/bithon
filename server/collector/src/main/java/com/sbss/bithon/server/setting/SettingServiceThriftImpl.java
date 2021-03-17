@@ -25,7 +25,11 @@ public class SettingServiceThriftImpl implements SettingService.Iface {
     public FetchResponse fetch(FetchRequest request) throws TException {
         log.info("Fetching {} {}", request.getAppName(), request.getEnvName());
         try {
-            return new FetchResponse(200, "OK", service.getSettings(request.getAppName(), request.getEnvName(), request.getSince()));
+            return new FetchResponse(200,
+                                     "OK",
+                                     service.getSettings(request.getAppName(),
+                                                         request.getEnvName(),
+                                                         request.getSince()));
         } catch (Exception e) {
             log.error(String.format("fetch setting for {}-{} failed", request.getAppName(), request.getEnvName()), e);
             return new FetchResponse(500, e.getMessage(), null);

@@ -38,7 +38,10 @@ public class ThriftSettingFetcher implements IAgentSettingFetcher {
             try {
                 FetchResponse response = client.fetch(new FetchRequest(appName, env, lastModifiedSince));
                 if (response.getStatusCode() != 200) {
-                    throw new RuntimeException(new TApplicationException("Server returns code=" + response.getStatusCode() + ", Message=" + response.getMessage()));
+                    throw new RuntimeException(new TApplicationException("Server returns code="
+                                                                         + response.getStatusCode()
+                                                                         + ", Message="
+                                                                         + response.getMessage()));
                 }
 
                 return response.getSettings();

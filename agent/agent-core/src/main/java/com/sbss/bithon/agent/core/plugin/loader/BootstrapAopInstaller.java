@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
 
-import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
+import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import com.sbss.bithon.agent.core.utils.expt.AgentException;
@@ -42,6 +42,10 @@ public class BootstrapAopInstaller {
         this.typePool = TypePool.Default.of(BootstrapAopInstaller.class.getClassLoader());
         this.instrumentation = instrumentation;
         this.agentBuilder = agentBuilder;
+    }
+
+    public static String bootstrapAopClass(String methodsInterceptor) {
+        return methodsInterceptor + "Aop";
     }
 
     public AgentBuilder install(List<AbstractPlugin> plugins) {
@@ -93,10 +97,6 @@ public class BootstrapAopInstaller {
         return agentBuilder.with(new AgentBuilder.InjectionStrategy.UsingUnsafe.OfFactory(factory));
     }
 
-    public static String bootstrapAopClass(String methodsInterceptor) {
-        return methodsInterceptor + "Aop";
-    }
-
     private void generateAopClass(String interceptorClass,
                                   MethodPointCutDescriptor methodPointCutDescriptor) {
         switch (methodPointCutDescriptor.getTargetMethodType()) {
@@ -133,10 +133,10 @@ public class BootstrapAopInstaller {
         DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(baseType,
                                                                         ClassFileLocator.ForClassLoader
                                                                             .of(BootstrapAopInstaller.class.getClassLoader()))
-            .name(targetAopClassName)
-            .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
-            .value(interceptorClass)
-            .make();
+                                                              .name(targetAopClassName)
+                                                              .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
+                                                              .value(interceptorClass)
+                                                              .make();
 
         if (methodPointCutDescriptor.isDebug()) {
             new TransformationDebugger().saveClassToFile(aopClassType);
@@ -151,7 +151,8 @@ public class BootstrapAopInstaller {
     private void inject(String className) {
         String classResourceName = className.replaceAll("\\.", "/") + ".class";
         try {
-            try (InputStream resourceAsStream = ClassLoader.getSystemClassLoader().getResourceAsStream(classResourceName)) {
+            try (InputStream resourceAsStream = ClassLoader.getSystemClassLoader()
+                                                           .getResourceAsStream(classResourceName)) {
                 if (resourceAsStream == null) {
                     throw new AgentException("Class [%s] for bootstrap injection not found", className);
                 }

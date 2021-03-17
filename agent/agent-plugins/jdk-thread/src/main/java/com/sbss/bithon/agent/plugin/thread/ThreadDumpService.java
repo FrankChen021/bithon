@@ -7,7 +7,11 @@ import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 /**
@@ -25,12 +29,9 @@ public class ThreadDumpService {
     private static final String THREAD_USER_TIME_MILLIS = "threadUserTimeMillis";
     private static final long THREAD_TIME_UNAVAILABLE = -1;
     private static final String THREAD_ENTITY_NAME = "jvm-thread";
-
-    private Dispatcher dispatcher;
-
-    private int checkPeriod;
-
     private static final ThreadMXBean THREAD_MX_BEAN = ManagementFactory.getThreadMXBean();
+    private Dispatcher dispatcher;
+    private int checkPeriod;
 
     public boolean initialize() {
         checkPeriod = 10;

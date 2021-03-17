@@ -6,5 +6,6 @@ package com.sbss.bithon.server.metric.dimension;
  */
 public interface IDimensionSpecVisitor<T> {
     T visit(LongDimensionSpec spec);
+
     T visit(StringDimensionSpec spec);
 }

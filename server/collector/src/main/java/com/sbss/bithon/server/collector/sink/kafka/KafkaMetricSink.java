@@ -2,8 +2,8 @@ package com.sbss.bithon.server.collector.sink.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
+import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 import org.springframework.kafka.core.KafkaTemplate;
 
 /**
@@ -24,8 +24,8 @@ public class KafkaMetricSink implements IMessageSink<GenericMetricMessage> {
     public void process(String messageType, GenericMetricMessage message) {
         try {
             producer.send(messageType,
-                    (String) message.get("instanceName"),
-                    objectMapper.writeValueAsString(message.getValues()));
+                          (String) message.get("instanceName"),
+                          objectMapper.writeValueAsString(message.getValues()));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             //TODO: log here

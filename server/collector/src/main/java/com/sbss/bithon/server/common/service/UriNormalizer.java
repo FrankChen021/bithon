@@ -21,33 +21,6 @@ import java.util.Map;
 @Service
 public class UriNormalizer {
 
-    @Data
-    @AllArgsConstructor
-    static public class UriPattern {
-        private IStringMatcher matcher;
-        private String replacement;
-    }
-
-    @Data
-    static public class UriNormalizationRuleConfig {
-        private List<UriPattern> pathRules = new ArrayList<>();
-        private List<UriPattern> partRules = new ArrayList<>();
-        private List<IStringMatcher> filters = new ArrayList<>();
-    }
-
-    @Data
-    static public class RuleConfigs {
-        private UriNormalizationRuleConfig globalRules;
-        private Map<String, UriNormalizationRuleConfig> instanceRules;
-    }
-
-    @Data
-    @AllArgsConstructor
-    static public class NormalizedResult {
-        private boolean normalized;
-        private String uri;
-    }
-
     private final RuleConfigs configs;
 
     public UriNormalizer() {
@@ -55,7 +28,8 @@ public class UriNormalizer {
         this.configs.setGlobalRules(new UriNormalizationRuleConfig());
         this.configs.setInstanceRules(new HashMap<>());
         this.configs.globalRules.partRules.add(new UriPattern(new RegexMatcher("[0-9]+"), "*"));
-        this.configs.globalRules.partRules.add(new UriPattern(new RegexMatcher("[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}"), "*"));
+        this.configs.globalRules.partRules.add(new UriPattern(new RegexMatcher(
+            "[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}"), "*"));
         this.configs.globalRules.partRules.add(new UriPattern(new RegexMatcher("[0-9a-f]{32}"), "*"));
     }
 
@@ -141,5 +115,32 @@ public class UriNormalizer {
         }
 
         return new NormalizedResult(normalized, String.join("/", normalizedParts));
+    }
+
+    @Data
+    @AllArgsConstructor
+    static public class UriPattern {
+        private IStringMatcher matcher;
+        private String replacement;
+    }
+
+    @Data
+    static public class UriNormalizationRuleConfig {
+        private List<UriPattern> pathRules = new ArrayList<>();
+        private List<UriPattern> partRules = new ArrayList<>();
+        private List<IStringMatcher> filters = new ArrayList<>();
+    }
+
+    @Data
+    static public class RuleConfigs {
+        private UriNormalizationRuleConfig globalRules;
+        private Map<String, UriNormalizationRuleConfig> instanceRules;
+    }
+
+    @Data
+    @AllArgsConstructor
+    static public class NormalizedResult {
+        private boolean normalized;
+        private String uri;
     }
 }

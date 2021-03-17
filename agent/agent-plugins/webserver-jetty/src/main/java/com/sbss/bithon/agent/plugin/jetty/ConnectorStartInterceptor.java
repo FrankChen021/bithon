@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.plugin.jetty;
 
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import org.eclipse.jetty.server.AbstractNetworkConnector;
 
 /**

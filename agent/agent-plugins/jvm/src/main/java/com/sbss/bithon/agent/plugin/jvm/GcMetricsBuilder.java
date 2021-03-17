@@ -19,33 +19,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class GcMetricsBuilder {
 
-    private static class GcInfo {
-        private int lastGcCount = 0;
-        private long lastGcTime = 0;
-
-        int getLastGcCount() {
-            return lastGcCount;
-        }
-
-        void setLastGcCount(int lastGcCount) {
-            this.lastGcCount = lastGcCount;
-        }
-
-        long getLastGcTime() {
-            return lastGcTime;
-        }
-
-        void setLastGcTime(long lastGcTime) {
-            this.lastGcTime = lastGcTime;
-        }
-    }
-
     /**
      * GcName -> gcBean
      */
     private final Map<String, GarbageCollectorMXBean> GC_BEANS = new ConcurrentHashMap<>();
     private final Map<String, GcInfo> gcUsageMap;
-
     public GcMetricsBuilder() {
         this.gcUsageMap = new HashMap<>();
 
@@ -53,7 +31,8 @@ public class GcMetricsBuilder {
             NotificationBroadcaster broadcaster = (NotificationBroadcaster) gcBean;
             broadcaster.addNotificationListener((notification, handback) -> {
                                                     if (GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION.equals(notification.getType())) {
-                                                        GarbageCollectionNotificationInfo nInfo = GarbageCollectionNotificationInfo.from((CompositeData) notification.getUserData());
+                                                        GarbageCollectionNotificationInfo nInfo = GarbageCollectionNotificationInfo.from((CompositeData) notification
+                                                            .getUserData());
                                                         GC_BEANS.put(nInfo.getGcName(), gcBean);
                                                     }
                                                 },
@@ -86,9 +65,30 @@ public class GcMetricsBuilder {
 
             gcInfo.setLastGcCount(currentGcCount);
             gcInfo.setLastGcTime(currentGcTime);
-            
+
             gcMetricList.add(new GcMetric(gcName, realGcCount, realGcTime));
         }
         return gcMetricList;
+    }
+
+    private static class GcInfo {
+        private int lastGcCount = 0;
+        private long lastGcTime = 0;
+
+        int getLastGcCount() {
+            return lastGcCount;
+        }
+
+        void setLastGcCount(int lastGcCount) {
+            this.lastGcCount = lastGcCount;
+        }
+
+        long getLastGcTime() {
+            return lastGcTime;
+        }
+
+        void setLastGcTime(long lastGcTime) {
+            this.lastGcTime = lastGcTime;
+        }
     }
 }

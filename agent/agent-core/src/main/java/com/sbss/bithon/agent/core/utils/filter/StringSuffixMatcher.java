@@ -10,6 +10,6 @@ public class StringSuffixMatcher implements IMatcher {
 
     @Override
     public boolean matches(Object input) {
-        return ((String)input).endsWith(suffix);
+        return ((String) input).endsWith(suffix);
     }
 }

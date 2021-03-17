@@ -17,5 +17,6 @@ public interface IValueType {
     boolean isEqual(Number left, Number right);
 
     Number diff(Number left, Number right);
+
     Number scaleTo(Number value, int scale);
 }

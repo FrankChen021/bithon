@@ -1,7 +1,5 @@
 package com.sbss.bithon.server.collector.sink;
 
-import java.util.Map;
-
 /**
  * @author frankchen
  */

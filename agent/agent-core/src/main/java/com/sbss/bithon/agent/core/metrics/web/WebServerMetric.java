@@ -12,6 +12,18 @@ public class WebServerMetric {
     private final long activeThreads;
     private final long maxThreads;
 
+    public WebServerMetric(WebServerType serverType,
+                           long connectionCount,
+                           long maxConnections,
+                           long activeThreads,
+                           long maxThreads) {
+        this.serverType = serverType;
+        this.connectionCount = connectionCount;
+        this.maxConnections = maxConnections;
+        this.activeThreads = activeThreads;
+        this.maxThreads = maxThreads;
+    }
+
     public WebServerType getServerType() {
         return serverType;
     }
@@ -30,13 +42,5 @@ public class WebServerMetric {
 
     public long getMaxThreads() {
         return maxThreads;
-    }
-
-    public WebServerMetric(WebServerType serverType, long connectionCount, long maxConnections, long activeThreads, long maxThreads) {
-        this.serverType = serverType;
-        this.connectionCount = connectionCount;
-        this.maxConnections = maxConnections;
-        this.activeThreads = activeThreads;
-        this.maxThreads = maxThreads;
     }
 }

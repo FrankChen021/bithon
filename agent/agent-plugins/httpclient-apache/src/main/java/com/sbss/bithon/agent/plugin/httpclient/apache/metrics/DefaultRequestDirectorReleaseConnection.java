@@ -28,7 +28,8 @@ public class DefaultRequestDirectorReleaseConnection extends AbstractInterceptor
 
     @Override
     public boolean initialize() throws Exception {
-        metricProvider = MetricProviderManager.getInstance().getOrRegister("apache-http-client", HttpClientMetricProvider.class);
+        metricProvider = MetricProviderManager.getInstance()
+                                              .getOrRegister("apache-http-client", HttpClientMetricProvider.class);
 
         return true;
     }

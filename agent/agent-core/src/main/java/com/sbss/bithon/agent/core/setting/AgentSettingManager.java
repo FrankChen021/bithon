@@ -9,7 +9,12 @@ import shaded.com.alibaba.fastjson.JSONObject;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Dynamic Setting Manager for Plugins
@@ -27,6 +32,13 @@ public class AgentSettingManager {
     private final Map<String, List<IAgentSettingRefreshListener>> listeners;
     private Long lastModifiedAt = 0L;
 
+    public AgentSettingManager(String appName, String env, IAgentSettingFetcher settingFetcher) {
+        this.appName = appName;
+        this.env = env;
+        this.settingFetcher = settingFetcher;
+        this.listeners = new HashMap<>();
+    }
+
     public synchronized static void createInstance(AppInstance appInstance,
                                                    FetcherConfig fetcherConfig) throws Exception {
         if (INSTANCE != null) {
@@ -35,7 +47,8 @@ public class AgentSettingManager {
         IAgentSettingFetcher fetcher = null;
         if (fetcherConfig != null && !StringUtils.isEmpty(fetcherConfig.getClient())) {
             try {
-                IAgentSettingFetcherFactory factory = (IAgentSettingFetcherFactory) Class.forName(fetcherConfig.getClient()).newInstance();
+                IAgentSettingFetcherFactory factory = (IAgentSettingFetcherFactory) Class.forName(fetcherConfig.getClient())
+                                                                                         .newInstance();
                 fetcher = factory.createFetcher(fetcherConfig);
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 log.error("Can't create instanceof fetcher {}", fetcherConfig.getClient());
@@ -52,13 +65,6 @@ public class AgentSettingManager {
 
     public static AgentSettingManager getInstance() {
         return INSTANCE;
-    }
-
-    public AgentSettingManager(String appName, String env, IAgentSettingFetcher settingFetcher) {
-        this.appName = appName;
-        this.env = env;
-        this.settingFetcher = settingFetcher;
-        this.listeners = new HashMap<>();
     }
 
     public void register(SettingRootNames name, IAgentSettingRefreshListener listener) {

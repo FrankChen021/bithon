@@ -37,7 +37,7 @@ public class BithonExtractor implements ITraceContextExtractor {
                                                 Tracer.get().reporter(),
                                                 Tracer.get().traceIdGenerator());
         context.currentSpan()
-            .parentApplication(getter.get(request, ITracePropagator.BITHON_SOURCE_APPLICATION));
+               .parentApplication(getter.get(request, ITracePropagator.BITHON_SOURCE_APPLICATION));
         return context;
     }
 }

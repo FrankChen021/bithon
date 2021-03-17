@@ -12,17 +12,14 @@ import java.util.Objects;
 public class Metadata {
 
     @Getter
-    @Setter
-    private Long id;
-
-    @Getter
     private final String name;
-
     @Getter
     private final String type;
-
     @Getter
     private final Long parent;
+    @Getter
+    @Setter
+    private Long id;
 
     public Metadata(String name, String type, Long parent) {
         this.name = name;
@@ -35,8 +32,8 @@ public class Metadata {
         if (rhs instanceof Metadata) {
             Metadata that = ((Metadata) rhs);
             return this.name.equals(that.name)
-                && this.type.equals(that.type)
-                && this.parent.equals(that.parent);
+                   && this.type.equals(that.type)
+                   && this.parent.equals(that.parent);
         }
         return false;
     }

@@ -18,9 +18,8 @@ public class HttpClientMetricProvider implements IMetricProvider {
 
     private static final int HTTP_CODE_400 = 400;
     private static final int HTTP_CODE_500 = 500;
-
-    private HttpClientMetric metric;
     private final Map<String, HttpClientMetric> metricsMap = new ConcurrentHashMap<>();
+    private HttpClientMetric metric;
 
     @Override
     public boolean isEmpty() {
@@ -71,7 +70,7 @@ public class HttpClientMetricProvider implements IMetricProvider {
         String requestId = uri.concat("|").concat(requestMethod);
         metricsMap.computeIfAbsent(requestId,
                                    key -> new HttpClientMetric(uri, requestMethod))
-            .add(costTime, count4xx, count5xx);
+                  .add(costTime, count4xx, count5xx);
     }
 
     public void addBytes(String requestUri,
@@ -82,7 +81,7 @@ public class HttpClientMetricProvider implements IMetricProvider {
         String requestId = uri.concat("|").concat(requestMethod);
         metricsMap.computeIfAbsent(requestId,
                                    k -> new HttpClientMetric(uri, requestMethod))
-            .addByteSize(requestBytes, responseBytes);
+                  .addByteSize(requestBytes, responseBytes);
     }
 
     private HttpClientMetric getAndRemoveEntry(HttpClientMetric counter) {

@@ -2,8 +2,8 @@ package com.sbss.bithon.agent.plugin.jetty;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
 import com.sbss.bithon.agent.core.metrics.IMetricProvider;
+import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
 import com.sbss.bithon.agent.core.metrics.web.WebServerMetric;
 import com.sbss.bithon.agent.core.metrics.web.WebServerType;
 import org.eclipse.jetty.server.AbstractNetworkConnector;
@@ -19,16 +19,14 @@ import java.util.List;
 public class WebServerMetricProvider implements IMetricProvider {
 
     private static final WebServerMetricProvider INSTANCE = new WebServerMetricProvider();
+    private AbstractNetworkConnector connector;
+    private QueuedThreadPool threadPool;
+    WebServerMetricProvider() {
+        MetricProviderManager.getInstance().register("webserver-jetty", this);
+    }
 
     public static WebServerMetricProvider getInstance() {
         return INSTANCE;
-    }
-
-    private AbstractNetworkConnector connector;
-    private QueuedThreadPool threadPool;
-
-    WebServerMetricProvider() {
-        MetricProviderManager.getInstance().register("webserver-jetty", this);
     }
 
     @Override
@@ -46,10 +44,14 @@ public class WebServerMetricProvider implements IMetricProvider {
                                                                interval,
                                                                new WebServerMetric(
                                                                    WebServerType.JETTY,
-                                                                   connector == null ? 0 : connector.getConnectedEndPoints().size(),
+                                                                   connector == null
+                                                                   ? 0
+                                                                   : connector.getConnectedEndPoints().size(),
                                                                    connector == null ? 0 : connector.getAcceptors(),
                                                                    threadPool == null ? 0 : threadPool.getBusyThreads(),
-                                                                   threadPool == null ? 0 : threadPool.getMaxThreads())));
+                                                                   threadPool == null
+                                                                   ? 0
+                                                                   : threadPool.getMaxThreads())));
     }
 
     public void setConnector(AbstractNetworkConnector connector) {

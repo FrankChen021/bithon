@@ -3,7 +3,11 @@ package com.sbss.bithon.agent.core.plugin.aop;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AroundMethodAop;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IAopLogger;
-import shaded.net.bytebuddy.implementation.bind.annotation.*;
+import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
+import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
+import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
+import shaded.net.bytebuddy.implementation.bind.annotation.SuperCall;
+import shaded.net.bytebuddy.implementation.bind.annotation.This;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;

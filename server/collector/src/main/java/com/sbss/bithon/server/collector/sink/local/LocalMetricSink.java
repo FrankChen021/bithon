@@ -1,9 +1,17 @@
 package com.sbss.bithon.server.collector.sink.local;
 
-import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
-import com.sbss.bithon.server.common.handler.IMessageHandler;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
-import com.sbss.bithon.server.metric.handler.*;
+import com.sbss.bithon.server.common.handler.IMessageHandler;
+import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
+import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
 
 import java.util.HashMap;
 import java.util.Map;

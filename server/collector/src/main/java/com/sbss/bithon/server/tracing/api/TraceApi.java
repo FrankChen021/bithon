@@ -1,8 +1,8 @@
 package com.sbss.bithon.server.tracing.api;
 
+import com.sbss.bithon.server.tracing.handler.TraceSpan;
 import com.sbss.bithon.server.tracing.storage.ITraceReader;
 import com.sbss.bithon.server.tracing.storage.ITraceStorage;
-import com.sbss.bithon.server.tracing.handler.TraceSpan;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -38,12 +38,12 @@ public class TraceApi {
         }
 
         Map<String, TraceSpanBo> boMap = spanList.stream()
-            .collect(Collectors.toMap(span -> span.spanId,
-                                      val -> {
-                                          TraceSpanBo bo = new TraceSpanBo();
-                                          BeanUtils.copyProperties(val, bo);
-                                          return bo;
-                                      }));
+                                                 .collect(Collectors.toMap(span -> span.spanId,
+                                                                           val -> {
+                                                                               TraceSpanBo bo = new TraceSpanBo();
+                                                                               BeanUtils.copyProperties(val, bo);
+                                                                               return bo;
+                                                                           }));
 
         List<TraceSpan> rootSpans = new ArrayList<>();
         for (TraceSpan span : spanList) {

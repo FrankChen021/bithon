@@ -20,12 +20,12 @@ public class DruidJdbcMetricProvider implements IMetricProvider {
 
     private static final DruidJdbcMetricProvider INSTANCE = new DruidJdbcMetricProvider();
 
-    public static DruidJdbcMetricProvider getOrCreateInstance() {
-        return INSTANCE;
-    }
-
     private DruidJdbcMetricProvider() {
         MetricProviderManager.getInstance().register(PROVIDER_NAME, this);
+    }
+
+    public static DruidJdbcMetricProvider getOrCreateInstance() {
+        return INSTANCE;
     }
 
     public void updateMetrics(DruidDataSource dataSource,

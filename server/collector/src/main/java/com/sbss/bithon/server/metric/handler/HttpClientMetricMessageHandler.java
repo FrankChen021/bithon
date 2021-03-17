@@ -41,7 +41,7 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
 
     @Override
     void toMetricObject(GenericMetricMessage metricObject) throws Exception {
-        if (metricObject.getLong("requestCount") <= 0 ) {
+        if (metricObject.getLong("requestCount") <= 0) {
             return;
         }
 
@@ -65,9 +65,9 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
 
             if (targetApplicationName != null) {
                 metricObject.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
-                                             metricObject.getApplicationName(),
-                                             EndPointType.APPLICATION,
-                                             targetApplicationName));
+                                                              metricObject.getApplicationName(),
+                                                              EndPointType.APPLICATION,
+                                                              targetApplicationName));
             } else {
                 //
                 // if the target application has not been in service yet,
@@ -75,21 +75,21 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
                 //
                 // TODO: This record should be fixed when a new instance is inserted into the metadata storage
                 metricObject.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
-                                             metricObject.getApplicationName(),
-                                             EndPointType.WEB_SERVICE,
-                                             targetHostPort));
+                                                              metricObject.getApplicationName(),
+                                                              EndPointType.WEB_SERVICE,
+                                                              targetHostPort));
             }
         } else {
             if (getMetaStorage().isApplicationExist(targetHostPort)) {
                 metricObject.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
-                                             metricObject.getApplicationName(),
-                                             EndPointType.APPLICATION,
-                                             targetHostPort));
+                                                              metricObject.getApplicationName(),
+                                                              EndPointType.APPLICATION,
+                                                              targetHostPort));
             } else {
                 metricObject.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
-                                             metricObject.getApplicationName(),
-                                             EndPointType.DOMAIN,
-                                             targetHostPort));
+                                                              metricObject.getApplicationName(),
+                                                              EndPointType.DOMAIN,
+                                                              targetHostPort));
             }
         }
     }

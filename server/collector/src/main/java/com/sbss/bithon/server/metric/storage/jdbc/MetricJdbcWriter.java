@@ -1,16 +1,20 @@
 package com.sbss.bithon.server.metric.storage.jdbc;
 
 import com.sbss.bithon.server.metric.DataSourceSchema;
+import com.sbss.bithon.server.metric.aggregator.IMetricSpec;
 import com.sbss.bithon.server.metric.dimension.IDimensionSpec;
 import com.sbss.bithon.server.metric.input.InputRow;
-import com.sbss.bithon.server.metric.aggregator.IMetricSpec;
 import com.sbss.bithon.server.metric.storage.IMetricWriter;
 import com.sbss.bithon.server.metric.typing.DoubleValueType;
 import com.sbss.bithon.server.metric.typing.IValueType;
 import com.sbss.bithon.server.metric.typing.LongValueType;
 import com.sbss.bithon.server.metric.typing.StringValueType;
 import lombok.Getter;
-import org.jooq.*;
+import org.jooq.CreateTableIndexStep;
+import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.Index;
+import org.jooq.InsertSetMoreStep;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
@@ -33,20 +37,42 @@ class MetricJdbcWriter implements IMetricWriter {
         this.dsl = dsl;
         this.table = new MetricTable(schema);
 
-        CreateTableIndexStep s  = dsl.createTableIfNotExists(table).columns(table.fields()).index(table.getIndex());
+        CreateTableIndexStep s = dsl.createTableIfNotExists(table).columns(table.fields()).index(table.getIndex());
         String sql = s.getSQL();
         s.execute();
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Override
+    public void write(InputRow inputRow) {
+        try (InsertSetMoreStep step = dsl.insertInto(table)
+                                         .set(table.timestampField,
+                                              new Timestamp(inputRow.getColumnValueAsLong("timestamp")))) {
+
+            for (Field dimension : table.dimensions) {
+                Object value = inputRow.getColumnValue(dimension.getName(), "");
+                step.set(dimension, value);
+            }
+            for (Field metric : table.metrics) {
+                Object value = inputRow.getColumnValue(metric.getName(), 0);
+                step.set(metric, value);
+            }
+
+            step.execute();
+        }
+    }
+
+    @Override
+    public void close() {
+    }
+
     @SuppressWarnings("rawtypes")
     static class MetricTable extends TableImpl {
-        Field timestampField;
-
         @Getter
         private final List<Field> dimensions = new ArrayList<>();
-
         @Getter
         private final List<Field> metrics = new ArrayList<>();
+        Field timestampField;
 
         public MetricTable(DataSourceSchema schema) {
             super(DSL.name("bithon_" + schema.getName().replace("-", "_")));
@@ -75,7 +101,8 @@ class MetricJdbcWriter implements IMetricWriter {
 
         private Field createField(String name, IValueType valueType) {
             if (valueType.equals(DoubleValueType.INSTANCE)) {
-                return this.createField(DSL.name(name), SQLDataType.DECIMAL(18, 2).nullable(false).defaultValue(BigDecimal.valueOf(0)));
+                return this.createField(DSL.name(name),
+                                        SQLDataType.DECIMAL(18, 2).nullable(false).defaultValue(BigDecimal.valueOf(0)));
             } else if (valueType.equals(LongValueType.INSTANCE)) {
                 return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L));
             } else if (valueType.equals(StringValueType.INSTANCE)) {
@@ -84,30 +111,5 @@ class MetricJdbcWriter implements IMetricWriter {
                 throw new RuntimeException("unknown type:" + valueType);
             }
         }
-    }
-
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Override
-    public void write(InputRow inputRow) {
-        try (InsertSetMoreStep step = dsl.insertInto(table)
-            .set(table.timestampField,
-                 new Timestamp(inputRow.getColumnValueAsLong("timestamp")))) {
-
-            for (Field dimension : table.dimensions) {
-                Object value = inputRow.getColumnValue(dimension.getName(), "");
-                step.set(dimension, value);
-            }
-            for (Field metric : table.metrics) {
-                Object value = inputRow.getColumnValue(metric.getName(), 0);
-                step.set(metric, value);
-            }
-
-            step.execute();
-        }
-    }
-
-    @Override
-    public void close() {
     }
 }

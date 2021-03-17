@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.springweb;
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;

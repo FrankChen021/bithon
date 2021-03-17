@@ -6,5 +6,6 @@ package com.sbss.bithon.server.events.storage;
  */
 public interface IEventStorage {
     IEventWriter createWriter();
+
     IEventReader createReader();
 }

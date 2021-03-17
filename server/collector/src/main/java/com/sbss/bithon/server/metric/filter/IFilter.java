@@ -9,10 +9,10 @@ import com.sbss.bithon.server.metric.input.InputRow;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-        //@JsonSubTypes.Type(name = "endwith", value = EndwithFilter.class),
-        @JsonSubTypes.Type(name = "==", value = EqualFilter.class),
-        //@JsonSubTypes.Type(name = ">", value = GreaterThanFilter.class),
-        //@JsonSubTypes.Type(name = "or", value = OrFilter.class)
+    //@JsonSubTypes.Type(name = "endwith", value = EndwithFilter.class),
+    @JsonSubTypes.Type(name = "==", value = EqualFilter.class),
+    //@JsonSubTypes.Type(name = ">", value = GreaterThanFilter.class),
+    //@JsonSubTypes.Type(name = "or", value = OrFilter.class)
 })
 public interface IFilter {
 

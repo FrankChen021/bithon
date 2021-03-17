@@ -23,18 +23,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frankchen
  */
 public class SqlMetricProvider implements IMetricProvider {
+    static final SqlMetricProvider INSTANCE = new SqlMetricProvider();
     private static final Logger log = LoggerFactory.getLogger(SqlMetricProvider.class);
-
     private static final String MYSQL_COUNTER_NAME = "mysql";
     private static final String DRIVER_TYPE_MYSQL = "mysql";
-
     private final Map<String, SqlMetric> metricMap;
-
-    static final SqlMetricProvider INSTANCE = new SqlMetricProvider();
-
-    static SqlMetricProvider getInstance() {
-        return INSTANCE;
-    }
 
     private SqlMetricProvider() {
         metricMap = new ConcurrentHashMap<>();
@@ -44,6 +37,10 @@ public class SqlMetricProvider implements IMetricProvider {
         } catch (Exception e) {
             log.error("druid counter init failed due to ", e);
         }
+    }
+
+    static SqlMetricProvider getInstance() {
+        return INSTANCE;
     }
 
     public void recordIO(AopContext aopContext) {
@@ -57,7 +54,7 @@ public class SqlMetricProvider implements IMetricProvider {
 
             // 尝试记录新的mysql连接
             SqlMetric counter = metricMap.computeIfAbsent(hostPort,
-                                                         k -> new SqlMetric(k, DRIVER_TYPE_MYSQL));
+                                                          k -> new SqlMetric(k, DRIVER_TYPE_MYSQL));
 
             if (MySqlPlugin.METHOD_SEND_COMMAND.equals(methodName)) {
                 Buffer queryPacket = (Buffer) aopContext.getArgs()[2];
@@ -88,7 +85,7 @@ public class SqlMetricProvider implements IMetricProvider {
             MySqlPlugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {
             isQuery = false;
         } else if ((MySqlPlugin.METHOD_EXECUTE.equals(methodName) ||
-            MySqlPlugin.METHOD_EXECUTE_INTERNAL.equals(methodName))) {
+                    MySqlPlugin.METHOD_EXECUTE_INTERNAL.equals(methodName))) {
             Object result = aopContext.castReturningAs();
             if (result instanceof Boolean && !(boolean) result) {
                 isQuery = false;
@@ -96,10 +93,10 @@ public class SqlMetricProvider implements IMetricProvider {
         }
 
         metricMap.computeIfAbsent(hostAndPort,
-                                 k -> new SqlMetric(k, DRIVER_TYPE_MYSQL))
-            .add(isQuery,
-                 aopContext.getException() != null,
-                 aopContext.getCostTime());
+                                  k -> new SqlMetric(k, DRIVER_TYPE_MYSQL))
+                 .add(isQuery,
+                      aopContext.getException() != null,
+                      aopContext.getCostTime());
     }
 
     @Override
@@ -115,7 +112,7 @@ public class SqlMetricProvider implements IMetricProvider {
         List<Object> messages = new ArrayList<>();
         for (Map.Entry<String, SqlMetric> entry : metricMap.entrySet()) {
             Object message = messageConverter.from(appInstance, timestamp, interval, entry.getValue());
-            if ( message != null ) {
+            if (message != null) {
                 messages.add(message);
             }
         }

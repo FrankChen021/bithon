@@ -16,34 +16,46 @@ import java.util.function.Function;
  * Date: 2020/11/30 5:48 下午
  */
 public class TimestampSpec {
-    private static class ParseCtx {
-        Object lastTimeObject = null;
-        DateTime lastDateTime = null;
-    }
-
+    public static final String DEFAULT_COLUMN = "timestamp";
     // remember last value parsed
     private static final ThreadLocal<ParseCtx> PARSE_CTX = ThreadLocal.withInitial(ParseCtx::new);
-
-    public static final String DEFAULT_COLUMN = "timestamp";
     private static final String DEFAULT_FORMAT = "auto";
-
     private final String timestampColumn;
     private final String timestampFormat;
     /**
      * This field is a derivative of {@link #timestampFormat}; not checked in {@link #equals} and {@link #hashCode}
      */
     private final Function<Object, DateTime> timestampConverter;
-
     @JsonCreator
     public TimestampSpec(
-            @JsonProperty("column") @Nullable String timestampColumn,
-            @JsonProperty("format") @Nullable String format,
-            // this value should never be set for production data; the data loader uses it before a timestamp column is chosen
-            @JsonProperty("missingValue") @Nullable DateTime missingValue
+        @JsonProperty("column") @Nullable String timestampColumn,
+        @JsonProperty("format") @Nullable String format,
+        // this value should never be set for production data; the data loader uses it before a timestamp column is chosen
+        @JsonProperty("missingValue") @Nullable DateTime missingValue
     ) {
         this.timestampColumn = (timestampColumn == null) ? DEFAULT_COLUMN : timestampColumn;
         this.timestampFormat = format == null ? DEFAULT_FORMAT : format;
         this.timestampConverter = TimestampParser.createObjectTimestampParser(timestampFormat);
+    }
+
+    //simple merge strategy on timestampSpec that checks if all are equal or else
+    //returns null. this can be improved in future but is good enough for most use-cases.
+    public static TimestampSpec mergeTimestampSpec(List<TimestampSpec> toMerge) {
+        if (toMerge == null || toMerge.size() == 0) {
+            return null;
+        }
+
+        TimestampSpec result = toMerge.get(0);
+        for (int i = 1; i < toMerge.size(); i++) {
+            if (toMerge.get(i) == null) {
+                continue;
+            }
+            if (!Objects.equals(result, toMerge.get(i))) {
+                return null;
+            }
+        }
+
+        return result;
     }
 
     @JsonProperty("column")
@@ -116,28 +128,13 @@ public class TimestampSpec {
     @Override
     public String toString() {
         return "TimestampSpec{" +
-                "timestampColumn='" + timestampColumn + '\'' +
-                ", timestampFormat='" + timestampFormat + '\'' +
-                '}';
+               "timestampColumn='" + timestampColumn + '\'' +
+               ", timestampFormat='" + timestampFormat + '\'' +
+               '}';
     }
 
-    //simple merge strategy on timestampSpec that checks if all are equal or else
-    //returns null. this can be improved in future but is good enough for most use-cases.
-    public static TimestampSpec mergeTimestampSpec(List<TimestampSpec> toMerge) {
-        if (toMerge == null || toMerge.size() == 0) {
-            return null;
-        }
-
-        TimestampSpec result = toMerge.get(0);
-        for (int i = 1; i < toMerge.size(); i++) {
-            if (toMerge.get(i) == null) {
-                continue;
-            }
-            if (!Objects.equals(result, toMerge.get(i))) {
-                return null;
-            }
-        }
-
-        return result;
+    private static class ParseCtx {
+        Object lastTimeObject = null;
+        DateTime lastDateTime = null;
     }
 }

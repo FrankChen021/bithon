@@ -61,7 +61,7 @@ public class PluginInterceptorInstaller {
     }
 
     private void instrumentClass(AgentBuilder agentBuilder, Instrumentation inst, String[] classList) {
-        if ( classList == null || classList.length == 0 ) {
+        if (classList == null || classList.length == 0) {
             return;
         }
 
@@ -70,14 +70,16 @@ public class PluginInterceptorInstaller {
             .transform((DynamicType.Builder<?> builder,
                         TypeDescription typeDescription,
                         ClassLoader classLoader,
-                        JavaModule javaModule)->{
+                        JavaModule javaModule) -> {
                 if (typeDescription.isAssignableTo(IBithonObject.class)) {
                     return builder;
                 }
 
-                builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, ACC_PRIVATE | ACC_VOLATILE)
-                    .implement(IBithonObject.class)
-                    .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
+                builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
+                                              Object.class,
+                                              ACC_PRIVATE | ACC_VOLATILE)
+                                 .implement(IBithonObject.class)
+                                 .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
 
                 return builder;
             })
@@ -113,9 +115,11 @@ public class PluginInterceptorInstaller {
                 // Class instrumentation
                 //
                 if (!typeDescription.isAssignableTo(IBithonObject.class)) {
-                    builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, ACC_PRIVATE | ACC_VOLATILE)
-                        .implement(IBithonObject.class)
-                        .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
+                    builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
+                                                  Object.class,
+                                                  ACC_PRIVATE | ACC_VOLATILE)
+                                     .implement(IBithonObject.class)
+                                     .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
                 }
 
                 //
@@ -151,18 +155,22 @@ public class PluginInterceptorInstaller {
                 case INSTANCE_METHOD:
                     builder = builder.method(pointCutDescriptor.getMethodMatcher()).intercept(MethodDelegation
                                                                                                   .withDefaultConfiguration()
-                                                                                                  .to(getBootstrapAopClass(interceptorClassName)));
+                                                                                                  .to(getBootstrapAopClass(
+                                                                                                      interceptorClassName)));
                     break;
 
                 case CONSTRUCTOR:
                     builder = builder.constructor(pointCutDescriptor.getMethodMatcher())
-                        .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation
-                                                                        .withDefaultConfiguration()
-                                                                        .to(getBootstrapAopClass(interceptorClassName))));
+                                     .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation
+                                                                                     .withDefaultConfiguration()
+                                                                                     .to(getBootstrapAopClass(
+                                                                                         interceptorClassName))));
                     break;
 
                 default:
-                    log.warn("Interceptor[{}] ignored due to unknown method type {}", interceptorClassName, pointCutDescriptor.getTargetMethodType().name());
+                    log.warn("Interceptor[{}] ignored due to unknown method type {}",
+                             interceptorClassName,
+                             pointCutDescriptor.getTargetMethodType().name());
                     break;
             }
         } catch (Exception e) {
@@ -174,7 +182,9 @@ public class PluginInterceptorInstaller {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Interceptor[{}] loaded for target method[{}]", interceptorClassName, pointCutDescriptor.toString());
+            log.debug("Interceptor[{}] loaded for target method[{}]",
+                      interceptorClassName,
+                      pointCutDescriptor.toString());
         }
 
         return builder;
@@ -215,16 +225,21 @@ public class PluginInterceptorInstaller {
         try {
             switch (pointCutDescriptor.getTargetMethodType()) {
                 case INSTANCE_METHOD:
-                    builder = builder.method(pointCutDescriptor.getMethodMatcher()).intercept(MethodDelegation.to(new MethodAop(interceptor)));
+                    builder = builder.method(pointCutDescriptor.getMethodMatcher())
+                                     .intercept(MethodDelegation.to(new MethodAop(interceptor)));
                     break;
 
                 case CONSTRUCTOR:
                     builder = builder.constructor(pointCutDescriptor.getMethodMatcher())
-                        .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation.to(new ConstructorAop().setInterceptor(interceptor))));
+                                     .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation.to(new ConstructorAop()
+                                                                                                         .setInterceptor(
+                                                                                                             interceptor))));
                     break;
 
                 default:
-                    log.warn("Interceptor[{}] ignored due to unknown method type {}", interceptorName, pointCutDescriptor.getTargetMethodType().name());
+                    log.warn("Interceptor[{}] ignored due to unknown method type {}",
+                             interceptorName,
+                             pointCutDescriptor.getTargetMethodType().name());
                     break;
             }
         } catch (Exception e) {
@@ -249,11 +264,14 @@ public class PluginInterceptorInstaller {
 
         public IgnoreExclusionMatcher(ElementMatcher<? super TypeDescription> exclusion) {
             this.exclusion = exclusion;
-            this.or1 = new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.any(), ElementMatchers.isBootstrapClassLoader());
+            this.or1 = new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.any(),
+                                                                      ElementMatchers.isBootstrapClassLoader());
             this.or2 = new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("shaded.") //shaded.net.bytebuddy.
-                                                                          .or(ElementMatchers.nameStartsWith("com.sbss.bithon.agent."))
-                                                                          .or(ElementMatchers.nameStartsWith("sun.reflect."))
-                                                                          .or(ElementMatchers.isSynthetic()));
+                                                                                     .or(ElementMatchers.nameStartsWith(
+                                                                                         "com.sbss.bithon.agent."))
+                                                                                     .or(ElementMatchers.nameStartsWith(
+                                                                                         "sun.reflect."))
+                                                                                     .or(ElementMatchers.isSynthetic()));
         }
 
         @Override
@@ -262,7 +280,15 @@ public class PluginInterceptorInstaller {
                                JavaModule javaModule,
                                Class<?> aClass,
                                ProtectionDomain protectionDomain) {
-            return !exclusion.matches(typeDescription) && (or1.matches(typeDescription, classLoader, javaModule, aClass, protectionDomain) || or2.matches(typeDescription, classLoader, javaModule, aClass, protectionDomain));
+            return !exclusion.matches(typeDescription) && (or1.matches(typeDescription,
+                                                                       classLoader,
+                                                                       javaModule,
+                                                                       aClass,
+                                                                       protectionDomain) || or2.matches(typeDescription,
+                                                                                                        classLoader,
+                                                                                                        javaModule,
+                                                                                                        aClass,
+                                                                                                        protectionDomain));
         }
     }
 }

@@ -17,7 +17,10 @@ public class InterceptorDescriptor {
 
     private final MethodPointCutDescriptor[] methodPointCutDescriptors;
 
-    public InterceptorDescriptor(boolean debug, boolean isBootstrapClass, ElementMatcher.Junction<? super TypeDescription> classMatcher, MethodPointCutDescriptor[] methodPointCutDescriptors) {
+    public InterceptorDescriptor(boolean debug,
+                                 boolean isBootstrapClass,
+                                 ElementMatcher.Junction<? super TypeDescription> classMatcher,
+                                 MethodPointCutDescriptor[] methodPointCutDescriptors) {
         this.debug = debug;
         this.isBootstrapClass = isBootstrapClass;
         this.classMatcher = classMatcher;

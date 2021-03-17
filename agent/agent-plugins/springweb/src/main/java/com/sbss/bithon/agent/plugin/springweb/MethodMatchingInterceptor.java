@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.springweb;
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import shaded.org.slf4j.Logger;
@@ -18,7 +18,7 @@ public class MethodMatchingInterceptor extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        Method mappingToMethod = (Method)aopContext.getArgs()[1];
+        Method mappingToMethod = (Method) aopContext.getArgs()[1];
 
         Object mapping = aopContext.getArgs()[2];
         if (!(mapping instanceof RequestMappingInfo)) {

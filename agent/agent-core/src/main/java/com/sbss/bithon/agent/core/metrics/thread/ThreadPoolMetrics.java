@@ -1,7 +1,6 @@
 package com.sbss.bithon.agent.core.metrics.thread;
 
 import com.sbss.bithon.agent.core.metrics.Counter;
-import com.sbss.bithon.agent.core.metrics.Gauge;
 
 /**
  * @author frank.chen021@outlook.com
@@ -66,6 +65,7 @@ public abstract class ThreadPoolMetrics {
     public String getExecutorClass() {
         return executorClass;
     }
+
     public String getThreadPoolName() {
         return threadPoolName;
     }

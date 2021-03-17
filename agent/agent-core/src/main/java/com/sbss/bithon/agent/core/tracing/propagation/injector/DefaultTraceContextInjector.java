@@ -17,7 +17,9 @@ public class DefaultTraceContextInjector implements ITraceContextInjector {
             setter.put(request, ITracePropagator.BITHON_TRACE_ID, context.traceId());
             setter.put(request,
                        ITracePropagator.BITHON_SPAN_IDS,
-                       context.spanIdGenerator().newSpanId() + ITracePropagator.BITHON_ID_SEPARATOR + context.currentSpan().spanId());
+                       context.spanIdGenerator().newSpanId()
+                       + ITracePropagator.BITHON_ID_SEPARATOR
+                       + context.currentSpan().spanId());
             setter.put(request,
                        ITracePropagator.BITHON_SOURCE_APPLICATION,
                        Tracer.get().appName());

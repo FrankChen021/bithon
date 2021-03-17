@@ -1,12 +1,12 @@
 package com.sbss.bithon.agent.plugin.mysql8;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
-import com.sbss.bithon.agent.core.metrics.IMetricProvider;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.core.utils.ReflectionUtils;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
+import com.sbss.bithon.agent.core.metrics.IMetricProvider;
 import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
 import com.sbss.bithon.agent.core.metrics.sql.SqlMetric;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.core.utils.ReflectionUtils;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -24,18 +24,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frankchen
  */
 public class SqlMetricProvider implements IMetricProvider {
+    static final SqlMetricProvider INSTANCE = new SqlMetricProvider();
     private static final Logger log = LoggerFactory.getLogger(SqlMetricProvider.class);
-
     private static final String MYSQL_COUNTER_NAME = "mysql8";
     private static final String DRIVER_TYPE_MYSQL = "mysql";
-
     private final Map<String, SqlMetric> counters = new ConcurrentHashMap<>();
-
-    static final SqlMetricProvider INSTANCE = new SqlMetricProvider();
-
-    static SqlMetricProvider getInstance() {
-        return INSTANCE;
-    }
 
     private SqlMetricProvider() {
         try {
@@ -43,6 +36,10 @@ public class SqlMetricProvider implements IMetricProvider {
         } catch (Exception e) {
             log.error("druid counter init failed due to ", e);
         }
+    }
+
+    static SqlMetricProvider getInstance() {
+        return INSTANCE;
     }
 
     public void update(AopContext aopContext) {
@@ -98,9 +95,11 @@ public class SqlMetricProvider implements IMetricProvider {
             // 尝试记录新的mysql连接
             SqlMetric mysqlMetricStorage = counters.computeIfAbsent(hostPort, k -> new SqlMetric(k, "mysql"));
 
-            if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName) || MySql8Plugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {
+            if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName)
+                || MySql8Plugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {
                 isQuery = false;
-            } else if ((MySql8Plugin.METHOD_EXECUTE.equals(methodName) || MySql8Plugin.METHOD_EXECUTE_INTERNAL.equals(methodName))) {
+            } else if ((MySql8Plugin.METHOD_EXECUTE.equals(methodName) || MySql8Plugin.METHOD_EXECUTE_INTERNAL.equals(
+                methodName))) {
                 Object result = aopContext.castReturningAs();
                 if (result instanceof Boolean && !(boolean) result) {
                     isQuery = false;
@@ -131,8 +130,8 @@ public class SqlMetricProvider implements IMetricProvider {
                                       long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (Map.Entry<String, SqlMetric> entry : counters.entrySet()) {
-            Object message = messageConverter.from(appInstance, timestamp, interval,entry.getValue());
-            if ( message != null ) {
+            Object message = messageConverter.from(appInstance, timestamp, interval, entry.getValue());
+            if (message != null) {
                 messages.add(message);
             }
         }

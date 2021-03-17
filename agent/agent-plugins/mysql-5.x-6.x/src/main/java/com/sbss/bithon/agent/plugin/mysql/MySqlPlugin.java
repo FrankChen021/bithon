@@ -17,44 +17,49 @@ import static com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallation
  * @author frankchen
  */
 public class MySqlPlugin extends AbstractPlugin {
-    private static final String OLD_VERSION_PREPARED_STATEMENT_CLASS = "com.mysql.jdbc.PreparedStatement";
-    private static final String NEW_VERSION_PREPARED_STATEMENT_CLASS = "com.mysql.cj.jdbc.PreparedStatement";
-    private static final String OLD_VERSION_CONNECTION_CLASS = "com.mysql.jdbc.ConnectionImpl";
-    private static final String NEW_VERSION_CONNECTION_CLASS = "com.mysql.cj.jdbc.ConnectionImpl";
-    private static final String OLD_VERSION_STATEMENT_CLASS = "com.mysql.jdbc.StatementImpl";
-    private static final String NEW_VERSION_STATEMENT_CLASS = "com.mysql.cj.jdbc.StatementImpl";
-
     public static final String METHOD_EXECUTE = "execute";
     public static final String METHOD_EXECUTE_QUERY = "executeQuery";
     public static final String METHOD_EXECUTE_UPDATE = "executeUpdate";
     public static final String METHOD_EXECUTE_INTERNAL = "executeInternal";
     public static final String METHOD_EXECUTE_UPDATE_INTERNAL = "executeUpdateInternal";
     public static final String METHOD_SEND_COMMAND = "sendCommand";
+    private static final String OLD_VERSION_PREPARED_STATEMENT_CLASS = "com.mysql.jdbc.PreparedStatement";
+    private static final String NEW_VERSION_PREPARED_STATEMENT_CLASS = "com.mysql.cj.jdbc.PreparedStatement";
+    private static final String OLD_VERSION_CONNECTION_CLASS = "com.mysql.jdbc.ConnectionImpl";
+    private static final String NEW_VERSION_CONNECTION_CLASS = "com.mysql.cj.jdbc.ConnectionImpl";
+    private static final String OLD_VERSION_STATEMENT_CLASS = "com.mysql.jdbc.StatementImpl";
+    private static final String NEW_VERSION_STATEMENT_CLASS = "com.mysql.cj.jdbc.StatementImpl";
     private static final String METHOD_READ_ALL_RESULTS = "readAllResults";
 
     private static final String[] STATEMENT_EXECUTE_ARGUMENTS = new String[]{"java.lang.String", "boolean"};
     private static final String[] STATEMENT_EXECUTE_QUERY_ARGUMENTS = new String[]{"java.lang.String"};
-    private static final String[] STATEMENT_EXECUTE_UPDATE_ARGUMENTS = new String[]{"java.lang.String", "boolean",
-        "boolean"};
+    private static final String[] STATEMENT_EXECUTE_UPDATE_ARGUMENTS = new String[]{
+        "java.lang.String", "boolean",
+        "boolean"
+    };
 
-    private static final String[] MYSQL_IO_SEND_COMMAND_ARGUMENTS = new String[]{"int", "java.lang.String",
+    private static final String[] MYSQL_IO_SEND_COMMAND_ARGUMENTS = new String[]{
+        "int", "java.lang.String",
         "com.mysql.jdbc.Buffer", "boolean",
-        "java.lang.String", "int"};
-    private static final String[] MYSQL_IO_READ_ALL_RESULTS_ARGUMENTS = new String[]{"com.mysql.jdbc.StatementImpl",
+        "java.lang.String", "int"
+    };
+    private static final String[] MYSQL_IO_READ_ALL_RESULTS_ARGUMENTS = new String[]{
+        "com.mysql.jdbc.StatementImpl",
         "int", "int", "int", "boolean",
         "java.lang.String",
         "com.mysql.jdbc.Buffer",
         "boolean", "long",
-        "[Lcom.mysql.jdbc.Field;"};
+        "[Lcom.mysql.jdbc.Field;"
+    };
 
     @Override
     public List<IPluginInstallationChecker> getCheckers() {
         return Collections.singletonList(or(
-                // mysql 5
-                hasClass("org.gjt.mm.mysql.Driver", true),
-                // mysql 6
-                hasClass("com.mysql.cj.x.package-info", true)
-                )
+            // mysql 5
+            hasClass("org.gjt.mm.mysql.Driver", true),
+            // mysql 6
+            hasClass("com.mysql.cj.x.package-info", true)
+                                         )
         );
     }
 
@@ -66,14 +71,14 @@ public class MySqlPlugin extends AbstractPlugin {
             forClass("com.mysql.jdbc.MysqlIO")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_SEND_COMMAND,
-                                         MYSQL_IO_SEND_COMMAND_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.IoInterceptor"),
+                                                   .onMethodAndArgs(METHOD_SEND_COMMAND,
+                                                                    MYSQL_IO_SEND_COMMAND_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.IoInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_READ_ALL_RESULTS,
-                                         MYSQL_IO_READ_ALL_RESULTS_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.IoInterceptor")
+                                                   .onMethodAndArgs(METHOD_READ_ALL_RESULTS,
+                                                                    MYSQL_IO_READ_ALL_RESULTS_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.IoInterceptor")
                 ),
 
 
@@ -83,62 +88,62 @@ public class MySqlPlugin extends AbstractPlugin {
                     // metrics
                     //
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
 
                     //
                     // trace
                     //
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor")
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor")
                 ),
 
 
             forClass(NEW_VERSION_PREPARED_STATEMENT_CLASS)
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.PreparedStatementInterceptor"),
 
                     //
                     // trace
                     //
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor")
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.PreparedStatementTraceInterceptor")
                 ),
 
             forClass(OLD_VERSION_STATEMENT_CLASS)
@@ -147,39 +152,46 @@ public class MySqlPlugin extends AbstractPlugin {
                     // metrics
                     //
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_INTERNAL, STATEMENT_EXECUTE_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_INTERNAL,
+                                                                    STATEMENT_EXECUTE_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_QUERY, STATEMENT_EXECUTE_QUERY_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_QUERY,
+                                                                    STATEMENT_EXECUTE_QUERY_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_UPDATE, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_UPDATE,
+                                                                    STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL,
+                                                                    STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
 
                     //
                     // trace
                     //
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE, "java.lang.String")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE, "java.lang.String")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_QUERY, STATEMENT_EXECUTE_QUERY_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_QUERY,
+                                                                    STATEMENT_EXECUTE_QUERY_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_UPDATE, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_UPDATE,
+                                                                    STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
+                                                   .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL,
+                                                                    STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
                 ),
 
             forClass(NEW_VERSION_STATEMENT_CLASS)
@@ -188,43 +200,51 @@ public class MySqlPlugin extends AbstractPlugin {
                     // metrics
                     //
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_INTERNAL, STATEMENT_EXECUTE_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_INTERNAL,
+                                                                    STATEMENT_EXECUTE_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_QUERY, STATEMENT_EXECUTE_QUERY_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_QUERY,
+                                                                    STATEMENT_EXECUTE_QUERY_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_UPDATE, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_UPDATE,
+                                                                    STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL,
+                                                                    STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.StatementInterceptor"),
 
                     //
                     // trace
                     //
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE, "java.lang.String")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE, "java.lang.String")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_INTERNAL, STATEMENT_EXECUTE_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_INTERNAL,
+                                                                    STATEMENT_EXECUTE_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_QUERY, STATEMENT_EXECUTE_QUERY_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_QUERY,
+                                                                    STATEMENT_EXECUTE_QUERY_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_UPDATE, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
+                                                   .onMethodAndArgs(METHOD_EXECUTE_UPDATE,
+                                                                    STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL, STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
+                                                   .onMethodAndArgs(METHOD_EXECUTE_UPDATE_INTERNAL,
+                                                                    STATEMENT_EXECUTE_UPDATE_ARGUMENTS)
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.StatementTraceInterceptor")
                 ),
 
             //
@@ -233,62 +253,67 @@ public class MySqlPlugin extends AbstractPlugin {
             forClass(OLD_VERSION_CONNECTION_CLASS)
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement", "java.lang.String")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
+                                                   .onMethodAndArgs("prepareStatement", "java.lang.String")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement", "java.lang.String", "int")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
+                                                   .onMethodAndArgs("prepareStatement", "java.lang.String", "int")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement", "java.lang.String", "[I")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
+                                                   .onMethodAndArgs("prepareStatement", "java.lang.String", "[I")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement", "java.lang.String", "[Ljava.lang.String;")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
+                                                   .onMethodAndArgs("prepareStatement",
+                                                                    "java.lang.String",
+                                                                    "[Ljava.lang.String;")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement", "java.lang.String", "int", "int")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
+                                                   .onMethodAndArgs("prepareStatement",
+                                                                    "java.lang.String",
+                                                                    "int",
+                                                                    "int")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement",
-                                         "java.lang.String", "int", "int", "int")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
+                                                   .onMethodAndArgs("prepareStatement",
+                                                                    "java.lang.String", "int", "int", "int")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
                 ),
 
             forClass(NEW_VERSION_CONNECTION_CLASS)
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement",
-                                         "java.lang.String")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
+                                                   .onMethodAndArgs("prepareStatement",
+                                                                    "java.lang.String")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement",
-                                         "java.lang.String", "int")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
+                                                   .onMethodAndArgs("prepareStatement",
+                                                                    "java.lang.String", "int")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement",
-                                         "java.lang.String", "[I")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
+                                                   .onMethodAndArgs("prepareStatement",
+                                                                    "java.lang.String", "[I")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement",
-                                         "java.lang.String", "[Ljava.lang.String;")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
+                                                   .onMethodAndArgs("prepareStatement",
+                                                                    "java.lang.String", "[Ljava.lang.String;")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement",
-                                         "java.lang.String", "int", "int")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
+                                                   .onMethodAndArgs("prepareStatement",
+                                                                    "java.lang.String", "int", "int")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("prepareStatement",
-                                         "java.lang.String", "int", "int", "int")
-                        .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
+                                                   .onMethodAndArgs("prepareStatement",
+                                                                    "java.lang.String", "int", "int", "int")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.trace.ConnectionTraceInterceptor")
                 )
         );
     }

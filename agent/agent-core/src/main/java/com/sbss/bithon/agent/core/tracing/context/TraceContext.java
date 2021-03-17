@@ -108,7 +108,7 @@ public class TraceContext {
 
     public <T> void propagate(T injectedTo, PropagationSetter<T> setter) {
         Tracer.get()
-            .propagator()
-            .inject(this, injectedTo, setter);
+              .propagator()
+              .inject(this, injectedTo, setter);
     }
 }

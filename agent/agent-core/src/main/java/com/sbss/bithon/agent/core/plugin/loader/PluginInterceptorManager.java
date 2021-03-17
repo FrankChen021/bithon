@@ -49,7 +49,9 @@ public class PluginInterceptorManager {
                 return null;
             }
 
-            log.info("Interceptor {}.{} Loaded", plugin.getClass().getSimpleName(), interceptor.getClass().getSimpleName());
+            log.info("Interceptor {}.{} Loaded",
+                     plugin.getClass().getSimpleName(),
+                     interceptor.getClass().getSimpleName());
             INTERCEPTORS.put(interceptorId, interceptor);
             return interceptor;
         } finally {

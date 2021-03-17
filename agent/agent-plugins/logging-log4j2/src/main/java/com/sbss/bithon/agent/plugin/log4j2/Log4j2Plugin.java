@@ -27,12 +27,14 @@ public class Log4j2Plugin extends AbstractPlugin {
                      * org.apache.logging.log4j.Marker
                      * org.apache.logging.log4j.message.Message
                      * java.lang.Throwable"
-                    */
+                     */
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethod(named("logMessage")
-                                      .and(MatcherUtils.takesArgument(1, "org.apache.logging.log4j.Level"))
-                                      .and(MatcherUtils.takesArgument(4, "java.lang.Throwable")))
-                        .to("com.sbss.bithon.agent.plugin.log4j2.LogMessageInterceptor")
+                                                   .onMethod(named("logMessage")
+                                                                 .and(MatcherUtils.takesArgument(1,
+                                                                                                 "org.apache.logging.log4j.Level"))
+                                                                 .and(MatcherUtils.takesArgument(4,
+                                                                                                 "java.lang.Throwable")))
+                                                   .to("com.sbss.bithon.agent.plugin.log4j2.LogMessageInterceptor")
                 )
         );
     }

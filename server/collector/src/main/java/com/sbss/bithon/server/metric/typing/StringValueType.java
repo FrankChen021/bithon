@@ -42,6 +42,7 @@ public class StringValueType implements IValueType {
     public Number diff(Number left, Number right) {
         return null;
     }
+
     @Override
     public Number scaleTo(Number value, int scale) {
         return value;

@@ -13,7 +13,11 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeMap;
 
 import static com.sbss.bithon.agent.plugin.jvm.JmxBeans.osBean;
 import static com.sbss.bithon.agent.plugin.jvm.JmxBeans.runtimeBean;
@@ -53,7 +57,8 @@ public class JvmMetricService {
 
         try {
             IMessageConverter converter = metricsDispatcher.getMessageConverter();
-            metricsDispatcher.sendMessage(Collections.singletonList(converter.from(AgentContext.getInstance().getAppInstance(),
+            metricsDispatcher.sendMessage(Collections.singletonList(converter.from(AgentContext.getInstance()
+                                                                                               .getAppInstance(),
                                                                                    System.currentTimeMillis(),
                                                                                    10,
                                                                                    buildJvmMetrics())));
@@ -99,7 +104,8 @@ public class JvmMetricService {
         args.put("os.totalSwapSpaceSize", String.valueOf(osBean.getTotalSwapSpaceSize()));
         if (osBean instanceof UnixOperatingSystemMXBean) {
             UnixOperatingSystemMXBean unixOperatingSystemMXBean = (UnixOperatingSystemMXBean) osBean;
-            args.put("os.maxFileDescriptorCount", String.valueOf(unixOperatingSystemMXBean.getMaxFileDescriptorCount()));
+            args.put("os.maxFileDescriptorCount",
+                     String.valueOf(unixOperatingSystemMXBean.getMaxFileDescriptorCount()));
         }
 
         //TODO: remove JSON dependency by manual serialization

@@ -23,8 +23,8 @@ public class ThriftEventMessageChannel implements IMessageChannel {
 
     public ThriftEventMessageChannel(DispatcherConfig dispatcherConfig) {
         client = new AbstractThriftClient<IEventCollector.Client>("event",
-                                                                   dispatcherConfig.getServers(),
-                                                                   dispatcherConfig.getClient().getTimeout()) {
+                                                                  dispatcherConfig.getServers(),
+                                                                  dispatcherConfig.getClient().getTimeout()) {
             @Override
             protected IEventCollector.Client createClient(TProtocol protocol) {
                 return new IEventCollector.Client(protocol);

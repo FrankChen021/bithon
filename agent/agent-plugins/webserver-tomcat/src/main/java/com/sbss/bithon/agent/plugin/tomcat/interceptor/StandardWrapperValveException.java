@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.plugin.tomcat.interceptor;
 
+import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
 import com.sbss.bithon.agent.plugin.tomcat.metric.ExceptionMetricProvider;
 
 /**
@@ -17,7 +17,7 @@ public class StandardWrapperValveException extends AbstractInterceptor {
     @Override
     public boolean initialize() {
         metricProvider = MetricProviderManager.getInstance()
-            .register("tomcat-exception", new ExceptionMetricProvider());
+                                              .register("tomcat-exception", new ExceptionMetricProvider());
         return true;
     }
 

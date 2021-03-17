@@ -35,8 +35,8 @@ public class RedisMetricMessageHandler extends AbstractMetricMessageHandler {
     @Override
     void toMetricObject(GenericMetricMessage message) {
         message.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
-                                message.getApplicationName(),
-                                EndPointType.REDIS,
-                                message.getString("uri")));
+                                                 message.getApplicationName(),
+                                                 EndPointType.REDIS,
+                                                 message.getString("uri")));
     }
 }

@@ -10,13 +10,13 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 class ThreadPoolExecutorMetrics extends ThreadPoolMetrics {
 
+    private final ThreadPoolExecutor executor;
+
     ThreadPoolExecutorMetrics(ThreadPoolExecutor executor) {
         super(executor.getThreadFactory().getClass().getName(),
               ThreadPoolUtils.getThreadPoolName(executor.getThreadFactory()));
         this.executor = executor;
     }
-
-    private final ThreadPoolExecutor executor;
 
     @Override
     public long getActiveThreads() {

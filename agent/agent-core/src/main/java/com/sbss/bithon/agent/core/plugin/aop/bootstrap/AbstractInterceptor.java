@@ -4,6 +4,7 @@ package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
  * <pre>
  *     NOTE: subclass of this class MUST be declared as PUBLIC
  * </pre>
+ *
  * @author frankchen
  * @date 2020-12-31 22:20:11
  */

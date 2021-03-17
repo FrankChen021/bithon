@@ -31,9 +31,9 @@ public class TomcatContextProvider {
         File[] appPaths = webApps.listFiles(File::isDirectory);
         if (null != appPaths) {
             result.addAll(Arrays.stream(appPaths)
-                              .map(p -> new File(p.getAbsolutePath() + separator + "WEB-INF" + separator + "lib"))
-                              .filter(File::isDirectory)
-                              .collect(Collectors.toList())
+                                .map(p -> new File(p.getAbsolutePath() + separator + "WEB-INF" + separator + "lib"))
+                                .filter(File::isDirectory)
+                                .collect(Collectors.toList())
             );
         }
         return result;
@@ -41,7 +41,9 @@ public class TomcatContextProvider {
 
     public static List<File> findLibs(String catalinaHome) throws IOException {
         List<File> result = new ArrayList<>();
-        File[] baseJarLibs = findBaseLibPath(catalinaHome).listFiles(file -> file.getName().toLowerCase().endsWith(Constant.Suffix.JAR.value()));
+        File[] baseJarLibs = findBaseLibPath(catalinaHome).listFiles(file -> file.getName()
+                                                                                 .toLowerCase()
+                                                                                 .endsWith(Constant.Suffix.JAR.value()));
         if (null != baseJarLibs) {
             result.addAll(Arrays.stream(baseJarLibs).collect(Collectors.toList()));
         }

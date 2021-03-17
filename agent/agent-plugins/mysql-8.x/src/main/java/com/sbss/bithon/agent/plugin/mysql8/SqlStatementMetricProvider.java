@@ -2,14 +2,14 @@ package com.sbss.bithon.agent.plugin.mysql8;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
+import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
+import com.sbss.bithon.agent.core.metrics.IMetricProvider;
+import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
+import com.sbss.bithon.agent.core.metrics.sql.SqlStatementMetric;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.setting.AgentSettingManager;
 import com.sbss.bithon.agent.core.setting.IAgentSettingRefreshListener;
 import com.sbss.bithon.agent.core.setting.SettingRootNames;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
-import com.sbss.bithon.agent.core.metrics.IMetricProvider;
-import com.sbss.bithon.agent.core.metrics.sql.SqlStatementMetric;
 import shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
 import shaded.com.alibaba.druid.util.JdbcConstants;
 import shaded.org.slf4j.Logger;
@@ -30,18 +30,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frankchen
  */
 public class SqlStatementMetricProvider implements IMetricProvider, IAgentSettingRefreshListener {
+    static final SqlStatementMetricProvider INSTANCE = new SqlStatementMetricProvider();
     private static final Logger log = LoggerFactory.getLogger(SqlStatementMetricProvider.class);
-
     private static final String MYSQL_COUNTER_NAME = "mysql8_sql_stats";
-
     private final Map<String, Map<String, SqlStatementMetric>> metricMap = new ConcurrentHashMap<>();
     private int sqlTimeThreshold = 1000;
-
-    static final SqlStatementMetricProvider INSTANCE = new SqlStatementMetricProvider();
-
-    static SqlStatementMetricProvider getInstance() {
-        return INSTANCE;
-    }
 
     private SqlStatementMetricProvider() {
         try {
@@ -51,6 +44,10 @@ public class SqlStatementMetricProvider implements IMetricProvider, IAgentSettin
         }
 
         AgentSettingManager.getInstance().register(SettingRootNames.SQL, this);
+    }
+
+    static SqlStatementMetricProvider getInstance() {
+        return INSTANCE;
     }
 
     public void update(AopContext aopContext) {

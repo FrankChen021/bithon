@@ -30,12 +30,12 @@ public class DruidTraceHandler extends AbstractInterceptor {
 
         // create a span and save it in user-context
         TraceSpan thisSpan = parentSpan.newChildSpan("Druid")
-            .clazz(aopContext.getTargetClass())
-            .method(aopContext.getMethod())
-            .kind(SpanKind.CLIENT)
-            //TODO:
-            //.tag("db", )
-            .start();
+                                       .clazz(aopContext.getTargetClass())
+                                       .method(aopContext.getMethod())
+                                       .kind(SpanKind.CLIENT)
+                                       //TODO:
+                                       //.tag("db", )
+                                       .start();
         aopContext.setUserContext(thisSpan);
 
         return InterceptionDecision.CONTINUE;

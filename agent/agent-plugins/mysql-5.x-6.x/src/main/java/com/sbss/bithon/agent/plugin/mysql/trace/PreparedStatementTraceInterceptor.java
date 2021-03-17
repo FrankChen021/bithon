@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.plugin.mysql.trace;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
@@ -31,10 +31,10 @@ public class PreparedStatementTraceInterceptor extends AbstractInterceptor {
 
         // create a span and save it in user-context
         aopContext.setUserContext(parentSpan.newChildSpan("mysql")
-                                      .clazz(aopContext.getTargetClass())
-                                      .method(aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      .start());
+                                            .clazz(aopContext.getTargetClass())
+                                            .method(aopContext.getMethod())
+                                            .kind(SpanKind.CLIENT)
+                                            .start());
 
         return InterceptionDecision.CONTINUE;
     }

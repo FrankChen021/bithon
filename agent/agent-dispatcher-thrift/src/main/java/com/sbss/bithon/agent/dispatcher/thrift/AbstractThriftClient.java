@@ -23,25 +23,13 @@ import java.util.stream.Collectors;
  * @date 2021/1/16 04:40 下午
  */
 public abstract class AbstractThriftClient<T extends TServiceClient> {
-    static Logger log = LoggerFactory.getLogger(AbstractThriftClient.class);
-
     private static final int MAX_RETRY = 3;
-
-    private T client;
+    static Logger log = LoggerFactory.getLogger(AbstractThriftClient.class);
     private final int timeout;
     private final String clientName;
     private final List<HostAndPort> servers;
+    private T client;
     private int serverSelector = -1;
-
-    static class HostAndPort {
-        final String host;
-        final int port;
-
-        HostAndPort(String host, int port) {
-            this.host = host;
-            this.port = port;
-        }
-    }
 
     public AbstractThriftClient(String clientName,
                                 String servers,
@@ -76,10 +64,13 @@ public abstract class AbstractThriftClient<T extends TServiceClient> {
                     log.info("(2)retry {} time(s)", MAX_RETRY - retries + 1);
                     return ensureClient(callback, --retries);
                 } else {
-                    log.error("Failed to send for [{}]: reaching max retries: {}", this.clientName, e.getCause().getMessage());
+                    log.error("Failed to send for [{}]: reaching max retries: {}",
+                              this.clientName,
+                              e.getCause().getMessage());
                 }
             } else if (e.getCause() instanceof TApplicationException) {
-                log.error(String.format("Application exception occurred when sending for [%s]", this.clientName), e.getCause());
+                log.error(String.format("Application exception occurred when sending for [%s]", this.clientName),
+                          e.getCause());
             } else {
                 log.error(String.format("Unexpected exception occurred when sending for [%s]", this.clientName), e);
             }
@@ -95,23 +86,23 @@ public abstract class AbstractThriftClient<T extends TServiceClient> {
             HostAndPort hostAndPort = this.servers.get(++serverSelector % servers.size());
             try {
                 TTransport transport = new TFramedTransport(new TSocket(new TConfiguration(),
-                        hostAndPort.host,
-                        hostAndPort.port,
-                        timeout));
+                                                                        hostAndPort.host,
+                                                                        hostAndPort.port,
+                                                                        timeout));
                 if (!transport.isOpen()) {
                     transport.open();
                 }
 
                 client = createClient(new TMultiplexedProtocol(new TCompactProtocol(transport),
-                        clientName));
+                                                               clientName));
             } catch (TTransportException e) {
                 if (e.getCause() instanceof IOException) {
                     log.error("Failed to connect to server[{}:{}] for [{}], cause:[{}] message:{}",
-                            hostAndPort.host,
-                            hostAndPort.port,
-                            this.clientName,
-                            e.getCause().getClass().getSimpleName(),
-                            e.getCause().getMessage());
+                              hostAndPort.host,
+                              hostAndPort.port,
+                              this.clientName,
+                              e.getCause().getClass().getSimpleName(),
+                              e.getCause().getMessage());
                 } else {
                     log.error(e.getMessage(), e);
                 }
@@ -122,7 +113,8 @@ public abstract class AbstractThriftClient<T extends TServiceClient> {
 
     private void closeClient() {
         try {
-            if (null != client && null != client.getInputProtocol() && null != client.getInputProtocol().getTransport()) {
+            if (null != client && null != client.getInputProtocol() && null != client.getInputProtocol()
+                                                                                     .getTransport()) {
                 client.getInputProtocol().getTransport().close();
             }
         } catch (Exception e) {
@@ -130,7 +122,8 @@ public abstract class AbstractThriftClient<T extends TServiceClient> {
         }
 
         try {
-            if (null != client && null != client.getOutputProtocol() && null != client.getOutputProtocol().getTransport()) {
+            if (null != client && null != client.getOutputProtocol() && null != client.getOutputProtocol()
+                                                                                      .getTransport()) {
                 client.getOutputProtocol().getTransport().close();
             }
         } catch (Exception e) {
@@ -140,4 +133,14 @@ public abstract class AbstractThriftClient<T extends TServiceClient> {
     }
 
     abstract protected T createClient(org.apache.thrift.protocol.TProtocol protocol);
+
+    static class HostAndPort {
+        final String host;
+        final int port;
+
+        HostAndPort(String host, int port) {
+            this.host = host;
+            this.port = port;
+        }
+    }
 }

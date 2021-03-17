@@ -1,10 +1,10 @@
 package com.sbss.bithon.agent.plugin.jetty;
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
 import com.sbss.bithon.agent.core.metrics.web.RequestUriFilter;
 import com.sbss.bithon.agent.core.metrics.web.UserAgentFilter;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import org.eclipse.jetty.server.Request;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +26,9 @@ public class HandleRequestInterceptor extends AbstractInterceptor {
         uriFilter = new RequestUriFilter();
         userAgentFilter = new UserAgentFilter();
 
-        requestCounter = (WebRequestMetricProvider) MetricProviderManager.getInstance().register(JETTY_REQUEST_BUFFER_MANAGER_NAME, new WebRequestMetricProvider());
+        requestCounter = (WebRequestMetricProvider) MetricProviderManager.getInstance()
+                                                                         .register(JETTY_REQUEST_BUFFER_MANAGER_NAME,
+                                                                                   new WebRequestMetricProvider());
 
         return true;
     }
@@ -35,7 +37,7 @@ public class HandleRequestInterceptor extends AbstractInterceptor {
     public void onMethodLeave(AopContext context) {
         Request request = (Request) context.getArgs()[1];
         boolean filtered = this.userAgentFilter.isFiltered(request.getHeader("User-Agent"))
-            || this.uriFilter.isFiltered(request.getRequestURI());
+                           || this.uriFilter.isFiltered(request.getRequestURI());
         if (filtered) {
             return;
         }

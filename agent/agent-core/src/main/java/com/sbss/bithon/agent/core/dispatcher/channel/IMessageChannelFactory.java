@@ -9,7 +9,9 @@ import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
  */
 public interface IMessageChannelFactory {
     IMessageChannel createMetricsChannel(DispatcherConfig dispatcherConfig);
+
     IMessageChannel createTracingChannel(DispatcherConfig dispatcherConfig);
+
     IMessageChannel createEventsChannel(DispatcherConfig dispatcherConfig);
 
     IMessageConverter createMessageConverter();

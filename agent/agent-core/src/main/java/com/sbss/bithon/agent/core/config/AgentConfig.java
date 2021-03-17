@@ -21,47 +21,6 @@ public class AgentConfig {
     private Map<String, DispatcherConfig> dispatchers;
     private FetcherConfig fetcher;
 
-    public boolean isTraceEnabled() {
-        return traceEnabled;
-    }
-
-    public void setTraceEnabled(boolean traceEnabled) {
-        this.traceEnabled = traceEnabled;
-    }
-
-    public boolean isDebugEnabled() {
-        return debugEnabled;
-    }
-
-    public void setDebugEnabled(boolean debugEnabled) {
-        this.debugEnabled = debugEnabled;
-    }
-
-
-    public FetcherConfig getFetcher() {
-        return fetcher;
-    }
-
-    public void setFetcher(FetcherConfig fetcher) {
-        this.fetcher = fetcher;
-    }
-
-    public BootstrapConfig getBootstrap() {
-        return bootstrap;
-    }
-
-    public void setBootstrap(BootstrapConfig bootstrap) {
-        this.bootstrap = bootstrap;
-    }
-
-    public Map<String, DispatcherConfig> getDispatchers() {
-        return dispatchers;
-    }
-
-    public void setDispatchers(Map<String, DispatcherConfig> dispatchers) {
-        this.dispatchers = dispatchers;
-    }
-
     public static AgentConfig loadFromYmlFile(String defaultFilePath) throws IOException {
         String conf = System.getProperty("conf");
 
@@ -71,7 +30,8 @@ public class AgentConfig {
 
         String appName = getApplicationName(config.getBootstrap().getAppName());
         if (StringUtils.isEmpty(appName)) {
-            throw new AgentException("Failed to get JVM property or environment variable `%s`", BITHON_APPLICATION_NAME);
+            throw new AgentException("Failed to get JVM property or environment variable `%s`",
+                                     BITHON_APPLICATION_NAME);
         }
         config.getBootstrap().setAppName(appName);
 
@@ -110,5 +70,45 @@ public class AgentConfig {
         }
 
         return null;
+    }
+
+    public boolean isTraceEnabled() {
+        return traceEnabled;
+    }
+
+    public void setTraceEnabled(boolean traceEnabled) {
+        this.traceEnabled = traceEnabled;
+    }
+
+    public boolean isDebugEnabled() {
+        return debugEnabled;
+    }
+
+    public void setDebugEnabled(boolean debugEnabled) {
+        this.debugEnabled = debugEnabled;
+    }
+
+    public FetcherConfig getFetcher() {
+        return fetcher;
+    }
+
+    public void setFetcher(FetcherConfig fetcher) {
+        this.fetcher = fetcher;
+    }
+
+    public BootstrapConfig getBootstrap() {
+        return bootstrap;
+    }
+
+    public void setBootstrap(BootstrapConfig bootstrap) {
+        this.bootstrap = bootstrap;
+    }
+
+    public Map<String, DispatcherConfig> getDispatchers() {
+        return dispatchers;
+    }
+
+    public void setDispatchers(Map<String, DispatcherConfig> dispatchers) {
+        this.dispatchers = dispatchers;
     }
 }

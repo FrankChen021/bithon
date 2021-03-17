@@ -33,7 +33,7 @@ public class MemoryMetricsBuilder {
                                  JmxBeans.memoryBean.getNonHeapMemoryUsage().getInit(),
                                  JmxBeans.memoryBean.getNonHeapMemoryUsage().getUsed(),
                                  JmxBeans.memoryBean.getNonHeapMemoryUsage()
-                                     .getCommitted());
+                                                    .getCommitted());
     }
 
     public static MetaspaceMetric buildMetaspaceMetrics() {

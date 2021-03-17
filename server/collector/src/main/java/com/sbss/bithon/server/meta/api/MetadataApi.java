@@ -1,8 +1,8 @@
 package com.sbss.bithon.server.meta.api;
 
 import com.sbss.bithon.server.common.pojo.DisplayableText;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.meta.Metadata;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -20,7 +20,7 @@ public class CollectionUtils {
     public static boolean isNotEmpty(Collection<?> list) {
         return !isEmpty(list);
     }
-    
+
     public static boolean isEmpty(Object[] objs) {
         return objs == null || objs.length == 0;
     }

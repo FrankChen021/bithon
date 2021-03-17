@@ -20,11 +20,11 @@ public class TraceContextHolder {
         return HOLDER.get();
     }
 
-    public static void setAsy(Boolean asy) {
-        ASYNC_HOLDER.set(asy);
-    }
-
     public static Boolean getAsy() {
         return ASYNC_HOLDER.get();
+    }
+
+    public static void setAsy(Boolean asy) {
+        ASYNC_HOLDER.set(asy);
     }
 }

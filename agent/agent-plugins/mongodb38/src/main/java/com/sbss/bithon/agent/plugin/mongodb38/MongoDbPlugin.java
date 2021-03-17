@@ -31,12 +31,14 @@ public class MongoDbPlugin extends AbstractPlugin {
             forClass("com.mongodb.internal.connection.DefaultServerConnection")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("executeProtocol")
-                        .to(MongoDbPlugin.class.getPackage() + ".ServerConnectionInterceptor"),
+                                                   .onAllMethods("executeProtocol")
+                                                   .to(MongoDbPlugin.class.getPackage()
+                                                       + ".ServerConnectionInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("executeProtocolAsync")
-                        .to(MongoDbPlugin.class.getPackage() + ".ServerConnectionInterceptor")
+                                                   .onAllMethods("executeProtocolAsync")
+                                                   .to(MongoDbPlugin.class.getPackage()
+                                                       + ".ServerConnectionInterceptor")
                 ),
 
 
@@ -44,16 +46,19 @@ public class MongoDbPlugin extends AbstractPlugin {
             forClass("com.mongodb.internal.connection.InternalStreamConnection")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("sendMessage")
-                        .to(MongoDbPlugin.class.getPackage() + ".MongoDbByteHandlerInterceptor"),
+                                                   .onAllMethods("sendMessage")
+                                                   .to(MongoDbPlugin.class.getPackage()
+                                                       + ".MongoDbByteHandlerInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("sendMessageAsync")
-                        .to(MongoDbPlugin.class.getPackage() + ".MongoDbByteHandlerInterceptor"),
+                                                   .onAllMethods("sendMessageAsync")
+                                                   .to(MongoDbPlugin.class.getPackage()
+                                                       + ".MongoDbByteHandlerInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("receiveMessage")
-                        .to(MongoDbPlugin.class.getPackage() + ".MongoDbByteHandlerInterceptor")
+                                                   .onAllMethods("receiveMessage")
+                                                   .to(MongoDbPlugin.class.getPackage()
+                                                       + ".MongoDbByteHandlerInterceptor")
 
                     //TODO: how to count on asynchronous operations ???
                     //receiveMessageAsync

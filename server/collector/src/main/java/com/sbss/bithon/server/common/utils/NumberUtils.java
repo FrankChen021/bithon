@@ -21,8 +21,9 @@ public class NumberUtils {
     public static double div(BigDecimal dividend,
                              BigDecimal divisor,
                              int scale) {
-        if (divisor.equals(BigDecimal.ZERO))
+        if (divisor.equals(BigDecimal.ZERO)) {
             return dividend.doubleValue();
+        }
         return dividend.divide(divisor, scale, BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 

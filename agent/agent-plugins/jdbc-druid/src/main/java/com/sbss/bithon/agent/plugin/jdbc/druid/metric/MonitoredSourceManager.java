@@ -13,13 +13,20 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MonitoredSourceManager {
 
+    static final MonitoredSourceManager INSTANCE = new MonitoredSourceManager();
     private final Map<String, MonitoredSource> uriMap = new ConcurrentHashMap<>();
     private final Map<DruidDataSource, MonitoredSource> dataSourceMap = new ConcurrentHashMap<>();
 
-    static final MonitoredSourceManager INSTANCE = new MonitoredSourceManager();
-
     static public MonitoredSourceManager getInstance() {
         return INSTANCE;
+    }
+
+    static public String parseDataSourceUri(String rawUrl) throws URISyntaxException {
+        // remove leading "jdbc:" prefix
+        String originUrl = rawUrl.replaceFirst("jdbc:", "");
+
+        URI uri = new URI(originUrl);
+        return uri.getHost() + ":" + uri.getPort();
     }
 
     public boolean addDataSource(DruidDataSource dataSource) throws URISyntaxException {
@@ -57,13 +64,5 @@ public class MonitoredSourceManager {
 
     public boolean isEmpty() {
         return uriMap.isEmpty();
-    }
-
-    static public String parseDataSourceUri(String rawUrl) throws URISyntaxException {
-        // remove leading "jdbc:" prefix
-        String originUrl = rawUrl.replaceFirst("jdbc:", "");
-
-        URI uri = new URI(originUrl);
-        return uri.getHost() + ":" + uri.getPort();
     }
 }

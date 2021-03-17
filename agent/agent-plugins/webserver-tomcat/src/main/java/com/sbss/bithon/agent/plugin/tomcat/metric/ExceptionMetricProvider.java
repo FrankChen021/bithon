@@ -17,58 +17,8 @@ public class ExceptionMetricProvider implements IMetricProvider {
     private static final int ERROR_SOURCE_TYPE_TOMCAT = 1;
 
     private final long earliestRecordTimestamp = 0;
-    private long latestRecordTimestamp = 0;
-
-    private static class ClientException {
-        private final long timestamp;
-        private String uri;
-        private final Throwable rootException;
-
-        public String getUri() {
-            return uri;
-        }
-
-        public void setUri(String uri) {
-            this.uri = uri;
-        }
-
-        ClientException(long occurTimestamp, String uri, Throwable throwable) {
-            this.timestamp = occurTimestamp;
-            this.rootException = throwable;
-            this.uri = uri;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            ClientException that = (ClientException) o;
-
-            return timestamp == that.timestamp && rootException.equals(that.rootException);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = (int) (timestamp ^ (timestamp >>> 32));
-            result = 31 * result + rootException.hashCode();
-            return result;
-        }
-
-        long getTimestamp() {
-            return timestamp;
-        }
-
-        Throwable getRootException() {
-            return rootException;
-        }
-    }
-
     private final Queue<ClientException> exceptionStorage = new ConcurrentLinkedDeque<>();
+    private long latestRecordTimestamp = 0;
 
     public void update(Throwable e) {
         if (null != e) {
@@ -134,6 +84,55 @@ public class ExceptionMetricProvider implements IMetricProvider {
 //                                                                  null,
 //                                                                  ERROR_SOURCE_TYPE_TOMCAT));
         return Collections.emptyList();
+    }
+
+    private static class ClientException {
+        private final long timestamp;
+        private final Throwable rootException;
+        private String uri;
+
+        ClientException(long occurTimestamp, String uri, Throwable throwable) {
+            this.timestamp = occurTimestamp;
+            this.rootException = throwable;
+            this.uri = uri;
+        }
+
+        public String getUri() {
+            return uri;
+        }
+
+        public void setUri(String uri) {
+            this.uri = uri;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ClientException that = (ClientException) o;
+
+            return timestamp == that.timestamp && rootException.equals(that.rootException);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = (int) (timestamp ^ (timestamp >>> 32));
+            result = 31 * result + rootException.hashCode();
+            return result;
+        }
+
+        long getTimestamp() {
+            return timestamp;
+        }
+
+        Throwable getRootException() {
+            return rootException;
+        }
     }
 
 //    private ExceptionEntity getExceptionEntityFromThrowable(Throwable t) {

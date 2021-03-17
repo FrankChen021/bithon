@@ -39,26 +39,6 @@ public class AopContext {
         return targetClass;
     }
 
-    public void setUserContext(Object userContext) {
-        this.userContext = userContext;
-    }
-
-    public void setCostTime(long costTime) {
-        this.costTime = costTime;
-    }
-
-    public void setEndTimestamp(long timestamp) {
-        this.endTimestamp = timestamp;
-    }
-
-    public void setReturning(Object returning) {
-        this.returning = returning;
-    }
-
-    public void setException(Exception exception) {
-        this.exception = exception;
-    }
-
     /**
      * @return null for static method; non-null for instance method
      */
@@ -82,6 +62,10 @@ public class AopContext {
         return userContext;
     }
 
+    public void setUserContext(Object userContext) {
+        this.userContext = userContext;
+    }
+
     public <T> T castUserContextAs() {
         return (T) userContext;
     }
@@ -90,11 +74,15 @@ public class AopContext {
         return returning;
     }
 
+    public void setReturning(Object returning) {
+        this.returning = returning;
+    }
+
     /**
      * cast the returning result returned by intercepted method
      */
     public <T> T castReturningAs() {
-        return (T)returning;
+        return (T) returning;
     }
 
     /**
@@ -102,6 +90,10 @@ public class AopContext {
      */
     public Exception getException() {
         return exception;
+    }
+
+    public void setException(Exception exception) {
+        this.exception = exception;
     }
 
     public boolean hasException() {
@@ -116,11 +108,19 @@ public class AopContext {
         return costTime;
     }
 
+    public void setCostTime(long costTime) {
+        this.costTime = costTime;
+    }
+
     public long getStartTimestamp() {
         return startTimestamp;
     }
 
     public long getEndTimestamp() {
         return endTimestamp;
+    }
+
+    public void setEndTimestamp(long timestamp) {
+        this.endTimestamp = timestamp;
     }
 }

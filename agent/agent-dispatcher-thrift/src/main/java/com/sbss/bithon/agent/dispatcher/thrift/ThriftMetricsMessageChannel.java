@@ -23,10 +23,8 @@ import java.util.Map;
  * @date 2021/1/6 11:40 下午
  */
 public class ThriftMetricsMessageChannel implements IMessageChannel {
-    static Logger log = LoggerFactory.getLogger(ThriftMetricsMessageChannel.class);
-
     private static final int MAX_RETRY = 3;
-
+    static Logger log = LoggerFactory.getLogger(ThriftMetricsMessageChannel.class);
     private final Map<String, Method> sendMethods = new HashMap<>();
     private final AbstractThriftClient<IMetricCollector.Client> client;
     private final DispatcherConfig dispatcherConfig;

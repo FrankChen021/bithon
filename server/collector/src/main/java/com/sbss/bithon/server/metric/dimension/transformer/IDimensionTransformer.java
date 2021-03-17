@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-        @JsonSubTypes.Type(name = "simple", value = MappingTransformer.class)
+    @JsonSubTypes.Type(name = "simple", value = MappingTransformer.class)
 })
 public interface IDimensionTransformer {
 

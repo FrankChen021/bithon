@@ -9,10 +9,6 @@ public class Quartz2Monitor {
 
     private static SchedulerRepository schedulerRepository;
 
-    private static class Quartz2MonitorHandler {
-        static final Quartz2Monitor INSTANCE = new Quartz2Monitor();
-    }
-
     private Quartz2Monitor() {
     }
 
@@ -39,6 +35,10 @@ public class Quartz2Monitor {
         } catch (ClassNotFoundException e) {
             return true;
         }
+    }
+
+    private static class Quartz2MonitorHandler {
+        static final Quartz2Monitor INSTANCE = new Quartz2Monitor();
     }
 
 //    public QuartzEntity buildQuartzData() throws SchedulerException {

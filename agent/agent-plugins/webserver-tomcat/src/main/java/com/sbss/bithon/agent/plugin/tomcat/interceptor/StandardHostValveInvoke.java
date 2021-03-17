@@ -13,8 +13,6 @@ import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 /**
  * implement Tracing
@@ -37,26 +35,27 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         Request request = (Request) aopContext.getArgs()[0];
 
-        if (uriFilter.isFiltered(request.getRequestURI()) || userAgentFilter.isFiltered(request.getHeader("User-Agent"))) {
+        if (uriFilter.isFiltered(request.getRequestURI())
+            || userAgentFilter.isFiltered(request.getHeader("User-Agent"))) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
 
         TraceContext traceContext = Tracer.get()
-            .propagator()
-            .extract(request, (carrier, key) -> carrier.getHeader(key));
+                                          .propagator()
+                                          .extract(request, (carrier, key) -> carrier.getHeader(key));
         if (traceContext != null) {
             TraceContextHolder.set(traceContext);
             InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
 
             traceContext.currentSpan()
-                .component("tomcat")
-                .tag("uri", request.getRequestURI())
-                .clazz(aopContext.getTargetClass())
-                .method(aopContext.getMethod())
-                .kind(SpanKind.SERVER)
-                .start();
+                        .component("tomcat")
+                        .tag("uri", request.getRequestURI())
+                        .clazz(aopContext.getTargetClass())
+                        .method(aopContext.getMethod())
+                        .kind(SpanKind.SERVER)
+                        .start();
         }
 
         return InterceptionDecision.CONTINUE;

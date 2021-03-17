@@ -20,9 +20,9 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<List<T
 
     public TraceMessageHandler(ITraceStorage traceStorage) {
         super(2,
-                10,
-                Duration.ofMinutes(1),
-                2048);
+              10,
+              Duration.ofMinutes(1),
+              2048);
 
         this.traceWriter = traceStorage.createWriter();
     }

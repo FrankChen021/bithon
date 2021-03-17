@@ -26,10 +26,10 @@ public class Dispatcher {
     private final String agentPath;
     private final String dispatcherName;
     private final String appName;
-    private int appPort;
     private final IMessageConverter messageConverter;
     private final IMessageChannel dispatcher;
     private final DispatcherConfig dispatcherConfig;
+    private int appPort;
     private DispatchTask task;
 
     Dispatcher(String dispatcherName,
@@ -100,7 +100,13 @@ public class Dispatcher {
 
     private IMessageQueue createQueue() {
         try {
-            return new FileQueueImpl(agentPath + separator + AgentContext.TMP_DIR + separator + dispatcherName + separator + appName,
+            return new FileQueueImpl(agentPath
+                                     + separator
+                                     + AgentContext.TMP_DIR
+                                     + separator
+                                     + dispatcherName
+                                     + separator
+                                     + appName,
                                      String.valueOf(appPort));
         } catch (IOException e) {
             System.exit(0);

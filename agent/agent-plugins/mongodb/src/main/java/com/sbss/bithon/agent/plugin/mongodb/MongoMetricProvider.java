@@ -5,11 +5,11 @@ import com.mongodb.connection.ConnectionId;
 import com.mongodb.event.ConnectionMessageReceivedEvent;
 import com.mongodb.event.ConnectionMessagesSentEvent;
 import com.sbss.bithon.agent.core.context.AppInstance;
-import com.sbss.bithon.agent.core.metrics.IMetricProvider;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
+import com.sbss.bithon.agent.core.metrics.IMetricProvider;
 import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
 import com.sbss.bithon.agent.core.metrics.mongo.MongoMetric;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -23,21 +23,18 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frankchen
  */
 public class MongoMetricProvider implements IMetricProvider {
+    static final MongoMetricProvider INSTANCE = new MongoMetricProvider();
     private static final Logger log = LoggerFactory.getLogger(MongoMetricProvider.class);
-
     private static final String COUNTER_NAME = "mongodb";
-
     /**
      * 计数器内部存储, String存放host + port
      */
     private final Map<String, MongoMetric> counters = new ConcurrentHashMap<>();
-
     /**
      * 存储mongoDb Id connectionId到instance的映射关系, 官方api说此id是不可变的, 但是connection销毁后,
      * 会不会出现新的connectionId 到instance的映射, 有待观察
      */
     private final Map<ConnectionId, String> mongoDbConnectionIdHostPortMapping = new HashMap<>();
-
     private MongoMetric counter;
 
     private MongoMetricProvider() {
@@ -47,8 +44,6 @@ public class MongoMetricProvider implements IMetricProvider {
             log.error("mongodb counter init failed due to ", e);
         }
     }
-
-    static final MongoMetricProvider INSTANCE = new MongoMetricProvider();
 
     static MongoMetricProvider getInstance() {
         return INSTANCE;
@@ -76,7 +71,7 @@ public class MongoMetricProvider implements IMetricProvider {
 
         // 尝试记录新的mongoDB连接
         MongoMetric mongoMetricStorage = counters.computeIfAbsent(hostPort,
-                                                                        k -> new MongoMetric(hostPort));
+                                                                  k -> new MongoMetric(hostPort));
         mongoMetricStorage.add(aopContext.getCostTime(), failureCount);
 
         // 写入映射关系
@@ -122,7 +117,7 @@ public class MongoMetricProvider implements IMetricProvider {
                                       int interval,
                                       long timestamp) {
         log.debug("app-mongodb-debugging: Current Mongo ConnectionId Mapping: " +
-                      mongoDbConnectionIdHostPortMapping.toString());
+                  mongoDbConnectionIdHostPortMapping.toString());
 
         List<Object> messages = new ArrayList<>();
         for (Map.Entry<String, MongoMetric> entry : counters.entrySet()) {

@@ -24,7 +24,8 @@ public class RedisAsyncCommandComplete extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        LoggerFactory.getLogger(RedisAsyncCommandComplete.class).info("after {} AsyncCommandInterceptor", aopContext.getMethod().getName());
+        LoggerFactory.getLogger(RedisAsyncCommandComplete.class)
+                     .info("after {} AsyncCommandInterceptor", aopContext.getMethod().getName());
 
         if (!(aopContext.getTarget() instanceof IBithonObject)) {
             return;
@@ -37,7 +38,8 @@ public class RedisAsyncCommandComplete extends AbstractInterceptor {
             asyncContext.getStartTime() != null) {
             AsyncCommand asyncCommand = (AsyncCommand) aopContext.getTarget();
 
-            boolean fail = "cancel".equalsIgnoreCase(aopContext.getMethod().getName()) || asyncCommand.getOutput().hasError();
+            boolean fail = "cancel".equalsIgnoreCase(aopContext.getMethod().getName()) || asyncCommand.getOutput()
+                                                                                                      .hasError();
 
             //TODO: read/write
             //TODO: bytes

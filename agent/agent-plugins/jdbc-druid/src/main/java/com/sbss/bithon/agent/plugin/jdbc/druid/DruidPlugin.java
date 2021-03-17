@@ -25,54 +25,54 @@ public class DruidPlugin extends AbstractPlugin {
                 .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("init")
-                        .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceInit"),
+                                                   .onMethodAndNoArgs("init")
+                                                   .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceInit"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("close")
-                        .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceClose"),
+                                                   .onMethodAndNoArgs("close")
+                                                   .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceClose"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("restart")
-                        .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceRestart"),
+                                                   .onMethodAndNoArgs("restart")
+                                                   .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceRestart"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("getStatValueAndReset")
-                        .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceGetValueAndReset")
+                                                   .onAllMethods("getStatValueAndReset")
+                                                   .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceGetValueAndReset")
                 ),
 
             forClass("com.alibaba.druid.pool.DruidPooledPreparedStatement")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE)
-                        .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE)
+                                                   .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
-                        .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
+                                                   .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
-                        .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor")
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
+                                                   .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor")
                 ),
 
             forClass("com.alibaba.druid.pool.DruidPooledStatement")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods(METHOD_EXECUTE)
-                        .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
+                                                   .onAllMethods(METHOD_EXECUTE)
+                                                   .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods(METHOD_EXECUTE_QUERY)
-                        .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
+                                                   .onAllMethods(METHOD_EXECUTE_QUERY)
+                                                   .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods(METHOD_EXECUTE_UPDATE)
-                        .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
+                                                   .onAllMethods(METHOD_EXECUTE_UPDATE)
+                                                   .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods(METHOD_EXECUTE_BATCH)
-                        .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor")
+                                                   .onAllMethods(METHOD_EXECUTE_BATCH)
+                                                   .to("com.sbss.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor")
                 )
 
             /*,

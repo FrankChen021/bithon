@@ -10,23 +10,21 @@ import java.util.Map;
  */
 public class TraceSpan {
 
+    private final TraceContext traceContext;
+    private final String spanId;
+    private final String parentSpanId;
+    private final Map<String, String> tags = new HashMap<>();
+    private final Map<String, String> args = new HashMap<>();
     /*
      * in micro-seconds
      */
     private long startTime;
     private long endTime;
-
-    private final TraceContext traceContext;
-    private final String spanId;
-    private final String parentSpanId;
     private SpanKind kind;
     private String component;
-    private final Map<String, String> tags = new HashMap<>();
     private String parentApplication;
-
     private String clazz;
     private String method;
-    private final Map<String, String> args = new HashMap<>();
 
     public TraceSpan(String spanId, String parentSpanId, TraceContext traceContext) {
         this.spanId = spanId;
@@ -98,6 +96,7 @@ public class TraceSpan {
     public String clazz() {
         return clazz;
     }
+
     public TraceSpan clazz(Class<?> clazz) {
         this.clazz = clazz.getName();
         return this;
@@ -145,11 +144,11 @@ public class TraceSpan {
     @Override
     public String toString() {
         return "TraceSpan[name=" + this.component +
-            ", traceId=" + this.traceId() +
-            ", spanId=" + this.spanId +
-            ", parentId=" + this.parentSpanId +
-            ", kind=" + this.kind +
-            ", cost=" + (this.endTime - this.startTime) + "(micro seconds)" +
-            "]";
+               ", traceId=" + this.traceId() +
+               ", spanId=" + this.spanId +
+               ", parentId=" + this.parentSpanId +
+               ", kind=" + this.kind +
+               ", cost=" + (this.endTime - this.startTime) + "(micro seconds)" +
+               "]";
     }
 }

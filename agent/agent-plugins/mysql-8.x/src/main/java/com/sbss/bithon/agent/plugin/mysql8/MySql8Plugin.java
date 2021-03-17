@@ -37,16 +37,16 @@ public class MySql8Plugin extends AbstractPlugin {
             forClass("com.mysql.cj.jdbc.ClientPreparedStatement")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("execute")
-                        .to("com.sbss.bithon.agent.plugin.mysql8.PreparedStatementInterceptor"),
+                                                   .onAllMethods("execute")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql8.PreparedStatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("executeQuery")
-                        .to("com.sbss.bithon.agent.plugin.mysql8.PreparedStatementInterceptor"),
+                                                   .onAllMethods("executeQuery")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql8.PreparedStatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("executeUpdate")
-                        .to("com.sbss.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
+                                                   .onAllMethods("executeUpdate")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql8.PreparedStatementInterceptor")
                 ),
 
             //
@@ -56,21 +56,21 @@ public class MySql8Plugin extends AbstractPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
 
-                        .onMethodAndArgs("sendCommand",
-                                         "com.mysql.cj.protocol.Message",
-                                         "boolean",
-                                         "int")
-                        .to("com.sbss.bithon.agent.plugin.mysql8.IoInterceptor"),
+                                                   .onMethodAndArgs("sendCommand",
+                                                                    "com.mysql.cj.protocol.Message",
+                                                                    "boolean",
+                                                                    "int")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql8.IoInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("readAllResults",
-                                         "int",
-                                         "boolean",
-                                         "com.mysql.cj.protocol.a.NativePacketPayload",
-                                         "boolean",
-                                         "com.mysql.cj.protocol.ColumnDefinition",
-                                         "com.mysql.cj.protocol.ProtocolEntityFactory")
-                        .to("com.sbss.bithon.agent.plugin.mysql8.IoInterceptor")
+                                                   .onMethodAndArgs("readAllResults",
+                                                                    "int",
+                                                                    "boolean",
+                                                                    "com.mysql.cj.protocol.a.NativePacketPayload",
+                                                                    "boolean",
+                                                                    "com.mysql.cj.protocol.ColumnDefinition",
+                                                                    "com.mysql.cj.protocol.ProtocolEntityFactory")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql8.IoInterceptor")
                 ),
 
 
@@ -81,28 +81,28 @@ public class MySql8Plugin extends AbstractPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
 
-                        .onMethodAndArgs("executeInternal",
-                                         "java.lang.String", "boolean")
-                        .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"),
+                                                   .onMethodAndArgs("executeInternal",
+                                                                    "java.lang.String", "boolean")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("executeQuery",
-                                         "java.lang.String")
-                        .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"),
+                                                   .onMethodAndArgs("executeQuery",
+                                                                    "java.lang.String")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("executeUpdate",
-                                         "java.lang.String",
-                                         "boolean",
-                                         "boolean")
-                        .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"),
+                                                   .onMethodAndArgs("executeUpdate",
+                                                                    "java.lang.String",
+                                                                    "boolean",
+                                                                    "boolean")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("executeUpdateInternal",
-                                         "java.lang.String",
-                                         "boolean",
-                                         "boolean")
-                        .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"))
+                                                   .onMethodAndArgs("executeUpdateInternal",
+                                                                    "java.lang.String",
+                                                                    "boolean",
+                                                                    "boolean")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql8.StatementInterceptor"))
         );
     }
 }

@@ -6,7 +6,12 @@ import com.google.common.base.Strings;
 import org.joda.time.DateTimeZone;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -31,14 +36,14 @@ public class ParserUtils {
     }
 
     public static Function<String, Object> getMultiValueFunction(
-            final String listDelimiter,
-            final Splitter listSplitter
+        final String listDelimiter,
+        final Splitter listSplitter
     ) {
         return (input) -> {
             if (input != null && input.contains(listDelimiter)) {
                 return StreamSupport.stream(listSplitter.split(input).spliterator(), false)
-                        .map(Strings::emptyToNull)
-                        .collect(Collectors.toList());
+                                    .map(Strings::emptyToNull)
+                                    .collect(Collectors.toList());
             } else {
                 return Strings.emptyToNull(input);
             }

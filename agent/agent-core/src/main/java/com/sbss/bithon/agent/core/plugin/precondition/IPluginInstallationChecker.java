@@ -10,14 +10,6 @@ import shaded.net.bytebuddy.description.type.TypeDescription;
 public interface IPluginInstallationChecker {
 
     /**
-     * returns true if interceptors in this plugin can be installed
-     *
-     * @param plugin plugin of which interceptors are being installed
-     * @param typeDescription
-     */
-    boolean canInstall(AbstractPlugin plugin, ClassLoader classLoader, TypeDescription typeDescription);
-
-    /**
      * Helper method
      */
     static IPluginInstallationChecker hasClass(String className) {
@@ -34,4 +26,12 @@ public interface IPluginInstallationChecker {
     static IPluginInstallationChecker or(IPluginInstallationChecker... checkers) {
         return new OrChecker(checkers);
     }
+
+    /**
+     * returns true if interceptors in this plugin can be installed
+     *
+     * @param plugin          plugin of which interceptors are being installed
+     * @param typeDescription
+     */
+    boolean canInstall(AbstractPlugin plugin, ClassLoader classLoader, TypeDescription typeDescription);
 }

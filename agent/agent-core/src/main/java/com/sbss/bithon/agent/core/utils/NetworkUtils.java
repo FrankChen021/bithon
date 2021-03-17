@@ -25,7 +25,7 @@ public class NetworkUtils {
                     InetAddress ip = addresses.nextElement();
                     boolean has = !ni.isLoopback() && !ni.isPointToPoint() && !ni.isVirtual();
                     has = has && !ni.getName().contains("vmnet") && !ni.getName().contains("utun") &&
-                        !ni.getName().contains("vboxnet");
+                          !ni.getName().contains("vboxnet");
                     if (ni.isUp() && has && !ip.isLoopbackAddress() && !ip.getHostAddress().contains(":")) {
                         if (ip.isSiteLocalAddress()) {
                             localIPs.add(ip);
@@ -53,16 +53,16 @@ public class NetworkUtils {
 
         public InetAddress getInetAddress() {
             return null != netIPs &&
-                !netIPs.isEmpty() ? netIPs.get(0)
-                : (null != localIPs && !localIPs.isEmpty() ? localIPs.get(0)
-                : getDefaultInetAddress());
+                   !netIPs.isEmpty() ? netIPs.get(0)
+                                     : (null != localIPs && !localIPs.isEmpty() ? localIPs.get(0)
+                                                                                : getDefaultInetAddress());
         }
 
         public InetAddress getLocalInetAddress() {
             return null != localIPs &&
-                !localIPs.isEmpty() ? localIPs.get(0)
-                : (null != netIPs && !netIPs.isEmpty() ? netIPs.get(0)
-                : getDefaultInetAddress());
+                   !localIPs.isEmpty() ? localIPs.get(0)
+                                       : (null != netIPs && !netIPs.isEmpty() ? netIPs.get(0)
+                                                                              : getDefaultInetAddress());
         }
 
         private InetAddress getDefaultInetAddress() {

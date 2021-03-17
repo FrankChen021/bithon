@@ -23,47 +23,47 @@ public class ApacheHttpClientPlugin extends AbstractPlugin {
             forClass("org.apache.http.impl.client.InternalHttpClient")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("doExecute",
-                                         "org.apache.http.HttpHost",
-                                         "org.apache.http.HttpRequest",
-                                         "org.apache.http.protocol.HttpContext")
-                        .to("com.sbss.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
-                    ),
+                                                   .onMethodAndArgs("doExecute",
+                                                                    "org.apache.http.HttpHost",
+                                                                    "org.apache.http.HttpRequest",
+                                                                    "org.apache.http.protocol.HttpContext")
+                                                   .to("com.sbss.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
+                ),
 
             forClass("org.apache.http.impl.execchain.RedirectExec")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("execute",
-                                         "org.apache.http.conn.routing.HttpRoute",
-                                         "org.apache.http.client.methods.HttpRequestWrapper",
-                                         "org.apache.http.client.protocol.HttpClientContext",
-                                         "org.apache.http.client.methods.HttpExecutionAware")
-                        .to("com.sbss.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
+                                                   .onMethodAndArgs("execute",
+                                                                    "org.apache.http.conn.routing.HttpRoute",
+                                                                    "org.apache.http.client.methods.HttpRequestWrapper",
+                                                                    "org.apache.http.client.protocol.HttpClientContext",
+                                                                    "org.apache.http.client.methods.HttpExecutionAware")
+                                                   .to("com.sbss.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
                 ),
 
             forClass("org.apache.http.impl.execchain.MinimalClientExec")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("execute",
-                                         "org.apache.http.conn.routing.HttpRoute",
-                                         "org.apache.http.client.methods.HttpRequestWrapper",
-                                         "org.apache.http.client.protocol.HttpClientContext",
-                                         "org.apache.http.client.methods.HttpExecutionAware")
-                        .to("com.sbss.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
+                                                   .onMethodAndArgs("execute",
+                                                                    "org.apache.http.conn.routing.HttpRoute",
+                                                                    "org.apache.http.client.methods.HttpRequestWrapper",
+                                                                    "org.apache.http.client.protocol.HttpClientContext",
+                                                                    "org.apache.http.client.methods.HttpExecutionAware")
+                                                   .to("com.sbss.bithon.agent.plugin.httpclient.apache.metrics.HttpClientExecuteInterceptor")
                 ),
 
             forClass("org.apache.http.impl.client.DefaultRequestDirector")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("execute",
-                                         "org.apache.http.HttpHost",
-                                         "org.apache.http.HttpRequest",
-                                         "org.apache.http.protocol.HttpContext")
-                        .to("com.sbss.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirectorExecute"),
+                                                   .onMethodAndArgs("execute",
+                                                                    "org.apache.http.HttpHost",
+                                                                    "org.apache.http.HttpRequest",
+                                                                    "org.apache.http.protocol.HttpContext")
+                                                   .to("com.sbss.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirectorExecute"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("releaseConnection")
-                        .to("com.sbss.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirectorReleaseConnection")
+                                                   .onMethodAndNoArgs("releaseConnection")
+                                                   .to("com.sbss.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirectorReleaseConnection")
                 ),
 
             //
@@ -72,11 +72,11 @@ public class ApacheHttpClientPlugin extends AbstractPlugin {
             forClass("org.apache.http.protocol.HttpRequestExecutor")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("execute",
-                                         "org.apache.http.HttpRequest",
-                                         "org.apache.http.HttpClientConnection",
-                                         "org.apache.http.protocol.HttpContext")
-                        .to("com.sbss.bithon.agent.plugin.httpclient.apache.trace.HttpRequestInterceptor")
+                                                   .onMethodAndArgs("execute",
+                                                                    "org.apache.http.HttpRequest",
+                                                                    "org.apache.http.HttpClientConnection",
+                                                                    "org.apache.http.protocol.HttpContext")
+                                                   .to("com.sbss.bithon.agent.plugin.httpclient.apache.trace.HttpRequestInterceptor")
                 )
         );
     }

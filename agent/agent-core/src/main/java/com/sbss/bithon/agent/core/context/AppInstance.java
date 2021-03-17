@@ -16,11 +16,10 @@ public class AppInstance {
     private static final Logger log = LoggerFactory.getLogger(AppInstance.class);
 
     private final String appName;
-    private int port;
     private final String hostIp;
     private final String env;
-
     private final List<IAppInstanceChangedListener> listeners = new ArrayList<>();
+    private int port;
 
     AppInstance(String appName, String env) {
         this.appName = appName + "-" + env;
@@ -28,7 +27,9 @@ public class AppInstance {
         this.port = 0;
 
         NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
-        InetAddress address = null != ipAddress.getInetAddress() ? ipAddress.getInetAddress() : ipAddress.getLocalInetAddress();
+        InetAddress address = null != ipAddress.getInetAddress()
+                              ? ipAddress.getInetAddress()
+                              : ipAddress.getLocalInetAddress();
         this.hostIp = address.getHostAddress();
     }
 
@@ -38,14 +39,6 @@ public class AppInstance {
 
     public int getPort() {
         return port;
-    }
-
-    public String getHostIp() {
-        return hostIp;
-    }
-
-    public String getEnv() {
-        return env;
     }
 
     public void setPort(int port) {
@@ -60,11 +53,19 @@ public class AppInstance {
         }
     }
 
-    public interface IAppInstanceChangedListener {
-        void onPortChanged(int port);
+    public String getHostIp() {
+        return hostIp;
+    }
+
+    public String getEnv() {
+        return env;
     }
 
     public void addListener(IAppInstanceChangedListener listener) {
         listeners.add(listener);
+    }
+
+    public interface IAppInstanceChangedListener {
+        void onPortChanged(int port);
     }
 }

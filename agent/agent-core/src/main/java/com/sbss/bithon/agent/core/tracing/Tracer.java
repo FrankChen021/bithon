@@ -4,7 +4,6 @@ import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
 import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
-import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.tracing.context.ITraceIdGenerator;
 import com.sbss.bithon.agent.core.tracing.context.impl.UUIDGenerator;
 import com.sbss.bithon.agent.core.tracing.propagation.DefaultPropagator;
@@ -34,6 +33,35 @@ public class Tracer {
     public Tracer(String appName, String instanceName) {
         this.appName = appName;
         this.instanceName = instanceName;
+    }
+
+    public static Tracer get() {
+        if (INSTANCE == null) {
+            synchronized (Tracer.class) {
+                if (INSTANCE == null) {
+                    AppInstance appInstance = AgentContext.getInstance().getAppInstance();
+                    try {
+                        final Dispatcher traceDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_TRACING);
+
+                        INSTANCE = new Tracer(appInstance.getAppName(),
+                                              appInstance.getHostIp() + ":" + appInstance.getPort())
+                            .propagator(new DefaultPropagator())
+                            .traceIdGenerator(new UUIDGenerator())
+                            .reporter((spans) -> {
+                                List<Object> traceMessages = spans.stream()
+                                                                  .map(span -> traceDispatcher.getMessageConverter()
+                                                                                              .from(span))
+                                                                  .collect(Collectors.toList());
+                                traceDispatcher.sendMessage(traceMessages);
+                            })
+                            .samplingDecisionMaker(new RatioSamplingDecisionMaker(100));
+                    } catch (Exception e) {
+                        LoggerFactory.getLogger(Tracer.class).info("Failed to create Tracer", e);
+                    }
+                }
+            }
+        }
+        return INSTANCE;
     }
 
     public Tracer traceIdGenerator(ITraceIdGenerator idGenerator) {
@@ -78,33 +106,5 @@ public class Tracer {
     public Tracer samplingDecisionMaker(ISamplingDecisionMaker decisionMaker) {
         this.samplingDecisionMaker = decisionMaker;
         return this;
-    }
-
-    public static Tracer get() {
-        if (INSTANCE == null) {
-            synchronized (Tracer.class) {
-                if (INSTANCE == null) {
-                    AppInstance appInstance = AgentContext.getInstance().getAppInstance();
-                    try {
-                        final Dispatcher traceDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_TRACING);
-
-                        INSTANCE = new Tracer(appInstance.getAppName(),
-                                              appInstance.getHostIp() + ":" + appInstance.getPort())
-                            .propagator(new DefaultPropagator())
-                            .traceIdGenerator(new UUIDGenerator())
-                            .reporter((spans) -> {
-                                List<Object> traceMessages = spans.stream()
-                                    .map(span -> traceDispatcher.getMessageConverter().from(span))
-                                    .collect(Collectors.toList());
-                                traceDispatcher.sendMessage(traceMessages);
-                            })
-                            .samplingDecisionMaker(new RatioSamplingDecisionMaker(100));
-                    } catch (Exception e) {
-                        LoggerFactory.getLogger(Tracer.class).info("Failed to create Tracer", e);
-                    }
-                }
-            }
-        }
-        return INSTANCE;
     }
 }

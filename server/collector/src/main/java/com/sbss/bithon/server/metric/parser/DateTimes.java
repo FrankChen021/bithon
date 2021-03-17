@@ -27,7 +27,7 @@ public final class DateTimes {
     public static final UtcFormatter ISO_DATE_TIME = wrapFormatter(ISODateTimeFormat.dateTime());
     public static final UtcFormatter ISO_DATE_OPTIONAL_TIME = wrapFormatter(ISODateTimeFormat.dateOptionalTimeParser());
     public static final UtcFormatter ISO_DATE_OR_TIME_WITH_OFFSET = wrapFormatter(
-            ISODateTimeFormat.dateTimeParser().withOffsetParsed()
+        ISODateTimeFormat.dateTimeParser().withOffsetParsed()
     );
 
     /**
@@ -36,9 +36,12 @@ public final class DateTimes {
      * not match some valid DateTime string. Use for heuristic purposes only.
      */
     public static final Pattern COMMON_DATE_TIME_PATTERN = Pattern.compile(
-            //year    month     day        hour       minute     second       millis  time zone
-            "[0-9]{4}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}(Z|[+\\-][0-9]{2}(:[0-9]{2}))"
+        //year    month     day        hour       minute     second       millis  time zone
+        "[0-9]{4}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}(Z|[+\\-][0-9]{2}(:[0-9]{2}))"
     );
+
+    private DateTimes() {
+    }
 
     public static DateTimeZone inferTzFromString(String tzId) {
         try {
@@ -46,27 +49,6 @@ public final class DateTimes {
         } catch (IllegalArgumentException e) {
             // also support Java timezone strings
             return DateTimeZone.forTimeZone(TimeZone.getTimeZone(tzId));
-        }
-    }
-
-    /**
-     * Simple wrapper class to enforce UTC Chronology in formatter. Specifically, it will use
-     * {@link DateTimeFormatter#withChronology(Chronology)} to set the chronology to
-     * {@link ISOChronology#getInstanceUTC()} on the wrapped {@link DateTimeFormatter}.
-     */
-    public static class UtcFormatter {
-        private final DateTimeFormatter innerFormatter;
-
-        private UtcFormatter(final DateTimeFormatter innerFormatter) {
-            this.innerFormatter = innerFormatter.withChronology(ISOChronology.getInstanceUTC());
-        }
-
-        public DateTime parse(final String instant) {
-            return innerFormatter.parseDateTime(instant);
-        }
-
-        public String print(final DateTime instant) {
-            return innerFormatter.print(instant);
         }
     }
 
@@ -96,11 +78,11 @@ public final class DateTimes {
     }
 
     public static DateTime of(
-            int year,
-            int monthOfYear,
-            int dayOfMonth,
-            int hourOfDay,
-            int minuteOfHour
+        int year,
+        int monthOfYear,
+        int dayOfMonth,
+        int hourOfDay,
+        int minuteOfHour
     ) {
         return new DateTime(year, monthOfYear, dayOfMonth, hourOfDay, minuteOfHour, ISOChronology.getInstanceUTC());
     }
@@ -124,6 +106,24 @@ public final class DateTimes {
         return Months.monthsBetween(time1, time2).getMonths();
     }
 
-    private DateTimes() {
+    /**
+     * Simple wrapper class to enforce UTC Chronology in formatter. Specifically, it will use
+     * {@link DateTimeFormatter#withChronology(Chronology)} to set the chronology to
+     * {@link ISOChronology#getInstanceUTC()} on the wrapped {@link DateTimeFormatter}.
+     */
+    public static class UtcFormatter {
+        private final DateTimeFormatter innerFormatter;
+
+        private UtcFormatter(final DateTimeFormatter innerFormatter) {
+            this.innerFormatter = innerFormatter.withChronology(ISOChronology.getInstanceUTC());
+        }
+
+        public DateTime parse(final String instant) {
+            return innerFormatter.parseDateTime(instant);
+        }
+
+        public String print(final DateTime instant) {
+            return innerFormatter.print(instant);
+        }
     }
 }

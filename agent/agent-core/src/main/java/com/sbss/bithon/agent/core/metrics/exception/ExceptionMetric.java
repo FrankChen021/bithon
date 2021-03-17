@@ -14,31 +14,6 @@ public class ExceptionMetric {
     private final String exceptionClass;
     private final String message;
     private final String stackTrace;
-
-    public String getUri() {
-        return uri;
-    }
-
-    public String getExceptionId() {
-        return exceptionId;
-    }
-
-    public String getExceptionClass() {
-        return exceptionClass;
-    }
-
-    public String getStackTrace() {
-        return stackTrace;
-    }
-
-    public int getCount() {
-        return count;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
     // counter
     private int count = 0;
 
@@ -51,10 +26,6 @@ public class ExceptionMetric {
         this.message = message;
         this.exceptionClass = exceptionClass;
         this.stackTrace = stackTrace;
-    }
-
-    public void incrCount() {
-        count++;
     }
 
     public static ExceptionMetric fromException(String uri, Throwable exception) {
@@ -93,5 +64,33 @@ public class ExceptionMetric {
             }
         }
         return sb.toString();
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public String getExceptionId() {
+        return exceptionId;
+    }
+
+    public String getExceptionClass() {
+        return exceptionClass;
+    }
+
+    public String getStackTrace() {
+        return stackTrace;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void incrCount() {
+        count++;
     }
 }

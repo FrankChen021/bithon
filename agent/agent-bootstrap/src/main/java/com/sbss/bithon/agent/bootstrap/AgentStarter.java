@@ -37,9 +37,9 @@ class AgentStarter {
 
     AgentStarter() {
         agentPath = new File(AgentStarter.class.getProtectionDomain()
-                                 .getCodeSource()
-                                 .getLocation()
-                                 .getFile()).getParentFile().getPath();
+                                               .getCodeSource()
+                                               .getLocation()
+                                               .getFile()).getParentFile().getPath();
     }
 
     void start(Instrumentation inst) throws Exception {
@@ -93,7 +93,7 @@ class AgentStarter {
 
     private File findTempDir(AgentConfig config) {
         return new File(agentPath + separator + AgentContext.TMP_DIR + separator +
-                            config.getBootstrap().getAppName());
+                        config.getBootstrap().getAppName());
     }
 
     private void logSeparate(AgentConfig config) throws IOException {
@@ -108,14 +108,14 @@ class AgentStarter {
             }
 
             Optional<JarEntry> classesEntry = jarFile.stream()
-                .filter(e -> e.getName().startsWith(classesDir) &&
-                    config.getBootstrap()
-                        .getAppLogs()
-                        .contains(e.getName()
-                                      .substring(e.getName()
-                                                     .lastIndexOf("/") +
-                                                     1)))
-                .findFirst();
+                                                     .filter(e -> e.getName().startsWith(classesDir) &&
+                                                                  config.getBootstrap()
+                                                                        .getAppLogs()
+                                                                        .contains(e.getName()
+                                                                                   .substring(e.getName()
+                                                                                               .lastIndexOf("/") +
+                                                                                              1)))
+                                                     .findFirst();
             log.info("SpringBoot log config file name: " + classesEntry);
             classesEntry.ifPresent(e -> {
                 String key = Constant.ProgramOption.LOGGING_CONFIG.value();
@@ -131,10 +131,10 @@ class AgentStarter {
         String selfJar = new File(this.agentPath).getName();
         if (null != CLASS_PATH && CLASS_PATH.trim().length() > 0) {
             return CLASS_PATH.indexOf(pathSeparator) > 0 ? Arrays.stream(CLASS_PATH.split(pathSeparator))
-                .filter(x -> !x.endsWith(selfJar))
-                .findFirst()
-                .orElse(null)
-                : CLASS_PATH;
+                                                                 .filter(x -> !x.endsWith(selfJar))
+                                                                 .findFirst()
+                                                                 .orElse(null)
+                                                         : CLASS_PATH;
         }
         return null;
     }

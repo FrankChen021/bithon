@@ -15,24 +15,10 @@ public class AgentContext {
     public static final String CONF_DIR = "conf";
     public static final String PLUGIN_DIR = "plugins";
     public static final String TMP_DIR = "tmp";
-
+    private static AgentContext INSTANCE;
     private String agentDirectory;
     private AppInstance appInstance;
     private AgentConfig agentConfig;
-
-    public String getAgentDirectory() {
-        return agentDirectory;
-    }
-
-    public AppInstance getAppInstance() {
-        return appInstance;
-    }
-
-    public AgentConfig getConfig() {
-        return agentConfig;
-    }
-
-    private static AgentContext INSTANCE;
 
     public static AgentContext createInstance(String agentPath) throws IOException {
         AgentConfig config = AgentConfig.loadFromYmlFile(agentPath + separator + CONF_DIR + separator + "agent.yml");
@@ -46,6 +32,18 @@ public class AgentContext {
 
     public static AgentContext getInstance() {
         return INSTANCE;
+    }
+
+    public String getAgentDirectory() {
+        return agentDirectory;
+    }
+
+    public AppInstance getAppInstance() {
+        return appInstance;
+    }
+
+    public AgentConfig getConfig() {
+        return agentConfig;
     }
 
 }

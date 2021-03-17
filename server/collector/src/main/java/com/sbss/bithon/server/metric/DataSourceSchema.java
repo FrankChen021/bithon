@@ -3,12 +3,12 @@ package com.sbss.bithon.server.metric;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sbss.bithon.server.metric.aggregator.CountMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.IMetricSpec;
 import com.sbss.bithon.server.metric.dimension.IDimensionSpec;
 import com.sbss.bithon.server.metric.dimension.transformer.IDimensionTransformer;
 import com.sbss.bithon.server.metric.filter.IFilter;
 import com.sbss.bithon.server.metric.flatten.IFlattener;
-import com.sbss.bithon.server.metric.aggregator.CountMetricSpec;
-import com.sbss.bithon.server.metric.aggregator.IMetricSpec;
 import lombok.Getter;
 
 import javax.annotation.Nullable;

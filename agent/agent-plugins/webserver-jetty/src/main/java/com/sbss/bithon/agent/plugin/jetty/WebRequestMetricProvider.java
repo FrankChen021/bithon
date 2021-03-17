@@ -21,9 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class WebRequestMetricProvider implements IMetricProvider {
 
-    private WebRequestMetric metric;
-
     private final Map<String, WebRequestMetric> metricsMap = new ConcurrentHashMap<>();
+    private WebRequestMetric metric;
 
     public void update(
         Request request,
@@ -44,7 +43,9 @@ public class WebRequestMetricProvider implements IMetricProvider {
             responseByteSize = jettyResponse.getContentCount();
         }
 
-        WebRequestMetric webRequestMetrics = metricsMap.computeIfAbsent(srcApplication + "|" + uri, key -> new WebRequestMetric(srcApplication, uri));
+        WebRequestMetric webRequestMetrics = metricsMap.computeIfAbsent(srcApplication + "|" + uri,
+                                                                        key -> new WebRequestMetric(srcApplication,
+                                                                                                    uri));
         webRequestMetrics.add(costTime, errorCount, count4xx, count5xx);
         webRequestMetrics.addBytes(requestByteSize, responseByteSize);
     }
@@ -63,7 +64,7 @@ public class WebRequestMetricProvider implements IMetricProvider {
         for (Map.Entry<String, WebRequestMetric> entry : metricsMap.entrySet()) {
             metricsMap.compute(entry.getKey(),
                                (k,
-                              v) -> getAndRemove(v));
+                                v) -> getAndRemove(v));
             messages.add(messageConverter.from(appInstance, timestamp, interval, metric));
         }
         return messages;

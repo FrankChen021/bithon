@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.sbss.bithon.server.common.pojo.DisplayableText;
 import com.sbss.bithon.server.meta.EndPointLink;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.meta.Metadata;
 import com.sbss.bithon.server.meta.MetadataType;
 import lombok.AllArgsConstructor;
@@ -20,23 +19,18 @@ import java.util.Collection;
  */
 public class CachableMetadataStorage implements IMetaStorage {
 
-    @Getter
-    @EqualsAndHashCode
-    @AllArgsConstructor
-    static class DimensionValue {
-        private final String dataSource;
-        private final String name;
-        private final String value;
-    }
-
     private final IMetaStorage delegate;
-
     // TODO: replace with LoadingCache
     private final Cache<Metadata, Long> metaCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build();
-    private final Cache<DimensionValue, Long> dimensionCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build();
-    private final Cache<EndPointLink, Long> topoCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build();
-    private final Cache<String, String> instanceCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(5)).build();
-
+    private final Cache<DimensionValue, Long> dimensionCache = Caffeine.newBuilder()
+                                                                       .expireAfterWrite(Duration.ofHours(1))
+                                                                       .build();
+    private final Cache<EndPointLink, Long> topoCache = Caffeine.newBuilder()
+                                                                .expireAfterWrite(Duration.ofHours(1))
+                                                                .build();
+    private final Cache<String, String> instanceCache = Caffeine.newBuilder()
+                                                                .expireAfterWrite(Duration.ofMinutes(5))
+                                                                .build();
     public CachableMetadataStorage(IMetaStorage delegate) {
         this.delegate = delegate;
     }
@@ -105,7 +99,19 @@ public class CachableMetadataStorage implements IMetaStorage {
     }
 
     @Override
-    public Collection<DisplayableText> getMetricDimensions(String dataSourceName, String dimensionName, String startISO8601, String endISO8601) {
+    public Collection<DisplayableText> getMetricDimensions(String dataSourceName,
+                                                           String dimensionName,
+                                                           String startISO8601,
+                                                           String endISO8601) {
         return null;
+    }
+
+    @Getter
+    @EqualsAndHashCode
+    @AllArgsConstructor
+    static class DimensionValue {
+        private final String dataSource;
+        private final String name;
+        private final String value;
     }
 }

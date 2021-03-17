@@ -10,7 +10,15 @@ import com.sbss.bithon.server.events.storage.jdbc.EventJdbcStorage;
 import com.sbss.bithon.server.meta.storage.CachableMetadataStorage;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.meta.storage.jdbc.MetadataJdbcStorage;
-import com.sbss.bithon.server.metric.handler.*;
+import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
 import com.sbss.bithon.server.metric.storage.jdbc.MetricJdbcStorage;
 import com.sbss.bithon.server.tracing.handler.TraceMessageHandler;
@@ -50,23 +58,23 @@ public class ServerConfig {
 
     @Bean("metricSink")
     public IMessageSink metricSink(JvmMetricMessageHandler jvmMetricMessageHandler,
-                                      JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
-                                      WebRequestMetricMessageHandler webRequestMetricMessageHandler,
-                                      WebServerMetricMessageHandler webServerMetricMessageHandler,
-                                      ExceptionMetricMessageHandler exceptionMetricMessageHandler,
-                                      HttpClientMetricMessageHandler httpClientMetricMessageHandler,
-                                      ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
-                                      JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
-                                      RedisMetricMessageHandler redisMetricMessageHandler) {
+                                   JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
+                                   WebRequestMetricMessageHandler webRequestMetricMessageHandler,
+                                   WebServerMetricMessageHandler webServerMetricMessageHandler,
+                                   ExceptionMetricMessageHandler exceptionMetricMessageHandler,
+                                   HttpClientMetricMessageHandler httpClientMetricMessageHandler,
+                                   ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
+                                   JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
+                                   RedisMetricMessageHandler redisMetricMessageHandler) {
         return new LocalMetricSink(jvmMetricMessageHandler,
-                jvmGcMetricMessageHandler,
-                webRequestMetricMessageHandler,
-                webServerMetricMessageHandler,
-                exceptionMetricMessageHandler,
-                httpClientMetricMessageHandler,
-                threadPoolMetricMessageHandler,
-                jdbcPoolMetricMessageHandler,
-                redisMetricMessageHandler);
+                                   jvmGcMetricMessageHandler,
+                                   webRequestMetricMessageHandler,
+                                   webServerMetricMessageHandler,
+                                   exceptionMetricMessageHandler,
+                                   httpClientMetricMessageHandler,
+                                   threadPoolMetricMessageHandler,
+                                   jdbcPoolMetricMessageHandler,
+                                   redisMetricMessageHandler);
     }
 
     @Bean("eventSink")

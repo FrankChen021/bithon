@@ -13,7 +13,7 @@ public class AgentException extends RuntimeException {
         super(message);
     }
 
-    public AgentException(String format, Object...args) {
+    public AgentException(String format, Object... args) {
         super(String.format(format, args));
     }
 }

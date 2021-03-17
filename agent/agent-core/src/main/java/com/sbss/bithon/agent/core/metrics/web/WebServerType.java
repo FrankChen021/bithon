@@ -11,11 +11,11 @@ public enum WebServerType {
 
     private final String type;
 
-    public String type() {
-        return type;
-    }
-
     WebServerType(String type) {
         this.type = type;
+    }
+
+    public String type() {
+        return type;
     }
 }

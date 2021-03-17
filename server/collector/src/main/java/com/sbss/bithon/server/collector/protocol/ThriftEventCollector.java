@@ -26,11 +26,11 @@ public class ThriftEventCollector implements IEventCollector.Iface {
     @Override
     public void sendEvent(MessageHeader header, ThriftEventMessage message) {
         EventMessage eventMessage = EventMessage.builder().appName(header.getAppName())
-            .instanceName(header.getInstanceName())
-            .timestamp(message.getTimestamp())
-            .type(message.getEventType())
-            .args(message.getArguments())
-            .build();
+                                                .instanceName(header.getInstanceName())
+                                                .timestamp(message.getTimestamp())
+                                                .type(message.getEventType())
+                                                .args(message.getArguments())
+                                                .build();
         eventSink.process("event", eventMessage);
     }
 }

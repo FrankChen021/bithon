@@ -22,9 +22,9 @@ public class LogbackPlugin extends AbstractPlugin {
             forClass("ch.qos.logback.classic.Logger")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("callAppenders",
-                                         "ch.qos.logback.classic.spi.ILoggingEvent")
-                        .to("com.sbss.bithon.agent.plugin.logback.LogbackHandler")
+                                                   .onMethodAndArgs("callAppenders",
+                                                                    "ch.qos.logback.classic.spi.ILoggingEvent")
+                                                   .to("com.sbss.bithon.agent.plugin.logback.LogbackHandler")
                 )
         );
     }

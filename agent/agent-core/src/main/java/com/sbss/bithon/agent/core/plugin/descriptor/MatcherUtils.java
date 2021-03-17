@@ -32,7 +32,7 @@ public class MatcherUtils {
     public static MethodParametersMatcher takesFirstArgument(String typeName) {
         return new MethodParametersMatcher((ElementMatcher<ParameterList<? extends ParameterDescription>>) parameters -> {
             int lastIndex = parameters.size() - 1;
-            if ( lastIndex < 0 ) {
+            if (lastIndex < 0) {
                 return false;
             } else {
                 return typeName.equals(parameters.get(lastIndex).getType().asErasure().getName());
@@ -43,7 +43,7 @@ public class MatcherUtils {
     public static MethodParametersMatcher takesLastArgument(String typeName) {
         return new MethodParametersMatcher((ElementMatcher<ParameterList<? extends ParameterDescription>>) parameters -> {
             int lastIndex = parameters.size() - 1;
-            if ( lastIndex < 0 ) {
+            if (lastIndex < 0) {
                 return false;
             } else {
                 return typeName.equals(parameters.get(lastIndex).getType().asErasure().getName());
@@ -59,7 +59,8 @@ public class MatcherUtils {
         return junction;
     }
 
-    public static ElementMatcher.Junction<MethodDescription> debuggableMatcher(boolean debug, ElementMatcher.Junction<MethodDescription> matcher) {
+    public static ElementMatcher.Junction<MethodDescription> debuggableMatcher(boolean debug,
+                                                                               ElementMatcher.Junction<MethodDescription> matcher) {
         if (!debug) {
             return matcher;
         }
@@ -110,10 +111,10 @@ public class MatcherUtils {
                         if (!paramType.equals(args[i])) {
                             if (debug) {
                                 log.info("matching [{}]: type of parameter {} not match. Given is {}, actual is {}",
-                                        methodDescription,
-                                        i,
-                                        args[i],
-                                        paramType);
+                                         methodDescription,
+                                         i,
+                                         args[i],
+                                         paramType);
                             }
                             return false;
                         }

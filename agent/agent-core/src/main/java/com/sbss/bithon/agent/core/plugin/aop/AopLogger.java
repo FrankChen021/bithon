@@ -12,14 +12,14 @@ import shaded.org.slf4j.LoggerFactory;
  */
 public class AopLogger implements IAopLogger {
 
-    public static IAopLogger getLogger(Class<?> clazz) {
-        return new AopLogger(clazz);
-    }
-
     private final Logger log;
 
     private AopLogger(Class<?> logClass) {
         this.log = LoggerFactory.getLogger(logClass);
+    }
+
+    public static IAopLogger getLogger(Class<?> clazz) {
+        return new AopLogger(clazz);
     }
 
     @Override

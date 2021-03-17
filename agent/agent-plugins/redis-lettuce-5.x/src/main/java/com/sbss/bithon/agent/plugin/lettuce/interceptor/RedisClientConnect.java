@@ -15,7 +15,7 @@ public class RedisClientConnect extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        if ( aopContext.hasException() ) {
+        if (aopContext.hasException()) {
             return;
         }
 

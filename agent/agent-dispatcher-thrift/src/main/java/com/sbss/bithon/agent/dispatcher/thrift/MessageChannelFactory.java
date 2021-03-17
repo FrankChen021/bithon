@@ -1,9 +1,9 @@
 package com.sbss.bithon.agent.dispatcher.thrift;
 
 import com.sbss.bithon.agent.core.config.DispatcherConfig;
+import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannel;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
-import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 
 /**
  * @author frank.chen021@outlook.com

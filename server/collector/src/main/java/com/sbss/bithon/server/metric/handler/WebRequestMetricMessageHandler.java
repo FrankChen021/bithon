@@ -37,7 +37,7 @@ public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler
 
     @Override
     void toMetricObject(GenericMetricMessage message) {
-        if (message.getLong("requestCount") <= 0 ) {
+        if (message.getLong("requestCount") <= 0) {
             return;
         }
 
@@ -58,8 +58,8 @@ public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler
             srcEndPointType = EndPointType.APPLICATION;
         }
         message.set("endpoint", new EndPointLink(srcEndPointType,
-                                srcApplication,
-                                EndPointType.APPLICATION,
-                                message.getApplicationName()));
+                                                 srcApplication,
+                                                 EndPointType.APPLICATION,
+                                                 message.getApplicationName()));
     }
 }

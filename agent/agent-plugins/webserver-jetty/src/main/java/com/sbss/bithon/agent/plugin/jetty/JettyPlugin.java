@@ -20,26 +20,26 @@ public class JettyPlugin extends AbstractPlugin {
             forClass("org.eclipse.jetty.server.AbstractConnector")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("doStart")
-                        .to("com.sbss.bithon.agent.plugin.jetty.ConnectorStartInterceptor")
+                                                   .onMethodAndNoArgs("doStart")
+                                                   .to("com.sbss.bithon.agent.plugin.jetty.ConnectorStartInterceptor")
                 ),
 
             forClass("org.eclipse.jetty.util.thread.QueuedThreadPool")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("doStart")
-                        .to("com.sbss.bithon.agent.plugin.jetty.ThreadPoolHandler")
+                                                   .onMethodAndNoArgs("doStart")
+                                                   .to("com.sbss.bithon.agent.plugin.jetty.ThreadPoolHandler")
                 ),
 
             forClass("org.eclipse.jetty.server.handler.ContextHandler")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("doHandle",
-                                         "java.lang.String",
-                                         "org.eclipse.jetty.server.Request",
-                                         "javax.servlet.http.HttpServletRequest",
-                                         "javax.servlet.http.HttpServletResponse")
-                        .to("com.sbss.bithon.agent.plugin.jetty.HandleRequestInterceptor")
+                                                   .onMethodAndArgs("doHandle",
+                                                                    "java.lang.String",
+                                                                    "org.eclipse.jetty.server.Request",
+                                                                    "javax.servlet.http.HttpServletRequest",
+                                                                    "javax.servlet.http.HttpServletResponse")
+                                                   .to("com.sbss.bithon.agent.plugin.jetty.HandleRequestInterceptor")
                 )
         );
     }

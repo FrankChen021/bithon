@@ -14,7 +14,7 @@ public class RequestUriFilter {
     public RequestUriFilter() {
         this("html", "js", "css", "jpg", "gif", "png", "swf", "ttf", "ico", "woff", "woff2", "eot", "svg");
     }
-    
+
     public RequestUriFilter(String... suffix) {
         suffixMatcher = new InCollectionMatcher(Arrays.stream(suffix).collect(Collectors.toSet()));
     }

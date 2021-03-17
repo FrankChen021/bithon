@@ -14,7 +14,8 @@ public class InterceptorContext {
     public static final String KEY_TRACEID = "traceId";
     public static final String HEADER_SRC_APPLICATION_NAME = "X-Bithon-Application";
 
-    private static final ThreadLocal<Map<String, Object>> HOLDER = ThreadLocal.withInitial(() -> new ConcurrentHashMap<>(17));
+    private static final ThreadLocal<Map<String, Object>> HOLDER = ThreadLocal.withInitial(() -> new ConcurrentHashMap<>(
+        17));
 
     public static void set(String key, Object obj) {
         HOLDER.get().put(key, obj);

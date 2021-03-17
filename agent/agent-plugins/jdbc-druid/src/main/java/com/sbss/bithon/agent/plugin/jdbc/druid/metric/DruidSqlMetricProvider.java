@@ -17,20 +17,19 @@ import java.util.List;
  * @author frankchen
  */
 public class DruidSqlMetricProvider implements IMetricProvider {
+    static final DruidSqlMetricProvider INSTANCE = new DruidSqlMetricProvider();
     private static final Logger log = LoggerFactory.getLogger(DruidSqlMetricProvider.class);
     private static final String METRICS_NAME = "alibaba-druid-sql-metric";
-
-    static final DruidSqlMetricProvider INSTANCE = new DruidSqlMetricProvider();
-    public static DruidSqlMetricProvider getInstance() {
-        return INSTANCE;
-    }
-
     private final MonitoredSourceManager monitoredSourceManager;
 
     private DruidSqlMetricProvider() {
         monitoredSourceManager = MonitoredSourceManager.getInstance();
 
         MetricProviderManager.getInstance().register(METRICS_NAME, this);
+    }
+
+    public static DruidSqlMetricProvider getInstance() {
+        return INSTANCE;
     }
 
     public void update(String methodName,
@@ -49,7 +48,8 @@ public class DruidSqlMetricProvider implements IMetricProvider {
         }
 
         Boolean isQuery = null;
-        if (DruidPlugin.METHOD_EXECUTE_UPDATE.equals(methodName) || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
+        if (DruidPlugin.METHOD_EXECUTE_UPDATE.equals(methodName)
+            || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
             isQuery = false;
         } else if (DruidPlugin.METHOD_EXECUTE.equals(methodName) && !(boolean) aopContext.castReturningAs()) {
             isQuery = false;
@@ -79,7 +79,7 @@ public class DruidSqlMetricProvider implements IMetricProvider {
             SqlMetric metric = source.getSqlMetric();
             if (metric.peekTotalCount() > 0) {
                 Object message = messageConverter.from(appInstance, timestamp, interval, source.getSqlMetric());
-                if ( message != null ) {
+                if (message != null) {
                     messages.add(message);
                 }
             }

@@ -11,8 +11,8 @@ import com.sbss.bithon.server.metric.typing.IValueType;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = StringDimensionSpec.class)
 @JsonSubTypes(value = {
-        @JsonSubTypes.Type(name = "long", value = LongDimensionSpec.class),
-        @JsonSubTypes.Type(name = "string", value = StringDimensionSpec.class)
+    @JsonSubTypes.Type(name = "long", value = LongDimensionSpec.class),
+    @JsonSubTypes.Type(name = "string", value = StringDimensionSpec.class)
 })
 public interface IDimensionSpec {
 

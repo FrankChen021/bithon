@@ -16,8 +16,8 @@ public class DispatchTask {
     private final Consumer<Object> messageConsumer;
     private final long gcPeriod;
     private final IMessageQueue queue;
-    private long lastGCTime;
     private final String taskName;
+    private long lastGCTime;
 
     public DispatchTask(String taskName,
                         IMessageQueue queue,

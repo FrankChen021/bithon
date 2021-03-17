@@ -1,13 +1,13 @@
 package com.sbss.bithon.server.meta.storage.jdbc;
 
+import com.sbss.bithon.component.db.dao.MetadataDAO;
+import com.sbss.bithon.component.db.jooq.tables.records.BithonMetadataRecord;
 import com.sbss.bithon.server.common.pojo.DisplayableText;
 import com.sbss.bithon.server.common.utils.datetime.DateTimeUtils;
 import com.sbss.bithon.server.meta.EndPointLink;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.meta.Metadata;
 import com.sbss.bithon.server.meta.MetadataType;
-import com.sbss.bithon.component.db.dao.MetadataDAO;
-import com.sbss.bithon.component.db.jooq.tables.records.BithonMetadataRecord;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import org.jooq.DSLContext;
 
 import java.util.Collection;
@@ -33,7 +33,9 @@ public class MetadataJdbcStorage implements IMetaStorage {
     @Override
     public Collection<Metadata> getMetadataByType(MetadataType type) {
         return metadataDao.getMetadata(type.getType())
-            .stream().map(r->new Metadata(r.getName(), r.getType(), r.getParentId())).collect(Collectors.toList());
+                          .stream()
+                          .map(r -> new Metadata(r.getName(), r.getType(), r.getParentId()))
+                          .collect(Collectors.toList());
     }
 
     @Override
@@ -76,8 +78,10 @@ public class MetadataJdbcStorage implements IMetaStorage {
                                                    dimensionName,
                                                    DateTimeUtils.fromISO8601(startISO8601),
                                                    DateTimeUtils.fromISO8601(endISO8601))
-                .stream().map(r -> new DisplayableText(r.getId().toString(),
-                                                       r.getDimensionValue())).collect(Collectors.toList());
+                              .stream()
+                              .map(r -> new DisplayableText(r.getId().toString(),
+                                                            r.getDimensionValue()))
+                              .collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

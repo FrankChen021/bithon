@@ -2,70 +2,70 @@
 <!DOCTYPE log4j:configuration PUBLIC "-//log4j/log4j Configuration//EN" "log4j.dtd">
 <log4j:configuration>
 
-    <appender name="console" class="shaded.org.apache.log4j.ConsoleAppender">
-        <layout class="shaded.org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%-d{yyyy-MM-dd HH:mm:ss.SSS} [Agent %p] - [%t:%C{1}] %m%n"/>
-        </layout>
-    </appender>
+  <appender name="console" class="shaded.org.apache.log4j.ConsoleAppender">
+    <layout class="shaded.org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-d{yyyy-MM-dd HH:mm:ss.SSS} [Agent %p] - [%t:%C{1}] %m%n"/>
+    </layout>
+  </appender>
 
-    <appender name="debugRollingFile" class="shaded.org.apache.log4j.DailyRollingFileAppender">
-        <param name="File" value="logs/agent.debug.log"/>
-        <param name="Append" value="true"/>
-        <layout class="shaded.org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%-d{yyyy-MM-dd HH:mm:ss.SSS} [Agent %p] - [%t:%C{1}] %m%n"/>
-        </layout>
-        <filter class="shaded.org.apache.log4j.varia.LevelRangeFilter">
-            <param name="LevelMin" value="DEBUG"/>
-            <param name="LevelMax" value="DEBUG"/>
-        </filter>
-    </appender>
+  <appender name="debugRollingFile" class="shaded.org.apache.log4j.DailyRollingFileAppender">
+    <param name="File" value="logs/agent.debug.log"/>
+    <param name="Append" value="true"/>
+    <layout class="shaded.org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-d{yyyy-MM-dd HH:mm:ss.SSS} [Agent %p] - [%t:%C{1}] %m%n"/>
+    </layout>
+    <filter class="shaded.org.apache.log4j.varia.LevelRangeFilter">
+      <param name="LevelMin" value="DEBUG"/>
+      <param name="LevelMax" value="DEBUG"/>
+    </filter>
+  </appender>
 
-    <appender name="infoRollingFile" class="shaded.org.apache.log4j.DailyRollingFileAppender">
-        <param name="File" value="logs/agent.info.log"/>
-        <param name="Append" value="true"/>
-        <layout class="shaded.org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%-d{yyyy-MM-dd HH:mm:ss.SSS} [Agent %p] - [%t:%C{1}] %m%n"/>
-        </layout>
-        <filter class="shaded.org.apache.log4j.varia.LevelRangeFilter">
-            <param name="LevelMin" value="INFO"/>
-            <param name="LevelMax" value="INFO"/>
-        </filter>
-    </appender>
+  <appender name="infoRollingFile" class="shaded.org.apache.log4j.DailyRollingFileAppender">
+    <param name="File" value="logs/agent.info.log"/>
+    <param name="Append" value="true"/>
+    <layout class="shaded.org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-d{yyyy-MM-dd HH:mm:ss.SSS} [Agent %p] - [%t:%C{1}] %m%n"/>
+    </layout>
+    <filter class="shaded.org.apache.log4j.varia.LevelRangeFilter">
+      <param name="LevelMin" value="INFO"/>
+      <param name="LevelMax" value="INFO"/>
+    </filter>
+  </appender>
 
-    <appender name="warnRollingFile" class="shaded.org.apache.log4j.DailyRollingFileAppender">
-        <param name="File" value="logs/agent.warn.log"/>
-        <param name="Append" value="true"/>
-        <layout class="shaded.org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%-d{yyyy-MM-dd HH:mm:ss.SSS} [Agent %p] - [%t:%C{1}] %m%n"/>
-        </layout>
-        <filter class="shaded.org.apache.log4j.varia.LevelRangeFilter">
-            <param name="LevelMin" value="WARN"/>
-            <param name="LevelMax" value="WARN"/>
-        </filter>
-    </appender>
+  <appender name="warnRollingFile" class="shaded.org.apache.log4j.DailyRollingFileAppender">
+    <param name="File" value="logs/agent.warn.log"/>
+    <param name="Append" value="true"/>
+    <layout class="shaded.org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-d{yyyy-MM-dd HH:mm:ss.SSS} [Agent %p] - [%t:%C{1}] %m%n"/>
+    </layout>
+    <filter class="shaded.org.apache.log4j.varia.LevelRangeFilter">
+      <param name="LevelMin" value="WARN"/>
+      <param name="LevelMax" value="WARN"/>
+    </filter>
+  </appender>
 
-    <appender name="errorRollingFile" class="shaded.org.apache.log4j.DailyRollingFileAppender">
-        <param name="File" value="logs/agent.error.log"/>
-        <param name="Append" value="true"/>
-        <layout class="shaded.org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%-d{yyyy-MM-dd HH:mm:ss SSS} [Agent %p] - [%t:%C{1}] %m%n"/>
-        </layout>
-        <filter class="shaded.org.apache.log4j.varia.LevelRangeFilter">
-            <param name="LevelMin" value="ERROR"/>
-            <param name="LevelMax" value="ERROR"/>
-        </filter>
-    </appender>
+  <appender name="errorRollingFile" class="shaded.org.apache.log4j.DailyRollingFileAppender">
+    <param name="File" value="logs/agent.error.log"/>
+    <param name="Append" value="true"/>
+    <layout class="shaded.org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-d{yyyy-MM-dd HH:mm:ss SSS} [Agent %p] - [%t:%C{1}] %m%n"/>
+    </layout>
+    <filter class="shaded.org.apache.log4j.varia.LevelRangeFilter">
+      <param name="LevelMin" value="ERROR"/>
+      <param name="LevelMax" value="ERROR"/>
+    </filter>
+  </appender>
 
 
-    <root>
-        <priority value="INFO"/>
-        <appender-ref ref="console"/>
-        <!--
-        <appender-ref ref="debugRollingFile"/>
-        <appender-ref ref="infoRollingFile"/>
-        <appender-ref ref="warnRollingFile"/>
-        <appender-ref ref="errorRollingFile"/>
-        -->
-    </root>
+  <root>
+    <priority value="INFO"/>
+    <appender-ref ref="console"/>
+    <!--
+    <appender-ref ref="debugRollingFile"/>
+    <appender-ref ref="infoRollingFile"/>
+    <appender-ref ref="warnRollingFile"/>
+    <appender-ref ref="errorRollingFile"/>
+    -->
+  </root>
 
 </log4j:configuration>

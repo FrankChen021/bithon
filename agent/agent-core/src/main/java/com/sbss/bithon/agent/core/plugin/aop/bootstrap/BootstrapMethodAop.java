@@ -2,7 +2,11 @@ package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import com.sbss.bithon.agent.core.plugin.loader.BootstrapAopInstaller;
-import shaded.net.bytebuddy.implementation.bind.annotation.*;
+import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
+import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
+import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
+import shaded.net.bytebuddy.implementation.bind.annotation.SuperCall;
+import shaded.net.bytebuddy.implementation.bind.annotation.This;
 import shaded.net.bytebuddy.pool.TypePool;
 
 import java.lang.reflect.Method;

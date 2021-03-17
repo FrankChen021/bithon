@@ -1,9 +1,9 @@
 package com.sbss.bithon.agent.plugin.quartz2;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
+import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metrics.IMetricProvider;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import org.quartz.core.JobRunShell;
 import org.quartz.impl.JobExecutionContextImpl;
 import shaded.org.slf4j.Logger;
@@ -21,10 +21,8 @@ import java.util.stream.Collectors;
  * @author frankchen
  */
 public class QuartzMetricProvider implements IMetricProvider {
-    private static final Logger log = LoggerFactory.getLogger(QuartzMetricProvider.class);
-
     static final String COUNTER_NAME = "quartz2";
-
+    private static final Logger log = LoggerFactory.getLogger(QuartzMetricProvider.class);
     private static final String JOB_NAME = "jobName";
     private static final String JOB_CLASS = "jobClass";
     private static final String JOB_START_TIME = "jobStartTime";

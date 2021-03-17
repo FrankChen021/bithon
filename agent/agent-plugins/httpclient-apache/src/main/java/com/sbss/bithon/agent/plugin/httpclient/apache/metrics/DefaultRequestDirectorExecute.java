@@ -29,7 +29,8 @@ public class DefaultRequestDirectorExecute extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricProviderManager.getInstance().getOrRegister("apache-http-client", HttpClientMetricProvider.class);
+        metricProvider = MetricProviderManager.getInstance()
+                                              .getOrRegister("apache-http-client", HttpClientMetricProvider.class);
         return true;
     }
 
@@ -60,9 +61,9 @@ public class DefaultRequestDirectorExecute extends AbstractInterceptor {
 
         HttpResponse httpResponse = aopContext.castReturningAs();
         metricProvider.addRequest(requestUri,
-                requestMethod,
-                httpResponse.getStatusLine().getStatusCode(),
-                aopContext.getCostTime());
+                                  requestMethod,
+                                  httpResponse.getStatusLine().getStatusCode(),
+                                  aopContext.getCostTime());
 
         HttpContext httpContext = (HttpContext) aopContext.getArgs()[2];
         if (httpContext == null) {

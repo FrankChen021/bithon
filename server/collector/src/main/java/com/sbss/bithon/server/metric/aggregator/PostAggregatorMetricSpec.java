@@ -11,14 +11,17 @@ import com.sbss.bithon.server.metric.typing.DoubleValueType;
 import com.sbss.bithon.server.metric.typing.IValueType;
 import com.sbss.bithon.server.metric.typing.LongValueType;
 import lombok.Getter;
-import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
- *
  * @author frankchen
  */
 public class PostAggregatorMetricSpec implements IMetricSpec {
@@ -63,7 +66,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
         this.valueType = "long".equalsIgnoreCase(valueType) ? LongValueType.INSTANCE : DoubleValueType.INSTANCE;
         this.visible = visible == null ? true : visible;
 
-        this.parsers = ThreadLocal.withInitial(()->{
+        this.parsers = ThreadLocal.withInitial(() -> {
             PostAggregatorExpressionLexer lexer = new PostAggregatorExpressionLexer(CharStreams.fromString(expression));
             lexer.getErrorListeners().clear();
             lexer.addErrorListener(new BaseErrorListener() {
@@ -91,12 +94,14 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                     throw new InvalidExpressionException(expression, charPositionInLine, msg);
                 }
             });
-            parser.prog().accept(new PostAggregatorExpressionBaseVisitor<Void>(){
+            parser.prog().accept(new PostAggregatorExpressionBaseVisitor<Void>() {
                 @Override
                 public Void visitTerminal(TerminalNode node) {
-                    if ( node.getSymbol().getType() == PostAggregatorExpressionParser.ID ) {
-                        if ( !owner.containsMetric(node.getText()) ) {
-                            throw new IllegalStateException(String.format("[%s] in [%s] not found in dataSchema", node.getText(), name));
+                    if (node.getSymbol().getType() == PostAggregatorExpressionParser.ID) {
+                        if (!owner.containsMetric(node.getText())) {
+                            throw new IllegalStateException(String.format("[%s] in [%s] not found in dataSchema",
+                                                                          node.getText(),
+                                                                          name));
                         }
                     }
                     return null;
@@ -139,8 +144,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                 switch (ctx.getChildCount()) {
                     case 1:
                         return visitChildren(ctx);
-                    case 3:
-                    {
+                    case 3: {
                         String operator = ctx.getChild(1).getText();
                         switch (operator) {
                             case "+":
@@ -163,7 +167,10 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                     }
                     default:
                         // no such case
-                        throw new IllegalStateException("ChildCount is " + ctx.getChildCount() + ", Text="+ctx.getText());
+                        throw new IllegalStateException("ChildCount is "
+                                                        + ctx.getChildCount()
+                                                        + ", Text="
+                                                        + ctx.getText());
                 }
             }
 
@@ -177,7 +184,10 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                         visitor.visitMetric(owner.getMetricSpecByName(node.getText()));
                         return null;
                     default:
-                        throw new IllegalStateException("Terminal Node Type:" + node.getSymbol().getType() + ", Input Expression:" + expression);
+                        throw new IllegalStateException("Terminal Node Type:"
+                                                        + node.getSymbol().getType()
+                                                        + ", Input Expression:"
+                                                        + expression);
                 }
             }
         });

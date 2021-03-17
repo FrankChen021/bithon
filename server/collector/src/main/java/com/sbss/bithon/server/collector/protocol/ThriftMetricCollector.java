@@ -2,9 +2,16 @@ package com.sbss.bithon.server.collector.protocol;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.IMetricCollector;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.*;
-import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
+import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;

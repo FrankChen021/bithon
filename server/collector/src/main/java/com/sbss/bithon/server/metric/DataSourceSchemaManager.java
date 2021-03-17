@@ -21,12 +21,6 @@ public class DataSourceSchemaManager {
     private final List<IDataSourceSchemaListener> listeners = new ArrayList<>();
     private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
 
-    public interface IDataSourceSchemaListener {
-        void onRmv(DataSourceSchema dataSourceSchema);
-
-        void onAdd(DataSourceSchema dataSourceSchema);
-    }
-
     public void addDataSourceSchema(DataSourceSchema schema) {
         schemas.put(schema.getName(), schema);
 
@@ -57,7 +51,7 @@ public class DataSourceSchemaManager {
         }
 
         try (InputStream is = this.getClass().getClassLoader()
-            .getResourceAsStream(String.format("schema/%s.json", name))) {
+                                  .getResourceAsStream(String.format("schema/%s.json", name))) {
 
             ObjectMapper om = new ObjectMapper();
             DataSourceSchema dataSourceSchema = om.readValue(is, DataSourceSchema.class);
@@ -74,5 +68,11 @@ public class DataSourceSchemaManager {
 
     public void addListener(IDataSourceSchemaListener listener) {
         listeners.add(listener);
+    }
+
+    public interface IDataSourceSchemaListener {
+        void onRmv(DataSourceSchema dataSourceSchema);
+
+        void onAdd(DataSourceSchema dataSourceSchema);
     }
 }

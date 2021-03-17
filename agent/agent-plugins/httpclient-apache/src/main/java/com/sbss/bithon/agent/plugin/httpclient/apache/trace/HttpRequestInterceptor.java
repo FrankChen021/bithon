@@ -50,17 +50,17 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
 
         // create a span and save it in user-context
         TraceSpan thisSpan = parentSpan.newChildSpan("httpClient")
-            .clazz(aopContext.getTargetClass())
-            .method(aopContext.getMethod())
-            .kind(SpanKind.CLIENT)
-            .tag("uri", httpRequest.getRequestLine().getUri())
-            .start();
+                                       .clazz(aopContext.getTargetClass())
+                                       .method(aopContext.getMethod())
+                                       .kind(SpanKind.CLIENT)
+                                       .tag("uri", httpRequest.getRequestLine().getUri())
+                                       .start();
         aopContext.setUserContext(thisSpan);
 
         // propagate tracing
         Tracer.get()
-            .propagator()
-            .inject(tracer, httpRequest, (request, key, value) -> request.setHeader(key, value));
+              .propagator()
+              .inject(tracer, httpRequest, (request, key, value) -> request.setHeader(key, value));
 
         return InterceptionDecision.CONTINUE;
     }

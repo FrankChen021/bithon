@@ -55,7 +55,7 @@ public class CollectorServiceStarter {
             }
             if (processor != null) {
                 processors.computeIfAbsent(value, key -> new TMultiplexedProcessor())
-                    .registerProcessor(service, processor);
+                          .registerProcessor(service, processor);
             }
         }
 

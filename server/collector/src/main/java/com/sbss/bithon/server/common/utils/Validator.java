@@ -14,7 +14,7 @@ import java.util.Set;
 public class Validator {
     public static void validate(Object obj) {
         javax.validation.Validator validator = Validation.buildDefaultValidatorFactory()
-            .getValidator();
+                                                         .getValidator();
 
         Set<ConstraintViolation<Object>> set = validator.validate(obj, Default.class);
         if (!CollectionUtils.isEmpty(set)) {

@@ -21,25 +21,25 @@ public class SpringMvcPlugin extends AbstractPlugin {
             forClass("org.springframework.web.servlet.handler.AbstractHandlerMethodMapping")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("registerHandlerMethod",
-                                         "java.lang.Object", "java.lang.reflect.Method", "T")
-                        .to("com.sbss.bithon.agent.plugin.springweb.MethodMatchingInterceptor")
+                                                   .onMethodAndArgs("registerHandlerMethod",
+                                                                    "java.lang.Object", "java.lang.reflect.Method", "T")
+                                                   .to("com.sbss.bithon.agent.plugin.springweb.MethodMatchingInterceptor")
                 ),
 
             forClass("org.springframework.web.client.RestTemplate")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("execute")
-                        .to("com.sbss.bithon.agent.plugin.springweb.RestTemplateExecuteInterceptor")
+                                                   .onAllMethods("execute")
+                                                   .to("com.sbss.bithon.agent.plugin.springweb.RestTemplateExecuteInterceptor")
                 ),
 
             // Request.create
             forClass("org.springframework.cloud.netflix.feign.ribbon.LoadBalancerFeignClient")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("execute",
-                                         "feign.Request", "feign.Request$Options")
-                        .to("com.sbss.bithon.agent.plugin.springweb.FeignClientInterceptor")
+                                                   .onMethodAndArgs("execute",
+                                                                    "feign.Request", "feign.Request$Options")
+                                                   .to("com.sbss.bithon.agent.plugin.springweb.FeignClientInterceptor")
                 )
         );
     }

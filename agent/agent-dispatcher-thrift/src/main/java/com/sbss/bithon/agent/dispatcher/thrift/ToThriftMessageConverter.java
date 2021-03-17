@@ -16,7 +16,23 @@ import com.sbss.bithon.agent.core.metrics.web.WebRequestMetric;
 import com.sbss.bithon.agent.core.metrics.web.WebServerMetric;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.*;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ClassEntity;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.CpuEntity;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.GcEntity;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HeapEntity;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.InstanceTimeEntity;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MemoryEntity;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MetaspaceEntity;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.NonHeapEntity;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadEntity;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 
 import java.util.Map;
@@ -111,23 +127,23 @@ public class ToThriftMessageConverter implements IMessageConverter {
 
         message.setInstanceTimeEntity(new InstanceTimeEntity(metric.upTime, metric.startTime));
         message.setCpuEntity(new CpuEntity(metric.cpuMetrics.processorNumber,
-                                                 metric.cpuMetrics.processCpuTime,
-                                                 metric.cpuMetrics.avgSystemLoad,
-                                                 metric.cpuMetrics.processCpuLoad));
+                                           metric.cpuMetrics.processCpuTime,
+                                           metric.cpuMetrics.avgSystemLoad,
+                                           metric.cpuMetrics.processCpuLoad));
         message.setMemoryEntity(new MemoryEntity(metric.memoryMetrics.allocatedBytes,
-                                                       metric.memoryMetrics.freeBytes));
+                                                 metric.memoryMetrics.freeBytes));
         message.setHeapEntity(new HeapEntity(metric.heapMetrics.heapBytes,
-                                                   metric.heapMetrics.heapInitBytes,
-                                                   metric.heapMetrics.heapUsedBytes,
-                                                   metric.heapMetrics.heapCommittedBytes));
+                                             metric.heapMetrics.heapInitBytes,
+                                             metric.heapMetrics.heapUsedBytes,
+                                             metric.heapMetrics.heapCommittedBytes));
         message.setNonHeapEntity(new NonHeapEntity(metric.nonHeapMetrics.nonHeapBytes,
-                                                         metric.nonHeapMetrics.nonHeapInitBytes,
-                                                         metric.nonHeapMetrics.nonHeapUsedBytes,
-                                                         metric.nonHeapMetrics.nonHeapCommitted));
+                                                   metric.nonHeapMetrics.nonHeapInitBytes,
+                                                   metric.nonHeapMetrics.nonHeapUsedBytes,
+                                                   metric.nonHeapMetrics.nonHeapCommitted));
         message.setThreadEntity(new ThreadEntity(metric.threadMetrics.peakActiveCount,
-                                                       metric.threadMetrics.activeDaemonCount,
-                                                       metric.threadMetrics.totalCreatedCount,
-                                                       metric.threadMetrics.activeThreadsCount));
+                                                 metric.threadMetrics.activeDaemonCount,
+                                                 metric.threadMetrics.totalCreatedCount,
+                                                 metric.threadMetrics.activeThreadsCount));
         message.setGcEntities(metric.gcMetrics.stream().map(gcEntity -> {
             GcEntity e = new GcEntity(gcEntity.gcCount,
                                       gcEntity.gcTime);
@@ -136,10 +152,10 @@ public class ToThriftMessageConverter implements IMessageConverter {
         }).collect(Collectors.toList()));
 
         message.setClassesEntity(new ClassEntity(metric.classMetrics.currentClassCount,
-                                                       metric.classMetrics.loadedClassCount,
-                                                       metric.classMetrics.unloadedClassCount));
+                                                 metric.classMetrics.loadedClassCount,
+                                                 metric.classMetrics.unloadedClassCount));
         message.setMetaspaceEntity(new MetaspaceEntity(metric.metaspaceMetrics.metaspaceCommittedBytes,
-                                                             metric.metaspaceMetrics.metaspaceUsedBytes));
+                                                       metric.metaspaceMetrics.metaspaceUsedBytes));
         return message;
     }
 

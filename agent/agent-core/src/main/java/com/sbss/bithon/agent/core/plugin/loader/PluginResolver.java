@@ -31,10 +31,12 @@ public class PluginResolver {
                 String pluginClassName = jar.getJarFile().getManifest().getMainAttributes().getValue("Plugin-Class");
                 AbstractPlugin plugin = (AbstractPlugin) Class.forName(pluginClassName,
                                                                        true,
-                                                                       AgentClassloader.getDefaultInstance()).newInstance();
+                                                                       AgentClassloader.getDefaultInstance())
+                                                              .newInstance();
                 plugins.add(plugin);
             } catch (Throwable e) {
-                LoggerFactory.getLogger(PluginResolver.class).error(String.format("Failed to add plugin from jar %s", jar.sourceFile.getName()), e);
+                LoggerFactory.getLogger(PluginResolver.class)
+                             .error(String.format("Failed to add plugin from jar %s", jar.sourceFile.getName()), e);
             }
         }
         return plugins;

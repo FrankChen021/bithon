@@ -2,11 +2,15 @@ package com.sbss.bithon.server.metric.api;
 
 import com.sbss.bithon.server.common.pojo.DisplayableText;
 import com.sbss.bithon.server.common.utils.datetime.TimeSpan;
+import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchema;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
-import com.sbss.bithon.server.meta.storage.IMetaStorage;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -65,10 +69,10 @@ public class DataSourceApi {
     @PostMapping("/api/datasource/name")
     public Collection<DisplayableText> getSchemaNames() {
         return schemaManager.getDataSources()
-            .values()
-            .stream()
-            .map(schema -> new DisplayableText(schema.getName(), schema.getDisplayText()))
-            .collect(Collectors.toList());
+                            .values()
+                            .stream()
+                            .map(schema -> new DisplayableText(schema.getName(), schema.getDisplayText()))
+                            .collect(Collectors.toList());
     }
 
     @PostMapping("/api/datasource/dimensions")

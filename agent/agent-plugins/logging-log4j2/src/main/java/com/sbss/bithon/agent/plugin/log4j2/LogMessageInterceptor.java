@@ -25,7 +25,7 @@ public class LogMessageInterceptor extends AbstractInterceptor {
         Level logLevel = (Level) aopContext.getArgs()[1];
         Throwable e = (Throwable) aopContext.getArgs()[4];
         return e != null && StandardLevel.ERROR.equals(logLevel.getStandardLevel()) ?
-            InterceptionDecision.CONTINUE : InterceptionDecision.SKIP_LEAVE;
+               InterceptionDecision.CONTINUE : InterceptionDecision.SKIP_LEAVE;
     }
 
     @Override

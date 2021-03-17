@@ -19,20 +19,6 @@ import java.time.Duration;
 @Service
 public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler {
 
-    private enum DriverType {
-        MYSQL("com.mysql", "mysql"),
-        KYLIN("org.apache.kylin", "kylin"),
-        UNKNOWN("unknown", "unknown_jdbc");
-
-        private final String classIdentifier;
-        private final String driverType;
-
-        DriverType(String classIdentifier, String driverType) {
-            this.classIdentifier = classIdentifier;
-            this.driverType = driverType;
-        }
-    }
-
     public JdbcPoolMetricMessageHandler(IMetaStorage metaStorage,
                                         IMetricStorage metricStorage,
                                         DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
@@ -50,10 +36,24 @@ public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler {
     void toMetricObject(GenericMetricMessage message) {
 
         message.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
-                                message.getApplicationName(),
-                                EndPointType.MYSQL,
+                                                 message.getApplicationName(),
+                                                 EndPointType.MYSQL,
 
-                                //TODO: extract host and port
-                                message.getString("connectionString")));
+                                                 //TODO: extract host and port
+                                                 message.getString("connectionString")));
+    }
+
+    private enum DriverType {
+        MYSQL("com.mysql", "mysql"),
+        KYLIN("org.apache.kylin", "kylin"),
+        UNKNOWN("unknown", "unknown_jdbc");
+
+        private final String classIdentifier;
+        private final String driverType;
+
+        DriverType(String classIdentifier, String driverType) {
+            this.classIdentifier = classIdentifier;
+            this.driverType = driverType;
+        }
     }
 }

@@ -2,8 +2,8 @@ package com.sbss.bithon.agent.plugin.mysql.trace;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
 
 /**
  * @author frankchen

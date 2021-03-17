@@ -3,13 +3,13 @@ package com.sbss.bithon.server.tracing.storage.jdbc;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sbss.bithon.server.tracing.storage.ITraceReader;
-import com.sbss.bithon.server.tracing.storage.ITraceStorage;
-import com.sbss.bithon.server.tracing.storage.ITraceWriter;
-import com.sbss.bithon.server.tracing.handler.TraceSpan;
 import com.sbss.bithon.component.db.jooq.Indexes;
 import com.sbss.bithon.component.db.jooq.Tables;
 import com.sbss.bithon.component.db.jooq.tables.records.BithonTraceSpanRecord;
+import com.sbss.bithon.server.tracing.handler.TraceSpan;
+import com.sbss.bithon.server.tracing.storage.ITraceReader;
+import com.sbss.bithon.server.tracing.storage.ITraceStorage;
+import com.sbss.bithon.server.tracing.storage.ITraceWriter;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jooq.impl.ThreadLocalTransactionProvider;
@@ -31,25 +31,26 @@ public class TraceJdbcStorage implements ITraceStorage {
     public TraceJdbcStorage(DSLContext dslContext, ObjectMapper objectMapper) {
         this.dslContext = DSL.using(dslContext
                                         .configuration()
-                                        .derive(new ThreadLocalTransactionProvider(dslContext.configuration().connectionProvider())));
+                                        .derive(new ThreadLocalTransactionProvider(dslContext.configuration()
+                                                                                             .connectionProvider())));
         this.objectMapper = objectMapper;
 
         dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN)
-            .columns(Tables.BITHON_TRACE_SPAN.ID,
-                     Tables.BITHON_TRACE_SPAN.TIMESTAMP,
-                     Tables.BITHON_TRACE_SPAN.APP_NAME,
-                     Tables.BITHON_TRACE_SPAN.INSTANCE_NAME,
-                     Tables.BITHON_TRACE_SPAN.NAME,
-                     Tables.BITHON_TRACE_SPAN.CLAZZ,
-                     Tables.BITHON_TRACE_SPAN.METHOD,
-                     Tables.BITHON_TRACE_SPAN.KIND,
-                     Tables.BITHON_TRACE_SPAN.TRACEID,
-                     Tables.BITHON_TRACE_SPAN.SPANID,
-                     Tables.BITHON_TRACE_SPAN.COSTTIME,
-                     Tables.BITHON_TRACE_SPAN.PARENTSPANID,
-                     Tables.BITHON_TRACE_SPAN.TAGS)
-            .indexes(Indexes.BITHON_TRACE_SPAN_IDX_KEY)
-            .execute();
+                  .columns(Tables.BITHON_TRACE_SPAN.ID,
+                           Tables.BITHON_TRACE_SPAN.TIMESTAMP,
+                           Tables.BITHON_TRACE_SPAN.APP_NAME,
+                           Tables.BITHON_TRACE_SPAN.INSTANCE_NAME,
+                           Tables.BITHON_TRACE_SPAN.NAME,
+                           Tables.BITHON_TRACE_SPAN.CLAZZ,
+                           Tables.BITHON_TRACE_SPAN.METHOD,
+                           Tables.BITHON_TRACE_SPAN.KIND,
+                           Tables.BITHON_TRACE_SPAN.TRACEID,
+                           Tables.BITHON_TRACE_SPAN.SPANID,
+                           Tables.BITHON_TRACE_SPAN.COSTTIME,
+                           Tables.BITHON_TRACE_SPAN.PARENTSPANID,
+                           Tables.BITHON_TRACE_SPAN.TAGS)
+                  .indexes(Indexes.BITHON_TRACE_SPAN_IDX_KEY)
+                  .execute();
     }
 
     @Override
@@ -66,25 +67,25 @@ public class TraceJdbcStorage implements ITraceStorage {
         @Override
         public List<TraceSpan> getTraceByTraceId(String traceId) {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId))
-                .fetch(this::toTraceSpan);
+                             .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId))
+                             .fetch(this::toTraceSpan);
         }
 
         @Override
         public List<TraceSpan> getTraceList(String applicationName) {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                .where(Tables.BITHON_TRACE_SPAN.APP_NAME.eq(applicationName))
-                .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""))
-                .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc())
-                .fetch(this::toTraceSpan);
+                             .where(Tables.BITHON_TRACE_SPAN.APP_NAME.eq(applicationName))
+                             .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""))
+                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc())
+                             .fetch(this::toTraceSpan);
         }
 
         @Override
         public List<TraceSpan> getTraceByParentSpanId(String parentSpanId) {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                .where(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(parentSpanId))
-                .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc())
-                .fetch(this::toTraceSpan);
+                             .where(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(parentSpanId))
+                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc())
+                             .fetch(this::toTraceSpan);
         }
 
         private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {

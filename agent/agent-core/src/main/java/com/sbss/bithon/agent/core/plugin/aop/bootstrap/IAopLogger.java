@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 /**
  * Since Aop, which is injected into bootstrap class loader, depends on log,
  * and shaded.slf4j is not loaded by bootstrap class loader, we provide this class for Aop to log
- *
+ * <p>
  * NOTE: this class is injected into Bootstrap class loader
  *
  * @author frank.chen021@outlook.com

@@ -21,57 +21,58 @@ public class JedisPlugin extends AbstractPlugin {
             forClass("redis.clients.jedis.Connection")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("connect")
-                        .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisConnectionConnect")
+                                                   .onMethodAndNoArgs("connect")
+                                                   .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisConnectionConnect")
                 ),
 
             //2.9.x
             forClass("redis.clients.jedis.Client")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("readProtocolWithCheckingBroken")
-                        .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisClientReadProtocol"),
+                                                   .onMethodAndNoArgs("readProtocolWithCheckingBroken")
+                                                   .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisClientReadProtocol"),
 
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("sendCommand",
-                                         "redis.clients.jedis.Protocol$Command", "[[B")
-                        .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisClientSendCommand"),
+                                                   .onMethodAndArgs("sendCommand",
+                                                                    "redis.clients.jedis.Protocol$Command", "[[B")
+                                                   .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisClientSendCommand"),
 
                     //3.x
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("sendCommand",
-                                         "redis.clients.jedis.commands.ProtocolCommand", "[[B")
-                        .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisClientSendCommand")
+                                                   .onMethodAndArgs("sendCommand",
+                                                                    "redis.clients.jedis.commands.ProtocolCommand",
+                                                                    "[[B")
+                                                   .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisClientSendCommand")
                 ),
 
             forClass("redis.clients.util.RedisOutputStream")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("flushBuffer")
-                        .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisOutputStreamFlushBuffer")
+                                                   .onMethodAndNoArgs("flushBuffer")
+                                                   .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisOutputStreamFlushBuffer")
                 ),
 
             forClass("redis.clients.jedis.util.RedisOutputStream")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("flushBuffer")
-                        .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisOutputStreamFlushBuffer")
+                                                   .onMethodAndNoArgs("flushBuffer")
+                                                   .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisOutputStreamFlushBuffer")
                 ),
 
             //2.9.x
             forClass("redis.clients.util.RedisInputStream")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("ensureFill")
-                        .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisInputStreamEnsureFill")
+                                                   .onMethodAndNoArgs("ensureFill")
+                                                   .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisInputStreamEnsureFill")
                 ),
 
             //3.x
             forClass("redis.clients.jedis.util.RedisInputStream")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("ensureFill")
-                        .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisInputStreamEnsureFill")
+                                                   .onMethodAndNoArgs("ensureFill")
+                                                   .to("com.sbss.bithon.agent.plugin.jedis.interceptor.JedisInputStreamEnsureFill")
                 )
         );
     }

@@ -4,7 +4,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.*;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
+import org.joda.time.format.DateTimeParser;
+import org.joda.time.format.ISODateTimeFormat;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -29,7 +33,8 @@ public class TimestampParser {
                         int lastIndex = input.lastIndexOf(' ');
                         DateTimeZone timeZone = DateTimeZone.UTC;
                         if (lastIndex > 0) {
-                            DateTimeZone timeZoneFromString = ParserUtils.getDateTimeZone(input.substring(lastIndex + 1));
+                            DateTimeZone timeZoneFromString = ParserUtils.getDateTimeZone(input.substring(lastIndex
+                                                                                                          + 1));
                             if (timeZoneFromString != null) {
                                 timeZone = timeZoneFromString;
                                 input = input.substring(0, lastIndex);
@@ -48,9 +53,9 @@ public class TimestampParser {
                 return DateTimes.of(ParserUtils.stripQuotes(input));
             };
         } else if ("posix".equalsIgnoreCase(format)
-            || "millis".equalsIgnoreCase(format)
-            || "micro".equalsIgnoreCase(format)
-            || "nano".equalsIgnoreCase(format)) {
+                   || "millis".equalsIgnoreCase(format)
+                   || "micro".equalsIgnoreCase(format)
+                   || "nano".equalsIgnoreCase(format)) {
             final Function<Number, DateTime> numericFun = createNumericTimestampParser(format);
             return input -> {
                 Preconditions.checkArgument(!Strings.isNullOrEmpty(input), "null timestamp");
@@ -111,11 +116,11 @@ public class TimestampParser {
 
     private static boolean isNumericFormat(String format) {
         return "auto".equalsIgnoreCase(format)
-            || "millis".equalsIgnoreCase(format)
-            || "posix".equalsIgnoreCase(format)
-            || "micro".equalsIgnoreCase(format)
-            || "nano".equalsIgnoreCase(format)
-            || "ruby".equalsIgnoreCase(format);
+               || "millis".equalsIgnoreCase(format)
+               || "posix".equalsIgnoreCase(format)
+               || "micro".equalsIgnoreCase(format)
+               || "nano".equalsIgnoreCase(format)
+               || "ruby".equalsIgnoreCase(format);
     }
 
     private static DateTimeFormatter createAutoParser() {

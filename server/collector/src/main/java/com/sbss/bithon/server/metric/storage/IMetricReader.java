@@ -2,8 +2,8 @@ package com.sbss.bithon.server.metric.storage;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.sbss.bithon.server.metric.DataSourceSchema;
 import com.sbss.bithon.server.common.utils.datetime.TimeSpan;
+import com.sbss.bithon.server.metric.DataSourceSchema;
 
 import java.util.Collection;
 import java.util.List;

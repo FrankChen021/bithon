@@ -12,7 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class ThreadPoolExecutorDiscardOldestPolicy extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext joinPoint)  {
+    public void onMethodLeave(AopContext joinPoint) {
         ThreadPoolExecutor executor = (ThreadPoolExecutor) joinPoint.getArgs()[1];
         ThreadPoolMetricsProvider.getInstance().addDiscardOldest(executor);
     }

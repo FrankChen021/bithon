@@ -20,19 +20,9 @@ public class MetricProviderManager {
     private static final Logger log = LoggerFactory.getLogger(MetricProviderManager.class);
 
     private static final int INTERVAL = 10;
+    private static final MetricProviderManager INSTANCE = new MetricProviderManager();
     private final ConcurrentMap<String, IMetricProvider> providers;
     private final Dispatcher dispatcher;
-
-    private static final MetricProviderManager INSTANCE = new MetricProviderManager();
-
-    public boolean isProviderExists(String name) {
-        for (String providerName : providers.keySet()) {
-            if (providerName.contains(name)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     private MetricProviderManager() {
         this.providers = new ConcurrentHashMap<>();
@@ -53,9 +43,9 @@ public class MetricProviderManager {
 
                     try {
                         List<Object> messages = provider.buildMessages(dispatcher.getMessageConverter(),
-                                AgentContext.getInstance().getAppInstance(),
-                                INTERVAL,
-                                System.currentTimeMillis());
+                                                                       AgentContext.getInstance().getAppInstance(),
+                                                                       INTERVAL,
+                                                                       System.currentTimeMillis());
                         if (CollectionUtils.isNotEmpty(messages)) {
                             dispatcher.sendMessage(messages);
                         }
@@ -69,6 +59,15 @@ public class MetricProviderManager {
 
     public static MetricProviderManager getInstance() {
         return INSTANCE;
+    }
+
+    public boolean isProviderExists(String name) {
+        for (String providerName : providers.keySet()) {
+            if (providerName.contains(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public <T extends IMetricProvider> T register(String providerName, T provider) {

@@ -5,7 +5,6 @@ import com.sbss.bithon.agent.core.metrics.http.HttpClientMetricProvider;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
@@ -37,7 +36,7 @@ public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
         HttpURLConnection connection = (HttpURLConnection) bithonObject.getInjectedObject();
         String httpMethod = connection.getRequestMethod();
         String uri = connection.getURL().toString().split("\\?")[0];
-        if ( aopContext.hasException() ) {
+        if (aopContext.hasException()) {
             // TODO: aopContext.getCostTime here only returns the execution time of HttpClient.parseHTTP
             metricProvider.addExceptionRequest(uri, httpMethod, aopContext.getCostTime());
         } else {

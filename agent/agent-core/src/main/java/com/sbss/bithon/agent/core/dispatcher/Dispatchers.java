@@ -52,7 +52,8 @@ public class Dispatchers {
                                           AgentContext.getInstance().getAppInstance(),
                                           config);
                 } catch (Exception e) {
-                    LoggerFactory.getLogger(Dispatchers.class).error("Failed to create dispatcher: " + dispatcherName, e);
+                    LoggerFactory.getLogger(Dispatchers.class)
+                                 .error("Failed to create dispatcher: " + dispatcherName, e);
                     return null;
                 }
             });

@@ -1,9 +1,26 @@
 package com.sbss.bithon.server.metric.storage.jdbc;
 
-import com.sbss.bithon.server.common.matcher.*;
+import com.sbss.bithon.server.common.matcher.AntPathMatcher;
+import com.sbss.bithon.server.common.matcher.ContainsMatcher;
+import com.sbss.bithon.server.common.matcher.EndwithMatcher;
+import com.sbss.bithon.server.common.matcher.EqualMatcher;
+import com.sbss.bithon.server.common.matcher.IContainsMatcher;
+import com.sbss.bithon.server.common.matcher.IMatcherVisitor;
+import com.sbss.bithon.server.common.matcher.RegexMatcher;
+import com.sbss.bithon.server.common.matcher.StartwithMatcher;
 import com.sbss.bithon.server.common.utils.datetime.TimeSpan;
 import com.sbss.bithon.server.metric.DataSourceSchema;
-import com.sbss.bithon.server.metric.aggregator.*;
+import com.sbss.bithon.server.metric.aggregator.CountMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.DoubleLastMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.DoubleSumMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.IMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.IMetricSpecVisitor;
+import com.sbss.bithon.server.metric.aggregator.LongLastMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.LongMaxMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.LongMinMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.LongSumMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.PostAggregatorExpressionVisitor;
+import com.sbss.bithon.server.metric.aggregator.PostAggregatorMetricSpec;
 import com.sbss.bithon.server.metric.storage.DimensionCondition;
 import com.sbss.bithon.server.metric.storage.IMetricReader;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +44,83 @@ class MetricJdbcReader implements IMetricReader {
 
     public MetricJdbcReader(DSLContext dsl) {
         this.dsl = dsl;
+    }
+
+    // TODO: 具有多个纬度的聚合条件下，last/first应该按多个纬度分组求last/first，再聚合求和
+    @Override
+    public List<Map<String, Object>> getMetricValueList(TimeSpan start,
+                                                        TimeSpan end,
+                                                        DataSourceSchema dataSourceSchema,
+                                                        Collection<DimensionCondition> dimensions,
+                                                        Collection<String> metrics) {
+        String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
+        MetricFieldsClauseBuilder fieldsClauseBuilder = new MetricFieldsClauseBuilder(sqlTableName,
+                                                                                      "OUTER",
+                                                                                      dataSourceSchema);
+        String metricList = metrics.stream()
+                                   .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(fieldsClauseBuilder))
+                                   .collect(Collectors.joining(", "));
+
+        String condition = dimensions.stream()
+                                     .map(dimension -> dimension.getMatcher()
+                                                                .accept(new SqlConditionBuilder(dimension.getDimension())))
+                                     .collect(Collectors.joining(" AND "));
+        String sql = String.format(
+            "SELECT \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY \"timestamp\"",
+            metricList,
+            sqlTableName,
+            "OUTER",
+            condition,
+            start.toISO8601(),
+            end.toISO8601()
+        );
+        log.info("Executing {}", sql);
+        return getMetricValueList(sql);
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public List<Map<String, Object>> getMetricValueList(String sql) {
+        List<Record> records = dsl.fetch(sql);
+
+        // although the explicit cast seems unnecessary, it must be kept so that compilation can pass
+        return (List<Map<String, Object>>) records.stream().map(record -> {
+            Map<String, Object> mapObject = new HashMap<>();
+            for (Field field : record.fields()) {
+                mapObject.put(field.getName(), record.get(field));
+            }
+            return mapObject;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Map<String, String>> getDimensionValueList(TimeSpan start,
+                                                           TimeSpan end,
+                                                           DataSourceSchema dataSourceSchema,
+                                                           Collection<DimensionCondition> conditions,
+                                                           String dimension) {
+        String condition = conditions.stream()
+                                     .map(d -> d.getMatcher().accept(new SqlConditionBuilder(d.getDimension())))
+                                     .collect(Collectors.joining(" AND "));
+        String sql = String.format(
+            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' ",
+            dimension,
+            dimension,
+            "bithon_" + dataSourceSchema.getName().replace("-", "_"),
+            condition,
+            start.toISO8601(),
+            end.toISO8601()
+        );
+
+        log.info("Executing {}", sql);
+        List<Record> records = dsl.fetch(sql);
+        return records.stream().map(record -> {
+            Map<String, String> mapObject = new HashMap<>();
+            for (Field field : record.fields()) {
+                mapObject.put("value", record.get(field).toString());
+            }
+            return mapObject;
+        }).collect(Collectors.toList());
     }
 
     static class SqlConditionBuilder implements IMatcherVisitor<String> {
@@ -203,10 +297,11 @@ class MetricJdbcReader implements IMetricReader {
 
         private String visitLast(String metricName) {
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("(SELECT \"%s\" FROM \"%s\" B WHERE B.\"timestamp\" = \"%s\".\"timestamp\" ORDER BY \"timestamp\" DESC LIMIT 1)",
-                    metricName,
-                    sqlTableName,
-                    tableAlias));
+            sb.append(String.format(
+                "(SELECT \"%s\" FROM \"%s\" B WHERE B.\"timestamp\" = \"%s\".\"timestamp\" ORDER BY \"timestamp\" DESC LIMIT 1)",
+                metricName,
+                sqlTableName,
+                tableAlias));
 
             if (addAlias) {
                 sb.append(' ');
@@ -216,73 +311,5 @@ class MetricJdbcReader implements IMetricReader {
             }
             return sb.toString();
         }
-    }
-
-    // TODO: 具有多个纬度的聚合条件下，last/first应该按多个纬度分组求last/first，再聚合求和
-    @Override
-    public List<Map<String, Object>> getMetricValueList(TimeSpan start,
-                                                        TimeSpan end,
-                                                        DataSourceSchema dataSourceSchema,
-                                                        Collection<DimensionCondition> dimensions,
-                                                        Collection<String> metrics) {
-        String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
-        MetricFieldsClauseBuilder fieldsClauseBuilder = new MetricFieldsClauseBuilder(sqlTableName, "OUTER", dataSourceSchema);
-        String metricList = metrics.stream().map(m -> dataSourceSchema.getMetricSpecByName(m).accept(fieldsClauseBuilder)).collect(Collectors.joining(", "));
-
-        String condition = dimensions.stream().map(dimension -> dimension.getMatcher().accept(new SqlConditionBuilder(dimension.getDimension()))).collect(Collectors.joining(" AND "));
-        String sql = String.format(
-                "SELECT \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY \"timestamp\"",
-                metricList,
-                sqlTableName,
-                "OUTER",
-                condition,
-                start.toISO8601(),
-                end.toISO8601()
-        );
-        log.info("Executing {}", sql);
-        return getMetricValueList(sql);
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public List<Map<String, Object>> getMetricValueList(String sql) {
-        List<Record> records = dsl.fetch(sql);
-
-        // although the explicit cast seems unnecessary, it must be kept so that compilation can pass
-        return (List<Map<String, Object>>) records.stream().map(record -> {
-            Map<String, Object> mapObject = new HashMap<>();
-            for (Field field : record.fields()) {
-                mapObject.put(field.getName(), record.get(field));
-            }
-            return mapObject;
-        }).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Map<String, String>> getDimensionValueList(TimeSpan start,
-                                                           TimeSpan end,
-                                                           DataSourceSchema dataSourceSchema,
-                                                           Collection<DimensionCondition> conditions,
-                                                           String dimension) {
-        String condition = conditions.stream().map(d -> d.getMatcher().accept(new SqlConditionBuilder(d.getDimension()))).collect(Collectors.joining(" AND "));
-        String sql = String.format(
-                "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' ",
-                dimension,
-                dimension,
-                "bithon_" + dataSourceSchema.getName().replace("-", "_"),
-                condition,
-                start.toISO8601(),
-                end.toISO8601()
-        );
-
-        log.info("Executing {}", sql);
-        List<Record> records = dsl.fetch(sql);
-        return records.stream().map(record -> {
-            Map<String, String> mapObject = new HashMap<>();
-            for (Field field : record.fields()) {
-                mapObject.put("value", record.get(field).toString());
-            }
-            return mapObject;
-        }).collect(Collectors.toList());
     }
 }

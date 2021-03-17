@@ -21,15 +21,15 @@ public class QuartzPlugin extends AbstractPlugin {
             forClass("org.quartz.impl.SchedulerRepository")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onDefaultConstructor()
-                        .to("com.sbss.bithon.agent.plugin.quartz2.QuartzInterceptor")
+                                                   .onDefaultConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.quartz2.QuartzInterceptor")
                 ),
 
             forClass("org.quartz.core.JobRunShell")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndNoArgs("run")
-                        .to("com.sbss.bithon.agent.plugin.quartz2.QuartzJobExecutionLogInterceptor")
+                                                   .onMethodAndNoArgs("run")
+                                                   .to("com.sbss.bithon.agent.plugin.quartz2.QuartzJobExecutionLogInterceptor")
                 )
         );
     }

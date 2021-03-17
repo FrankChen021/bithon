@@ -26,14 +26,19 @@ import java.util.Set;
  */
 public class HttpClientExecuteInterceptor extends AbstractInterceptor {
     private static final Logger log = LoggerFactory.getLogger(HttpClientExecuteInterceptor.class);
-
-    private HttpClientMetricProvider metricProvider;
     private final static Set<String> ignoredSuffixes = new HashSet<>();
+    private HttpClientMetricProvider metricProvider;
     private boolean isNewVersion = true;
+
+    public static boolean filter(String uri) {
+        String suffix = uri.substring(uri.lastIndexOf(".") + 1).toLowerCase();
+        return ignoredSuffixes.contains(suffix);
+    }
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricProviderManager.getInstance().register("apache-http-client", new HttpClientMetricProvider());
+        metricProvider = MetricProviderManager.getInstance()
+                                              .register("apache-http-client", new HttpClientMetricProvider());
 
         try {
             Class.forName("org.apache.http.impl.execchain.MinimalClientExec");
@@ -41,11 +46,6 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
             isNewVersion = false;
         }
         return true;
-    }
-
-    public static boolean filter(String uri) {
-        String suffix = uri.substring(uri.lastIndexOf(".") + 1).toLowerCase();
-        return ignoredSuffixes.contains(suffix);
     }
 
     @Override
@@ -100,7 +100,10 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
                 metricProvider.addExceptionRequest(requestUri, requestMethod, costTime);
             } else {
                 HttpResponse httpResponse = aopContext.castReturningAs();
-                metricProvider.addRequest(requestUri, requestMethod, httpResponse.getStatusLine().getStatusCode(), costTime);
+                metricProvider.addRequest(requestUri,
+                                          requestMethod,
+                                          httpResponse.getStatusLine().getStatusCode(),
+                                          costTime);
 
                 HttpContext httpContext = (HttpContext) args[2];
                 if (httpContext != null && httpContext.getAttribute("http.connection") != null) {
@@ -149,9 +152,9 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
                 metricProvider.addExceptionRequest(requestUri, requestMethod, costTime);
             } else {
                 metricProvider.addRequest(requestUri,
-                        requestMethod,
-                        ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
-                        costTime);
+                                          requestMethod,
+                                          ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
+                                          costTime);
             }
         } else {
             log.warn("http client version not supported!");

@@ -22,7 +22,11 @@ public class TransformationDebugger extends AgentBuilder.Listener.Adapter {
     private final File classRootPath;
 
     public TransformationDebugger() {
-        this.classRootPath = new File(AgentContext.getInstance().getAgentDirectory() + separator + AgentContext.TMP_DIR + separator + "debugging");
+        this.classRootPath = new File(AgentContext.getInstance().getAgentDirectory()
+                                      + separator
+                                      + AgentContext.TMP_DIR
+                                      + separator
+                                      + "debugging");
         try {
             if (!classRootPath.exists()) {
                 classRootPath.mkdir();

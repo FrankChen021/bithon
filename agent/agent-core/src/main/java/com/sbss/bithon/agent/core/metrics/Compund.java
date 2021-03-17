@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.core.metrics;
 
 /**
  * It's a compound metric which holds counter, min and max value
- *
+ * <p>
  * I have not come up with a nice name.
  *
  * @author frank.chen021@outlook.com
