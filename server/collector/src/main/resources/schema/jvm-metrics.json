@@ -28,70 +28,60 @@
       "type": "longLast",
       "name": "instanceStartTime",
       "displayText": "Start Time",
-      "field": "instanceUpTime",
       "unit": "Milli Second"
     },
     {
       "type": "longLast",
       "name": "instanceUpTime",
       "displayText": "Running Time",
-      "field": "instanceUpTime",
       "unit": "Milli Second"
     },
     {
       "type": "longLast",
       "name": "heap",
       "displayText": "Heap(-Xmx)",
-      "field": "heap",
       "unit": "字节"
     },
     {
       "type": "longLast",
       "name": "heapInit",
       "displayText": "Init Heap Size(-Xms)",
-      "field": "heapInit",
       "unit": "字节"
     },
     {
       "type": "longLast",
       "name": "heapUsed",
       "displayText": "Heap Used",
-      "field": "heapUsed",
       "unit": "字节"
     },
     {
       "type": "longLast",
       "name": "heapCommitted",
       "displayText": "可用堆内存",
-      "field": "heapCommitted",
       "unit": "字节"
     },
     {
       "type": "longLast",
       "name": "peakThreads",
       "displayText": "峰值线程数",
-      "field": "peakThreads",
       "unit": "Count"
     },
     {
       "type": "longLast",
       "name": "daemonThreads",
-      "displayText": "守护线程",
-      "field": "peakThreads",
+      "displayText": "Daemon Threads",
       "unit": "Count"
     },
     {
       "type": "longLast",
       "name": "totalThreads",
-      "displayText": "总线程",
-      "field": "totalThreads",
+      "displayText": "Total Threads",
       "unit": "Count"
     },
     {
       "type": "longLast",
       "name": "activeThreads",
-      "displayText": "活动线程",
-      "field": "activeThreads",
+      "displayText": "Active Threads",
       "unit": "Count"
     }
   ]

@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
  */
-public class LongMaxMetricSpec implements ISimpleMetricSpec {
+public class LongMaxMetricSpec implements IMetricSpec {
 
     @Getter
     private final String name;
@@ -77,10 +77,5 @@ public class LongMaxMetricSpec implements ISimpleMetricSpec {
         } else {
             return false;
         }
-    }
-
-    @Override
-    public String getField() {
-        return null;
     }
 }

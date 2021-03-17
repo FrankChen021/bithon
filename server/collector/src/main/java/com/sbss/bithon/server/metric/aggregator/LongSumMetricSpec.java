@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/11/30 5:38 下午
  */
-public class LongSumMetricSpec implements ISimpleMetricSpec {
+public class LongSumMetricSpec implements IMetricSpec {
 
     @Getter
     private final String name;
@@ -27,21 +27,16 @@ public class LongSumMetricSpec implements ISimpleMetricSpec {
     private final String unit;
 
     @Getter
-    private final String field;
-
-    @Getter
     private final boolean visible;
 
     @JsonCreator
     public LongSumMetricSpec(@JsonProperty("name") @NotNull String name,
                              @JsonProperty("displayText") @NotNull String displayText,
                              @JsonProperty("unit") @NotNull String unit,
-                             @JsonProperty("field") @NotNull String field,
                              @JsonProperty("visible") @Nullable Boolean visible) {
         this.name = name;
         this.displayText = displayText;
         this.unit = unit;
-        this.field = field;
         this.visible = visible == null ? true : visible;
     }
 

@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
-public class DoubleLastMetricSpec implements ISimpleMetricSpec {
+public class DoubleLastMetricSpec implements IMetricSpec {
 
     @Getter
     private final String name;
@@ -27,21 +27,16 @@ public class DoubleLastMetricSpec implements ISimpleMetricSpec {
     private final String unit;
 
     @Getter
-    private final String field;
-
-    @Getter
     private final boolean visible;
 
     @JsonCreator
     public DoubleLastMetricSpec(@JsonProperty("name") @NotNull String name,
                                 @JsonProperty("displayText") @NotNull String displayText,
                                 @JsonProperty("unit") @NotNull String unit,
-                                @JsonProperty("field") @NotNull String field,
                                 @JsonProperty("visible") @Nullable Boolean visible) {
         this.name = name;
         this.displayText = displayText;
         this.unit = unit;
-        this.field = field;
         this.visible = visible == null || visible;
     }
 
