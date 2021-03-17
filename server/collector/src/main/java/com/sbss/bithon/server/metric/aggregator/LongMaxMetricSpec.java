@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.metric.metric;
+package com.sbss.bithon.server.metric.aggregator;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -13,9 +13,9 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/26 11:08 下午
+ * @date 2021/3/16
  */
-public class LongLastMetricSpec implements ISimpleMetricSpec {
+public class LongMaxMetricSpec implements ISimpleMetricSpec {
 
     @Getter
     private final String name;
@@ -27,28 +27,23 @@ public class LongLastMetricSpec implements ISimpleMetricSpec {
     private final String unit;
 
     @Getter
-    private final String field;
-
-    @Getter
     private final boolean visible;
 
     @JsonCreator
-    public LongLastMetricSpec(@JsonProperty("name") @NotNull String name,
-                              @JsonProperty("displayText") @NotNull String displayText,
-                              @JsonProperty("unit") @NotNull String unit,
-                              @JsonProperty("field") @NotNull String field,
-                              @JsonProperty("visible") @Nullable Boolean visible) {
+    public LongMaxMetricSpec(@JsonProperty("name") @NotNull String name,
+                             @JsonProperty("displayText") @NotNull String displayText,
+                             @JsonProperty("unit") @NotNull String unit,
+                             @JsonProperty("visible") @Nullable Boolean visible) {
         this.name = name;
         this.displayText = displayText;
         this.unit = unit;
-        this.field = field;
         this.visible = visible == null ? true : visible;
     }
 
     @JsonIgnore
     @Override
     public String getType() {
-        return IMetricSpec.LONG_LAST;
+        return IMetricSpec.LONG_MAX;
     }
 
     @Override
@@ -77,10 +72,15 @@ public class LongLastMetricSpec implements ISimpleMetricSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof LongLastMetricSpec) {
-            return this.name.equals(((LongLastMetricSpec) obj).name);
+        if (obj instanceof LongMaxMetricSpec) {
+            return this.name.equals(((LongMaxMetricSpec) obj).name);
         } else {
             return false;
         }
+    }
+
+    @Override
+    public String getField() {
+        return null;
     }
 }

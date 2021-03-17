@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.metric.metric;
+package com.sbss.bithon.server.metric.aggregator;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -13,9 +13,9 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/11/30 5:38 下午
+ * @date 2021/2/26 11:08 下午
  */
-public class LongSumMetricSpec implements ISimpleMetricSpec {
+public class LongLastMetricSpec implements ISimpleMetricSpec {
 
     @Getter
     private final String name;
@@ -33,11 +33,11 @@ public class LongSumMetricSpec implements ISimpleMetricSpec {
     private final boolean visible;
 
     @JsonCreator
-    public LongSumMetricSpec(@JsonProperty("name") @NotNull String name,
-                             @JsonProperty("displayText") @NotNull String displayText,
-                             @JsonProperty("unit") @NotNull String unit,
-                             @JsonProperty("field") @NotNull String field,
-                             @JsonProperty("visible") @Nullable Boolean visible) {
+    public LongLastMetricSpec(@JsonProperty("name") @NotNull String name,
+                              @JsonProperty("displayText") @NotNull String displayText,
+                              @JsonProperty("unit") @NotNull String unit,
+                              @JsonProperty("field") @NotNull String field,
+                              @JsonProperty("visible") @Nullable Boolean visible) {
         this.name = name;
         this.displayText = displayText;
         this.unit = unit;
@@ -48,7 +48,7 @@ public class LongSumMetricSpec implements ISimpleMetricSpec {
     @JsonIgnore
     @Override
     public String getType() {
-        return IMetricSpec.LONG_SUM;
+        return IMetricSpec.LONG_LAST;
     }
 
     @Override
@@ -77,8 +77,8 @@ public class LongSumMetricSpec implements ISimpleMetricSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof LongSumMetricSpec) {
-            return this.name.equals(((LongSumMetricSpec) obj).name);
+        if (obj instanceof LongLastMetricSpec) {
+            return this.name.equals(((LongLastMetricSpec) obj).name);
         } else {
             return false;
         }

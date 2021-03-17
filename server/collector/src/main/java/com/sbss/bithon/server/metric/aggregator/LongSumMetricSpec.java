@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.metric.metric;
+package com.sbss.bithon.server.metric.aggregator;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -8,43 +8,47 @@ import com.sbss.bithon.server.metric.typing.IValueType;
 import com.sbss.bithon.server.metric.typing.LongValueType;
 import lombok.Getter;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/23
+ * @date 2020/11/30 5:38 下午
  */
-public class CountMetricSpec implements IMetricSpec {
-
-    public static IMetricSpec INSTANCE = new CountMetricSpec("count");
+public class LongSumMetricSpec implements ISimpleMetricSpec {
 
     @Getter
     private final String name;
 
+    @Getter
+    private final String displayText;
+
+    @Getter
+    private final String unit;
+
+    @Getter
+    private final String field;
+
+    @Getter
+    private final boolean visible;
+
     @JsonCreator
-    public CountMetricSpec(@JsonProperty("name") @NotNull String name) {
+    public LongSumMetricSpec(@JsonProperty("name") @NotNull String name,
+                             @JsonProperty("displayText") @NotNull String displayText,
+                             @JsonProperty("unit") @NotNull String unit,
+                             @JsonProperty("field") @NotNull String field,
+                             @JsonProperty("visible") @Nullable Boolean visible) {
         this.name = name;
+        this.displayText = displayText;
+        this.unit = unit;
+        this.field = field;
+        this.visible = visible == null ? true : visible;
     }
 
     @JsonIgnore
     @Override
     public String getType() {
         return IMetricSpec.LONG_SUM;
-    }
-
-    @Override
-    public boolean isVisible() {
-        return false;
-    }
-
-    @Override
-    public String getDisplayText() {
-        return "次数";
-    }
-
-    @Override
-    public String getUnit() {
-        return "次";
     }
 
     @Override
@@ -73,8 +77,8 @@ public class CountMetricSpec implements IMetricSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof CountMetricSpec) {
-            return this.name.equals(((CountMetricSpec) obj).name);
+        if (obj instanceof LongSumMetricSpec) {
+            return this.name.equals(((LongSumMetricSpec) obj).name);
         } else {
             return false;
         }

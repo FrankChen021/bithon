@@ -1,6 +1,4 @@
-package com.sbss.bithon.server.metric.metric;
-
-import com.sbss.bithon.server.metric.metric.aggregator.PostAggregatorMetricSpec;
+package com.sbss.bithon.server.metric.aggregator;
 
 /**
  * @author frank.chen021@outlook.com

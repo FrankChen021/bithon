@@ -1,14 +1,12 @@
-package com.sbss.bithon.server.metric.metric.aggregator;
+package com.sbss.bithon.server.metric.aggregator;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbss.bithon.server.metric.DataSourceSchema;
-import com.sbss.bithon.server.metric.metric.IMetricSpec;
-import com.sbss.bithon.server.metric.metric.IMetricSpecVisitor;
-import com.sbss.bithon.server.metric.metric.aggregator.ast.PostAggregatorExpressionBaseVisitor;
-import com.sbss.bithon.server.metric.metric.aggregator.ast.PostAggregatorExpressionLexer;
-import com.sbss.bithon.server.metric.metric.aggregator.ast.PostAggregatorExpressionParser;
+import com.sbss.bithon.server.metric.aggregator.ast.PostAggregatorExpressionBaseVisitor;
+import com.sbss.bithon.server.metric.aggregator.ast.PostAggregatorExpressionLexer;
+import com.sbss.bithon.server.metric.aggregator.ast.PostAggregatorExpressionParser;
 import com.sbss.bithon.server.metric.typing.DoubleValueType;
 import com.sbss.bithon.server.metric.typing.IValueType;
 import com.sbss.bithon.server.metric.typing.LongValueType;

@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.metric.metric;
+package com.sbss.bithon.server.metric.aggregator;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
  */
-public class LongMaxMetricSpec implements ISimpleMetricSpec {
+public class LongMinMetricSpec implements ISimpleMetricSpec {
 
     @Getter
     private final String name;
@@ -30,7 +30,7 @@ public class LongMaxMetricSpec implements ISimpleMetricSpec {
     private final boolean visible;
 
     @JsonCreator
-    public LongMaxMetricSpec(@JsonProperty("name") @NotNull String name,
+    public LongMinMetricSpec(@JsonProperty("name") @NotNull String name,
                              @JsonProperty("displayText") @NotNull String displayText,
                              @JsonProperty("unit") @NotNull String unit,
                              @JsonProperty("visible") @Nullable Boolean visible) {
@@ -43,7 +43,7 @@ public class LongMaxMetricSpec implements ISimpleMetricSpec {
     @JsonIgnore
     @Override
     public String getType() {
-        return IMetricSpec.LONG_MAX;
+        return IMetricSpec.LONG_MIN;
     }
 
     @Override
@@ -72,8 +72,8 @@ public class LongMaxMetricSpec implements ISimpleMetricSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof LongMaxMetricSpec) {
-            return this.name.equals(((LongMaxMetricSpec) obj).name);
+        if (obj instanceof LongMinMetricSpec) {
+            return this.name.equals(((LongMinMetricSpec) obj).name);
         } else {
             return false;
         }

@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.metric.metric.aggregator;
+package com.sbss.bithon.server.metric.aggregator;
 
 import javax.validation.constraints.NotNull;
 

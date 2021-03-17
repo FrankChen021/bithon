@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.metric.metric;
+package com.sbss.bithon.server.metric.aggregator;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
-public class DoubleSumMetricSpec implements ISimpleMetricSpec {
+public class DoubleLastMetricSpec implements ISimpleMetricSpec {
 
     @Getter
     private final String name;
@@ -33,22 +33,22 @@ public class DoubleSumMetricSpec implements ISimpleMetricSpec {
     private final boolean visible;
 
     @JsonCreator
-    public DoubleSumMetricSpec(@JsonProperty("name") @NotNull String name,
-                               @JsonProperty("displayText") @NotNull String displayText,
-                               @JsonProperty("unit") @NotNull String unit,
-                               @JsonProperty("field") @NotNull String field,
-                               @JsonProperty("visible") @Nullable Boolean visible) {
+    public DoubleLastMetricSpec(@JsonProperty("name") @NotNull String name,
+                                @JsonProperty("displayText") @NotNull String displayText,
+                                @JsonProperty("unit") @NotNull String unit,
+                                @JsonProperty("field") @NotNull String field,
+                                @JsonProperty("visible") @Nullable Boolean visible) {
         this.name = name;
         this.displayText = displayText;
         this.unit = unit;
         this.field = field;
-        this.visible = visible == null ? true : visible;
+        this.visible = visible == null || visible;
     }
 
     @JsonIgnore
     @Override
     public String getType() {
-        return IMetricSpec.DOUBLE_SUM;
+        return IMetricSpec.DOUBLE_LAST;
     }
 
     @Override
@@ -78,8 +78,8 @@ public class DoubleSumMetricSpec implements ISimpleMetricSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof DoubleSumMetricSpec) {
-            return this.name.equals(((DoubleSumMetricSpec) obj).name);
+        if (obj instanceof DoubleLastMetricSpec) {
+            return this.name.equals(((DoubleLastMetricSpec) obj).name);
         } else {
             return false;
         }

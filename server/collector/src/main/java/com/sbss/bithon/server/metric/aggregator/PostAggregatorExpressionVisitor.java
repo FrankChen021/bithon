@@ -1,7 +1,5 @@
-package com.sbss.bithon.server.metric.metric.aggregator;
+package com.sbss.bithon.server.metric.aggregator;
 
-
-import com.sbss.bithon.server.metric.metric.IMetricSpec;
 
 /**
  * @author frank.chen021@outlook.com
