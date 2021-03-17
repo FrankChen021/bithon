@@ -55,35 +55,4 @@ public class ServerConfig {
     public IEventStorage eventStorage(DSLContext dslContext, ObjectMapper objectMapper) {
         return new EventJdbcStorage(dslContext, objectMapper);
     }
-
-    @Bean("metricSink")
-    public IMessageSink metricSink(JvmMetricMessageHandler jvmMetricMessageHandler,
-                                   JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
-                                   WebRequestMetricMessageHandler webRequestMetricMessageHandler,
-                                   WebServerMetricMessageHandler webServerMetricMessageHandler,
-                                   ExceptionMetricMessageHandler exceptionMetricMessageHandler,
-                                   HttpClientMetricMessageHandler httpClientMetricMessageHandler,
-                                   ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
-                                   JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
-                                   RedisMetricMessageHandler redisMetricMessageHandler) {
-        return new LocalMetricSink(jvmMetricMessageHandler,
-                                   jvmGcMetricMessageHandler,
-                                   webRequestMetricMessageHandler,
-                                   webServerMetricMessageHandler,
-                                   exceptionMetricMessageHandler,
-                                   httpClientMetricMessageHandler,
-                                   threadPoolMetricMessageHandler,
-                                   jdbcPoolMetricMessageHandler,
-                                   redisMetricMessageHandler);
-    }
-
-    @Bean("eventSink")
-    public IMessageSink eventSink() {
-        return new LocalEventSink();
-    }
-
-    @Bean("traceSink")
-    public IMessageSink traceSink(TraceMessageHandler traceMessageHandler) {
-        return new LocalTraceSink(traceMessageHandler);
-    }
 }

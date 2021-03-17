@@ -19,13 +19,13 @@ import java.util.Map;
  */
 @Component
 @ConditionalOnProperty(value = "collector-service.enabled", havingValue = "true", matchIfMissing = false)
-public class CollectorServiceStarter {
+public class CollectorStarter {
 
-    public CollectorServiceStarter(IMetricCollector.Iface metricCollector,
-                                   SettingService.Iface settingService,
-                                   ITraceCollector.Iface traceCollector,
-                                   IEventCollector.Iface eventsCollector,
-                                   CollectorServiceConfig config) {
+    public CollectorStarter(IMetricCollector.Iface metricCollector,
+                            SettingService.Iface settingService,
+                            ITraceCollector.Iface traceCollector,
+                            IEventCollector.Iface eventsCollector,
+                            CollectorConfig config) {
 
         Map<Integer, TMultiplexedProcessor> processors = new HashMap<>();
         for (Map.Entry<String, Integer> entry : config.getPort().entrySet()) {
