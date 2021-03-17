@@ -19,15 +19,14 @@ public abstract class AbstractPlugin {
     /**
      * A list, each element of which is a qualified name of a class which will be instrumented as {@link com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject}
      */
-    public String[] getClassInstrumentions() {
-        return new String[0];
+    public String[] getClassInstrumentations() {
+        return null;
     }
 
     /**
      * A list, each element of which is an interceptor for a specific method of class
      * NOTE, the target class will be instrumented as {@link com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject}
      *
-     * @return
      */
     public List<InterceptorDescriptor> getInterceptors() {
         return Collections.emptyList();

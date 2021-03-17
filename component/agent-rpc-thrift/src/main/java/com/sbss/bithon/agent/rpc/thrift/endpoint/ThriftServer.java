@@ -45,7 +45,6 @@ public class ThriftServer extends AbstractThriftFactory {
                 }));
             } else {
                 logger.warn("the port {} is already in used", port);
-                return;
             }
         } catch (TTransportException e) {
             logger.error("start thrift server on port {} failed", port);
@@ -56,7 +55,7 @@ public class ThriftServer extends AbstractThriftFactory {
 
     }
 
-    public void start(int port, TBaseProcessor... tProcessors) {
+    public void start(int port, TBaseProcessor<?>... tProcessors) {
         try {
             TNonblockingServerTransport serverTransport = new TNonblockingServerSocket(port);
             // 默认是2个selector线程，5个工作线程
@@ -82,7 +81,7 @@ public class ThriftServer extends AbstractThriftFactory {
         }
     }
 
-    private TMultiplexedProcessor registerProcessor(TBaseProcessor... tProcessors) {
+    private TMultiplexedProcessor registerProcessor(TBaseProcessor<?>... tProcessors) {
         TMultiplexedProcessor multiplexedProcessor = new TMultiplexedProcessor();
 
         if (null == tProcessors) {

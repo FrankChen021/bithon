@@ -14,25 +14,25 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>alibaba-druid</module>
-        <module>tomcat</module>
-        <module>undertow</module>
-        <module>jetty</module>
+        <module>jdbc-druid</module>
+        <module>webserver-tomcat</module>
+        <module>webserver-undertow</module>
+        <module>webserver-jetty</module>
         <module>jvm</module>
         <module>mysql-5.x-6.x</module>
         <module>mysql-8.x</module>
         <module>quartz2</module>
         <module>jdk-thread</module>
-        <module>okhttp3</module>
-        <module>okhttp32</module>
-        <module>jdk-httpclient</module>
-        <module>apache-httpclient</module>
-        <module>jedis</module>
-        <module>lettuce-5.x</module>
+        <module>httpclient-okhttp3</module>
+        <module>httpclient-okhttp32</module>
+        <module>httpclient-jdk</module>
+        <module>httpclient-apache</module>
+        <module>redis-jedis</module>
+        <module>redis-lettuce-5.x</module>
         <module>mongodb</module>
         <module>mongodb38</module>
-        <module>log4j2</module>
-        <module>logback</module>
+        <module>logging-log4j2</module>
+        <module>logging-logback</module>
         <module>springweb</module>
     </modules>
 
@@ -42,17 +42,17 @@
         <!-- Web Container-->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-tomcat</artifactId>
+            <artifactId>agent-plugin-webserver-tomcat</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-undertow</artifactId>
+            <artifactId>agent-plugin-webserver-undertow</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-jetty</artifactId>
+            <artifactId>agent-plugin-webserver-jetty</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -71,7 +71,7 @@
         <!-- SQL -->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-alibaba-druid</artifactId>
+            <artifactId>agent-plugin-jdbc-druid</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -94,46 +94,46 @@
         <!-- HTTP Client -->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-okhttp3</artifactId>
+            <artifactId>agent-plugin-httpclient-okhttp3</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-okhttp32</artifactId>
+            <artifactId>agent-plugin-httpclient-okhttp32</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-jdk-httpclient</artifactId>
+            <artifactId>agent-plugin-httpclient-jdk</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-apache-httpclient</artifactId>
+            <artifactId>agent-plugin-httpclient-apache</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <!-- Redis -->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-jedis</artifactId>
+            <artifactId>agent-plugin-redis-jedis</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-lettuce-5.x</artifactId>
+            <artifactId>agent-plugin-redis-lettuce-5.x</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <!-- Log -->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-logback</artifactId>
+            <artifactId>agent-plugin-logging-logback</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>agent-plugin-log4j2</artifactId>
+            <artifactId>agent-plugin-logging-log4j2</artifactId>
             <version>${project.version}</version>
         </dependency>
 

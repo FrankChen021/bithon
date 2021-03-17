@@ -49,7 +49,7 @@ public class PluginInterceptorInstaller {
     public void install(List<AbstractPlugin> plugins) {
         for (AbstractPlugin plugin : plugins) {
 
-            instrumentClass(agentBuilder, inst, plugin.getClassInstrumentions());
+            instrumentClass(agentBuilder, inst, plugin.getClassInstrumentations());
 
             for (InterceptorDescriptor interceptor : plugin.getInterceptors()) {
                 installInterceptor(agentBuilder,
@@ -61,6 +61,10 @@ public class PluginInterceptorInstaller {
     }
 
     private void instrumentClass(AgentBuilder agentBuilder, Instrumentation inst, String[] classList) {
+        if ( classList == null || classList.length == 0 ) {
+            return;
+        }
+
         agentBuilder
             .type(ElementMatchers.namedOneOf(classList))
             .transform((DynamicType.Builder<?> builder,
