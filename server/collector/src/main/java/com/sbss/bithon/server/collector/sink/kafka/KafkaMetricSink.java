@@ -25,7 +25,7 @@ public class KafkaMetricSink implements IMessageSink<GenericMetricMessage> {
         try {
             producer.send(messageType,
                           (String) message.get("instanceName"),
-                          objectMapper.writeValueAsString(message.getValues()));
+                          objectMapper.writeValueAsString(message));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             //TODO: log here

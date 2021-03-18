@@ -26,7 +26,7 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
                                           new ThreadPoolExecutor.DiscardPolicy());
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            log.info("Shutting down executor ...");
+            log.info("Shutting down executor [{}]", this.getType());
             executor.shutdown();
         }));
     }

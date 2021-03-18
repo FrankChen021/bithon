@@ -126,7 +126,7 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
         // save metrics
         //
         try {
-            this.metricStorageWriter.write(new InputRow(metricObject.getValues()));
+            this.metricStorageWriter.write(new InputRow(metricObject));
         } catch (IOException e) {
             log.error("Failed to save metrics [dataSource={}] due to: {}",
                       this.schema.getName(),

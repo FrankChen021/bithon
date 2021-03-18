@@ -11,7 +11,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricM
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
 
-import java.util.Map;
+import java.util.HashMap;
 
 /**
  * TODO: cache reflection results
@@ -19,103 +19,104 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class GenericMetricMessage {
-
-    protected Map<String, Object> values;
-
-    public GenericMetricMessage(Map<String, Object> values) {
-        this.values = values;
-    }
+public class GenericMetricMessage extends HashMap<String, Object> {
 
     public static GenericMetricMessage of(MessageHeader header, WebRequestMetricMessage message) {
-        Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
+        GenericMetricMessage metricMessage = new GenericMetricMessage();
+        ReflectionUtils.getFields(header, metricMessage);
+        ReflectionUtils.getFields(message, metricMessage);
+        return metricMessage;
     }
 
     public static GenericMetricMessage of(MessageHeader header, JvmMetricMessage message) {
-        Map<String, Object> map = ReflectionUtils.getFields(header);
-        ReflectionUtils.getFields(message.classesEntity, map);
-        ReflectionUtils.getFields(message.cpuEntity, map);
-        ReflectionUtils.getFields(message.heapEntity, map);
-        ReflectionUtils.getFields(message.instanceTimeEntity, map);
-        ReflectionUtils.getFields(message.memoryEntity, map);
-        ReflectionUtils.getFields(message.nonHeapEntity, map);
-        ReflectionUtils.getFields(message.metaspaceEntity, map);
-        ReflectionUtils.getFields(message.gcEntities, map);
-        ReflectionUtils.getFields(message.threadEntity, map);
+        GenericMetricMessage metricMessage = new GenericMetricMessage();
+        ReflectionUtils.getFields(header, metricMessage);
+        ReflectionUtils.getFields(message.classesEntity, metricMessage);
+        ReflectionUtils.getFields(message.cpuEntity, metricMessage);
+        ReflectionUtils.getFields(message.heapEntity, metricMessage);
+        ReflectionUtils.getFields(message.instanceTimeEntity, metricMessage);
+        ReflectionUtils.getFields(message.memoryEntity, metricMessage);
+        ReflectionUtils.getFields(message.nonHeapEntity, metricMessage);
+        ReflectionUtils.getFields(message.metaspaceEntity, metricMessage);
+        ReflectionUtils.getFields(message.gcEntities, metricMessage);
+        ReflectionUtils.getFields(message.threadEntity, metricMessage);
 
-        map.put("interval", message.interval);
-        map.put("timestamp", message.timestamp);
-        return new GenericMetricMessage(map);
+        metricMessage.put("interval", message.interval);
+        metricMessage.put("timestamp", message.timestamp);
+        return metricMessage;
     }
 
     public static GenericMetricMessage of(MessageHeader header, ExceptionMetricMessage message) {
-        Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
+        GenericMetricMessage metricMessage = new GenericMetricMessage();
+        ReflectionUtils.getFields(header, metricMessage);
+        ReflectionUtils.getFields(message, metricMessage);
+        return metricMessage;
     }
 
     public static GenericMetricMessage of(MessageHeader header, HttpClientMetricMessage message) {
-        Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
+        GenericMetricMessage metricMessage = new GenericMetricMessage();
+        ReflectionUtils.getFields(header, metricMessage);
+        ReflectionUtils.getFields(message, metricMessage);
+        return metricMessage;
     }
 
     public static GenericMetricMessage of(MessageHeader header, WebServerMetricMessage message) {
-        Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
+        GenericMetricMessage metricMessage = new GenericMetricMessage();
+        ReflectionUtils.getFields(header, metricMessage);
+        ReflectionUtils.getFields(message, metricMessage);
+        return metricMessage;
     }
 
     public static GenericMetricMessage of(MessageHeader header, JdbcPoolMetricMessage message) {
-        Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
+        GenericMetricMessage metricMessage = new GenericMetricMessage();
+        ReflectionUtils.getFields(header, metricMessage);
+        ReflectionUtils.getFields(message, metricMessage);
+        return metricMessage;
     }
 
     public static GenericMetricMessage of(MessageHeader header, RedisMetricMessage message) {
-        Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
+        GenericMetricMessage metricMessage = new GenericMetricMessage();
+        ReflectionUtils.getFields(header, metricMessage);
+        ReflectionUtils.getFields(message, metricMessage);
+        return metricMessage;
     }
 
     public static GenericMetricMessage of(MessageHeader header, ThreadPoolMetricMessage message) {
-        Map<String, Object> map = ReflectionUtils.getFields(header);
-        return new GenericMetricMessage(ReflectionUtils.getFields(message, map));
+        GenericMetricMessage metricMessage = new GenericMetricMessage();
+        ReflectionUtils.getFields(header, metricMessage);
+        ReflectionUtils.getFields(message, metricMessage);
+        return metricMessage;
     }
 
     public long getTimestamp() {
-        return (long) values.get("timestamp");
+        return (long) this.get("timestamp");
     }
 
     public String getApplicationName() {
-        return (String) values.get("appName");
+        return (String) this.get("appName");
     }
 
     public String getApplicationEnv() {
-        return (String) values.get("env");
+        return (String) this.get("env");
     }
 
     public String getInstanceName() {
-        return (String) values.get("instanceName");
+        return (String) this.get("instanceName");
     }
 
     public long getLong(String prop) {
-        return (long) values.getOrDefault(prop, 0L);
-    }
-
-    public Object get(String prop) {
-        return values.get(prop);
+        return ((Number) this.getOrDefault(prop, 0L)).longValue();
     }
 
     public <T> T getAs(String prop) {
-        return (T) values.get(prop);
+        return (T) this.get(prop);
     }
 
     public void set(String prop, Object value) {
-        values.put(prop, value);
+        this.put(prop, value);
     }
 
     public String getString(String prop) {
-        return (String) values.get(prop);
-    }
-
-    public Map<String, Object> getValues() {
-        return values;
+        return (String) this.get(prop);
     }
 }

@@ -3,6 +3,7 @@ package com.sbss.bithon.server.collector.sink.local;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.tracing.handler.TraceMessageHandler;
 import com.sbss.bithon.server.tracing.handler.TraceSpan;
+import lombok.Getter;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
  */
 public class LocalTraceSink implements IMessageSink<List<TraceSpan>> {
 
+    @Getter
     private final TraceMessageHandler traceMessageHandler;
 
     public LocalTraceSink(TraceMessageHandler traceMessageHandler) {

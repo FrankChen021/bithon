@@ -6,7 +6,7 @@ spring:
   profiles:
     active: dev
 
-collector:
+collector-thrift:
   enabled: true
   port:
     tracing: 9895
@@ -14,7 +14,7 @@ collector:
     metric: 9898
     setting: 9899
   sink:
-    type: local
+    type: kafka
     props:
       "[bootstrap.servers]": localhost:9092
       "[batch.size]": 65536
@@ -23,6 +23,12 @@ collector:
       "[compression.type]": lz4
       "[max.in.flight.requests.per.connection]": 1
       "[retries]": 3
+
+collector-kafka:
+  enabled: true
+  consumer:
+    "[bootstrap.servers]": localhost:9092
+    "[fetch.min.bytes]": 1024
 
 
 logging:

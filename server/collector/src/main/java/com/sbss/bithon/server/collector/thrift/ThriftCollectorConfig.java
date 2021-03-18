@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.collector;
+package com.sbss.bithon.server.collector.thrift;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -35,8 +35,8 @@ import java.util.Map;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "collector-service")
-public class CollectorConfig {
+@ConfigurationProperties(prefix = "collector-thrift")
+public class ThriftCollectorConfig {
     private Map<String, Integer> port;
     private SinkConfig sink;
 
@@ -47,7 +47,7 @@ public class CollectorConfig {
     }
 
     @Bean("metricSink")
-    public IMessageSink<?> metricSink(CollectorConfig config,
+    public IMessageSink<?> metricSink(ThriftCollectorConfig config,
                                       ObjectMapper om,
                                       JvmMetricMessageHandler jvmMetricMessageHandler,
                                       JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
@@ -69,7 +69,8 @@ public class CollectorConfig {
                                        jdbcPoolMetricMessageHandler,
                                        redisMetricMessageHandler);
         } else {
-            return new KafkaMetricSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink().getProps(),
+            return new KafkaMetricSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink()
+                                                                                                   .getProps(),
                                                                                              new StringSerializer(),
                                                                                              new StringSerializer()),
                                                            ImmutableMap.of("client.id", "metric")),
@@ -79,7 +80,7 @@ public class CollectorConfig {
     }
 
     @Bean("eventSink")
-    public IMessageSink<?> eventSink(CollectorConfig config, ObjectMapper om) {
+    public IMessageSink<?> eventSink(ThriftCollectorConfig config, ObjectMapper om) {
         if ("local".equals(config.getSink().getType())) {
             return new LocalEventSink();
         } else {
@@ -92,7 +93,7 @@ public class CollectorConfig {
     }
 
     @Bean("traceSink")
-    public IMessageSink<?> traceSink(CollectorConfig config,
+    public IMessageSink<?> traceSink(ThriftCollectorConfig config,
                                      TraceMessageHandler traceMessageHandler,
                                      ObjectMapper om) {
 

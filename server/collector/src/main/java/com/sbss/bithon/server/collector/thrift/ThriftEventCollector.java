@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.collector.protocol;
+package com.sbss.bithon.server.collector.thrift;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.event.IEventCollector;
@@ -6,20 +6,17 @@ import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.events.handler.EventMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 3:59 下午
  */
 @Slf4j
-@Service
 public class ThriftEventCollector implements IEventCollector.Iface {
 
     private final IMessageSink<EventMessage> eventSink;
 
-    public ThriftEventCollector(@Qualifier("eventSink") IMessageSink<EventMessage> eventSink) {
+    public ThriftEventCollector(IMessageSink<EventMessage> eventSink) {
         this.eventSink = eventSink;
     }
 

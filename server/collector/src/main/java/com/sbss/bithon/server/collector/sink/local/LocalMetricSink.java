@@ -12,6 +12,8 @@ import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
+import lombok.Getter;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +27,7 @@ import java.util.Map;
  */
 public class LocalMetricSink implements IMessageSink<GenericMetricMessage> {
 
+    @Getter
     private final Map<String, IMessageHandler> handlers = new HashMap<>();
 
     public LocalMetricSink(JvmMetricMessageHandler jvmMetricMessageHandler,
