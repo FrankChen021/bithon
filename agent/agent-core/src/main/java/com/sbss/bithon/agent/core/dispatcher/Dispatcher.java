@@ -109,6 +109,7 @@ public class Dispatcher {
                                      + appName,
                                      String.valueOf(appPort));
         } catch (IOException e) {
+
             System.exit(0);
             return null;
         }

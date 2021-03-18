@@ -14,7 +14,7 @@ collector-thrift:
     metric: 9898
     setting: 9899
   sink:
-    type: kafka
+    type: local
     props:
       "[bootstrap.servers]": localhost:9092
       "[batch.size]": 65536
@@ -25,7 +25,7 @@ collector-thrift:
       "[retries]": 3
 
 collector-kafka:
-  enabled: true
+  enabled: false
   consumer:
     "[bootstrap.servers]": localhost:9092
     "[fetch.min.bytes]": 1024

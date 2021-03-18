@@ -2,13 +2,9 @@ package com.sbss.bithon.agent.bootstrap;
 
 import com.sbss.bithon.agent.core.config.AgentConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.loader.AgentClassloader;
-import com.sbss.bithon.agent.core.plugin.loader.BootstrapAopInstaller;
-import com.sbss.bithon.agent.core.plugin.loader.PluginInterceptorInstaller;
-import com.sbss.bithon.agent.core.plugin.loader.PluginResolver;
+import com.sbss.bithon.agent.core.plugin.loader.PluginInstaller;
 import com.sbss.bithon.agent.core.setting.AgentSettingManager;
-import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.org.apache.log4j.xml.DOMConfigurator;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -17,13 +13,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import static com.sbss.bithon.agent.bootstrap.Constant.ManifestAttribute.SPRING_BOOT_CLASSES;
-import static com.sbss.bithon.agent.bootstrap.Constant.VMOption.JAVA_CLASS_PATH;
 import static java.io.File.pathSeparator;
 import static java.io.File.separator;
 
@@ -31,8 +24,8 @@ class AgentStarter {
     private static final Logger log = LoggerFactory.getLogger(AgentStarter.class);
 
     private static final String CONF_LOG_FILE = "log4j.xml";
-    private static final String CLASS_PATH = System.getProperty(JAVA_CLASS_PATH.value());
-    private static final String CATALINA_HOME = System.getProperty(Constant.VMOption.CATALINA_HOME.value());
+    private static final String CLASS_PATH = System.getProperty("java.class.path");
+    private static final String CATALINA_HOME = System.getProperty("catalina.home");
     private final String agentPath;
 
     AgentStarter() {
@@ -48,52 +41,33 @@ class AgentStarter {
 
         AgentContext agentContext = AgentContext.createInstance(agentPath);
 
+        ensureTemporaryDir(agentContext.getConfig());
+
         // init setting
         AgentSettingManager.createInstance(agentContext.getAppInstance(),
                                            agentContext.getConfig().getFetcher());
 
-        //
         loadContext(agentContext.getConfig());
 
         AgentClassloader.createInstance();
 
-        List<AbstractPlugin> plugins = new PluginResolver(agentPath).resolve();
-        AgentBuilder agentBuilder = new BootstrapAopInstaller(inst,
-                                                              createDefaultAgentBuilder(inst)).install(plugins);
-
-        new PluginInterceptorInstaller(agentBuilder, inst).install(plugins);
-
-        plugins.forEach((plugin) -> {
-            plugin.start();
-        });
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            plugins.forEach((plugin) -> {
-                plugin.stop();
-            });
-        }));
-    }
-
-    private AgentBuilder.Default createDefaultAgentBuilder(Instrumentation inst) {
-        return new AgentBuilder.Default();
+        PluginInstaller.install(agentContext, inst);
     }
 
     private void loadContext(AgentConfig config) throws Exception {
-        File tmpDirs = findTempDir(config);
-        if (!tmpDirs.exists()) {
-            // noinspection ResultOfMethodCallIgnored
-            tmpDirs.mkdirs();
-        }
-
         // springBoot project
         if (null == CATALINA_HOME || CATALINA_HOME.trim().length() <= 0) {
             logSeparate(config);
         }
     }
 
-    private File findTempDir(AgentConfig config) {
-        return new File(agentPath + separator + AgentContext.TMP_DIR + separator +
+    private void ensureTemporaryDir(AgentConfig config) {
+        File tmpDir = new File(agentPath + separator + AgentContext.TMP_DIR + separator +
                         config.getBootstrap().getAppName());
+
+        if (!tmpDir.exists()) {
+            tmpDir.mkdirs();
+        }
     }
 
     private void logSeparate(AgentConfig config) throws IOException {
@@ -102,7 +76,7 @@ class AgentStarter {
             return;
         }
         try (JarFile jarFile = new JarFile(targetJar)) {
-            String classesDir = jarFile.getManifest().getMainAttributes().getValue(SPRING_BOOT_CLASSES.value());
+            String classesDir = jarFile.getManifest().getMainAttributes().getValue("Spring-Boot-Classes");
             if (classesDir == null) {
                 return;
             }
@@ -118,7 +92,7 @@ class AgentStarter {
                                                      .findFirst();
             log.info("SpringBoot log config file name: " + classesEntry);
             classesEntry.ifPresent(e -> {
-                String key = Constant.ProgramOption.LOGGING_CONFIG.value();
+                String key = "logging.config";
                 String fileName = e.getName().substring(e.getName().lastIndexOf("/") + 1);
                 String value = String.format("classpath:%s", fileName);
                 log.info(String.format("Set system properties [%s = %s]", key, value));

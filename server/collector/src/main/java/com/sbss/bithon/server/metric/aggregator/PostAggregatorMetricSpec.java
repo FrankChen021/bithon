@@ -138,6 +138,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     public void visitExpression(PostAggregatorExpressionVisitor visitor) {
         PostAggregatorExpressionParser parser = this.parsers.get();
         parser.reset();
+        // TODO: dead-loop detection if expression contains THIS metricSpec
         parser.prog().accept(new PostAggregatorExpressionBaseVisitor<Void>() {
             @Override
             public Void visitExpression(PostAggregatorExpressionParser.ExpressionContext ctx) {

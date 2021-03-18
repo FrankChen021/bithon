@@ -1,6 +1,7 @@
 package com.sbss.bithon.agent.core.metrics.http;
 
-import com.sbss.bithon.agent.core.metrics.Counter;
+import com.sbss.bithon.agent.core.metrics.Compund;
+import com.sbss.bithon.agent.core.metrics.Sum;
 
 /**
  * @author frankchen
@@ -19,36 +20,36 @@ public class HttpClientMetric {
     /**
      * total cost time in NANO second
      */
-    private final Counter costTime = new Counter();
+    private final Compund responseTime = new Compund();
 
     /**
      * count of all status code between 400(inclusive) and 500(exclusive)
      */
-    private final Counter count4xx = new Counter();
+    private final Sum count4xx = new Sum();
 
     /**
      * count of all status code larger than 500(inclusive)
      */
-    private final Counter count5xx = new Counter();
-    private final Counter countException = new Counter();
-    private final Counter requestCount = new Counter();
-    private final Counter requestBytes = new Counter();
-    private final Counter responseBytes = new Counter();
+    private final Sum count5xx = new Sum();
+    private final Sum countException = new Sum();
+    private final Sum requestCount = new Sum();
+    private final Sum requestBytes = new Sum();
+    private final Sum responseBytes = new Sum();
 
     public HttpClientMetric(String uri, String method) {
         this.uri = uri;
         this.method = method;
     }
 
-    public void add(long costTime, int count4xx, int count5xx) {
-        this.costTime.update(costTime);
+    public void add(long responseTime, int count4xx, int count5xx) {
+        this.responseTime.update(responseTime);
         this.count4xx.update(count4xx);
         this.count5xx.update(count5xx);
         this.requestCount.incr();
     }
 
     public void addException(long costTime, int exceptionCount) {
-        this.costTime.update(costTime);
+        this.responseTime.update(costTime);
         this.countException.update(exceptionCount);
         this.requestCount.incr();
     }
@@ -66,8 +67,8 @@ public class HttpClientMetric {
         return method;
     }
 
-    public long getCostTime() {
-        return costTime.get();
+    public Compund getResponseTime() {
+        return responseTime;
     }
 
     public long getCount4xx() {

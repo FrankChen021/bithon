@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.metrics.thread;
 
-import com.sbss.bithon.agent.core.metrics.Counter;
+import com.sbss.bithon.agent.core.metrics.Sum;
 
 /**
  * @author frank.chen021@outlook.com
@@ -11,13 +11,13 @@ public abstract class ThreadPoolMetrics {
     private final String executorClass;
     private final String threadPoolName;
 
-    public Counter callerRunTaskCount = new Counter();
-    public Counter abortedTaskCount = new Counter();
-    public Counter discardedTaskCount = new Counter();
-    public Counter discardedOldestTaskCount = new Counter();
-    public Counter exceptionTaskCount = new Counter();
-    public Counter successfulTaskCount = new Counter();
-    public Counter totalTaskCount = new Counter();
+    public Sum callerRunTaskCount = new Sum();
+    public Sum abortedTaskCount = new Sum();
+    public Sum discardedTaskCount = new Sum();
+    public Sum discardedOldestTaskCount = new Sum();
+    public Sum exceptionTaskCount = new Sum();
+    public Sum successfulTaskCount = new Sum();
+    public Sum totalTaskCount = new Sum();
 
     public ThreadPoolMetrics(String executorClass, String threadPoolName) {
         this.executorClass = executorClass;

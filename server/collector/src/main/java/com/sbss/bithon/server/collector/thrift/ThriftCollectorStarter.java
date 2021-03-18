@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -47,6 +46,7 @@ public class ThriftCollectorStarter implements SmartLifecycle, ApplicationContex
         private final TMultiplexedProcessor processor = new TMultiplexedProcessor();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void start() {
         ThriftCollectorConfig config = applicationContext.getBean(ThriftCollectorConfig.class);
@@ -91,7 +91,7 @@ public class ThriftCollectorStarter implements SmartLifecycle, ApplicationContex
         }
 
         serviceGroups.forEach((port, serviceGroup) -> {
-            final String serviceName = serviceGroup.getServices().stream().collect(Collectors.joining(","));
+            final String serviceName = String.join(",", serviceGroup.getServices());
             try {
                 TThreadedSelectorServer.Args args = new TThreadedSelectorServer.Args(new TNonblockingServerSocket(port));
                 args.processorFactory(new TProcessorFactory(serviceGroup.getProcessor()));

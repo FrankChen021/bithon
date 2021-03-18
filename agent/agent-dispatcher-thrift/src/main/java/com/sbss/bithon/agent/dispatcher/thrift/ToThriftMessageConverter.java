@@ -51,7 +51,9 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setTimestamp(timestamp);
         message.setUri(metric.getUri());
         message.setMethod(metric.getMethod());
-        message.setCostTime(metric.getCostTime());
+        message.setResponseTime(metric.getResponseTime().getSum().get());
+        message.setMinResponseTime(metric.getResponseTime().getMin().get());
+        message.setMaxResponseTime(metric.getResponseTime().getMax().get());
         message.setCount4xx(metric.getCount4xx());
         message.setCount5xx(metric.getCount5xx());
         message.setRequestCount(metric.getRequestCount());
@@ -104,7 +106,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setTimestamp(timestamp);
         message.setSrcApplication(metric.getSrcApplication());
         message.setUri(metric.getUri());
-        message.setCostTime(metric.getCostTime().getCounter().get());
+        message.setCostTime(metric.getCostTime().getSum().get());
         message.setMaxCostTime(metric.getCostTime().getMax().get());
         message.setMinCostTime(metric.getCostTime().getMin().get());
         message.setRequestCount(metric.getRequestCount());

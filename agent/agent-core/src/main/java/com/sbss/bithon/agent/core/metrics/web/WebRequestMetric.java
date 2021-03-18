@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.core.metrics.web;
 
 import com.sbss.bithon.agent.core.metrics.Compund;
-import com.sbss.bithon.agent.core.metrics.Counter;
+import com.sbss.bithon.agent.core.metrics.Sum;
 
 /**
  * Web Request Counter
@@ -19,12 +19,12 @@ public class WebRequestMetric {
      * metrics
      */
     private final Compund costTime = new Compund();
-    private final Counter requestCount = new Counter();
-    private final Counter errorCount = new Counter();
-    private final Counter count4xx = new Counter();
-    private final Counter count5xx = new Counter();
-    private final Counter requestByteSize = new Counter();
-    private final Counter responseByteSize = new Counter();
+    private final Sum requestCount = new Sum();
+    private final Sum errorCount = new Sum();
+    private final Sum count4xx = new Sum();
+    private final Sum count5xx = new Sum();
+    private final Sum requestByteSize = new Sum();
+    private final Sum responseByteSize = new Sum();
 
     public WebRequestMetric(String srcApplication, String uri) {
         this.srcApplication = srcApplication;

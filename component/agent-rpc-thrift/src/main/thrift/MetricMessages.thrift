@@ -156,13 +156,15 @@ struct HttpClientMetricMessage {
     2:i32 interval;
     3:string uri;
     4:string method;
-    5:i64 costTime;
-    6:i64 count4xx;
-    7:i64 count5xx;
-    8:i64 requestCount;
-    9:i64 exceptionCount;
-    10:i64 requestBytes;
-    11:i64 responseBytes;
+    5:i64 responseTime;
+    6:i64 minResponseTime;
+    7:i64 maxResponseTime;
+    8:i64 count4xx;
+    9:i64 count5xx;
+    10:i64 requestCount;
+    11:i64 exceptionCount;
+    12:i64 requestBytes;
+    13:i64 responseBytes;
 }
 
 /***************************************************************************/

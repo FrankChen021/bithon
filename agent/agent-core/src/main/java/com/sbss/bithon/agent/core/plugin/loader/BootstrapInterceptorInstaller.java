@@ -30,16 +30,16 @@ import java.util.Map;
  * @author frankchen
  * @date 2021-02-18 19:23
  */
-public class BootstrapAopInstaller {
+public class BootstrapInterceptorInstaller {
 
     private final TypePool typePool;
     private final Map<String, byte[]> classesTypeMap = new HashMap<>();
     private final Instrumentation instrumentation;
     private final AgentBuilder agentBuilder;
 
-    public BootstrapAopInstaller(Instrumentation instrumentation,
-                                 AgentBuilder agentBuilder) {
-        this.typePool = TypePool.Default.of(BootstrapAopInstaller.class.getClassLoader());
+    public BootstrapInterceptorInstaller(Instrumentation instrumentation,
+                                         AgentBuilder agentBuilder) {
+        this.typePool = TypePool.Default.of(BootstrapInterceptorInstaller.class.getClassLoader());
         this.instrumentation = instrumentation;
         this.agentBuilder = agentBuilder;
     }
@@ -132,7 +132,7 @@ public class BootstrapAopInstaller {
 
         DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(baseType,
                                                                         ClassFileLocator.ForClassLoader
-                                                                            .of(BootstrapAopInstaller.class.getClassLoader()))
+                                                                            .of(BootstrapInterceptorInstaller.class.getClassLoader()))
                                                               .name(targetAopClassName)
                                                               .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
                                                               .value(interceptorClass)

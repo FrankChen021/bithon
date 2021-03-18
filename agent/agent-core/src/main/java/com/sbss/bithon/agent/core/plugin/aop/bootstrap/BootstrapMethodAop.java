@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
-import com.sbss.bithon.agent.core.plugin.loader.BootstrapAopInstaller;
+import com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller;
 import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
 import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
 import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
@@ -20,7 +20,7 @@ import java.util.concurrent.Callable;
  */
 public class BootstrapMethodAop {
     /**
-     * assigned by {@link BootstrapAopInstaller#generateAopClass(Map, TypePool, String, String, MethodPointCutDescriptor)}
+     * assigned by {@link BootstrapInterceptorInstaller#generateAopClass(Map, TypePool, String, String, MethodPointCutDescriptor)}
      */
     private static String INTERCEPTOR_CLASS_NAME;
 

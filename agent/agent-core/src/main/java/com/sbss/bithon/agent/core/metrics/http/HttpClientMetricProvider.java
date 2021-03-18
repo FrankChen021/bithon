@@ -43,19 +43,19 @@ public class HttpClientMetricProvider implements IMetricProvider {
 
     public void addExceptionRequest(String requestUri,
                                     String requestMethod,
-                                    long costTime) {
+                                    long responseTime) {
         String uri = requestUri.split("\\?")[0];
         String requestId = uri.concat("|").concat(requestMethod);
 
         metricsMap.computeIfAbsent(requestId,
                                    k -> new HttpClientMetric(uri,
-                                                             requestMethod)).addException(costTime, 1);
+                                                             requestMethod)).addException(responseTime, 1);
     }
 
     public void addRequest(String requestUri,
                            String requestMethod,
                            int statusCode,
-                           long costTime) {
+                           long responseTime) {
         String uri = requestUri.split("\\?")[0];
 
         int count4xx = 0, count5xx = 0;
@@ -70,7 +70,7 @@ public class HttpClientMetricProvider implements IMetricProvider {
         String requestId = uri.concat("|").concat(requestMethod);
         metricsMap.computeIfAbsent(requestId,
                                    key -> new HttpClientMetric(uri, requestMethod))
-                  .add(costTime, count4xx, count5xx);
+                  .add(responseTime, count4xx, count5xx);
     }
 
     public void addBytes(String requestUri,

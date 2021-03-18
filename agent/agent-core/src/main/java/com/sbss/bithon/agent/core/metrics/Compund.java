@@ -10,18 +10,18 @@ package com.sbss.bithon.agent.core.metrics;
  */
 public class Compund {
 
-    private Counter counter = new Counter();
-    private Max max = new Max();
-    private Min min = new Min();
+    private final Sum sum = new Sum();
+    private final Max max = new Max();
+    private final Min min = new Min();
 
     public void update(long value) {
-        counter.update(value);
+        sum.update(value);
         max.update(value);
         min.update(value);
     }
 
-    public Counter getCounter() {
-        return counter;
+    public Sum getSum() {
+        return sum;
     }
 
     public Max getMax() {

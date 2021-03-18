@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.core.metrics;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Represents a cumulative valu.
+ * Represents a cumulative value.
  * In contrast to Counter, its value will NOTE be flushed after be accessed
  *
  * @author frank.chen021@outlook.com

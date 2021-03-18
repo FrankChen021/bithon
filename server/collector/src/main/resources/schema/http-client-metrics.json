@@ -31,8 +31,28 @@
   "metricsSpec": [
     {
       "type": "longSum",
-      "name": "costTime",
-      "displayText": "Cost Time",
+      "name": "interval",
+      "displayText": "Period of metric",
+      "unit": "second",
+      "visible": false
+    },
+    {
+      "type": "longSum",
+      "name": "responseTime",
+      "displayText": "Response Time",
+      "unit": "ns",
+      "visible": false
+    },
+    {
+      "type": "longMin",
+      "name": "minResponseTime",
+      "displayText": "Min Response Time",
+      "unit": "ns"
+    },
+    {
+      "type": "longMax",
+      "name": "maxResponseTime",
+      "displayText": "Max Response Time",
       "unit": "ns"
     },
     {
@@ -70,6 +90,22 @@
       "name": "responseBytes",
       "displayText": "Bytes received",
       "unit": "Byte"
+    },
+    {
+      "type": "postAggregator",
+      "name": "avgResponseTime",
+      "expression": "responseTime/1000.0/1000/requestCount",
+      "displayText": "Avg cost time",
+      "unit": "Milli",
+      "valueType": "double"
+    },
+    {
+      "type": "postAggregator",
+      "name": "qps",
+      "expression": "requestCount/interval",
+      "displayText": "QPS",
+      "unit": "",
+      "valueType": "double"
     }
   ]
 }

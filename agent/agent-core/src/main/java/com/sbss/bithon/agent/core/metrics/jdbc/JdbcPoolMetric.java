@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.metrics.jdbc;
 
-import com.sbss.bithon.agent.core.metrics.Counter;
+import com.sbss.bithon.agent.core.metrics.Sum;
 import com.sbss.bithon.agent.core.metrics.Gauge;
 
 /**
@@ -12,18 +12,18 @@ public class JdbcPoolMetric {
     private final String driverClass;
 
     // metrics
-    public Counter activeCount = new Counter();
-    public Counter createCount = new Counter();
-    public Counter destroyCount = new Counter();
+    public Sum activeCount = new Sum();
+    public Sum createCount = new Sum();
+    public Sum destroyCount = new Sum();
     public Gauge poolingPeak = new Gauge();
     public Gauge activePeak = new Gauge();
-    public Counter logicConnectionCount = new Counter();
-    public Counter logicCloseCount = new Counter();
-    public Counter createErrorCount = new Counter();
-    public Counter executeCount = new Counter();
-    public Counter commitCount = new Counter();
-    public Counter rollbackCount = new Counter();
-    public Counter startTransactionCount = new Counter();
+    public Sum logicConnectionCount = new Sum();
+    public Sum logicCloseCount = new Sum();
+    public Sum createErrorCount = new Sum();
+    public Sum executeCount = new Sum();
+    public Sum commitCount = new Sum();
+    public Sum rollbackCount = new Sum();
+    public Sum startTransactionCount = new Sum();
 
     public JdbcPoolMetric(String connectionString, String driverClass) {
         this.connectionString = connectionString;

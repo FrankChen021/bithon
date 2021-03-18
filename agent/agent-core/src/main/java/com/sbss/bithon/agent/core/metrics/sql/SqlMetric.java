@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.metrics.sql;
 
-import com.sbss.bithon.agent.core.metrics.Counter;
+import com.sbss.bithon.agent.core.metrics.Sum;
 
 /**
  * @author frank.chen021@outlook.com
@@ -12,13 +12,13 @@ public class SqlMetric {
     private final String hostAndPort;
 
     // metric
-    private final Counter totalCostTime = new Counter();
-    private final Counter totalFailureCount = new Counter();
-    private final Counter totalCount = new Counter();
-    private final Counter totalQueryCount = new Counter();
-    private final Counter totalUpdateCount = new Counter();
-    private final Counter totalBytesIn = new Counter();
-    private final Counter totalBytesOut = new Counter();
+    private final Sum totalCostTime = new Sum();
+    private final Sum totalFailureCount = new Sum();
+    private final Sum totalCount = new Sum();
+    private final Sum totalQueryCount = new Sum();
+    private final Sum totalUpdateCount = new Sum();
+    private final Sum totalBytesIn = new Sum();
+    private final Sum totalBytesOut = new Sum();
 
     public SqlMetric(String hostAndPort, String driverType) {
         this.hostAndPort = hostAndPort;

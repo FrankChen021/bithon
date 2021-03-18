@@ -8,14 +8,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author frank.chen021@outlook.com
  * @date 2021/2/23 9:18 下午
  */
-public class Counter {
+public class Sum {
     private final AtomicLong value;
 
-    public Counter() {
+    public Sum() {
         this(0L);
     }
 
-    public Counter(long initialValue) {
+    public Sum(long initialValue) {
         value = new AtomicLong(initialValue);
     }
 

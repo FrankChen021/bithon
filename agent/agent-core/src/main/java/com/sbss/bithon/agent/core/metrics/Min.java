@@ -7,13 +7,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * @date 2021/3/16
  */
 public class Min {
-    private AtomicLong value = new AtomicLong(Long.MIN_VALUE);
+    private final AtomicLong value = new AtomicLong(Long.MAX_VALUE);
 
     public void update(long value) {
         this.value.getAndAccumulate(value, Math::max);
     }
 
     public long get() {
-        return this.value.getAndSet(Long.MIN_VALUE);
+        return this.value.getAndSet(Long.MAX_VALUE);
     }
 }

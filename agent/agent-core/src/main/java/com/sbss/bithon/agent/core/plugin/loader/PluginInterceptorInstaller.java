@@ -195,7 +195,7 @@ public class PluginInterceptorInstaller {
      */
     private Class<?> getBootstrapAopClass(String methodsInterceptor) {
         try {
-            return Class.forName(BootstrapAopInstaller.bootstrapAopClass(methodsInterceptor));
+            return Class.forName(BootstrapInterceptorInstaller.bootstrapAopClass(methodsInterceptor));
         } catch (ClassNotFoundException e) {
             throw new AgentException(e.getMessage(), e);
         }
