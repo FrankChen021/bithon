@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
-import com.sbss.bithon.agent.core.metrics.jvm.CpuMetric;
+import com.sbss.bithon.agent.core.metric.jvm.CpuMetric;
 
 import java.util.concurrent.TimeUnit;
 

@@ -3,7 +3,7 @@ package com.sbss.bithon.server.collector.sink.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
-import com.sbss.bithon.server.events.handler.EventMessage;
+import com.sbss.bithon.server.event.handler.EventMessage;
 import org.springframework.kafka.core.KafkaTemplate;
 
 /**

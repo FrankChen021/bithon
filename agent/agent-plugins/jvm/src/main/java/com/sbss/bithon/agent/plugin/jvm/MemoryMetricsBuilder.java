@@ -1,9 +1,9 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
-import com.sbss.bithon.agent.core.metrics.jvm.HeapMetric;
-import com.sbss.bithon.agent.core.metrics.jvm.MemoryMetric;
-import com.sbss.bithon.agent.core.metrics.jvm.MetaspaceMetric;
-import com.sbss.bithon.agent.core.metrics.jvm.NonHeapMetric;
+import com.sbss.bithon.agent.core.metric.jvm.HeapMetric;
+import com.sbss.bithon.agent.core.metric.jvm.MemoryMetric;
+import com.sbss.bithon.agent.core.metric.jvm.MetaspaceMetric;
+import com.sbss.bithon.agent.core.metric.jvm.NonHeapMetric;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;

@@ -2,10 +2,10 @@ package com.sbss.bithon.agent.plugin.jetty;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metrics.IMetricProvider;
-import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
-import com.sbss.bithon.agent.core.metrics.web.WebServerMetric;
-import com.sbss.bithon.agent.core.metrics.web.WebServerType;
+import com.sbss.bithon.agent.core.metric.IMetricProvider;
+import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
+import com.sbss.bithon.agent.core.metric.web.WebServerType;
 import org.eclipse.jetty.server.AbstractNetworkConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 

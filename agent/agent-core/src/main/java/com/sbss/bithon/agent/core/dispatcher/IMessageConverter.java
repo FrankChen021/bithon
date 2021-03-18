@@ -1,18 +1,18 @@
 package com.sbss.bithon.agent.core.dispatcher;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
-import com.sbss.bithon.agent.core.events.EventMessage;
-import com.sbss.bithon.agent.core.metrics.exception.ExceptionMetric;
-import com.sbss.bithon.agent.core.metrics.http.HttpClientMetric;
-import com.sbss.bithon.agent.core.metrics.jdbc.JdbcPoolMetric;
-import com.sbss.bithon.agent.core.metrics.jvm.JvmMetrics;
-import com.sbss.bithon.agent.core.metrics.mongo.MongoMetric;
-import com.sbss.bithon.agent.core.metrics.redis.RedisMetric;
-import com.sbss.bithon.agent.core.metrics.sql.SqlMetric;
-import com.sbss.bithon.agent.core.metrics.sql.SqlStatementMetric;
-import com.sbss.bithon.agent.core.metrics.thread.ThreadPoolMetrics;
-import com.sbss.bithon.agent.core.metrics.web.WebRequestMetric;
-import com.sbss.bithon.agent.core.metrics.web.WebServerMetric;
+import com.sbss.bithon.agent.core.event.EventMessage;
+import com.sbss.bithon.agent.core.metric.exception.ExceptionMetric;
+import com.sbss.bithon.agent.core.metric.http.HttpClientMetric;
+import com.sbss.bithon.agent.core.metric.jdbc.JdbcPoolMetric;
+import com.sbss.bithon.agent.core.metric.jvm.JvmMetrics;
+import com.sbss.bithon.agent.core.metric.mongo.MongoMetric;
+import com.sbss.bithon.agent.core.metric.redis.RedisMetric;
+import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
+import com.sbss.bithon.agent.core.metric.sql.SqlStatementMetric;
+import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetrics;
+import com.sbss.bithon.agent.core.metric.web.WebRequestMetric;
+import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 
 import java.util.Map;

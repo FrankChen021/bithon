@@ -4,7 +4,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.event.IEventCollector;
 import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
-import com.sbss.bithon.server.events.handler.EventMessage;
+import com.sbss.bithon.server.event.handler.EventMessage;
 import lombok.extern.slf4j.Slf4j;
 
 /**

@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.plugin.jedis.interceptor;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
-import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
-import com.sbss.bithon.agent.core.metrics.redis.RedisMetricProvider;
+import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.redis.RedisMetricProvider;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import redis.clients.jedis.Client;

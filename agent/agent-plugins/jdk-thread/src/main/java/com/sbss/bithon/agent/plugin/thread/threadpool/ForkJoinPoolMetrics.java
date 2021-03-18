@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.plugin.thread.threadpool;
 
-import com.sbss.bithon.agent.core.metrics.thread.ThreadPoolMetrics;
+import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetrics;
 import com.sbss.bithon.agent.core.utils.ReflectionUtils;
 
 import java.util.concurrent.ForkJoinPool;

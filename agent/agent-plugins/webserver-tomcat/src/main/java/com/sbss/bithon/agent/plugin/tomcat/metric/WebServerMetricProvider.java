@@ -2,9 +2,9 @@ package com.sbss.bithon.agent.plugin.tomcat.metric;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metrics.IMetricProvider;
-import com.sbss.bithon.agent.core.metrics.web.WebServerMetric;
-import com.sbss.bithon.agent.core.metrics.web.WebServerType;
+import com.sbss.bithon.agent.core.metric.IMetricProvider;
+import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
+import com.sbss.bithon.agent.core.metric.web.WebServerType;
 import org.apache.tomcat.util.net.AbstractEndpoint;
 
 import java.util.Collections;

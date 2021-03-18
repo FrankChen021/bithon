@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.plugin.quartz2;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metrics.IMetricProvider;
+import com.sbss.bithon.agent.core.metric.IMetricProvider;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import org.quartz.core.JobRunShell;
 import org.quartz.impl.JobExecutionContextImpl;

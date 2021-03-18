@@ -2,9 +2,9 @@ package com.sbss.bithon.agent.plugin.jdbc.druid.metric;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metrics.IMetricProvider;
-import com.sbss.bithon.agent.core.metrics.MetricProviderManager;
-import com.sbss.bithon.agent.core.metrics.sql.SqlMetric;
+import com.sbss.bithon.agent.core.metric.IMetricProvider;
+import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.plugin.jdbc.druid.DruidPlugin;
 import shaded.org.slf4j.Logger;

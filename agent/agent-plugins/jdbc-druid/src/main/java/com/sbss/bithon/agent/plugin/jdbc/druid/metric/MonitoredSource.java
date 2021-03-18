@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.plugin.jdbc.druid.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.sbss.bithon.agent.core.metrics.jdbc.JdbcPoolMetric;
-import com.sbss.bithon.agent.core.metrics.sql.SqlMetric;
+import com.sbss.bithon.agent.core.metric.jdbc.JdbcPoolMetric;
+import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
 
 /**
  * @author frank.chen021@outlook.com

@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
-import com.sbss.bithon.agent.core.metrics.jvm.ClassMetric;
+import com.sbss.bithon.agent.core.metric.jvm.ClassMetric;
 
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;

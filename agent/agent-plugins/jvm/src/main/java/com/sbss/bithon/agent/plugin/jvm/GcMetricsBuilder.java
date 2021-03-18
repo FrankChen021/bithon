@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
-import com.sbss.bithon.agent.core.metrics.jvm.GcMetric;
+import com.sbss.bithon.agent.core.metric.jvm.GcMetric;
 import com.sun.management.GarbageCollectionNotificationInfo;
 
 import javax.management.NotificationBroadcaster;
