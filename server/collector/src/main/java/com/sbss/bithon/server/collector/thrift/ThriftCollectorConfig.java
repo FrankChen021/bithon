@@ -9,6 +9,7 @@ import com.sbss.bithon.server.collector.sink.kafka.KafkaTraceSink;
 import com.sbss.bithon.server.collector.sink.local.LocalEventSink;
 import com.sbss.bithon.server.collector.sink.local.LocalMetricSink;
 import com.sbss.bithon.server.collector.sink.local.LocalTraceSink;
+import com.sbss.bithon.server.event.handler.EventsMessageHandler;
 import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
@@ -80,9 +81,11 @@ public class ThriftCollectorConfig {
     }
 
     @Bean("eventSink")
-    public IMessageSink<?> eventSink(ThriftCollectorConfig config, ObjectMapper om) {
+    public IMessageSink<?> eventSink(ThriftCollectorConfig config,
+                                     EventsMessageHandler handler,
+                                     ObjectMapper om) {
         if ("local".equals(config.getSink().getType())) {
-            return new LocalEventSink();
+            return new LocalEventSink(handler);
         } else {
             return new KafkaEventSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink().getProps(),
                                                                                             new StringSerializer(),

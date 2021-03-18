@@ -1,5 +1,6 @@
 package com.sbss.bithon.server.collector.kafka;
 
+import com.sbss.bithon.server.event.handler.EventsMessageHandler;
 import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
@@ -17,7 +18,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -86,7 +86,7 @@ public class KafkaCollectorStarter implements SmartLifecycle, ApplicationContext
                                                 context.getBean(RedisMetricMessageHandler.class)).start(consumerProps));
 
         collectors.add(new KafkaTraceCollector(context.getBean(TraceMessageHandler.class)).start(consumerProps));
-        collectors.add(new KafkaEventCollector().start(consumerProps));
+        collectors.add(new KafkaEventCollector(context.getBean(EventsMessageHandler.class)).start(consumerProps));
     }
 
     @Override

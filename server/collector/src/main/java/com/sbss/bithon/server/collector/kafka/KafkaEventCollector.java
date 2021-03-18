@@ -2,6 +2,7 @@ package com.sbss.bithon.server.collector.kafka;
 
 import com.sbss.bithon.server.collector.sink.local.LocalEventSink;
 import com.sbss.bithon.server.event.handler.EventMessage;
+import com.sbss.bithon.server.event.handler.EventsMessageHandler;
 
 /**
  * @author frank.chen021@outlook.com
@@ -10,9 +11,9 @@ import com.sbss.bithon.server.event.handler.EventMessage;
 public class KafkaEventCollector extends AbstractKafkaCollector<EventMessage> {
     private final LocalEventSink localSink;
 
-    public KafkaEventCollector() {
+    public KafkaEventCollector(EventsMessageHandler handler) {
         super(EventMessage.class);
-        localSink = new LocalEventSink();
+        localSink = new LocalEventSink(handler);
     }
 
     @Override
