@@ -9,6 +9,6 @@ public class JvmPlugin extends AbstractPlugin {
 
     @Override
     public void start() {
-        new JvmMetricService().start();
+        new JvmMetricCollector().start();
     }
 }

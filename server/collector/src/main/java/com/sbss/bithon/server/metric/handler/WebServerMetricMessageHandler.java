@@ -29,9 +29,4 @@ public class WebServerMetricMessageHandler extends AbstractMetricMessageHandler 
               Duration.ofMinutes(1),
               1024);
     }
-
-    @Override
-    void toMetricObject(GenericMetricMessage message) {
-
-    }
 }

@@ -2,6 +2,7 @@ package com.sbss.bithon.server.metric.handler;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.GcEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
@@ -38,7 +39,6 @@ public class GenericMetricMessage extends HashMap<String, Object> {
         ReflectionUtils.getFields(message.memoryEntity, metricMessage);
         ReflectionUtils.getFields(message.nonHeapEntity, metricMessage);
         ReflectionUtils.getFields(message.metaspaceEntity, metricMessage);
-        ReflectionUtils.getFields(message.gcEntities, metricMessage);
         ReflectionUtils.getFields(message.threadEntity, metricMessage);
 
         metricMessage.put("interval", message.interval);
@@ -85,6 +85,13 @@ public class GenericMetricMessage extends HashMap<String, Object> {
         GenericMetricMessage metricMessage = new GenericMetricMessage();
         ReflectionUtils.getFields(header, metricMessage);
         ReflectionUtils.getFields(message, metricMessage);
+        return metricMessage;
+    }
+
+    public static GenericMetricMessage of(MessageHeader header, GcEntity gc) {
+        GenericMetricMessage metricMessage = new GenericMetricMessage();
+        ReflectionUtils.getFields(header, metricMessage);
+        ReflectionUtils.getFields(gc, metricMessage);
         return metricMessage;
     }
 

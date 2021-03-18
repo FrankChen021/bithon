@@ -33,10 +33,11 @@ public class RedisMetricMessageHandler extends AbstractMetricMessageHandler {
     }
 
     @Override
-    void toMetricObject(GenericMetricMessage message) {
+    protected boolean beforeProcess(GenericMetricMessage message) {
         message.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
                                                  message.getApplicationName(),
                                                  EndPointType.REDIS,
                                                  message.getString("uri")));
+        return true;
     }
 }

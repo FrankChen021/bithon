@@ -39,26 +39,41 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
     public void sendJvm(MessageHeader header, List<JvmMetricMessage> messages) {
         messages.forEach((message) -> {
             metricSink.process("jvm-metrics", GenericMetricMessage.of(header, message));
-            metricSink.process("jvm-gc-metrics", GenericMetricMessage.of(header, message));
+
+            message.gcEntities.forEach((gc)->{
+                GenericMetricMessage gcMessage = GenericMetricMessage.of(header, gc);
+                gcMessage.set("interval", message.interval);
+                gcMessage.set("timestamp", message.timestamp);
+                metricSink.process("jvm-gc-metrics", gcMessage);
+            });
         });
     }
 
     @Override
     public void sendWebServer(MessageHeader header, List<WebServerMetricMessage> messages) {
         messages.forEach((message) -> metricSink.process("web-server-metrics",
-                                                         GenericMetricMessage.of(header, message)));
+                                                     GenericMetricMessage.of(header, message)));
     }
 
     @Override
     public void sendException(MessageHeader header, List<ExceptionMetricMessage> messages) {
-        messages.forEach((message) -> metricSink.process("exception-metrics",
-                                                         GenericMetricMessage.of(header, message)));
+        messages.forEach((message) -> {
+            if (message.getExceptionCount() > 0) {
+                metricSink.process("exception-metrics",
+                                   GenericMetricMessage.of(header, message));
+            }
+        });
     }
 
     @Override
     public void sendHttpClient(MessageHeader header, List<HttpClientMetricMessage> messages) {
-        messages.forEach((message) -> metricSink.process("http-client-metrics",
-                                                         GenericMetricMessage.of(header, message)));
+        messages.forEach((message) -> {
+            //MAY NOT Correct since this message contains other metrics
+            //if (message.getRequestCount() > 0) {
+            metricSink.process("http-client-metrics",
+                               GenericMetricMessage.of(header, message));
+            //}
+        });
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
+import com.sbss.bithon.agent.core.metric.Delta;
 import com.sbss.bithon.agent.core.metric.jvm.GcMetric;
 import com.sun.management.GarbageCollectionNotificationInfo;
 
@@ -14,18 +15,20 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * TODO: Separate Gc Metric from JVM Metric
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 8:39 下午
  */
-public class GcMetricBuilder {
+public class GcMetricCollector {
 
     /**
      * GcName -> gcBean
      */
     private final Map<String, GarbageCollectorMXBean> GC_BEANS = new ConcurrentHashMap<>();
-    private final Map<String, GcInfo> gcUsageMap;
-    public GcMetricBuilder() {
-        this.gcUsageMap = new HashMap<>();
+    private final Map<String, GcMetricValue> gcMetricMap;
+
+    public GcMetricCollector() {
+        this.gcMetricMap = new HashMap<>();
 
         for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {
             NotificationBroadcaster broadcaster = (NotificationBroadcaster) gcBean;
@@ -42,53 +45,26 @@ public class GcMetricBuilder {
     }
 
     public List<GcMetric> build() {
-        List<GcMetric> gcMetricList = new ArrayList<>();
+        List<GcMetric> metrics = new ArrayList<>();
         for (Map.Entry<String, GarbageCollectorMXBean> gcBean : GC_BEANS.entrySet()) {
             if (null == gcBean) {
                 continue;
             }
-            int currentGcCount = 0, realGcCount, lastGcCount;
-            long currentGcTime = 0, realGcTime, lastGcTime;
-
             String gcName = gcBean.getKey().replace(" ", "");
 
-            GcInfo gcInfo = gcUsageMap.computeIfAbsent(gcName, k -> new GcInfo());
+            GcMetricValue gcMetricValue = gcMetricMap.computeIfAbsent(gcName, k -> new GcMetricValue());
+            long gcCount = gcMetricValue.gcCount.update(gcBean.getValue().getCollectionCount());
+            long gcTime = gcMetricValue.gcTime.update(gcBean.getValue().getCollectionTime());
 
-            lastGcCount = gcInfo.getLastGcCount();
-            lastGcTime = gcInfo.getLastGcTime();
-
-            currentGcCount += gcBean.getValue().getCollectionCount();
-            currentGcTime += gcBean.getValue().getCollectionTime();
-
-            realGcCount = currentGcCount - lastGcCount;
-            realGcTime = currentGcTime - lastGcTime;
-
-            gcInfo.setLastGcCount(currentGcCount);
-            gcInfo.setLastGcTime(currentGcTime);
-
-            gcMetricList.add(new GcMetric(gcName, realGcCount, realGcTime));
+            if (gcCount > 0 && gcTime > 0) {
+                metrics.add(new GcMetric(gcName, gcCount, gcTime));
+            }
         }
-        return gcMetricList;
+        return metrics;
     }
 
-    private static class GcInfo {
-        private int lastGcCount = 0;
-        private long lastGcTime = 0;
-
-        int getLastGcCount() {
-            return lastGcCount;
-        }
-
-        void setLastGcCount(int lastGcCount) {
-            this.lastGcCount = lastGcCount;
-        }
-
-        long getLastGcTime() {
-            return lastGcTime;
-        }
-
-        void setLastGcTime(long lastGcTime) {
-            this.lastGcTime = lastGcTime;
-        }
+    private static class GcMetricValue {
+        final Delta gcCount = new Delta();
+        final Delta gcTime = new Delta();
     }
 }

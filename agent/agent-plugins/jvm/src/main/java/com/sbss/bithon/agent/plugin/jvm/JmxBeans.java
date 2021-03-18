@@ -11,8 +11,8 @@ import java.lang.management.RuntimeMXBean;
  */
 public class JmxBeans {
 
-    public static final RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
-    public static final OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
-    public static final MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+    public static final RuntimeMXBean RUNTIME_BEAN = ManagementFactory.getRuntimeMXBean();
+    public static final OperatingSystemMXBean OS_BEAN = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+    public static final MemoryMXBean MEM_BEAN = ManagementFactory.getMemoryMXBean();
 
 }

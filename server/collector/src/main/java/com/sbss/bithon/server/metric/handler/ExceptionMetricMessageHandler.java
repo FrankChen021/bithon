@@ -29,9 +29,4 @@ public class ExceptionMetricMessageHandler extends AbstractMetricMessageHandler 
               Duration.ofSeconds(60),
               4096);
     }
-
-    @Override
-    void toMetricObject(GenericMetricMessage message) throws Exception {
-
-    }
 }

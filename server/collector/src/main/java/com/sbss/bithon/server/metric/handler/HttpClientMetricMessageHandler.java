@@ -40,22 +40,22 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
     }
 
     @Override
-    void toMetricObject(GenericMetricMessage metricObject) throws Exception {
+    protected boolean beforeProcess(GenericMetricMessage metricObject) throws Exception {
         if (metricObject.getLong("requestCount") <= 0) {
-            return;
+            return false;
         }
 
         URI uri = new URI(metricObject.getString("uri"));
         UriNormalizer.NormalizedResult result = uriNormalizer.normalize(metricObject.getApplicationName(),
                                                                         NetworkUtils.formatUri(uri));
         if (result.getUri() == null) {
-            return;
+            return false;
         }
 
         String targetHostPort = parseHostPort(uri.getHost(), uri.getPort());
         if (targetHostPort == null) {
             log.warn("TargetHost is blank. {}", metricObject);
-            return;
+            return false;
         }
 
         if (NetworkUtils.isIpAddress(uri.getHost())) {
@@ -92,6 +92,7 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
                                                               targetHostPort));
             }
         }
+        return true;
     }
 
     private String parseHostPort(String targetHost, int targetPort) {
@@ -105,6 +106,4 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
             return targetHost + ":" + targetPort;
         }
     }
-
-
 }

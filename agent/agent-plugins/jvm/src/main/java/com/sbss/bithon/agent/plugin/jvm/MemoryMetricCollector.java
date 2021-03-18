@@ -12,7 +12,7 @@ import java.lang.management.MemoryPoolMXBean;
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 8:21 下午
  */
-public class MemoryMetricBuilder {
+public class MemoryMetricCollector {
 
     public static MemoryMetric buildMemoryMetrics() {
         return new MemoryMetric(Runtime.getRuntime().totalMemory(),
@@ -20,23 +20,23 @@ public class MemoryMetricBuilder {
 
     }
 
-    public static HeapMetric buildHeapMetrics() {
-        return new HeapMetric(JmxBeans.memoryBean.getHeapMemoryUsage().getMax(),
-                              JmxBeans.memoryBean.getHeapMemoryUsage().getInit(),
-                              JmxBeans.memoryBean.getHeapMemoryUsage().getUsed(),
-                              JmxBeans.memoryBean.getHeapMemoryUsage().getCommitted());
+    public static HeapMetric collectHeap() {
+        return new HeapMetric(JmxBeans.MEM_BEAN.getHeapMemoryUsage().getMax(),
+                              JmxBeans.MEM_BEAN.getHeapMemoryUsage().getInit(),
+                              JmxBeans.MEM_BEAN.getHeapMemoryUsage().getUsed(),
+                              JmxBeans.MEM_BEAN.getHeapMemoryUsage().getCommitted());
 
     }
 
-    public static NonHeapMetric buildNonHeapMetrics() {
-        return new NonHeapMetric(JmxBeans.memoryBean.getNonHeapMemoryUsage().getMax(),
-                                 JmxBeans.memoryBean.getNonHeapMemoryUsage().getInit(),
-                                 JmxBeans.memoryBean.getNonHeapMemoryUsage().getUsed(),
-                                 JmxBeans.memoryBean.getNonHeapMemoryUsage()
-                                                    .getCommitted());
+    public static NonHeapMetric collectNonHeap() {
+        return new NonHeapMetric(JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getMax(),
+                                 JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getInit(),
+                                 JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getUsed(),
+                                 JmxBeans.MEM_BEAN.getNonHeapMemoryUsage()
+                                                  .getCommitted());
     }
 
-    public static MetaspaceMetric buildMetaspaceMetrics() {
+    public static MetaspaceMetric collectMeataSpace() {
         MetaspaceMetric metrics = new MetaspaceMetric();
         for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans()) {
             if ("Metaspace".equalsIgnoreCase(bean.getName())) {

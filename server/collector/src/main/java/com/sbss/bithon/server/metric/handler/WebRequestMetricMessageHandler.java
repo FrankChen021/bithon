@@ -36,15 +36,15 @@ public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler
     }
 
     @Override
-    void toMetricObject(GenericMetricMessage message) {
+    protected boolean beforeProcess(GenericMetricMessage message) {
         if (message.getLong("requestCount") <= 0) {
-            return;
+            return false;
         }
 
         UriNormalizer.NormalizedResult result = uriNormalizer.normalize(message.getApplicationName(),
                                                                         message.getString("uri"));
         if (result.getUri() == null) {
-            return;
+            return false;
         }
         message.set("uri", result.getUri());
 
@@ -61,5 +61,6 @@ public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler
                                                  srcApplication,
                                                  EndPointType.APPLICATION,
                                                  message.getApplicationName()));
+        return true;
     }
 }

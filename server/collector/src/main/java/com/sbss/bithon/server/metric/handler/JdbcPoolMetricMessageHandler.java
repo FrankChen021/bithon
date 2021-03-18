@@ -33,14 +33,14 @@ public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler {
     }
 
     @Override
-    void toMetricObject(GenericMetricMessage message) {
-
+    protected boolean beforeProcess(GenericMetricMessage message) {
         message.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
                                                  message.getApplicationName(),
                                                  EndPointType.MYSQL,
 
                                                  //TODO: extract host and port
                                                  message.getString("connectionString")));
+        return true;
     }
 
     private enum DriverType {

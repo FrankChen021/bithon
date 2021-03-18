@@ -47,13 +47,16 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
         return this.schema.getName();
     }
 
-    abstract void toMetricObject(GenericMetricMessage message) throws Exception;
+    protected boolean beforeProcess(GenericMetricMessage message) throws Exception {
+        return true;
+    }
 
     @Override
     final protected void onMessage(GenericMetricMessage message) {
         try {
-            toMetricObject(message);
-            processMetricObject(message);
+            if ( beforeProcess(message) ) {
+                process(message);
+            }
         } catch (Exception e) {
             log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}",
                       this.schema.getName(),
@@ -62,16 +65,8 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
         }
     }
 
-    protected boolean beforeProcessMetricObject(GenericMetricMessage metricObject) throws Exception {
-        return true;
-    }
-
-    private void processMetricObject(GenericMetricMessage metricObject) throws Exception {
+    private void process(GenericMetricMessage metricObject) {
         if (metricObject == null) {
-            return;
-        }
-
-        if (!beforeProcessMetricObject(metricObject)) {
             return;
         }
 

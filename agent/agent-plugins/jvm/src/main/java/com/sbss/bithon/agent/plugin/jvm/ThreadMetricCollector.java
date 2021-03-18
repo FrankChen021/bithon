@@ -9,8 +9,9 @@ import java.lang.management.ThreadMXBean;
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 8:27 下午
  */
-public class ThreadMetricBuilder {
-    public static ThreadMetric build() {
+public class ThreadMetricCollector {
+
+    public static ThreadMetric collect() {
         final ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
         return new ThreadMetric(threadBean.getPeakThreadCount(),
                                 threadBean.getDaemonThreadCount(),

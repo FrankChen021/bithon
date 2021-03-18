@@ -29,9 +29,4 @@ public class JvmGcMetricMessageHandler extends AbstractMetricMessageHandler {
               Duration.ofSeconds(60),
               4096);
     }
-
-    @Override
-    void toMetricObject(GenericMetricMessage message) {
-        return;
-    }
 }
