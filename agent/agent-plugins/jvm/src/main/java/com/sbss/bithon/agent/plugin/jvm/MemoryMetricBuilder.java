@@ -12,7 +12,7 @@ import java.lang.management.MemoryPoolMXBean;
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 8:21 下午
  */
-public class MemoryMetricsBuilder {
+public class MemoryMetricBuilder {
 
     public static MemoryMetric buildMemoryMetrics() {
         return new MemoryMetric(Runtime.getRuntime().totalMemory(),

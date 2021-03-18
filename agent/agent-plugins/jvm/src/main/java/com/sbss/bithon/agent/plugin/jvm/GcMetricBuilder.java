@@ -17,14 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 8:39 下午
  */
-public class GcMetricsBuilder {
+public class GcMetricBuilder {
 
     /**
      * GcName -> gcBean
      */
     private final Map<String, GarbageCollectorMXBean> GC_BEANS = new ConcurrentHashMap<>();
     private final Map<String, GcInfo> gcUsageMap;
-    public GcMetricsBuilder() {
+    public GcMetricBuilder() {
         this.gcUsageMap = new HashMap<>();
 
         for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {

@@ -32,12 +32,12 @@ import static com.sbss.bithon.agent.plugin.jvm.JmxBeans.runtimeBean;
 public class JvmMetricService {
     private static final Logger log = LoggerFactory.getLogger(JvmMetricService.class);
 
-    private CpuMetricsBuilder cpuMetricsBuilder;
-    private GcMetricsBuilder gcMetricsBuilder;
+    private CpuMetricBuilder cpuMetricBuilder;
+    private GcMetricBuilder gcMetricBuilder;
 
     public void start() {
-        gcMetricsBuilder = new GcMetricsBuilder();
-        cpuMetricsBuilder = new CpuMetricsBuilder();
+        gcMetricBuilder = new GcMetricBuilder();
+        cpuMetricBuilder = new CpuMetricBuilder();
 
         //
         // start timer to send event
@@ -77,14 +77,14 @@ public class JvmMetricService {
     private JvmMetrics buildJvmMetrics() {
         JvmMetrics jvmMetrics = new JvmMetrics(runtimeBean.getUptime(),
                                                runtimeBean.getStartTime());
-        jvmMetrics.cpuMetrics = cpuMetricsBuilder.build();
-        jvmMetrics.memoryMetrics = MemoryMetricsBuilder.buildMemoryMetrics();
-        jvmMetrics.heapMetrics = MemoryMetricsBuilder.buildHeapMetrics();
-        jvmMetrics.nonHeapMetrics = MemoryMetricsBuilder.buildNonHeapMetrics();
-        jvmMetrics.metaspaceMetrics = MemoryMetricsBuilder.buildMetaspaceMetrics();
-        jvmMetrics.gcMetrics = gcMetricsBuilder.build();
-        jvmMetrics.threadMetrics = ThreadMetricsBuilder.build();
-        jvmMetrics.classMetrics = ClassMetricsBuilder.build();
+        jvmMetrics.cpuMetrics = cpuMetricBuilder.build();
+        jvmMetrics.memoryMetrics = MemoryMetricBuilder.buildMemoryMetrics();
+        jvmMetrics.heapMetrics = MemoryMetricBuilder.buildHeapMetrics();
+        jvmMetrics.nonHeapMetrics = MemoryMetricBuilder.buildNonHeapMetrics();
+        jvmMetrics.metaspaceMetrics = MemoryMetricBuilder.buildMetaspaceMetrics();
+        jvmMetrics.gcMetrics = gcMetricBuilder.build();
+        jvmMetrics.threadMetrics = ThreadMetricBuilder.build();
+        jvmMetrics.classMetrics = ClassMetricBuilder.build();
         return jvmMetrics;
     }
 

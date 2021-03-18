@@ -11,11 +11,11 @@ import static com.sbss.bithon.agent.plugin.jvm.JmxBeans.runtimeBean;
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 8:33 下午
  */
-public class CpuMetricsBuilder {
+public class CpuMetricBuilder {
     private long lastProcessCpuTime;
     private long lastProcessUpTime;
 
-    public CpuMetricsBuilder() {
+    public CpuMetricBuilder() {
         lastProcessCpuTime = osBean.getProcessCpuTime();
         lastProcessUpTime = runtimeBean.getUptime();
     }

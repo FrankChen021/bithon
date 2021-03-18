@@ -9,7 +9,7 @@ import java.lang.management.ManagementFactory;
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 8:29 下午
  */
-public class ClassMetricsBuilder {
+public class ClassMetricBuilder {
     public static ClassMetric build() {
         final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
         return new ClassMetric(classLoadingMXBean.getTotalLoadedClassCount(),
