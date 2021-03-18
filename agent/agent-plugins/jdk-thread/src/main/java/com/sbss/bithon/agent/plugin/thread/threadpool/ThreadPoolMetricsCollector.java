@@ -5,8 +5,6 @@ import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetrics;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,11 +22,15 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 class ThreadPoolMetricsCollector implements IMetricCollector {
     static ThreadPoolMetricsCollector INSTANCE;
-    private final Logger log = LoggerFactory.getLogger(ThreadPoolMetricsCollector.class);
     private final Map<AbstractExecutorService, ThreadPoolMetrics> executorMetrics = new ConcurrentHashMap<>();
     private final Queue<ThreadPoolMetrics> flushed = new ConcurrentLinkedQueue<>();
 
     public static ThreadPoolMetricsCollector getInstance() {
+        // See MetricCollectorManager for more detail to find why there's such a check below
+        if (MetricCollectorManager.getInstance() == null) {
+            return null;
+        }
+
         if (INSTANCE != null) {
             return INSTANCE;
         }
@@ -43,11 +45,11 @@ class ThreadPoolMetricsCollector implements IMetricCollector {
         }
     }
 
-    public void insertThreadPoolMetrics(AbstractExecutorService pool, ThreadPoolMetrics metrics) {
+    public void addThreadPool(AbstractExecutorService pool, ThreadPoolMetrics metrics) {
         executorMetrics.put(pool, metrics);
     }
 
-    public void deleteThreadPoolMetrics(AbstractExecutorService executor) {
+    public void deleteThreadPool(AbstractExecutorService executor) {
         ThreadPoolMetrics metrics = executorMetrics.remove(executor);
         if (metrics != null) {
             flushed.add(metrics);

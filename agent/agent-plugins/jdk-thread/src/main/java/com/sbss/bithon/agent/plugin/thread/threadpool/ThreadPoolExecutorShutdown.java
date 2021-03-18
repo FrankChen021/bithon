@@ -12,7 +12,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class ThreadPoolExecutorShutdown extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext joinPoint) {
-        ThreadPoolMetricsCollector.getInstance().deleteThreadPoolMetrics((ThreadPoolExecutor) joinPoint.getTarget());
+    public void onMethodLeave(AopContext aopContext) {
+        ThreadPoolMetricsCollector collector = ThreadPoolMetricsCollector.getInstance();
+        if (collector != null) {
+            collector.deleteThreadPool((ThreadPoolExecutor) aopContext.getTarget());
+        }
     }
 }

@@ -9,10 +9,12 @@ import java.util.concurrent.ForkJoinPool;
  * @date 2021/2/25 11:15 下午
  */
 public class ForkJoinPoolConstructor extends AbstractInterceptor {
-
     @Override
     public void onConstruct(Object constructedObject, Object[] args) {
-        ForkJoinPool pool = (ForkJoinPool) constructedObject;
-        ThreadPoolMetricsCollector.getInstance().insertThreadPoolMetrics(pool, new ForkJoinPoolMetrics(pool));
+        ThreadPoolMetricsCollector collector = ThreadPoolMetricsCollector.getInstance();
+        if (collector != null) {
+            ForkJoinPool pool = (ForkJoinPool) constructedObject;
+            collector.addThreadPool(pool, new ForkJoinPoolMetrics(pool));
+        }
     }
 }

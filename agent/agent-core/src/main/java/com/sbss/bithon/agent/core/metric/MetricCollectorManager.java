@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,7 +31,14 @@ public class MetricCollectorManager {
     private MetricCollectorManager() {
         this.providers = new ConcurrentHashMap<>();
         this.dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_METRICS);
-        this.scheduler = new ScheduledThreadPoolExecutor(1, NamedThreadFactory.of("metric-collector"));
+
+        // NOTE:
+        // Constructing ScheduledThreadPoolExecutor would cause ThreadPoolInterceptor be executed
+        // And ThreadPoolInterceptor then would call getInstance of this class which would return NULL
+        // because the constructing process of this class has not completed
+        this.scheduler = new ScheduledThreadPoolExecutor(2,
+                                                         NamedThreadFactory.of("bithon-metric-collector"),
+                                                         new ThreadPoolExecutor.CallerRunsPolicy());
         this.scheduler.scheduleWithFixedDelay(this::collectorAndDispatch, 0, INTERVAL, TimeUnit.SECONDS);
     }
 
@@ -80,17 +88,19 @@ public class MetricCollectorManager {
                 continue;
             }
 
-            try {
-                List<Object> messages = provider.collect(dispatcher.getMessageConverter(),
-                                                         AgentContext.getInstance().getAppInstance(),
-                                                         INTERVAL,
-                                                         System.currentTimeMillis());
-                if (CollectionUtils.isNotEmpty(messages)) {
-                    dispatcher.sendMessage(messages);
+            this.scheduler.execute(()->{
+                try {
+                    List<Object> messages = provider.collect(dispatcher.getMessageConverter(),
+                                                             AgentContext.getInstance().getAppInstance(),
+                                                             INTERVAL,
+                                                             System.currentTimeMillis());
+                    if (CollectionUtils.isNotEmpty(messages)) {
+                        dispatcher.sendMessage(messages);
+                    }
+                } catch (Throwable e) {
+                    log.error("Throwable(unrecoverable) exception occurred when dispatching!", e);
                 }
-            } catch (Throwable e) {
-                log.error("Throwable(unrecoverable) exception occurred when dispatching!", e);
-            }
+            });
         }
     }
 }
