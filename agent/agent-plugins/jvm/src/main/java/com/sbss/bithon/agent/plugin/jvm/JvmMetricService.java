@@ -1,10 +1,13 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
 import com.sbss.bithon.agent.core.context.AgentContext;
+import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
 import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.jvm.JvmMetrics;
 import com.sbss.bithon.agent.core.utils.time.DateTime;
 import com.sun.management.UnixOperatingSystemMXBean;
@@ -14,6 +17,7 @@ import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -28,47 +32,46 @@ import static com.sbss.bithon.agent.plugin.jvm.JmxBeans.runtimeBean;
 public class JvmMetricService {
     private static final Logger log = LoggerFactory.getLogger(JvmMetricService.class);
 
-    private Dispatcher metricsDispatcher;
-
-    private boolean jvmStarted = false;
-
     private CpuMetricsBuilder cpuMetricsBuilder;
     private GcMetricsBuilder gcMetricsBuilder;
 
     public void start() {
-        int checkIntervalSeconds = 10;
-
-        metricsDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_METRICS);
         gcMetricsBuilder = new GcMetricsBuilder();
         cpuMetricsBuilder = new CpuMetricsBuilder();
 
-        new Timer().schedule(new TimerTask() {
+        //
+        // start timer to send event
+        //
+        Timer sendEventTimer = new Timer("bithon-event-sender");
+        sendEventTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                sendJvmMetrics();
+                if (sendJvmStartedEvent()) {
+                    sendEventTimer.cancel();
+                }
             }
-        }, checkIntervalSeconds * 1000, checkIntervalSeconds * 1000);
-    }
+        }, 1000, 5);
 
-    private void sendJvmMetrics() {
-        if (!metricsDispatcher.isReady()) {
-            return;
-        }
-
-        try {
-            IMessageConverter converter = metricsDispatcher.getMessageConverter();
-            metricsDispatcher.sendMessage(Collections.singletonList(converter.from(AgentContext.getInstance()
-                                                                                               .getAppInstance(),
-                                                                                   System.currentTimeMillis(),
-                                                                                   10,
-                                                                                   buildJvmMetrics())));
-            if (!jvmStarted) {
-                sendJvmStartedEvent();
-                jvmStarted = true;
+        //
+        // register collector
+        //
+        MetricCollectorManager.getInstance().register("jvm-metrics", new IMetricCollector() {
+            @Override
+            public boolean isEmpty() {
+                return false;
             }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
+
+            @Override
+            public List<Object> collect(IMessageConverter messageConverter,
+                                        AppInstance appInstance,
+                                        int interval,
+                                        long timestamp) {
+                return Collections.singletonList(messageConverter.from(AgentContext.getInstance().getAppInstance(),
+                                                                       timestamp,
+                                                                       interval,
+                                                                       buildJvmMetrics()));
+            }
+        });
     }
 
     private JvmMetrics buildJvmMetrics() {
@@ -85,12 +88,16 @@ public class JvmMetricService {
         return jvmMetrics;
     }
 
-
-    private void sendJvmStartedEvent() {
+    private boolean sendJvmStartedEvent() {
         Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVNETS);
+        if (!dispatcher.isReady()) {
+            return false;
+        }
+
         IMessageConverter converter = dispatcher.getMessageConverter();
         dispatcher.sendMessage(converter.from(AgentContext.getInstance().getAppInstance(),
                                               buildJvmStartedEventMessage()));
+        return true;
     }
 
     private EventMessage buildJvmStartedEventMessage() {

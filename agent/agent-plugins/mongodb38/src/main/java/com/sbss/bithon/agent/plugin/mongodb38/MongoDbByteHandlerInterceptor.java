@@ -13,11 +13,11 @@ import java.util.List;
  * @author frankchen
  */
 public class MongoDbByteHandlerInterceptor extends AbstractInterceptor {
-    private MongoMetricProvider counter;
+    private MongoMetricCollector counter;
 
     @Override
     public boolean initialize() {
-        counter = MongoMetricProvider.getInstance();
+        counter = MongoMetricCollector.getInstance();
         return true;
     }
 

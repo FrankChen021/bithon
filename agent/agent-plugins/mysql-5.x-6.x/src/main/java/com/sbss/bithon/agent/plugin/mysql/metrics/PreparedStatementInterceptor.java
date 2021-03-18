@@ -13,12 +13,12 @@ import java.sql.Statement;
  * @author frankchen
  */
 public class PreparedStatementInterceptor extends AbstractInterceptor {
-    private SqlMetricProvider counter;
+    private SqlMetricCollector counter;
     private StatementCounterStorage sqlCounter;
 
     @Override
     public boolean initialize() {
-        counter = SqlMetricProvider.getInstance();
+        counter = SqlMetricCollector.getInstance();
         sqlCounter = StatementCounterStorage.getInstance();
         return true;
     }

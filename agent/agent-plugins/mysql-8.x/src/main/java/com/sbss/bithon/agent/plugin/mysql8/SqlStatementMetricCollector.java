@@ -3,8 +3,8 @@ package com.sbss.bithon.agent.plugin.mysql8;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.sql.SqlStatementMetric;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.setting.AgentSettingManager;
@@ -29,16 +29,16 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author frankchen
  */
-public class SqlStatementMetricProvider implements IMetricProvider, IAgentSettingRefreshListener {
-    static final SqlStatementMetricProvider INSTANCE = new SqlStatementMetricProvider();
-    private static final Logger log = LoggerFactory.getLogger(SqlStatementMetricProvider.class);
+public class SqlStatementMetricCollector implements IMetricCollector, IAgentSettingRefreshListener {
+    static final SqlStatementMetricCollector INSTANCE = new SqlStatementMetricCollector();
+    private static final Logger log = LoggerFactory.getLogger(SqlStatementMetricCollector.class);
     private static final String MYSQL_COUNTER_NAME = "mysql8_sql_stats";
     private final Map<String, Map<String, SqlStatementMetric>> metricMap = new ConcurrentHashMap<>();
     private int sqlTimeThreshold = 1000;
 
-    private SqlStatementMetricProvider() {
+    private SqlStatementMetricCollector() {
         try {
-            MetricProviderManager.getInstance().register(MYSQL_COUNTER_NAME, this);
+            MetricCollectorManager.getInstance().register(MYSQL_COUNTER_NAME, this);
         } catch (Exception e) {
             log.error("druid counter init failed due to ", e);
         }
@@ -46,7 +46,7 @@ public class SqlStatementMetricProvider implements IMetricProvider, IAgentSettin
         AgentSettingManager.getInstance().register(SettingRootNames.SQL, this);
     }
 
-    static SqlStatementMetricProvider getInstance() {
+    static SqlStatementMetricCollector getInstance() {
         return INSTANCE;
     }
 
@@ -120,10 +120,10 @@ public class SqlStatementMetricProvider implements IMetricProvider, IAgentSettin
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         List<Object> messages = new ArrayList<>();
         metricMap.forEach((dataSourceUrl, statementCounters) -> {
             statementCounters.forEach((sql, counter) -> messages.add(messageConverter.from(counter)));

@@ -2,8 +2,8 @@ package com.sbss.bithon.agent.plugin.jetty;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
 import com.sbss.bithon.agent.core.metric.web.WebServerType;
 import org.eclipse.jetty.server.AbstractNetworkConnector;
@@ -16,16 +16,16 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/1/14 9:30 下午
  */
-public class WebServerMetricProvider implements IMetricProvider {
+public class WebServerMetricCollector implements IMetricCollector {
 
-    private static final WebServerMetricProvider INSTANCE = new WebServerMetricProvider();
+    private static final WebServerMetricCollector INSTANCE = new WebServerMetricCollector();
     private AbstractNetworkConnector connector;
     private QueuedThreadPool threadPool;
-    WebServerMetricProvider() {
-        MetricProviderManager.getInstance().register("webserver-jetty", this);
+    WebServerMetricCollector() {
+        MetricCollectorManager.getInstance().register("webserver-jetty", this);
     }
 
-    public static WebServerMetricProvider getInstance() {
+    public static WebServerMetricCollector getInstance() {
         return INSTANCE;
     }
 
@@ -35,10 +35,10 @@ public class WebServerMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         return Collections.singletonList(messageConverter.from(appInstance,
                                                                timestamp,
                                                                interval,

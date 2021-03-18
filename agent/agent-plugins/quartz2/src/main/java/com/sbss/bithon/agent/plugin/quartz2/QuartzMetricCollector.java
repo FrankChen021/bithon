@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.plugin.quartz2;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import org.quartz.core.JobRunShell;
 import org.quartz.impl.JobExecutionContextImpl;
@@ -20,9 +20,9 @@ import java.util.stream.Collectors;
 /**
  * @author frankchen
  */
-public class QuartzMetricProvider implements IMetricProvider {
+public class QuartzMetricCollector implements IMetricCollector {
     static final String COUNTER_NAME = "quartz2";
-    private static final Logger log = LoggerFactory.getLogger(QuartzMetricProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(QuartzMetricCollector.class);
     private static final String JOB_NAME = "jobName";
     private static final String JOB_CLASS = "jobClass";
     private static final String JOB_START_TIME = "jobStartTime";
@@ -34,7 +34,7 @@ public class QuartzMetricProvider implements IMetricProvider {
 
     private Queue<Map<String, String>> quartzLogs;
 
-    QuartzMetricProvider() {
+    QuartzMetricCollector() {
         this.quartzLogs = new ConcurrentLinkedQueue<>();
     }
 
@@ -70,10 +70,10 @@ public class QuartzMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         Queue<Map<String, String>> logs = quartzLogs;
         quartzLogs = new ConcurrentLinkedQueue<>();
         return logs.stream().map(log -> messageConverter.from(appInstance, log)).collect(Collectors.toList());

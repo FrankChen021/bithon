@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.httpclient.apache.metrics;
 
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
-import com.sbss.bithon.agent.core.metric.http.HttpClientMetricProvider;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.http.HttpClientMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
@@ -27,7 +27,7 @@ import java.util.Set;
 public class HttpClientExecuteInterceptor extends AbstractInterceptor {
     private static final Logger log = LoggerFactory.getLogger(HttpClientExecuteInterceptor.class);
     private final static Set<String> ignoredSuffixes = new HashSet<>();
-    private HttpClientMetricProvider metricProvider;
+    private HttpClientMetricCollector metricProvider;
     private boolean isNewVersion = true;
 
     public static boolean filter(String uri) {
@@ -37,8 +37,8 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricProviderManager.getInstance()
-                                              .register("apache-http-client", new HttpClientMetricProvider());
+        metricProvider = MetricCollectorManager.getInstance()
+                                               .register("apache-http-client", new HttpClientMetricCollector());
 
         try {
             Class.forName("org.apache.http.impl.execchain.MinimalClientExec");

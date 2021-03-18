@@ -4,7 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 
@@ -12,12 +12,12 @@ import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
  * @author frankchen
  */
 public class LogbackHandler extends AbstractInterceptor {
-    private LogMetricProvider counter;
+    private LogMetricCollector counter;
 
     @Override
     public boolean initialize() throws Exception {
-        counter = (LogMetricProvider)
-            MetricProviderManager.getInstance().register("logback", new LogMetricProvider());
+        counter = (LogMetricCollector)
+            MetricCollectorManager.getInstance().register("logback", new LogMetricCollector());
         return true;
     }
 

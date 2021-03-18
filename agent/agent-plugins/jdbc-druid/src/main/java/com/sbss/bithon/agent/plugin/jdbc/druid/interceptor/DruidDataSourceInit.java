@@ -4,7 +4,7 @@ import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
-import com.sbss.bithon.agent.plugin.jdbc.druid.metric.DruidJdbcMetricProvider;
+import com.sbss.bithon.agent.plugin.jdbc.druid.metric.DruidJdbcMetricCollector;
 import com.sbss.bithon.agent.plugin.jdbc.druid.metric.MonitoredSourceManager;
 
 /**
@@ -14,7 +14,7 @@ public class DruidDataSourceInit extends AbstractInterceptor {
 
     @Override
     public boolean initialize() throws Exception {
-        DruidJdbcMetricProvider.getOrCreateInstance();
+        DruidJdbcMetricCollector.getOrCreateInstance();
         return true;
     }
 

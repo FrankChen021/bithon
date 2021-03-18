@@ -1,8 +1,10 @@
-package com.sbss.bithon.agent.plugin.log4j2;
+package com.sbss.bithon.agent.plugin.logback;
 
+import ch.qos.logback.classic.spi.IThrowableProxy;
+import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.exception.ExceptionMetric;
 
 import java.util.Collections;
@@ -14,13 +16,13 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 
 /**
- * @author frank.chen021@outlook.com
+ * @author frankchen
  */
-public class LogMetricProvider implements IMetricProvider {
+class LogMetricCollector implements IMetricCollector {
 
     private final Queue<AppException> exceptionList = new ConcurrentLinkedDeque<>();
 
-    public void addException(String uri, Throwable exception) {
+    public void addException(String uri, IThrowableProxy exception) {
         exceptionList.offer(new AppException(uri, exception));
     }
 
@@ -49,10 +51,10 @@ public class LogMetricProvider implements IMetricProvider {
 //    }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long now) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long now) {
         Map<String, ExceptionMetric> metricMap = new HashMap<>();
 
         //
@@ -78,19 +80,16 @@ public class LogMetricProvider implements IMetricProvider {
 
         return metricMap.values()
                         .stream()
-                        .map(metric -> messageConverter.from(appInstance,
-                                                             now,
-                                                             interval,
-                                                             metric))
+                        .map(metric -> messageConverter.from(appInstance, now, interval, metric))
                         .collect(Collectors.toList());
     }
 
     private static class AppException {
         private final long timestamp;
         private final String uri;
-        private final Throwable exception;
+        private final IThrowableProxy exception;
 
-        AppException(String uri, Throwable exception) {
+        AppException(String uri, IThrowableProxy exception) {
             this.uri = uri;
             this.timestamp = System.currentTimeMillis();
             this.exception = exception;
@@ -104,12 +103,25 @@ public class LogMetricProvider implements IMetricProvider {
             return uri;
         }
 
-        public Throwable getException() {
+        public IThrowableProxy getException() {
             return exception;
         }
 
         public ExceptionMetric toExceptionCounter() {
-            return ExceptionMetric.fromException(uri, exception);
+            return new ExceptionMetric(uri,
+                                       exception.getClassName(),
+                                       exception.getMessage(),
+                                       getFullStack(exception.getStackTraceElementProxyArray()));
+        }
+
+        private String getFullStack(StackTraceElementProxy[] stacks) {
+            StringBuilder sb = new StringBuilder();
+            if (stacks != null && stacks.length > 0) {
+                for (StackTraceElementProxy msg : stacks) {
+                    sb.append(msg.toString()).append("\r\n");
+                }
+            }
+            return sb.toString();
         }
     }
 }

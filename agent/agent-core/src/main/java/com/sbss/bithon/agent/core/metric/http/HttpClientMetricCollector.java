@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.core.metric.http;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author frankchen
  */
-public class HttpClientMetricProvider implements IMetricProvider {
+public class HttpClientMetricCollector implements IMetricCollector {
 
     private static final int HTTP_CODE_400 = 400;
     private static final int HTTP_CODE_500 = 500;
@@ -27,10 +27,10 @@ public class HttpClientMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (Map.Entry<String, HttpClientMetric> entry : metricsMap.entrySet()) {
             metricsMap.compute(entry.getKey(),

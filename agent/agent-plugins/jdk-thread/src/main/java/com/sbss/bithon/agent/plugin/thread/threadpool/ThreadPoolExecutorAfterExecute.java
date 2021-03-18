@@ -15,6 +15,6 @@ public class ThreadPoolExecutorAfterExecute extends AbstractInterceptor {
     public void onMethodLeave(AopContext joinPoint) {
         ThreadPoolExecutor executor = (ThreadPoolExecutor) joinPoint.getTarget();
         Throwable exception = (Throwable) joinPoint.getArgs()[1];
-        ThreadPoolMetricsProvider.getInstance().addRunCount(executor, exception != null);
+        ThreadPoolMetricsCollector.getInstance().addRunCount(executor, exception != null);
     }
 }

@@ -13,6 +13,6 @@ public class ForkJoinPoolConstructor extends AbstractInterceptor {
     @Override
     public void onConstruct(Object constructedObject, Object[] args) {
         ForkJoinPool pool = (ForkJoinPool) constructedObject;
-        ThreadPoolMetricsProvider.getInstance().insertThreadPoolMetrics(pool, new ForkJoinPoolMetrics(pool));
+        ThreadPoolMetricsCollector.getInstance().insertThreadPoolMetrics(pool, new ForkJoinPoolMetrics(pool));
     }
 }

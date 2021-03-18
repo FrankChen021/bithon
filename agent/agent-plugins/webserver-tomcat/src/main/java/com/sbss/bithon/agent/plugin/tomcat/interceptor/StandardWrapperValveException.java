@@ -1,9 +1,9 @@
 package com.sbss.bithon.agent.plugin.tomcat.interceptor;
 
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.plugin.tomcat.metric.ExceptionMetricProvider;
+import com.sbss.bithon.agent.plugin.tomcat.metric.ExceptionMetricCollector;
 
 /**
  * handle exception thrown by tomcat service, not by the tomcat itself
@@ -12,12 +12,12 @@ import com.sbss.bithon.agent.plugin.tomcat.metric.ExceptionMetricProvider;
  */
 public class StandardWrapperValveException extends AbstractInterceptor {
 
-    private ExceptionMetricProvider metricProvider;
+    private ExceptionMetricCollector metricProvider;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricProviderManager.getInstance()
-                                              .register("tomcat-exception", new ExceptionMetricProvider());
+        metricProvider = MetricCollectorManager.getInstance()
+                                               .register("tomcat-exception", new ExceptionMetricCollector());
         return true;
     }
 

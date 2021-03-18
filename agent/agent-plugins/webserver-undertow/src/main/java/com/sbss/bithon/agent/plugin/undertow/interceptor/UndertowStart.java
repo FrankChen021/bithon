@@ -4,12 +4,11 @@ import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.utils.ReflectionUtils;
-import com.sbss.bithon.agent.plugin.undertow.metric.WebServerMetricProvider;
+import com.sbss.bithon.agent.plugin.undertow.metric.WebServerMetricCollector;
 import io.undertow.Undertow;
 import org.xnio.XnioWorker;
 
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author frankchen
@@ -29,7 +28,7 @@ public class UndertowStart extends AbstractInterceptor {
             AgentContext.getInstance().getAppInstance().setPort(port);
 
             Object taskPool = ReflectionUtils.getFieldValue(worker, "taskPool");
-            WebServerMetricProvider.getInstance().setThreadPool(taskPool);
+            WebServerMetricCollector.getInstance().setThreadPool(taskPool);
         }
     }
 }

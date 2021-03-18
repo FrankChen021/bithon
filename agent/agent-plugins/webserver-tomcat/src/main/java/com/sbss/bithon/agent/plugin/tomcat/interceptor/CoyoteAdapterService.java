@@ -1,12 +1,12 @@
 package com.sbss.bithon.agent.plugin.tomcat.interceptor;
 
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.web.RequestUriFilter;
 import com.sbss.bithon.agent.core.metric.web.UserAgentFilter;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
-import com.sbss.bithon.agent.plugin.tomcat.metric.WebRequestMetricProvider;
+import com.sbss.bithon.agent.plugin.tomcat.metric.WebRequestMetricCollector;
 import org.apache.coyote.Request;
 import org.apache.coyote.Response;
 
@@ -16,15 +16,15 @@ import org.apache.coyote.Response;
 public class CoyoteAdapterService extends AbstractInterceptor {
     private static final String TOMCAT_REQUEST_BUFFER_MANAGER_NAME = "tomcat-request";
 
-    private WebRequestMetricProvider metricProvider;
+    private WebRequestMetricCollector metricProvider;
     private RequestUriFilter uriFilter;
     private UserAgentFilter userAgentFilter;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricProviderManager.getInstance()
-                                              .register(TOMCAT_REQUEST_BUFFER_MANAGER_NAME,
-                                                        new WebRequestMetricProvider());
+        metricProvider = MetricCollectorManager.getInstance()
+                                               .register(TOMCAT_REQUEST_BUFFER_MANAGER_NAME,
+                                                        new WebRequestMetricCollector());
 
         uriFilter = new RequestUriFilter();
         userAgentFilter = new UserAgentFilter();

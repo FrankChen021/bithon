@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.log4j2;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
@@ -12,11 +12,11 @@ import org.apache.logging.log4j.spi.StandardLevel;
  * @author frankchen
  */
 public class LogMessageInterceptor extends AbstractInterceptor {
-    private LogMetricProvider counter;
+    private LogMetricCollector counter;
 
     @Override
     public boolean initialize() {
-        counter = (LogMetricProvider) MetricProviderManager.getInstance().register("log4j2", new LogMetricProvider());
+        counter = (LogMetricCollector) MetricCollectorManager.getInstance().register("log4j2", new LogMetricCollector());
         return true;
     }
 

@@ -2,8 +2,8 @@ package com.sbss.bithon.agent.plugin.thread.threadpool;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetrics;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -22,24 +22,23 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 9:13 下午
  */
-class ThreadPoolMetricsProvider implements IMetricProvider {
-    static ThreadPoolMetricsProvider INSTANCE;
-    private final Logger log = LoggerFactory.getLogger(ThreadPoolMetricsProvider.class);
+class ThreadPoolMetricsCollector implements IMetricCollector {
+    static ThreadPoolMetricsCollector INSTANCE;
+    private final Logger log = LoggerFactory.getLogger(ThreadPoolMetricsCollector.class);
     private final Map<AbstractExecutorService, ThreadPoolMetrics> executorMetrics = new ConcurrentHashMap<>();
     private final Queue<ThreadPoolMetrics> flushed = new ConcurrentLinkedQueue<>();
 
-    public static ThreadPoolMetricsProvider getInstance() {
+    public static ThreadPoolMetricsCollector getInstance() {
         if (INSTANCE != null) {
             return INSTANCE;
         }
-        synchronized (ThreadPoolMetricsProvider.class) {
+        synchronized (ThreadPoolMetricsCollector.class) {
             //double check
             if (INSTANCE != null) {
                 return INSTANCE;
             }
 
-            INSTANCE = new ThreadPoolMetricsProvider();
-            MetricProviderManager.getInstance().register("threadpool", INSTANCE);
+            INSTANCE = MetricCollectorManager.getInstance().register("thread-pool", new ThreadPoolMetricsCollector());
             return INSTANCE;
         }
     }
@@ -97,10 +96,10 @@ class ThreadPoolMetricsProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         List<Object> messageList = new ArrayList<>(flushed.size() + executorMetrics.size());
 
         ThreadPoolMetrics flushedMetric = this.flushed.poll();

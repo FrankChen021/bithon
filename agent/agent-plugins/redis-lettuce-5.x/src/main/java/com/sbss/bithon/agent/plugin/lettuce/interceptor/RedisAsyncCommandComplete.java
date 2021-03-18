@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.lettuce.interceptor;
 
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
-import com.sbss.bithon.agent.core.metric.redis.RedisMetricProvider;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.redis.RedisMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
@@ -14,11 +14,11 @@ import shaded.org.slf4j.LoggerFactory;
  */
 public class RedisAsyncCommandComplete extends AbstractInterceptor {
 
-    private RedisMetricProvider metricProvider;
+    private RedisMetricCollector metricProvider;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricProviderManager.getInstance().getOrRegister("lettuce", RedisMetricProvider.class);
+        metricProvider = MetricCollectorManager.getInstance().getOrRegister("lettuce", RedisMetricCollector.class);
         return true;
     }
 

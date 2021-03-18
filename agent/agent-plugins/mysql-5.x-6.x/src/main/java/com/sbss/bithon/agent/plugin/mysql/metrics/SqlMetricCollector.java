@@ -5,8 +5,8 @@ import com.mysql.jdbc.MysqlIO;
 import com.mysql.jdbc.ResultSetImpl;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.utils.ReflectionUtils;
@@ -22,24 +22,24 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author frankchen
  */
-public class SqlMetricProvider implements IMetricProvider {
-    static final SqlMetricProvider INSTANCE = new SqlMetricProvider();
-    private static final Logger log = LoggerFactory.getLogger(SqlMetricProvider.class);
+public class SqlMetricCollector implements IMetricCollector {
+    static final SqlMetricCollector INSTANCE = new SqlMetricCollector();
+    private static final Logger log = LoggerFactory.getLogger(SqlMetricCollector.class);
     private static final String MYSQL_COUNTER_NAME = "mysql";
     private static final String DRIVER_TYPE_MYSQL = "mysql";
     private final Map<String, SqlMetric> metricMap;
 
-    private SqlMetricProvider() {
+    private SqlMetricCollector() {
         metricMap = new ConcurrentHashMap<>();
 
         try {
-            MetricProviderManager.getInstance().register(MYSQL_COUNTER_NAME, this);
+            MetricCollectorManager.getInstance().register(MYSQL_COUNTER_NAME, this);
         } catch (Exception e) {
             log.error("druid counter init failed due to ", e);
         }
     }
 
-    static SqlMetricProvider getInstance() {
+    static SqlMetricCollector getInstance() {
         return INSTANCE;
     }
 
@@ -105,10 +105,10 @@ public class SqlMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (Map.Entry<String, SqlMetric> entry : metricMap.entrySet()) {
             Object message = messageConverter.from(appInstance, timestamp, interval, entry.getValue());

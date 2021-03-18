@@ -13,6 +13,6 @@ public class ThreadPoolExecutorShutdown extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext joinPoint) {
-        ThreadPoolMetricsProvider.getInstance().deleteThreadPoolMetrics((ThreadPoolExecutor) joinPoint.getTarget());
+        ThreadPoolMetricsCollector.getInstance().deleteThreadPoolMetrics((ThreadPoolExecutor) joinPoint.getTarget());
     }
 }

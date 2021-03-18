@@ -3,8 +3,8 @@ package com.sbss.bithon.agent.plugin.undertow.metric;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.web.WebRequestMetric;
 import io.undertow.server.HttpServerExchange;
 
@@ -16,19 +16,19 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author frankchen
  */
-public class WebRequestMetricProvider implements IMetricProvider {
+public class WebRequestMetricCollector implements IMetricCollector {
 
     private WebRequestMetric metric;
     private final Map<String, WebRequestMetric> metricsMap = new ConcurrentHashMap<>();
 
-    private static final WebRequestMetricProvider INSTANCE = new WebRequestMetricProvider();
+    private static final WebRequestMetricCollector INSTANCE = new WebRequestMetricCollector();
 
-    public static WebRequestMetricProvider getInstance() {
+    public static WebRequestMetricCollector getInstance() {
         return INSTANCE;
     }
 
-    WebRequestMetricProvider() {
-        MetricProviderManager.getInstance().register("undertow-webRequest", this);
+    WebRequestMetricCollector() {
+        MetricCollectorManager.getInstance().register("undertow-webRequest", this);
     }
 
     public void update(HttpServerExchange exchange, long startNano) {
@@ -53,10 +53,10 @@ public class WebRequestMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (Map.Entry<String, WebRequestMetric> entry : metricsMap.entrySet()) {
             metricsMap.compute(entry.getKey(),

@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.tomcat.metric;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
 
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 /**
  * @author frankchen
  */
-public class ExceptionMetricProvider implements IMetricProvider {
+public class ExceptionMetricCollector implements IMetricCollector {
     private static final int ERROR_SOURCE_TYPE_TOMCAT = 1;
 
     private final long earliestRecordTimestamp = 0;
@@ -35,10 +35,10 @@ public class ExceptionMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
 
 //        List<FailureMessageDetailEntity> failureMessageDetailEntities = new ArrayList<>();
 //        ClientException clientException;

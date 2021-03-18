@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.core.metric.redis;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author frankchen
  */
-public class RedisMetricProvider implements IMetricProvider {
+public class RedisMetricCollector implements IMetricCollector {
 
     private final Map<RedisMetricDimension, RedisMetric> metricsMap = new ConcurrentHashMap<>();
     private RedisMetric metric;
@@ -62,10 +62,10 @@ public class RedisMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
 
         List<Object> messages = new ArrayList<>();
         for (Map.Entry<RedisMetricDimension, RedisMetric> entry : metricsMap.entrySet()) {

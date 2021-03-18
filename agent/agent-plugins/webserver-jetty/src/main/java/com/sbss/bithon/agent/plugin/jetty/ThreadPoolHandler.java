@@ -11,6 +11,6 @@ public class ThreadPoolHandler extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext context) {
-        WebServerMetricProvider.getInstance().setThreadPool((QueuedThreadPool) context.getTarget());
+        WebServerMetricCollector.getInstance().setThreadPool((QueuedThreadPool) context.getTarget());
     }
 }

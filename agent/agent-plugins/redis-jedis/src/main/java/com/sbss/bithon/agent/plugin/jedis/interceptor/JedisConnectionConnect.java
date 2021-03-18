@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.jedis.interceptor;
 
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
-import com.sbss.bithon.agent.core.metric.redis.RedisMetricProvider;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.redis.RedisMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
@@ -13,11 +13,11 @@ import redis.clients.jedis.Connection;
  * @author frankchen
  */
 public class JedisConnectionConnect extends AbstractInterceptor {
-    private RedisMetricProvider metricProvider;
+    private RedisMetricCollector metricProvider;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricProviderManager.getInstance().getOrRegister("jedis", RedisMetricProvider.class);
+        metricProvider = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
         return true;
     }
 

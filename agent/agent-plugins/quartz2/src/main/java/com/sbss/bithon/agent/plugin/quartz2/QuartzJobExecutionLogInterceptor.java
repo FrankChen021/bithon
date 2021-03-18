@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.plugin.quartz2;
 
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import shaded.org.slf4j.Logger;
@@ -12,7 +12,7 @@ import shaded.org.slf4j.LoggerFactory;
 public class QuartzJobExecutionLogInterceptor extends AbstractInterceptor {
     private static final Logger log = LoggerFactory.getLogger(QuartzJobExecutionLogInterceptor.class);
 
-    private QuartzMetricProvider quartzCounter;
+    private QuartzMetricCollector quartzCounter;
 
     @Override
     public boolean initialize() {
@@ -21,8 +21,8 @@ public class QuartzJobExecutionLogInterceptor extends AbstractInterceptor {
             return false;
         }
 
-        quartzCounter = (QuartzMetricProvider)
-            MetricProviderManager.getInstance().register(QuartzMetricProvider.COUNTER_NAME, new QuartzMetricProvider());
+        quartzCounter = (QuartzMetricCollector)
+            MetricCollectorManager.getInstance().register(QuartzMetricCollector.COUNTER_NAME, new QuartzMetricCollector());
 
         return true;
     }

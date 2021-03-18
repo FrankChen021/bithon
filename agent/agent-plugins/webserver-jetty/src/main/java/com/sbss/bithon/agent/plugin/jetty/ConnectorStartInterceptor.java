@@ -16,6 +16,6 @@ public class ConnectorStartInterceptor extends AbstractInterceptor {
 
         AgentContext.getInstance().getAppInstance().setPort(connector.getPort());
 
-        WebServerMetricProvider.getInstance().setConnector(connector);
+        WebServerMetricCollector.getInstance().setConnector(connector);
     }
 }

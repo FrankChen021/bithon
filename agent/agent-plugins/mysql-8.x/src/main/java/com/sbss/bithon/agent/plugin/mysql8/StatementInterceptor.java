@@ -8,11 +8,11 @@ import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
  * @author frankchen
  */
 public class StatementInterceptor extends AbstractInterceptor {
-    private SqlMetricProvider counter;
+    private SqlMetricCollector counter;
 
     @Override
     public boolean initialize() {
-        counter = SqlMetricProvider.getInstance();
+        counter = SqlMetricCollector.getInstance();
         return true;
     }
 

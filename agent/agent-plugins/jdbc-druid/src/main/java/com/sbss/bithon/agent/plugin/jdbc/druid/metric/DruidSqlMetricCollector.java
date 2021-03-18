@@ -2,8 +2,8 @@ package com.sbss.bithon.agent.plugin.jdbc.druid.metric;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.plugin.jdbc.druid.DruidPlugin;
@@ -16,19 +16,20 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class DruidSqlMetricProvider implements IMetricProvider {
-    static final DruidSqlMetricProvider INSTANCE = new DruidSqlMetricProvider();
-    private static final Logger log = LoggerFactory.getLogger(DruidSqlMetricProvider.class);
-    private static final String METRICS_NAME = "alibaba-druid-sql-metric";
+public class DruidSqlMetricCollector implements IMetricCollector {
+    static final DruidSqlMetricCollector INSTANCE = new DruidSqlMetricCollector();
+    private static final Logger log = LoggerFactory.getLogger(DruidSqlMetricCollector.class);
+    private static final String METRICS_NAME = "jdbc-druid";
+
     private final MonitoredSourceManager monitoredSourceManager;
 
-    private DruidSqlMetricProvider() {
+    private DruidSqlMetricCollector() {
         monitoredSourceManager = MonitoredSourceManager.getInstance();
 
-        MetricProviderManager.getInstance().register(METRICS_NAME, this);
+        MetricCollectorManager.getInstance().register(METRICS_NAME, this);
     }
 
-    public static DruidSqlMetricProvider getInstance() {
+    public static DruidSqlMetricCollector getInstance() {
         return INSTANCE;
     }
 
@@ -42,7 +43,7 @@ public class DruidSqlMetricProvider implements IMetricProvider {
         }
 
         // check if metrics provider for this driver exists
-        if (MetricProviderManager.getInstance().isProviderExists(monitoredSource.getDriverClass())) {
+        if (MetricCollectorManager.getInstance().isProviderExists(monitoredSource.getDriverClass())) {
             log.debug("Underlying Metric Provider Exists");
             return;
         }
@@ -70,10 +71,10 @@ public class DruidSqlMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (MonitoredSource source : MonitoredSourceManager.getInstance().getDataSources()) {
             SqlMetric metric = source.getSqlMetric();

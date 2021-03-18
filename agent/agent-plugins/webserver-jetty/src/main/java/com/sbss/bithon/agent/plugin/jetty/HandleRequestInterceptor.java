@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.plugin.jetty;
 
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.web.RequestUriFilter;
 import com.sbss.bithon.agent.core.metric.web.UserAgentFilter;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
@@ -19,16 +19,16 @@ public class HandleRequestInterceptor extends AbstractInterceptor {
     private RequestUriFilter uriFilter;
     private UserAgentFilter userAgentFilter;
 
-    private WebRequestMetricProvider requestCounter;
+    private WebRequestMetricCollector requestCounter;
 
     @Override
     public boolean initialize() {
         uriFilter = new RequestUriFilter();
         userAgentFilter = new UserAgentFilter();
 
-        requestCounter = (WebRequestMetricProvider) MetricProviderManager.getInstance()
-                                                                         .register(JETTY_REQUEST_BUFFER_MANAGER_NAME,
-                                                                                   new WebRequestMetricProvider());
+        requestCounter = (WebRequestMetricCollector) MetricCollectorManager.getInstance()
+                                                                           .register(JETTY_REQUEST_BUFFER_MANAGER_NAME,
+                                                                                   new WebRequestMetricCollector());
 
         return true;
     }

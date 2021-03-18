@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.httpclient.okhttp32;
 
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
-import com.sbss.bithon.agent.core.metric.http.HttpClientMetricProvider;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.http.HttpClientMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class OkHttp32Interceptor extends AbstractInterceptor {
     private static final Logger log = LoggerFactory.getLogger(OkHttp32Interceptor.class);
 
-    private HttpClientMetricProvider metricProvider;
+    private HttpClientMetricCollector metricProvider;
     private Set<String> ignoredSuffixes;
 
     @Override
@@ -37,7 +37,7 @@ public class OkHttp32Interceptor extends AbstractInterceptor {
             .map(x -> x.trim().toLowerCase())
             .collect(Collectors.toSet());
 
-        metricProvider = MetricProviderManager.getInstance().register("okhttp3.2", new HttpClientMetricProvider());
+        metricProvider = MetricCollectorManager.getInstance().register("okhttp3.2", new HttpClientMetricCollector());
 
         return true;
     }

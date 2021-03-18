@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.jdbc.druid.interceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
-import com.sbss.bithon.agent.plugin.jdbc.druid.metric.DruidSqlMetricProvider;
+import com.sbss.bithon.agent.plugin.jdbc.druid.metric.DruidSqlMetricCollector;
 import com.sbss.bithon.agent.plugin.jdbc.druid.metric.MonitoredSourceManager;
 
 import java.sql.Statement;
@@ -28,10 +28,10 @@ public class DruidSqlInterceptor extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         String dataSourceUri = aopContext.castUserContextAs();
         if (dataSourceUri != null) {
-            DruidSqlMetricProvider.getInstance().update(aopContext.getMethod().getName(),
-                                                        dataSourceUri,
-                                                        aopContext,
-                                                        aopContext.getCostTime());
+            DruidSqlMetricCollector.getInstance().update(aopContext.getMethod().getName(),
+                                                         dataSourceUri,
+                                                         aopContext,
+                                                         aopContext.getCostTime());
         }
     }
 }

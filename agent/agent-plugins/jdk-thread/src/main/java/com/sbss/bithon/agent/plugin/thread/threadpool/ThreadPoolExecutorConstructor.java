@@ -13,7 +13,7 @@ public class ThreadPoolExecutorConstructor extends AbstractInterceptor {
     public void onConstruct(Object constructedObject,
                             Object[] args) throws Exception {
         ThreadPoolExecutor executor = (ThreadPoolExecutor) constructedObject;
-        ThreadPoolMetricsProvider.getInstance()
-                                 .insertThreadPoolMetrics(executor, new ThreadPoolExecutorMetrics(executor));
+        ThreadPoolMetricsCollector.getInstance()
+                                  .insertThreadPoolMetrics(executor, new ThreadPoolExecutorMetrics(executor));
     }
 }

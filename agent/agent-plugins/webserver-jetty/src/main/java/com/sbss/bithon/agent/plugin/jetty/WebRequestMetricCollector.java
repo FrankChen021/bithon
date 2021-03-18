@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.jetty;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.web.WebRequestMetric;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author frankchen
  */
-public class WebRequestMetricProvider implements IMetricProvider {
+public class WebRequestMetricCollector implements IMetricCollector {
 
     private final Map<String, WebRequestMetric> metricsMap = new ConcurrentHashMap<>();
     private WebRequestMetric metric;
@@ -56,10 +56,10 @@ public class WebRequestMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (Map.Entry<String, WebRequestMetric> entry : metricsMap.entrySet()) {
             metricsMap.compute(entry.getKey(),

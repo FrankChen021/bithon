@@ -7,13 +7,13 @@ import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
  * @author frankchen
  */
 public class PreparedStatementInterceptor extends AbstractInterceptor {
-    private SqlMetricProvider sqlCounter;
-    private SqlStatementMetricProvider statementCounterStorage;
+    private SqlMetricCollector sqlCounter;
+    private SqlStatementMetricCollector statementCounterStorage;
 
     @Override
     public boolean initialize() {
-        sqlCounter = SqlMetricProvider.getInstance();
-        statementCounterStorage = SqlStatementMetricProvider.getInstance();
+        sqlCounter = SqlMetricCollector.getInstance();
+        statementCounterStorage = SqlStatementMetricCollector.getInstance();
         return true;
     }
 

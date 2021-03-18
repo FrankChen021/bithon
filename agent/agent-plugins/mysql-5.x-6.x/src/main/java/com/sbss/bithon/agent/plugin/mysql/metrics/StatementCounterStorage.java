@@ -3,8 +3,8 @@ package com.sbss.bithon.agent.plugin.mysql.metrics;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.sql.SqlStatementMetric;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.setting.AgentSettingManager;
@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author frankchen
  */
-public class StatementCounterStorage implements IMetricProvider, IAgentSettingRefreshListener {
+public class StatementCounterStorage implements IMetricCollector, IAgentSettingRefreshListener {
     static final StatementCounterStorage INSTANCE = new StatementCounterStorage();
     private static final Logger log = LoggerFactory.getLogger(StatementCounterStorage.class);
     private static final String MYSQL_COUNTER_NAME = "sql_stats";
@@ -33,7 +33,7 @@ public class StatementCounterStorage implements IMetricProvider, IAgentSettingRe
 
     private StatementCounterStorage() {
         try {
-            MetricProviderManager.getInstance().register(MYSQL_COUNTER_NAME, this);
+            MetricCollectorManager.getInstance().register(MYSQL_COUNTER_NAME, this);
         } catch (Exception e) {
             log.error("druid counter init failed due to ", e);
         }
@@ -100,10 +100,10 @@ public class StatementCounterStorage implements IMetricProvider, IAgentSettingRe
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         List<Object> messages = new ArrayList<>();
         counters.forEach((dataSourceUrl, statementCounters) -> {
             statementCounters.forEach((sql, counter) -> messages.add(messageConverter.from(counter)));

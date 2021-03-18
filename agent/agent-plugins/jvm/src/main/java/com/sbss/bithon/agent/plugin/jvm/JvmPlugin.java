@@ -11,5 +11,4 @@ public class JvmPlugin extends AbstractPlugin {
     public void start() {
         new JvmMetricService().start();
     }
-
 }

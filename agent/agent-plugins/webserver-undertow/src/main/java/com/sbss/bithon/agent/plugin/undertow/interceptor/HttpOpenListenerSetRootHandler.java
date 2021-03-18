@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.plugin.undertow.interceptor;
 
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.plugin.undertow.metric.WebServerMetricProvider;
+import com.sbss.bithon.agent.plugin.undertow.metric.WebServerMetricCollector;
 import io.undertow.UndertowOptions;
 import io.undertow.server.protocol.http.HttpOpenListener;
 import org.xnio.OptionMap;
@@ -18,6 +18,6 @@ public class HttpOpenListenerSetRootHandler extends AbstractInterceptor {
         openListener.setUndertowOptions(OptionMap.builder().addAll(openListener.getUndertowOptions())
                                             .set(UndertowOptions.ENABLE_CONNECTOR_STATISTICS, true)
                                             .getMap());
-        WebServerMetricProvider.getInstance().setConnectorStatistics(openListener.getConnectorStatistics());
+        WebServerMetricCollector.getInstance().setConnectorStatistics(openListener.getConnectorStatistics());
     }
 }

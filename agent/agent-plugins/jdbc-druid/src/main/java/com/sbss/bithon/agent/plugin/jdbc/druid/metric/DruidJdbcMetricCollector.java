@@ -4,8 +4,8 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceStatValue;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,17 +14,15 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class DruidJdbcMetricProvider implements IMetricProvider {
+public class DruidJdbcMetricCollector implements IMetricCollector {
 
-    private static final String PROVIDER_NAME = "jdbc-druid-metrics";
+    private static final DruidJdbcMetricCollector INSTANCE = new DruidJdbcMetricCollector();
 
-    private static final DruidJdbcMetricProvider INSTANCE = new DruidJdbcMetricProvider();
-
-    private DruidJdbcMetricProvider() {
-        MetricProviderManager.getInstance().register(PROVIDER_NAME, this);
+    private DruidJdbcMetricCollector() {
+        MetricCollectorManager.getInstance().register("jdbc-druid-metrics", this);
     }
 
-    public static DruidJdbcMetricProvider getOrCreateInstance() {
+    public static DruidJdbcMetricCollector getOrCreateInstance() {
         return INSTANCE;
     }
 
@@ -57,10 +55,10 @@ public class DruidJdbcMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         List<Object> jdbcMessages = new ArrayList<>();
 
         Collection<MonitoredSource> dataSources = MonitoredSourceManager.getInstance().getDataSources();

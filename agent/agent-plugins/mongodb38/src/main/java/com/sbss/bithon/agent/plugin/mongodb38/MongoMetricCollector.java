@@ -2,8 +2,8 @@ package com.sbss.bithon.agent.plugin.mongodb38;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.mongo.MongoMetric;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -16,9 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author frankchen
  */
-public class MongoMetricProvider implements IMetricProvider {
-    static final MongoMetricProvider INSTANCE = new MongoMetricProvider();
-    private static final Logger log = LoggerFactory.getLogger(MongoMetricProvider.class);
+public class MongoMetricCollector implements IMetricCollector {
+    static final MongoMetricCollector INSTANCE = new MongoMetricCollector();
+    private static final Logger log = LoggerFactory.getLogger(MongoMetricCollector.class);
     private static final String COUNTER_NAME = "mongodb38";
     /**
      * 计数器内部存储, String存放host + port
@@ -30,15 +30,15 @@ public class MongoMetricProvider implements IMetricProvider {
     private final Map<String, String> mongoDbConnectionIdHostPortMapping = new ConcurrentHashMap<>();
     private MongoMetric counter;
 
-    private MongoMetricProvider() {
+    private MongoMetricCollector() {
         try {
-            MetricProviderManager.getInstance().register(COUNTER_NAME, this);
+            MetricCollectorManager.getInstance().register(COUNTER_NAME, this);
         } catch (Exception e) {
             log.error("mongodb counter init failed due to ", e);
         }
     }
 
-    public static MongoMetricProvider getInstance() {
+    public static MongoMetricCollector getInstance() {
         return INSTANCE;
     }
 
@@ -84,10 +84,10 @@ public class MongoMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
         if (log.isDebugEnabled()) {
             log.debug("app-mongodb-debugging: Current Mongo ConnectionId Mapping: " + mongoDbConnectionIdHostPortMapping
                 .toString());

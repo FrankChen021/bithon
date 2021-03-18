@@ -2,8 +2,8 @@ package com.sbss.bithon.agent.plugin.undertow.metric;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricProvider;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
+import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
 import com.sbss.bithon.agent.core.metric.web.WebServerType;
 import io.undertow.server.ConnectorStatistics;
@@ -17,16 +17,16 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/1/14 10:50 下午
  */
-public class WebServerMetricProvider implements IMetricProvider {
+public class WebServerMetricCollector implements IMetricCollector {
 
-    private static WebServerMetricProvider INSTANCE = new WebServerMetricProvider();
+    private static WebServerMetricCollector INSTANCE = new WebServerMetricCollector();
 
-    public static WebServerMetricProvider getInstance() {
+    public static WebServerMetricCollector getInstance() {
         return INSTANCE;
     }
 
-    WebServerMetricProvider() {
-        MetricProviderManager.getInstance().register("undertow-webserver", this);
+    WebServerMetricCollector() {
+        MetricCollectorManager.getInstance().register("undertow-webserver", this);
     }
 
     private TaskPoolAccessor threadPoolAccessor;
@@ -38,10 +38,10 @@ public class WebServerMetricProvider implements IMetricProvider {
     }
 
     @Override
-    public List<Object> buildMessages(IMessageConverter messageConverter,
-                                      AppInstance appInstance,
-                                      int interval,
-                                      long timestamp) {
+    public List<Object> collect(IMessageConverter messageConverter,
+                                AppInstance appInstance,
+                                int interval,
+                                long timestamp) {
 
         long connectionCount = null == connectorStatistics ? 0 : connectorStatistics.getActiveConnections();
 

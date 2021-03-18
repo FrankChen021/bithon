@@ -14,6 +14,6 @@ public class ThreadPoolExecutorCallerRun extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext joinPoint) {
         ThreadPoolExecutor executor = (ThreadPoolExecutor) joinPoint.getArgs()[1];
-        ThreadPoolMetricsProvider.getInstance().addCallerRun(executor);
+        ThreadPoolMetricsCollector.getInstance().addCallerRun(executor);
     }
 }

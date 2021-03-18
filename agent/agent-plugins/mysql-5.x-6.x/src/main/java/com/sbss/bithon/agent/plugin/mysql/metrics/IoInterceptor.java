@@ -12,6 +12,6 @@ public class IoInterceptor extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext context) {
-        SqlMetricProvider.getInstance().recordIO(context);
+        SqlMetricCollector.getInstance().recordIO(context);
     }
 }

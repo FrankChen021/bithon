@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.plugin.httpclient.apache.metrics;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
-import com.sbss.bithon.agent.core.metric.http.HttpClientMetricProvider;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.http.HttpClientMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
@@ -23,13 +23,13 @@ import java.lang.reflect.Field;
 public class DefaultRequestDirectorReleaseConnection extends AbstractInterceptor {
     private static Logger log = LoggerFactory.getLogger(DefaultRequestDirectorReleaseConnection.class);
 
-    private HttpClientMetricProvider metricProvider;
+    private HttpClientMetricCollector metricProvider;
     private Field managedConnectionField;
 
     @Override
     public boolean initialize() throws Exception {
-        metricProvider = MetricProviderManager.getInstance()
-                                              .getOrRegister("apache-http-client", HttpClientMetricProvider.class);
+        metricProvider = MetricCollectorManager.getInstance()
+                                               .getOrRegister("apache-http-client", HttpClientMetricCollector.class);
 
         return true;
     }

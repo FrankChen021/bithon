@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.httpclient.jdk;
 
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
-import com.sbss.bithon.agent.core.metric.http.HttpClientMetricProvider;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.http.HttpClientMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
@@ -18,11 +18,11 @@ import sun.net.www.protocol.http.HttpURLConnection;
 public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
 
     //TODO: jdk-http metrics
-    HttpClientMetricProvider metricProvider;
+    HttpClientMetricCollector metricProvider;
 
     @Override
     public boolean initialize() throws Exception {
-        metricProvider = MetricProviderManager.getInstance().register("jdk-httpclient", new HttpClientMetricProvider());
+        metricProvider = MetricCollectorManager.getInstance().register("jdk-httpclient", new HttpClientMetricCollector());
         return true;
     }
 

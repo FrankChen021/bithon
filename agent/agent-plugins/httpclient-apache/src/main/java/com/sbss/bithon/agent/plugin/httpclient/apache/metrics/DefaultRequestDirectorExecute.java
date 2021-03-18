@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.plugin.httpclient.apache.metrics;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
-import com.sbss.bithon.agent.core.metric.MetricProviderManager;
-import com.sbss.bithon.agent.core.metric.http.HttpClientMetricProvider;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.http.HttpClientMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
@@ -25,12 +25,12 @@ import shaded.org.slf4j.LoggerFactory;
 public class DefaultRequestDirectorExecute extends AbstractInterceptor {
     private static Logger log = LoggerFactory.getLogger(DefaultRequestDirectorExecute.class);
 
-    private HttpClientMetricProvider metricProvider;
+    private HttpClientMetricCollector metricProvider;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricProviderManager.getInstance()
-                                              .getOrRegister("apache-http-client", HttpClientMetricProvider.class);
+        metricProvider = MetricCollectorManager.getInstance()
+                                               .getOrRegister("apache-http-client", HttpClientMetricCollector.class);
         return true;
     }
 
