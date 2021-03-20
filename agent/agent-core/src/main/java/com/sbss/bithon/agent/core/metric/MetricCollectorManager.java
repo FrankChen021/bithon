@@ -2,6 +2,7 @@ package com.sbss.bithon.agent.core.metric;
 
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
 import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
+import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
 import com.sbss.bithon.agent.core.utils.concurrent.NamedThreadFactory;
 import shaded.org.slf4j.Logger;
@@ -25,13 +26,35 @@ public class MetricCollectorManager {
 
     private static final int INTERVAL = 10;
     private static final MetricCollectorManager INSTANCE = new MetricCollectorManager();
-    private final ConcurrentMap<String, IMetricCollector> collectors;
+    private final ConcurrentMap<String, ManagedMetricCollector> collectors;
     private final Dispatcher dispatcher;
     ScheduledExecutorService scheduler;
 
+    static class ManagedMetricCollector {
+        /**
+         * last timestamp when the collector is scheduled to collect metrics
+         */
+        long lastCollectedAt;
+
+        IMetricCollector collector;
+
+        public ManagedMetricCollector(IMetricCollector collector) {
+            this.lastCollectedAt = System.currentTimeMillis();
+            this.collector = collector;
+        }
+
+        public List<Object> collect(IMessageConverter messageConverter) {
+            long now = System.currentTimeMillis();
+            int interval = (int) ((now - lastCollectedAt) / 1000);
+            this.lastCollectedAt = now;
+
+            return this.collector.collect(messageConverter, interval, lastCollectedAt);
+        }
+    }
+
     private MetricCollectorManager() {
         this.collectors = new ConcurrentHashMap<>();
-        this.dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_METRICS);
+        this.dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_METRIC);
 
         // NOTE:
         // Constructing ScheduledThreadPoolExecutor would cause ThreadPoolInterceptor be executed
@@ -57,29 +80,32 @@ public class MetricCollectorManager {
     }
 
     public <T extends IMetricCollector> T register(String collectorName, T collector) {
-        if (collectors.putIfAbsent(collectorName, collector) != null) {
+        if (collectors.containsKey(collectorName)) {
             throw new RuntimeException(String.format("Metrics Local Storage(%s) already registered!", collectorName));
         }
+
+        collectors.computeIfAbsent(collectorName, key -> new ManagedMetricCollector(collector));
+
         return collector;
     }
 
     @SuppressWarnings("unchecked")
     public <T extends IMetricCollector> T getOrRegister(String collectorName, Class<T> collectorClass) {
-        IMetricCollector collector = collectors.get(collectorName);
-        if (collector != null) {
-            return (T) collector;
+        ManagedMetricCollector managedCollector = collectors.get(collectorName);
+        if (managedCollector != null) {
+            return (T) managedCollector.collector;
         }
         synchronized (this) {
             try {
-                collector = collectors.get(collectorName);
+                managedCollector = collectors.get(collectorName);
                 // double check
-                if (collector != null) {
-                    return (T) collector;
+                if (managedCollector != null) {
+                    return (T) managedCollector.collector;
                 }
 
-                collector = collectorClass.newInstance();
-                collectors.put(collectorName, collector);
-                return (T) collector;
+                managedCollector = new ManagedMetricCollector(collectorClass.newInstance());
+                collectors.put(collectorName, managedCollector);
+                return (T) managedCollector.collector;
             } catch (Exception e) {
                 throw new RuntimeException("Can't create or register metric provider " + collectorName, e);
             }
@@ -91,16 +117,14 @@ public class MetricCollectorManager {
             return;
         }
 
-        for (IMetricCollector collector : collectors.values()) {
-            if (collector.isEmpty()) {
+        for (ManagedMetricCollector managedCollector : collectors.values()) {
+            if (managedCollector.collector.isEmpty()) {
                 continue;
             }
 
             this.scheduler.execute(() -> {
                 try {
-                    List<Object> messages = collector.collect(dispatcher.getMessageConverter(),
-                                                              INTERVAL,
-                                                              System.currentTimeMillis());
+                    List<Object> messages = managedCollector.collect(dispatcher.getMessageConverter());
                     if (CollectionUtils.isNotEmpty(messages)) {
                         dispatcher.sendMessage(messages);
                     }

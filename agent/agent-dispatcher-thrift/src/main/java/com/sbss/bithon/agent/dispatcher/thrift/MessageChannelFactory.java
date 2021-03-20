@@ -11,7 +11,7 @@ import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
  */
 public class MessageChannelFactory implements IMessageChannelFactory {
     @Override
-    public IMessageChannel createMetricsChannel(DispatcherConfig dispatcherConfig) {
+    public IMessageChannel createMetricChannel(DispatcherConfig dispatcherConfig) {
         return new ThriftMetricsMessageChannel(dispatcherConfig);
     }
 
@@ -21,7 +21,7 @@ public class MessageChannelFactory implements IMessageChannelFactory {
     }
 
     @Override
-    public IMessageChannel createEventsChannel(DispatcherConfig dispatcherConfig) {
+    public IMessageChannel createEventChannel(DispatcherConfig dispatcherConfig) {
         return new ThriftEventMessageChannel(dispatcherConfig);
     }
 

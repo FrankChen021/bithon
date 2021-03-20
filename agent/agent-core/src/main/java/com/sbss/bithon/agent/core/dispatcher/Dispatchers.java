@@ -14,11 +14,11 @@ import java.util.Map;
  */
 public class Dispatchers {
     /**
-     * the name MUST corresponds to the name of methods such as {@link IMessageChannelFactory#createMetricsChannel(DispatcherConfig)}
+     * the name MUST corresponds to the name of methods such as {@link IMessageChannelFactory#createMetricChannel(DispatcherConfig)}
      */
-    public static final String DISPATCHER_NAME_METRICS = "metrics";
+    public static final String DISPATCHER_NAME_METRIC = "metric";
     public static final String DISPATCHER_NAME_TRACING = "tracing";
-    public static final String DISPATCHER_NAME_EVNETS = "events";
+    public static final String DISPATCHER_NAME_EVENT = "event";
 
     private static final Map<String, Dispatcher> DISPATCHERS = new HashMap<>();
 

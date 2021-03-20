@@ -8,11 +8,11 @@ import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
  * @date 2021/1/5 11:08 下午
  */
 public interface IMessageChannelFactory {
-    IMessageChannel createMetricsChannel(DispatcherConfig dispatcherConfig);
+    IMessageChannel createMetricChannel(DispatcherConfig dispatcherConfig);
 
     IMessageChannel createTracingChannel(DispatcherConfig dispatcherConfig);
 
-    IMessageChannel createEventsChannel(DispatcherConfig dispatcherConfig);
+    IMessageChannel createEventChannel(DispatcherConfig dispatcherConfig);
 
     IMessageConverter createMessageConverter();
 }

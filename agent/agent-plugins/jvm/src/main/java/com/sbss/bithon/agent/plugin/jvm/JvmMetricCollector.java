@@ -84,7 +84,7 @@ public class JvmMetricCollector {
     }
 
     private boolean sendJvmStartedEvent() {
-        Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVNETS);
+        Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
         if (!dispatcher.isReady()) {
             return false;
         }

@@ -31,7 +31,7 @@ public class QuartzInterceptor extends AbstractInterceptor {
 
         checkPeriod = 10;
 
-        dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_METRICS);
+        dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_METRIC);
 
         // try using static method to get the instance status
         new Timer().schedule(new TimerTask() {

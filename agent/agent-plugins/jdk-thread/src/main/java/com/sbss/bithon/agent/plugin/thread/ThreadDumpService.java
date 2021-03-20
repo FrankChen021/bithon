@@ -36,7 +36,7 @@ public class ThreadDumpService {
     public boolean initialize() {
         checkPeriod = 10;
 
-        dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_METRICS);
+        dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_METRIC);
 
         new Timer().schedule(new TimerTask() {
             @Override
