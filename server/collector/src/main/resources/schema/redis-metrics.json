@@ -40,29 +40,64 @@
       "displayText": "Total Commands",
       "unit": ""
     },
+
+    {
+      "type": "longMin",
+      "name": "minRequestTime",
+      "displayText": "Min Request Time",
+      "unit": "nanosecond"
+    },
     {
       "type": "longSum",
       "name": "requestTime",
       "displayText": "requestTime",
-      "unit": "Nano"
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longMax",
+      "name": "maxRequestTime",
+      "displayText": "requestTime",
+      "unit": "nanosecond"
+    },
+
+    {
+      "type": "longMin",
+      "name": "minResponseTime",
+      "displayText": "Min Response Time",
+      "unit": "nanosecond"
     },
     {
       "type": "longSum",
       "name": "responseTime",
       "displayText": "responseTime",
-      "unit": "Nano"
+      "unit": "nanosecond"
     },
+    {
+      "type": "longMax",
+      "name": "maxResponseTime",
+      "displayText": "Max Response Time",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "postAggregator",
+      "name": "avgResponseTime",
+      "expression": "responseTime/totalCount",
+      "displayText": "AVG Response Time",
+      "unit": "nanosecond",
+      "valueType": "double"
+    },
+
     {
       "type": "longSum",
       "name": "requestBytes",
       "displayText": "Request Bytes",
-      "unit": "Byte"
+      "unit": "byte"
     },
     {
       "type": "longSum",
       "name": "responseBytes",
       "displayText": "Response Bytes",
-      "unit": "Byte"
+      "unit": "byte"
     }
   ]
 }

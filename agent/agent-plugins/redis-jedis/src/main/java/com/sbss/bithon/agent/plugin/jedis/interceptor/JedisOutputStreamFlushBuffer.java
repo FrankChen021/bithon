@@ -20,11 +20,11 @@ public class JedisOutputStreamFlushBuffer extends AbstractInterceptor {
     private static final Logger log = LoggerFactory.getLogger(JedisOutputStreamFlushBuffer.class);
 
     private Field countField;
-    private RedisMetricCollector metricProvider;
+    private RedisMetricCollector metricCollector;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
+        metricCollector = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
         return true;
     }
 
@@ -43,9 +43,9 @@ public class JedisOutputStreamFlushBuffer extends AbstractInterceptor {
         String hostAndPort = (String) ((IBithonObject) outputStream).getInjectedObject();
         String command = InterceptorContext.getAs("redis-command");
         int outputBytes = countField.getInt(outputStream);
-        metricProvider.addOutputBytes(hostAndPort,
-                                      command,
-                                      outputBytes);
+        metricCollector.addOutputBytes(hostAndPort,
+                                       command,
+                                       outputBytes);
 
         return InterceptionDecision.SKIP_LEAVE;
     }

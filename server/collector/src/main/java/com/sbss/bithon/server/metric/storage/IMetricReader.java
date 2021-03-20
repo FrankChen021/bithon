@@ -19,11 +19,23 @@ import java.util.Map;
 })
 public interface IMetricReader {
 
+    /**
+     * TODO: Actually, this method is a time-series implementation. Should be renamed some day
+     */
     List<Map<String, Object>> getMetricValueList(TimeSpan start,
                                                  TimeSpan end,
                                                  DataSourceSchema dataSourceSchema,
                                                  Collection<DimensionCondition> dimensions,
                                                  Collection<String> metrics);
+
+    /**
+     * Aggregate metrics by their pre-defined aggregators in the given period
+     */
+    Map<String, Object> getMetricValue(TimeSpan start,
+                                       TimeSpan end,
+                                       DataSourceSchema dataSourceSchema,
+                                       Collection<DimensionCondition> dimensions,
+                                       Collection<String> metrics);
 
     List<Map<String, Object>> getMetricValueList(String sql);
 

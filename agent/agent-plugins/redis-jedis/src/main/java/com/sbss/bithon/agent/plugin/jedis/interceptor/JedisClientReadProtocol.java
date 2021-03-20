@@ -11,11 +11,11 @@ import redis.clients.jedis.Client;
  * @author frankchen
  */
 public class JedisClientReadProtocol extends AbstractInterceptor {
-    private RedisMetricCollector metricProvider;
+    private RedisMetricCollector metricCollector;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
+        metricCollector = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
         return true;
     }
 
@@ -27,9 +27,9 @@ public class JedisClientReadProtocol extends AbstractInterceptor {
         String hostAndPort = redisClient.getHost() + ":" + redisClient.getPort();
 
         String command = InterceptorContext.getAs("redis-command");
-        metricProvider.addRead(hostAndPort,
-                               command,
-                               aopContext.getCostTime(),
-                               aopContext.hasException());
+        metricCollector.addRead(hostAndPort,
+                                command,
+                                aopContext.getCostTime(),
+                                aopContext.hasException());
     }
 }

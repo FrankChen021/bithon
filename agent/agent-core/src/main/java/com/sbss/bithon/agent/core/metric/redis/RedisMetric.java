@@ -13,7 +13,7 @@ public class RedisMetric {
 
     private final Timer requestTime = new Timer();
     private final Timer responseTime = new Timer();
-    private final Sum totalCount = new Sum();
+    private final Sum callCount = new Sum();
     private final Sum exceptionCount = new Sum();
     private final Sum responseBytes = new Sum();
     private final Sum requestBytes = new Sum();
@@ -26,7 +26,7 @@ public class RedisMetric {
     public void addRequest(long writeCostTime, int exceptionCount) {
         this.requestTime.update(writeCostTime);
         this.exceptionCount.update(exceptionCount);
-        this.totalCount.incr();
+        this.callCount.incr();
     }
 
     public void addResponse(long readCostTime, int exceptionCount) {
@@ -42,8 +42,8 @@ public class RedisMetric {
         return responseTime;
     }
 
-    public long getTotalCount() {
-        return totalCount.get();
+    public long getCallCount() {
+        return callCount.get();
     }
 
     public long getExceptionCount() {

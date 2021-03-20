@@ -20,11 +20,11 @@ public class JedisInputStreamEnsureFill extends AbstractInterceptor {
 
     private Field countField = null;
     private Field limitField = null;
-    private RedisMetricCollector metricProvider;
+    private RedisMetricCollector metricCollector;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
+        metricCollector = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
         return true;
     }
 
@@ -53,9 +53,9 @@ public class JedisInputStreamEnsureFill extends AbstractInterceptor {
 
             String command = InterceptorContext.getAs("redis-command");
             int bytesIn = limitField.getInt(inputStream);
-            metricProvider.addInputBytes((String) ((IBithonObject) inputStream).getInjectedObject(),
-                                         command,
-                                         bytesIn);
+            metricCollector.addInputBytes((String) ((IBithonObject) inputStream).getInjectedObject(),
+                                          command,
+                                          bytesIn);
         } catch (IllegalArgumentException
             | IllegalAccessException e) {
             log.error("cannot access field [limit/count] of RedisInputStream", e);

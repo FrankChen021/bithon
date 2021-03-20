@@ -187,7 +187,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setUri(metric.getHostAndPort());
         message.setCommand(metric.getCommand());
         message.setExceptionCount(metric.getExceptionCount());
-        message.setTotalCount(metric.getTotalCount());
+        message.setTotalCount(metric.getCallCount());
         message.setRequestTime(metric.getRequestTime().getSum().get());
         message.setResponseTime(metric.getResponseTime().getSum().get());
         message.setRequestBytes(metric.getRequestBytes());

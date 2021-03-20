@@ -27,8 +27,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,11 +56,11 @@ class MetricJdbcReader implements IMetricReader {
                                                         Collection<DimensionCondition> dimensions,
                                                         Collection<String> metrics) {
         String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
-        MetricFieldsClauseBuilder fieldsClauseBuilder = new MetricFieldsClauseBuilder(sqlTableName,
+        MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
                                                                                       "OUTER",
                                                                                       dataSourceSchema);
         String metricList = metrics.stream()
-                                   .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(fieldsClauseBuilder))
+                                   .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
                                    .collect(Collectors.joining(", "));
 
         String condition = dimensions.stream()
@@ -78,15 +80,47 @@ class MetricJdbcReader implements IMetricReader {
         return getMetricValueList(sql);
     }
 
-    @SuppressWarnings("rawtypes")
+    @Override
+    public Map<String, Object> getMetricValue(TimeSpan start,
+                                              TimeSpan end,
+                                              DataSourceSchema dataSourceSchema,
+                                              Collection<DimensionCondition> dimensions,
+                                              Collection<String> metrics) {
+        String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
+        MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
+                                                                                      "OUTER",
+                                                                                      dataSourceSchema);
+        String metricList = metrics.stream()
+                                   .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
+                                   .collect(Collectors.joining(", "));
+
+        String condition = dimensions.stream()
+                                     .map(dimension -> dimension.getMatcher()
+                                                                .accept(new SqlConditionBuilder(dimension.getDimension())))
+                                     .collect(Collectors.joining(" AND "));
+        String sql = String.format(
+            "SELECT %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s'",
+            metricList,
+            sqlTableName,
+            "OUTER",
+            condition,
+            start.toISO8601(),
+            end.toISO8601()
+        );
+        log.info("Executing {}", sql);
+        List<Map<String, Object>> values = getMetricValueList(sql);
+        return CollectionUtils.isEmpty(values) ? Collections.emptyMap() : values.get(0);
+    }
+
     @Override
     public List<Map<String, Object>> getMetricValueList(String sql) {
         List<Record> records = dsl.fetch(sql);
 
         // although the explicit cast seems unnecessary, it must be kept so that compilation can pass
+        // this is might be a bug of JDK
         return (List<Map<String, Object>>) records.stream().map(record -> {
             Map<String, Object> mapObject = new HashMap<>();
-            for (Field field : record.fields()) {
+            for (Field<?> field : record.fields()) {
                 mapObject.put(field.getName(), record.get(field));
             }
             return mapObject;
@@ -116,13 +150,16 @@ class MetricJdbcReader implements IMetricReader {
         List<Record> records = dsl.fetch(sql);
         return records.stream().map(record -> {
             Map<String, String> mapObject = new HashMap<>();
-            for (Field field : record.fields()) {
+            for (Field<?> field : record.fields()) {
                 mapObject.put("value", record.get(field).toString());
             }
             return mapObject;
         }).collect(Collectors.toList());
     }
 
+    /**
+     * build SQL where clause
+     */
     static class SqlConditionBuilder implements IMatcherVisitor<String> {
         private final String name;
 
@@ -144,36 +181,39 @@ class MetricJdbcReader implements IMetricReader {
         }
 
         @Override
-        public <T> T visit(AntPathMatcher antPathMatcher) {
+        public String visit(AntPathMatcher antPathMatcher) {
             return null;
         }
 
         @Override
-        public <T> T visit(ContainsMatcher containsMatcher) {
+        public String visit(ContainsMatcher containsMatcher) {
             return null;
         }
 
         @Override
-        public <T> T visit(EndwithMatcher endwithMatcher) {
+        public String visit(EndwithMatcher endwithMatcher) {
             return null;
         }
 
         @Override
-        public <T> T visit(IContainsMatcher iContainsMatcher) {
+        public String visit(IContainsMatcher iContainsMatcher) {
             return null;
         }
 
         @Override
-        public <T> T visit(RegexMatcher regexMatcher) {
+        public String visit(RegexMatcher regexMatcher) {
             return null;
         }
 
         @Override
-        public <T> T visit(StartwithMatcher startwithMatcher) {
+        public String visit(StartwithMatcher startwithMatcher) {
             return null;
         }
     }
 
+    /**
+     * build SQL clause which aggregates specified metric
+     */
     public static class MetricFieldsClauseBuilder implements IMetricSpecVisitor<String> {
 
         private final String sqlTableName;

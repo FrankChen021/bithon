@@ -13,11 +13,11 @@ import redis.clients.jedis.Connection;
  * @author frankchen
  */
 public class JedisConnectionConnect extends AbstractInterceptor {
-    private RedisMetricCollector metricProvider;
+    private RedisMetricCollector metricCollector;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
+        metricCollector = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
         return true;
     }
 
