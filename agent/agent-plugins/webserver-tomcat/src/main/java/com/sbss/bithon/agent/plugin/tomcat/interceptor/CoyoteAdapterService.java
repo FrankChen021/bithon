@@ -14,17 +14,15 @@ import org.apache.coyote.Response;
  * @author frankchen
  */
 public class CoyoteAdapterService extends AbstractInterceptor {
-    private static final String TOMCAT_REQUEST_BUFFER_MANAGER_NAME = "tomcat-request";
-
-    private WebRequestMetricCollector metricProvider;
+    private WebRequestMetricCollector metricCollector;
     private RequestUriFilter uriFilter;
     private UserAgentFilter userAgentFilter;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricCollectorManager.getInstance()
-                                               .register(TOMCAT_REQUEST_BUFFER_MANAGER_NAME,
-                                                        new WebRequestMetricCollector());
+        metricCollector = MetricCollectorManager.getInstance()
+                                                .getOrRegister("tomcat-web-request-metrics",
+                                                               WebRequestMetricCollector.class);
 
         uriFilter = new RequestUriFilter();
         userAgentFilter = new UserAgentFilter();
@@ -51,8 +49,8 @@ public class CoyoteAdapterService extends AbstractInterceptor {
             return;
         }
 
-        metricProvider.update(request,
-                              (Response) aopContext.getArgs()[1],
-                              aopContext.getCostTime());
+        metricCollector.update(request,
+                               (Response) aopContext.getArgs()[1],
+                               aopContext.getCostTime());
     }
 }

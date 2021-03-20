@@ -27,17 +27,19 @@ import java.util.stream.Collectors;
 public class OkHttp3Interceptor extends AbstractInterceptor {
     private static Logger log = LoggerFactory.getLogger(OkHttp3Interceptor.class);
 
-    private HttpClientMetricCollector metricProvider;
+    private HttpClientMetricCollector metricCollector;
     private Set<String> ignoredSuffixes;
 
     @Override
     public boolean initialize() {
 
-        ignoredSuffixes = Arrays.stream("html, js, css, jpg, gif, png, swf, ttf, ico, woff, woff2, json, eot, svg".split(","))
-            .map(x -> x.trim().toLowerCase())
-            .collect(Collectors.toSet());
+        ignoredSuffixes = Arrays.stream("html, js, css, jpg, gif, png, swf, ttf, ico, woff, woff2, json, eot, svg".split(
+            ","))
+                                .map(x -> x.trim().toLowerCase())
+                                .collect(Collectors.toSet());
 
-        metricProvider = MetricCollectorManager.getInstance().register("okhttp3", new HttpClientMetricCollector());
+        metricCollector = MetricCollectorManager.getInstance()
+                                                .getOrRegister("okhttp3", HttpClientMetricCollector.class);
 
         return true;
     }
@@ -60,15 +62,15 @@ public class OkHttp3Interceptor extends AbstractInterceptor {
         String httpMethod = request.method().toUpperCase();
 
         if (aopContext.getException() != null) {
-            metricProvider.addExceptionRequest(uri,
-                                               httpMethod,
-                                               aopContext.getCostTime());
+            metricCollector.addExceptionRequest(uri,
+                                                httpMethod,
+                                                aopContext.getCostTime());
         } else {
             Response response = aopContext.castReturningAs();
-            metricProvider.addRequest(uri,
-                                      httpMethod,
-                                      response.code(),
-                                      aopContext.getCostTime());
+            metricCollector.addRequest(uri,
+                                       httpMethod,
+                                       response.code(),
+                                       aopContext.getCostTime());
         }
 
         this.addBytes(uri,
@@ -97,8 +99,9 @@ public class OkHttp3Interceptor extends AbstractInterceptor {
 
             RealConnection realConnection = null;
             // 3.4
-            RetryAndFollowUpInterceptor retryAndFollowUpInterceptor = (RetryAndFollowUpInterceptor) ReflectionUtils.getFieldValue(call,
-                                                                                                                                  "retryAndFollowUpInterceptor");
+            RetryAndFollowUpInterceptor retryAndFollowUpInterceptor = (RetryAndFollowUpInterceptor) ReflectionUtils.getFieldValue(
+                call,
+                "retryAndFollowUpInterceptor");
             if (retryAndFollowUpInterceptor != null) {
                 realConnection = retryAndFollowUpInterceptor.streamAllocation().connection();
             } else {
@@ -111,12 +114,12 @@ public class OkHttp3Interceptor extends AbstractInterceptor {
 
             if (realConnection != null) {
                 responseByteSize = ((BufferedSource) ReflectionUtils.getFieldValue(realConnection, "source")).buffer()
-                    .size();
+                                                                                                             .size();
             }
 
             log.debug("OKHttp ,request requestByteSize {},responseByteSize {}", requestByteSize, responseByteSize);
 
-            metricProvider.addBytes(uri, httpMethod, requestByteSize, responseByteSize);
+            metricCollector.addBytes(uri, httpMethod, requestByteSize, responseByteSize);
         } catch (Exception e) {
             log.error("OKHttp getByteSize", e);
         }

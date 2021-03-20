@@ -16,7 +16,6 @@ public class AgentConfig {
     public static final String BITHON_APPLICATION_ENV = "bithon.application.env";
     public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
     private boolean traceEnabled = true;
-    private boolean debugEnabled = false;
     private BootstrapConfig bootstrap;
     private Map<String, DispatcherConfig> dispatchers;
     private FetcherConfig fetcher;
@@ -78,14 +77,6 @@ public class AgentConfig {
 
     public void setTraceEnabled(boolean traceEnabled) {
         this.traceEnabled = traceEnabled;
-    }
-
-    public boolean isDebugEnabled() {
-        return debugEnabled;
-    }
-
-    public void setDebugEnabled(boolean debugEnabled) {
-        this.debugEnabled = debugEnabled;
     }
 
     public FetcherConfig getFetcher() {

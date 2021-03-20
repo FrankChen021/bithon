@@ -47,7 +47,7 @@ public class MetricCollectorManager {
         return INSTANCE;
     }
 
-    public boolean isProviderExists(String name) {
+    public boolean collectorExists(String name) {
         for (String providerName : collectors.keySet()) {
             if (providerName.contains(name)) {
                 return true;
@@ -56,26 +56,33 @@ public class MetricCollectorManager {
         return false;
     }
 
-    public <T extends IMetricCollector> T register(String providerName, T provider) {
-        if (collectors.containsKey(providerName)) {
-            throw new RuntimeException(String.format("Metrics Local Storage(%s) already registered!", providerName));
-        } else {
-            collectors.put(providerName, provider);
-            log.debug(String.format("Success to register metrics local storage(%s)", providerName));
+    public <T extends IMetricCollector> T register(String collectorName, T collector) {
+        if (collectors.putIfAbsent(collectorName, collector) != null) {
+            throw new RuntimeException(String.format("Metrics Local Storage(%s) already registered!", collectorName));
         }
-        return provider;
+        return collector;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends IMetricCollector> T getOrRegister(String providerName, Class<T> providerClass) {
-        IMetricCollector provider = collectors.get(providerName);
-        if (provider != null) {
-            return (T) provider;
+    public <T extends IMetricCollector> T getOrRegister(String collectorName, Class<T> collectorClass) {
+        IMetricCollector collector = collectors.get(collectorName);
+        if (collector != null) {
+            return (T) collector;
         }
-        try {
-            return register(providerName, providerClass.newInstance());
-        } catch (Exception e) {
-            throw new RuntimeException("Can't create or register metric provider " + providerName, e);
+        synchronized (this) {
+            try {
+                collector = collectors.get(collectorName);
+                // double check
+                if (collector != null) {
+                    return (T) collector;
+                }
+
+                collector = collectorClass.newInstance();
+                collectors.put(collectorName, collector);
+                return (T) collector;
+            } catch (Exception e) {
+                throw new RuntimeException("Can't create or register metric provider " + collectorName, e);
+            }
         }
     }
 

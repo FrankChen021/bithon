@@ -12,17 +12,17 @@ import com.sbss.bithon.agent.plugin.tomcat.metric.ExceptionMetricCollector;
  */
 public class StandardWrapperValveException extends AbstractInterceptor {
 
-    private ExceptionMetricCollector metricProvider;
+    private ExceptionMetricCollector metricCollector;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricCollectorManager.getInstance()
-                                               .register("tomcat-exception", new ExceptionMetricCollector());
+        metricCollector = MetricCollectorManager.getInstance()
+                                                .getOrRegister("tomcat-exception", ExceptionMetricCollector.class);
         return true;
     }
 
     @Override
     public void onMethodLeave(AopContext context) {
-        metricProvider.update((Throwable) context.getArgs()[2]);
+        metricCollector.update((Throwable) context.getArgs()[2]);
     }
 }

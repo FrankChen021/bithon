@@ -21,8 +21,9 @@ public class QuartzJobExecutionLogInterceptor extends AbstractInterceptor {
             return false;
         }
 
-        quartzCounter = (QuartzMetricCollector)
-            MetricCollectorManager.getInstance().register(QuartzMetricCollector.COUNTER_NAME, new QuartzMetricCollector());
+        quartzCounter = MetricCollectorManager.getInstance()
+                                              .getOrRegister(QuartzMetricCollector.COUNTER_NAME,
+                                                             QuartzMetricCollector.class);
 
         return true;
     }

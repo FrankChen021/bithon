@@ -13,8 +13,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 /**
  * Old http client 4.0.1~4.2.5
@@ -23,14 +21,13 @@ import shaded.org.slf4j.LoggerFactory;
  * @date 2021/3/15
  */
 public class DefaultRequestDirectorExecute extends AbstractInterceptor {
-    private static Logger log = LoggerFactory.getLogger(DefaultRequestDirectorExecute.class);
 
-    private HttpClientMetricCollector metricProvider;
+    private HttpClientMetricCollector metricCollector;
 
     @Override
     public boolean initialize() {
-        metricProvider = MetricCollectorManager.getInstance()
-                                               .getOrRegister("apache-http-client", HttpClientMetricCollector.class);
+        metricCollector = MetricCollectorManager.getInstance()
+                                                .getOrRegister("apache-http-client", HttpClientMetricCollector.class);
         return true;
     }
 
@@ -55,15 +52,15 @@ public class DefaultRequestDirectorExecute extends AbstractInterceptor {
         String requestMethod = httpRequest.getRequestLine().getMethod();
 
         if (aopContext.hasException()) {
-            metricProvider.addExceptionRequest(requestUri, requestMethod, aopContext.getCostTime());
+            metricCollector.addExceptionRequest(requestUri, requestMethod, aopContext.getCostTime());
             return;
         }
 
         HttpResponse httpResponse = aopContext.castReturningAs();
-        metricProvider.addRequest(requestUri,
-                                  requestMethod,
-                                  httpResponse.getStatusLine().getStatusCode(),
-                                  aopContext.getCostTime());
+        metricCollector.addRequest(requestUri,
+                                   requestMethod,
+                                   httpResponse.getStatusLine().getStatusCode(),
+                                   aopContext.getCostTime());
 
         HttpContext httpContext = (HttpContext) aopContext.getArgs()[2];
         if (httpContext == null) {
@@ -79,7 +76,7 @@ public class DefaultRequestDirectorExecute extends AbstractInterceptor {
             HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
             long requestBytes = connectionMetrics.getSentBytesCount();
             long responseBytes = connectionMetrics.getReceivedBytesCount();
-            metricProvider.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
+            metricCollector.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
         } catch (ConnectionShutdownException e) {
             // This kind of exception has been processed by DefaultRequestDirectorReleaseConnection interceptor
         }

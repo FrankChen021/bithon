@@ -13,11 +13,11 @@ import org.apache.logging.log4j.spi.StandardLevel;
  * @author frankchen
  */
 public class LoggerLogMessage extends AbstractInterceptor {
-    private LogMetricCollector counter;
+    private LogMetricCollector metricCollector;
 
     @Override
     public boolean initialize() {
-        counter = (LogMetricCollector) MetricCollectorManager.getInstance().register("log4j2", new LogMetricCollector());
+        metricCollector = MetricCollectorManager.getInstance().getOrRegister("log4j2", LogMetricCollector.class);
         return true;
     }
 
@@ -32,7 +32,7 @@ public class LoggerLogMessage extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         Throwable e = (Throwable) aopContext.getArgs()[4];
-        counter.addException((String) InterceptorContext.get("uri"),
-                             e);
+        metricCollector.addException((String) InterceptorContext.get("uri"),
+                                     e);
     }
 }

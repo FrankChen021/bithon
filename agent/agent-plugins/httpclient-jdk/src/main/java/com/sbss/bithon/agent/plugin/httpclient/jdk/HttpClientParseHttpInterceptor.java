@@ -18,11 +18,12 @@ import sun.net.www.protocol.http.HttpURLConnection;
 public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
 
     //TODO: jdk-http metrics
-    HttpClientMetricCollector metricProvider;
+    HttpClientMetricCollector metricCollector;
 
     @Override
     public boolean initialize() throws Exception {
-        metricProvider = MetricCollectorManager.getInstance().register("jdk-httpclient", new HttpClientMetricCollector());
+        metricCollector = MetricCollectorManager.getInstance()
+                                                .getOrRegister("jdk-httpclient", HttpClientMetricCollector.class);
         return true;
     }
 
@@ -38,9 +39,9 @@ public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
         String uri = connection.getURL().toString().split("\\?")[0];
         if (aopContext.hasException()) {
             // TODO: aopContext.getCostTime here only returns the execution time of HttpClient.parseHTTP
-            metricProvider.addExceptionRequest(uri, httpMethod, aopContext.getCostTime());
+            metricCollector.addExceptionRequest(uri, httpMethod, aopContext.getCostTime());
         } else {
-            metricProvider.addRequest(uri, httpMethod, statusCode, aopContext.getCostTime());
+            metricCollector.addRequest(uri, httpMethod, statusCode, aopContext.getCostTime());
         }
 
         TraceContext traceContext = TraceContextHolder.get();

@@ -33,11 +33,13 @@ public class OkHttp32Interceptor extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        ignoredSuffixes = Arrays.stream("html, js, css, jpg, gif, png, swf, ttf, ico, woff, woff2, json, eot, svg".split(","))
-            .map(x -> x.trim().toLowerCase())
-            .collect(Collectors.toSet());
+        ignoredSuffixes = Arrays.stream("html, js, css, jpg, gif, png, swf, ttf, ico, woff, woff2, json, eot, svg".split(
+            ","))
+                                .map(x -> x.trim().toLowerCase())
+                                .collect(Collectors.toSet());
 
-        metricCollector = MetricCollectorManager.getInstance().register("okhttp3.2", new HttpClientMetricCollector());
+        metricCollector = MetricCollectorManager.getInstance()
+                                                .getOrRegister("okhttp3.2", HttpClientMetricCollector.class);
 
         return true;
     }
@@ -89,7 +91,7 @@ public class OkHttp32Interceptor extends AbstractInterceptor {
             RealConnection realConnection = streamAllocation.connection();
             if (realConnection != null) {
                 responseByteSize = ((BufferedSource) ReflectionUtils.getFieldValue(realConnection, "source")).buffer()
-                    .size();
+                                                                                                             .size();
             }
 
             metricCollector.addBytes(uri, method, requestByteSize, responseByteSize);
