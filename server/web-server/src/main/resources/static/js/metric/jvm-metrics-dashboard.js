@@ -42,10 +42,15 @@ var jvm_metrics_dashboard = {
         "dataSource": "jvm-gc-metrics",
         "title": "Garbage Collection",
         "width": 4,
+        "yAxis": [{
+        },{
+              "unit": "microsecond"
+        }],
         "metrics":[{
             "name": "gcCount",
         },{
-            "name": "gcTime"
+            "name": "avgGcTime",
+            "yAxis": 1
        }]
     }]
 }

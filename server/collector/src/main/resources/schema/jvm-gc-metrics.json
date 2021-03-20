@@ -34,7 +34,15 @@
       "type": "longSum",
       "name": "gcTime",
       "displayText": "Accumulative GC Time",
-      "unit": "Nano Second"
+      "unit": "nanosecond"
+    },
+    {
+      "type": "postAggregator",
+      "name": "avgGcTime",
+      "expression": "gcTime/1000.0/gcCount",
+      "displayText": "Avg GC Time",
+      "unit": "microsecond",
+      "valueType": "double"
     }
   ]
 }

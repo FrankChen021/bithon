@@ -36,62 +36,86 @@ class Dashboard {
         });
 
         //
-        // Dimension Filter
+        // dataSource --> Charts
         //
-        this._schemaApi.getSchema(
-            this._dashboard.charts[0].dataSource,
-            (schema)=>{
-                // create dimension filter
-                // Note: first two dimensions MUST be app/instance
-                var filterBar = $('#filterBar');
-                for(var index = 1; index < schema.dimensionsSpec.length; index++) {
-                    var dimension = schema.dimensionsSpec[index];
-                    if ( !dimension.visible )
-                        continue;
+        var dataSource2Charts = new Object();
+        $.each(this._dashboard.charts, (index, chartDescriptor)=>{
+            var chartId = 'chart_' + index;
+            chartDescriptor['id'] = chartId;
 
-                    this.createDimensionFilter(filterBar, dimension.name, dimension.displayText);
-                }
+            var dataSourceName = chartDescriptor.dataSource;
+            if ( dataSource2Charts[dataSourceName] == null ) {
+              dataSource2Charts[dataSourceName]  = new Array();
+            }
+            dataSource2Charts[dataSourceName].push(chartId);
+        });
 
-                //
-                // This should be changed in future
-                // converts dimensionSpec from Array to Map
-                //
-                var dimensionMap = new Object();
-                for(var index = 0; index < schema.dimensionsSpec.length; index++) {
-                    var dimension = schema.dimensionsSpec[index];
-                    dimensionMap[dimension.name] = dimension;
-                }
-                schema.dimensionsSpec = dimensionMap;
+        var dataSourceFilter = this._dashboard.charts[0].dataSource;
 
-                //
-                // This should be changed in future
-                // converts metricSpec from Array to Map
-                //
-                var metricMap = new Object();
-                for(var index = 0; index < schema.metricsSpec.length; index++) {
-                    var metric = schema.metricsSpec[index];
-                    metricMap[metric.name] = metric;
-                }
-                schema.metricSpec = metricMap;
+        //
+        // Loaded Dimension Filter
+        //
+        for(var dataSourceName in dataSource2Charts) {
+          this._schemaApi.getSchema(
+              dataSourceName,
+              (schema)=>{
+                  if ( schema.name == dataSourceFilter ) {
+                      // create dimension filter
+                      // Note: first two dimensions MUST be app/instance
+                      var filterBar = $('#filterBar');
+                      for(var index = 1; index < schema.dimensionsSpec.length; index++) {
+                          var dimension = schema.dimensionsSpec[index];
+                          if ( !dimension.visible )
+                              continue;
 
-                //
-                // Build Transformers
-                //
-                this.createTransformers(schema);
+                          this.createDimensionFilter(filterBar, dimension.name, dimension.displayText);
+                      }
+                  }
 
-                // refresh dashboard after schema has been retrieved
-                // because there may be value transformers on different units
-                this.refreshDashboard();
-            },
-            (error)=>{}
-        );
+                  //
+                  // This should be changed in future
+                  // converts dimensionSpec from Array to Map
+                  //
+                  var dimensionMap = new Object();
+                  for(var index = 0; index < schema.dimensionsSpec.length; index++) {
+                      var dimension = schema.dimensionsSpec[index];
+                      dimensionMap[dimension.name] = dimension;
+                  }
+                  schema.dimensionsSpec = dimensionMap;
+
+                  //
+                  // This should be changed in future
+                  // converts metricsSpec from Array to Map
+                  //
+                  var metricMap = new Object();
+                  for(var index = 0; index < schema.metricsSpec.length; index++) {
+                      var metric = schema.metricsSpec[index];
+                      metricMap[metric.name] = metric;
+                  }
+                  schema.metricsSpec = metricMap;
+
+                  //
+                  // Build Transformers
+                  //
+                  this.createTransformers(schema);
+
+                  // refresh dashboard after schema has been retrieved
+                  // because there may be value transformers on different units
+                  var charts = dataSource2Charts[schema.name];
+                  $.each(charts, (index, chartId)=>{
+                    this.refreshChart(chartId);
+                  })
+              },
+              (error)=>{}
+          );
+        }
 
         //
         // Create AutoRefresher
         //
         var parent = $('#filterBarForm');
         new AutoRefresher({
-                timerLength: 10
+            timerLength: 10
         }).childOf(parent).registerRefreshListener(()=>{
             this.refreshDashboard();
         });
@@ -178,8 +202,7 @@ class Dashboard {
 
     // PRIVATE
     createChartComponent(index, chartDescriptor) {
-        var chartId = 'chart_' + index;
-        chartDescriptor['id'] = chartId;
+        var chartId = chartDescriptor.id;
         var chartContainer = this.layout(chartDescriptor.id, chartDescriptor.width*3);
 
         var chartOption = this.getDefaultChartOption();
@@ -349,9 +372,12 @@ class Dashboard {
     // PRIVATE
     createTransformers(schema) {
         $.each(this._dashboard.charts, (index, chartDescriptor) => {
-            $.each(chartDescriptor.metrics, (metricIndex, metric) => {
-                metric.transformer = this.createTransformer(schema, chartDescriptor, metricIndex);
-            });
+            if ( chartDescriptor.dataSource == schema.name ) {
+                // create transformers for those charts associated with this datasource
+                $.each(chartDescriptor.metrics, (metricIndex, metric) => {
+                    metric.transformer = this.createTransformer(schema, chartDescriptor, metricIndex);
+                });
+            }
         });
     }
     createTransformer(schema, chartDescriptor, metricIndex) {
@@ -362,7 +388,7 @@ class Dashboard {
             var yIndex = metricDescriptor.yAxis == null ? 0 :  metricDescriptor.yAxis;
             if ( yIndex < chartDescriptor.yAxis.length ) {
                 var yAxis = chartDescriptor.yAxis[yIndex];
-                if ( yAxis.unit == 'millisecond' && schema.metricSpec[metricName].unit == 'nanosecond' ) {
+                if ( yAxis.unit == 'millisecond' && schema.metricsSpec[metricName].unit == 'nanosecond' ) {
                     return function(data, metricName) {
                         var val = data[metricName];
                         return val == null ? 0 : (val / 1000 / 1000).toFixed(2);
@@ -444,6 +470,9 @@ class Dashboard {
             }
             case 'millisecond': return function(v) {
                 return v + 'ms';
+            }
+            case 'microsecond': return function(v) {
+                return v + 'µs';
             }
             default: return null;
         }
