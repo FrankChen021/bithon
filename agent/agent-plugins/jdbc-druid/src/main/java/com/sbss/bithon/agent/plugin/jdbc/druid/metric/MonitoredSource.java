@@ -11,7 +11,11 @@ import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
 public class MonitoredSource {
     private final DruidDataSource dataSource;
     private final String driverClass;
+
+    // dimension
     private final String connectionString;
+
+    // metrics
     private final JdbcPoolMetric jdbcPoolMetric;
     private final SqlMetric sqlMetric;
 

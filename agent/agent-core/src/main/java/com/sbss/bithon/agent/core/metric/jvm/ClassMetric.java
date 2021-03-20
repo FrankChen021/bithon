@@ -8,18 +8,15 @@ import java.io.Serializable;
  */
 public class ClassMetric implements Serializable {
 
-    // 当前加载到JVM中的类的数量
-    public long currentClassCount;
+    public long currentLoadedClasses;
 
-    // 自JVM开始执行到目前已经加载的类的总数
-    public long loadedClassCount;
+    public long totalLoadedClasses;
 
-    // 自JVM开始执行到目前已经卸载的类的总数
-    public long unloadedClassCount;
+    public long totalUnloadedClasses;
 
-    public ClassMetric(long currentClassCount, long loadedClassCount, long unloadedClassCount) {
-        this.currentClassCount = currentClassCount;
-        this.loadedClassCount = loadedClassCount;
-        this.unloadedClassCount = unloadedClassCount;
+    public ClassMetric(long currentLoadedClasses, long totalLoadedClasses, long totalUnloadedClasses) {
+        this.currentLoadedClasses = currentLoadedClasses;
+        this.totalLoadedClasses = totalLoadedClasses;
+        this.totalUnloadedClasses = totalUnloadedClasses;
     }
 }

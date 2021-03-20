@@ -13,7 +13,7 @@ import com.sbss.bithon.agent.plugin.jdbc.druid.metric.MonitoredSourceManager;
 public class DruidDataSourceInit extends AbstractInterceptor {
 
     @Override
-    public boolean initialize() throws Exception {
+    public boolean initialize() {
         DruidJdbcMetricCollector.getOrCreateInstance();
         return true;
     }

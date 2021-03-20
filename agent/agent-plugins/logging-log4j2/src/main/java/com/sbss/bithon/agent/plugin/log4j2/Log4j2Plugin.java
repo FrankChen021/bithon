@@ -34,7 +34,7 @@ public class Log4j2Plugin extends AbstractPlugin {
                                                                                                  "org.apache.logging.log4j.Level"))
                                                                  .and(MatcherUtils.takesArgument(4,
                                                                                                  "java.lang.Throwable")))
-                                                   .to("com.sbss.bithon.agent.plugin.log4j2.LogMessageInterceptor")
+                                                   .to("com.sbss.bithon.agent.plugin.log4j2.interceptor.LoggerLogMessage")
                 )
         );
     }

@@ -48,8 +48,8 @@ public class HttpClientMetric {
         this.requestCount.incr();
     }
 
-    public void addException(long costTime, int exceptionCount) {
-        this.responseTime.update(costTime);
+    public void addException(long responseTime, int exceptionCount) {
+        this.responseTime.update(responseTime);
         this.countException.update(exceptionCount);
         this.requestCount.incr();
     }

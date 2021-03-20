@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.plugin.jetty;
+package com.sbss.bithon.agent.plugin.jetty.metric;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
@@ -22,7 +22,7 @@ public class WebServerMetricCollector implements IMetricCollector {
     private AbstractNetworkConnector connector;
     private QueuedThreadPool threadPool;
     WebServerMetricCollector() {
-        MetricCollectorManager.getInstance().register("webserver-jetty", this);
+        MetricCollectorManager.getInstance().register("jetty-webserver-metrics", this);
     }
 
     public static WebServerMetricCollector getInstance() {

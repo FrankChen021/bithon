@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.plugin.logback;
+package com.sbss.bithon.agent.plugin.logback.interceptor;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -11,13 +11,12 @@ import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 /**
  * @author frankchen
  */
-public class LogbackHandler extends AbstractInterceptor {
+public class LoggerCallAppenders extends AbstractInterceptor {
     private LogMetricCollector counter;
 
     @Override
-    public boolean initialize() throws Exception {
-        counter = (LogMetricCollector)
-            MetricCollectorManager.getInstance().register("logback", new LogMetricCollector());
+    public boolean initialize() {
+        counter = MetricCollectorManager.getInstance().register("logback", new LogMetricCollector());
         return true;
     }
 

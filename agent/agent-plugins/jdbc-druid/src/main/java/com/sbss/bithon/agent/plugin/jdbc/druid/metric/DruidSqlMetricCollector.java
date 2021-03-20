@@ -19,7 +19,7 @@ import java.util.List;
 public class DruidSqlMetricCollector implements IMetricCollector {
     static final DruidSqlMetricCollector INSTANCE = new DruidSqlMetricCollector();
     private static final Logger log = LoggerFactory.getLogger(DruidSqlMetricCollector.class);
-    private static final String METRICS_NAME = "jdbc-druid";
+    private static final String METRICS_NAME = "sql-druid";
 
     private final MonitoredSourceManager monitoredSourceManager;
 
@@ -37,7 +37,7 @@ public class DruidSqlMetricCollector implements IMetricCollector {
                        String dataSourceUri,
                        AopContext aopContext,
                        long costTime) {
-        MonitoredSource monitoredSource = monitoredSourceManager.getDataSource(dataSourceUri);
+        MonitoredSource monitoredSource = monitoredSourceManager.getMonitoredDataSource(dataSourceUri);
         if (monitoredSource == null) {
             return;
         }
@@ -76,7 +76,7 @@ public class DruidSqlMetricCollector implements IMetricCollector {
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
-        for (MonitoredSource source : MonitoredSourceManager.getInstance().getDataSources()) {
+        for (MonitoredSource source : MonitoredSourceManager.getInstance().getMonitoredSources()) {
             SqlMetric metric = source.getSqlMetric();
             if (metric.peekTotalCount() > 0) {
                 Object message = messageConverter.from(appInstance, timestamp, interval, source.getSqlMetric());

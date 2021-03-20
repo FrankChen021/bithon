@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.plugin.thread.threadpool;
 
-import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetrics;
+import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetric;
 import com.sbss.bithon.agent.core.utils.ReflectionUtils;
 
 import java.util.concurrent.ForkJoinPool;
@@ -9,11 +9,11 @@ import java.util.concurrent.ForkJoinPool;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 11:26 下午
  */
-public class ForkJoinPoolMetrics extends ThreadPoolMetrics {
+public class ForkJoinPoolMetric extends ThreadPoolMetric {
     private final ForkJoinPool pool;
     private long largestPoolSize = 0;
 
-    public ForkJoinPoolMetrics(ForkJoinPool pool) {
+    public ForkJoinPoolMetric(ForkJoinPool pool) {
         super(pool.getClass().getName(),
               ThreadPoolUtils.stripSuffix((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"));
         this.pool = pool;

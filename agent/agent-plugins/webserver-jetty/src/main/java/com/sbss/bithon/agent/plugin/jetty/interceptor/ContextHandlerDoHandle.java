@@ -1,10 +1,11 @@
-package com.sbss.bithon.agent.plugin.jetty;
+package com.sbss.bithon.agent.plugin.jetty.interceptor;
 
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.web.RequestUriFilter;
 import com.sbss.bithon.agent.core.metric.web.UserAgentFilter;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.plugin.jetty.metric.WebRequestMetricCollector;
 import org.eclipse.jetty.server.Request;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,22 +14,20 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author frankchen
  */
-public class HandleRequestInterceptor extends AbstractInterceptor {
-    private static final String JETTY_REQUEST_BUFFER_MANAGER_NAME = "jetty-request";
-
+public class ContextHandlerDoHandle extends AbstractInterceptor {
     private RequestUriFilter uriFilter;
     private UserAgentFilter userAgentFilter;
 
-    private WebRequestMetricCollector requestCounter;
+    private WebRequestMetricCollector requestMetricCollector;
 
     @Override
     public boolean initialize() {
         uriFilter = new RequestUriFilter();
         userAgentFilter = new UserAgentFilter();
 
-        requestCounter = (WebRequestMetricCollector) MetricCollectorManager.getInstance()
-                                                                           .register(JETTY_REQUEST_BUFFER_MANAGER_NAME,
-                                                                                   new WebRequestMetricCollector());
+        requestMetricCollector = MetricCollectorManager.getInstance()
+                                                       .getOrRegister("jetty-web-request-metrics",
+                                                                      WebRequestMetricCollector.class);
 
         return true;
     }
@@ -42,9 +41,9 @@ public class HandleRequestInterceptor extends AbstractInterceptor {
             return;
         }
 
-        requestCounter.update((Request) context.getArgs()[1],
-                              (HttpServletRequest) context.getArgs()[2],
-                              (HttpServletResponse) context.getArgs()[3],
-                              context.getCostTime());
+        requestMetricCollector.update((Request) context.getArgs()[1],
+                                      (HttpServletRequest) context.getArgs()[2],
+                                      (HttpServletResponse) context.getArgs()[3],
+                                      context.getCostTime());
     }
 }

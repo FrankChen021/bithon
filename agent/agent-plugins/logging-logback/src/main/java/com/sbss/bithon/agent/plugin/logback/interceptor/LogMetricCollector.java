@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.plugin.logback;
+package com.sbss.bithon.agent.plugin.logback.interceptor;
 
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;

@@ -29,7 +29,7 @@ public class DruidTraceHandler extends AbstractInterceptor {
         }
 
         // create a span and save it in user-context
-        TraceSpan thisSpan = parentSpan.newChildSpan("Druid")
+        TraceSpan thisSpan = parentSpan.newChildSpan("alibaba.druid")
                                        .clazz(aopContext.getTargetClass())
                                        .method(aopContext.getMethod())
                                        .kind(SpanKind.CLIENT)

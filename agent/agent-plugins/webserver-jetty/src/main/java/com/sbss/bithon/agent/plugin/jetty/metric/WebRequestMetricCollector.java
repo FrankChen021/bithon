@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.plugin.jetty;
+package com.sbss.bithon.agent.plugin.jetty.metric;
 
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;

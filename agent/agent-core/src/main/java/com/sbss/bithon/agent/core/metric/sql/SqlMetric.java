@@ -1,5 +1,6 @@
 package com.sbss.bithon.agent.core.metric.sql;
 
+import com.sbss.bithon.agent.core.metric.Compund;
 import com.sbss.bithon.agent.core.metric.Sum;
 
 /**
@@ -12,7 +13,7 @@ public class SqlMetric {
     private final String hostAndPort;
 
     // metric
-    private final Sum totalCostTime = new Sum();
+    private final Compund responseTime = new Compund();
     private final Sum totalFailureCount = new Sum();
     private final Sum totalCount = new Sum();
     private final Sum totalQueryCount = new Sum();
@@ -25,8 +26,8 @@ public class SqlMetric {
         this.driverType = driverType;
     }
 
-    public void add(boolean isQuery, boolean failed, long costTime) {
-        this.totalCostTime.update(costTime);
+    public void add(boolean isQuery, boolean failed, long responseTime) {
+        this.responseTime.update(responseTime);
         if (isQuery) {
             this.totalQueryCount.incr();
         } else {
@@ -40,8 +41,8 @@ public class SqlMetric {
         this.totalCount.incr();
     }
 
-    public long getAndClearTotalCostTime() {
-        return totalCostTime.get();
+    public Compund getResponseTime() {
+        return responseTime;
     }
 
     public long getAndClearTotalFailureCount() {

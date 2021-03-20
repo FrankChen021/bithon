@@ -18,7 +18,7 @@ public class WebRequestMetric {
     /**
      * metrics
      */
-    private final Compund costTime = new Compund();
+    private final Compund responseTime = new Compund();
     private final Sum requestCount = new Sum();
     private final Sum errorCount = new Sum();
     private final Sum count4xx = new Sum();
@@ -32,7 +32,7 @@ public class WebRequestMetric {
     }
 
     public void add(long costTime, int errorCount) {
-        this.costTime.update(costTime);
+        this.responseTime.update(costTime);
         this.errorCount.update(errorCount);
         this.requestCount.incr();
     }
@@ -60,8 +60,8 @@ public class WebRequestMetric {
         return uri;
     }
 
-    public Compund getCostTime() {
-        return costTime;
+    public Compund getResponseTime() {
+        return responseTime;
     }
 
     public long getRequestCount() {

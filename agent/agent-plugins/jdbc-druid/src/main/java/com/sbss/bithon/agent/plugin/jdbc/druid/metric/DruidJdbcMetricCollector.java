@@ -31,7 +31,7 @@ public class DruidJdbcMetricCollector implements IMetricCollector {
         if (statistic == null) {
             return;
         }
-        MonitoredSource source = MonitoredSourceManager.getInstance().getDataSource(dataSource);
+        MonitoredSource source = MonitoredSourceManager.getInstance().getMonitoredDataSource(dataSource);
         if (source == null) {
             return;
         }
@@ -61,7 +61,7 @@ public class DruidJdbcMetricCollector implements IMetricCollector {
                                 long timestamp) {
         List<Object> jdbcMessages = new ArrayList<>();
 
-        Collection<MonitoredSource> dataSources = MonitoredSourceManager.getInstance().getDataSources();
+        Collection<MonitoredSource> dataSources = MonitoredSourceManager.getInstance().getMonitoredSources();
         dataSources.forEach((monitoredSource) -> {
             monitoredSource.getDataSource().getStatValueAndReset();
 

@@ -17,9 +17,9 @@ public class DruidSqlInterceptor extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
         Statement statement = aopContext.castTargetAs();
 
-        aopContext.setUserContext(MonitoredSourceManager.parseDataSourceUri(statement.getConnection()
-                                                                                     .getMetaData()
-                                                                                     .getURL()));
+        aopContext.setUserContext(MonitoredSourceManager.parseConnectionString(statement.getConnection()
+                                                                                        .getMetaData()
+                                                                                        .getURL()));
 
         return InterceptionDecision.CONTINUE;
     }

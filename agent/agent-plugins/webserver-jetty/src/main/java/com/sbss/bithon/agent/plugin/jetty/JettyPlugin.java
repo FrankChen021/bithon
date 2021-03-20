@@ -21,14 +21,14 @@ public class JettyPlugin extends AbstractPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("doStart")
-                                                   .to("com.sbss.bithon.agent.plugin.jetty.ConnectorStartInterceptor")
+                                                   .to("com.sbss.bithon.agent.plugin.jetty.interceptor.AbstractConnectorDoStart")
                 ),
 
             forClass("org.eclipse.jetty.util.thread.QueuedThreadPool")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("doStart")
-                                                   .to("com.sbss.bithon.agent.plugin.jetty.ThreadPoolHandler")
+                                                   .to("com.sbss.bithon.agent.plugin.jetty.interceptor.QueuedThreadPoolDoStart")
                 ),
 
             forClass("org.eclipse.jetty.server.handler.ContextHandler")
@@ -39,7 +39,7 @@ public class JettyPlugin extends AbstractPlugin {
                                                                     "org.eclipse.jetty.server.Request",
                                                                     "javax.servlet.http.HttpServletRequest",
                                                                     "javax.servlet.http.HttpServletResponse")
-                                                   .to("com.sbss.bithon.agent.plugin.jetty.HandleRequestInterceptor")
+                                                   .to("com.sbss.bithon.agent.plugin.jetty.interceptor.ContextHandlerDoHandle")
                 )
         );
     }

@@ -6,7 +6,7 @@ import java.io.Serializable;
  * @author frank.chen021@outlook.com
  * @date 2020/12/29 9:49 下午
  */
-public class CpuMetric implements Serializable {
+public class CpuMetric {
     public long processorNumber;
 
     // CPU Time in nano seconds

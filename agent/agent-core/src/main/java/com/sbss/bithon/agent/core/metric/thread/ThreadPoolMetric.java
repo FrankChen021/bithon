@@ -6,7 +6,7 @@ import com.sbss.bithon.agent.core.metric.Sum;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 10:48 下午
  */
-public abstract class ThreadPoolMetrics {
+public abstract class ThreadPoolMetric {
 
     private final String executorClass;
     private final String threadPoolName;
@@ -19,7 +19,7 @@ public abstract class ThreadPoolMetrics {
     public Sum successfulTaskCount = new Sum();
     public Sum totalTaskCount = new Sum();
 
-    public ThreadPoolMetrics(String executorClass, String threadPoolName) {
+    public ThreadPoolMetric(String executorClass, String threadPoolName) {
         this.executorClass = executorClass;
         this.threadPoolName = threadPoolName;
     }

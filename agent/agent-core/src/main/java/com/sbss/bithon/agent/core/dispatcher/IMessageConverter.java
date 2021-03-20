@@ -10,7 +10,7 @@ import com.sbss.bithon.agent.core.metric.mongo.MongoMetric;
 import com.sbss.bithon.agent.core.metric.redis.RedisMetric;
 import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
 import com.sbss.bithon.agent.core.metric.sql.SqlStatementMetric;
-import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetrics;
+import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetric;
 import com.sbss.bithon.agent.core.metric.web.WebRequestMetric;
 import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
@@ -45,7 +45,7 @@ public interface IMessageConverter {
 
     Object from(AppInstance appInstance, long timestamp, int interval, ExceptionMetric metric);
 
-    Object from(AppInstance appInstance, long timestamp, int interval, ThreadPoolMetrics metric);
+    Object from(AppInstance appInstance, long timestamp, int interval, ThreadPoolMetric metric);
 
     // tracing span message
     Object from(TraceSpan span);

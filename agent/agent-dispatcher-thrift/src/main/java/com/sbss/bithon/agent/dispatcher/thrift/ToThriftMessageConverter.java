@@ -11,7 +11,7 @@ import com.sbss.bithon.agent.core.metric.mongo.MongoMetric;
 import com.sbss.bithon.agent.core.metric.redis.RedisMetric;
 import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
 import com.sbss.bithon.agent.core.metric.sql.SqlStatementMetric;
-import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetrics;
+import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetric;
 import com.sbss.bithon.agent.core.metric.web.WebRequestMetric;
 import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
@@ -106,9 +106,9 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setTimestamp(timestamp);
         message.setSrcApplication(metric.getSrcApplication());
         message.setUri(metric.getUri());
-        message.setCostTime(metric.getCostTime().getSum().get());
-        message.setMaxCostTime(metric.getCostTime().getMax().get());
-        message.setMinCostTime(metric.getCostTime().getMin().get());
+        message.setCostTime(metric.getResponseTime().getSum().get());
+        message.setMaxCostTime(metric.getResponseTime().getMax().get());
+        message.setMinCostTime(metric.getResponseTime().getMin().get());
         message.setRequestCount(metric.getRequestCount());
         message.setErrorCount(metric.getErrorCount());
         message.setCount4xx(metric.getCount4xx());
@@ -137,11 +137,11 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setHeapEntity(new HeapEntity(metric.heapMetrics.heapBytes,
                                              metric.heapMetrics.heapInitBytes,
                                              metric.heapMetrics.heapUsedBytes,
-                                             metric.heapMetrics.heapCommittedBytes));
+                                             metric.heapMetrics.heapAvailableBytes));
         message.setNonHeapEntity(new NonHeapEntity(metric.nonHeapMetrics.nonHeapBytes,
                                                    metric.nonHeapMetrics.nonHeapInitBytes,
                                                    metric.nonHeapMetrics.nonHeapUsedBytes,
-                                                   metric.nonHeapMetrics.nonHeapCommitted));
+                                                   metric.nonHeapMetrics.nonHeapAvailableBytes));
         message.setThreadEntity(new ThreadEntity(metric.threadMetrics.peakActiveCount,
                                                  metric.threadMetrics.activeDaemonCount,
                                                  metric.threadMetrics.totalCreatedCount,
@@ -153,9 +153,9 @@ public class ToThriftMessageConverter implements IMessageConverter {
             return e;
         }).collect(Collectors.toList()));
 
-        message.setClassesEntity(new ClassEntity(metric.classMetrics.currentClassCount,
-                                                 metric.classMetrics.loadedClassCount,
-                                                 metric.classMetrics.unloadedClassCount));
+        message.setClassesEntity(new ClassEntity(metric.classMetrics.currentLoadedClasses,
+                                                 metric.classMetrics.totalLoadedClasses,
+                                                 metric.classMetrics.totalUnloadedClasses));
         message.setMetaspaceEntity(new MetaspaceEntity(metric.metaspaceMetrics.metaspaceCommittedBytes,
                                                        metric.metaspaceMetrics.metaspaceUsedBytes));
         return message;
@@ -196,8 +196,8 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setCommand(metric.getCommand());
         message.setExceptionCount(metric.getExceptionCount());
         message.setTotalCount(metric.getTotalCount());
-        message.setRequestTime(metric.getRequestTime());
-        message.setResponseTime(metric.getResponseTime());
+        message.setRequestTime(metric.getRequestTime().getSum().get());
+        message.setResponseTime(metric.getResponseTime().getSum().get());
         message.setRequestBytes(metric.getRequestBytes());
         message.setResponseBytes(metric.getResponseBytes());
         return message;
@@ -249,7 +249,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     public Object from(AppInstance appInstance,
                        long timestamp,
                        int interval,
-                       ThreadPoolMetrics metric) {
+                       ThreadPoolMetric metric) {
         ThreadPoolMetricMessage message = new ThreadPoolMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);

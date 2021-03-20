@@ -10,7 +10,7 @@ import com.sbss.bithon.agent.plugin.jdbc.druid.metric.MonitoredSourceManager;
 public class DruidDataSourceRestart extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
+    public void onMethodLeave(AopContext aopContext) {
         MonitoredSourceManager.getInstance().addDataSource(aopContext.castTargetAs());
     }
 }

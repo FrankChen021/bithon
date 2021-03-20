@@ -14,7 +14,7 @@ public class ForkJoinPoolConstructor extends AbstractInterceptor {
         ThreadPoolMetricsCollector collector = ThreadPoolMetricsCollector.getInstance();
         if (collector != null) {
             ForkJoinPool pool = (ForkJoinPool) constructedObject;
-            collector.addThreadPool(pool, new ForkJoinPoolMetrics(pool));
+            collector.addThreadPool(pool, new ForkJoinPoolMetric(pool));
         }
     }
 }

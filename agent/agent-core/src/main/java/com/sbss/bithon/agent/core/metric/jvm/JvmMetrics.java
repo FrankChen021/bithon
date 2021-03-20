@@ -8,10 +8,15 @@ import java.util.List;
  * @date 2020/10/27 2:17 下午
  */
 public class JvmMetrics {
-    // 应用实例运行时间，即不包含启动时间（单位：毫秒）
+    /**
+     * uptime of the Java virtual machine in milliseconds.
+     */
     public long upTime;
 
-    // 系统正常运行时间，即包含启动时间（单位：毫秒）
+    /**
+     * Returns the start time of the Java virtual machine in milliseconds.
+     * This method returns the approximate time when the Java virtual machine started.
+     */
     public long startTime;
 
     public CpuMetric cpuMetrics;

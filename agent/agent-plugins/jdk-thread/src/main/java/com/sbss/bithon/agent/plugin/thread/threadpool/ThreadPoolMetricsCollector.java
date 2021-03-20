@@ -4,7 +4,7 @@ import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetrics;
+import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetric;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +22,8 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 class ThreadPoolMetricsCollector implements IMetricCollector {
     static ThreadPoolMetricsCollector INSTANCE;
-    private final Map<AbstractExecutorService, ThreadPoolMetrics> executorMetrics = new ConcurrentHashMap<>();
-    private final Queue<ThreadPoolMetrics> flushed = new ConcurrentLinkedQueue<>();
+    private final Map<AbstractExecutorService, ThreadPoolMetric> executorMetrics = new ConcurrentHashMap<>();
+    private final Queue<ThreadPoolMetric> flushed = new ConcurrentLinkedQueue<>();
 
     public static ThreadPoolMetricsCollector getInstance() {
         // See MetricCollectorManager for more detail to find why there's such a check below
@@ -45,18 +45,18 @@ class ThreadPoolMetricsCollector implements IMetricCollector {
         }
     }
 
-    public void addThreadPool(AbstractExecutorService pool, ThreadPoolMetrics metrics) {
+    public void addThreadPool(AbstractExecutorService pool, ThreadPoolMetric metrics) {
         executorMetrics.put(pool, metrics);
     }
 
     public void deleteThreadPool(AbstractExecutorService executor) {
-        ThreadPoolMetrics metrics = executorMetrics.remove(executor);
+        ThreadPoolMetric metrics = executorMetrics.remove(executor);
         if (metrics != null) {
             flushed.add(metrics);
         }
     }
 
-    private Optional<ThreadPoolMetrics> getMetrics(AbstractExecutorService executor) {
+    private Optional<ThreadPoolMetric> getMetrics(AbstractExecutorService executor) {
         return Optional.ofNullable(executorMetrics.get(executor));
     }
 
@@ -104,7 +104,7 @@ class ThreadPoolMetricsCollector implements IMetricCollector {
                                 long timestamp) {
         List<Object> messageList = new ArrayList<>(flushed.size() + executorMetrics.size());
 
-        ThreadPoolMetrics flushedMetric = this.flushed.poll();
+        ThreadPoolMetric flushedMetric = this.flushed.poll();
         while (flushedMetric != null) {
             messageList.add(messageConverter.from(appInstance,
                                                   timestamp,
@@ -113,7 +113,7 @@ class ThreadPoolMetricsCollector implements IMetricCollector {
             flushedMetric = this.flushed.poll();
         }
 
-        for (ThreadPoolMetrics threadPoolMetric : this.executorMetrics.values()) {
+        for (ThreadPoolMetric threadPoolMetric : this.executorMetrics.values()) {
             messageList.add(messageConverter.from(appInstance,
                                                   timestamp,
                                                   interval,
