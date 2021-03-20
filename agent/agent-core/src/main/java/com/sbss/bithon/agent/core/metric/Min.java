@@ -10,7 +10,7 @@ public class Min {
     private final AtomicLong value = new AtomicLong(Long.MAX_VALUE);
 
     public void update(long value) {
-        this.value.getAndAccumulate(value, Math::max);
+        this.value.getAndAccumulate(value, Math::min);
     }
 
     public long get() {
