@@ -2,6 +2,7 @@ package com.sbss.bithon.server.metric.storage.jdbc;
 
 import com.sbss.bithon.server.metric.DataSourceSchema;
 import com.sbss.bithon.server.metric.aggregator.IMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.PostAggregatorMetricSpec;
 import com.sbss.bithon.server.metric.dimension.IDimensionSpec;
 import com.sbss.bithon.server.metric.input.InputRow;
 import com.sbss.bithon.server.metric.storage.IMetricWriter;
@@ -84,6 +85,9 @@ class MetricJdbcWriter implements IMetricWriter {
             }
 
             for (IMetricSpec metric : schema.getMetricsSpec()) {
+                if ( metric instanceof PostAggregatorMetricSpec ) {
+                    continue;
+                }
                 metrics.add(createField(metric.getName(), metric.getValueType()));
             }
         }
