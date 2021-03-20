@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.core.metric.http;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 
@@ -28,7 +27,6 @@ public class HttpClientMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
@@ -36,7 +34,7 @@ public class HttpClientMetricCollector implements IMetricCollector {
             metricsMap.compute(entry.getKey(),
                                (k, v) -> getAndRemoveEntry(v));
 
-            messages.add(messageConverter.from(appInstance, timestamp, interval, this.metric));
+            messages.add(messageConverter.from(timestamp, interval, this.metric));
         }
         return messages;
     }

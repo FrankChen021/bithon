@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.jdbc.druid.metric;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
@@ -72,14 +71,13 @@ public class DruidSqlMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (MonitoredSource source : MonitoredSourceManager.getInstance().getMonitoredSources()) {
             SqlMetric metric = source.getSqlMetric();
             if (metric.peekTotalCount() > 0) {
-                Object message = messageConverter.from(appInstance, timestamp, interval, source.getSqlMetric());
+                Object message = messageConverter.from(timestamp, interval, source.getSqlMetric());
                 if (message != null) {
                     messages.add(message);
                 }

@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.quartz2;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
@@ -71,11 +70,10 @@ public class QuartzMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         Queue<Map<String, String>> logs = quartzLogs;
         quartzLogs = new ConcurrentLinkedQueue<>();
-        return logs.stream().map(log -> messageConverter.from(appInstance, log)).collect(Collectors.toList());
+        return logs.stream().map(log -> messageConverter.from(log)).collect(Collectors.toList());
     }
 }

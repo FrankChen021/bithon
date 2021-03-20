@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.core.metric.redis;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 
@@ -63,7 +62,6 @@ public class RedisMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
 
@@ -73,7 +71,7 @@ public class RedisMetricCollector implements IMetricCollector {
                                (k,
                                 v) -> v == null ? null : getAndRemove(v));
 
-            messages.add(messageConverter.from(appInstance, timestamp, interval, this.metric));
+            messages.add(messageConverter.from(timestamp, interval, this.metric));
         }
         return messages;
     }

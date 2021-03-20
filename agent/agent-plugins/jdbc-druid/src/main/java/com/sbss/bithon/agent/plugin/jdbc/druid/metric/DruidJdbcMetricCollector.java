@@ -56,7 +56,6 @@ public class DruidJdbcMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         List<Object> jdbcMessages = new ArrayList<>();
@@ -65,8 +64,7 @@ public class DruidJdbcMetricCollector implements IMetricCollector {
         dataSources.forEach((monitoredSource) -> {
             monitoredSource.getDataSource().getStatValueAndReset();
 
-            jdbcMessages.add(messageConverter.from(appInstance,
-                                                   timestamp,
+            jdbcMessages.add(messageConverter.from(timestamp,
                                                    interval,
                                                    monitoredSource.getJdbcMetric()));
         });

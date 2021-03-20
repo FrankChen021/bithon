@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.jetty.metric;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
@@ -21,6 +20,7 @@ public class WebServerMetricCollector implements IMetricCollector {
     private static final WebServerMetricCollector INSTANCE = new WebServerMetricCollector();
     private AbstractNetworkConnector connector;
     private QueuedThreadPool threadPool;
+
     WebServerMetricCollector() {
         MetricCollectorManager.getInstance().register("jetty-webserver-metrics", this);
     }
@@ -36,11 +36,9 @@ public class WebServerMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
-        return Collections.singletonList(messageConverter.from(appInstance,
-                                                               timestamp,
+        return Collections.singletonList(messageConverter.from(timestamp,
                                                                interval,
                                                                new WebServerMetric(
                                                                    WebServerType.JETTY,

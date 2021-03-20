@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.dispatcher.thrift;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.exception.ExceptionMetric;
@@ -45,7 +44,7 @@ import java.util.stream.Collectors;
 public class ToThriftMessageConverter implements IMessageConverter {
 
     @Override
-    public Object from(AppInstance appInstance, long timestamp, int interval, HttpClientMetric metric) {
+    public Object from(long timestamp, int interval, HttpClientMetric metric) {
         HttpClientMetricMessage message = new HttpClientMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
@@ -64,7 +63,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(AppInstance appInstance, long timestamp, int interval, JdbcPoolMetric metric) {
+    public Object from(long timestamp, int interval, JdbcPoolMetric metric) {
         JdbcPoolMetricMessage message = new JdbcPoolMetricMessage();
 
         message.setInterval(interval);
@@ -87,18 +86,17 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(AppInstance appInstance, long timestamp, int interval, SqlMetric metric) {
+    public Object from(long timestamp, int interval, SqlMetric metric) {
         return null;
     }
 
     @Override
-    public Object from(AppInstance appInstance, long timestamp, int interval, MongoMetric counter) {
+    public Object from(long timestamp, int interval, MongoMetric counter) {
         return null;
     }
 
     @Override
-    public Object from(AppInstance appInstance,
-                       long timestamp,
+    public Object from(long timestamp,
                        int interval,
                        WebRequestMetric metric) {
         WebRequestMetricMessage message = new WebRequestMetricMessage();
@@ -119,8 +117,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(AppInstance appInstance,
-                       long timestamp,
+    public Object from(long timestamp,
                        int interval,
                        JvmMetrics metric) {
         JvmMetricMessage message = new JvmMetricMessage();
@@ -162,8 +159,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(AppInstance appInstance,
-                       long timestamp,
+    public Object from(long timestamp,
                        int interval,
                        WebServerMetric metric) {
         WebServerMetricMessage message = new WebServerMetricMessage();
@@ -178,17 +174,12 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(SqlStatementMetric counter) {
+    public Object from(long timestamp, int interval, SqlStatementMetric counter) {
         return null;
     }
 
     @Override
-    public Object from(AppInstance appInstance, Map<String, String> map) {
-        return null;
-    }
-
-    @Override
-    public Object from(AppInstance appInstance, long timestamp, int interval, RedisMetric metric) {
+    public Object from(long timestamp, int interval, RedisMetric metric) {
         RedisMetricMessage message = new RedisMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
@@ -204,8 +195,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(AppInstance appInstance,
-                       long timestamp,
+    public Object from(long timestamp,
                        int interval,
                        ExceptionMetric metric) {
         ExceptionMetricMessage message = new ExceptionMetricMessage();
@@ -237,7 +227,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(AppInstance appInstance, EventMessage event) {
+    public Object from(EventMessage event) {
         ThriftEventMessage message = new ThriftEventMessage();
         message.setTimestamp(System.currentTimeMillis());
         message.setEventType(event.getMessageType());
@@ -246,8 +236,12 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(AppInstance appInstance,
-                       long timestamp,
+    public Object from(Map<String, String> log) {
+        return null;
+    }
+
+    @Override
+    public Object from(long timestamp,
                        int interval,
                        ThreadPoolMetric metric) {
         ThreadPoolMetricMessage message = new ThreadPoolMetricMessage();

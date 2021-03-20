@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.jetty.metric;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
@@ -57,7 +56,6 @@ public class WebRequestMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
@@ -65,7 +63,7 @@ public class WebRequestMetricCollector implements IMetricCollector {
             metricsMap.compute(entry.getKey(),
                                (k,
                                 v) -> getAndRemove(v));
-            messages.add(messageConverter.from(appInstance, timestamp, interval, metric));
+            messages.add(messageConverter.from(timestamp, interval, metric));
         }
         return messages;
     }

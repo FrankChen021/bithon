@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.core.metric;
 
-import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
 import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
@@ -17,6 +16,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Metric Registry and Dispatcher(in some other system, it's called as reporter)
+ *
  * @author frankchen
  */
 public class MetricCollectorManager {
@@ -24,12 +25,12 @@ public class MetricCollectorManager {
 
     private static final int INTERVAL = 10;
     private static final MetricCollectorManager INSTANCE = new MetricCollectorManager();
-    private final ConcurrentMap<String, IMetricCollector> providers;
+    private final ConcurrentMap<String, IMetricCollector> collectors;
     private final Dispatcher dispatcher;
     ScheduledExecutorService scheduler;
 
     private MetricCollectorManager() {
-        this.providers = new ConcurrentHashMap<>();
+        this.collectors = new ConcurrentHashMap<>();
         this.dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_METRICS);
 
         // NOTE:
@@ -39,7 +40,7 @@ public class MetricCollectorManager {
         this.scheduler = new ScheduledThreadPoolExecutor(2,
                                                          NamedThreadFactory.of("bithon-metric-collector"),
                                                          new ThreadPoolExecutor.CallerRunsPolicy());
-        this.scheduler.scheduleWithFixedDelay(this::collectorAndDispatch, 0, INTERVAL, TimeUnit.SECONDS);
+        this.scheduler.scheduleWithFixedDelay(this::collectAndDispatch, 0, INTERVAL, TimeUnit.SECONDS);
     }
 
     public static MetricCollectorManager getInstance() {
@@ -47,7 +48,7 @@ public class MetricCollectorManager {
     }
 
     public boolean isProviderExists(String name) {
-        for (String providerName : providers.keySet()) {
+        for (String providerName : collectors.keySet()) {
             if (providerName.contains(name)) {
                 return true;
             }
@@ -56,10 +57,10 @@ public class MetricCollectorManager {
     }
 
     public <T extends IMetricCollector> T register(String providerName, T provider) {
-        if (providers.containsKey(providerName)) {
+        if (collectors.containsKey(providerName)) {
             throw new RuntimeException(String.format("Metrics Local Storage(%s) already registered!", providerName));
         } else {
-            providers.put(providerName, provider);
+            collectors.put(providerName, provider);
             log.debug(String.format("Success to register metrics local storage(%s)", providerName));
         }
         return provider;
@@ -67,7 +68,7 @@ public class MetricCollectorManager {
 
     @SuppressWarnings("unchecked")
     public <T extends IMetricCollector> T getOrRegister(String providerName, Class<T> providerClass) {
-        IMetricCollector provider = providers.get(providerName);
+        IMetricCollector provider = collectors.get(providerName);
         if (provider != null) {
             return (T) provider;
         }
@@ -78,22 +79,21 @@ public class MetricCollectorManager {
         }
     }
 
-    private void collectorAndDispatch() {
+    private void collectAndDispatch() {
         if (!dispatcher.isReady()) {
             return;
         }
 
-        for (IMetricCollector provider : providers.values()) {
-            if (provider.isEmpty()) {
+        for (IMetricCollector collector : collectors.values()) {
+            if (collector.isEmpty()) {
                 continue;
             }
 
-            this.scheduler.execute(()->{
+            this.scheduler.execute(() -> {
                 try {
-                    List<Object> messages = provider.collect(dispatcher.getMessageConverter(),
-                                                             AgentContext.getInstance().getAppInstance(),
-                                                             INTERVAL,
-                                                             System.currentTimeMillis());
+                    List<Object> messages = collector.collect(dispatcher.getMessageConverter(),
+                                                              INTERVAL,
+                                                              System.currentTimeMillis());
                     if (CollectionUtils.isNotEmpty(messages)) {
                         dispatcher.sendMessage(messages);
                     }

@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.mysql.metrics;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
@@ -28,7 +27,7 @@ public class StatementCounterStorage implements IMetricCollector, IAgentSettingR
     static final StatementCounterStorage INSTANCE = new StatementCounterStorage();
     private static final Logger log = LoggerFactory.getLogger(StatementCounterStorage.class);
     private static final String MYSQL_COUNTER_NAME = "sql_stats";
-    private final Map<String, Map<String, SqlStatementMetric>> counters = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, SqlStatementMetric>> metricMap = new ConcurrentHashMap<>();
     private long sqlTime = 1000;
 
     private StatementCounterStorage() {
@@ -66,12 +65,12 @@ public class StatementCounterStorage implements IMetricCollector, IAgentSettingR
 
         sql = ParameterizedOutputVisitorUtils.parameterize(sql, JdbcConstants.MYSQL).replace("\n", "");
         Map<String, SqlStatementMetric> statementCounters;
-        if ((statementCounters = counters.get(hostAndPort)) == null) {
+        if ((statementCounters = metricMap.get(hostAndPort)) == null) {
             synchronized (this) {
-                if ((statementCounters = counters.get(hostAndPort)) == null) {
-                    statementCounters = counters.putIfAbsent(hostAndPort, new ConcurrentHashMap<>());
+                if ((statementCounters = metricMap.get(hostAndPort)) == null) {
+                    statementCounters = metricMap.putIfAbsent(hostAndPort, new ConcurrentHashMap<>());
                     if (statementCounters == null) {
-                        statementCounters = counters.get(hostAndPort);
+                        statementCounters = metricMap.get(hostAndPort);
                     }
                 }
             }
@@ -96,17 +95,16 @@ public class StatementCounterStorage implements IMetricCollector, IAgentSettingR
 
     @Override
     public boolean isEmpty() {
-        return counters.isEmpty();
+        return metricMap.isEmpty();
     }
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
-        counters.forEach((dataSourceUrl, statementCounters) -> {
-            statementCounters.forEach((sql, counter) -> messages.add(messageConverter.from(counter)));
+        metricMap.forEach((dataSourceUrl, statementMetrics) -> {
+            statementMetrics.forEach((sql, counter) -> messages.add(messageConverter.from(timestamp, interval, counter)));
         });
         return messages;
     }

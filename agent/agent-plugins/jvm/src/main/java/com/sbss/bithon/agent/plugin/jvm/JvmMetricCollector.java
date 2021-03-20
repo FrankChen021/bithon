@@ -1,7 +1,5 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
-import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
 import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
@@ -62,11 +60,9 @@ public class JvmMetricCollector {
 
             @Override
             public List<Object> collect(IMessageConverter messageConverter,
-                                        AppInstance appInstance,
                                         int interval,
                                         long timestamp) {
-                return Collections.singletonList(messageConverter.from(AgentContext.getInstance().getAppInstance(),
-                                                                       timestamp,
+                return Collections.singletonList(messageConverter.from(timestamp,
                                                                        interval,
                                                                        buildJvmMetrics()));
             }
@@ -94,8 +90,7 @@ public class JvmMetricCollector {
         }
 
         IMessageConverter converter = dispatcher.getMessageConverter();
-        dispatcher.sendMessage(converter.from(AgentContext.getInstance().getAppInstance(),
-                                              buildJvmStartedEventMessage()));
+        dispatcher.sendMessage(converter.from(buildJvmStartedEventMessage()));
         return true;
     }
 

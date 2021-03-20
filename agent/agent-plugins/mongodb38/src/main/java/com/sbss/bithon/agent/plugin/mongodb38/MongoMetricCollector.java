@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.mongodb38;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
@@ -85,7 +84,6 @@ public class MongoMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         if (log.isDebugEnabled()) {
@@ -97,7 +95,7 @@ public class MongoMetricCollector implements IMetricCollector {
         for (Map.Entry<String, MongoMetric> entry : mongoDbCounterStorageMap.entrySet()) {
             mongoDbCounterStorageMap.compute(entry.getKey(), (k, v) -> getAndRemove(v));
 
-            messages.add(messageConverter.from(appInstance, timestamp, interval, this.counter));
+            messages.add(messageConverter.from(timestamp, interval, this.counter));
         }
         return messages;
     }

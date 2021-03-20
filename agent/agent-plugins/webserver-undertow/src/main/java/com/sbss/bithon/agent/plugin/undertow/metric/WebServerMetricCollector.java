@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.undertow.metric;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
@@ -19,7 +18,7 @@ import java.util.List;
  */
 public class WebServerMetricCollector implements IMetricCollector {
 
-    private static WebServerMetricCollector INSTANCE = new WebServerMetricCollector();
+    private static final WebServerMetricCollector INSTANCE = new WebServerMetricCollector();
 
     public static WebServerMetricCollector getInstance() {
         return INSTANCE;
@@ -39,7 +38,6 @@ public class WebServerMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
 
@@ -48,8 +46,7 @@ public class WebServerMetricCollector implements IMetricCollector {
         //TODO: MaxActiveConnection is not maxConnections
         long maxConnections = null == connectorStatistics ? 0 : connectorStatistics.getMaxActiveConnections();
 
-        return Collections.singletonList(messageConverter.from(appInstance,
-                                                               timestamp,
+        return Collections.singletonList(messageConverter.from(timestamp,
                                                                interval,
                                                                new WebServerMetric(WebServerType.UNDERTOW,
                                                                                    connectionCount,
@@ -89,7 +86,7 @@ public class WebServerMetricCollector implements IMetricCollector {
 
         public int getActiveCount() {
             try {
-                int activeCount = (int)getActiveCount.invoke(taskPool);
+                int activeCount = (int) getActiveCount.invoke(taskPool);
                 return activeCount == -1 ? 0 : activeCount;
             } catch (IllegalAccessException | InvocationTargetException e) {
                 //TODO: warning log
@@ -99,7 +96,7 @@ public class WebServerMetricCollector implements IMetricCollector {
 
         public int getMaximumPoolSize() {
             try {
-                return (int)getMaximumPoolSize.invoke(taskPool);
+                return (int) getMaximumPoolSize.invoke(taskPool);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 //TODO: warning log
                 return 0;

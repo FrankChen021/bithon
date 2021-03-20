@@ -51,7 +51,6 @@ public class WebRequestMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
@@ -60,7 +59,7 @@ public class WebRequestMetricCollector implements IMetricCollector {
                                (k,
                                 v) -> getAndRemove(v));
 
-            messages.add(messageConverter.from(appInstance, timestamp, interval, this.metric));
+            messages.add(messageConverter.from(timestamp, interval, this.metric));
         }
         return messages;
     }

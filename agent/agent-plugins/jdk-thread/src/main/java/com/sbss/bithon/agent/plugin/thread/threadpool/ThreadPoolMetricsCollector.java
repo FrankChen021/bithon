@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.thread.threadpool;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
@@ -99,23 +98,20 @@ class ThreadPoolMetricsCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         List<Object> messageList = new ArrayList<>(flushed.size() + executorMetrics.size());
 
         ThreadPoolMetric flushedMetric = this.flushed.poll();
         while (flushedMetric != null) {
-            messageList.add(messageConverter.from(appInstance,
-                                                  timestamp,
+            messageList.add(messageConverter.from(timestamp,
                                                   interval,
                                                   flushedMetric));
             flushedMetric = this.flushed.poll();
         }
 
         for (ThreadPoolMetric threadPoolMetric : this.executorMetrics.values()) {
-            messageList.add(messageConverter.from(appInstance,
-                                                  timestamp,
+            messageList.add(messageConverter.from(timestamp,
                                                   interval,
                                                   threadPoolMetric));
         }

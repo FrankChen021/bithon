@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.tomcat.metric;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
@@ -29,12 +28,10 @@ public class WebServerMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
 
-        return Collections.singletonList(messageConverter.from(appInstance,
-                                                               timestamp,
+        return Collections.singletonList(messageConverter.from(timestamp,
                                                                interval,
                                                                new WebServerMetric(WebServerType.TOMCAT,
                                                                                    endpoint.getConnectionCount(),

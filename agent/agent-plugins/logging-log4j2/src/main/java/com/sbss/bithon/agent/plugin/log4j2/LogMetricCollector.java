@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.log4j2;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.exception.ExceptionMetric;
@@ -50,7 +49,6 @@ public class LogMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long now) {
         Map<String, ExceptionMetric> metricMap = new HashMap<>();
@@ -78,8 +76,7 @@ public class LogMetricCollector implements IMetricCollector {
 
         return metricMap.values()
                         .stream()
-                        .map(metric -> messageConverter.from(appInstance,
-                                                             now,
+                        .map(metric -> messageConverter.from(now,
                                                              interval,
                                                              metric))
                         .collect(Collectors.toList());

@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.mysql8;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
@@ -121,12 +120,13 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
         metricMap.forEach((dataSourceUrl, statementCounters) -> {
-            statementCounters.forEach((sql, counter) -> messages.add(messageConverter.from(counter)));
+            statementCounters.forEach((sql, counter) -> messages.add(messageConverter.from(timestamp,
+                                                                                           interval,
+                                                                                           counter)));
         });
         return messages;
     }

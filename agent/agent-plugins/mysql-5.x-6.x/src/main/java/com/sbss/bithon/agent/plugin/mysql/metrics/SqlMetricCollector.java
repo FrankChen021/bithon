@@ -106,12 +106,11 @@ public class SqlMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (Map.Entry<String, SqlMetric> entry : metricMap.entrySet()) {
-            Object message = messageConverter.from(appInstance, timestamp, interval, entry.getValue());
+            Object message = messageConverter.from(timestamp, interval, entry.getValue());
             if (message != null) {
                 messages.add(message);
             }

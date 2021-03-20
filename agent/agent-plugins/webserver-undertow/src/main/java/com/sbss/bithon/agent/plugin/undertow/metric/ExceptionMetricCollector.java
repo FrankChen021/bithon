@@ -1,10 +1,9 @@
 package com.sbss.bithon.agent.plugin.undertow.metric;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 
 import java.util.Collections;
 import java.util.List;
@@ -85,7 +84,9 @@ public class ExceptionMetricCollector implements IMetricCollector {
 
     public void update(Throwable e) {
         if (null != e) {
-            exceptionStorage.add(new ClientException(System.currentTimeMillis(), (String) InterceptorContext.get("uri"), e));
+            exceptionStorage.add(new ClientException(System.currentTimeMillis(),
+                                                     (String) InterceptorContext.get("uri"),
+                                                     e));
             latestRecordTimestamp = System.currentTimeMillis();
         }
     }
@@ -97,7 +98,6 @@ public class ExceptionMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
 //        List<FailureMessageDetailEntity> failureMessageDetailEntities = new ArrayList<>();

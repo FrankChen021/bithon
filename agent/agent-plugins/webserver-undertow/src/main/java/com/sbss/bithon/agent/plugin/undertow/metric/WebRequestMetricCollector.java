@@ -1,6 +1,5 @@
 package com.sbss.bithon.agent.plugin.undertow.metric;
 
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
@@ -42,7 +41,8 @@ public class WebRequestMetricCollector implements IMetricCollector {
         long responseByteSize = exchange.getResponseBytesSent();
         long costTime = System.nanoTime() - startNano;
 
-        WebRequestMetric counter = metricsMap.computeIfAbsent(srcApplication + "|" + uri, key -> new WebRequestMetric(srcApplication, uri));
+        WebRequestMetric counter = metricsMap.computeIfAbsent(srcApplication + "|" + uri,
+                                                              key -> new WebRequestMetric(srcApplication, uri));
         counter.add(costTime, errorCount, count4xx, count5xx);
         counter.addBytes(requestByteSize, responseByteSize);
     }
@@ -54,16 +54,14 @@ public class WebRequestMetricCollector implements IMetricCollector {
 
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
-                                AppInstance appInstance,
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (Map.Entry<String, WebRequestMetric> entry : metricsMap.entrySet()) {
             metricsMap.compute(entry.getKey(),
                                (k,
-                              v) -> getAndRemove(v));
-            messages.add(messageConverter.from(appInstance,
-                                               timestamp,
+                                v) -> getAndRemove(v));
+            messages.add(messageConverter.from(timestamp,
                                                interval,
                                                this.metric));
         }
