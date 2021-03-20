@@ -7,7 +7,7 @@ var web_server_metrics_dashboard = {
         "metrics":[{
             "name": "connectionCount"
         },{
-          "name": "activeThreads"
+            "name": "activeThreads"
         }]
     }]
 }

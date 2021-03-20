@@ -2,18 +2,25 @@ var http_client_metrics_dashboard = {
     "title": "",
     "charts":[{
         "dataSource": "http-client-metrics",
-        "title": "Requests",
+        "title": "QPS",
+        "width": 4, //1,2,3,4
+        "metrics":[{
+            "name": "qps"
+        }]
+    },{
+        "dataSource": "http-client-metrics",
+        "title": "Response Time",
         "width": 4, //1,2,3,4
         "yAxis": [ {
-            },{
-            "formatter": "millisecond"
+            "unit": "millisecond"
           }
         ],
         "metrics":[{
-            "name": "requestCount"
+          "name": "avgResponseTime"
         },{
-          "name": "avgResponseTime",
-          "yAxis": 1
+          "name": "minResponseTime"
+        },{
+          "name": "maxResponseTime"
         }]
     },{
         "dataSource": "http-client-metrics",
@@ -33,7 +40,7 @@ var http_client_metrics_dashboard = {
         "yAxis": [ {
            "minInterval": 1024 * 1024,
            "interval": 1024 * 1024 * 1024,
-           "formatter": "binary_byte"
+           "unit": "binary_byte"
         }],
         "metrics":[{
             "name": "requestBytes"

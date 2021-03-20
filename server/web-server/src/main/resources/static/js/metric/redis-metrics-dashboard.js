@@ -12,7 +12,7 @@ var redis_metrics_dashboard = {
         "title": "Time",
         "width": 4, //1,2,3,4
         "yAxis": [{
-            "formatter": "nano2Millisecond"
+            "unit": "nano2Millisecond"
         }],
         "metrics":[{
            "name": "requestTime"
@@ -26,7 +26,7 @@ var redis_metrics_dashboard = {
         "yAxis": [ {
            "minInterval": 1024 * 1024,
            "interval": 1024 * 1024 * 1024,
-           "formatter": "binary_byte"
+           "unit": "binary_byte"
         }],
         "metrics":[{
             "name": "requestBytes"

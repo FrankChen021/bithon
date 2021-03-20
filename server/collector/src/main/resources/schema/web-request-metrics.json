@@ -32,20 +32,20 @@
       "type": "longSum",
       "name": "costTime",
       "displayText": "Accumulative cost Time",
-      "unit": "Nano Second",
+      "unit": "nanosecond",
       "visible": false
     },
     {
       "type": "longMin",
       "name": "minCostTime",
-      "displayText": "min cost time",
-      "unit": "Nano Second"
+      "displayText": "Min Response time",
+      "unit": "nanosecond"
     },
     {
       "type": "longMax",
       "name": "maxCostTime",
-      "displayText": "Max cost time",
-      "unit": "Nano Second"
+      "displayText": "Max Response time",
+      "unit": "nanosecond"
     },
     {
       "type": "longSum",
@@ -92,7 +92,7 @@
     },
     {
       "type": "postAggregator",
-      "name": "avgCostTime",
+      "name": "avgResponseTime",
       "expression": "costTime/1000.0/1000/requestCount",
       "displayText": "Avg cost time",
       "unit": "Milli",

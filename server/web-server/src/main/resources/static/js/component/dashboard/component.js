@@ -51,6 +51,37 @@ class Dashboard {
 
                     this.createDimensionFilter(filterBar, dimension.name, dimension.displayText);
                 }
+
+                //
+                // This should be changed in future
+                // converts dimensionSpec from Array to Map
+                //
+                var dimensionMap = new Object();
+                for(var index = 0; index < schema.dimensionsSpec.length; index++) {
+                    var dimension = schema.dimensionsSpec[index];
+                    dimensionMap[dimension.name] = dimension;
+                }
+                schema.dimensionsSpec = dimensionMap;
+
+                //
+                // This should be changed in future
+                // converts metricSpec from Array to Map
+                //
+                var metricMap = new Object();
+                for(var index = 0; index < schema.metricsSpec.length; index++) {
+                    var metric = schema.metricsSpec[index];
+                    metricMap[metric.name] = metric;
+                }
+                schema.metricSpec = metricMap;
+
+                //
+                // Build Transformers
+                //
+                this.createTransformers(schema);
+
+                // refresh dashboard after schema has been retrieved
+                // because there may be value transformers on different units
+                this.refreshDashboard();
             },
             (error)=>{}
         );
@@ -75,8 +106,6 @@ class Dashboard {
         $.each(dashboard.charts, (index, chart)=>{
             this.createChartComponent(index, chart);
         });
-
-        this.refreshDashboard();
     }
 
     // PRIVATE
@@ -159,7 +188,7 @@ class Dashboard {
             icon: 'circle'
         }});
         if ( chartDescriptor.yAxis != null ) {
-            var formatterFns = chartDescriptor.yAxis.map( y => this.getFormatter(y.formatter) );
+            var formatterFns = chartDescriptor.yAxis.map( y => this.getFormatter(y.unit) );
             for(var i = 1; i < formatterFns.length; i++) {
                 if ( formatterFns[i] == null )
                     formatterFns[i] = formatterFns[i-1]; //default to prev config
@@ -302,7 +331,7 @@ class Dashboard {
                     name: metric.name,
                     type: metric.chartType || 'line',
                     areaStyle: { opacity: 0.3 },
-                    data: data.map(d=> { var val = d[metric.name]; return val == null ? 0 : val.toFixed(2)}),
+                    data: data.map(d=>metric.transformer(d, metric.name)),
                     lineStyle: { width: 1 },
                     itemStyle: { opacity: 0 },
                     yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis
@@ -314,6 +343,37 @@ class Dashboard {
                 }
             }
         });
+    }
+
+    // Unit conversion
+    // PRIVATE
+    createTransformers(schema) {
+        $.each(this._dashboard.charts, (index, chartDescriptor) => {
+            $.each(chartDescriptor.metrics, (metricIndex, metric) => {
+                metric.transformer = this.createTransformer(schema, chartDescriptor, metricIndex);
+            });
+        });
+    }
+    createTransformer(schema, chartDescriptor, metricIndex) {
+        if ( chartDescriptor.yAxis != null ) {
+            // get yAxis config for this metric
+            var metricDescriptor = chartDescriptor.metrics[metricIndex];
+            var metricName = metricDescriptor.name;
+            var yIndex = metricDescriptor.yAxis == null ? 0 :  metricDescriptor.yAxis;
+            if ( yIndex < chartDescriptor.yAxis.length ) {
+                var yAxis = chartDescriptor.yAxis[yIndex];
+                if ( yAxis.unit == 'millisecond' && schema.metricSpec[metricName].unit == 'nanosecond' ) {
+                    return function(data, metricName) {
+                        var val = data[metricName];
+                        return val == null ? 0 : (val / 1000 / 1000).toFixed(2);
+                    }
+                }
+            }
+        }
+        return function(data, metricName) {
+          var val = data[metricName];
+          return val == null ? 0 : val.toFixed(2);
+        }
     }
 
     // PRIVATE
@@ -371,8 +431,8 @@ class Dashboard {
     }
 
     //PRIVATE
-    getFormatter(type) {
-        switch(type) {
+    getFormatter(unit) {
+        switch(unit) {
             case 'binary_byte': return function(v){
                 return binaryByteFormat(v);
             };

@@ -5,7 +5,7 @@ var jvm_metrics_dashboard = {
         "title": "CPU",
         "width": 2, //1,2,3,4
         "yAxis": [ {
-                "formatter": "percentage"
+                "unit": "percentage"
              }
          ],
         "metrics":[{
@@ -29,7 +29,7 @@ var jvm_metrics_dashboard = {
         "yAxis": [ {
             "minInterval": 1024 * 1024,
             "interval": 1024 * 1024 * 1024,
-            "formatter": "binary_byte"
+            "unit": "binary_byte"
         }],
         "metrics":[{
             "name": "heap",
