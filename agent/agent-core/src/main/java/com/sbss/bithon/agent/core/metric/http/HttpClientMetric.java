@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.metric.http;
 
-import com.sbss.bithon.agent.core.metric.Compund;
+import com.sbss.bithon.agent.core.metric.Timer;
 import com.sbss.bithon.agent.core.metric.Sum;
 
 /**
@@ -20,7 +20,7 @@ public class HttpClientMetric {
     /**
      * total cost time in NANO second
      */
-    private final Compund responseTime = new Compund();
+    private final Timer responseTime = new Timer();
 
     /**
      * count of all status code between 400(inclusive) and 500(exclusive)
@@ -67,7 +67,7 @@ public class HttpClientMetric {
         return method;
     }
 
-    public Compund getResponseTime() {
+    public Timer getResponseTime() {
         return responseTime;
     }
 

@@ -1,14 +1,12 @@
 package com.sbss.bithon.agent.core.metric;
 
 /**
- * It's a compound metric which holds counter, min and max value
- * <p>
- * I have not come up with a nice name.
+ * It's a compound metric which holds total time, min time and max time
  *
  * @author frank.chen021@outlook.com
  * @date 2021-03-16
  */
-public class Compund {
+public class Timer {
 
     private final Sum sum = new Sum();
     private final Max max = new Max();

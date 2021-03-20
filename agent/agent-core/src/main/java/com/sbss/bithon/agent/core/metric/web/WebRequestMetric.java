@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.metric.web;
 
-import com.sbss.bithon.agent.core.metric.Compund;
+import com.sbss.bithon.agent.core.metric.Timer;
 import com.sbss.bithon.agent.core.metric.Sum;
 
 /**
@@ -18,7 +18,7 @@ public class WebRequestMetric {
     /**
      * metrics
      */
-    private final Compund responseTime = new Compund();
+    private final Timer responseTime = new Timer();
     private final Sum requestCount = new Sum();
     private final Sum errorCount = new Sum();
     private final Sum count4xx = new Sum();
@@ -31,14 +31,14 @@ public class WebRequestMetric {
         this.uri = uri;
     }
 
-    public void add(long costTime, int errorCount) {
-        this.responseTime.update(costTime);
+    public void add(long responseTime, int errorCount) {
+        this.responseTime.update(responseTime);
         this.errorCount.update(errorCount);
         this.requestCount.incr();
     }
 
-    public void add(long costTime, int errorCount, int count4xx, int count5xx) {
-        this.add(costTime, errorCount);
+    public void add(long responseTime, int errorCount, int count4xx, int count5xx) {
+        this.add(responseTime, errorCount);
         this.count4xx.update(count4xx);
         this.count5xx.update(count5xx);
     }
@@ -60,7 +60,7 @@ public class WebRequestMetric {
         return uri;
     }
 
-    public Compund getResponseTime() {
+    public Timer getResponseTime() {
         return responseTime;
     }
 

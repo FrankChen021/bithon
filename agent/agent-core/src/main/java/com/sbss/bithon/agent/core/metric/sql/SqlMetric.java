@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.metric.sql;
 
-import com.sbss.bithon.agent.core.metric.Compund;
+import com.sbss.bithon.agent.core.metric.Timer;
 import com.sbss.bithon.agent.core.metric.Sum;
 
 /**
@@ -13,7 +13,7 @@ public class SqlMetric {
     private final String hostAndPort;
 
     // metric
-    private final Compund responseTime = new Compund();
+    private final Timer responseTime = new Timer();
     private final Sum totalFailureCount = new Sum();
     private final Sum totalCount = new Sum();
     private final Sum totalQueryCount = new Sum();
@@ -41,7 +41,7 @@ public class SqlMetric {
         this.totalCount.incr();
     }
 
-    public Compund getResponseTime() {
+    public Timer getResponseTime() {
         return responseTime;
     }
 

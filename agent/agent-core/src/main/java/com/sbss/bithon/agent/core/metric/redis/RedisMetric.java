@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.metric.redis;
 
-import com.sbss.bithon.agent.core.metric.Compund;
+import com.sbss.bithon.agent.core.metric.Timer;
 import com.sbss.bithon.agent.core.metric.Sum;
 
 /**
@@ -11,8 +11,8 @@ public class RedisMetric {
     private final String hostAndPort;
     private final String command;
 
-    private final Compund requestTime = new Compund();
-    private final Compund responseTime = new Compund();
+    private final Timer requestTime = new Timer();
+    private final Timer responseTime = new Timer();
     private final Sum totalCount = new Sum();
     private final Sum exceptionCount = new Sum();
     private final Sum responseBytes = new Sum();
@@ -34,11 +34,11 @@ public class RedisMetric {
         this.exceptionCount.update(exceptionCount);
     }
 
-    public Compund getRequestTime() {
+    public Timer getRequestTime() {
         return requestTime;
     }
 
-    public Compund getResponseTime() {
+    public Timer getResponseTime() {
         return responseTime;
     }
 
