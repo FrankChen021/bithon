@@ -13,8 +13,15 @@ import static com.sbss.bithon.agent.plugin.jvm.JmxBeans.RUNTIME_BEAN;
  * @date 2021/2/14 8:33 下午
  */
 public class CpuMetricCollector {
-    private final Delta lastProcessCpuTime = new Delta(OS_BEAN.getProcessCpuTime());
-    private final Delta lastProcessUpTime = new Delta(RUNTIME_BEAN.getUptime());
+    /**
+     * in NANO-seconds
+     */
+    private final Delta processCpuTime = new Delta(OS_BEAN.getProcessCpuTime());
+
+    /**
+     * in milli-seconds
+     */
+    private final Delta processUpTime = new Delta(RUNTIME_BEAN.getUptime());
 
     /**
      * Calculate CPU usage by code instead of by JMX API
@@ -23,15 +30,16 @@ public class CpuMetricCollector {
      * https://github.com/alibaba/Sentinel/pull/1204
      */
     public CpuMetric collect() {
-        long processCpuTime = lastProcessCpuTime.update(OS_BEAN.getProcessCpuTime());
-        long processUpTime = lastProcessUpTime.update(RUNTIME_BEAN.getUptime());
-        long processCpuTimeDiffInMs = TimeUnit.NANOSECONDS.toMillis(processCpuTime);
-
+        long processCpuTimeDelta = processCpuTime.update(OS_BEAN.getProcessCpuTime());
+        long processUpTimeDelta = processUpTime.update(RUNTIME_BEAN.getUptime());
         int cpuCores = OS_BEAN.getAvailableProcessors();
-        double processCpuPercentage = (double) processCpuTimeDiffInMs / processUpTime / cpuCores * 100;
+
+        double processCpuPercentage = (double) TimeUnit.NANOSECONDS.toMillis(processCpuTimeDelta)
+                                      / processUpTimeDelta
+                                      / cpuCores * 100;
 
         return new CpuMetric(cpuCores,
-                             processCpuTime,
+                             processCpuTimeDelta,
                              OS_BEAN.getSystemLoadAverage(),
                              processCpuPercentage);
     }

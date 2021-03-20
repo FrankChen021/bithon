@@ -84,43 +84,29 @@ struct NonHeapEntity {
 }
 
 struct GcEntity {
-    // 垃圾回收名称
     1:optional string gcName;
-    // 垃圾回收次数
-    2:i64 gcCount;
-    // 垃圾回收耗时
-    3:i64 gcTime;
-    // GC分类0-新生代、1-老年代
-    4:optional i32 generation;
+    2:i32 generation;
+    3:i64 gcCount;
+    4:i64 gcTime;
 }
 
 struct ThreadEntity {
-    // 从JVM启动或峰值重置以来峰值活动线程计数
     1:i64 peakThreads;
-    // 活动守护线程的当前数目
     2:i64 daemonThreads;
-    // 从JVM启动以来创建和启动的线程总数目
     3:i64 totalThreads;
-    // 活动线程的当前数目，包括守护线程和非守护线程
     4:i64 activeThreads;
 }
 
 struct ClassEntity {
-    // 当前加载到JVM中的类的数量
-    1:i64 classes;
-    // 自JVM开始执行到目前已经加载的类的总数
-    2:i64 loaded;
-    // 自JVM开始执行到目前已经卸载的类的总数
-    3:i64 unloaded;
+    1:i64 currentLoaded;
+    2:i64 totalLoaded;
+    3:i64 totalUnloaded;
 }
 
 struct MetaspaceEntity {
-    // metaspace已分配的内存大小（单位：字节）
     1:i64 metaspaceCommitted;
-    // metaspace已使用的内存大小（单位：字节）
     2:i64 metaspaceUsed;
 }
-
 
 /***************************************************************************/
 /************************* Web Server Metrics ******************************/

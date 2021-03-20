@@ -1,13 +1,17 @@
 package com.sbss.bithon.agent.core.metric.jvm;
 
-import java.io.Serializable;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/29 9:58 下午
  */
 public class GcMetric {
     public String gcName;
+
+    /**
+     * 0 - NEW
+     * 1 - OLD
+     */
+    public int generation;
 
     /**
      * count of GC between two intervals
@@ -19,8 +23,9 @@ public class GcMetric {
      */
     public long gcTime;
 
-    public GcMetric(String gcName, long gcCount, long gcTime) {
+    public GcMetric(String gcName, int generation, long gcCount, long gcTime) {
         this.gcName = gcName;
+        this.generation = generation;
         this.gcCount = gcCount;
         this.gcTime = gcTime;
     }

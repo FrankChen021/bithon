@@ -143,10 +143,11 @@ public class ToThriftMessageConverter implements IMessageConverter {
                                                  metric.threadMetrics.activeDaemonCount,
                                                  metric.threadMetrics.totalCreatedCount,
                                                  metric.threadMetrics.activeThreadsCount));
-        message.setGcEntities(metric.gcMetrics.stream().map(gcEntity -> {
-            GcEntity e = new GcEntity(gcEntity.gcCount,
-                                      gcEntity.gcTime);
-            e.setGcName(gcEntity.gcName);
+        message.setGcEntities(metric.gcMetrics.stream().map(gcMetric -> {
+            GcEntity e = new GcEntity(gcMetric.generation,
+                                      gcMetric.gcCount,
+                                      gcMetric.gcTime);
+            e.setGcName(gcMetric.gcName);
             return e;
         }).collect(Collectors.toList()));
 

@@ -77,7 +77,7 @@ public class JvmMetricCollector {
         jvmMetrics.heapMetrics = MemoryMetricCollector.collectHeap();
         jvmMetrics.nonHeapMetrics = MemoryMetricCollector.collectNonHeap();
         jvmMetrics.metaspaceMetrics = MemoryMetricCollector.collectMeataSpace();
-        jvmMetrics.gcMetrics = gcMetricCollector.build();
+        jvmMetrics.gcMetrics = gcMetricCollector.collect();
         jvmMetrics.threadMetrics = ThreadMetricCollector.collect();
         jvmMetrics.classMetrics = ClassMetricCollector.collect();
         return jvmMetrics;

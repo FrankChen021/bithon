@@ -19,6 +19,25 @@
   ],
   "metricsSpec": [
     {
+      "type": "longSum",
+      "name": "interval",
+      "displayText": "CPU Load",
+      "unit": "millisecond",
+      "visible": false
+    },
+    {
+      "type": "longLast",
+      "name": "processors",
+      "displayText": "Processors",
+      "unit": "count"
+    },
+    {
+      "type": "longLast",
+      "name": "processCpuTime",
+      "displayText": "Processors",
+      "unit": "nanosecond"
+    },
+    {
       "type": "doubleLast",
       "name": "processCpuLoad",
       "displayText": "CPU Load",
@@ -34,55 +53,55 @@
       "type": "longLast",
       "name": "instanceUpTime",
       "displayText": "Running Time",
-      "unit": "Milli Second"
+      "unit": "millisecond"
     },
     {
       "type": "longLast",
       "name": "heap",
       "displayText": "Heap(-Xmx)",
-      "unit": "字节"
+      "unit": "byte"
     },
     {
       "type": "longLast",
       "name": "heapInit",
       "displayText": "Init Heap Size(-Xms)",
-      "unit": "字节"
+      "unit": "byte"
     },
     {
       "type": "longLast",
       "name": "heapUsed",
       "displayText": "Heap Used",
-      "unit": "字节"
+      "unit": "byte"
     },
     {
       "type": "longLast",
       "name": "heapCommitted",
-      "displayText": "可用堆内存",
-      "unit": "字节"
+      "displayText": "Available Heap",
+      "unit": "byte"
     },
     {
       "type": "longLast",
       "name": "peakThreads",
-      "displayText": "峰值线程数",
-      "unit": "Count"
+      "displayText": "Peek Threads",
+      "unit": "count"
     },
     {
       "type": "longLast",
       "name": "daemonThreads",
       "displayText": "Daemon Threads",
-      "unit": "Count"
+      "unit": "count"
     },
     {
       "type": "longLast",
       "name": "totalThreads",
       "displayText": "Total Threads",
-      "unit": "Count"
+      "unit": "count"
     },
     {
       "type": "longLast",
       "name": "activeThreads",
       "displayText": "Active Threads",
-      "unit": "Count"
+      "unit": "count"
     }
   ]
 }

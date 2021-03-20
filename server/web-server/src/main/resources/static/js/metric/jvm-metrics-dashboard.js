@@ -44,7 +44,7 @@ var jvm_metrics_dashboard = {
         "width": 4,
         "yAxis": [{
         },{
-              "unit": "microsecond"
+              "unit": "millisecond"
         }],
         "metrics":[{
             "name": "gcCount",
