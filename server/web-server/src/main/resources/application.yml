@@ -1,10 +1,13 @@
 server:
     port: 9999
-spring:
+    compression:
+        enabled: true
+        min-response-size: 4096
     application:
         name: bithon-web-server
     profiles:
         active: dev
+
     thymeleaf:
         cache: false
         prefix: classpath:/templates/
@@ -18,3 +21,5 @@ spring:
         restart:
             # 热部署开关
             enabled: true
+
+
