@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.core.dispatcher;
 
 import com.sbss.bithon.agent.core.event.EventMessage;
-import com.sbss.bithon.agent.core.metric.exception.ExceptionMetric;
+import com.sbss.bithon.agent.core.metric.exception.ExceptionMetricSet;
 import com.sbss.bithon.agent.core.metric.http.HttpClientMetricSet;
 import com.sbss.bithon.agent.core.metric.jdbc.JdbcPoolMetricSet;
 import com.sbss.bithon.agent.core.metric.jvm.JvmMetricSet;
@@ -40,7 +40,7 @@ public interface IMessageConverter {
 
     Object from(long timestamp, int interval, RedisClientMetric metric);
 
-    Object from(long timestamp, int interval, ExceptionMetric metric);
+    Object from(long timestamp, int interval, ExceptionMetricSet metric);
 
     Object from(long timestamp, int interval, ThreadPoolMetric metric);
 

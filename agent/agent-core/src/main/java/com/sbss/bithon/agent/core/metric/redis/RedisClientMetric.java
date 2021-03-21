@@ -8,7 +8,7 @@ import com.sbss.bithon.agent.core.metric.Sum;
  */
 public class RedisClientMetric {
 
-    private final String hostAndPort;
+    private final String endpoint;
     private final String command;
 
     private final Timer requestTime = new Timer();
@@ -18,8 +18,8 @@ public class RedisClientMetric {
     private final Sum responseBytes = new Sum();
     private final Sum requestBytes = new Sum();
 
-    public RedisClientMetric(String hostAndPort, String command) {
-        this.hostAndPort = hostAndPort;
+    public RedisClientMetric(String endpoint, String command) {
+        this.endpoint = endpoint;
         this.command = command;
     }
 
@@ -50,8 +50,8 @@ public class RedisClientMetric {
         return exceptionCount.get();
     }
 
-    public String getHostAndPort() {
-        return hostAndPort;
+    public String getEndpoint() {
+        return endpoint;
     }
 
     public String getCommand() {

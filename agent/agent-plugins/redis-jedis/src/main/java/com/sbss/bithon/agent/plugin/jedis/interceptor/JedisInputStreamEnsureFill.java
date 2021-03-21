@@ -28,6 +28,9 @@ public class JedisInputStreamEnsureFill extends AbstractInterceptor {
         return true;
     }
 
+    /**
+     * The endpoint object returned by 'getInjectedObject' method is set in {@link JedisConnectionConnect}
+     */
     @Override
     public void onMethodLeave(AopContext aopContext) {
         if (aopContext.hasException()) {

@@ -4,7 +4,7 @@ import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
-import com.sbss.bithon.agent.core.metric.exception.ExceptionMetric;
+import com.sbss.bithon.agent.core.metric.exception.ExceptionMetricSet;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,7 +53,7 @@ class LogMetricCollector implements IMetricCollector {
     public List<Object> collect(IMessageConverter messageConverter,
                                 int interval,
                                 long now) {
-        Map<String, ExceptionMetric> metricMap = new HashMap<>();
+        Map<String, ExceptionMetricSet> metricMap = new HashMap<>();
 
         //
         // merge exception together
@@ -65,7 +65,7 @@ class LogMetricCollector implements IMetricCollector {
                 break;
             }
 
-            ExceptionMetric counter = appException.toExceptionCounter();
+            ExceptionMetricSet counter = appException.toExceptionCounter();
 
             metricMap.computeIfAbsent(appException.getUri() + counter.getExceptionId(), key -> counter)
                      .incrCount();
@@ -105,11 +105,11 @@ class LogMetricCollector implements IMetricCollector {
             return exception;
         }
 
-        public ExceptionMetric toExceptionCounter() {
-            return new ExceptionMetric(uri,
-                                       exception.getClassName(),
-                                       exception.getMessage(),
-                                       getFullStack(exception.getStackTraceElementProxyArray()));
+        public ExceptionMetricSet toExceptionCounter() {
+            return new ExceptionMetricSet(uri,
+                                          exception.getClassName(),
+                                          exception.getMessage(),
+                                          getFullStack(exception.getStackTraceElementProxyArray()));
         }
 
         private String getFullStack(StackTraceElementProxy[] stacks) {

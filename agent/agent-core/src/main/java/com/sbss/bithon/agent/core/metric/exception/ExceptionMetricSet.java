@@ -7,7 +7,7 @@ import java.security.MessageDigest;
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 8:21 下午
  */
-public class ExceptionMetric {
+public class ExceptionMetricSet {
     // dimension
     private final String uri;
     private final String exceptionId;
@@ -17,10 +17,10 @@ public class ExceptionMetric {
     // counter
     private int count = 0;
 
-    public ExceptionMetric(String uri,
-                           String exceptionClass,
-                           String message,
-                           String stackTrace) {
+    public ExceptionMetricSet(String uri,
+                              String exceptionClass,
+                              String message,
+                              String stackTrace) {
         this.uri = uri;
         this.exceptionId = md5(stackTrace) + md5(message);
         this.message = message;
@@ -28,11 +28,11 @@ public class ExceptionMetric {
         this.stackTrace = stackTrace;
     }
 
-    public static ExceptionMetric fromException(String uri, Throwable exception) {
-        return new ExceptionMetric(uri,
-                                   exception.getClass().getSimpleName(),
-                                   exception.getMessage(),
-                                   getFullStack(exception.getStackTrace()));
+    public static ExceptionMetricSet fromException(String uri, Throwable exception) {
+        return new ExceptionMetricSet(uri,
+                                      exception.getClass().getSimpleName(),
+                                      exception.getMessage(),
+                                      getFullStack(exception.getStackTrace()));
     }
 
     private static String md5(String stack) {

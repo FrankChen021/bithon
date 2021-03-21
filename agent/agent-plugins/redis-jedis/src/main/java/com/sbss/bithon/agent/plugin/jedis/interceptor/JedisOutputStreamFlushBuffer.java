@@ -31,6 +31,8 @@ public class JedisOutputStreamFlushBuffer extends AbstractInterceptor {
     /**
      * count property will be flushed after execution of flushBuffer
      * so calculate the bytes before execution of the function
+     *
+     * The endpoint is set in {@link JedisConnectionConnect} when OutputStream object is instantiated
      */
     @Override
     public InterceptionDecision onMethodEnter(AopContext context) throws Exception {
@@ -40,10 +42,10 @@ public class JedisOutputStreamFlushBuffer extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        String hostAndPort = (String) ((IBithonObject) outputStream).getInjectedObject();
+        String endpoint = (String) ((IBithonObject) outputStream).getInjectedObject();
         String command = InterceptorContext.getAs("redis-command");
         int outputBytes = countField.getInt(outputStream);
-        metricCollector.addOutputBytes(hostAndPort,
+        metricCollector.addOutputBytes(endpoint,
                                        command,
                                        outputBytes);
 

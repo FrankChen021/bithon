@@ -23,35 +23,36 @@ public class RedisMetricCollector implements IMetricCollector {
                          boolean hasException) {
         int exceptionCount = hasException ? 1 : 0;
 
-        RedisClientMetric redisClientMetric = metricsMap.computeIfAbsent(new RedisMetricDimension(hostAndPort, command),
-                                                             k -> new RedisClientMetric(hostAndPort, command));
-        redisClientMetric.addRequest(costTime, exceptionCount);
+        metricsMap.computeIfAbsent(new RedisMetricDimension(hostAndPort, command),
+                                   k -> new RedisClientMetric(hostAndPort, command))
+                  .addRequest(costTime, exceptionCount);
     }
 
-    public void addRead(String hostAndPort,
+    public void addRead(String endpoint,
                         String command,
                         long costTime,
                         boolean hasException) {
         int exceptionCount = hasException ? 1 : 0;
 
-        RedisClientMetric redisClientMetric = metricsMap.computeIfAbsent(new RedisMetricDimension(hostAndPort, command),
-                                                             k -> new RedisClientMetric(hostAndPort, command));
-        redisClientMetric.addResponse(costTime, exceptionCount);
+        metricsMap.computeIfAbsent(new RedisMetricDimension(endpoint, command),
+                                   k -> new RedisClientMetric(endpoint,
+                                                              command))
+                  .addResponse(costTime, exceptionCount);
     }
 
-    public void addOutputBytes(String hostAndPort,
+    public void addOutputBytes(String endpoint,
                                String command,
                                int bytesOut) {
-        metricsMap.computeIfAbsent(new RedisMetricDimension(hostAndPort, command),
-                                   k -> new RedisClientMetric(hostAndPort, command))
+        metricsMap.computeIfAbsent(new RedisMetricDimension(endpoint, command),
+                                   k -> new RedisClientMetric(endpoint, command))
                   .addRequestBytes(bytesOut);
     }
 
-    public void addInputBytes(String hostAndPort,
+    public void addInputBytes(String endpoint,
                               String command,
                               int bytesIn) {
-        metricsMap.computeIfAbsent(new RedisMetricDimension(hostAndPort, command),
-                                   k -> new RedisClientMetric(hostAndPort, command))
+        metricsMap.computeIfAbsent(new RedisMetricDimension(endpoint, command),
+                                   k -> new RedisClientMetric(endpoint, command))
                   .addResponseBytes(bytesIn);
     }
 

@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.dispatcher.thrift;
 
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
-import com.sbss.bithon.agent.core.metric.exception.ExceptionMetric;
+import com.sbss.bithon.agent.core.metric.exception.ExceptionMetricSet;
 import com.sbss.bithon.agent.core.metric.http.HttpClientMetricSet;
 import com.sbss.bithon.agent.core.metric.jdbc.JdbcPoolMetricSet;
 import com.sbss.bithon.agent.core.metric.jvm.JvmMetricSet;
@@ -184,7 +184,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
         RedisMetricMessage message = new RedisMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
-        message.setUri(metric.getHostAndPort());
+        message.setUri(metric.getEndpoint());
         message.setCommand(metric.getCommand());
         message.setExceptionCount(metric.getExceptionCount());
         message.setTotalCount(metric.getCallCount());
@@ -198,7 +198,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     @Override
     public Object from(long timestamp,
                        int interval,
-                       ExceptionMetric metric) {
+                       ExceptionMetricSet metric) {
         ExceptionMetricMessage message = new ExceptionMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);

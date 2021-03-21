@@ -24,10 +24,10 @@ public class JedisClientReadProtocol extends AbstractInterceptor {
         Client redisClient = aopContext.castTargetAs();
 
         //TODO: cache the name in Client object
-        String hostAndPort = redisClient.getHost() + ":" + redisClient.getPort();
+        String endpoint = redisClient.getHost() + ":" + redisClient.getPort();
 
         String command = InterceptorContext.getAs("redis-command");
-        metricCollector.addRead(hostAndPort,
+        metricCollector.addRead(endpoint,
                                 command,
                                 aopContext.getCostTime(),
                                 aopContext.hasException());
