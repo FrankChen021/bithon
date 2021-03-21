@@ -57,10 +57,20 @@ public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler
             srcApplication = message.getString("srcApplication");
             srcEndPointType = EndPointType.APPLICATION;
         }
-        message.set("endpoint", new EndPointLink(srcEndPointType,
-                                                 srcApplication,
-                                                 EndPointType.APPLICATION,
-                                                 message.getApplicationName()));
+        message.set("endpoint", EndPointLink.builder()
+                                            .timestamp(message.getTimestamp())
+                                            // dimension
+                                            .srcEndpointType(srcEndPointType)
+                                            .srcEndpoint(srcApplication)
+                                            .dstEndpointType(EndPointType.APPLICATION)
+                                            .dstEndpoint(message.getApplicationName())
+                                            // metric
+                                            .interval(message.getLong("interval"))
+                                            .minResponseTime(message.getLong("minResponseTime"))
+                                            .maxResponseTime(message.getLong("maxResponseTime"))
+                                            .responseTime(message.getLong("responseTime"))
+                                            .callCount(message.getLong("requestCount"))
+                                            .build());
         return true;
     }
 }

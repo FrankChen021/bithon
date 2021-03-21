@@ -11,6 +11,7 @@ import com.sbss.bithon.server.metric.typing.IValueType;
 import com.sbss.bithon.server.metric.typing.LongValueType;
 import com.sbss.bithon.server.metric.typing.StringValueType;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -20,6 +21,7 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -30,6 +32,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/1/31 1:39 下午
  */
+@Slf4j
 class MetricJdbcWriter implements IMetricWriter {
     private final DSLContext dsl;
     private final MetricTable table;
@@ -59,7 +62,12 @@ class MetricJdbcWriter implements IMetricWriter {
                 step.set(metric, value);
             }
 
-            step.execute();
+            try {
+                step.execute();
+            } catch(DuplicateKeyException e) {
+                // TODO: this is a bug???
+                log.error("Duplicate Key:{}", inputRow);
+            }
         }
     }
 

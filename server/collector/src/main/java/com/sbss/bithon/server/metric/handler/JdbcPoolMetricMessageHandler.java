@@ -33,13 +33,21 @@ public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler {
     }
 
     @Override
-    protected boolean beforeProcess(GenericMetricMessage message) {
-        message.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
-                                                 message.getApplicationName(),
-                                                 EndPointType.MYSQL,
+    protected boolean beforeProcess(GenericMetricMessage metricObject) {
 
-                                                 //TODO: extract host and port
-                                                 message.getString("connectionString")));
+//        metricObject.set("endpoint", EndPointLink.builder()
+//                                                 .timestamp(metricObject.getTimestamp())
+//                                                 .srcEndPointType(EndPointType.APPLICATION)
+//                                                 .srcEndpoint(metricObject.getApplicationName())
+//                                                 .dstEndpointType(EndPointType.MYSQL)
+//                                                 //TODO: extract host and port
+//                                                 .dstEndpoint(metricObject.getString("connectionString"))
+//                                                 .interval(metricObject.getLong("interval"))
+//                                                 .callCount(metricObject.getLong("requestCount"))
+//                                                 .responseTime(metricObject.getLong("responseTime"))
+//                                                 .minResponseTime(metricObject.getLong("minResponseTime"))
+//                                                 .maxResponseTime(metricObject.getLong("maxResponseTime"))
+//                                                 .build());
         return true;
     }
 

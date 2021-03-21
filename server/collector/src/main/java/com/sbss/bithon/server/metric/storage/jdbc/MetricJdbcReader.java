@@ -21,6 +21,7 @@ import com.sbss.bithon.server.metric.aggregator.LongMinMetricSpec;
 import com.sbss.bithon.server.metric.aggregator.LongSumMetricSpec;
 import com.sbss.bithon.server.metric.aggregator.PostAggregatorExpressionVisitor;
 import com.sbss.bithon.server.metric.aggregator.PostAggregatorMetricSpec;
+import com.sbss.bithon.server.metric.input.InputRow;
 import com.sbss.bithon.server.metric.storage.DimensionCondition;
 import com.sbss.bithon.server.metric.storage.IMetricReader;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +54,7 @@ class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> getMetricValueList(TimeSpan start,
                                                         TimeSpan end,
                                                         DataSourceSchema dataSourceSchema,
-                                                        Collection<DimensionCondition> dimensions,
+                                                        Collection<DimensionCondition> filters,
                                                         Collection<String> metrics) {
         String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
         MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
@@ -63,10 +64,10 @@ class MetricJdbcReader implements IMetricReader {
                                    .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
                                    .collect(Collectors.joining(", "));
 
-        String condition = dimensions.stream()
-                                     .map(dimension -> dimension.getMatcher()
-                                                                .accept(new SqlConditionBuilder(dimension.getDimension())))
-                                     .collect(Collectors.joining(" AND "));
+        String condition = filters.stream()
+                                  .map(dimension -> dimension.getMatcher()
+                                                             .accept(new SqlConditionBuilder(dimension.getDimension())))
+                                  .collect(Collectors.joining(" AND "));
         String sql = String.format(
             "SELECT \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY \"timestamp\"",
             metricList,
@@ -113,11 +114,49 @@ class MetricJdbcReader implements IMetricReader {
     }
 
     @Override
+    public List<Map<String, Object>> groupBy(TimeSpan start,
+                                             TimeSpan end,
+                                             DataSourceSchema dataSourceSchema,
+                                             Collection<DimensionCondition> filter,
+                                             Collection<String> metrics,
+                                             Collection<String> groupBy) {
+        String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
+        MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
+                                                                                      "OUTER",
+                                                                                      dataSourceSchema);
+        String metricList = metrics.stream()
+                                   .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
+                                   .collect(Collectors.joining(", "));
+
+        String condition = filter.stream()
+                                 .map(dimension -> dimension.getMatcher()
+                                                            .accept(new SqlConditionBuilder(dimension.getDimension())))
+                                 .collect(Collectors.joining(" AND "));
+
+        String groupByFields = groupBy.stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
+
+        String sql = String.format(
+            "SELECT %s, %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY %s",
+            groupByFields,
+            metricList,
+            sqlTableName,
+            "OUTER",
+            condition,
+            start.toISO8601(),
+            end.toISO8601(),
+            groupByFields
+        );
+        log.info("Executing {}", sql);
+        return getMetricValueList(sql);
+    }
+
+    @Override
     public List<Map<String, Object>> getMetricValueList(String sql) {
         List<Record> records = dsl.fetch(sql);
 
-        // although the explicit cast seems unnecessary, it must be kept so that compilation can pass
-        // this is might be a bug of JDK
+        // PAY ATTENTION:
+        //  although the explicit cast seems unnecessary, it must be kept so that compilation can pass
+        //  this is might be a bug of JDK
         return (List<Map<String, Object>>) records.stream().map(record -> {
             Map<String, Object> mapObject = new HashMap<>();
             for (Field<?> field : record.fields()) {

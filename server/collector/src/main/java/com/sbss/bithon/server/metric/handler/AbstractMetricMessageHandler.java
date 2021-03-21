@@ -26,10 +26,11 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
     private final DataSourceSchema schema;
     private final IMetaStorage metaStorage;
     private final IMetricWriter metricStorageWriter;
+    private final IMetricWriter topoMetricStorageWriter;
 
     public AbstractMetricMessageHandler(String dataSourceName,
                                         IMetaStorage metaStorage,
-                                        IMetricStorage storage,
+                                        IMetricStorage metricStorage,
                                         DataSourceSchemaManager dataSourceSchemaManager,
                                         int corePoolSize,
                                         int maxPoolSize,
@@ -39,7 +40,10 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
 
         this.schema = dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
         this.metaStorage = metaStorage;
-        this.metricStorageWriter = storage.createMetricWriter(schema);
+        this.metricStorageWriter = metricStorage.createMetricWriter(schema);
+
+        DataSourceSchema topoSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
+        this.topoMetricStorageWriter = metricStorage.createMetricWriter(topoSchema);
     }
 
     @Override
@@ -52,29 +56,29 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
     }
 
     @Override
-    final protected void onMessage(GenericMetricMessage message) {
+    final protected void onMessage(GenericMetricMessage metric) {
         try {
-            if ( beforeProcess(message) ) {
-                process(message);
+            if ( beforeProcess(metric) ) {
+                process(metric);
             }
         } catch (Exception e) {
             log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}",
                       this.schema.getName(),
-                      message,
+                      metric,
                       e);
         }
     }
 
-    private void process(GenericMetricMessage metricObject) {
-        if (metricObject == null) {
+    private void process(GenericMetricMessage metric) {
+        if (metric == null) {
             return;
         }
 
         //
         // save application
         //
-        String appName = metricObject.getApplicationName();
-        String instanceName = metricObject.getInstanceName();
+        String appName = metric.getApplicationName();
+        String instanceName = metric.getInstanceName();
         try {
             long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
             metaStorage.getOrCreateMetadataId(instanceName, MetadataType.APP_INSTANCE, appId);
@@ -112,16 +116,20 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
         //
         // save topo
         //
-        EndPointLink link = metricObject.getAs("endpoint");
+        EndPointLink link = metric.getAs("endpoint");
         if (link != null) {
-            metaStorage.createTopo(link);
+            try {
+                this.topoMetricStorageWriter.write(new InputRow(link));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         //
         // save metrics
         //
         try {
-            this.metricStorageWriter.write(new InputRow(metricObject));
+            this.metricStorageWriter.write(new InputRow(metric));
         } catch (IOException e) {
             log.error("Failed to save metrics [dataSource={}] due to: {}",
                       this.schema.getName(),

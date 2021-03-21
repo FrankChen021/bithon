@@ -33,11 +33,20 @@ public class RedisMetricMessageHandler extends AbstractMetricMessageHandler {
     }
 
     @Override
-    protected boolean beforeProcess(GenericMetricMessage message) {
-        message.set("endpoint", new EndPointLink(EndPointType.APPLICATION,
-                                                 message.getApplicationName(),
-                                                 EndPointType.REDIS,
-                                                 message.getString("uri")));
+    protected boolean beforeProcess(GenericMetricMessage metricObject) {
+        metricObject.set("endpoint", EndPointLink.builder()
+                                                 .timestamp(metricObject.getTimestamp())
+                                                 .srcEndpointType(EndPointType.APPLICATION)
+                                                 .srcEndpoint(metricObject.getApplicationName())
+                                                 .dstEndpointType(EndPointType.REDIS)
+                                                 .dstEndpoint(metricObject.getString("uri"))
+                                                 // metric
+                                                 .interval(metricObject.getLong("interval"))
+                                                 .callCount(metricObject.getLong("totalCount"))
+                                                 .responseTime(metricObject.getLong("responseTime"))
+                                                 .minResponseTime(metricObject.getLong("minResponseTime"))
+                                                 .maxResponseTime(metricObject.getLong("maxResponseTime"))
+                                                 .build());
         return true;
     }
 }

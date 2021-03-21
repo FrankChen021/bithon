@@ -48,7 +48,7 @@ public class MetadataJdbcStorage implements IMetaStorage {
 
     @Override
     public long createTopo(EndPointLink link) {
-        return metadataDao.upsertTopo(link.getSrcEndPointType(),
+        return metadataDao.upsertTopo(link.getSrcEndpointType(),
                                       link.getSrcEndpoint(),
                                       link.getDstEndpointType(),
                                       link.getDstEndpoint());

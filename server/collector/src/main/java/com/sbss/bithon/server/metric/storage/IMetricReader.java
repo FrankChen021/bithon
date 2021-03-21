@@ -25,7 +25,7 @@ public interface IMetricReader {
     List<Map<String, Object>> getMetricValueList(TimeSpan start,
                                                  TimeSpan end,
                                                  DataSourceSchema dataSourceSchema,
-                                                 Collection<DimensionCondition> dimensions,
+                                                 Collection<DimensionCondition> filter,
                                                  Collection<String> metrics);
 
     /**
@@ -36,6 +36,18 @@ public interface IMetricReader {
                                        DataSourceSchema dataSourceSchema,
                                        Collection<DimensionCondition> dimensions,
                                        Collection<String> metrics);
+
+    /**
+     * Aggregate metrics by their pre-defined aggregators in the given period
+     *
+     * @return
+     */
+    List<Map<String, Object>> groupBy(TimeSpan start,
+                                      TimeSpan end,
+                                      DataSourceSchema dataSourceSchema,
+                                      Collection<DimensionCondition> filter,
+                                      Collection<String> metrics,
+                                      Collection<String> groupBy);
 
     List<Map<String, Object>> getMetricValueList(String sql);
 

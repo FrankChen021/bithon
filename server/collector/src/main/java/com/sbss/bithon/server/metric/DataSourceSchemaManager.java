@@ -49,16 +49,17 @@ public class DataSourceSchemaManager {
         if (schema != null) {
             return schema;
         }
+        synchronized (this) {
+            try (InputStream is = this.getClass().getClassLoader()
+                                      .getResourceAsStream(String.format("schema/%s.json", name))) {
 
-        try (InputStream is = this.getClass().getClassLoader()
-                                  .getResourceAsStream(String.format("schema/%s.json", name))) {
-
-            ObjectMapper om = new ObjectMapper();
-            DataSourceSchema dataSourceSchema = om.readValue(is, DataSourceSchema.class);
-            addDataSourceSchema(dataSourceSchema);
-            return dataSourceSchema;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+                ObjectMapper om = new ObjectMapper();
+                DataSourceSchema dataSourceSchema = om.readValue(is, DataSourceSchema.class);
+                addDataSourceSchema(dataSourceSchema);
+                return dataSourceSchema;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

@@ -30,6 +30,12 @@
   "metricsSpec": [
     {
       "type": "longSum",
+      "name": "interval",
+      "displayText": "Interval",
+      "unit": "second"
+    },
+    {
+      "type": "longSum",
       "name": "exceptionCount",
       "displayText": "Exception Command",
       "unit": ""

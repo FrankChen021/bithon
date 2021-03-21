@@ -41,20 +41,16 @@ public class InputRow {
         return columns.get(columnName);
     }
 
-    public Object getColumnValue(String columnName, Object defaultValue) {
-        Object obj = columns.getOrDefault(columnName, defaultValue);
-
-        // when columnName exist but its value is null, the returned obj above is NOT null
-        // So, additional check is needed to return correct default value
-        return obj == null ? defaultValue : obj;
-    }
-
     public Long getColumnValueAsLong(String columnName) {
         return getColumnValueAs(columnName, Long.class);
     }
-
-    public Double getColumnValueAsDouble(String columnName) {
-        return getColumnValueAs(columnName, Double.class);
+    public long getColumnValueAsLong(String columnName, long defaultValue) {
+        Number number = getColumnValueAs(columnName, Number.class);
+        return number == null ? defaultValue : number.longValue();
+    }
+    public double getColumnValueAsDouble(String columnName, long defaultValue) {
+        Number number = getColumnValueAs(columnName, Number.class);
+        return number == null ? defaultValue : number.doubleValue();
     }
 
     public String getColumnValueAsString(String columnName) {
@@ -65,6 +61,12 @@ public class InputRow {
         return (T) columns.get(columnName);
     }
 
+    public <T> T getColumnValue(String columnName, T defaultValue) {
+        // when columnName exist but its value is null, the returned obj above is NOT null
+        // So, additional check is needed to return correct default value
+        Object val = columns.get(columnName);
+        return val == null ? defaultValue : (T) val;
+    }
 
     public Object deleteColumn(String name) {
         return columns.put(name, null);
