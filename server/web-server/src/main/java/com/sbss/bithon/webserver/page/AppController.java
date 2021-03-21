@@ -27,8 +27,16 @@ public class AppController {
     }
 
     @GetMapping("/ui/app/trace/{appName}")
-    public String traceHomePage(@PathVariable("appName") String appName) {
+    public String traceHomePage(@PathVariable("appName") String appName,
+                                Model model) {
+        model.addAttribute("appName", appName);
         return "app/trace";
     }
 
+    @GetMapping("/ui/app/topo/{appName}")
+    public String topoHome(@PathVariable("appName") String appName,
+                           Model model) {
+        model.addAttribute("appName", appName);
+        return "app/topo";
+    }
 }

@@ -1,0 +1,96 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}">
+<head>
+    <title>Bithon</title>
+    <script th:src="@{/lib/bootstrap-table/extensions/treegrid/bootstrap-table-treegrid.min.js}"></script>
+    <script th:inline="javascript">
+        var appName = [[${appName}]];
+
+    </script>
+</head>
+<body>
+<div class="container" layout:fragment="content">
+    <div id="topo"></div>
+<script>
+$(document).ready(()=>{
+   new ChartComponent({
+        containerId: 'topo',
+        height: '600px'
+   })
+   .header('Application Topo')
+   .load({
+        url: apiHost + '/api/topo/getApplicationTopo',
+        ajaxData: JSON.stringify({
+            startTimeISO8601: "2021-03-21T16:00:00+08:00",
+            endTimeISO8601: "2021-03-21T18:00:00+08:00",
+            application: appName
+        }),
+        processResult: (topo)=>{
+            var chartOption = {
+                title: {
+                    text: 'Graph 简单示例'
+                },
+                tooltip: {},
+                animationDurationUpdate: 1500,
+                animationEasingUpdate: 'quinticInOut',
+                series: [
+                    {
+                        type: 'graph',
+                        layout: 'none',
+                        symbolSize: 50,
+                        roam: true,
+                        label: {
+                            show: true
+                        },
+                        edgeSymbol: ['circle', 'arrow'],
+                        edgeSymbolSize: [4, 10],
+                        edgeLabel: {
+                            fontSize: 20
+                        },
+                        data: topo.endpoints.map(endpoint=>{
+                            return {
+                                name: endpoint.name,
+                                x: endpoint.x,
+                                y: endpoint.y,
+                                symbol: `image:///images/nodes/${endpoint.type.toLowerCase()}.png`
+                            };
+                        }),
+                        links: topo.links.map(link=>{
+                            return {
+                                minRT: link.minResponseTime,
+                                maxRT: link.maxResponseTime,
+                                avgRT: link.avgResponseTime,
+                                callCount: link.callCount,
+                                source: link.srcEndpoint,
+                                target: link.dstEndpoint,
+                                label: {
+                                    show: true,
+                                    formatter: (val)=>{
+                                        return `${val.data.callCount}, Min:${val.data.minRT}, Max:${val.data.maxRT}, Avg:${val.data.avgRT}`;
+                                    },
+                                    fontSize: 10
+                                },
+                                lineStyle: {
+                                    curveness: 0.2
+                                }
+                            };
+                        }),
+                        lineStyle: {
+                            opacity: 0.9,
+                            width: 2,
+                            curveness: 0
+                        }
+                    }
+                ]
+            };
+            return chartOption;
+        }
+   });
+});
+</script>
+</div>
+</body>
+</html>
