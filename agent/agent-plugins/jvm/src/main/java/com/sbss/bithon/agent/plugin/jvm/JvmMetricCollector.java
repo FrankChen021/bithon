@@ -6,7 +6,7 @@ import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.jvm.JvmMetrics;
+import com.sbss.bithon.agent.core.metric.jvm.JvmMetricSet;
 import com.sbss.bithon.agent.core.utils.time.DateTime;
 import com.sun.management.UnixOperatingSystemMXBean;
 import shaded.com.alibaba.fastjson.JSON;
@@ -69,18 +69,18 @@ public class JvmMetricCollector {
         });
     }
 
-    private JvmMetrics buildJvmMetrics() {
-        JvmMetrics jvmMetrics = new JvmMetrics(RUNTIME_BEAN.getUptime(),
-                                               RUNTIME_BEAN.getStartTime());
-        jvmMetrics.cpuMetrics = cpuMetricCollector.collect();
-        jvmMetrics.memoryMetrics = MemoryMetricCollector.buildMemoryMetrics();
-        jvmMetrics.heapMetrics = MemoryMetricCollector.collectHeap();
-        jvmMetrics.nonHeapMetrics = MemoryMetricCollector.collectNonHeap();
-        jvmMetrics.metaspaceMetrics = MemoryMetricCollector.collectMeataSpace();
-        jvmMetrics.gcMetrics = gcMetricCollector.collect();
-        jvmMetrics.threadMetrics = ThreadMetricCollector.collect();
-        jvmMetrics.classMetrics = ClassMetricCollector.collect();
-        return jvmMetrics;
+    private JvmMetricSet buildJvmMetrics() {
+        JvmMetricSet jvmMetricSet = new JvmMetricSet(RUNTIME_BEAN.getUptime(),
+                                                     RUNTIME_BEAN.getStartTime());
+        jvmMetricSet.cpuMetricsSet = cpuMetricCollector.collect();
+        jvmMetricSet.memoryMetricsSet = MemoryMetricCollector.buildMemoryMetrics();
+        jvmMetricSet.heapMetricsSet = MemoryMetricCollector.collectHeap();
+        jvmMetricSet.nonHeapMetricsSet = MemoryMetricCollector.collectNonHeap();
+        jvmMetricSet.metaspaceMetricsSet = MemoryMetricCollector.collectMeataSpace();
+        jvmMetricSet.gcMetricSets = gcMetricCollector.collect();
+        jvmMetricSet.threadMetricsSet = ThreadMetricCollector.collect();
+        jvmMetricSet.classMetricsSet = ClassMetricCollector.collect();
+        return jvmMetricSet;
     }
 
     private boolean sendJvmStartedEvent() {

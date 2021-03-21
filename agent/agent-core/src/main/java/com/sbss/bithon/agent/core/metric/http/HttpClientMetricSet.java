@@ -6,7 +6,7 @@ import com.sbss.bithon.agent.core.metric.Sum;
 /**
  * @author frankchen
  */
-public class HttpClientMetric {
+public class HttpClientMetricSet {
     /**
      * HTTP URL
      */
@@ -36,7 +36,7 @@ public class HttpClientMetric {
     private final Sum requestBytes = new Sum();
     private final Sum responseBytes = new Sum();
 
-    public HttpClientMetric(String uri, String method) {
+    public HttpClientMetricSet(String uri, String method) {
         this.uri = uri;
         this.method = method;
     }

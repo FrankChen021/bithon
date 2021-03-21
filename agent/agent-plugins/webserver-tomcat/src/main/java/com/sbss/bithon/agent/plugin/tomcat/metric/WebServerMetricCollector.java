@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.plugin.tomcat.metric;
 
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
-import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
+import com.sbss.bithon.agent.core.metric.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.metric.web.WebServerType;
 import org.apache.tomcat.util.net.AbstractEndpoint;
 
@@ -33,10 +33,10 @@ public class WebServerMetricCollector implements IMetricCollector {
 
         return Collections.singletonList(messageConverter.from(timestamp,
                                                                interval,
-                                                               new WebServerMetric(WebServerType.TOMCAT,
-                                                                                   endpoint.getConnectionCount(),
-                                                                                   endpoint.getMaxConnections(),
-                                                                                   endpoint.getCurrentThreadsBusy(),
-                                                                                   endpoint.getMaxThreads())));
+                                                               new WebServerMetricSet(WebServerType.TOMCAT,
+                                                                                      endpoint.getConnectionCount(),
+                                                                                      endpoint.getMaxConnections(),
+                                                                                      endpoint.getCurrentThreadsBusy(),
+                                                                                      endpoint.getMaxThreads())));
     }
 }

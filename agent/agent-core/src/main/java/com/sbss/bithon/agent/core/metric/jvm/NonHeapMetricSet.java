@@ -1,12 +1,10 @@
 package com.sbss.bithon.agent.core.metric.jvm;
 
-import java.io.Serializable;
-
 /**
  * @author: frank.chen021@outlook.com
  * @date: 2020/12/29 9:54 下午
  */
-public class NonHeapMetric implements Serializable {
+public class NonHeapMetricSet {
     // approximate to -XX:MaxPermSize
     public long nonHeapBytes;
 
@@ -18,10 +16,10 @@ public class NonHeapMetric implements Serializable {
     // available memory including used
     public long nonHeapAvailableBytes;
 
-    public NonHeapMetric(long nonHeapBytes,
-                         long nonHeapInitBytes,
-                         long nonHeapUsedBytes,
-                         long nonHeapAvailableBytes) {
+    public NonHeapMetricSet(long nonHeapBytes,
+                            long nonHeapInitBytes,
+                            long nonHeapUsedBytes,
+                            long nonHeapAvailableBytes) {
         this.nonHeapBytes = nonHeapBytes;
         this.nonHeapInitBytes = nonHeapInitBytes;
         this.nonHeapUsedBytes = nonHeapUsedBytes;

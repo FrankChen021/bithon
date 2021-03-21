@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.undertow.metric;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
+import com.sbss.bithon.agent.core.metric.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.metric.web.WebServerType;
 import io.undertow.server.ConnectorStatistics;
 
@@ -48,11 +48,11 @@ public class WebServerMetricCollector implements IMetricCollector {
 
         return Collections.singletonList(messageConverter.from(timestamp,
                                                                interval,
-                                                               new WebServerMetric(WebServerType.UNDERTOW,
-                                                                                   connectionCount,
-                                                                                   maxConnections,
-                                                                                   threadPoolAccessor.getActiveCount(),
-                                                                                   threadPoolAccessor.getMaximumPoolSize())));
+                                                               new WebServerMetricSet(WebServerType.UNDERTOW,
+                                                                                      connectionCount,
+                                                                                      maxConnections,
+                                                                                      threadPoolAccessor.getActiveCount(),
+                                                                                      threadPoolAccessor.getMaximumPoolSize())));
     }
 
     public void setThreadPool(Object webRequestThreadPool) {

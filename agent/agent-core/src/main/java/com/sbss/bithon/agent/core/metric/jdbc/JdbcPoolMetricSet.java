@@ -6,7 +6,7 @@ import com.sbss.bithon.agent.core.metric.Gauge;
 /**
  * @author frankchen
  */
-public class JdbcPoolMetric {
+public class JdbcPoolMetricSet {
     // dimension
     private final String connectionString;
     private final String driverClass;
@@ -25,7 +25,7 @@ public class JdbcPoolMetric {
     public Sum rollbackCount = new Sum();
     public Sum startTransactionCount = new Sum();
 
-    public JdbcPoolMetric(String connectionString, String driverClass) {
+    public JdbcPoolMetricSet(String connectionString, String driverClass) {
         this.connectionString = connectionString;
         this.driverClass = driverClass;
     }

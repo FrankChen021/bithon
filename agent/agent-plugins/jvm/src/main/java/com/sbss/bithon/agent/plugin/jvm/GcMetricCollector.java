@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
 import com.sbss.bithon.agent.core.metric.Delta;
-import com.sbss.bithon.agent.core.metric.jvm.GcMetric;
+import com.sbss.bithon.agent.core.metric.jvm.GcMetricSet;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -29,12 +29,12 @@ public class GcMetricCollector {
             this.generation = getGeneration(bean.getName());
         }
 
-        public GcMetric collect() {
+        public GcMetricSet collect() {
             long gcCount = this.gcCount.update(gcBean.getCollectionCount());
             long gcTime = this.gcTime.update(gcBean.getCollectionTime());
 
             if (gcCount > 0 && gcTime > 0) {
-                return new GcMetric(gcBean.getName(), generation, gcCount, gcTime);
+                return new GcMetricSet(gcBean.getName(), generation, gcCount, gcTime);
             }
             return null;
         }
@@ -78,11 +78,11 @@ public class GcMetricCollector {
         }
     }
 
-    public List<GcMetric> collect() {
-        List<GcMetric> metrics = new ArrayList<>(collectors.size());
+    public List<GcMetricSet> collect() {
+        List<GcMetricSet> metrics = new ArrayList<>(collectors.size());
         for (GarbageCollector gcBean : collectors.values()) {
 
-            GcMetric metric = gcBean.collect();
+            GcMetricSet metric = gcBean.collect();
             if (metric != null) {
                 metrics.add(metric);
             }

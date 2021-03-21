@@ -1,12 +1,10 @@
 package com.sbss.bithon.agent.core.metric.jvm;
 
-import java.io.Serializable;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/29 9:56 下午
  */
-public class ThreadMetric implements Serializable {
+public class ThreadMetricSet {
 
     public long peakActiveCount;
     public long activeDaemonCount;
@@ -17,10 +15,10 @@ public class ThreadMetric implements Serializable {
      */
     public long activeThreadsCount;
 
-    public ThreadMetric(long peakActiveCount,
-                        long activeDaemonCount,
-                        long totalCreatedCount,
-                        long activeThreadsCount) {
+    public ThreadMetricSet(long peakActiveCount,
+                           long activeDaemonCount,
+                           long totalCreatedCount,
+                           long activeThreadsCount) {
         this.peakActiveCount = peakActiveCount;
         this.activeDaemonCount = activeDaemonCount;
         this.totalCreatedCount = totalCreatedCount;

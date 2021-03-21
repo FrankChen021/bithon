@@ -6,7 +6,7 @@ import com.sbss.bithon.agent.core.metric.Sum;
 /**
  * @author frankchen
  */
-public class RedisMetric {
+public class RedisClientMetric {
 
     private final String hostAndPort;
     private final String command;
@@ -18,7 +18,7 @@ public class RedisMetric {
     private final Sum responseBytes = new Sum();
     private final Sum requestBytes = new Sum();
 
-    public RedisMetric(String hostAndPort, String command) {
+    public RedisClientMetric(String hostAndPort, String command) {
         this.hostAndPort = hostAndPort;
         this.command = command;
     }

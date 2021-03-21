@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.mysql8;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
+import com.sbss.bithon.agent.core.metric.sql.SqlMetricSet;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.utils.ReflectionUtils;
 import shaded.org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class SqlMetricCollector implements IMetricCollector {
     private static final Logger log = LoggerFactory.getLogger(SqlMetricCollector.class);
     private static final String MYSQL_COUNTER_NAME = "mysql8";
     private static final String DRIVER_TYPE_MYSQL = "mysql";
-    private final Map<String, SqlMetric> metricMap = new ConcurrentHashMap<>();
+    private final Map<String, SqlMetricSet> metricMap = new ConcurrentHashMap<>();
 
     private SqlMetricCollector() {
         try {
@@ -65,14 +65,14 @@ public class SqlMetricCollector implements IMetricCollector {
             String hostPort = host + ":" + port;
 
             // 尝试记录新的mysql连接
-            SqlMetric mysqlMetricStorage = metricMap.computeIfAbsent(hostPort,
-                                                                     k -> new SqlMetric(k, DRIVER_TYPE_MYSQL));
+            SqlMetricSet mysqlMetricSetStorage = metricMap.computeIfAbsent(hostPort,
+                                                                     k -> new SqlMetricSet(k, DRIVER_TYPE_MYSQL));
 
             if (MySql8Plugin.METHOD_SEND_COMMAND.equals(methodName)) {
                 Object message = aopContext.getArgs()[0];
                 Method getPositionMethod = message.getClass().getDeclaredMethod("getPosition", null);
                 Integer position = (Integer) getPositionMethod.invoke(message);
-                mysqlMetricStorage.addBytesOut(position);
+                mysqlMetricSetStorage.addBytesOut(position);
             } else {
                 //TODO： 暂时无方法统计
             }
@@ -91,7 +91,7 @@ public class SqlMetricCollector implements IMetricCollector {
             boolean isQuery = true;
             boolean failed = false;
 
-            SqlMetric metric = metricMap.computeIfAbsent(hostPort, k -> new SqlMetric(k, "mysql"));
+            SqlMetricSet metric = metricMap.computeIfAbsent(hostPort, k -> new SqlMetricSet(k, "mysql"));
 
             if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName)
                 || MySql8Plugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {
@@ -126,7 +126,7 @@ public class SqlMetricCollector implements IMetricCollector {
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
-        for (Map.Entry<String, SqlMetric> entry : metricMap.entrySet()) {
+        for (Map.Entry<String, SqlMetricSet> entry : metricMap.entrySet()) {
             Object message = messageConverter.from(timestamp, interval, entry.getValue());
             if (message != null) {
                 messages.add(message);

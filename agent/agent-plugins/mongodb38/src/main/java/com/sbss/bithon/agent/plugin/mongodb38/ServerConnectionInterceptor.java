@@ -8,11 +8,11 @@ import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
  * @author frankchen
  */
 public class ServerConnectionInterceptor extends AbstractInterceptor {
-    private MongoMetricCollector counter;
+    private MongoMetricCollector metricCollector;
 
     @Override
     public boolean initialize() {
-        counter = MongoMetricCollector.getInstance();
+        metricCollector = MongoMetricCollector.getInstance();
         return true;
     }
 
@@ -20,10 +20,10 @@ public class ServerConnectionInterceptor extends AbstractInterceptor {
     public void onMethodLeave(AopContext context) {
         DefaultServerConnection connection = (DefaultServerConnection) context.getTarget();
         String hostPort = connection.getDescription().getServerAddress().toString();
-        int exceptionCount = null == context.getException() ? 0 : 1;
-        counter.recordRequestInfo(connection.getDescription().getConnectionId().toString(),
-                                  hostPort,
-                                  context.getCostTime(),
-                                  exceptionCount);
+        int exceptionCount = context.hasException() ? 0 : 1;
+        metricCollector.recordRequestInfo(connection.getDescription().getConnectionId().toString(),
+                                          hostPort,
+                                          context.getCostTime(),
+                                          exceptionCount);
     }
 }

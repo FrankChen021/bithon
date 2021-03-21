@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.jetty.metric;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
+import com.sbss.bithon.agent.core.metric.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.metric.web.WebServerType;
 import org.eclipse.jetty.server.AbstractNetworkConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -40,7 +40,7 @@ public class WebServerMetricCollector implements IMetricCollector {
                                 long timestamp) {
         return Collections.singletonList(messageConverter.from(timestamp,
                                                                interval,
-                                                               new WebServerMetric(
+                                                               new WebServerMetricSet(
                                                                    WebServerType.JETTY,
                                                                    connector == null
                                                                    ? 0

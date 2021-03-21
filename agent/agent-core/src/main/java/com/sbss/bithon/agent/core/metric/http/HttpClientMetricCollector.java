@@ -17,8 +17,8 @@ public class HttpClientMetricCollector implements IMetricCollector {
 
     private static final int HTTP_CODE_400 = 400;
     private static final int HTTP_CODE_500 = 500;
-    private final Map<String, HttpClientMetric> metricsMap = new ConcurrentHashMap<>();
-    private HttpClientMetric metric;
+    private final Map<String, HttpClientMetricSet> metricsMap = new ConcurrentHashMap<>();
+    private HttpClientMetricSet metric;
 
     @Override
     public boolean isEmpty() {
@@ -30,7 +30,7 @@ public class HttpClientMetricCollector implements IMetricCollector {
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
-        for (Map.Entry<String, HttpClientMetric> entry : metricsMap.entrySet()) {
+        for (Map.Entry<String, HttpClientMetricSet> entry : metricsMap.entrySet()) {
             metricsMap.compute(entry.getKey(),
                                (k, v) -> getAndRemoveEntry(v));
 
@@ -46,8 +46,8 @@ public class HttpClientMetricCollector implements IMetricCollector {
         String requestId = uri.concat("|").concat(requestMethod);
 
         metricsMap.computeIfAbsent(requestId,
-                                   k -> new HttpClientMetric(uri,
-                                                             requestMethod)).addException(responseTime, 1);
+                                   k -> new HttpClientMetricSet(uri,
+                                                                requestMethod)).addException(responseTime, 1);
     }
 
     public void addRequest(String requestUri,
@@ -67,7 +67,7 @@ public class HttpClientMetricCollector implements IMetricCollector {
 
         String requestId = uri.concat("|").concat(requestMethod);
         metricsMap.computeIfAbsent(requestId,
-                                   key -> new HttpClientMetric(uri, requestMethod))
+                                   key -> new HttpClientMetricSet(uri, requestMethod))
                   .add(responseTime, count4xx, count5xx);
     }
 
@@ -78,11 +78,11 @@ public class HttpClientMetricCollector implements IMetricCollector {
         String uri = requestUri.split("\\?")[0];
         String requestId = uri.concat("|").concat(requestMethod);
         metricsMap.computeIfAbsent(requestId,
-                                   k -> new HttpClientMetric(uri, requestMethod))
+                                   k -> new HttpClientMetricSet(uri, requestMethod))
                   .addByteSize(requestBytes, responseBytes);
     }
 
-    private HttpClientMetric getAndRemoveEntry(HttpClientMetric counter) {
+    private HttpClientMetricSet getAndRemoveEntry(HttpClientMetricSet counter) {
         this.metric = counter;
         return null;
     }

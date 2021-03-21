@@ -1,18 +1,16 @@
 package com.sbss.bithon.agent.core.metric.jvm;
 
-import java.io.Serializable;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/29 9:52 下午
  */
-public class MemoryMetric implements Serializable {
+public class MemoryMetricSet {
 
     // memory in bytes that allocated to current application
     public long allocatedBytes;
     public long freeBytes;
 
-    public MemoryMetric(long allocatedBytes, long freeBytes) {
+    public MemoryMetricSet(long allocatedBytes, long freeBytes) {
         this.allocatedBytes = allocatedBytes;
         this.freeBytes = freeBytes;
     }

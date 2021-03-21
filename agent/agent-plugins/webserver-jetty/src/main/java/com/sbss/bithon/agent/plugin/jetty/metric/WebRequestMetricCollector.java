@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.jetty.metric;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
-import com.sbss.bithon.agent.core.metric.web.WebRequestMetric;
+import com.sbss.bithon.agent.core.metric.web.WebRequestMetricSet;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class WebRequestMetricCollector implements IMetricCollector {
 
-    private final Map<String, WebRequestMetric> metricsMap = new ConcurrentHashMap<>();
-    private WebRequestMetric metric;
+    private final Map<String, WebRequestMetricSet> metricsMap = new ConcurrentHashMap<>();
+    private WebRequestMetricSet metric;
 
     public void update(
         Request request,
@@ -42,11 +42,11 @@ public class WebRequestMetricCollector implements IMetricCollector {
             responseByteSize = jettyResponse.getContentCount();
         }
 
-        WebRequestMetric webRequestMetrics = metricsMap.computeIfAbsent(srcApplication + "|" + uri,
-                                                                        key -> new WebRequestMetric(srcApplication,
-                                                                                                    uri));
-        webRequestMetrics.add(costTime, errorCount, count4xx, count5xx);
-        webRequestMetrics.addBytes(requestByteSize, responseByteSize);
+        WebRequestMetricSet webRequestMetricsSet = metricsMap.computeIfAbsent(srcApplication + "|" + uri,
+                                                                        key -> new WebRequestMetricSet(srcApplication,
+                                                                                                       uri));
+        webRequestMetricsSet.add(costTime, errorCount, count4xx, count5xx);
+        webRequestMetricsSet.addBytes(requestByteSize, responseByteSize);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class WebRequestMetricCollector implements IMetricCollector {
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
-        for (Map.Entry<String, WebRequestMetric> entry : metricsMap.entrySet()) {
+        for (Map.Entry<String, WebRequestMetricSet> entry : metricsMap.entrySet()) {
             metricsMap.compute(entry.getKey(),
                                (k,
                                 v) -> getAndRemove(v));
@@ -68,7 +68,7 @@ public class WebRequestMetricCollector implements IMetricCollector {
         return messages;
     }
 
-    private WebRequestMetric getAndRemove(WebRequestMetric metric) {
+    private WebRequestMetricSet getAndRemove(WebRequestMetricSet metric) {
         this.metric = metric;
         return null;
     }

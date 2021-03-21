@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.mongodb38;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.mongo.MongoMetric;
+import com.sbss.bithon.agent.core.metric.mongo.MongoDbMetricSet;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -22,12 +22,12 @@ public class MongoMetricCollector implements IMetricCollector {
     /**
      * 计数器内部存储, String存放host + port
      */
-    private final Map<String, MongoMetric> mongoDbCounterStorageMap = new ConcurrentHashMap<>();
+    private final Map<String, MongoDbMetricSet> metricMap = new ConcurrentHashMap<>();
     /**
      * 存储mongoDb Id connectionId到instance的映射关系, 官方api说此id是不可变的, 但是connection销毁后, 会不会出现新的connectionId 到instance的映射, 有待观察
      */
     private final Map<String, String> mongoDbConnectionIdHostPortMapping = new ConcurrentHashMap<>();
-    private MongoMetric counter;
+    private MongoDbMetricSet metricSet;
 
     private MongoMetricCollector() {
         try {
@@ -45,10 +45,10 @@ public class MongoMetricCollector implements IMetricCollector {
         String hostPort = mongoDbConnectionIdHostPortMapping.get(connectionId);
 
         if (hostPort != null) {
-            MongoMetric mongoMetricStorage = mongoDbCounterStorageMap.get(hostPort);
-            if (mongoMetricStorage != null) {
+            MongoDbMetricSet metricSet = metricMap.get(hostPort);
+            if (metricSet != null) {
                 log.debug("app-mongodb-debugging: bytesOut=" + bytesOut);
-                mongoMetricStorage.addBytesIn(bytesOut);
+                metricSet.addBytesIn(bytesOut);
             }
         }
     }
@@ -61,17 +61,17 @@ public class MongoMetricCollector implements IMetricCollector {
         String hostPort = mongoDbConnectionIdHostPortMapping.get(connectionId);
 
         if (hostPort != null) {
-            MongoMetric mongoMetricStorage = mongoDbCounterStorageMap.get(hostPort);
-            if (mongoMetricStorage != null) {
+            MongoDbMetricSet metricSet = metricMap.get(hostPort);
+            if (metricSet != null) {
                 log.debug("app-mongodb-debugging: bytesIn=" + bytesIn);
-                mongoMetricStorage.addBytesOut(bytesIn);
+                metricSet.addBytesOut(bytesIn);
             }
         }
     }
 
     public void recordRequestInfo(String connectionId, String hostPort, Long costTime, int failureCount) {
-        mongoDbCounterStorageMap.computeIfAbsent(hostPort, k -> new MongoMetric(hostPort))
-                                .add(costTime, failureCount);
+        metricMap.computeIfAbsent(hostPort, k -> new MongoDbMetricSet(hostPort))
+                 .add(costTime, failureCount);
 
         // save mapping
         mongoDbConnectionIdHostPortMapping.putIfAbsent(connectionId, hostPort);
@@ -79,7 +79,7 @@ public class MongoMetricCollector implements IMetricCollector {
 
     @Override
     public boolean isEmpty() {
-        return mongoDbCounterStorageMap.isEmpty();
+        return metricMap.isEmpty();
     }
 
     @Override
@@ -92,16 +92,16 @@ public class MongoMetricCollector implements IMetricCollector {
         }
 
         List<Object> messages = new ArrayList<>();
-        for (Map.Entry<String, MongoMetric> entry : mongoDbCounterStorageMap.entrySet()) {
-            mongoDbCounterStorageMap.compute(entry.getKey(), (k, v) -> getAndRemove(v));
+        for (Map.Entry<String, MongoDbMetricSet> entry : metricMap.entrySet()) {
+            metricMap.compute(entry.getKey(), (k, v) -> getAndRemove(v));
 
-            messages.add(messageConverter.from(timestamp, interval, this.counter));
+            messages.add(messageConverter.from(timestamp, interval, this.metricSet));
         }
         return messages;
     }
 
-    private MongoMetric getAndRemove(MongoMetric counter) {
-        this.counter = counter;
+    private MongoDbMetricSet getAndRemove(MongoDbMetricSet metricSet) {
+        this.metricSet = metricSet;
         return null;
     }
 }

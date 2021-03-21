@@ -1,9 +1,9 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
-import com.sbss.bithon.agent.core.metric.jvm.HeapMetric;
-import com.sbss.bithon.agent.core.metric.jvm.MemoryMetric;
-import com.sbss.bithon.agent.core.metric.jvm.MetaspaceMetric;
-import com.sbss.bithon.agent.core.metric.jvm.NonHeapMetric;
+import com.sbss.bithon.agent.core.metric.jvm.HeapMetricSet;
+import com.sbss.bithon.agent.core.metric.jvm.MemoryMetricSet;
+import com.sbss.bithon.agent.core.metric.jvm.MetaspaceMetricSet;
+import com.sbss.bithon.agent.core.metric.jvm.NonHeapMetricSet;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
@@ -14,30 +14,30 @@ import java.lang.management.MemoryPoolMXBean;
  */
 public class MemoryMetricCollector {
 
-    public static MemoryMetric buildMemoryMetrics() {
-        return new MemoryMetric(Runtime.getRuntime().totalMemory(),
-                                Runtime.getRuntime().freeMemory());
+    public static MemoryMetricSet buildMemoryMetrics() {
+        return new MemoryMetricSet(Runtime.getRuntime().totalMemory(),
+                                   Runtime.getRuntime().freeMemory());
 
     }
 
-    public static HeapMetric collectHeap() {
-        return new HeapMetric(JmxBeans.MEM_BEAN.getHeapMemoryUsage().getMax(),
-                              JmxBeans.MEM_BEAN.getHeapMemoryUsage().getInit(),
-                              JmxBeans.MEM_BEAN.getHeapMemoryUsage().getUsed(),
-                              JmxBeans.MEM_BEAN.getHeapMemoryUsage().getCommitted());
+    public static HeapMetricSet collectHeap() {
+        return new HeapMetricSet(JmxBeans.MEM_BEAN.getHeapMemoryUsage().getMax(),
+                                 JmxBeans.MEM_BEAN.getHeapMemoryUsage().getInit(),
+                                 JmxBeans.MEM_BEAN.getHeapMemoryUsage().getUsed(),
+                                 JmxBeans.MEM_BEAN.getHeapMemoryUsage().getCommitted());
 
     }
 
-    public static NonHeapMetric collectNonHeap() {
-        return new NonHeapMetric(JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getMax(),
-                                 JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getInit(),
-                                 JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getUsed(),
-                                 JmxBeans.MEM_BEAN.getNonHeapMemoryUsage()
+    public static NonHeapMetricSet collectNonHeap() {
+        return new NonHeapMetricSet(JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getMax(),
+                                    JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getInit(),
+                                    JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getUsed(),
+                                    JmxBeans.MEM_BEAN.getNonHeapMemoryUsage()
                                                   .getCommitted());
     }
 
-    public static MetaspaceMetric collectMeataSpace() {
-        MetaspaceMetric metrics = new MetaspaceMetric();
+    public static MetaspaceMetricSet collectMeataSpace() {
+        MetaspaceMetricSet metrics = new MetaspaceMetricSet();
         for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans()) {
             if ("Metaspace".equalsIgnoreCase(bean.getName())) {
                 metrics.metaspaceCommittedBytes = bean.getUsage().getCommitted();

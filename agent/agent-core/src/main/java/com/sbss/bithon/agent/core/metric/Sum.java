@@ -24,7 +24,9 @@ public class Sum {
     }
 
     public void update(long delta) {
-        value.addAndGet(delta);
+        if (delta != 0) {
+            value.addAndGet(delta);
+        }
     }
 
     public long get() {

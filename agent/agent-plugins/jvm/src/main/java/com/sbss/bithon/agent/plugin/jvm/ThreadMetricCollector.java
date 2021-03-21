@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
-import com.sbss.bithon.agent.core.metric.jvm.ThreadMetric;
+import com.sbss.bithon.agent.core.metric.jvm.ThreadMetricSet;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
@@ -11,12 +11,12 @@ import java.lang.management.ThreadMXBean;
  */
 public class ThreadMetricCollector {
 
-    public static ThreadMetric collect() {
+    public static ThreadMetricSet collect() {
         final ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
-        return new ThreadMetric(threadBean.getPeakThreadCount(),
-                                threadBean.getDaemonThreadCount(),
-                                threadBean.getTotalStartedThreadCount(),
-                                threadBean.getThreadCount());
+        return new ThreadMetricSet(threadBean.getPeakThreadCount(),
+                                   threadBean.getDaemonThreadCount(),
+                                   threadBean.getTotalStartedThreadCount(),
+                                   threadBean.getThreadCount());
 
     }
 }

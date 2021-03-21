@@ -7,11 +7,11 @@ import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
  * @author frankchen
  */
 public class MongoDbHandler extends AbstractInterceptor {
-    private MongoMetricCollector counter;
+    private MongoDbMetricCollector metricCollector;
 
     @Override
     public boolean initialize() {
-        counter = MongoMetricCollector.getInstance();
+        metricCollector = MongoDbMetricCollector.getInstance();
         return true;
     }
 
@@ -24,6 +24,6 @@ public class MongoDbHandler extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext context) {
-        counter.update(context);
+        metricCollector.update(context);
     }
 }

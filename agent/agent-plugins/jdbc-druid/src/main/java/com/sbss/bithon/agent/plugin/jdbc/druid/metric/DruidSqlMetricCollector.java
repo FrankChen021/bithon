@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.jdbc.druid.metric;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
+import com.sbss.bithon.agent.core.metric.sql.SqlMetricSet;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.plugin.jdbc.druid.DruidPlugin;
 import shaded.org.slf4j.Logger;
@@ -75,7 +75,7 @@ public class DruidSqlMetricCollector implements IMetricCollector {
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (MonitoredSource source : MonitoredSourceManager.getInstance().getMonitoredSources()) {
-            SqlMetric metric = source.getSqlMetric();
+            SqlMetricSet metric = source.getSqlMetric();
             if (metric.peekTotalCount() > 0) {
                 Object message = messageConverter.from(timestamp, interval, source.getSqlMetric());
                 if (message != null) {

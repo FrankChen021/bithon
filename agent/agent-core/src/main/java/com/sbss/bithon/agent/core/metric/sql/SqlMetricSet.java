@@ -7,7 +7,7 @@ import com.sbss.bithon.agent.core.metric.Sum;
  * @author frank.chen021@outlook.com
  * @date 2021/1/4 11:18 下午
  */
-public class SqlMetric {
+public class SqlMetricSet {
     // dimension
     private final String driverType;
     private final String hostAndPort;
@@ -21,7 +21,7 @@ public class SqlMetric {
     private final Sum totalBytesIn = new Sum();
     private final Sum totalBytesOut = new Sum();
 
-    public SqlMetric(String hostAndPort, String driverType) {
+    public SqlMetricSet(String hostAndPort, String driverType) {
         this.hostAndPort = hostAndPort;
         this.driverType = driverType;
     }

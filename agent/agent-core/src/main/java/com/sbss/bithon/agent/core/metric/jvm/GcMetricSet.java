@@ -4,7 +4,7 @@ package com.sbss.bithon.agent.core.metric.jvm;
  * @author frank.chen021@outlook.com
  * @date 2020/12/29 9:58 下午
  */
-public class GcMetric {
+public class GcMetricSet {
     public String gcName;
 
     /**
@@ -23,7 +23,7 @@ public class GcMetric {
      */
     public long gcTime;
 
-    public GcMetric(String gcName, int generation, long gcCount, long gcTime) {
+    public GcMetricSet(String gcName, int generation, long gcCount, long gcTime) {
         this.gcName = gcName;
         this.generation = generation;
         this.gcCount = gcCount;

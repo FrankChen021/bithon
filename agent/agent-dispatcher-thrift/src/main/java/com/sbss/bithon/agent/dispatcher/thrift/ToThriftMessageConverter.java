@@ -3,16 +3,16 @@ package com.sbss.bithon.agent.dispatcher.thrift;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.exception.ExceptionMetric;
-import com.sbss.bithon.agent.core.metric.http.HttpClientMetric;
-import com.sbss.bithon.agent.core.metric.jdbc.JdbcPoolMetric;
-import com.sbss.bithon.agent.core.metric.jvm.JvmMetrics;
-import com.sbss.bithon.agent.core.metric.mongo.MongoMetric;
-import com.sbss.bithon.agent.core.metric.redis.RedisMetric;
-import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
+import com.sbss.bithon.agent.core.metric.http.HttpClientMetricSet;
+import com.sbss.bithon.agent.core.metric.jdbc.JdbcPoolMetricSet;
+import com.sbss.bithon.agent.core.metric.jvm.JvmMetricSet;
+import com.sbss.bithon.agent.core.metric.mongo.MongoDbMetricSet;
+import com.sbss.bithon.agent.core.metric.redis.RedisClientMetric;
+import com.sbss.bithon.agent.core.metric.sql.SqlMetricSet;
 import com.sbss.bithon.agent.core.metric.sql.SqlStatementMetric;
 import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetric;
-import com.sbss.bithon.agent.core.metric.web.WebRequestMetric;
-import com.sbss.bithon.agent.core.metric.web.WebServerMetric;
+import com.sbss.bithon.agent.core.metric.web.WebRequestMetricSet;
+import com.sbss.bithon.agent.core.metric.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ClassEntity;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 public class ToThriftMessageConverter implements IMessageConverter {
 
     @Override
-    public Object from(long timestamp, int interval, HttpClientMetric metric) {
+    public Object from(long timestamp, int interval, HttpClientMetricSet metric) {
         HttpClientMetricMessage message = new HttpClientMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
@@ -63,7 +63,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, JdbcPoolMetric metric) {
+    public Object from(long timestamp, int interval, JdbcPoolMetricSet metric) {
         JdbcPoolMetricMessage message = new JdbcPoolMetricMessage();
 
         message.setInterval(interval);
@@ -86,19 +86,19 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, SqlMetric metric) {
+    public Object from(long timestamp, int interval, SqlMetricSet metric) {
         return null;
     }
 
     @Override
-    public Object from(long timestamp, int interval, MongoMetric counter) {
+    public Object from(long timestamp, int interval, MongoDbMetricSet metric) {
         return null;
     }
 
     @Override
     public Object from(long timestamp,
                        int interval,
-                       WebRequestMetric metric) {
+                       WebRequestMetricSet metric) {
         WebRequestMetricMessage message = new WebRequestMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
@@ -119,31 +119,31 @@ public class ToThriftMessageConverter implements IMessageConverter {
     @Override
     public Object from(long timestamp,
                        int interval,
-                       JvmMetrics metric) {
+                       JvmMetricSet metric) {
         JvmMetricMessage message = new JvmMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
 
         message.setInstanceTimeEntity(new InstanceTimeEntity(metric.upTime, metric.startTime));
-        message.setCpuEntity(new CpuEntity(metric.cpuMetrics.processorNumber,
-                                           metric.cpuMetrics.processCpuTime,
-                                           metric.cpuMetrics.avgSystemLoad,
-                                           metric.cpuMetrics.processCpuLoad));
-        message.setMemoryEntity(new MemoryEntity(metric.memoryMetrics.allocatedBytes,
-                                                 metric.memoryMetrics.freeBytes));
-        message.setHeapEntity(new HeapEntity(metric.heapMetrics.heapBytes,
-                                             metric.heapMetrics.heapInitBytes,
-                                             metric.heapMetrics.heapUsedBytes,
-                                             metric.heapMetrics.heapAvailableBytes));
-        message.setNonHeapEntity(new NonHeapEntity(metric.nonHeapMetrics.nonHeapBytes,
-                                                   metric.nonHeapMetrics.nonHeapInitBytes,
-                                                   metric.nonHeapMetrics.nonHeapUsedBytes,
-                                                   metric.nonHeapMetrics.nonHeapAvailableBytes));
-        message.setThreadEntity(new ThreadEntity(metric.threadMetrics.peakActiveCount,
-                                                 metric.threadMetrics.activeDaemonCount,
-                                                 metric.threadMetrics.totalCreatedCount,
-                                                 metric.threadMetrics.activeThreadsCount));
-        message.setGcEntities(metric.gcMetrics.stream().map(gcMetric -> {
+        message.setCpuEntity(new CpuEntity(metric.cpuMetricsSet.processorNumber,
+                                           metric.cpuMetricsSet.processCpuTime,
+                                           metric.cpuMetricsSet.avgSystemLoad,
+                                           metric.cpuMetricsSet.processCpuLoad));
+        message.setMemoryEntity(new MemoryEntity(metric.memoryMetricsSet.allocatedBytes,
+                                                 metric.memoryMetricsSet.freeBytes));
+        message.setHeapEntity(new HeapEntity(metric.heapMetricsSet.heapBytes,
+                                             metric.heapMetricsSet.heapInitBytes,
+                                             metric.heapMetricsSet.heapUsedBytes,
+                                             metric.heapMetricsSet.heapAvailableBytes));
+        message.setNonHeapEntity(new NonHeapEntity(metric.nonHeapMetricsSet.nonHeapBytes,
+                                                   metric.nonHeapMetricsSet.nonHeapInitBytes,
+                                                   metric.nonHeapMetricsSet.nonHeapUsedBytes,
+                                                   metric.nonHeapMetricsSet.nonHeapAvailableBytes));
+        message.setThreadEntity(new ThreadEntity(metric.threadMetricsSet.peakActiveCount,
+                                                 metric.threadMetricsSet.activeDaemonCount,
+                                                 metric.threadMetricsSet.totalCreatedCount,
+                                                 metric.threadMetricsSet.activeThreadsCount));
+        message.setGcEntities(metric.gcMetricSets.stream().map(gcMetric -> {
             GcEntity e = new GcEntity(gcMetric.generation,
                                       gcMetric.gcCount,
                                       gcMetric.gcTime);
@@ -151,18 +151,18 @@ public class ToThriftMessageConverter implements IMessageConverter {
             return e;
         }).collect(Collectors.toList()));
 
-        message.setClassesEntity(new ClassEntity(metric.classMetrics.currentLoadedClasses,
-                                                 metric.classMetrics.totalLoadedClasses,
-                                                 metric.classMetrics.totalUnloadedClasses));
-        message.setMetaspaceEntity(new MetaspaceEntity(metric.metaspaceMetrics.metaspaceCommittedBytes,
-                                                       metric.metaspaceMetrics.metaspaceUsedBytes));
+        message.setClassesEntity(new ClassEntity(metric.classMetricsSet.currentLoadedClasses,
+                                                 metric.classMetricsSet.totalLoadedClasses,
+                                                 metric.classMetricsSet.totalUnloadedClasses));
+        message.setMetaspaceEntity(new MetaspaceEntity(metric.metaspaceMetricsSet.metaspaceCommittedBytes,
+                                                       metric.metaspaceMetricsSet.metaspaceUsedBytes));
         return message;
     }
 
     @Override
     public Object from(long timestamp,
                        int interval,
-                       WebServerMetric metric) {
+                       WebServerMetricSet metric) {
         WebServerMetricMessage message = new WebServerMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
@@ -180,7 +180,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, RedisMetric metric) {
+    public Object from(long timestamp, int interval, RedisClientMetric metric) {
         RedisMetricMessage message = new RedisMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);

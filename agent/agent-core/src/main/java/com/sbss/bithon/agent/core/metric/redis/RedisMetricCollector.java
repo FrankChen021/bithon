@@ -14,8 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RedisMetricCollector implements IMetricCollector {
 
-    private final Map<RedisMetricDimension, RedisMetric> metricsMap = new ConcurrentHashMap<>();
-    private RedisMetric metric;
+    private final Map<RedisMetricDimension, RedisClientMetric> metricsMap = new ConcurrentHashMap<>();
+    private RedisClientMetric metric;
 
     public void addWrite(String hostAndPort,
                          String command,
@@ -23,9 +23,9 @@ public class RedisMetricCollector implements IMetricCollector {
                          boolean hasException) {
         int exceptionCount = hasException ? 1 : 0;
 
-        RedisMetric redisMetric = metricsMap.computeIfAbsent(new RedisMetricDimension(hostAndPort, command),
-                                                             k -> new RedisMetric(hostAndPort, command));
-        redisMetric.addRequest(costTime, exceptionCount);
+        RedisClientMetric redisClientMetric = metricsMap.computeIfAbsent(new RedisMetricDimension(hostAndPort, command),
+                                                             k -> new RedisClientMetric(hostAndPort, command));
+        redisClientMetric.addRequest(costTime, exceptionCount);
     }
 
     public void addRead(String hostAndPort,
@@ -34,16 +34,16 @@ public class RedisMetricCollector implements IMetricCollector {
                         boolean hasException) {
         int exceptionCount = hasException ? 1 : 0;
 
-        RedisMetric redisMetric = metricsMap.computeIfAbsent(new RedisMetricDimension(hostAndPort, command),
-                                                             k -> new RedisMetric(hostAndPort, command));
-        redisMetric.addResponse(costTime, exceptionCount);
+        RedisClientMetric redisClientMetric = metricsMap.computeIfAbsent(new RedisMetricDimension(hostAndPort, command),
+                                                             k -> new RedisClientMetric(hostAndPort, command));
+        redisClientMetric.addResponse(costTime, exceptionCount);
     }
 
     public void addOutputBytes(String hostAndPort,
                                String command,
                                int bytesOut) {
         metricsMap.computeIfAbsent(new RedisMetricDimension(hostAndPort, command),
-                                   k -> new RedisMetric(hostAndPort, command))
+                                   k -> new RedisClientMetric(hostAndPort, command))
                   .addRequestBytes(bytesOut);
     }
 
@@ -51,7 +51,7 @@ public class RedisMetricCollector implements IMetricCollector {
                               String command,
                               int bytesIn) {
         metricsMap.computeIfAbsent(new RedisMetricDimension(hostAndPort, command),
-                                   k -> new RedisMetric(hostAndPort, command))
+                                   k -> new RedisClientMetric(hostAndPort, command))
                   .addResponseBytes(bytesIn);
     }
 
@@ -66,7 +66,7 @@ public class RedisMetricCollector implements IMetricCollector {
                                 long timestamp) {
 
         List<Object> messages = new ArrayList<>();
-        for (Map.Entry<RedisMetricDimension, RedisMetric> entry : metricsMap.entrySet()) {
+        for (Map.Entry<RedisMetricDimension, RedisClientMetric> entry : metricsMap.entrySet()) {
             metricsMap.compute(entry.getKey(),
                                (k,
                                 v) -> v == null ? null : getAndRemove(v));
@@ -76,8 +76,8 @@ public class RedisMetricCollector implements IMetricCollector {
         return messages;
     }
 
-    private RedisMetric getAndRemove(RedisMetric redisMetric) {
-        metric = redisMetric;
+    private RedisClientMetric getAndRemove(RedisClientMetric redisClientMetric) {
+        metric = redisClientMetric;
         return null;
     }
 

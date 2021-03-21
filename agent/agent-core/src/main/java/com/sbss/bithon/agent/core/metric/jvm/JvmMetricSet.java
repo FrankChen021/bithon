@@ -7,7 +7,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2020/10/27 2:17 下午
  */
-public class JvmMetrics {
+public class JvmMetricSet {
     /**
      * uptime of the Java virtual machine in milliseconds.
      */
@@ -19,16 +19,16 @@ public class JvmMetrics {
      */
     public long startTime;
 
-    public CpuMetric cpuMetrics;
-    public MemoryMetric memoryMetrics;
-    public HeapMetric heapMetrics;
-    public NonHeapMetric nonHeapMetrics;
-    public List<GcMetric> gcMetrics;
-    public ThreadMetric threadMetrics;
-    public ClassMetric classMetrics;
-    public MetaspaceMetric metaspaceMetrics;
+    public CpuMetricSet cpuMetricsSet;
+    public MemoryMetricSet memoryMetricsSet;
+    public HeapMetricSet heapMetricsSet;
+    public NonHeapMetricSet nonHeapMetricsSet;
+    public List<GcMetricSet> gcMetricSets;
+    public ThreadMetricSet threadMetricsSet;
+    public ClassMetricSet classMetricsSet;
+    public MetaspaceMetricSet metaspaceMetricsSet;
 
-    public JvmMetrics(long upTime, long startTime) {
+    public JvmMetricSet(long upTime, long startTime) {
         this.upTime = upTime;
         this.startTime = startTime;
     }

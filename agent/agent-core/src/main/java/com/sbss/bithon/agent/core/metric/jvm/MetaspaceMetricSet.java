@@ -1,12 +1,10 @@
 package com.sbss.bithon.agent.core.metric.jvm;
 
-import java.io.Serializable;
-
 /**
  * @author: frank.chen021@outlook.com
  * @date: 2020/12/29 9:58 下午
  */
-public class MetaspaceMetric implements Serializable {
+public class MetaspaceMetricSet {
     /**
      * allocated metaspace in bytes
      */

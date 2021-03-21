@@ -1,12 +1,10 @@
 package com.sbss.bithon.agent.core.metric.jvm;
 
-import java.io.Serializable;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/29 9:49 下午
  */
-public class CpuMetric {
+public class CpuMetricSet {
     public long processorNumber;
 
     // CPU Time in nano seconds
@@ -17,10 +15,10 @@ public class CpuMetric {
     // CPU usage (%)
     public double processCpuLoad;
 
-    public CpuMetric(long processorNumber,
-                     long processCpuTime,
-                     double avgSystemLoad,
-                     double processCpuLoad) {
+    public CpuMetricSet(long processorNumber,
+                        long processCpuTime,
+                        double avgSystemLoad,
+                        double processCpuLoad) {
         this.processorNumber = processorNumber;
         this.processCpuTime = processCpuTime;
         this.avgSystemLoad = avgSystemLoad;

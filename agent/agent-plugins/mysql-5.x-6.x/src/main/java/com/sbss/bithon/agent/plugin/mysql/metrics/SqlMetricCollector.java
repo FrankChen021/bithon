@@ -3,11 +3,10 @@ package com.sbss.bithon.agent.plugin.mysql.metrics;
 import com.mysql.jdbc.Buffer;
 import com.mysql.jdbc.MysqlIO;
 import com.mysql.jdbc.ResultSetImpl;
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.sql.SqlMetric;
+import com.sbss.bithon.agent.core.metric.sql.SqlMetricSet;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.utils.ReflectionUtils;
 import com.sbss.bithon.agent.plugin.mysql.MySqlPlugin;
@@ -27,7 +26,7 @@ public class SqlMetricCollector implements IMetricCollector {
     private static final Logger log = LoggerFactory.getLogger(SqlMetricCollector.class);
     private static final String MYSQL_COUNTER_NAME = "mysql";
     private static final String DRIVER_TYPE_MYSQL = "mysql";
-    private final Map<String, SqlMetric> metricMap;
+    private final Map<String, SqlMetricSet> metricMap;
 
     private SqlMetricCollector() {
         metricMap = new ConcurrentHashMap<>();
@@ -53,8 +52,8 @@ public class SqlMetricCollector implements IMetricCollector {
             String hostPort = host + ":" + port;
 
             // 尝试记录新的mysql连接
-            SqlMetric counter = metricMap.computeIfAbsent(hostPort,
-                                                          k -> new SqlMetric(k, DRIVER_TYPE_MYSQL));
+            SqlMetricSet counter = metricMap.computeIfAbsent(hostPort,
+                                                          k -> new SqlMetricSet(k, DRIVER_TYPE_MYSQL));
 
             if (MySqlPlugin.METHOD_SEND_COMMAND.equals(methodName)) {
                 Buffer queryPacket = (Buffer) aopContext.getArgs()[2];
@@ -93,7 +92,7 @@ public class SqlMetricCollector implements IMetricCollector {
         }
 
         metricMap.computeIfAbsent(hostAndPort,
-                                  k -> new SqlMetric(k, DRIVER_TYPE_MYSQL))
+                                  k -> new SqlMetricSet(k, DRIVER_TYPE_MYSQL))
                  .add(isQuery,
                       aopContext.getException() != null,
                       aopContext.getCostTime());
@@ -109,7 +108,7 @@ public class SqlMetricCollector implements IMetricCollector {
                                 int interval,
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
-        for (Map.Entry<String, SqlMetric> entry : metricMap.entrySet()) {
+        for (Map.Entry<String, SqlMetricSet> entry : metricMap.entrySet()) {
             Object message = messageConverter.from(timestamp, interval, entry.getValue());
             if (message != null) {
                 messages.add(message);

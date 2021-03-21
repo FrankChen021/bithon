@@ -8,7 +8,7 @@ import com.sbss.bithon.agent.core.metric.Sum;
  *
  * @author frankchen
  */
-public class WebRequestMetric {
+public class WebRequestMetricSet {
     /**
      * dimension, the URI of a requests
      */
@@ -26,7 +26,7 @@ public class WebRequestMetric {
     private final Sum requestByteSize = new Sum();
     private final Sum responseByteSize = new Sum();
 
-    public WebRequestMetric(String srcApplication, String uri) {
+    public WebRequestMetricSet(String srcApplication, String uri) {
         this.srcApplication = srcApplication;
         this.uri = uri;
     }
