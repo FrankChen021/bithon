@@ -8,9 +8,14 @@ public enum EndPointType {
 
     UNKNOWN(-1),
     APPLICATION(0),
-    MYSQL(1),
+
+    // Database
+    DB_UNKOWN(1),
+    DB_H2(1),
+    DB_MYSQL(1),
+    DB_MONGO(3),
+
     REDIS(2),
-    MONGO(3),
     DOMAIN(4),
     WEB_SERVICE(5);
 

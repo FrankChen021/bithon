@@ -28,6 +28,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MemoryEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MetaspaceEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.NonHeapEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
@@ -65,9 +66,8 @@ public class ToThriftMessageConverter implements IMessageConverter {
     @Override
     public Object from(long timestamp, int interval, JdbcPoolMetricSet metric) {
         JdbcPoolMetricMessage message = new JdbcPoolMetricMessage();
-
-        message.setInterval(interval);
         message.setTimestamp(timestamp);
+        message.setInterval(interval);
         message.setConnectionString(metric.getConnectionString());
         message.setDriverClass(metric.getDriverClass());
         message.setActiveCount(metric.activeCount.get());
@@ -87,7 +87,18 @@ public class ToThriftMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(long timestamp, int interval, SqlMetricSet metric) {
-        return null;
+        SqlMetricMessage message = new SqlMetricMessage();
+        message.setTimestamp(timestamp);
+        message.setConnectionString(metric.getConnectionString());
+        message.setInterval(interval);
+        message.setCallCount(metric.getCallCount().get());
+        message.setResponseTime(metric.getResponseTime().getSum().get());
+        message.setMinResponseTime(metric.getResponseTime().getMin().get());
+        message.setMaxResponseTime(metric.getResponseTime().getMax().get());
+        message.setErrorCount(metric.getErrorCount().get());
+        message.setQueryCount(metric.getQueryCount().get());
+        message.setUpdateCount(metric.getUpdateCount().get());
+        return message;
     }
 
     @Override

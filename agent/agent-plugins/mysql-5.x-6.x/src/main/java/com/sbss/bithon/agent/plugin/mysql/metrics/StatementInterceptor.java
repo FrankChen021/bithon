@@ -3,9 +3,8 @@ package com.sbss.bithon.agent.plugin.mysql.metrics;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
-import com.sbss.bithon.agent.plugin.mysql.Utils;
+import com.sbss.bithon.agent.core.utils.MiscUtils;
 
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -25,9 +24,11 @@ public class StatementInterceptor extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         try {
             Statement statement = (Statement) aopContext.getTarget();
-            String connectionString = statement.getConnection().getMetaData().getURL();
-            aopContext.setUserContext(Utils.extractHostAndPort(connectionString));
-        } catch (SQLException | URISyntaxException ignored) {
+            String connectionString = MiscUtils.cleanupConnectionString(statement.getConnection()
+                                                                                 .getMetaData()
+                                                                                 .getURL());
+            aopContext.setUserContext(connectionString);
+        } catch (SQLException ignored) {
             return InterceptionDecision.SKIP_LEAVE;
         }
         return InterceptionDecision.CONTINUE;

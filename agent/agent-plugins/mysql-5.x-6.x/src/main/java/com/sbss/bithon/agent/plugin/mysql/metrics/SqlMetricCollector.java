@@ -1,6 +1,7 @@
 package com.sbss.bithon.agent.plugin.mysql.metrics;
 
 import com.mysql.jdbc.Buffer;
+import com.mysql.jdbc.MySQLConnection;
 import com.mysql.jdbc.MysqlIO;
 import com.mysql.jdbc.ResultSetImpl;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
@@ -8,6 +9,7 @@ import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.sql.SqlMetricSet;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.core.utils.MiscUtils;
 import com.sbss.bithon.agent.core.utils.ReflectionUtils;
 import com.sbss.bithon.agent.plugin.mysql.MySqlPlugin;
 import shaded.org.slf4j.Logger;
@@ -42,18 +44,15 @@ public class SqlMetricCollector implements IMetricCollector {
         return INSTANCE;
     }
 
-    public void recordIO(AopContext aopContext) {
+    public void updateBytes(AopContext aopContext) {
         String methodName = aopContext.getMethod().getName();
         try {
             MysqlIO mysqlIO = (MysqlIO) aopContext.getTarget();
 
-            String host = (String) ReflectionUtils.getFieldValue(mysqlIO, "host");
-            Integer port = (Integer) ReflectionUtils.getFieldValue(mysqlIO, "port");
-            String hostPort = host + ":" + port;
+            MySQLConnection connection = (MySQLConnection) ReflectionUtils.getFieldValue(mysqlIO, "connection");
 
-            // 尝试记录新的mysql连接
-            SqlMetricSet counter = metricMap.computeIfAbsent(hostPort,
-                                                          k -> new SqlMetricSet(k, DRIVER_TYPE_MYSQL));
+            SqlMetricSet counter = metricMap.computeIfAbsent(MiscUtils.cleanupConnectionString(connection.getURL()),
+                                                             k -> new SqlMetricSet(k, DRIVER_TYPE_MYSQL));
 
             if (MySqlPlugin.METHOD_SEND_COMMAND.equals(methodName)) {
                 Buffer queryPacket = (Buffer) aopContext.getArgs()[2];
@@ -72,8 +71,8 @@ public class SqlMetricCollector implements IMetricCollector {
         }
     }
 
-    public void recordExecution(AopContext aopContext, String hostAndPort) {
-        if (hostAndPort == null) {
+    public void recordExecution(AopContext aopContext, String connectionString) {
+        if (connectionString == null) {
             log.warn("hostAndPort is null");
             return;
         }
@@ -91,7 +90,7 @@ public class SqlMetricCollector implements IMetricCollector {
             }
         }
 
-        metricMap.computeIfAbsent(hostAndPort,
+        metricMap.computeIfAbsent(connectionString,
                                   k -> new SqlMetricSet(k, DRIVER_TYPE_MYSQL))
                  .add(isQuery,
                       aopContext.getException() != null,

@@ -31,8 +31,14 @@ class Dashboard {
         //
         // App Filter
         //
-        new AppSelector().childOf('appSelector').registerAppChangedListener((app)=>{
-            alert(app);
+        new AppSelector().childOf('appSelector').registerAppChangedListener((text, value)=>{
+            // update appName for dimension filters
+            this._appName = value;
+
+            // update dimensions for dashboard chart
+            this.addDimension('appName', value);
+
+            this.refreshDashboard();
         });
 
         //
@@ -140,7 +146,8 @@ class Dashboard {
             allowClear: true,
             dropdownAutoWidth : true,
             placeholder: displayText,
-            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionName)
+            //TODO: must be a function to support dynamic change
+            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionName);
        }).on('change', (event) => {
              if ( event.target.selectedIndex == null || event.target.selectedIndex < 0 ) {
                  this.rmvDimension(dimensionName);

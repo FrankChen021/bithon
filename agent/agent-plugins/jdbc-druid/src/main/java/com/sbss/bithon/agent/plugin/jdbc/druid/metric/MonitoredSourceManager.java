@@ -1,6 +1,7 @@
 package com.sbss.bithon.agent.plugin.jdbc.druid.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.sbss.bithon.agent.core.utils.MiscUtils;
 
 import java.util.Collection;
 import java.util.Map;
@@ -19,23 +20,16 @@ public class MonitoredSourceManager {
         return INSTANCE;
     }
 
-    static public String parseConnectionString(String rawUrl) {
-        // remove leading "jdbc:" prefix
-        String str = rawUrl.replaceFirst("jdbc:", "");
-        // remove parameters
-        return str.split("\\?")[0];
-    }
-
     public boolean addDataSource(DruidDataSource dataSource) {
-        String uri = MonitoredSourceManager.parseConnectionString(dataSource.getRawJdbcUrl());
-        if (connectionMap.containsKey(uri) && dataSourceMap.containsKey(dataSource)) {
+        String connectionString = MiscUtils.cleanupConnectionString(dataSource.getRawJdbcUrl());
+        if (connectionMap.containsKey(connectionString) && dataSourceMap.containsKey(dataSource)) {
             return false;
         }
 
         MonitoredSource monitoredSource = new MonitoredSource(dataSource.getDriverClassName(),
-                                                              uri,
+                                                              connectionString,
                                                               dataSource);
-        connectionMap.putIfAbsent(uri, monitoredSource);
+        connectionMap.putIfAbsent(connectionString, monitoredSource);
         dataSourceMap.putIfAbsent(dataSource, monitoredSource);
         return true;
     }

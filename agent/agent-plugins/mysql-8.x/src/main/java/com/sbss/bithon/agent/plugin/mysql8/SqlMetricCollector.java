@@ -1,16 +1,17 @@
 package com.sbss.bithon.agent.plugin.mysql8;
 
+import com.mysql.cj.conf.HostInfo;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.sql.SqlMetricSet;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.core.utils.MiscUtils;
 import com.sbss.bithon.agent.core.utils.ReflectionUtils;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -57,16 +58,10 @@ public class SqlMetricCollector implements IMetricCollector {
             Object nativeProtocol = aopContext.getTarget();
 
             Object session = ReflectionUtils.getFieldValue(nativeProtocol, "session");
-            Object hostInfo = ReflectionUtils.getFieldValue(session, "hostInfo");
+            HostInfo hostInfo = (HostInfo) ReflectionUtils.getFieldValue(session, "hostInfo");
 
-            // 反射式的获取当前mysqlIO host+port
-            String host = (String) ReflectionUtils.getFieldValue(hostInfo, "host");
-            Integer port = (Integer) ReflectionUtils.getFieldValue(hostInfo, "port");
-            String hostPort = host + ":" + port;
-
-            // 尝试记录新的mysql连接
-            SqlMetricSet mysqlMetricSetStorage = metricMap.computeIfAbsent(hostPort,
-                                                                     k -> new SqlMetricSet(k, DRIVER_TYPE_MYSQL));
+            SqlMetricSet mysqlMetricSetStorage = metricMap.computeIfAbsent(MiscUtils.cleanupConnectionString(hostInfo.getDatabaseUrl()),
+                                                                           k -> new SqlMetricSet(k, DRIVER_TYPE_MYSQL));
 
             if (MySql8Plugin.METHOD_SEND_COMMAND.equals(methodName)) {
                 Object message = aopContext.getArgs()[0];
@@ -86,12 +81,14 @@ public class SqlMetricCollector implements IMetricCollector {
 
         Statement statement = (Statement) aopContext.getTarget();
         try {
-            String hostPort = parseConnectionString(statement.getConnection().getMetaData().getURL());
+            String connectionString = MiscUtils.cleanupConnectionString(statement.getConnection()
+                                                                                 .getMetaData()
+                                                                                 .getURL());
 
             boolean isQuery = true;
             boolean failed = false;
 
-            SqlMetricSet metric = metricMap.computeIfAbsent(hostPort, k -> new SqlMetricSet(k, "mysql"));
+            SqlMetricSet metric = metricMap.computeIfAbsent(connectionString, k -> new SqlMetricSet(k, "mysql"));
 
             if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName)
                 || MySql8Plugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {
@@ -111,8 +108,6 @@ public class SqlMetricCollector implements IMetricCollector {
             metric.add(isQuery, failed, costTime);
         } catch (SQLException e) {
             log.error("unknown or unreachable connection intercepted by agent! this data may not been recorded!", e);
-        } catch (URISyntaxException e) {
-            log.error("db url parse failed!", e);
         }
     }
 
@@ -133,13 +128,5 @@ public class SqlMetricCollector implements IMetricCollector {
             }
         }
         return messages;
-    }
-
-    private String parseConnectionString(String rawUrl) throws URISyntaxException {
-        // remove jdbc: prefix
-        String originUrl = rawUrl.replaceFirst("jdbc:", "");
-
-        // remove parameters
-        return originUrl.split("\\?")[0];
     }
 }

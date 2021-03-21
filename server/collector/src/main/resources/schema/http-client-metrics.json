@@ -40,20 +40,20 @@
       "type": "longSum",
       "name": "responseTime",
       "displayText": "Response Time",
-      "unit": "ns",
+      "unit": "nanosecond",
       "visible": false
     },
     {
       "type": "longMin",
       "name": "minResponseTime",
       "displayText": "Min Response Time",
-      "unit": "ns"
+      "unit": "nanosecond"
     },
     {
       "type": "longMax",
       "name": "maxResponseTime",
       "displayText": "Max Response Time",
-      "unit": "ns"
+      "unit": "nanosecond"
     },
     {
       "type": "longSum",
@@ -83,20 +83,20 @@
       "type": "longSum",
       "name": "requestBytes",
       "displayText": "Bytes sent",
-      "unit": "Byte"
+      "unit": "byte"
     },
     {
       "type": "longSum",
       "name": "responseBytes",
       "displayText": "Bytes received",
-      "unit": "Byte"
+      "unit": "byte"
     },
     {
       "type": "postAggregator",
       "name": "avgResponseTime",
       "expression": "responseTime/1000.0/1000/requestCount",
       "displayText": "Avg cost time",
-      "unit": "Milli",
+      "unit": "millisecond",
       "valueType": "double"
     },
     {

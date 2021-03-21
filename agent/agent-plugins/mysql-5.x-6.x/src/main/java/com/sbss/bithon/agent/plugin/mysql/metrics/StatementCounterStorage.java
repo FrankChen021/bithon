@@ -53,44 +53,20 @@ public class StatementCounterStorage implements IMetricCollector, IAgentSettingR
     }
 
     public void sqlStats(AopContext aopContext,
-                         String hostAndPort) {
-        long costTime = aopContext.getCostTime();
+                         String connectionString) {
+        long responseTime = aopContext.getCostTime();
 
         String sql = (String) InterceptorContext.get("sql");
 
-        costTime = costTime / 1000000;
-        if (sql == null || costTime < sqlTime) {
+        responseTime = responseTime / 1000000;
+        if (sql == null || responseTime < sqlTime) {
             return;
         }
 
         sql = ParameterizedOutputVisitorUtils.parameterize(sql, JdbcConstants.MYSQL).replace("\n", "");
-        Map<String, SqlStatementMetric> statementCounters;
-        if ((statementCounters = metricMap.get(hostAndPort)) == null) {
-            synchronized (this) {
-                if ((statementCounters = metricMap.get(hostAndPort)) == null) {
-                    statementCounters = metricMap.putIfAbsent(hostAndPort, new ConcurrentHashMap<>());
-                    if (statementCounters == null) {
-                        statementCounters = metricMap.get(hostAndPort);
-                    }
-                }
-            }
-        }
-        SqlStatementMetric statementCounter;
-        if ((statementCounter = statementCounters.get(sql)) == null) {
-            synchronized (this) {
-                if ((statementCounter = statementCounters.get(sql)) == null) {
-                    statementCounter = statementCounters.putIfAbsent(sql, new SqlStatementMetric("mysql", sql));
-                    if (statementCounter == null) {
-                        statementCounter = statementCounters.get(sql);
-                    }
-                }
-            }
-        }
-        boolean hasException = false;
-        if (null != aopContext.getException()) {
-            hasException = true;
-        }
-        statementCounter.add(1, hasException ? 1 : 0, costTime);
+        metricMap.computeIfAbsent(connectionString, key -> new ConcurrentHashMap<>())
+                 .computeIfAbsent(sql, sqlKey -> new SqlStatementMetric("mysql"))
+                 .add(1, aopContext.hasException() ? 1 : 0, responseTime);
     }
 
     @Override
@@ -104,7 +80,11 @@ public class StatementCounterStorage implements IMetricCollector, IAgentSettingR
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
         metricMap.forEach((dataSourceUrl, statementMetrics) -> {
-            statementMetrics.forEach((sql, counter) -> messages.add(messageConverter.from(timestamp, interval, counter)));
+            //TODO: clear map
+            statementMetrics.forEach((sql, metric) -> {
+                metric.setSql(sql);
+                messages.add(messageConverter.from(timestamp, interval, metric));
+            });
         });
         return messages;
     }

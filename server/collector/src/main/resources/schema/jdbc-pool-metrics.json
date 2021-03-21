@@ -17,13 +17,13 @@
       "required": true
     },
     {
-      "name": "uri",
-      "displayText": "Database URI",
+      "name": "server",
+      "displayText": "Database Server",
       "required": true
     },
     {
-      "name": "driver",
-      "displayText": "Driver",
+      "name": "database",
+      "displayText": "Database",
       "required": true
     }
   ],

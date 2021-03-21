@@ -7,6 +7,7 @@ import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
@@ -83,7 +84,9 @@ public class KafkaCollectorStarter implements SmartLifecycle, ApplicationContext
                                                 context.getBean(HttpClientMetricMessageHandler.class),
                                                 context.getBean(ThreadPoolMetricMessageHandler.class),
                                                 context.getBean(JdbcPoolMetricMessageHandler.class),
-                                                context.getBean(RedisMetricMessageHandler.class)).start(consumerProps));
+                                                context.getBean(RedisMetricMessageHandler.class),
+                                                context.getBean(SqlMetricMessageHandler.class))
+                           .start(consumerProps));
 
         collectors.add(new KafkaTraceCollector(context.getBean(TraceMessageHandler.class)).start(consumerProps));
         collectors.add(new KafkaEventCollector(context.getBean(EventsMessageHandler.class)).start(consumerProps));

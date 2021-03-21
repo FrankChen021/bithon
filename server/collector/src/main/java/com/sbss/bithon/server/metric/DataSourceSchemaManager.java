@@ -1,5 +1,7 @@
 package com.sbss.bithon.server.metric;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -54,6 +56,7 @@ public class DataSourceSchemaManager {
                                       .getResourceAsStream(String.format("schema/%s.json", name))) {
 
                 ObjectMapper om = new ObjectMapper();
+                om.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
                 DataSourceSchema dataSourceSchema = om.readValue(is, DataSourceSchema.class);
                 addDataSourceSchema(dataSourceSchema);
                 return dataSourceSchema;

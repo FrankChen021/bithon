@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.LongAccumulator;
  */
 public class SqlStatementMetric {
     private final String driverType;
-    private final String sql;
+    private String sql;
     private final AtomicLong executeCount = new AtomicLong(0);
     private final AtomicLong executeErrorCount = new AtomicLong(0);
     private final AtomicLong totalTime = new AtomicLong(0);
@@ -21,9 +21,8 @@ public class SqlStatementMetric {
     private final AtomicLong batchSizeTotal = new AtomicLong();
     private final LongAccumulator concurrentMax = new LongAccumulator(Long::max, 0L);
 
-    public SqlStatementMetric(String driverType, String sql) {
+    public SqlStatementMetric(String driverType) {
         this.driverType = driverType;
-        this.sql = sql;
     }
 
     public SqlStatementMetric add(long executeNum,
@@ -44,5 +43,9 @@ public class SqlStatementMetric {
          */
 
         return this;
+    }
+
+    public void setSql(String sql) {
+        this.sql = sql;
     }
 }

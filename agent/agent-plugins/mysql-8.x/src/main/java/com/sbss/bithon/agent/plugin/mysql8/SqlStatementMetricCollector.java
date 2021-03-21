@@ -9,13 +9,12 @@ import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.setting.AgentSettingManager;
 import com.sbss.bithon.agent.core.setting.IAgentSettingRefreshListener;
 import com.sbss.bithon.agent.core.setting.SettingRootNames;
+import com.sbss.bithon.agent.core.utils.MiscUtils;
 import shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
 import shaded.com.alibaba.druid.util.JdbcConstants;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -64,53 +63,28 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
             }
             slowSqlStats(aopContext,
                          costTime,
-                         statement.getConnection().getMetaData().getURL());
+                         MiscUtils.cleanupConnectionString(statement.getConnection().getMetaData().getURL()));
         } catch (SQLException e) {
             log.warn("error when counting SQL statement", e);
         }
     }
 
-    private void slowSqlStats(AopContext aopContext, long costTime, String dataSourceUrl) {
+    /**
+     * TODO: use EVENT instead of metrics to report SLOW SQL
+     */
+    private void slowSqlStats(AopContext aopContext, long responseTime, String connectionString) {
         String sql = (String) InterceptorContext.get("sql");
-        try {
-            dataSourceUrl = parseDBAddress(dataSourceUrl);
-        } catch (URISyntaxException e) {
-            log.error("解析dataSourceURL错误", e);
-        }
-        costTime = costTime / 1000000;
-        if (sql == null || costTime < sqlTimeThreshold) {
+
+        responseTime = responseTime / 1000000;
+        if (sql == null || responseTime < sqlTimeThreshold) {
             return;
         }
 
         sql = ParameterizedOutputVisitorUtils.parameterize(sql, JdbcConstants.MYSQL).replace("\n", "");
-        Map<String, SqlStatementMetric> map;
-        if ((map = metricMap.get(dataSourceUrl)) == null) {
-            synchronized (this) {
-                if ((map = metricMap.get(dataSourceUrl)) == null) {
-                    map = metricMap.putIfAbsent(dataSourceUrl, new ConcurrentHashMap<>());
-                    if (map == null) {
-                        map = metricMap.get(dataSourceUrl);
-                    }
-                }
-            }
-        }
-
-        SqlStatementMetric counter;
-        if ((counter = map.get(sql)) == null) {
-            synchronized (this) {
-                if ((counter = map.get(sql)) == null) {
-                    counter = map.putIfAbsent(sql, new SqlStatementMetric("mysql", sql));
-                    if (counter == null) {
-                        counter = map.get(sql);
-                    }
-                }
-            }
-        }
-        boolean hasException = false;
-        if (null != aopContext.getException()) {
-            hasException = true;
-        }
-        counter.add(1, hasException ? 1 : 0, costTime);
+        metricMap.computeIfAbsent(connectionString,
+                                  key -> new ConcurrentHashMap<>())
+                 .computeIfAbsent(sql, key -> new SqlStatementMetric("mysql"))
+                 .add(1, aopContext.hasException() ? 1 : 0, responseTime);
     }
 
     @Override
@@ -124,20 +98,15 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
         metricMap.forEach((dataSourceUrl, statementCounters) -> {
-            statementCounters.forEach((sql, counter) -> messages.add(messageConverter.from(timestamp,
-                                                                                           interval,
-                                                                                           counter)));
+            statementCounters.forEach((sql, metric) -> {
+                //TODO: clear map
+                metric.setSql(sql);
+                messages.add(messageConverter.from(timestamp,
+                                                   interval,
+                                                   metric));
+            });
         });
         return messages;
-    }
-
-    /**
-     *
-     */
-    private String parseDBAddress(String rawUrl) throws URISyntaxException {
-        String originUrl = rawUrl.replaceFirst("jdbc:", "");
-        URI uri = new URI(originUrl);
-        return uri.getHost() + ":" + uri.getPort();
     }
 
     @Override

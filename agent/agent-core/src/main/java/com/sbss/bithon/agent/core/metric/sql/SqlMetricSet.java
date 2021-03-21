@@ -10,59 +10,39 @@ import com.sbss.bithon.agent.core.metric.Sum;
 public class SqlMetricSet {
     // dimension
     private final String driverType;
-    private final String hostAndPort;
+    private final String connectionString;
 
     // metric
     private final Timer responseTime = new Timer();
-    private final Sum totalFailureCount = new Sum();
-    private final Sum totalCount = new Sum();
-    private final Sum totalQueryCount = new Sum();
-    private final Sum totalUpdateCount = new Sum();
+    private final Sum callCount = new Sum();
+    private final Sum errorCount = new Sum();
+    private final Sum queryCount = new Sum();
+    private final Sum updateCount = new Sum();
     private final Sum totalBytesIn = new Sum();
     private final Sum totalBytesOut = new Sum();
 
-    public SqlMetricSet(String hostAndPort, String driverType) {
-        this.hostAndPort = hostAndPort;
+    public SqlMetricSet(String connectionString, String driverType) {
+        this.connectionString = connectionString;
         this.driverType = driverType;
     }
 
     public void add(boolean isQuery, boolean failed, long responseTime) {
         this.responseTime.update(responseTime);
         if (isQuery) {
-            this.totalQueryCount.incr();
+            this.queryCount.incr();
         } else {
-            this.totalUpdateCount.incr();
+            this.updateCount.incr();
         }
 
         if (failed) {
-            this.totalFailureCount.incr();
+            this.errorCount.incr();
         }
 
-        this.totalCount.incr();
-    }
-
-    public Timer getResponseTime() {
-        return responseTime;
-    }
-
-    public long getAndClearTotalFailureCount() {
-        return totalFailureCount.get();
+        this.callCount.incr();
     }
 
     public long peekTotalCount() {
-        return totalCount.peek();
-    }
-
-    public long getAndClearTotalCount() {
-        return totalCount.get();
-    }
-
-    public long getAndClearTotalQueryCount() {
-        return totalQueryCount.get();
-    }
-
-    public long getAndClearTotalUpdateCount() {
-        return totalUpdateCount.get();
+        return callCount.peek();
     }
 
     public void addBytesIn(int bytesIn) {
@@ -75,5 +55,37 @@ public class SqlMetricSet {
 
     public String getDriverType() {
         return driverType;
+    }
+
+    public String getConnectionString() {
+        return connectionString;
+    }
+
+    public Timer getResponseTime() {
+        return responseTime;
+    }
+
+    public Sum getCallCount() {
+        return callCount;
+    }
+
+    public Sum getErrorCount() {
+        return errorCount;
+    }
+
+    public Sum getQueryCount() {
+        return queryCount;
+    }
+
+    public Sum getUpdateCount() {
+        return updateCount;
+    }
+
+    public Sum getTotalBytesIn() {
+        return totalBytesIn;
+    }
+
+    public Sum getTotalBytesOut() {
+        return totalBytesOut;
     }
 }

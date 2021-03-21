@@ -9,10 +9,12 @@ import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -25,6 +27,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
+@Slf4j
 public class LocalMetricSink implements IMessageSink<GenericMetricMessage> {
 
     @Getter
@@ -38,7 +41,8 @@ public class LocalMetricSink implements IMessageSink<GenericMetricMessage> {
                            HttpClientMetricMessageHandler httpClientMetricMessageHandler,
                            ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
                            JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
-                           RedisMetricMessageHandler redisMetricMessageHandler) {
+                           RedisMetricMessageHandler redisMetricMessageHandler,
+                           SqlMetricMessageHandler sqlMetricMessageHandler) {
         add(jvmMetricMessageHandler);
         add(jvmGcMetricMessageHandler);
         add(webRequestMetricMessageHandler);
@@ -48,6 +52,7 @@ public class LocalMetricSink implements IMessageSink<GenericMetricMessage> {
         add(threadPoolMetricMessageHandler);
         add(jdbcPoolMetricMessageHandler);
         add(redisMetricMessageHandler);
+        add(sqlMetricMessageHandler);
     }
 
     private void add(IMessageHandler handler) {
@@ -59,6 +64,8 @@ public class LocalMetricSink implements IMessageSink<GenericMetricMessage> {
         IMessageHandler handler = handlers.get(messageType);
         if (handler != null) {
             handler.submit(message);
+        } else {
+            log.error("No Handler for message [{}]", messageType);
         }
     }
 }

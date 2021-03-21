@@ -33,7 +33,7 @@ public class QuartzMetricCollector implements IMetricCollector {
 
     private Queue<Map<String, String>> quartzLogs;
 
-    QuartzMetricCollector() {
+    public QuartzMetricCollector() {
         this.quartzLogs = new ConcurrentLinkedQueue<>();
     }
 

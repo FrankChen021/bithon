@@ -12,8 +12,10 @@ class AppSelector {
         }, ()=>{});
 
         this._control.change((e)=>{
+            var text = e.target.selectedOptions[0].text;
+            var value = e.target.selectedOptions[0].value;
             $.each(this._listeners, (index, listener)=>{
-                listener(e);
+                listener(text, value);
             });
         });
     }

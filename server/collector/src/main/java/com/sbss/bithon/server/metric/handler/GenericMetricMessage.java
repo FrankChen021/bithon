@@ -1,15 +1,7 @@
 package com.sbss.bithon.server.metric.handler;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.GcEntity;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
 
 import java.util.HashMap;
@@ -22,7 +14,7 @@ import java.util.HashMap;
  */
 public class GenericMetricMessage extends HashMap<String, Object> {
 
-    public static GenericMetricMessage of(MessageHeader header, WebRequestMetricMessage message) {
+    public static GenericMetricMessage of(MessageHeader header, Object message) {
         GenericMetricMessage metricMessage = new GenericMetricMessage();
         ReflectionUtils.getFields(header, metricMessage);
         ReflectionUtils.getFields(message, metricMessage);
@@ -43,55 +35,6 @@ public class GenericMetricMessage extends HashMap<String, Object> {
 
         metricMessage.put("interval", message.interval);
         metricMessage.put("timestamp", message.timestamp);
-        return metricMessage;
-    }
-
-    public static GenericMetricMessage of(MessageHeader header, ExceptionMetricMessage message) {
-        GenericMetricMessage metricMessage = new GenericMetricMessage();
-        ReflectionUtils.getFields(header, metricMessage);
-        ReflectionUtils.getFields(message, metricMessage);
-        return metricMessage;
-    }
-
-    public static GenericMetricMessage of(MessageHeader header, HttpClientMetricMessage message) {
-        GenericMetricMessage metricMessage = new GenericMetricMessage();
-        ReflectionUtils.getFields(header, metricMessage);
-        ReflectionUtils.getFields(message, metricMessage);
-        return metricMessage;
-    }
-
-    public static GenericMetricMessage of(MessageHeader header, WebServerMetricMessage message) {
-        GenericMetricMessage metricMessage = new GenericMetricMessage();
-        ReflectionUtils.getFields(header, metricMessage);
-        ReflectionUtils.getFields(message, metricMessage);
-        return metricMessage;
-    }
-
-    public static GenericMetricMessage of(MessageHeader header, JdbcPoolMetricMessage message) {
-        GenericMetricMessage metricMessage = new GenericMetricMessage();
-        ReflectionUtils.getFields(header, metricMessage);
-        ReflectionUtils.getFields(message, metricMessage);
-        return metricMessage;
-    }
-
-    public static GenericMetricMessage of(MessageHeader header, RedisMetricMessage message) {
-        GenericMetricMessage metricMessage = new GenericMetricMessage();
-        ReflectionUtils.getFields(header, metricMessage);
-        ReflectionUtils.getFields(message, metricMessage);
-        return metricMessage;
-    }
-
-    public static GenericMetricMessage of(MessageHeader header, ThreadPoolMetricMessage message) {
-        GenericMetricMessage metricMessage = new GenericMetricMessage();
-        ReflectionUtils.getFields(header, metricMessage);
-        ReflectionUtils.getFields(message, metricMessage);
-        return metricMessage;
-    }
-
-    public static GenericMetricMessage of(MessageHeader header, GcEntity gc) {
-        GenericMetricMessage metricMessage = new GenericMetricMessage();
-        ReflectionUtils.getFields(header, metricMessage);
-        ReflectionUtils.getFields(gc, metricMessage);
         return metricMessage;
     }
 

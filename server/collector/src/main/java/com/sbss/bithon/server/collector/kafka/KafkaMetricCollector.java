@@ -9,6 +9,7 @@ import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
@@ -31,7 +32,8 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<GenericMetricMe
                                 HttpClientMetricMessageHandler httpClientMetricMessageHandler,
                                 ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
                                 JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
-                                RedisMetricMessageHandler redisMetricMessageHandler) {
+                                RedisMetricMessageHandler redisMetricMessageHandler,
+                                SqlMetricMessageHandler sqlMetricMessageHandler) {
         super(GenericMetricMessage.class);
         localSink = new LocalMetricSink(jvmMetricMessageHandler,
                                         jvmGcMetricMessageHandler,
@@ -41,7 +43,8 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<GenericMetricMe
                                         httpClientMetricMessageHandler,
                                         threadPoolMetricMessageHandler,
                                         jdbcPoolMetricMessageHandler,
-                                        redisMetricMessageHandler);
+                                        redisMetricMessageHandler,
+                                        sqlMetricMessageHandler);
     }
 
     @Override

@@ -199,15 +199,34 @@ struct JdbcPoolMetricMessage {
     23:optional i64 startTransactionCount;
 }
 
+/***************************************************************************/
+/*******************************  SQL             ***************************/
+/***************************************************************************/
+struct SqlMetricMessage {
+    1:string connectionString;
+    2:i64 timestamp;
+    3:i32 interval;
+    4:i64 callCount;
+    5:i64 responseTime;
+    6:i64 minResponseTime;
+    7:i64 maxResponseTime;
+    8:i64 errorCount;
+    9:i64 queryCount;
+    10:i64 updateCount;
+}
+
+/***************************************************************************/
+/*******************************  Redis          ***************************/
+/***************************************************************************/
 struct RedisMetricMessage {
-    1:i64 timestamp;
-    2:i32 interval;
-    7:string uri;
-    8:string command;
-    9:i64 exceptionCount;
-    10:i64 totalCount;
-    11:i64 requestTime;
-    12:i64 responseTime;
-    13:i64 requestBytes;
-    14:i64 responseBytes;
+    1:string uri;
+    2:string command;
+    3:i64 timestamp;
+    4:i32 interval;
+    5:i64 exceptionCount;
+    6:i64 totalCount;
+    7:i64 requestTime;
+    8:i64 responseTime;
+    9:i64 requestBytes;
+    10:i64 responseBytes;
 }

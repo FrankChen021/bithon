@@ -7,6 +7,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricM
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
@@ -40,7 +41,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
         messages.forEach((message) -> {
             metricSink.process("jvm-metrics", GenericMetricMessage.of(header, message));
 
-            message.gcEntities.forEach((gc)->{
+            message.gcEntities.forEach((gc) -> {
                 GenericMetricMessage gcMessage = GenericMetricMessage.of(header, gc);
                 gcMessage.set("interval", message.interval);
                 gcMessage.set("timestamp", message.timestamp);
@@ -52,7 +53,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
     @Override
     public void sendWebServer(MessageHeader header, List<WebServerMetricMessage> messages) {
         messages.forEach((message) -> metricSink.process("web-server-metrics",
-                                                     GenericMetricMessage.of(header, message)));
+                                                         GenericMetricMessage.of(header, message)));
     }
 
     @Override
@@ -91,5 +92,10 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
     @Override
     public void sendRedis(MessageHeader header, List<RedisMetricMessage> messages) {
         messages.forEach((message) -> metricSink.process("redis-metrics", GenericMetricMessage.of(header, message)));
+    }
+
+    @Override
+    public void sendSql(MessageHeader header, List<SqlMetricMessage> messages) {
+        messages.forEach((message) -> metricSink.process("sql-metrics", GenericMetricMessage.of(header, message)));
     }
 }

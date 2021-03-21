@@ -31,16 +31,12 @@ import java.util.Map;
 @RestController
 public class TopoApi {
 
-    private final DataSourceSchemaManager schemaManager;
-    private final TopoService topoService;
     private final IMetricReader metricReader;
     private final DataSourceSchema topoSchema;
 
     public TopoApi(DataSourceSchemaManager schemaManager,
                    TopoService topoService,
                    IMetricStorage metricStorage) {
-        this.schemaManager = schemaManager;
-        this.topoService = topoService;
         this.topoSchema = schemaManager.getDataSourceSchema("topo-metrics");
         this.metricReader = metricStorage.createMetricReader(topoSchema);
     }
@@ -67,15 +63,17 @@ public class TopoApi {
 
         int x = 300;
         int y = 300;
-        EndpointBo caller = new EndpointBo(EndPointType.APPLICATION, request.getApplication(), x, y);
+        int nodeHeight = 50;
         Topo topo = new Topo();
+        EndpointBo caller = new EndpointBo(EndPointType.APPLICATION, request.getApplication(), x, y + callees.size() / 2 * nodeHeight);
         topo.addEndpoint(caller);
-        callees.forEach(callee -> {
+
+        for (Map<String, Object> callee : callees) {
             InputRow inputRow = new InputRow(callee);
             String dst = inputRow.getColAsString("dstEndpoint");
             EndPointType dstType = EndPointType.valueOf(EndPointType.class,
                                                         inputRow.getColAsString("dstEndpointType"));
-            EndpointBo dstEndpoint = new EndpointBo(dstType, dst, x + 100, y + 50);
+            EndpointBo dstEndpoint = new EndpointBo(dstType, dst, x + 100, y);
             topo.addEndpoint(dstEndpoint);
             topo.addLink(Link.builder()
                              .srcEndpoint(caller.getName())
@@ -86,7 +84,9 @@ public class TopoApi {
                              .callCount(inputRow.getColAsLong("callCount", 0))
                              .errorCount(inputRow.getColAsLong("errorCount", 0))
                              .build());
-        });
+            y += nodeHeight;
+        }
+
         return topo;
     }
 }

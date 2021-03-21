@@ -21,8 +21,9 @@ class TopoComponent {
         //
         // App Filter
         //
-        new AppSelector().childOf('appSelector').registerAppChangedListener((app)=>{
-            alert(app);
+        new AppSelector().childOf('appSelector').registerAppChangedListener((text, value)=>{
+            window.appName = value;
+            this.refreshTopo();
         });
 
         //
@@ -68,7 +69,8 @@ class TopoComponent {
                             symbolSize: 50,
                             roam: true,
                             label: {
-                                show: true
+                                show: true,
+                                position: 'bottom'
                             },
                             edgeSymbol: ['circle', 'arrow'],
                             edgeSymbolSize: [4, 10],

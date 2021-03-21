@@ -27,4 +27,7 @@ service IMetricCollector {
 
     oneway void sendRedis(1:required HeaderMessages.MessageHeader header,
                           2:required list<MetricMessages.RedisMetricMessage> message);
+
+    oneway void sendSql(1:required HeaderMessages.MessageHeader header,
+                        2:required list<MetricMessages.SqlMetricMessage> message);
 }

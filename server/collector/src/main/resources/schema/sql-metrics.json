@@ -1,0 +1,102 @@
+{
+  "displayText": "SQL",
+  "name": "sql-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application Name",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance Name",
+      "required": true
+    },
+    {
+      "name": "server",
+      "displayText": "Database Server",
+      "required": true
+    },
+    {
+      "name": "database",
+      "displayText": "database",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "interval",
+      "displayText": "collect interval",
+      "unit": "second",
+      "visible": false
+    },
+
+    // ---count---
+    {
+      "type": "longSum",
+      "name": "callCount",
+      "displayText": "Call Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "errorCount",
+      "displayText": "error count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "queryCount",
+      "displayText": "query count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "updateCount",
+      "displayText": "update count",
+      "unit": ""
+    },
+
+    // ---timer----------------------
+    {
+      "type": "longSum",
+      "name": "responseTime",
+      "displayText": "Response Time",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longMin",
+      "name": "minResponseTime",
+      "displayText": "Min Response Time",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longLast",
+      "name": "maxResponseTime",
+      "displayText": "Max Response Time",
+      "unit": "nanosecond"
+    },
+
+    {
+      "type": "postAggregator",
+      "name": "tps",
+      "expression": "callCount/interval",
+      "displayText": "TPS",
+      "unit": "",
+      "valueType": "double"
+    },
+    {
+      "type": "postAggregator",
+      "name": "avgResponseTime",
+      "expression": "responseTime/1000.0/1000/callCount",
+      "displayText": "AVG Response Time",
+      "unit": "millisecond",
+      "valueType": "double"
+    }
+  ]
+}
