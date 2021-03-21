@@ -47,7 +47,7 @@ public class EndwithFilter implements IFilter {
 
     @Override
     public boolean shouldInclude(InputRow inputRow) {
-        Object val = inputRow.getColumnValue(this.field);
+        Object val = inputRow.getCol(this.field);
         if (val == null) {
             return false;
         }

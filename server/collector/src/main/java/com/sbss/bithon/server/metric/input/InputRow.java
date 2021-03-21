@@ -37,31 +37,31 @@ public class InputRow {
         });
     }
 
-    public Object getColumnValue(String columnName) {
+    public Object getCol(String columnName) {
         return columns.get(columnName);
     }
 
-    public Long getColumnValueAsLong(String columnName) {
-        return getColumnValueAs(columnName, Long.class);
+    public Long getColAsLong(String columnName) {
+        return getColAs(columnName, Long.class);
     }
-    public long getColumnValueAsLong(String columnName, long defaultValue) {
-        Number number = getColumnValueAs(columnName, Number.class);
+    public long getColAsLong(String columnName, long defaultValue) {
+        Number number = getColAs(columnName, Number.class);
         return number == null ? defaultValue : number.longValue();
     }
-    public double getColumnValueAsDouble(String columnName, long defaultValue) {
-        Number number = getColumnValueAs(columnName, Number.class);
+    public double getColAsDouble(String columnName, long defaultValue) {
+        Number number = getColAs(columnName, Number.class);
         return number == null ? defaultValue : number.doubleValue();
     }
 
-    public String getColumnValueAsString(String columnName) {
-        return getColumnValueAs(columnName, String.class);
+    public String getColAsString(String columnName) {
+        return getColAs(columnName, String.class);
     }
 
-    public <T> T getColumnValueAs(String columnName, Class<T> clazz) {
+    public <T> T getColAs(String columnName, Class<T> clazz) {
         return (T) columns.get(columnName);
     }
 
-    public <T> T getColumnValue(String columnName, T defaultValue) {
+    public <T> T getCol(String columnName, T defaultValue) {
         // when columnName exist but its value is null, the returned obj above is NOT null
         // So, additional check is needed to return correct default value
         Object val = columns.get(columnName);

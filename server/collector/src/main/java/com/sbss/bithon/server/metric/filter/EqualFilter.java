@@ -25,6 +25,6 @@ public class EqualFilter implements IFilter {
 
     @Override
     public boolean shouldInclude(InputRow inputRow) {
-        return value.equals(inputRow.getColumnValue(this.field));
+        return value.equals(inputRow.getCol(this.field));
     }
 }

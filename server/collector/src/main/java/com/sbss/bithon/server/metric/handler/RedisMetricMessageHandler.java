@@ -42,6 +42,7 @@ public class RedisMetricMessageHandler extends AbstractMetricMessageHandler {
                                                  .dstEndpoint(metricObject.getString("uri"))
                                                  // metric
                                                  .interval(metricObject.getLong("interval"))
+                                                 .errorCount(metricObject.getLong("exceptionCount"))
                                                  .callCount(metricObject.getLong("totalCount"))
                                                  .responseTime(metricObject.getLong("responseTime"))
                                                  .minResponseTime(metricObject.getLong("minResponseTime"))

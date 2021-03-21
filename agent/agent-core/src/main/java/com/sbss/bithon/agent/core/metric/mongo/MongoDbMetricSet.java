@@ -11,25 +11,22 @@ public class MongoDbMetricSet {
     /**
      * host + port
      */
-    String hostPort;
+    String endpoint;
 
-    /**
-     * commands total costTime
-     */
     Timer responseTime = new Timer();
     Sum callCount = new Sum();
-    Sum failureCount = new Sum();
+    Sum exceptionCount = new Sum();
     Sum bytesIn = new Sum();
     Sum bytesOut = new Sum();
 
-    public MongoDbMetricSet(String hostPort) {
-        this.hostPort = hostPort;
+    public MongoDbMetricSet(String endpoint) {
+        this.endpoint = endpoint;
     }
 
     public void add(long responseTime, int failureCount) {
         this.callCount.incr();
         this.responseTime.update(responseTime);
-        this.failureCount.update(failureCount);
+        this.exceptionCount.update(failureCount);
     }
 
     public void addBytesIn(int bytesIn) {
@@ -40,8 +37,8 @@ public class MongoDbMetricSet {
         this.bytesOut.update(bytesOut);
     }
 
-    String getHostPort() {
-        return hostPort;
+    String getEndpoint() {
+        return endpoint;
     }
 
     long getAndClearCostTime() {
@@ -53,7 +50,7 @@ public class MongoDbMetricSet {
     }
 
     long getAndClearFailureCount() {
-        return failureCount.get();
+        return exceptionCount.get();
     }
 
     long getAndClearBytesIn() {

@@ -51,14 +51,14 @@ class MetricJdbcWriter implements IMetricWriter {
     public void write(InputRow inputRow) {
         try (InsertSetMoreStep step = dsl.insertInto(table)
                                          .set(table.timestampField,
-                                              new Timestamp(inputRow.getColumnValueAsLong("timestamp")))) {
+                                              new Timestamp(inputRow.getColAsLong("timestamp")))) {
 
             for (Field dimension : table.dimensions) {
-                Object value = inputRow.getColumnValue(dimension.getName(), "");
+                Object value = inputRow.getCol(dimension.getName(), "");
                 step.set(dimension, value);
             }
             for (Field metric : table.metrics) {
-                Object value = inputRow.getColumnValue(metric.getName(), 0);
+                Object value = inputRow.getCol(metric.getName(), 0);
                 step.set(metric, value);
             }
 

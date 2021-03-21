@@ -21,4 +21,5 @@ public class Link {
     private double maxResponseTime;
     private double avgResponseTime;
     private long callCount;
+    private long errorCount;
 }

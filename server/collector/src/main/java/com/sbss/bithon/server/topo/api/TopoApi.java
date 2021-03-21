@@ -72,18 +72,19 @@ public class TopoApi {
         topo.addEndpoint(caller);
         callees.forEach(callee -> {
             InputRow inputRow = new InputRow(callee);
-            String dst = inputRow.getColumnValueAsString("dstEndpoint");
+            String dst = inputRow.getColAsString("dstEndpoint");
             EndPointType dstType = EndPointType.valueOf(EndPointType.class,
-                                                        inputRow.getColumnValueAsString("dstEndpointType"));
+                                                        inputRow.getColAsString("dstEndpointType"));
             EndpointBo dstEndpoint = new EndpointBo(dstType, dst, x + 100, y + 50);
             topo.addEndpoint(dstEndpoint);
             topo.addLink(Link.builder()
                              .srcEndpoint(caller.getName())
                              .dstEndpoint(dstEndpoint.getName())
-                             .avgResponseTime(inputRow.getColumnValueAsDouble("avgResponseTime", 0))
-                             .maxResponseTime(inputRow.getColumnValueAsLong("maxResponseTime", 0))
-                             .maxResponseTime(inputRow.getColumnValueAsLong("minResponseTime", 0))
-                             .callCount(inputRow.getColumnValueAsLong("callCount", 0))
+                             .avgResponseTime(inputRow.getColAsDouble("avgResponseTime", 0))
+                             .maxResponseTime(inputRow.getColAsLong("maxResponseTime", 0))
+                             .maxResponseTime(inputRow.getColAsLong("minResponseTime", 0))
+                             .callCount(inputRow.getColAsLong("callCount", 0))
+                             .errorCount(inputRow.getColAsLong("errorCount", 0))
                              .build());
         });
         return topo;
