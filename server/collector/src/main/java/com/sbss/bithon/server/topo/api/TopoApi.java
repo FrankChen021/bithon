@@ -65,18 +65,21 @@ public class TopoApi {
         int y = 300;
         int nodeHeight = 50;
         Topo topo = new Topo();
-        EndpointBo caller = new EndpointBo(EndPointType.APPLICATION, request.getApplication(), x, y + callees.size() / 2 * nodeHeight);
-        topo.addEndpoint(caller);
+        EndpointBo thisApplication = new EndpointBo(EndPointType.APPLICATION,
+                                                    request.getApplication(),
+                                                    x,
+                                           y + callees.size() / 2 * nodeHeight);
+        topo.addEndpoint(thisApplication);
 
         for (Map<String, Object> callee : callees) {
             InputRow inputRow = new InputRow(callee);
             String dst = inputRow.getColAsString("dstEndpoint");
             EndPointType dstType = EndPointType.valueOf(EndPointType.class,
                                                         inputRow.getColAsString("dstEndpointType"));
-            EndpointBo dstEndpoint = new EndpointBo(dstType, dst, x + 100, y);
+            EndpointBo dstEndpoint = new EndpointBo(dstType, dst, x + 50, y);
             topo.addEndpoint(dstEndpoint);
             topo.addLink(Link.builder()
-                             .srcEndpoint(caller.getName())
+                             .srcEndpoint(thisApplication.getName())
                              .dstEndpoint(dstEndpoint.getName())
                              .avgResponseTime(inputRow.getColAsDouble("avgResponseTime", 0))
                              .maxResponseTime(inputRow.getColAsLong("maxResponseTime", 0))
@@ -87,6 +90,41 @@ public class TopoApi {
             y += nodeHeight;
         }
 
+        List<Map<String, Object>> callers = metricReader.groupBy(start,
+                                                                 end,
+                                                                 topoSchema,
+                                                                 Arrays.asList(new DimensionCondition("dstEndpoint",
+                                                                                                      new EqualMatcher(
+                                                                                                          request.getApplication())),
+                                                                               new DimensionCondition("dstEndpointType",
+                                                                                                      new EqualMatcher(
+                                                                                                          EndPointType.APPLICATION
+                                                                                                              .name()))),
+                                                                 Arrays.asList("callCount",
+                                                                               "avgResponseTime",
+                                                                               "maxResponseTime",
+                                                                               "minResponseTime"),
+                                                                 Arrays.asList("srcEndpoint", "srcEndpointType"));
+
+        y = 300;
+        for (Map<String, Object> caller : callers) {
+            InputRow inputRow = new InputRow(caller);
+            String src = inputRow.getColAsString("srcEndpoint");
+            EndPointType srcType = EndPointType.valueOf(EndPointType.class,
+                                                        inputRow.getColAsString("srcEndpointType"));
+            EndpointBo srcEndpoint = new EndpointBo(srcType, src, x - 50, y);
+            topo.addEndpoint(srcEndpoint);
+            topo.addLink(Link.builder()
+                             .srcEndpoint(srcEndpoint.getName())
+                             .dstEndpoint(thisApplication.getName())
+                             .avgResponseTime(inputRow.getColAsDouble("avgResponseTime", 0))
+                             .maxResponseTime(inputRow.getColAsLong("maxResponseTime", 0))
+                             .minResponseTime(inputRow.getColAsLong("minResponseTime", 0))
+                             .callCount(inputRow.getColAsLong("callCount", 0))
+                             .errorCount(inputRow.getColAsLong("errorCount", 0))
+                             .build());
+            y += nodeHeight;
+        }
         return topo;
     }
 }
