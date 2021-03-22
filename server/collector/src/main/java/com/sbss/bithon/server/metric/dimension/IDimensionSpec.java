@@ -16,8 +16,6 @@ import com.sbss.bithon.server.metric.typing.IValueType;
 })
 public interface IDimensionSpec {
 
-    String getField();
-
     String getName();
 
     String getDisplayText();

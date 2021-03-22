@@ -16,10 +16,6 @@ public abstract class AbstractDimensionSpec implements IDimensionSpec {
 
     @Getter
     @NotNull
-    private final String field;
-
-    @Getter
-    @NotNull
     private final String name;
 
     @Getter
@@ -35,13 +31,11 @@ public abstract class AbstractDimensionSpec implements IDimensionSpec {
     @Getter
     private final IDimensionTransformer transformer;
 
-    public AbstractDimensionSpec(@Nullable String field,
-                                 @NotNull String name,
+    public AbstractDimensionSpec(@NotNull String name,
                                  @NotNull String displayText,
                                  @Nullable Boolean required,
                                  @Nullable Boolean visible,
                                  @Nullable IDimensionTransformer transformer) {
-        this.field = field == null ? name : field;
         this.name = name;
         this.displayText = displayText;
         this.required = required == null ? true : required;

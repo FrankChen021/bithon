@@ -16,13 +16,12 @@ import javax.validation.constraints.NotNull;
 public class LongDimensionSpec extends AbstractDimensionSpec {
 
     @JsonCreator
-    public LongDimensionSpec(@JsonProperty("field") @Nullable String field,
-                             @JsonProperty("name") @NotNull String name,
+    public LongDimensionSpec(@JsonProperty("name") @NotNull String name,
                              @JsonProperty("displayText") @NotNull String displayText,
                              @JsonProperty("required") @Nullable Boolean required,
                              @JsonProperty("visible") @Nullable Boolean visible,
                              @JsonProperty("transformer") @Nullable IDimensionTransformer transformer) {
-        super(field, name, displayText, required, visible, transformer);
+        super(name, displayText, required, visible, transformer);
     }
 
     @Override
