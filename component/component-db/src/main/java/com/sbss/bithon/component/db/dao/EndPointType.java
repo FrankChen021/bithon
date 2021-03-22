@@ -16,7 +16,6 @@ public enum EndPointType {
     DB_MONGO(3),
 
     REDIS(2),
-    DOMAIN(4),
     WEB_SERVICE(5);
 
     public int getType() {

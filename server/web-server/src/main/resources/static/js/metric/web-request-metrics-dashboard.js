@@ -10,7 +10,7 @@ var web_request_metrics_dashboard = {
         "metrics":[{
             "name": "qps"
         },{
-            "name": "requestCount",
+            "name": "callCount",
             "yAxis": 1
         }]
     },{

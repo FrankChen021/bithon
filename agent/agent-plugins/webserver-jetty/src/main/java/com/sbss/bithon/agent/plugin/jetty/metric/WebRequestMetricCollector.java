@@ -45,8 +45,8 @@ public class WebRequestMetricCollector implements IMetricCollector {
         WebRequestMetricSet webRequestMetricsSet = metricsMap.computeIfAbsent(srcApplication + "|" + uri,
                                                                         key -> new WebRequestMetricSet(srcApplication,
                                                                                                        uri));
-        webRequestMetricsSet.add(costTime, errorCount, count4xx, count5xx);
-        webRequestMetricsSet.addBytes(requestByteSize, responseByteSize);
+        webRequestMetricsSet.updateRequest(costTime, errorCount, count4xx, count5xx);
+        webRequestMetricsSet.updateBytes(requestByteSize, responseByteSize);
     }
 
     @Override

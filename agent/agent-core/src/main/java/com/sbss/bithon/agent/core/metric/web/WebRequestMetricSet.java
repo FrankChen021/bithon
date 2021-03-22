@@ -23,32 +23,32 @@ public class WebRequestMetricSet {
     private final Sum errorCount = new Sum();
     private final Sum count4xx = new Sum();
     private final Sum count5xx = new Sum();
-    private final Sum requestByteSize = new Sum();
-    private final Sum responseByteSize = new Sum();
+    private final Sum requestBytes = new Sum();
+    private final Sum responseBytes = new Sum();
 
     public WebRequestMetricSet(String srcApplication, String uri) {
         this.srcApplication = srcApplication;
         this.uri = uri;
     }
 
-    public void add(long responseTime, int errorCount) {
+    public void updateRequest(long responseTime, int errorCount) {
         this.responseTime.update(responseTime);
         this.errorCount.update(errorCount);
         this.requestCount.incr();
     }
 
-    public void add(long responseTime, int errorCount, int count4xx, int count5xx) {
-        this.add(responseTime, errorCount);
+    public void updateRequest(long responseTime, int errorCount, int count4xx, int count5xx) {
+        this.updateRequest(responseTime, errorCount);
         this.count4xx.update(count4xx);
         this.count5xx.update(count5xx);
     }
 
-    public void addBytes(long requestByteSize, long responseByteSize) {
+    public void updateBytes(long requestByteSize, long responseByteSize) {
         if (requestByteSize > 0) {
-            this.requestByteSize.update(requestByteSize);
+            this.requestBytes.update(requestByteSize);
         }
         if (responseByteSize > 0) {
-            this.responseByteSize.update(responseByteSize);
+            this.responseBytes.update(responseByteSize);
         }
     }
 
@@ -64,27 +64,27 @@ public class WebRequestMetricSet {
         return responseTime;
     }
 
-    public long getRequestCount() {
-        return requestCount.get();
+    public Sum getRequestCount() {
+        return requestCount;
     }
 
-    public long getErrorCount() {
-        return errorCount.get();
+    public Sum getErrorCount() {
+        return errorCount;
     }
 
-    public long getCount4xx() {
-        return count4xx.get();
+    public Sum getCount4xx() {
+        return count4xx;
     }
 
-    public long getCount5xx() {
-        return count5xx.get();
+    public Sum getCount5xx() {
+        return count5xx;
     }
 
-    public long getRequestByteSize() {
-        return requestByteSize.get();
+    public Sum getRequestBytes() {
+        return requestBytes;
     }
 
-    public long getResponseByteSize() {
-        return responseByteSize.get();
+    public Sum getResponseBytes() {
+        return responseBytes;
     }
 }

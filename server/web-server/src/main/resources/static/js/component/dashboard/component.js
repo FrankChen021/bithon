@@ -147,7 +147,7 @@ class Dashboard {
             dropdownAutoWidth : true,
             placeholder: displayText,
             //TODO: must be a function to support dynamic change
-            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionName);
+            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionName)
        }).on('change', (event) => {
              if ( event.target.selectedIndex == null || event.target.selectedIndex < 0 ) {
                  this.rmvDimension(dimensionName);

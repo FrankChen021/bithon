@@ -52,7 +52,7 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
             return false;
         }
 
-        String targetHostPort = parseHostPort(uri.getHost(), uri.getPort());
+        String targetHostPort = toHostPort(uri.getHost(), uri.getPort());
         if (targetHostPort == null) {
             log.warn("TargetHost is blank. {}", metricObject);
             return false;
@@ -95,8 +95,8 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
                                                          .maxResponseTime(metricObject.getLong("maxResponseTime"))
                                                          .build());
             }
-        } else {
-            //TODO: targetHostPort may need to be processed to match a raw application name
+        } else { // if uri.getHost is not IP address
+            //TODO: targetHostPort may be an service name if it's a service call such as point to point via service auto discovery
             if (getMetaStorage().isApplicationExist(targetHostPort)) {
                 metricObject.set("endpoint", EndPointLink.builder()
                                                          .timestamp(metricObject.getTimestamp())
@@ -115,7 +115,7 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
                                                          .timestamp(metricObject.getTimestamp())
                                                          .srcEndpointType(EndPointType.APPLICATION)
                                                          .srcEndpoint(metricObject.getApplicationName())
-                                                         .dstEndpointType(EndPointType.DOMAIN)
+                                                         .dstEndpointType(EndPointType.WEB_SERVICE)
                                                          .dstEndpoint(targetHostPort)
                                                          .interval(metricObject.getLong("interval"))
                                                          .callCount(metricObject.getLong("requestCount"))
@@ -128,7 +128,7 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
         return true;
     }
 
-    private String parseHostPort(String targetHost, int targetPort) {
+    private String toHostPort(String targetHost, int targetPort) {
         if (StringUtils.isBlank(targetHost)) {
             return null;
         }

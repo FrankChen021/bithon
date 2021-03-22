@@ -37,7 +37,7 @@ public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler
 
     @Override
     protected boolean beforeProcess(GenericMetricMessage message) {
-        if (message.getLong("requestCount") <= 0) {
+        if (message.getLong("callCount") <= 0) {
             return false;
         }
 
@@ -69,7 +69,7 @@ public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler
                                             .minResponseTime(message.getLong("minResponseTime"))
                                             .maxResponseTime(message.getLong("maxResponseTime"))
                                             .responseTime(message.getLong("responseTime"))
-                                            .callCount(message.getLong("requestCount"))
+                                            .callCount(message.getLong("callCount"))
                                             .build());
         return true;
     }

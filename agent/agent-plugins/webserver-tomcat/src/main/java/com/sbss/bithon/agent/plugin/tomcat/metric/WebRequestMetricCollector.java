@@ -23,7 +23,7 @@ public class WebRequestMetricCollector implements IMetricCollector {
     public WebRequestMetricCollector() {
     }
 
-    public void update(Request request, Response response, long costTime) {
+    public void update(Request request, Response response, long responseTime) {
         String srcApplication = request.getHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME);
         String uri = request.requestURI().toString();
         if (uri == null) {
@@ -39,8 +39,8 @@ public class WebRequestMetricCollector implements IMetricCollector {
 
         WebRequestMetricSet metric = metricsMap.computeIfAbsent(srcApplication + "|" + uri,
                                                              key -> new WebRequestMetricSet(srcApplication, uri));
-        metric.add(costTime, errorCount, count4xx, count5xx);
-        metric.addBytes(requestByteSize, responseByteSize);
+        metric.updateRequest(responseTime, errorCount, count4xx, count5xx);
+        metric.updateBytes(requestByteSize, responseByteSize);
     }
 
     @Override

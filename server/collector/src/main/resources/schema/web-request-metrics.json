@@ -56,44 +56,44 @@
     },
     {
       "type": "longSum",
-      "name": "requestCount",
+      "name": "callCount",
       "displayText": "count of requests",
       "unit": ""
     },
     {
       "type": "longSum",
       "name": "errorCount",
-      "displayText": "Active Threads",
+      "displayText": "Error Count",
       "unit": ""
     },
     {
       "type": "longSum",
       "name": "count4xx",
-      "displayText": "Max Threads",
+      "displayText": "4xx Count",
       "unit": ""
     },
     {
       "type": "longSum",
       "name": "count5xx",
-      "displayText": "Max Threads",
+      "displayText": "5xx Count",
       "unit": ""
     },
     {
       "type": "longSum",
-      "name": "requestByteSize",
-      "displayText": "Bytes of Request",
-      "unit": "Byte"
+      "name": "requestBytes",
+      "displayText": "Bytes of Requests",
+      "unit": "byte"
     },
     {
       "type": "longSum",
-      "name": "responseByteSize",
+      "name": "responseBytes",
       "displayText": "Bytes of Responses",
-      "unit": "Byte"
+      "unit": "byte"
     },
     {
       "type": "postAggregator",
       "name": "avgResponseTime",
-      "expression": "costTime/1000.0/1000/requestCount",
+      "expression": "costTime/1000.0/1000/callCount",
       "displayText": "Avg cost time",
       "unit": "Milli",
       "valueType": "double"
@@ -101,7 +101,7 @@
     {
       "type": "postAggregator",
       "name": "qps",
-      "expression": "requestCount/interval",
+      "expression": "callCount/interval",
       "displayText": "QPS",
       "unit": "",
       "valueType": "double"

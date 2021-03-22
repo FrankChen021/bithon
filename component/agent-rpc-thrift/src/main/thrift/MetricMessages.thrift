@@ -7,16 +7,15 @@ struct WebRequestMetricMessage {
     3:optional string srcApplication;
     4:string uri;
 
-    // accumulative cost time in nano seconds
-    5:i64 costTime;
-    6:i64 requestCount;
-    7:i64 errorCount;
-    8:i64 count4xx;
-    9:i64 count5xx;
-    10:i64 requestByteSize;
-    11:i64 responseByteSize;
-    12:i64 minCostTime;
-    13:i64 maxCostTime;
+    5:i64 minResponseTime;
+    6:i64 responseTime;
+    7:i64 maxResponseTime;
+    8:i64 callCount;
+    9:i64 errorCount;
+    10:i64 count4xx;
+    11:i64 count5xx;
+    12:i64 requestBytes;
+    13:i64 responseBytes;
 }
 
 /***************************************************************************/
