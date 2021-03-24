@@ -90,15 +90,14 @@ $('#table').bootstrapTable({
       }, {
         field: 'startTime',
         title: 'Time',
-        formatter: function(value, row) {
-        console.log(value);
+        formatter: function(value) {
             return new Date(value).format('yyyy-MM-dd hh:mm:ss');
         }
       }, {
         field: 'costTime',
         title: 'Duration',
         formatter: function(value, row) {
-            return secondsFormat(value*1000);
+            return nanoFormat(value*1000);
         }
       }, {
         field: 'tags',

@@ -76,7 +76,7 @@
         field: 'costTime',
         title: 'Duration',
         formatter: function(value, row) {
-            return secondsFormat(value*1000);
+            return nanoFormat(value*1000);
         }
       }, {
         field: 'startTime',

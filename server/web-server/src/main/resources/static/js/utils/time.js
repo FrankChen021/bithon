@@ -23,7 +23,7 @@ Date.prototype.format = function (fmt) { //author: meizz
     return fmt;
 }
 
-function secondsFormat(nanoTime) {
+function nanoFormat(nanoTime) {
   const formatter = ['ns', 'us', 'ms', 's'];
   let time = nanoTime;
   let val = +time || 0;

@@ -76,7 +76,7 @@ public class TopoApi {
             String dst = inputRow.getColAsString("dstEndpoint");
             EndPointType dstType = EndPointType.valueOf(EndPointType.class,
                                                         inputRow.getColAsString("dstEndpointType"));
-            EndpointBo dstEndpoint = new EndpointBo(dstType, dst, x + 50, y);
+            EndpointBo dstEndpoint = new EndpointBo(dstType, dst, x + 100, y);
             topo.addEndpoint(dstEndpoint);
             topo.addLink(Link.builder()
                              .srcEndpoint(thisApplication.getName())
@@ -112,7 +112,7 @@ public class TopoApi {
             String src = inputRow.getColAsString("srcEndpoint");
             EndPointType srcType = EndPointType.valueOf(EndPointType.class,
                                                         inputRow.getColAsString("srcEndpointType"));
-            EndpointBo srcEndpoint = new EndpointBo(srcType, src, x - 50, y);
+            EndpointBo srcEndpoint = new EndpointBo(srcType, src, x - 100, y);
             topo.addEndpoint(srcEndpoint);
             topo.addLink(Link.builder()
                              .srcEndpoint(srcEndpoint.getName())

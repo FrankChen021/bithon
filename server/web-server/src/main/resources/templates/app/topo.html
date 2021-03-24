@@ -96,12 +96,12 @@ class TopoComponent {
                                     label: {
                                         show: true,
                                         formatter: (val)=>{
-                                            return `${val.data.callCount}, Min:${val.data.minRT}, Max:${val.data.maxRT}, Avg:${val.data.avgRT}`;
+                                            return `${val.data.callCount}, Min:${nanoFormat(val.data.minRT)}, Max:${nanoFormat(val.data.maxRT)}, Avg:${nanoFormat(val.data.avgRT)}`;
                                         },
                                         fontSize: 10
                                     },
                                     lineStyle: {
-                                        curveness: 0.2
+                                        curveness: 0
                                     }
                                 };
                             }),
