@@ -11,7 +11,8 @@ import java.util.List;
 public interface ITraceReader {
     List<TraceSpan> getTraceByTraceId(String traceId);
 
-    List<TraceSpan> getTraceList(String appName);
+    List<TraceSpan> getTraceList(String appName, int pageNumber, int pageSize);
+    int getTraceListSize(String appName);
 
     List<TraceSpan> getTraceByParentSpanId(String parentSpanId);
 }

@@ -63,8 +63,11 @@ public class TraceApi {
     }
 
     @PostMapping("/api/trace/getTraceList")
-    public List<TraceSpan> getTraceList(@Valid @RequestBody GetTraceListRequest request) {
-        return traceReader.getTraceList(request.getAppName());
+    public GetTraceListResponse getTraceList(@Valid @RequestBody GetTraceListRequest request) {
+        return new GetTraceListResponse(
+            traceReader.getTraceListSize(request.getAppName()),
+            traceReader.getTraceList(request.getAppName(), request.getPageNumber(), request.getPageSize())
+        );
     }
 
     @PostMapping("/api/trace/getChildSpans")

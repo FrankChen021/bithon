@@ -72,12 +72,21 @@ public class TraceJdbcStorage implements ITraceStorage {
         }
 
         @Override
-        public List<TraceSpan> getTraceList(String applicationName) {
+        public List<TraceSpan> getTraceList(String applicationName, int pageNumber, int pageSize) {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
                              .where(Tables.BITHON_TRACE_SPAN.APP_NAME.eq(applicationName))
                              .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""))
                              .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc())
+                             .offset(pageNumber * pageSize)
+                             .limit(pageSize)
                              .fetch(this::toTraceSpan);
+        }
+
+        @Override
+        public int getTraceListSize(String applicationName) {
+            return dslContext.fetchCount(dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
+                             .where(Tables.BITHON_TRACE_SPAN.APP_NAME.eq(applicationName))
+                             .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq("")));
         }
 
         @Override

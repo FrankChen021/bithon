@@ -2,6 +2,8 @@ package com.sbss.bithon.server.tracing.api;
 
 import lombok.Data;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -12,4 +14,11 @@ import javax.validation.constraints.NotNull;
 public class GetTraceListRequest {
     @NotNull
     private String appName;
+
+    @Min(0)
+    private int pageNumber = 0;
+
+    @Min(5)
+    @Max(100)
+    private int pageSize = 10;
 }
