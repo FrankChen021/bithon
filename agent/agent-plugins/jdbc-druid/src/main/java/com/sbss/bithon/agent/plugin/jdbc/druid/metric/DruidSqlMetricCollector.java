@@ -1,47 +1,38 @@
 package com.sbss.bithon.agent.plugin.jdbc.druid.metric;
 
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricCollector;
-import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.sql.SqlMetricSet;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.plugin.jdbc.druid.DruidPlugin;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
+ * collect SQL related metrics if there's no underlying metric collector
+ * This is useful when underlying driver is not MYSQL(which has its own plugin)
+ *
  * @author frankchen
  */
 public class DruidSqlMetricCollector implements IMetricCollector {
-    static final DruidSqlMetricCollector INSTANCE = new DruidSqlMetricCollector();
     private static final Logger log = LoggerFactory.getLogger(DruidSqlMetricCollector.class);
-    private static final String METRICS_NAME = "sql-druid";
-
-    private final MonitoredSourceManager monitoredSourceManager;
-
-    private DruidSqlMetricCollector() {
-        monitoredSourceManager = MonitoredSourceManager.getInstance();
-
-        MetricCollectorManager.getInstance().register(METRICS_NAME, this);
-    }
-
-    public static DruidSqlMetricCollector getInstance() {
-        return INSTANCE;
-    }
 
     public void update(String methodName,
-                       String dataSourceUri,
+                       String connectionString,
                        AopContext aopContext,
                        long costTime) {
-        MonitoredSource monitoredSource = monitoredSourceManager.getMonitoredDataSource(dataSourceUri);
+        MonitoredSource monitoredSource = MonitoredSourceManager.getInstance().getMonitoredDataSource(connectionString);
         if (monitoredSource == null) {
             return;
         }
 
         // check if metrics provider for this driver exists
+        // TODO: DriverClass has to be consistent with MySqlPlugin's collector name
         if (MetricCollectorManager.getInstance().collectorExists(monitoredSource.getDriverClass())) {
             log.debug("Underlying Metric Provider Exists");
             return;
@@ -49,7 +40,7 @@ public class DruidSqlMetricCollector implements IMetricCollector {
 
         Boolean isQuery = null;
         if (DruidPlugin.METHOD_EXECUTE_UPDATE.equals(methodName)
-            || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
+                || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
             isQuery = false;
         } else if (DruidPlugin.METHOD_EXECUTE.equals(methodName) && !(boolean) aopContext.castReturningAs()) {
             isQuery = false;
@@ -60,7 +51,7 @@ public class DruidSqlMetricCollector implements IMetricCollector {
         }
 
         if (isQuery != null) {
-            monitoredSource.getSqlMetric().add(isQuery, aopContext.hasException(), costTime);
+            monitoredSource.getSqlMetric().update(isQuery, aopContext.hasException(), costTime);
         }
     }
 
@@ -75,9 +66,9 @@ public class DruidSqlMetricCollector implements IMetricCollector {
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (MonitoredSource source : MonitoredSourceManager.getInstance().getMonitoredSources()) {
-            SqlMetricSet metric = source.getSqlMetric();
+            SqlCompositeMetric metric = source.getSqlMetric();
             if (metric.peekTotalCount() > 0) {
-                Object message = messageConverter.from(timestamp, interval, source.getSqlMetric());
+                Object message = messageConverter.from(timestamp, interval, Collections.singletonList(source.getConnectionString()), source.getSqlMetric());
                 if (message != null) {
                     messages.add(message);
                 }

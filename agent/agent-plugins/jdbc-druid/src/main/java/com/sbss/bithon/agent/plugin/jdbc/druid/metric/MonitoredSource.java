@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.plugin.jdbc.druid.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import com.sbss.bithon.agent.core.metric.jdbc.JdbcPoolMetricSet;
-import com.sbss.bithon.agent.core.metric.sql.SqlMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 
 /**
  * @author frank.chen021@outlook.com
@@ -17,7 +17,7 @@ public class MonitoredSource {
 
     // metrics
     private final JdbcPoolMetricSet jdbcPoolMetricSet;
-    private final SqlMetricSet sqlMetricSet;
+    private final SqlCompositeMetric sqlCompositeMetric;
 
     MonitoredSource(String driverClass,
                     String connectionString,
@@ -26,7 +26,7 @@ public class MonitoredSource {
         this.driverClass = driverClass;
         this.connectionString = connectionString;
         this.jdbcPoolMetricSet = new JdbcPoolMetricSet(connectionString, driverClass);
-        this.sqlMetricSet = new SqlMetricSet(connectionString, driverClass);
+        this.sqlCompositeMetric = new SqlCompositeMetric();
     }
 
     public DruidDataSource getDataSource() {
@@ -45,7 +45,7 @@ public class MonitoredSource {
         return jdbcPoolMetricSet;
     }
 
-    public SqlMetricSet getSqlMetric() {
-        return sqlMetricSet;
+    public SqlCompositeMetric getSqlMetric() {
+        return sqlCompositeMetric;
     }
 }

@@ -73,12 +73,12 @@ public class MySqlPlugin extends AbstractPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs(METHOD_SEND_COMMAND,
                                                                     MYSQL_IO_SEND_COMMAND_ARGUMENTS)
-                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.IoInterceptor"),
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.MysqlIOInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs(METHOD_READ_ALL_RESULTS,
                                                                     MYSQL_IO_READ_ALL_RESULTS_ARGUMENTS)
-                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.IoInterceptor")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql.metrics.MysqlIOInterceptor")
                 ),
 
 

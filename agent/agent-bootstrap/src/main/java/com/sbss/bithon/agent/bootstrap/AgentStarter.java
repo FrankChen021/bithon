@@ -36,6 +36,8 @@ class AgentStarter {
     }
 
     void start(Instrumentation inst) throws Exception {
+        showBanner();
+
         // init log
         DOMConfigurator.configure(agentPath + separator + AgentContext.CONF_DIR + separator + CONF_LOG_FILE);
 
@@ -52,6 +54,20 @@ class AgentStarter {
         AgentClassloader.createInstance();
 
         PluginInstaller.install(agentContext, inst);
+    }
+
+    /**
+     * The banner is generated on https://manytools.org/hacker-tools/ascii-banner/ with font = 3D-ASCII
+     */
+    private void showBanner() {
+        System.out.println(" ________  ___  _________  ___  ___  ________  ________      \n"
+                           + "|\\   __  \\|\\  \\|\\___   ___\\\\  \\|\\  \\|\\   __  \\|\\   ___  \\    \n"
+                           + "\\ \\  \\|\\ /\\ \\  \\|___ \\  \\_\\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\ \\  \\   \n"
+                           + " \\ \\   __  \\ \\  \\   \\ \\  \\ \\ \\   __  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\  \n"
+                           + "  \\ \\  \\|\\  \\ \\  \\   \\ \\  \\ \\ \\  \\ \\  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\ \n"
+                           + "   \\ \\_______\\ \\__\\   \\ \\__\\ \\ \\__\\ \\__\\ \\_______\\ \\__\\\\ \\__\\\n"
+                           + "    \\|_______|\\|__|    \\|__|  \\|__|\\|__|\\|_______|\\|__| \\|__|\n"
+                           + "                                                             ");
     }
 
     private void loadContext(AgentConfig config) throws Exception {

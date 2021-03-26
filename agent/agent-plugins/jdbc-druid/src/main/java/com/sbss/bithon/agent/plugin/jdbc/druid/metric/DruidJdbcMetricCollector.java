@@ -3,8 +3,8 @@ package com.sbss.bithon.agent.plugin.jdbc.druid.metric;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceStatValue;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricCollector;
-import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,8 +38,8 @@ public class DruidJdbcMetricCollector implements IMetricCollector {
         source.getJdbcMetric().createCount.update(statistic.getPhysicalConnectCount());
         source.getJdbcMetric().destroyCount.update(statistic.getPhysicalCloseCount());
         source.getJdbcMetric().createErrorCount.update(statistic.getPhysicalConnectErrorCount());
-        source.getJdbcMetric().poolingPeak.add(statistic.getPoolingPeak());
-        source.getJdbcMetric().activePeak.add(statistic.getActivePeak());
+        source.getJdbcMetric().poolingPeak.update(statistic.getPoolingPeak());
+        source.getJdbcMetric().activePeak.update(statistic.getActivePeak());
         source.getJdbcMetric().logicConnectionCount.update(statistic.getConnectCount());
         source.getJdbcMetric().logicCloseCount.update(statistic.getCloseCount());
         source.getJdbcMetric().executeCount.update(statistic.getExecuteCount());

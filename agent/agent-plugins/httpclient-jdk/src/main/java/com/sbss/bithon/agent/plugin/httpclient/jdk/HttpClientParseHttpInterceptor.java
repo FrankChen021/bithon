@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.httpclient.jdk;
 
-import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.http.HttpClientMetricCollector;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
@@ -36,12 +36,12 @@ public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
         IBithonObject bithonObject = aopContext.castTargetAs();
         HttpURLConnection connection = (HttpURLConnection) bithonObject.getInjectedObject();
         String httpMethod = connection.getRequestMethod();
-        String uri = connection.getURL().toString().split("\\?")[0];
+        String requestUri = connection.getURL().toString();
         if (aopContext.hasException()) {
             // TODO: aopContext.getCostTime here only returns the execution time of HttpClient.parseHTTP
-            metricCollector.addExceptionRequest(uri, httpMethod, aopContext.getCostTime());
+            metricCollector.addExceptionRequest(requestUri, httpMethod, aopContext.getCostTime());
         } else {
-            metricCollector.addRequest(uri, httpMethod, statusCode, aopContext.getCostTime());
+            metricCollector.addRequest(requestUri, httpMethod, statusCode, aopContext.getCostTime());
         }
 
         TraceContext traceContext = TraceContextHolder.get();

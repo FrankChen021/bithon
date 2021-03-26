@@ -5,9 +5,9 @@ import com.mongodb.connection.ConnectionId;
 import com.mongodb.event.ConnectionMessageReceivedEvent;
 import com.mongodb.event.ConnectionMessagesSentEvent;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricCollector;
-import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.mongo.MongoDbMetricSet;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoClientCompositeMetric;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -29,14 +29,14 @@ public class MongoDbMetricCollector implements IMetricCollector {
     /**
      * Key: Db
      */
-    private final Map<String, MongoDbMetricSet> metricMap = new ConcurrentHashMap<>();
+    private final Map<String, MongoClientCompositeMetric> metricMap = new ConcurrentHashMap<>();
 
     /**
      * 存储mongoDb Id connectionId到instance的映射关系, 官方api说此id是不可变的, 但是connection销毁后,
      * 会不会出现新的connectionId 到instance的映射, 有待观察
      */
     private final Map<ConnectionId, String> mongoDbConnectionIdHostPortMapping = new HashMap<>();
-    private MongoDbMetricSet metricSet;
+    private MongoClientCompositeMetric metricSet;
 
     private MongoDbMetricCollector() {
         try {
@@ -71,10 +71,10 @@ public class MongoDbMetricCollector implements IMetricCollector {
         int failureCount = null == aopContext.getException() ? 0 : 1;
 
         // 尝试记录新的mongoDB连接
-        MongoDbMetricSet mongoDbMetricSetStorage = metricMap.computeIfAbsent(hostPort,
-                                                                                         k -> new MongoDbMetricSet(
+        MongoClientCompositeMetric mongoClientCompositeMetricStorage = metricMap.computeIfAbsent(hostPort,
+                                                                                         k -> new MongoClientCompositeMetric(
                                                                                              hostPort));
-        mongoDbMetricSetStorage.add(aopContext.getCostTime(), failureCount);
+        mongoClientCompositeMetricStorage.add(aopContext.getCostTime(), failureCount);
 
         // 写入映射关系
         mongoDbConnectionIdHostPortMapping.putIfAbsent(connection.getDescription().getConnectionId(), hostPort);
@@ -86,7 +86,7 @@ public class MongoDbMetricCollector implements IMetricCollector {
         String hostPort = mongoDbConnectionIdHostPortMapping.get(connectionId);
 
         if (hostPort != null) {
-            MongoDbMetricSet metricSet = metricMap.get(hostPort);
+            MongoClientCompositeMetric metricSet = metricMap.get(hostPort);
             if (metricSet != null) {
                 log.debug("app-mongodb-debugging: bytesIn=" + bytesIn);
                 metricSet.addBytesIn(bytesIn);
@@ -100,7 +100,7 @@ public class MongoDbMetricCollector implements IMetricCollector {
         String hostPort = mongoDbConnectionIdHostPortMapping.get(connectionId);
 
         if (hostPort != null) {
-            MongoDbMetricSet metricSet = metricMap.get(hostPort);
+            MongoClientCompositeMetric metricSet = metricMap.get(hostPort);
             if (metricSet != null) {
                 log.debug("app-mongodb-debugging: bytesOut=" + bytesOut);
                 metricSet.addBytesOut(bytesOut);
@@ -121,7 +121,7 @@ public class MongoDbMetricCollector implements IMetricCollector {
                   mongoDbConnectionIdHostPortMapping.toString());
 
         List<Object> messages = new ArrayList<>();
-        for (Map.Entry<String, MongoDbMetricSet> entry : metricMap.entrySet()) {
+        for (Map.Entry<String, MongoClientCompositeMetric> entry : metricMap.entrySet()) {
             metricMap.compute(entry.getKey(),
                               (k, v) -> getAndRemove(v));
             messages.add(messageConverter.from(timestamp, interval, this.metricSet));
@@ -129,7 +129,7 @@ public class MongoDbMetricCollector implements IMetricCollector {
         return messages;
     }
 
-    private MongoDbMetricSet getAndRemove(MongoDbMetricSet metricSet) {
+    private MongoClientCompositeMetric getAndRemove(MongoClientCompositeMetric metricSet) {
         this.metricSet = metricSet;
         return null;
     }

@@ -2,33 +2,16 @@ package com.sbss.bithon.agent.plugin.undertow.metric;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricCollector;
-import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.web.WebRequestMetricSet;
+import com.sbss.bithon.agent.core.metric.collector.IntervalMetricCollector;
+import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
 import io.undertow.server.HttpServerExchange;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author frankchen
  */
-public class WebRequestMetricCollector implements IMetricCollector {
-
-    private WebRequestMetricSet metric;
-    private final Map<String, WebRequestMetricSet> metricsMap = new ConcurrentHashMap<>();
-
-    private static final WebRequestMetricCollector INSTANCE = new WebRequestMetricCollector();
-
-    public static WebRequestMetricCollector getInstance() {
-        return INSTANCE;
-    }
-
-    WebRequestMetricCollector() {
-        MetricCollectorManager.getInstance().register("undertow-webRequest", this);
-    }
+public class WebRequestMetricCollector extends IntervalMetricCollector<WebRequestCompositeMetric> {
 
     public void update(HttpServerExchange exchange, long startNano) {
         String srcApplication = exchange.getRequestHeaders().getLast(InterceptorContext.HEADER_SRC_APPLICATION_NAME);
@@ -41,35 +24,22 @@ public class WebRequestMetricCollector implements IMetricCollector {
         long responseByteSize = exchange.getResponseBytesSent();
         long costTime = System.nanoTime() - startNano;
 
-        WebRequestMetricSet counter = metricsMap.computeIfAbsent(srcApplication + "|" + uri,
-                                                              key -> new WebRequestMetricSet(srcApplication, uri));
+        WebRequestCompositeMetric counter = getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
         counter.updateRequest(costTime, errorCount, count4xx, count5xx);
         counter.updateBytes(requestByteSize, responseByteSize);
     }
 
     @Override
-    public boolean isEmpty() {
-        return metricsMap.isEmpty();
+    protected WebRequestCompositeMetric newMetrics() {
+        return new WebRequestCompositeMetric();
     }
 
     @Override
-    public List<Object> collect(IMessageConverter messageConverter,
-                                int interval,
-                                long timestamp) {
-        List<Object> messages = new ArrayList<>();
-        for (Map.Entry<String, WebRequestMetricSet> entry : metricsMap.entrySet()) {
-            metricsMap.compute(entry.getKey(),
-                               (k,
-                                v) -> getAndRemove(v));
-            messages.add(messageConverter.from(timestamp,
-                                               interval,
-                                               this.metric));
-        }
-        return messages;
-    }
-
-    private WebRequestMetricSet getAndRemove(WebRequestMetricSet counter) {
-        this.metric = counter;
-        return null;
+    protected Object toMessage(IMessageConverter messageConverter,
+                               int interval,
+                               long timestamp,
+                               List<String> dimensions,
+                               WebRequestCompositeMetric metric) {
+        return messageConverter.from(timestamp, interval, dimensions, metric);
     }
 }

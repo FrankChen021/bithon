@@ -2,17 +2,17 @@ package com.sbss.bithon.agent.dispatcher.thrift;
 
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
-import com.sbss.bithon.agent.core.metric.exception.ExceptionMetricSet;
-import com.sbss.bithon.agent.core.metric.http.HttpClientMetricSet;
-import com.sbss.bithon.agent.core.metric.jdbc.JdbcPoolMetricSet;
-import com.sbss.bithon.agent.core.metric.jvm.JvmMetricSet;
-import com.sbss.bithon.agent.core.metric.mongo.MongoDbMetricSet;
-import com.sbss.bithon.agent.core.metric.redis.RedisClientMetric;
-import com.sbss.bithon.agent.core.metric.sql.SqlMetricSet;
-import com.sbss.bithon.agent.core.metric.sql.SqlStatementMetric;
-import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetric;
-import com.sbss.bithon.agent.core.metric.web.WebRequestMetricSet;
-import com.sbss.bithon.agent.core.metric.web.WebServerMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpClientCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoClientCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ClassEntity;
@@ -35,6 +35,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricM
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -45,12 +46,15 @@ import java.util.stream.Collectors;
 public class ToThriftMessageConverter implements IMessageConverter {
 
     @Override
-    public Object from(long timestamp, int interval, HttpClientMetricSet metric) {
+    public Object from(long timestamp,
+                       int interval,
+                       List<String> dimensions,
+                       HttpClientCompositeMetric metric) {
         HttpClientMetricMessage message = new HttpClientMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
-        message.setUri(metric.getUri());
-        message.setMethod(metric.getMethod());
+        message.setUri(dimensions.get(0));
+        message.setMethod(dimensions.get(1));
         message.setResponseTime(metric.getResponseTime().getSum().get());
         message.setMinResponseTime(metric.getResponseTime().getMin().get());
         message.setMaxResponseTime(metric.getResponseTime().getMax().get());
@@ -86,10 +90,10 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, SqlMetricSet metric) {
+    public Object from(long timestamp, int interval, List<String> dimensions, SqlCompositeMetric metric) {
         SqlMetricMessage message = new SqlMetricMessage();
         message.setTimestamp(timestamp);
-        message.setConnectionString(metric.getConnectionString());
+        message.setConnectionString(dimensions.get(0));
         message.setInterval(interval);
         message.setCallCount(metric.getCallCount().get());
         message.setResponseTime(metric.getResponseTime().getSum().get());
@@ -102,19 +106,20 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, MongoDbMetricSet metric) {
+    public Object from(long timestamp, int interval, MongoClientCompositeMetric metric) {
         return null;
     }
 
     @Override
     public Object from(long timestamp,
                        int interval,
-                       WebRequestMetricSet metric) {
+                       List<String> dimensions,
+                       WebRequestCompositeMetric metric) {
         WebRequestMetricMessage message = new WebRequestMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
-        message.setSrcApplication(metric.getSrcApplication());
-        message.setUri(metric.getUri());
+        message.setSrcApplication(dimensions.get(0));
+        message.setUri(dimensions.get(1));
         message.setResponseTime(metric.getResponseTime().getSum().get());
         message.setMaxResponseTime(metric.getResponseTime().getMax().get());
         message.setMinResponseTime(metric.getResponseTime().getMin().get());
@@ -154,7 +159,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
                                                  metric.threadMetricsSet.activeDaemonCount,
                                                  metric.threadMetricsSet.totalCreatedCount,
                                                  metric.threadMetricsSet.activeThreadsCount));
-        message.setGcEntities(metric.gcMetricSets.stream().map(gcMetric -> {
+        message.setGcEntities(metric.gcCompositeMetrics.stream().map(gcMetric -> {
             GcEntity e = new GcEntity(gcMetric.generation,
                                       gcMetric.gcCount,
                                       gcMetric.gcTime);
@@ -186,17 +191,20 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, SqlStatementMetric counter) {
+    public Object from(long timestamp, int interval, SqlStatementCompositeMetric counter) {
         return null;
     }
 
     @Override
-    public Object from(long timestamp, int interval, RedisClientMetric metric) {
+    public Object from(long timestamp,
+                       int interval,
+                       List<String> dimensions,
+                       RedisClientCompositeMetric metric) {
         RedisMetricMessage message = new RedisMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
-        message.setUri(metric.getEndpoint());
-        message.setCommand(metric.getCommand());
+        message.setUri(dimensions.get(0));
+        message.setCommand(dimensions.get(1));
         message.setExceptionCount(metric.getExceptionCount());
         message.setTotalCount(metric.getCallCount());
         message.setRequestTime(metric.getRequestTime().getSum().get());
@@ -255,7 +263,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     @Override
     public Object from(long timestamp,
                        int interval,
-                       ThreadPoolMetric metric) {
+                       ThreadPoolCompositeMetric metric) {
         ThreadPoolMetricMessage message = new ThreadPoolMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);

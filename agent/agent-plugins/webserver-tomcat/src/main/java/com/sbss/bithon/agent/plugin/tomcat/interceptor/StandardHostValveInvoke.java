@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.plugin.tomcat.interceptor;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
-import com.sbss.bithon.agent.core.metric.web.RequestUriFilter;
-import com.sbss.bithon.agent.core.metric.web.UserAgentFilter;
+import com.sbss.bithon.agent.core.metric.domain.web.RequestUriFilter;
+import com.sbss.bithon.agent.core.metric.domain.web.UserAgentFilter;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;

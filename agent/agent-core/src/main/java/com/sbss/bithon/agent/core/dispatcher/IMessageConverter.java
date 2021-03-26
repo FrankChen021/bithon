@@ -1,19 +1,20 @@
 package com.sbss.bithon.agent.core.dispatcher;
 
 import com.sbss.bithon.agent.core.event.EventMessage;
-import com.sbss.bithon.agent.core.metric.exception.ExceptionMetricSet;
-import com.sbss.bithon.agent.core.metric.http.HttpClientMetricSet;
-import com.sbss.bithon.agent.core.metric.jdbc.JdbcPoolMetricSet;
-import com.sbss.bithon.agent.core.metric.jvm.JvmMetricSet;
-import com.sbss.bithon.agent.core.metric.mongo.MongoDbMetricSet;
-import com.sbss.bithon.agent.core.metric.redis.RedisClientMetric;
-import com.sbss.bithon.agent.core.metric.sql.SqlMetricSet;
-import com.sbss.bithon.agent.core.metric.sql.SqlStatementMetric;
-import com.sbss.bithon.agent.core.metric.thread.ThreadPoolMetric;
-import com.sbss.bithon.agent.core.metric.web.WebRequestMetricSet;
-import com.sbss.bithon.agent.core.metric.web.WebServerMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpClientCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoClientCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,27 +23,27 @@ import java.util.Map;
  */
 public interface IMessageConverter {
 
-    Object from(long timestamp, int interval, HttpClientMetricSet metric);
+    Object from(long timestamp, int interval, List<String> dimensions, HttpClientCompositeMetric metric);
 
     Object from(long timestamp, int interval, JdbcPoolMetricSet metric);
 
-    Object from(long timestamp, int interval, SqlMetricSet metric);
+    Object from(long timestamp, int interval, List<String> dimensions, SqlCompositeMetric metric);
 
-    Object from(long timestamp, int interval, MongoDbMetricSet counter);
+    Object from(long timestamp, int interval, MongoClientCompositeMetric counter);
 
-    Object from(long timestamp, int interval, WebRequestMetricSet metric);
+    Object from(long timestamp, int interval, List<String> dimensions, WebRequestCompositeMetric metric);
 
     Object from(long timestamp, int interval, JvmMetricSet metric);
 
     Object from(long timestamp, int interval, WebServerMetricSet metric);
 
-    Object from(long timestamp, int interval, SqlStatementMetric counter);
+    Object from(long timestamp, int interval, SqlStatementCompositeMetric counter);
 
-    Object from(long timestamp, int interval, RedisClientMetric metric);
+    Object from(long timestamp, int interval, List<String> dimensions, RedisClientCompositeMetric metric);
 
     Object from(long timestamp, int interval, ExceptionMetricSet metric);
 
-    Object from(long timestamp, int interval, ThreadPoolMetric metric);
+    Object from(long timestamp, int interval, ThreadPoolCompositeMetric metric);
 
     // tracing span message
     Object from(TraceSpan span);

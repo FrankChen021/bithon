@@ -2,9 +2,9 @@ package com.sbss.bithon.agent.plugin.mysql8;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricCollector;
-import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.sql.SqlStatementMetric;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.setting.AgentSettingManager;
 import com.sbss.bithon.agent.core.setting.IAgentSettingRefreshListener;
@@ -31,7 +31,7 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
     static final SqlStatementMetricCollector INSTANCE = new SqlStatementMetricCollector();
     private static final Logger log = LoggerFactory.getLogger(SqlStatementMetricCollector.class);
     private static final String MYSQL_COUNTER_NAME = "mysql8_sql_stats";
-    private final Map<String, Map<String, SqlStatementMetric>> metricMap = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, SqlStatementCompositeMetric>> metricMap = new ConcurrentHashMap<>();
     private int sqlTimeThreshold = 1000;
 
     private SqlStatementMetricCollector() {
@@ -83,7 +83,7 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
         sql = ParameterizedOutputVisitorUtils.parameterize(sql, JdbcConstants.MYSQL).replace("\n", "");
         metricMap.computeIfAbsent(connectionString,
                                   key -> new ConcurrentHashMap<>())
-                 .computeIfAbsent(sql, key -> new SqlStatementMetric("mysql"))
+                 .computeIfAbsent(sql, key -> new SqlStatementCompositeMetric("mysql"))
                  .add(1, aopContext.hasException() ? 1 : 0, responseTime);
     }
 

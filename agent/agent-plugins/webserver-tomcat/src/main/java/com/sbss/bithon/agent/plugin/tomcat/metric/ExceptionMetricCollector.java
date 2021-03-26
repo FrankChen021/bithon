@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.plugin.tomcat.metric;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 
 import java.util.Collections;
 import java.util.List;

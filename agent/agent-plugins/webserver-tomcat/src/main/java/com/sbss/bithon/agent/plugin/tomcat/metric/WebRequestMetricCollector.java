@@ -2,33 +2,25 @@ package com.sbss.bithon.agent.plugin.tomcat.metric;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricCollector;
-import com.sbss.bithon.agent.core.metric.web.WebRequestMetricSet;
+import com.sbss.bithon.agent.core.metric.collector.IntervalMetricCollector;
+import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
 import org.apache.coyote.Request;
 import org.apache.coyote.Response;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author frankchen
  */
-public class WebRequestMetricCollector implements IMetricCollector {
-
-    private final Map<String, WebRequestMetricSet> metricsMap = new ConcurrentHashMap<>();
-    private WebRequestMetricSet metric;
-
-    public WebRequestMetricCollector() {
-    }
+public class WebRequestMetricCollector extends IntervalMetricCollector<WebRequestCompositeMetric> {
 
     public void update(Request request, Response response, long responseTime) {
-        String srcApplication = request.getHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME);
         String uri = request.requestURI().toString();
         if (uri == null) {
             return;
         }
+
+        String srcApplication = request.getHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME);
 
         int httpStatus = response.getStatus();
         int errorCount = response.getStatus() >= 400 ? 1 : 0;
@@ -37,34 +29,22 @@ public class WebRequestMetricCollector implements IMetricCollector {
         long requestByteSize = request.getBytesRead();
         long responseByteSize = response.getBytesWritten(false);
 
-        WebRequestMetricSet metric = metricsMap.computeIfAbsent(srcApplication + "|" + uri,
-                                                             key -> new WebRequestMetricSet(srcApplication, uri));
+        WebRequestCompositeMetric metric = getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
         metric.updateRequest(responseTime, errorCount, count4xx, count5xx);
         metric.updateBytes(requestByteSize, responseByteSize);
     }
 
     @Override
-    public boolean isEmpty() {
-        return metricsMap.isEmpty();
+    protected WebRequestCompositeMetric newMetrics() {
+        return new WebRequestCompositeMetric();
     }
 
     @Override
-    public List<Object> collect(IMessageConverter messageConverter,
-                                int interval,
-                                long timestamp) {
-        List<Object> messages = new ArrayList<>();
-        for (Map.Entry<String, WebRequestMetricSet> entry : metricsMap.entrySet()) {
-            metricsMap.compute(entry.getKey(),
-                               (k,
-                                v) -> getAndRemove(v));
-
-            messages.add(messageConverter.from(timestamp, interval, this.metric));
-        }
-        return messages;
-    }
-
-    private WebRequestMetricSet getAndRemove(WebRequestMetricSet metric) {
-        this.metric = metric;
-        return null;
+    protected Object toMessage(IMessageConverter messageConverter,
+                               int interval,
+                               long timestamp,
+                               List<String> dimensions,
+                               WebRequestCompositeMetric metric) {
+        return messageConverter.from(timestamp, interval, dimensions, metric);
     }
 }

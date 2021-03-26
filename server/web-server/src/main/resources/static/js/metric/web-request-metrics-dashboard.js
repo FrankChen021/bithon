@@ -24,9 +24,9 @@ var web_request_metrics_dashboard = {
         "metrics":[{
           "name": "avgResponseTime"
         },{
-            "name": "minCostTime"
+            "name": "minResponseTime"
         },{
-            "name": "maxCostTime"
+            "name": "maxResponseTime"
         }]
     }]
 }

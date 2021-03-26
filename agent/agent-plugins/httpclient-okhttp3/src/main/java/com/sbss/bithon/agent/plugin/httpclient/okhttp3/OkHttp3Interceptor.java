@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.httpclient.okhttp3;
 
-import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.http.HttpClientMetricCollector;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
@@ -58,7 +58,7 @@ public class OkHttp3Interceptor extends AbstractInterceptor {
         Call realCall = (Call) aopContext.getTarget();
         Request request = realCall.request();
 
-        String uri = request.url().uri().toString().split("\\?")[0];
+        String uri = request.url().uri().toString();
         String httpMethod = request.method().toUpperCase();
 
         if (aopContext.getException() != null) {

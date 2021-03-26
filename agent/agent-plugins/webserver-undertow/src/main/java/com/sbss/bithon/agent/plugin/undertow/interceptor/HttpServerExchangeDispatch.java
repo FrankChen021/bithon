@@ -1,7 +1,8 @@
 package com.sbss.bithon.agent.plugin.undertow.interceptor;
 
-import com.sbss.bithon.agent.core.metric.web.RequestUriFilter;
-import com.sbss.bithon.agent.core.metric.web.UserAgentFilter;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.web.RequestUriFilter;
+import com.sbss.bithon.agent.core.metric.domain.web.UserAgentFilter;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
@@ -15,11 +16,13 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
 
     private UserAgentFilter userAgentFilter;
     private RequestUriFilter uriFilter;
+    private WebRequestMetricCollector metricCollector;
 
     @Override
     public boolean initialize() {
-        //make sure initialized
-        WebRequestMetricCollector.getInstance();
+        metricCollector = MetricCollectorManager.getInstance()
+                                                .getOrRegister("undertow-web-request-metrics",
+                                                               WebRequestMetricCollector.class);
 
         userAgentFilter = new UserAgentFilter();
         uriFilter = new RequestUriFilter();
@@ -39,7 +42,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
         final long startTime = System.nanoTime();
         exchange.addExchangeCompleteListener((listener,
                                               next) -> {
-            WebRequestMetricCollector.getInstance().update(exchange, startTime);
+            metricCollector.update(exchange, startTime);
             next.proceed();
         });
         return InterceptionDecision.CONTINUE;

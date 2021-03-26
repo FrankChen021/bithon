@@ -15,7 +15,7 @@ public class ThreadPoolExecutorConstructor extends AbstractInterceptor {
         ThreadPoolMetricsCollector collector = ThreadPoolMetricsCollector.getInstance();
         if (collector != null) {
             ThreadPoolExecutor executor = (ThreadPoolExecutor) constructedObject;
-            collector.addThreadPool(executor, new ThreadPoolExecutorMetric(executor));
+            collector.addThreadPool(executor, new ThreadPoolExecutorCompositeMetric(executor));
         }
     }
 }

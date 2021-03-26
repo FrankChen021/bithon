@@ -60,7 +60,7 @@ public class MySql8Plugin extends AbstractPlugin {
                                                                     "com.mysql.cj.protocol.Message",
                                                                     "boolean",
                                                                     "int")
-                                                   .to("com.sbss.bithon.agent.plugin.mysql8.IoInterceptor"),
+                                                   .to("com.sbss.bithon.agent.plugin.mysql8.NativeProtocolInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("readAllResults",
@@ -70,7 +70,7 @@ public class MySql8Plugin extends AbstractPlugin {
                                                                     "boolean",
                                                                     "com.mysql.cj.protocol.ColumnDefinition",
                                                                     "com.mysql.cj.protocol.ProtocolEntityFactory")
-                                                   .to("com.sbss.bithon.agent.plugin.mysql8.IoInterceptor")
+                                                   .to("com.sbss.bithon.agent.plugin.mysql8.NativeProtocolInterceptor")
                 ),
 
 

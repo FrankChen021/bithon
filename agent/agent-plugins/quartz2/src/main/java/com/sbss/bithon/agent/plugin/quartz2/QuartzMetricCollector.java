@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.quartz2;
 
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import org.quartz.core.JobRunShell;
 import org.quartz.impl.JobExecutionContextImpl;

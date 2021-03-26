@@ -3,8 +3,8 @@ package com.sbss.bithon.agent.plugin.logback.interceptor;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricCollector;
-import com.sbss.bithon.agent.core.metric.exception.ExceptionMetricSet;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
 
 import java.util.Collections;
 import java.util.HashMap;

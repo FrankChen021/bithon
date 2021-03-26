@@ -30,20 +30,20 @@
   "metricsSpec": [
     {
       "type": "longSum",
-      "name": "costTime",
-      "displayText": "Accumulative cost Time",
+      "name": "responseTime",
+      "displayText": "Accumulative Response Time",
       "unit": "nanosecond",
       "visible": false
     },
     {
       "type": "longMin",
-      "name": "minCostTime",
+      "name": "minResponseTime",
       "displayText": "Min Response time",
       "unit": "nanosecond"
     },
     {
       "type": "longMax",
-      "name": "maxCostTime",
+      "name": "maxResponseTime",
       "displayText": "Max Response time",
       "unit": "nanosecond"
     },
@@ -93,9 +93,9 @@
     {
       "type": "postAggregator",
       "name": "avgResponseTime",
-      "expression": "costTime/1000.0/1000/callCount",
+      "expression": "responseTime/1000.0/1000/callCount",
       "displayText": "Avg cost time",
-      "unit": "Milli",
+      "unit": "millisecond",
       "valueType": "double"
     },
     {

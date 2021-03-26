@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
-import com.sbss.bithon.agent.core.metric.Delta;
-import com.sbss.bithon.agent.core.metric.jvm.CpuMetricSet;
+import com.sbss.bithon.agent.core.metric.model.Delta;
+import com.sbss.bithon.agent.core.metric.domain.jvm.CpuCompositeMetric;
 
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +29,7 @@ public class CpuMetricCollector {
      * https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8226575
      * https://github.com/alibaba/Sentinel/pull/1204
      */
-    public CpuMetricSet collect() {
+    public CpuCompositeMetric collect() {
         long processCpuTimeDelta = processCpuTime.update(OS_BEAN.getProcessCpuTime());
         long processUpTimeDelta = processUpTime.update(RUNTIME_BEAN.getUptime());
         int cpuCores = OS_BEAN.getAvailableProcessors();
@@ -38,7 +38,7 @@ public class CpuMetricCollector {
                                       / processUpTimeDelta
                                       / cpuCores * 100;
 
-        return new CpuMetricSet(cpuCores,
+        return new CpuCompositeMetric(cpuCores,
                                 processCpuTimeDelta,
                                 OS_BEAN.getSystemLoadAverage(),
                                 processCpuPercentage);

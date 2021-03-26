@@ -25,7 +25,7 @@ class HasClassChecker implements IPluginInstallationChecker {
         boolean resolved = TypeResolver.getInstance().isResolved(classLoader, this.className);
         if (!resolved && this.debugging) {
             LoggerFactory.getLogger(HasClassChecker.class)
-                         .info("Required class [{}] not found to install interceptors to [{}] in plugin [{}]",
+                         .info("Required class [{}] not found to install interceptor for [{}] in plugin [{}]",
                                this.className,
                                typeDescription.getName(),
                                plugin.getClass().getSimpleName());

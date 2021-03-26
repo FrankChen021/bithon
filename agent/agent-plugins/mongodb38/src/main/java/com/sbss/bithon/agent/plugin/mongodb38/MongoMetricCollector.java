@@ -1,9 +1,9 @@
 package com.sbss.bithon.agent.plugin.mongodb38;
 
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
-import com.sbss.bithon.agent.core.metric.IMetricCollector;
-import com.sbss.bithon.agent.core.metric.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.mongo.MongoDbMetricSet;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoClientCompositeMetric;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -22,12 +22,12 @@ public class MongoMetricCollector implements IMetricCollector {
     /**
      * 计数器内部存储, String存放host + port
      */
-    private final Map<String, MongoDbMetricSet> metricMap = new ConcurrentHashMap<>();
+    private final Map<String, MongoClientCompositeMetric> metricMap = new ConcurrentHashMap<>();
     /**
      * 存储mongoDb Id connectionId到instance的映射关系, 官方api说此id是不可变的, 但是connection销毁后, 会不会出现新的connectionId 到instance的映射, 有待观察
      */
     private final Map<String, String> mongoDbConnectionIdHostPortMapping = new ConcurrentHashMap<>();
-    private MongoDbMetricSet metricSet;
+    private MongoClientCompositeMetric metricSet;
 
     private MongoMetricCollector() {
         try {
@@ -45,7 +45,7 @@ public class MongoMetricCollector implements IMetricCollector {
         String hostPort = mongoDbConnectionIdHostPortMapping.get(connectionId);
 
         if (hostPort != null) {
-            MongoDbMetricSet metricSet = metricMap.get(hostPort);
+            MongoClientCompositeMetric metricSet = metricMap.get(hostPort);
             if (metricSet != null) {
                 log.debug("app-mongodb-debugging: bytesOut=" + bytesOut);
                 metricSet.addBytesIn(bytesOut);
@@ -61,7 +61,7 @@ public class MongoMetricCollector implements IMetricCollector {
         String hostPort = mongoDbConnectionIdHostPortMapping.get(connectionId);
 
         if (hostPort != null) {
-            MongoDbMetricSet metricSet = metricMap.get(hostPort);
+            MongoClientCompositeMetric metricSet = metricMap.get(hostPort);
             if (metricSet != null) {
                 log.debug("app-mongodb-debugging: bytesIn=" + bytesIn);
                 metricSet.addBytesOut(bytesIn);
@@ -70,7 +70,7 @@ public class MongoMetricCollector implements IMetricCollector {
     }
 
     public void recordRequestInfo(String connectionId, String hostPort, Long costTime, int failureCount) {
-        metricMap.computeIfAbsent(hostPort, k -> new MongoDbMetricSet(hostPort))
+        metricMap.computeIfAbsent(hostPort, k -> new MongoClientCompositeMetric(hostPort))
                  .add(costTime, failureCount);
 
         // save mapping
@@ -92,7 +92,7 @@ public class MongoMetricCollector implements IMetricCollector {
         }
 
         List<Object> messages = new ArrayList<>();
-        for (Map.Entry<String, MongoDbMetricSet> entry : metricMap.entrySet()) {
+        for (Map.Entry<String, MongoClientCompositeMetric> entry : metricMap.entrySet()) {
             metricMap.compute(entry.getKey(), (k, v) -> getAndRemove(v));
 
             messages.add(messageConverter.from(timestamp, interval, this.metricSet));
@@ -100,7 +100,7 @@ public class MongoMetricCollector implements IMetricCollector {
         return messages;
     }
 
-    private MongoDbMetricSet getAndRemove(MongoDbMetricSet metricSet) {
+    private MongoClientCompositeMetric getAndRemove(MongoClientCompositeMetric metricSet) {
         this.metricSet = metricSet;
         return null;
     }
