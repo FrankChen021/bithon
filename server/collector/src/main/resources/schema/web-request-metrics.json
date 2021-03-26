@@ -49,13 +49,6 @@
     },
     {
       "type": "longSum",
-      "name": "interval",
-      "displayText": "Period of metric",
-      "unit": "second",
-      "visible": false
-    },
-    {
-      "type": "longSum",
       "name": "callCount",
       "displayText": "count of requests",
       "unit": ""

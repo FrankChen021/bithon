@@ -153,7 +153,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                             case "/":
                             case "*":
                                 ctx.getChild(0).accept(this);
-                                visitor.visit(operator);
+                                visitor.visitorOperator(operator);
                                 ctx.getChild(2).accept(this);
                                 return null;
                             default:
@@ -178,11 +178,14 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
             @Override
             public Void visitTerminal(TerminalNode node) {
                 switch (node.getSymbol().getType()) {
-                    case PostAggregatorExpressionParser.CONST:
-                        visitor.visitConst(node.getText());
+                    case PostAggregatorExpressionParser.NUMBER:
+                        visitor.visitNumber(node.getText());
                         return null;
                     case PostAggregatorExpressionParser.ID:
                         visitor.visitMetric(owner.getMetricSpecByName(node.getText()));
+                        return null;
+                    case PostAggregatorExpressionParser.VARIABLE:
+                        visitor.visitVariable(node.getText());
                         return null;
                     default:
                         throw new IllegalStateException("Terminal Node Type:"

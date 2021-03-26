@@ -19,13 +19,6 @@
   ],
   "metricsSpec": [
     {
-      "type": "longSum",
-      "name": "interval",
-      "displayText": "CPU Load",
-      "unit": "millisecond",
-      "visible": false
-    },
-    {
       "type": "longLast",
       "name": "processors",
       "displayText": "Processors",

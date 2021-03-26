@@ -1,5 +1,6 @@
 package com.sbss.bithon.server.metric.storage.jdbc;
 
+import com.google.common.collect.ImmutableMap;
 import com.sbss.bithon.server.common.matcher.AntPathMatcher;
 import com.sbss.bithon.server.common.matcher.ContainsMatcher;
 import com.sbss.bithon.server.common.matcher.EndwithMatcher;
@@ -21,7 +22,6 @@ import com.sbss.bithon.server.metric.aggregator.LongMinMetricSpec;
 import com.sbss.bithon.server.metric.aggregator.LongSumMetricSpec;
 import com.sbss.bithon.server.metric.aggregator.PostAggregatorExpressionVisitor;
 import com.sbss.bithon.server.metric.aggregator.PostAggregatorMetricSpec;
-import com.sbss.bithon.server.metric.input.InputRow;
 import com.sbss.bithon.server.metric.storage.DimensionCondition;
 import com.sbss.bithon.server.metric.storage.IMetricReader;
 import lombok.extern.slf4j.Slf4j;
@@ -56,10 +56,14 @@ class MetricJdbcReader implements IMetricReader {
                                                         DataSourceSchema dataSourceSchema,
                                                         Collection<DimensionCondition> filters,
                                                         Collection<String> metrics) {
+        //TODO: interval should be calculated by range of timeline
+        int interval = 10;
         String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
         MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
                                                                                       "OUTER",
-                                                                                      dataSourceSchema);
+                                                                                      dataSourceSchema,
+                                                                                      ImmutableMap.of("interval",
+                                                                                                      interval));
         String metricList = metrics.stream()
                                    .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
                                    .collect(Collectors.joining(", "));
@@ -90,7 +94,11 @@ class MetricJdbcReader implements IMetricReader {
         String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
         MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
                                                                                       "OUTER",
-                                                                                      dataSourceSchema);
+                                                                                      dataSourceSchema,
+                                                                                      ImmutableMap.of("interval",
+                                                                                                      (end.getMilliseconds()
+                                                                                                       - start.getMilliseconds())
+                                                                                                      / 1000));
         String metricList = metrics.stream()
                                    .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
                                    .collect(Collectors.joining(", "));
@@ -123,7 +131,11 @@ class MetricJdbcReader implements IMetricReader {
         String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
         MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
                                                                                       "OUTER",
-                                                                                      dataSourceSchema);
+                                                                                      dataSourceSchema,
+                                                                                      ImmutableMap.of("interval",
+                                                                                                      (end.getMilliseconds()
+                                                                                                       - start.getMilliseconds())
+                                                                                                      / 1000));
         String metricList = metrics.stream()
                                    .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
                                    .collect(Collectors.joining(", "));
@@ -259,21 +271,24 @@ class MetricJdbcReader implements IMetricReader {
         private final String tableAlias;
         private final DataSourceSchema dataSource;
         private final boolean addAlias;
-
+        private final Map<String, Object> variables;
 
         public MetricFieldsClauseBuilder(String sqlTableName,
                                          String tableAlias,
-                                         DataSourceSchema dataSource) {
-            this(sqlTableName, tableAlias, dataSource, true);
+                                         DataSourceSchema dataSource,
+                                         Map<String, Object> variables) {
+            this(sqlTableName, tableAlias, dataSource, variables, true);
         }
 
         public MetricFieldsClauseBuilder(String sqlTableName,
                                          String tableAlias,
                                          DataSourceSchema dataSource,
+                                         Map<String, Object> variables,
                                          boolean addAlias) {
             this.sqlTableName = sqlTableName;
             this.tableAlias = tableAlias;
             this.dataSource = dataSource;
+            this.variables = variables;
             this.addAlias = addAlias;
         }
 
@@ -303,16 +318,20 @@ class MetricJdbcReader implements IMetricReader {
             metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
                 @Override
                 public void visitMetric(IMetricSpec metricSpec) {
-                    sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(null, null, dataSource, false)));
+                    sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(null,
+                                                                              null,
+                                                                              dataSource,
+                                                                              variables,
+                                                                              false)));
                 }
 
                 @Override
-                public void visitConst(String constant) {
-                    sb.append(constant);
+                public void visitNumber(String number) {
+                    sb.append(number);
                 }
 
                 @Override
-                public void visit(String operator) {
+                public void visitorOperator(String operator) {
                     sb.append(operator);
                 }
 
@@ -324,6 +343,15 @@ class MetricJdbcReader implements IMetricReader {
                 @Override
                 public void endBrace() {
                     sb.append(')');
+                }
+
+                @Override
+                public void visitVariable(String variable) {
+                    Object variableValue = variables.get(variable);
+                    if (variableValue == null) {
+                        throw new RuntimeException(String.format("variable (%s) not provided in context", variable));
+                    }
+                    sb.append(variableValue);
                 }
             });
             sb.append(String.format(" \"%s\"", metricSpec.getName()));

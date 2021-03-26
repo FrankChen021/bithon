@@ -28,13 +28,6 @@
     }
   ],
   "metricsSpec": [
-    {
-      "type": "longSum",
-      "name": "interval",
-      "displayText": "collect interval",
-      "unit": "second",
-      "visible": false
-    },
 
     // ---count---
     {

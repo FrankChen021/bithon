@@ -31,13 +31,6 @@
   "metricsSpec": [
     {
       "type": "longSum",
-      "name": "interval",
-      "displayText": "Period of metric",
-      "unit": "second",
-      "visible": false
-    },
-    {
-      "type": "longSum",
       "name": "responseTime",
       "displayText": "Response Time",
       "unit": "nanosecond",

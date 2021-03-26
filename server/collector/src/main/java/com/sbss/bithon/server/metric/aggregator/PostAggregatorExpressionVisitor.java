@@ -8,11 +8,13 @@ package com.sbss.bithon.server.metric.aggregator;
 public interface PostAggregatorExpressionVisitor {
     void visitMetric(IMetricSpec metricSpec);
 
-    void visitConst(String constant);
+    void visitNumber(String number);
 
-    void visit(String operator);
+    void visitorOperator(String operator);
 
     void startBrace();
 
     void endBrace();
+
+    void visitVariable(String variable);
 }

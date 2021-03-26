@@ -7,17 +7,19 @@ prog
 
 expression
   : ID
-  | CONST
+  | NUMBER
+  | VARIABLE
   | expression op=(ADD|SUB|MUL|DIV) expression
   | '(' expression ')'
   ;
 
+VARIABLE: 'interval';
 ADD: '+';
 SUB: '-';
 MUL: '*';
 DIV: '/';
 
-CONST: [0-9]+('.'?[0-9]+)?;
+NUMBER: [0-9]+('.'?[0-9]+)?;
 
 ID
    : [a-zA-Z_0-9]+
