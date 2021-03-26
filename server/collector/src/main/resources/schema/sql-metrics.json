@@ -76,7 +76,7 @@
     },
 
     {
-      "type": "postAggregator",
+      "type": "post",
       "name": "tps",
       "expression": "callCount/interval",
       "displayText": "TPS",
@@ -84,7 +84,7 @@
       "valueType": "double"
     },
     {
-      "type": "postAggregator",
+      "type": "post",
       "name": "avgResponseTime",
       "expression": "responseTime/1000.0/1000/callCount",
       "displayText": "AVG Response Time",

@@ -114,7 +114,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     @JsonIgnore
     @Override
     public String getType() {
-        return IMetricSpec.POST_AGGREGATOR;
+        return IMetricSpec.POST;
     }
 
     @Override

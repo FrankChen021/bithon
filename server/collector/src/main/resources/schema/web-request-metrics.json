@@ -84,7 +84,7 @@
       "unit": "byte"
     },
     {
-      "type": "postAggregator",
+      "type": "post",
       "name": "avgResponseTime",
       "expression": "responseTime/1000.0/1000/callCount",
       "displayText": "Avg cost time",
@@ -92,7 +92,7 @@
       "valueType": "double"
     },
     {
-      "type": "postAggregator",
+      "type": "post",
       "name": "qps",
       "expression": "callCount/interval",
       "displayText": "QPS",

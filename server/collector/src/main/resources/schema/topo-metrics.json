@@ -59,7 +59,7 @@
       "unit": "nanosecond"
     },
     {
-      "type": "postAggregator",
+      "type": "post",
       "name": "avgResponseTime",
       "displayText": "Avg Response Time",
       "expression": "responseTime/callCount",

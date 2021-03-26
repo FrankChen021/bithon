@@ -44,7 +44,7 @@
       "visible": false
     },
     {
-      "type": "postAggregator",
+      "type": "post",
       "name": "avgGcTime",
       "expression": "gcTime/gcCount",
       "displayText": "Avg GC Time",
