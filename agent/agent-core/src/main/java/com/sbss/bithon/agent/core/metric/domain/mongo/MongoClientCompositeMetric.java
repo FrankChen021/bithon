@@ -1,5 +1,6 @@
 package com.sbss.bithon.agent.core.metric.domain.mongo;
 
+import com.sbss.bithon.agent.core.metric.model.ICompositeMetric;
 import com.sbss.bithon.agent.core.metric.model.Sum;
 import com.sbss.bithon.agent.core.metric.model.Timer;
 
@@ -7,26 +8,17 @@ import com.sbss.bithon.agent.core.metric.model.Timer;
  * @author frank.chen021@outlook.com
  * @date 2021/1/4 11:35 下午
  */
-public class MongoClientCompositeMetric {
-    /**
-     * host + port
-     */
-    String endpoint;
-
+public class MongoClientCompositeMetric implements ICompositeMetric {
     Timer responseTime = new Timer();
     Sum callCount = new Sum();
     Sum exceptionCount = new Sum();
     Sum bytesIn = new Sum();
     Sum bytesOut = new Sum();
 
-    public MongoClientCompositeMetric(String endpoint) {
-        this.endpoint = endpoint;
-    }
-
-    public void add(long responseTime, int failureCount) {
+    public void add(long responseTime, int exceptionCount) {
         this.callCount.incr();
         this.responseTime.update(responseTime);
-        this.exceptionCount.update(failureCount);
+        this.exceptionCount.update(exceptionCount);
     }
 
     public void addBytesIn(int bytesIn) {
@@ -37,27 +29,23 @@ public class MongoClientCompositeMetric {
         this.bytesOut.update(bytesOut);
     }
 
-    String getEndpoint() {
-        return endpoint;
+    public Timer getResponseTime() {
+        return responseTime;
     }
 
-    long getAndClearCostTime() {
-        return responseTime.getSum().get();
+    public Sum getCallCount() {
+        return callCount;
     }
 
-    long getAndClearCommands() {
-        return callCount.get();
+    public Sum getExceptionCount() {
+        return exceptionCount;
     }
 
-    long getAndClearFailureCount() {
-        return exceptionCount.get();
+    public Sum getBytesIn() {
+        return bytesIn;
     }
 
-    long getAndClearBytesIn() {
-        return bytesIn.get();
-    }
-
-    long getAndClearBytesOut() {
-        return bytesOut.get();
+    public Sum getBytesOut() {
+        return bytesOut;
     }
 }

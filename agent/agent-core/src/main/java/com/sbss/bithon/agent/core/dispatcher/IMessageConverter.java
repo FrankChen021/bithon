@@ -29,7 +29,10 @@ public interface IMessageConverter {
 
     Object from(long timestamp, int interval, List<String> dimensions, SqlCompositeMetric metric);
 
-    Object from(long timestamp, int interval, MongoClientCompositeMetric counter);
+    Object from(long timestamp,
+                int interval,
+                List<String> dimensions,
+                MongoClientCompositeMetric counter);
 
     Object from(long timestamp, int interval, List<String> dimensions, WebRequestCompositeMetric metric);
 

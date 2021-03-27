@@ -22,29 +22,31 @@ public class MongoDbPlugin extends AbstractPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("executeProtocol",
                                                                     "com.mongodb.connection.Protocol<T>")
-                                                   .to("com.sbss.bithon.agent.plugin.mongodb.MongoDbHandler"),
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.DefaultServerConnectionExecuteProtocol"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("executeProtocolAsync",
                                                                     "com.mongodb.connection.Protocol<T>",
                                                                     "com.mongodb.async.SingleResultCallback<T>")
-                                                   .to("com.sbss.bithon.agent.plugin.mongodb.MongoDbHandler")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.DefaultServerConnectionExecuteProtocolAsync")
                 ),
 
             forClass("com.mongodb.event.ConnectionMessagesSentEvent")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor("com.mongodb.connection.ConnectionId",
-                                                                  "int", "int")
-                                                   .to("com.sbss.bithon.agent.plugin.mongodb.MongoDbHandler")
+                                                                  "int",
+                                                                  "int")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.ConnectionMessagesSentEventCtor")
                 ),
 
             forClass("com.mongodb.event.ConnectionMessageReceivedEvent")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor("com.mongodb.connection.ConnectionId",
-                                                                  "int", "int")
-                                                   .to("com.sbss.bithon.agent.plugin.mongodb.MongoDbHandler")
+                                                                  "int",
+                                                                  "int")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.ConnectionMessageReceivedEventCtor")
                 )
         );
     }

@@ -106,7 +106,10 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, MongoClientCompositeMetric metric) {
+    public Object from(long timestamp,
+                       int interval,
+                       List<String> dimensions,
+                       MongoClientCompositeMetric metric) {
         return null;
     }
 

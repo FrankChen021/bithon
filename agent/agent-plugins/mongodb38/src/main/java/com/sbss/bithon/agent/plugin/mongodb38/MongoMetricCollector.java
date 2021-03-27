@@ -95,7 +95,7 @@ public class MongoMetricCollector implements IMetricCollector {
         for (Map.Entry<String, MongoClientCompositeMetric> entry : metricMap.entrySet()) {
             metricMap.compute(entry.getKey(), (k, v) -> getAndRemove(v));
 
-            messages.add(messageConverter.from(timestamp, interval, this.metricSet));
+            messages.add(messageConverter.from(timestamp, interval, dimensions, this.metricSet));
         }
         return messages;
     }
