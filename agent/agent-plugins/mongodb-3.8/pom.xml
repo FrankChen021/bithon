@@ -8,7 +8,7 @@
     <version>1.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-  <artifactId>agent-plugin-mongodb38</artifactId>
+  <artifactId>agent-plugin-mongodb-3.8</artifactId>
   <modelVersion>4.0.0</modelVersion>
 
   <dependencies>
@@ -19,7 +19,7 @@
     <dependency>
       <groupId>org.mongodb</groupId>
       <artifactId>mongo-java-driver</artifactId>
-      <version>3.8.2</version>
+      <version>3.8.0</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
@@ -33,7 +33,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.mongodb38.MongoDbPlugin</Plugin-Class>
+              <Plugin-Class>com.sbss.bithon.agent.plugin.mongodb38.MongoDb38Plugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>

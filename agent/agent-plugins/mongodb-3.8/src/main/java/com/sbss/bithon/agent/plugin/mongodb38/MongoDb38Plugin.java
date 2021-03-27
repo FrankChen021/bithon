@@ -14,7 +14,7 @@ import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor
 /**
  * @author frankchen
  */
-public class MongoDbPlugin extends AbstractPlugin {
+public class MongoDb38Plugin extends AbstractPlugin {
 
     @Override
     public List<IPluginInstallationChecker> getCheckers() {
