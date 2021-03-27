@@ -8,7 +8,7 @@ import com.sbss.bithon.agent.core.metric.model.Timer;
  * @author frank.chen021@outlook.com
  * @date 2021/1/4 11:35 下午
  */
-public class MongoClientCompositeMetric implements ICompositeMetric {
+public class MongoDbCompositeMetric implements ICompositeMetric {
     Timer responseTime = new Timer();
     Sum callCount = new Sum();
     Sum exceptionCount = new Sum();

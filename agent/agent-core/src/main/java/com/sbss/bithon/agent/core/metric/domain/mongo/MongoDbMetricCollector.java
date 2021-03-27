@@ -1,19 +1,18 @@
-package com.sbss.bithon.agent.plugin.mongodb;
+package com.sbss.bithon.agent.core.metric.domain.mongo;
 
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IntervalMetricCollector;
-import com.sbss.bithon.agent.core.metric.domain.mongo.MongoClientCompositeMetric;
 
 import java.util.List;
 
 /**
  * @author frankchen
  */
-public class MongoDbMetricCollector extends IntervalMetricCollector<MongoClientCompositeMetric> {
+public class MongoDbMetricCollector extends IntervalMetricCollector<MongoDbCompositeMetric> {
 
     @Override
-    protected MongoClientCompositeMetric newMetrics() {
-        return new MongoClientCompositeMetric();
+    protected MongoDbCompositeMetric newMetrics() {
+        return new MongoDbCompositeMetric();
     }
 
     @Override
@@ -21,7 +20,7 @@ public class MongoDbMetricCollector extends IntervalMetricCollector<MongoClientC
                                int interval,
                                long timestamp,
                                List<String> dimensions,
-                               MongoClientCompositeMetric metric) {
+                               MongoDbCompositeMetric metric) {
         return messageConverter.from(timestamp, interval, dimensions, metric);
     }
 }

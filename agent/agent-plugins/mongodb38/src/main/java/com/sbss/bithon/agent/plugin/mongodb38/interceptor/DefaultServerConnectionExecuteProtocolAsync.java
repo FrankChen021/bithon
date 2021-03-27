@@ -1,15 +1,18 @@
-package com.sbss.bithon.agent.plugin.mongodb.intercetpor;
+package com.sbss.bithon.agent.plugin.mongodb38.interceptor;
 
 import com.mongodb.async.SingleResultCallback;
+import com.mongodb.internal.connection.CommandProtocol;
+import com.mongodb.internal.connection.DefaultServerConnection;
+import com.mongodb.internal.connection.LegacyProtocol;
+import com.mongodb.session.SessionContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
-import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
 
 /**
  * @author frankchen
- * @date 2021-03-27 16:30
  */
 public class DefaultServerConnectionExecuteProtocolAsync extends AbstractInterceptor {
     private MongoDbMetricCollector metricCollector;
@@ -17,18 +20,17 @@ public class DefaultServerConnectionExecuteProtocolAsync extends AbstractInterce
     @Override
     public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("mongo-3.x-metrics", MongoDbMetricCollector.class);
+                                                .getOrRegister("mongodb-3.8-metrics", MongoDbMetricCollector.class);
         return true;
     }
 
     /**
-     * {@link com.mongodb.connection.DefaultServerConnection#executeProtocolAsync(com.mongodb.connection.Protocol, com.mongodb.async.SingleResultCallback)}
+     * {@link DefaultServerConnection#executeProtocolAsync(LegacyProtocol, SingleResultCallback)}
+     * {@link DefaultServerConnection#executeProtocolAsync(CommandProtocol, SessionContext, SingleResultCallback)}
      */
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
-        //TODO: wrap callback and exception callback
-        SingleResultCallback callback = (SingleResultCallback) aopContext.getArgs()[1];
-
+        // TODO: WRAP callback
         return super.onMethodEnter(aopContext);
     }
 }

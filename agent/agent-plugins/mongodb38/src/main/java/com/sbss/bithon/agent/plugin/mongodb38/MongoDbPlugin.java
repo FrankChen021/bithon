@@ -27,41 +27,37 @@ public class MongoDbPlugin extends AbstractPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             //request statistics
-
             forClass("com.mongodb.internal.connection.DefaultServerConnection")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("executeProtocol")
-                                                   .to(MongoDbPlugin.class.getPackage()
-                                                       + ".ServerConnectionInterceptor"),
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.DefaultServerConnectionExecuteProtocol"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("executeProtocolAsync")
-                                                   .to(MongoDbPlugin.class.getPackage()
-                                                       + ".ServerConnectionInterceptor")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.DefaultServerConnectionExecuteProtocolAsync")
                 ),
 
-
             //request bytes statistics
+            // By contrast to 3.4, ConnectionMessageSentEvent & ConnectionMessageReceivedEvent are removed
+            // So we have to intercept the underlying StreamConnection to get the message size
             forClass("com.mongodb.internal.connection.InternalStreamConnection")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("sendMessage")
-                                                   .to(MongoDbPlugin.class.getPackage()
-                                                       + ".MongoDbByteHandlerInterceptor"),
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionSendMessage"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("sendMessageAsync")
-                                                   .to(MongoDbPlugin.class.getPackage()
-                                                       + ".MongoDbByteHandlerInterceptor"),
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionSendMessageAsync"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("receiveMessage")
-                                                   .to(MongoDbPlugin.class.getPackage()
-                                                       + ".MongoDbByteHandlerInterceptor")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionReceiveMessage"),
 
-                    //TODO: how to count on asynchronous operations ???
-                    //receiveMessageAsync
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("receiveMessageAsync")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionReceiveMessageAsync")
                 )
         );
     }

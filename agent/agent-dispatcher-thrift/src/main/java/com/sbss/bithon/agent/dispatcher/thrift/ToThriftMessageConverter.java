@@ -6,7 +6,7 @@ import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.http.HttpClientCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
-import com.sbss.bithon.agent.core.metric.domain.mongo.MongoClientCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
@@ -109,7 +109,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     public Object from(long timestamp,
                        int interval,
                        List<String> dimensions,
-                       MongoClientCompositeMetric metric) {
+                       MongoDbCompositeMetric metric) {
         return null;
     }
 

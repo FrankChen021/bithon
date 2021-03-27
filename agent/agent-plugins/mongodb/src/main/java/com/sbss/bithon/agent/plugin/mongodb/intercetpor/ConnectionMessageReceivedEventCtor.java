@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.plugin.mongodb.intercetpor;
 import com.mongodb.connection.ConnectionId;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.plugin.mongodb.MongoDbMetricCollector;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
 
 /**
  * @author frankchen
