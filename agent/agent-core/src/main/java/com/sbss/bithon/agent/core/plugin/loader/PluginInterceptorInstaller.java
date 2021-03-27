@@ -6,6 +6,7 @@ import com.sbss.bithon.agent.core.plugin.aop.MethodAop;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
+import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
@@ -49,7 +50,7 @@ public class PluginInterceptorInstaller {
     public void install(List<AbstractPlugin> plugins) {
         for (AbstractPlugin plugin : plugins) {
 
-            instrumentClass(agentBuilder, inst, plugin.getClassInstrumentations());
+            transformToBithonClass(agentBuilder, inst, plugin.getBithonClassDescriptor());
 
             for (InterceptorDescriptor interceptor : plugin.getInterceptors()) {
                 installInterceptor(agentBuilder,
@@ -60,30 +61,35 @@ public class PluginInterceptorInstaller {
         }
     }
 
-    private void instrumentClass(AgentBuilder agentBuilder, Instrumentation inst, String[] classList) {
-        if (classList == null || classList.length == 0) {
+    private void transformToBithonClass(AgentBuilder agentBuilder,
+                                        Instrumentation inst,
+                                        BithonClassDescriptor descriptor) {
+        if (descriptor == null) {
             return;
         }
 
-        agentBuilder
-            .type(ElementMatchers.namedOneOf(classList))
-            .transform((DynamicType.Builder<?> builder,
-                        TypeDescription typeDescription,
-                        ClassLoader classLoader,
-                        JavaModule javaModule) -> {
-                if (typeDescription.isAssignableTo(IBithonObject.class)) {
-                    return builder;
-                }
+        agentBuilder = agentBuilder.type(descriptor.getClassMatcher())
+                                   .transform((DynamicType.Builder<?> builder,
+                                               TypeDescription typeDescription,
+                                               ClassLoader classLoader,
+                                               JavaModule javaModule) -> {
+                                       if (typeDescription.isAssignableTo(IBithonObject.class)) {
+                                           return builder;
+                                       }
 
-                builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
-                                              Object.class,
-                                              ACC_PRIVATE | ACC_VOLATILE)
-                                 .implement(IBithonObject.class)
-                                 .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
+                                       builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
+                                                                     Object.class,
+                                                                     ACC_PRIVATE | ACC_VOLATILE)
+                                                        .implement(IBithonObject.class)
+                                                        .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
 
-                return builder;
-            })
-            .installOn(inst);
+                                       return builder;
+                                   });
+
+        if (descriptor.isDebug()) {
+            agentBuilder = agentBuilder.with(new TransformationDebugger());
+        }
+        agentBuilder.installOn(inst);
     }
 
     private void installInterceptor(AgentBuilder agentBuilder,
@@ -112,7 +118,7 @@ public class PluginInterceptorInstaller {
                 }
 
                 //
-                // Class instrumentation
+                // Transform target class to type of IBithonObject
                 //
                 if (!typeDescription.isAssignableTo(IBithonObject.class)) {
                     builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
