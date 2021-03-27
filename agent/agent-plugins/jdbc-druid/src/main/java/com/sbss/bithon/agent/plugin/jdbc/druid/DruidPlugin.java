@@ -22,7 +22,6 @@ public class DruidPlugin extends AbstractPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("com.alibaba.druid.pool.DruidDataSource")
-                .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("init")
