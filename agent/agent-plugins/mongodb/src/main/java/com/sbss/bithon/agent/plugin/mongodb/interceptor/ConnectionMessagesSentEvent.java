@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.plugin.mongodb.intercetpor;
+package com.sbss.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.connection.ConnectionId;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
@@ -9,7 +9,7 @@ import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
  * @author frankchen
  * @date 2021-03-27 16:30
  */
-public class ConnectionMessageReceivedEvent {
+public class ConnectionMessagesSentEvent {
     public static class Constructor extends AbstractInterceptor {
         private MongoDbMetricCollector metricCollector;
 
@@ -22,17 +22,16 @@ public class ConnectionMessageReceivedEvent {
 
         /**
          * @param args final ConnectionId connectionId
-         *             final int responseTo
+         *             final int requestId
          *             final int size
          */
         @Override
         public void onConstruct(Object constructedObject, Object[] args) {
             ConnectionId connectionId = (ConnectionId) args[0];
-            int bytesIn = (int) args[2];
+            int bytesOut = (int) args[2];
 
-            // TODO: if there's no protocol is being executed, are there messages ?
             metricCollector.getOrCreateMetric(connectionId.getServerId().getAddress().toString())
-                           .addBytesIn(bytesIn);
+                           .addBytesOut(bytesOut);
         }
     }
 }

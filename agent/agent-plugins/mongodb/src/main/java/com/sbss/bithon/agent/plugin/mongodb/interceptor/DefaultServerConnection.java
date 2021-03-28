@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.plugin.mongodb.intercetpor;
+package com.sbss.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.connection.Connection;
