@@ -26,6 +26,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMes
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MemoryEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MetaspaceEntity;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MongoDbMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.NonHeapEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
@@ -110,7 +111,21 @@ public class ToThriftMessageConverter implements IMessageConverter {
                        int interval,
                        List<String> dimensions,
                        MongoDbCompositeMetric metric) {
-        return null;
+        MongoDbMetricMessage message = new MongoDbMetricMessage();
+        message.setInterval(interval);
+        message.setTimestamp(timestamp);
+        message.setServer(dimensions.get(0));
+        message.setDatabase(dimensions.get(1));
+        message.setCollection(dimensions.get(2));
+        message.setCommand(dimensions.get(3));
+        message.setResponseTime(metric.getResponseTime().getSum().get());
+        message.setMaxResponseTime(metric.getResponseTime().getMax().get());
+        message.setMinResponseTime(metric.getResponseTime().getMin().get());
+        message.setCallCount(metric.getCallCount().get());
+        message.setExceptionCount(metric.getExceptionCount().get());
+        message.setRequestBytes(metric.getRequestBytes().get());
+        message.setResponseBytes(metric.getResponseBytes().get());
+        return message;
     }
 
     @Override
