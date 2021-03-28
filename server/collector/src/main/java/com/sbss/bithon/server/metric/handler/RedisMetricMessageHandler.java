@@ -26,8 +26,8 @@ public class RedisMetricMessageHandler extends AbstractMetricMessageHandler {
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
-              2,
-              20,
+              1,
+              5,
               Duration.ofSeconds(60),
               4096);
     }

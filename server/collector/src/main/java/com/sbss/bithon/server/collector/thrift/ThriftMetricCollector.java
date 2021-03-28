@@ -6,6 +6,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMe
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MongoDbMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
@@ -97,5 +98,10 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
     @Override
     public void sendSql(MessageHeader header, List<SqlMetricMessage> messages) {
         messages.forEach((message) -> metricSink.process("sql-metrics", GenericMetricMessage.of(header, message)));
+    }
+
+    @Override
+    public void sendMongoDb(MessageHeader header, List<MongoDbMetricMessage> messages) {
+        messages.forEach((message) -> metricSink.process("mongodb-metrics", GenericMetricMessage.of(header, message)));
     }
 }
