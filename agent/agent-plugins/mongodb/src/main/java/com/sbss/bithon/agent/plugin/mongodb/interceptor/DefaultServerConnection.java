@@ -8,6 +8,10 @@ import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
+import com.sbss.bithon.agent.core.tracing.context.SpanKind;
+import com.sbss.bithon.agent.core.tracing.context.TraceContext;
+import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -32,7 +36,43 @@ public class DefaultServerConnection {
         }
 
         @Override
+        public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+            TraceContext traceContext = TraceContextHolder.get();
+            if (traceContext == null) {
+                return InterceptionDecision.CONTINUE;
+            }
+
+            TraceSpan parentSpan = traceContext.currentSpan();
+            if (parentSpan == null) {
+                return InterceptionDecision.CONTINUE;
+            }
+
+            // create a span and save it in user-context
+            aopContext.setUserContext(parentSpan.newChildSpan("mongodb")
+                                                .clazz(aopContext.getTargetClass())
+                                                .method(aopContext.getMethod())
+                                                .kind(SpanKind.CLIENT)
+                                                .start());
+
+            return InterceptionDecision.CONTINUE;
+        }
+
+        @Override
         public void onMethodLeave(AopContext aopContext) {
+            //
+            // trace
+            //
+            TraceSpan span = aopContext.castUserContextAs();
+            if ( span != null ) {
+                if ( aopContext.hasException() ) {
+                    span.tag("exception", aopContext.getException().toString());
+                }
+                span.finish();
+            }
+
+            //
+            // metric
+            //
             Object protocol = aopContext.getArgs()[0];
             if (!(protocol instanceof IBithonObject)) {
                 log.warn("Unknown Command", new RuntimeException());
@@ -52,7 +92,6 @@ public class DefaultServerConnection {
                                               command.getCollection(),
                                               command.getCommand())
                            .add(aopContext.getCostTime(), exceptionCount);
-
         }
     }
 
