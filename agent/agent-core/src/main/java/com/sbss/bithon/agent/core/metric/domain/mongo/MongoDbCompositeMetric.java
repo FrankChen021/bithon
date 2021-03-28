@@ -12,8 +12,8 @@ public class MongoDbCompositeMetric implements ICompositeMetric {
     Timer responseTime = new Timer();
     Sum callCount = new Sum();
     Sum exceptionCount = new Sum();
-    Sum bytesIn = new Sum();
-    Sum bytesOut = new Sum();
+    Sum responseBytes = new Sum();
+    Sum requestBytes = new Sum();
 
     public void add(long responseTime, int exceptionCount) {
         this.callCount.incr();
@@ -22,11 +22,11 @@ public class MongoDbCompositeMetric implements ICompositeMetric {
     }
 
     public void addBytesIn(int bytesIn) {
-        this.bytesIn.update(bytesIn);
+        this.responseBytes.update(bytesIn);
     }
 
     public void addBytesOut(int bytesOut) {
-        this.bytesOut.update(bytesOut);
+        this.requestBytes.update(bytesOut);
     }
 
     public Timer getResponseTime() {
@@ -41,11 +41,11 @@ public class MongoDbCompositeMetric implements ICompositeMetric {
         return exceptionCount;
     }
 
-    public Sum getBytesIn() {
-        return bytesIn;
+    public Sum getResponseBytes() {
+        return responseBytes;
     }
 
-    public Sum getBytesOut() {
-        return bytesOut;
+    public Sum getRequestBytes() {
+        return requestBytes;
     }
 }
