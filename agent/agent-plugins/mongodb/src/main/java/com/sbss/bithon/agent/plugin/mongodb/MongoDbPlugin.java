@@ -22,13 +22,13 @@ public class MongoDbPlugin extends AbstractPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("executeProtocol",
                                                                     "com.mongodb.connection.Protocol<T>")
-                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.DefaultServerConnectionExecuteProtocol"),
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.DefaultServerConnection$ExecuteProtocol"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("executeProtocolAsync",
                                                                     "com.mongodb.connection.Protocol<T>",
                                                                     "com.mongodb.async.SingleResultCallback<T>")
-                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.DefaultServerConnectionExecuteProtocolAsync")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.DefaultServerConnection$ExecuteProtocolAsync")
                 ),
 
             forClass("com.mongodb.event.ConnectionMessagesSentEvent")
@@ -37,7 +37,7 @@ public class MongoDbPlugin extends AbstractPlugin {
                                                    .onConstructor("com.mongodb.connection.ConnectionId",
                                                                   "int",
                                                                   "int")
-                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.ConnectionMessagesSentEventCtor")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.ConnectionMessagesSentEvent$Constructor")
                 ),
 
             forClass("com.mongodb.event.ConnectionMessageReceivedEvent")
@@ -46,7 +46,77 @@ public class MongoDbPlugin extends AbstractPlugin {
                                                    .onConstructor("com.mongodb.connection.ConnectionId",
                                                                   "int",
                                                                   "int")
-                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.ConnectionMessageReceivedEventCtor")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.ConnectionMessageReceivedEvent$Constructor")
+                ),
+
+            forClass("com.mongodb.connection.CommandProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.Protocol$CommandProtocol")
+                ),
+
+            forClass("com.mongodb.connection.DeleteCommandProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.Protocol$DeleteCommandProtocol")
+                ),
+
+            forClass("com.mongodb.connection.DeleteProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.Protocol$DeleteProtocol")
+                ),
+
+            forClass("com.mongodb.connection.GetMoreProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.Protocol$GetMoreProtocol")
+                ),
+
+            forClass("com.mongodb.connection.InsertCommandProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.Protocol$InsertCommandProtocol")
+                ),
+
+            forClass("com.mongodb.connection.InsertProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.Protocol$InsertProtocol")
+                ),
+
+            forClass("com.mongodb.connection.KillCursorProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.Protocol$KillCursorProtocol")
+                ),
+
+            forClass("com.mongodb.connection.QueryProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.Protocol$QueryProtocol")
+                ),
+
+            forClass("com.mongodb.connection.UpdateCommandProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.Protocol$UpdateCommandProtocol")
+                ),
+
+            forClass("com.mongodb.connection.UpdateProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.Protocol$UpdateProtocol")
                 )
         );
     }
