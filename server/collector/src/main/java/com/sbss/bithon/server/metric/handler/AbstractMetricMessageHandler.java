@@ -36,7 +36,7 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
                                         int maxPoolSize,
                                         Duration keepAliveTime,
                                         int queueSize) throws IOException {
-        super(corePoolSize, maxPoolSize, keepAliveTime, queueSize);
+        super(dataSourceName, corePoolSize, maxPoolSize, keepAliveTime, queueSize);
 
         this.schema = dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
         this.metaStorage = metaStorage;
@@ -58,7 +58,7 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
     @Override
     final protected void onMessage(GenericMetricMessage metric) {
         try {
-            if ( beforeProcess(metric) ) {
+            if (beforeProcess(metric)) {
                 process(metric);
             }
         } catch (Exception e) {

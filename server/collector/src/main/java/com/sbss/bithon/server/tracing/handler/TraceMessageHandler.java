@@ -19,7 +19,8 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<List<T
     final ITraceWriter traceWriter;
 
     public TraceMessageHandler(ITraceStorage traceStorage) {
-        super(2,
+        super("trace",
+              2,
               10,
               Duration.ofMinutes(1),
               2048);
