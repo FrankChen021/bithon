@@ -2,6 +2,8 @@ package com.sbss.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.connection.Connection;
+import com.sbss.bithon.agent.core.context.AgentContext;
+import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
@@ -25,7 +27,7 @@ public class DefaultServerConnection {
     /**
      * {@link com.mongodb.connection.DefaultServerConnection#executeProtocol(com.mongodb.connection.Protocol)}
      */
-    public abstract static class ExecuteProtocol extends AbstractInterceptor {
+    public static class ExecuteProtocol extends AbstractInterceptor {
         private MongoDbMetricCollector metricCollector;
 
         @Override
@@ -45,6 +47,19 @@ public class DefaultServerConnection {
             TraceSpan parentSpan = traceContext.currentSpan();
             if (parentSpan == null) {
                 return InterceptionDecision.CONTINUE;
+            }
+
+            //
+            // set command to thread context so that the size of sent/received could be associated with the command
+            //
+            Object protocol = aopContext.getArgs()[0];
+            if ((protocol instanceof IBithonObject)) {
+                IBithonObject bithonObject = (IBithonObject) protocol;
+                MongoCommand command = (MongoCommand) bithonObject.getInjectedObject();
+
+                InterceptorContext.set("mongo-3.x-command", command);
+            } else {
+                InterceptorContext.set("mongo-3.x-command", null);
             }
 
             // create a span and save it in user-context

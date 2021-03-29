@@ -18,7 +18,7 @@ import java.util.concurrent.Callable;
  */
 public class MethodAop {
 
-    private static IAopLogger aopLogger = AopLogger.getLogger(MethodAop.class);
+    private static final IAopLogger aopLogger = AopLogger.getLogger(MethodAop.class);
 
     private final AbstractInterceptor interceptor;
 

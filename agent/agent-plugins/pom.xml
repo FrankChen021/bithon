@@ -142,7 +142,23 @@
       <artifactId>agent-plugin-springweb</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>${project.parent.groupId}</groupId>
+      <artifactId>agent-plugin-mongodb</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.parent.groupId}</groupId>
+      <artifactId>agent-plugin-mongodb-3.8</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+
     <!-- end-->
+
+
+
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>

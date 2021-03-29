@@ -18,6 +18,7 @@ public class MongoDbPlugin extends AbstractPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("com.mongodb.connection.DefaultServerConnection")
+                .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("executeProtocol",
@@ -31,7 +32,21 @@ public class MongoDbPlugin extends AbstractPlugin {
                                                    .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.DefaultServerConnection$ExecuteProtocolAsync")
                 ),
 
+            forClass("com.mongodb.connection.CommandHelper")
+                .debug()
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("executeCommand")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.CommandHelper$ExecuteCommand"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("executeCommandAsync")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.CommandHelper$ExecuteCommandAsync")
+                ),
+
+
             forClass("com.mongodb.event.ConnectionMessagesSentEvent")
+                .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor("com.mongodb.connection.ConnectionId",
@@ -41,6 +56,7 @@ public class MongoDbPlugin extends AbstractPlugin {
                 ),
 
             forClass("com.mongodb.event.ConnectionMessageReceivedEvent")
+                .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor("com.mongodb.connection.ConnectionId",
