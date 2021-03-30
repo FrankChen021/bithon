@@ -4,6 +4,7 @@ import com.mongodb.connection.ServerId;
 import com.mongodb.connection.StreamFactory;
 import com.mongodb.event.ConnectionListener;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
 
 /**
@@ -13,13 +14,13 @@ import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
 public class InternalStreamConnection {
 
     /**
-     * {@link com.mongodb.connection.InternalStreamConnection#InternalStreamConnection(ServerId, StreamFactory, InternalConnectionInitializer, ConnectionListener)}
+     * {@link com.mongodb.connection.InternalStreamConnection#InternalStreamConnection(ServerId, StreamFactory, com.mongodb.connection.InternalConnectionInitializer, ConnectionListener)}
      */
     public static class Constructor extends AbstractInterceptor {
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) throws Exception {
-            IBithonObject bithonObject = (IBithonObject) constructedObject;
-            bithonObject.setInjectedObject(((ServerId)args[0]).getAddress().toString());
+        public void onConstruct(AopContext aopContext) {
+            IBithonObject bithonObject = aopContext.castTargetAs();
+            bithonObject.setInjectedObject(((ServerId)aopContext.getArgAs(0)).getAddress().toString());
         }
     }
 }

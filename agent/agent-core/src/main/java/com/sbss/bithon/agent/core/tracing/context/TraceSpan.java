@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.core.tracing.context;
 
 import shaded.org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Executable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -108,7 +108,7 @@ public class TraceSpan {
         return method;
     }
 
-    public TraceSpan method(Method method) {
+    public TraceSpan method(Executable method) {
         this.method = method.getName();
         return this;
     }

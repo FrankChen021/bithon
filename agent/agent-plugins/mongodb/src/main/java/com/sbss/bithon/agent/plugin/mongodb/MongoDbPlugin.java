@@ -23,9 +23,10 @@ public class MongoDbPlugin extends AbstractPlugin {
              * one way is to turn it into IBithonObject and cache the value we need in the injected object
              */
             forClass("com.mongodb.connection.InternalStreamConnection")
+                .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor()
+                                                   .onAllConstructor()
                                                    .to("com.sbss.bithon.agent.plugin.mongodb.interceptor.InternalStreamConnection$Constructor")),
 
             forClass("com.mongodb.connection.DefaultServerConnection")

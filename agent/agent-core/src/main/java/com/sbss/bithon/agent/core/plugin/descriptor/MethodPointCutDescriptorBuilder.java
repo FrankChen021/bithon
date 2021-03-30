@@ -69,6 +69,9 @@ public class MethodPointCutDescriptorBuilder {
     }
 
     public MethodPointCutDescriptorBuilder onConstructor(String... args) {
+        if ( args == null ) {
+            throw new IllegalArgumentException("args should not be null");
+        }
         this.method = ElementMatchers.isConstructor();
         this.argsMatcher = MatcherUtils.createArgumentsMatcher(debug, args);
         this.targetMethodType = TargetMethodType.CONSTRUCTOR;

@@ -4,10 +4,12 @@ package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller;
 import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
+import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
 import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import shaded.net.bytebuddy.implementation.bind.annotation.This;
 import shaded.net.bytebuddy.pool.TypePool;
 
+import java.lang.reflect.Constructor;
 import java.util.Map;
 
 
@@ -25,14 +27,16 @@ public class BootstrapConstructorAop {
     private static IAopLogger log;
 
     @RuntimeType
-    public static void onConstruct(@This Object obj,
+    public static void onConstruct(@Origin Class<?> targetClass,
+                                   @Origin Constructor<?> constructor,
+                                   @This Object targetObject,
                                    @AllArguments Object[] args) {
         try {
             AbstractInterceptor interceptor = ensureInterceptor();
             if (interceptor == null) {
                 return;
             }
-            interceptor.onConstruct(obj, args);
+            interceptor.onConstruct(new AopContext(targetClass, constructor, targetObject, args));
         } catch (Throwable e) {
             log.error(String.format("Failed to invoke onConstruct interceptor[%s]",
                                     INTERCEPTOR_CLASS_NAME),

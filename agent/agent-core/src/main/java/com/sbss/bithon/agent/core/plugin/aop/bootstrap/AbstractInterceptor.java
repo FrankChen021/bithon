@@ -17,8 +17,7 @@ public abstract class AbstractInterceptor {
         return true;
     }
 
-    public void onConstruct(Object constructedObject,
-                            Object[] args) throws Exception {
+    public void onConstruct(AopContext aopContext) throws Exception {
     }
 
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {

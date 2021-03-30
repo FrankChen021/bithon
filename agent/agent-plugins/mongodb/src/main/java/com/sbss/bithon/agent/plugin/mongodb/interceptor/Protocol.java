@@ -3,6 +3,7 @@ package com.sbss.bithon.agent.plugin.mongodb.interceptor;
 import com.mongodb.MongoNamespace;
 import com.mongodb.WriteConcern;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
 import org.bson.BsonDocument;
 import org.bson.FieldNameValidator;
@@ -16,13 +17,13 @@ import java.util.List;
  */
 public class Protocol {
     /**
-     * {@link com.mongodb.connection.CommandProtocol#CommandProtocol(String, BsonDocument, FieldNameValidator, Decoder)}
+     * {@link com.mongodb.connection.CommandProtocol#CommandProtocol(String database, BsonDocument, FieldNameValidator, Decoder)}
      */
     public static class CommandProtocol extends AbstractInterceptor {
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
-            IBithonObject obj = (IBithonObject) constructedObject;
-            obj.setInjectedObject(new MongoCommand((String) args[0],
+        public void onConstruct(AopContext aopContext) {
+            IBithonObject obj = aopContext.castTargetAs();
+            obj.setInjectedObject(new MongoCommand(aopContext.getArgAs(0),
                                                    MongoNamespace.COMMAND_COLLECTION_NAME,
                                                    "Command"));
         }
@@ -33,9 +34,9 @@ public class Protocol {
      */
     public static class DeleteCommandProtocol extends AbstractInterceptor {
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
-            MongoNamespace ns = (MongoNamespace) args[0];
-            IBithonObject bithonObject = (IBithonObject) constructedObject;
+        public void onConstruct(AopContext aopContext) {
+            MongoNamespace ns = aopContext.getArgAs(0);
+            IBithonObject bithonObject = aopContext.castTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
                                                             ns.getCollectionName(),
                                                             "DeleteCommand"));
@@ -47,9 +48,9 @@ public class Protocol {
      */
     public static class InsertCommandProtocol extends AbstractInterceptor {
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
-            MongoNamespace ns = (MongoNamespace) args[0];
-            IBithonObject bithonObject = (IBithonObject) constructedObject;
+        public void onConstruct(AopContext aopContext) {
+            MongoNamespace ns = aopContext.getArgAs(0);
+            IBithonObject bithonObject = aopContext.castTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
                                                             ns.getCollectionName(),
                                                             "InsertCommand"));
@@ -61,9 +62,9 @@ public class Protocol {
      */
     public static class UpdateCommandProtocol extends AbstractInterceptor {
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
-            MongoNamespace ns = (MongoNamespace) args[0];
-            IBithonObject bithonObject = (IBithonObject) constructedObject;
+        public void onConstruct(AopContext aopContext) {
+            MongoNamespace ns = aopContext.getArgAs(0);
+            IBithonObject bithonObject = aopContext.castTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
                                                             ns.getCollectionName(),
                                                             "UpdateCommand"));
@@ -75,9 +76,9 @@ public class Protocol {
      */
     public static class InsertProtocol extends AbstractInterceptor {
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
-            MongoNamespace ns = (MongoNamespace) args[0];
-            IBithonObject bithonObject = (IBithonObject) constructedObject;
+        public void onConstruct(AopContext aopContext) {
+            MongoNamespace ns = aopContext.getArgAs(0);
+            IBithonObject bithonObject = aopContext.castTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
                                                             ns.getCollectionName(),
                                                             "Insert"));
@@ -90,9 +91,9 @@ public class Protocol {
      */
     public static class QueryProtocol extends AbstractInterceptor {
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
-            MongoNamespace ns = (MongoNamespace) args[0];
-            IBithonObject bithonObject = (IBithonObject) constructedObject;
+        public void onConstruct(AopContext aopContext) {
+            MongoNamespace ns = aopContext.getArgAs(0);
+            IBithonObject bithonObject = aopContext.castTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
                                                             ns.getCollectionName(),
                                                             "Query"));
@@ -104,9 +105,9 @@ public class Protocol {
      */
     public static class DeleteProtocol extends AbstractInterceptor {
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
-            MongoNamespace ns = (MongoNamespace) args[0];
-            IBithonObject bithonObject = (IBithonObject) constructedObject;
+        public void onConstruct(AopContext aopContext) {
+            MongoNamespace ns = aopContext.getArgAs(0);
+            IBithonObject bithonObject = aopContext.castTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
                                                             ns.getCollectionName(),
                                                             "Delete"));
@@ -118,9 +119,9 @@ public class Protocol {
      */
     public static class UpdateProtocol extends AbstractInterceptor {
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
-            MongoNamespace ns = (MongoNamespace) args[0];
-            IBithonObject bithonObject = (IBithonObject) constructedObject;
+        public void onConstruct(AopContext aopContext) {
+            MongoNamespace ns = aopContext.getArgAs(0);
+            IBithonObject bithonObject = aopContext.castTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
                                                             ns.getCollectionName(),
                                                             "Update"));
@@ -132,9 +133,9 @@ public class Protocol {
      */
     public static class GetMoreProtocol extends AbstractInterceptor {
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
-            MongoNamespace ns = (MongoNamespace) args[0];
-            IBithonObject bithonObject = (IBithonObject) constructedObject;
+        public void onConstruct(AopContext aopContext) {
+            MongoNamespace ns = aopContext.getArgAs(0);
+            IBithonObject bithonObject = aopContext.castTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
                                                             ns.getCollectionName(),
                                                             "GetMore"));
@@ -146,9 +147,9 @@ public class Protocol {
      */
     public static class KillCursorProtocol extends AbstractInterceptor {
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
-            MongoNamespace ns = (MongoNamespace) args[0];
-            IBithonObject bithonObject = (IBithonObject) constructedObject;
+        public void onConstruct(AopContext aopContext) {
+            MongoNamespace ns = aopContext.getArgAs(0);
+            IBithonObject bithonObject = aopContext.castTargetAs();
             bithonObject.setInjectedObject(new MongoCommand(ns.getDatabaseName(),
                                                             ns.getCollectionName(),
                                                             "KillCursor"));

@@ -15,7 +15,7 @@ final public class AroundMethodAop {
                                    Object target,
                                    Method method,
                                    Object[] args) throws Exception {
-        AopContext context = new AopContext(targetClass, target, method, args);
+        AopContext context = new AopContext(targetClass, method, target, args);
 
         //
         // before execution of intercepted method

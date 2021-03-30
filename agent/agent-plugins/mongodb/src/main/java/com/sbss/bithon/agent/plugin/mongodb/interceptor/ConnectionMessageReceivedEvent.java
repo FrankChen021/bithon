@@ -5,6 +5,7 @@ import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -16,7 +17,7 @@ public class ConnectionMessageReceivedEvent {
     private static final Logger log = LoggerFactory.getLogger(ConnectionMessageReceivedEvent.class);
 
     /**
-     * {@link com.mongodb.event.ConnectionMessagesSentEvent#ConnectionMessagesSentEvent(ConnectionId, int, int)}
+     * {@link com.mongodb.event.ConnectionMessagesSentEvent#ConnectionMessagesSentEvent(ConnectionId, int, int size)}
      */
     public static class Constructor extends AbstractInterceptor {
         private MongoDbMetricCollector metricCollector;
@@ -28,21 +29,16 @@ public class ConnectionMessageReceivedEvent {
             return true;
         }
 
-        /**
-         * @param args final ConnectionId connectionId
-         *             final int responseTo
-         *             final int size
-         */
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
+        public void onConstruct(AopContext aopContext) {
             MongoCommand mongoCommand = InterceptorContext.getAs("mongo-3.x-command");
             if ( mongoCommand == null ) {
                 log.warn("Don' worry, the stack is dumped to help analyze the problem. No real exception happened.", new RuntimeException());
                 return;
             }
 
-            ConnectionId connectionId = (ConnectionId) args[0];
-            int bytesIn = (int) args[2];
+            ConnectionId connectionId = aopContext.getArgAs(0);
+            int bytesIn = aopContext.getArgAs(2);
 
             // TODO: if there's no protocol is being executed, are there messages ?
             metricCollector.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),

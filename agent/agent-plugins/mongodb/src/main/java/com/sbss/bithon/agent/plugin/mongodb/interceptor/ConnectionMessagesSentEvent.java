@@ -5,6 +5,7 @@ import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -25,13 +26,8 @@ public class ConnectionMessagesSentEvent {
             return true;
         }
 
-        /**
-         * @param args final ConnectionId connectionId
-         *             final int requestId
-         *             final int size
-         */
         @Override
-        public void onConstruct(Object constructedObject, Object[] args) {
+        public void onConstruct(AopContext aopContext) {
             MongoCommand mongoCommand = InterceptorContext.getAs("mongo-3.x-command");
             if (mongoCommand == null) {
                 log.warn("Don' worry, the stack is dumped to help analyze the problem. No real exception happened.",
@@ -39,8 +35,8 @@ public class ConnectionMessagesSentEvent {
                 return;
             }
 
-            ConnectionId connectionId = (ConnectionId) args[0];
-            int bytesOut = (int) args[2];
+            ConnectionId connectionId = aopContext.getArgAs(0);
+            int bytesOut = aopContext.getArgAs(2);
 
             metricCollector.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
                                               mongoCommand.getDatabase())

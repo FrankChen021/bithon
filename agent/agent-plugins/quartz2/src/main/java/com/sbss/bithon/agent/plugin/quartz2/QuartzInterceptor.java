@@ -3,6 +3,7 @@ package com.sbss.bithon.agent.plugin.quartz2;
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
 import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import org.quartz.impl.SchedulerRepository;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -45,9 +46,8 @@ public class QuartzInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onConstruct(Object constructedObject,
-                            Object[] args) throws Exception {
-        quartzMonitor = Quartz2Monitor.getQuartz2MonitorInstance((SchedulerRepository) constructedObject);
+    public void onConstruct(AopContext aopContext) {
+        quartzMonitor = Quartz2Monitor.getQuartz2MonitorInstance((SchedulerRepository) aopContext.castTargetAs());
     }
 
 //    private QuartzEntity buildJobCountsEntity() throws SchedulerException {

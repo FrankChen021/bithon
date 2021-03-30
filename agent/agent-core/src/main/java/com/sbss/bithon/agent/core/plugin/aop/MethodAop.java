@@ -27,17 +27,17 @@ public class MethodAop {
     }
 
     @RuntimeType
-    public Object intercept(@Origin Class<?> clazz,
+    public Object intercept(@Origin Class<?> targetClass,
+                            @Origin Method targetMethod,
                             @Morph ISuperMethod superMethod,
-                            @This(optional = true) Object target,
-                            @Origin Method method,
+                            @This(optional = true) Object targetObject,
                             @AllArguments Object[] args) throws Exception {
         return AroundMethodAop.intercept(aopLogger,
                                          interceptor,
-                                         clazz,
+                                         targetClass,
                                          superMethod,
-                                         target,
-                                         method,
+                                         targetObject,
+                                         targetMethod,
                                          args);
     }
 }

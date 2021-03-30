@@ -10,6 +10,10 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 
 import static java.io.File.separator;
 
@@ -19,6 +23,7 @@ import static java.io.File.separator;
 public class TransformationDebugger extends AgentBuilder.Listener.Adapter {
     private static final Logger log = LoggerFactory.getLogger(TransformationDebugger.class);
 
+    private boolean cleaned = false;
     private final File classRootPath;
 
     public TransformationDebugger() {
@@ -26,7 +31,12 @@ public class TransformationDebugger extends AgentBuilder.Listener.Adapter {
                                       + separator
                                       + AgentContext.TMP_DIR
                                       + separator
-                                      + "debugging");
+                                      + "classes");
+
+        // clean up directory before startup
+        // this is convenient for debugging
+        cleanup();
+
         try {
             if (!classRootPath.exists()) {
                 classRootPath.mkdir();
@@ -61,5 +71,20 @@ public class TransformationDebugger extends AgentBuilder.Listener.Adapter {
                         boolean b,
                         Throwable throwable) {
         log.error(String.format("Failed to transform %s", s), throwable);
+    }
+
+    synchronized private void cleanup() {
+        if (cleaned) {
+            return;
+        }
+
+        try {
+            Files.walk(classRootPath.toPath())
+                 .sorted(Comparator.reverseOrder())
+                 .map(Path::toFile)
+                 .forEach(File::delete);
+        } catch (IOException ignored) {
+        }
+        cleaned = true;
     }
 }
