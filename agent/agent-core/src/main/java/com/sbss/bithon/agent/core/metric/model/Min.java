@@ -15,6 +15,7 @@ public class Min implements ISimpleMetric {
     }
 
     public long get() {
-        return this.value.getAndSet(Long.MAX_VALUE);
+        long value = this.value.getAndSet(Long.MAX_VALUE);
+        return value == Long.MAX_VALUE ? 0 : value;
     }
 }
