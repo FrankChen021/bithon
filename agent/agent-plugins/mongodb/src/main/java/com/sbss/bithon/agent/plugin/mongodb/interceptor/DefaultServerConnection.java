@@ -103,9 +103,7 @@ public class DefaultServerConnection {
             int exceptionCount = aopContext.hasException() ? 0 : 1;
 
             metricCollector.getOrCreateMetric(hostAndPort,
-                                              command.getDatabase(),
-                                              command.getCollection(),
-                                              command.getCommand())
+                                              command.getDatabase())
                            .add(aopContext.getCostTime(), exceptionCount);
         }
     }

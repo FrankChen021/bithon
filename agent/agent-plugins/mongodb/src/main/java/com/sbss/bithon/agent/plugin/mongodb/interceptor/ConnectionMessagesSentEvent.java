@@ -43,9 +43,7 @@ public class ConnectionMessagesSentEvent {
             int bytesOut = (int) args[2];
 
             metricCollector.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
-                                              mongoCommand.getDatabase(),
-                                              mongoCommand.getCollection(),
-                                              mongoCommand.getCommand())
+                                              mongoCommand.getDatabase())
                            .addBytesOut(bytesOut);
         }
     }

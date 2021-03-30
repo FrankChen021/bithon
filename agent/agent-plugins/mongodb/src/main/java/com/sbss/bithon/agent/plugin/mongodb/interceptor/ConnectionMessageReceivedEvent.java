@@ -46,9 +46,7 @@ public class ConnectionMessageReceivedEvent {
 
             // TODO: if there's no protocol is being executed, are there messages ?
             metricCollector.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
-                                              mongoCommand.getDatabase(),
-                                              mongoCommand.getCollection(),
-                                              mongoCommand.getCommand())
+                                              mongoCommand.getDatabase())
                            .addBytesIn(bytesIn);
         }
     }

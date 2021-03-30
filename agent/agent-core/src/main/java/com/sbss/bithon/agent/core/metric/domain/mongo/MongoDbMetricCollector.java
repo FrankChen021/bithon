@@ -23,4 +23,16 @@ public class MongoDbMetricCollector extends IntervalMetricCollector<MongoDbCompo
                                MongoDbCompositeMetric metric) {
         return messageConverter.from(timestamp, interval, dimensions, metric);
     }
+
+    public MongoDbCompositeMetric getOrCreateMetric(String server, String database) {
+        return super.getOrCreateMetric(server, database);
+    }
+
+    /**
+     * a temp interafce to allow mongodb-3.8 plugin to compile OK
+     */
+    @Deprecated
+    public MongoDbCompositeMetric getOrCreateMetric(String server) {
+        return super.getOrCreateMetric(server);
+    }
 }
