@@ -5,6 +5,7 @@ import com.sbss.bithon.agent.core.plugin.aop.ConstructorAop;
 import com.sbss.bithon.agent.core.plugin.aop.MethodAop;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.ISuperMethod;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
@@ -18,6 +19,7 @@ import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.implementation.FieldAccessor;
 import shaded.net.bytebuddy.implementation.MethodDelegation;
 import shaded.net.bytebuddy.implementation.SuperMethodCall;
+import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
 import shaded.net.bytebuddy.utility.JavaModule;
@@ -153,16 +155,22 @@ public class PluginInterceptorInstaller {
         agentBuilder.installOn(inst);
     }
 
+    /**
+     * Since methods in
+     * {@link com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapMethodAop}
+     * {@link com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapConstructorAop}
+     * are defined as static, the interceptors must be installed as classes
+     */
     private DynamicType.Builder<?> installBootstrapInterceptor(DynamicType.Builder<?> builder,
                                                                String interceptorClassName,
                                                                MethodPointCutDescriptor pointCutDescriptor) {
         try {
             switch (pointCutDescriptor.getTargetMethodType()) {
                 case INSTANCE_METHOD:
-                    builder = builder.method(pointCutDescriptor.getMethodMatcher()).intercept(MethodDelegation
-                                                                                                  .withDefaultConfiguration()
-                                                                                                  .to(getBootstrapAopClass(
-                                                                                                      interceptorClassName)));
+                    builder = builder.method(pointCutDescriptor.getMethodMatcher())
+                                     .intercept(MethodDelegation.withDefaultConfiguration()
+                                                                .withBinders(Morph.Binder.install(ISuperMethod.class))
+                                                                .to(getBootstrapAopClass(interceptorClassName)));
                     break;
 
                 case CONSTRUCTOR:
@@ -232,14 +240,15 @@ public class PluginInterceptorInstaller {
             switch (pointCutDescriptor.getTargetMethodType()) {
                 case INSTANCE_METHOD:
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
-                                     .intercept(MethodDelegation.to(new MethodAop(interceptor)));
+                                     .intercept(MethodDelegation.withDefaultConfiguration()
+                                                                .withBinders(Morph.Binder.install(ISuperMethod.class))
+                                                                .to(new MethodAop(interceptor)));
                     break;
 
                 case CONSTRUCTOR:
                     builder = builder.constructor(pointCutDescriptor.getMethodMatcher())
-                                     .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation.to(new ConstructorAop()
-                                                                                                         .setInterceptor(
-                                                                                                             interceptor))));
+                                     .intercept(SuperMethodCall.INSTANCE
+                                                    .andThen(MethodDelegation.to(new ConstructorAop(interceptor))));
                     break;
 
                 default:

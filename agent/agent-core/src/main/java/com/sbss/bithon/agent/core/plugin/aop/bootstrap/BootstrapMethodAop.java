@@ -3,15 +3,14 @@ package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller;
 import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
+import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
 import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
 import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
-import shaded.net.bytebuddy.implementation.bind.annotation.SuperCall;
 import shaded.net.bytebuddy.implementation.bind.annotation.This;
 import shaded.net.bytebuddy.pool.TypePool;
 
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 
 /**
@@ -29,13 +28,13 @@ public class BootstrapMethodAop {
 
     @RuntimeType
     public static Object intercept(@Origin Class<?> targetClass,
-                                   @SuperCall Callable<?> superMethod,
+                                   @Morph ISuperMethod superMethod,
                                    @This(optional = true) Object target,
                                    @Origin Method method,
                                    @AllArguments Object[] args) throws Exception {
         AbstractInterceptor interceptor = ensureInterceptor();
         if (interceptor == null) {
-            return superMethod.call();
+            return superMethod.invoke(args);
         }
 
         return AroundMethodAop.intercept(log,

@@ -1,7 +1,6 @@
 package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 
 import java.lang.reflect.Method;
-import java.util.concurrent.Callable;
 
 /**
  * @author frankchen
@@ -12,7 +11,7 @@ final public class AroundMethodAop {
     public static Object intercept(IAopLogger log,
                                    AbstractInterceptor interceptor,
                                    Class<?> targetClass,
-                                   Callable<?> superMethod,
+                                   ISuperMethod superMethod,
                                    Object target,
                                    Method method,
                                    Object[] args) throws Exception {
@@ -34,7 +33,7 @@ final public class AroundMethodAop {
             }
 
             if (InterceptionDecision.SKIP_LEAVE.equals(decision)) {
-                return superMethod.call();
+                return superMethod.invoke(args);
             }
         }
 
@@ -46,7 +45,7 @@ final public class AroundMethodAop {
         Exception exception = null;
         {
             try {
-                returning = superMethod.call();
+                returning = superMethod.invoke(args);
             } catch (Exception e) {
                 exception = e;
             }

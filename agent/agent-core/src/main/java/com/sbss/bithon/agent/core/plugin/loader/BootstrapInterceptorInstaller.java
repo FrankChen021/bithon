@@ -88,6 +88,7 @@ public class BootstrapInterceptorInstaller {
         this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext");
         this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AroundMethodAop");
         this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor");
+        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.ISuperMethod");
         this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.IAopLogger");
         this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject");
         this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision");

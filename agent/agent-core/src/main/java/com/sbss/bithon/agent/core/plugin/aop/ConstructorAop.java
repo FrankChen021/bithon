@@ -14,7 +14,11 @@ import shaded.org.slf4j.LoggerFactory;
 public class ConstructorAop {
     private static final Logger log = LoggerFactory.getLogger(ConstructorAop.class);
 
-    private AbstractInterceptor interceptor;
+    private final AbstractInterceptor interceptor;
+
+    public ConstructorAop(AbstractInterceptor interceptor) {
+        this.interceptor = interceptor;
+    }
 
     @RuntimeType
     public void onConstruct(@This Object obj,
@@ -26,10 +30,5 @@ public class ConstructorAop {
                                     interceptor.getClass().getSimpleName()),
                       e);
         }
-    }
-
-    public ConstructorAop setInterceptor(AbstractInterceptor interceptor) {
-        this.interceptor = interceptor;
-        return this;
     }
 }
