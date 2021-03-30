@@ -22,4 +22,8 @@ public class SqlMetricCollector extends IntervalMetricCollector<SqlCompositeMetr
                                SqlCompositeMetric metric) {
         return messageConverter.from(timestamp, interval, dimensions, metric);
     }
+
+    public SqlCompositeMetric getOrCreateMetric(String connectionString) {
+        return super.getOrCreateMetric(connectionString);
+    }
 }

@@ -2,10 +2,16 @@ package com.sbss.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.MongoNamespace;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
-import org.bson.BsonDocument;
+
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author frank.chen021@outlook.com
@@ -14,9 +20,20 @@ import org.bson.BsonDocument;
 public class CommandHelper {
 
     /**
-     * {@link com.mongodb.connection.CommandHelper#executeCommand(String, BsonDocument, com.mongodb.connection.InternalConnection)}
+     * {@link com.mongodb.connection.CommandHelper#executeCommand(String, org.bson.BsonDocument, com.mongodb.connection.InternalConnection)}
      */
     public static class ExecuteCommand extends AbstractInterceptor {
+
+        private final Map<String, Method> methods = new ConcurrentHashMap<>();
+
+        private MongoDbMetricCollector metricCollector;
+
+        @Override
+        public boolean initialize() {
+            metricCollector = MetricCollectorManager.getInstance()
+                                                    .getOrRegister("mongo-3.x-metrics", MongoDbMetricCollector.class);
+            return true;
+        }
 
         @Override
         public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
@@ -32,8 +49,24 @@ public class CommandHelper {
             return super.onMethodEnter(aopContext);
         }
 
+        /**
+         * see {@link InternalStreamConnection}
+         * the 3rd argument is an instance of subclass of {@link com.mongodb.connection.InternalConnection}, which is not visible from outside jar
+         * So, it's constructor is intercepted to inject server address. By doing that, the following method could get that info from injected info.
+         *
+         * We could also get the server information by Reflection, which is a little bit more overhead.
+         * Although the overhead is acceptable since the CPM is not high
+         */
         @Override
         public void onMethodLeave(AopContext aopContext) throws Exception {
+            Object connection = aopContext.getArgs()[2];
+            if (!(connection instanceof IBithonObject)) {
+                //TODO: log
+                return;
+            }
+
+            String server = (String) ((IBithonObject)connection).getInjectedObject();
+            metricCollector.getOrCreateMetric(server, (String)aopContext.getArgs()[0]).add(aopContext.getCostTime(), aopContext.hasException() ? 1 : 0);
             super.onMethodLeave(aopContext);
         }
     }
