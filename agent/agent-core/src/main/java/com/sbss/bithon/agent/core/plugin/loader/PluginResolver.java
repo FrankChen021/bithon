@@ -21,7 +21,7 @@ public class PluginResolver {
     public PluginResolver(String agentDirectory) {
         jars = JarFileResolver.resolve(new File(agentDirectory + separator + AgentContext.PLUGIN_DIR));
 
-        AgentClassloader.appendSearchFiles(jars);
+        PluginClassLoader.appendSearchFiles(jars);
     }
 
     public List<AbstractPlugin> resolve() {
@@ -31,7 +31,7 @@ public class PluginResolver {
                 String pluginClassName = jar.getJarFile().getManifest().getMainAttributes().getValue("Plugin-Class");
                 AbstractPlugin plugin = (AbstractPlugin) Class.forName(pluginClassName,
                                                                        true,
-                                                                       AgentClassloader.getDefaultInstance())
+                                                                       PluginClassLoader.getDefaultInstance())
                                                               .newInstance();
                 plugins.add(plugin);
             } catch (Throwable e) {

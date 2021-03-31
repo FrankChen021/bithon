@@ -25,7 +25,7 @@ public class BootstrapHelper {
 
         // no need to sync, so no lock is required to eliminate potential dead lock
         try {
-            Class<?> agentClassLoaderClass = Class.forName("com.sbss.bithon.agent.core.plugin.loader.AgentClassloader",
+            Class<?> agentClassLoaderClass = Class.forName("com.sbss.bithon.agent.core.plugin.loader.PluginClassLoader",
                                                            true,
                                                            ClassLoader.getSystemClassLoader());
             Method getInstanceMethod = agentClassLoaderClass.getDeclaredMethod("getDefaultInstance");

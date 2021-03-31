@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.bootstrap;
 
 import com.sbss.bithon.agent.core.config.AgentConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.plugin.loader.AgentClassloader;
+import com.sbss.bithon.agent.core.plugin.loader.PluginClassLoader;
 import com.sbss.bithon.agent.core.plugin.loader.PluginInstaller;
 import com.sbss.bithon.agent.core.setting.AgentSettingManager;
 import shaded.org.apache.log4j.xml.DOMConfigurator;
@@ -51,7 +51,7 @@ class AgentStarter {
 
         loadContext(agentContext.getConfig());
 
-        AgentClassloader.createInstance();
+        PluginClassLoader.createInstance();
 
         PluginInstaller.install(agentContext, inst);
     }

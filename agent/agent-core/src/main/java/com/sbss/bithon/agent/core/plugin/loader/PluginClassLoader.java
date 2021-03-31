@@ -19,18 +19,18 @@ import java.util.jar.JarEntry;
  * @author frankchen
  * @date 2020-12-31 22:25:45
  */
-public class AgentClassloader extends ClassLoader {
-    private static final Logger logger = LoggerFactory.getLogger(AgentClassloader.class);
+public class PluginClassLoader extends ClassLoader {
+    private static final Logger logger = LoggerFactory.getLogger(PluginClassLoader.class);
 
     private static final List<JarFileItem> SEARCH_JARS = new ArrayList<>();
-    private static AgentClassloader DEFAULT_INSTANCE;
+    private static PluginClassLoader DEFAULT_INSTANCE;
 
-    AgentClassloader(ClassLoader parent) {
+    PluginClassLoader(ClassLoader parent) {
         super(parent);
     }
 
-    public static AgentClassloader createInstance() {
-        DEFAULT_INSTANCE = new AgentClassloader(Thread.currentThread().getContextClassLoader());
+    public static PluginClassLoader createInstance() {
+        DEFAULT_INSTANCE = new PluginClassLoader(Thread.currentThread().getContextClassLoader());
         AgentClassloaderManager.register(Thread.currentThread().getContextClassLoader(), DEFAULT_INSTANCE);
         return DEFAULT_INSTANCE;
     }

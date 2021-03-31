@@ -18,8 +18,8 @@ public final class AgentClassloaderManager {
      */
     public static ClassLoader getAgentLoader(ClassLoader classloader) {
         return classloader == null ?
-               AgentClassloader.getDefaultInstance() :
-               classloaderMapping.computeIfAbsent(classloader, k -> new AgentClassloader(classloader));
+               PluginClassLoader.getDefaultInstance() :
+               classloaderMapping.computeIfAbsent(classloader, k -> new PluginClassLoader(classloader));
     }
 
     public static void register(ClassLoader originClassloader,
