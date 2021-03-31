@@ -22,17 +22,23 @@ import java.util.jar.JarEntry;
 public class PluginClassLoader extends ClassLoader {
     private static final Logger logger = LoggerFactory.getLogger(PluginClassLoader.class);
 
+    private static ClassLoader agentClassLoader;
     private static final List<JarFileItem> SEARCH_JARS = new ArrayList<>();
     private static PluginClassLoader DEFAULT_INSTANCE;
 
     PluginClassLoader(ClassLoader parent) {
-        super(parent);
+        super(new ChainedClassLoader(agentClassLoader, parent));
     }
 
-    public static PluginClassLoader createInstance() {
+    public static PluginClassLoader createInstance(ClassLoader agentClassLoader) {
+        PluginClassLoader.agentClassLoader = agentClassLoader;
         DEFAULT_INSTANCE = new PluginClassLoader(Thread.currentThread().getContextClassLoader());
         AgentClassloaderManager.register(Thread.currentThread().getContextClassLoader(), DEFAULT_INSTANCE);
         return DEFAULT_INSTANCE;
+    }
+
+    public static ClassLoader getAgentClassLoader() {
+        return agentClassLoader;
     }
 
     public static ClassLoader getDefaultInstance() {

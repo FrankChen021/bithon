@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.bootstrap;
+package com.sbss.bithon.agent.core.plugin;
 
 import com.sbss.bithon.agent.core.config.AgentConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
@@ -20,22 +20,16 @@ import java.util.jar.JarFile;
 import static java.io.File.pathSeparator;
 import static java.io.File.separator;
 
-class AgentStarter {
+public class AgentStarter {
     private static final Logger log = LoggerFactory.getLogger(AgentStarter.class);
 
     private static final String CONF_LOG_FILE = "log4j.xml";
     private static final String CLASS_PATH = System.getProperty("java.class.path");
     private static final String CATALINA_HOME = System.getProperty("catalina.home");
-    private final String agentPath;
+    private String agentPath;
 
-    AgentStarter() {
-        agentPath = new File(AgentStarter.class.getProtectionDomain()
-                                               .getCodeSource()
-                                               .getLocation()
-                                               .getFile()).getParentFile().getPath();
-    }
-
-    void start(Instrumentation inst) throws Exception {
+    public void start(String agentPath, ClassLoader agentClassLoader, Instrumentation inst) throws Exception {
+        this.agentPath= agentPath;
         showBanner();
 
         // init log
@@ -51,7 +45,7 @@ class AgentStarter {
 
         loadContext(agentContext.getConfig());
 
-        PluginClassLoader.createInstance();
+        PluginClassLoader.createInstance(agentClassLoader);
 
         PluginInstaller.install(agentContext, inst);
     }

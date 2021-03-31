@@ -152,8 +152,7 @@ public class BootstrapInterceptorInstaller {
     private void inject(String className) {
         String classResourceName = className.replaceAll("\\.", "/") + ".class";
         try {
-            try (InputStream resourceAsStream = ClassLoader.getSystemClassLoader()
-                                                           .getResourceAsStream(classResourceName)) {
+            try (InputStream resourceAsStream = PluginClassLoader.getAgentClassLoader().getResourceAsStream(classResourceName)) {
                 if (resourceAsStream == null) {
                     throw new AgentException("Class [%s] for bootstrap injection not found", className);
                 }

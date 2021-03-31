@@ -53,10 +53,10 @@
             <exclude>*.yml</exclude>
           </excludes>
           <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>./lib/</classpathPrefix>
-            </manifest>
+<!--            <manifest>-->
+<!--              <addClasspath>true</addClasspath>-->
+<!--              <classpathPrefix>./lib/</classpathPrefix>-->
+<!--            </manifest>-->
             <manifestEntries>
               <Premain-Class>com.sbss.bithon.agent.bootstrap.AgentApp</Premain-Class>
               <Can-Redefine-Classes>true</Can-Redefine-Classes>
