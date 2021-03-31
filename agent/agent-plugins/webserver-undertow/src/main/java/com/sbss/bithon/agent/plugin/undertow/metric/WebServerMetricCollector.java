@@ -5,6 +5,7 @@ import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerType;
+import com.sbss.bithon.agent.core.utils.expt.AgentException;
 import io.undertow.server.ConnectorStatistics;
 
 import java.lang.reflect.InvocationTargetException;
@@ -74,14 +75,21 @@ public class WebServerMetricCollector implements IMetricCollector {
 
         TaskPoolAccessor(Object taskPool) {
             this.taskPool = taskPool;
-            try {
-                getActiveCount = this.taskPool.getClass().getDeclaredMethod("getActiveCount");
-                getActiveCount.setAccessible(true);
-                getMaximumPoolSize = this.taskPool.getClass().getDeclaredMethod("getMaximumPoolSize");
-                getMaximumPoolSize.setAccessible(true);
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
+            getActiveCount = getMethod(this.taskPool.getClass(),"getActiveCount");
+            getActiveCount.setAccessible(true);
+            getMaximumPoolSize = getMethod(this.taskPool.getClass(),"getMaximumPoolSize");
+            getMaximumPoolSize.setAccessible(true);
+        }
+
+        Method getMethod(Class<?> clazz, String name) {
+            while( clazz != null ) {
+                try {
+                    return clazz.getDeclaredMethod(name);
+                } catch (NoSuchMethodException e) {
+                    clazz = clazz.getSuperclass();
+                }
             }
+            throw new AgentException("can't find [%s] in [%s]", name, clazz.getName());
         }
 
         public int getActiveCount() {
