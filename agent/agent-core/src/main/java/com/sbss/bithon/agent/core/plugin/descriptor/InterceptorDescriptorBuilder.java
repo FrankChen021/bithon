@@ -27,8 +27,8 @@ public class InterceptorDescriptorBuilder {
     }
 
     public InterceptorDescriptor methods(MethodPointCutDescriptor... pointCuts) {
-        if ( debug ) {
-            for(MethodPointCutDescriptor pointCut : pointCuts) {
+        if (debug) {
+            for (MethodPointCutDescriptor pointCut : pointCuts) {
                 pointCut.setDebug(debug);
             }
         }

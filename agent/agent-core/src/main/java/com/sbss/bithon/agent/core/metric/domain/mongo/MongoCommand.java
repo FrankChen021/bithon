@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.plugin.mongodb.interceptor;
+package com.sbss.bithon.agent.core.metric.domain.mongo;
 
 /**
  * @author frank.chen021@outlook.com

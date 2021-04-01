@@ -2,6 +2,7 @@ package com.sbss.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.MongoNamespace;
 import com.mongodb.WriteConcern;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;

@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptorBuilder.forClass;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.isConstructor;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 /**
  * @author frankchen
@@ -26,6 +28,20 @@ public class MongoDb38Plugin extends AbstractPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
+            forClass("com.mongodb.internal.connection.CommandHelper")
+                .methods(MethodPointCutDescriptorBuilder.build()
+                                                        .onAllMethods("executeCommand")
+                                                        .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.CommandHelper$ExecuteCommand")
+                ),
+
+            forClass("com.mongodb.internal.connection.CommandProtocolImpl")
+                .debug()
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onConstructor(takesArguments(9))
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.Protocol$CommandProtocol")
+                ),
+
             //request statistics
             forClass("com.mongodb.internal.connection.DefaultServerConnection")
                 .methods(
