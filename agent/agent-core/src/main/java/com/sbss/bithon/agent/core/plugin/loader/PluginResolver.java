@@ -21,7 +21,7 @@ public class PluginResolver {
     public PluginResolver(String agentDirectory) {
         jars = JarFileResolver.resolve(new File(agentDirectory + separator + AgentContext.PLUGIN_DIR));
 
-        PluginClassLoader.appendSearchFiles(jars);
+        //PluginClassLoader.appendSearchFiles(jars);
     }
 
     public List<AbstractPlugin> resolve() {

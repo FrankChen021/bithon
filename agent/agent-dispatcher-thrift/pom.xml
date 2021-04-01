@@ -21,10 +21,6 @@
           <artifactId>javax.annotation-api</artifactId>
           <groupId>javax.annotation</groupId>
         </exclusion>
-        <exclusion>
-          <artifactId>slf4j-api</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>

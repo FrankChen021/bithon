@@ -32,7 +32,7 @@ public class PluginInterceptorManager {
         }
 
         // load class out of lock in case of dead lock
-        ClassLoader interceptorClassLoader = AgentClassloaderManager.getAgentLoader(classLoader);
+        ClassLoader interceptorClassLoader = PluginClassLoaderManager.getAgentLoader(classLoader);
         Class<?> interceptorClass = Class.forName(interceptorClassName, true, interceptorClassLoader);
 
         String interceptorName = getInterceptorName(interceptorClass);

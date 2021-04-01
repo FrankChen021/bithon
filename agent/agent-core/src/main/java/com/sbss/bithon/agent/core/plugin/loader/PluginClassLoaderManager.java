@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frankchen
  * @date 2020-12-31 22:28:23
  */
-public final class AgentClassloaderManager {
+public final class PluginClassLoaderManager {
     private static final Map<ClassLoader, ClassLoader> classloaderMapping = new ConcurrentHashMap<>();
 
     /**
@@ -19,7 +19,7 @@ public final class AgentClassloaderManager {
     public static ClassLoader getAgentLoader(ClassLoader classloader) {
         return classloader == null ?
                PluginClassLoader.getDefaultInstance() :
-               classloaderMapping.computeIfAbsent(classloader, k -> new PluginClassLoader(classloader));
+               classloaderMapping.computeIfAbsent(classloader, k -> PluginClassLoader.createClassLoader(classloader));
     }
 
     public static void register(ClassLoader originClassloader,

@@ -45,7 +45,7 @@ public class AgentStarter {
 
         loadContext(agentContext.getConfig());
 
-        PluginClassLoader.createInstance(agentClassLoader);
+        PluginClassLoader.setAgentClassLoader(agentClassLoader);
 
         PluginInstaller.install(agentContext, inst);
     }

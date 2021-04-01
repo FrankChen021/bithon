@@ -28,10 +28,6 @@
           <artifactId>httpcore</artifactId>
           <groupId>org.apache.httpcomponents</groupId>
         </exclusion>
-        <exclusion>
-          <artifactId>slf4j-api</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -60,6 +56,7 @@
             <manifestEntries>
               <Premain-Class>com.sbss.bithon.agent.bootstrap.AgentApp</Premain-Class>
               <Can-Redefine-Classes>true</Can-Redefine-Classes>
+              <Boot-Class-Path>${project.build.finalName}.jar</Boot-Class-Path>
             </manifestEntries>
           </archive>
         </configuration>

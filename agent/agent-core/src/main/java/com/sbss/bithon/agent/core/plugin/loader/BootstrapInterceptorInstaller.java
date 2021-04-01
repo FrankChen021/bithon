@@ -50,12 +50,12 @@ public class BootstrapInterceptorInstaller {
 
     public AgentBuilder install(List<AbstractPlugin> plugins) {
         for (AbstractPlugin plugin : plugins) {
-            inject(plugin);
+            generateAop4Plugin(plugin);
         }
         return injectClassToClassLoader();
     }
 
-    private void inject(AbstractPlugin plugin) {
+    private void generateAop4Plugin(AbstractPlugin plugin) {
         for (InterceptorDescriptor interceptor : plugin.getInterceptors()) {
             if (!interceptor.isBootstrapClass()) {
                 continue;
@@ -152,7 +152,7 @@ public class BootstrapInterceptorInstaller {
     private void inject(String className) {
         String classResourceName = className.replaceAll("\\.", "/") + ".class";
         try {
-            try (InputStream resourceAsStream = PluginClassLoader.getAgentClassLoader().getResourceAsStream(classResourceName)) {
+            try (InputStream resourceAsStream = PluginClassLoader.getDefaultInstance().getResourceAsStream(classResourceName)) {
                 if (resourceAsStream == null) {
                     throw new AgentException("Class [%s] for bootstrap injection not found", className);
                 }
