@@ -1,5 +1,7 @@
 package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 
+import com.sbss.bithon.agent.core.plugin.aop.AgentClassLoader;
+
 import java.lang.reflect.Method;
 
 /**
@@ -19,21 +21,22 @@ public class BootstrapHelper {
      * we must use reflection to get the Default Agent Class Loader which has been instantiated when agent starts
      */
     public static ClassLoader getAgentClassLoader() {
-        if (defaultAgentClassLoader != null) {
-            return defaultAgentClassLoader;
-        }
-
-        // no need to sync, so no lock is required to eliminate potential dead lock
-        try {
-            Class<?> agentClassLoaderClass = Class.forName("com.sbss.bithon.agent.bootstrap.AgentClassLoader");
-            Method getInstanceMethod = agentClassLoaderClass.getDeclaredMethod("getDefaultInstance");
-            getInstanceMethod.setAccessible(true);
-            defaultAgentClassLoader = (ClassLoader) getInstanceMethod.invoke(null);
-            return defaultAgentClassLoader;
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-            return null;
-        }
+        return AgentClassLoader.getDefaultInstance();
+//        if (defaultAgentClassLoader != null) {
+//            return defaultAgentClassLoader;
+//        }
+//
+//        // no need to sync, so no lock is required to eliminate potential dead lock
+//        try {
+//            Class<?> agentClassLoaderClass = Class.forName("com.sbss.bithon.agent.bootstrap.AgentClassLoader");
+//            Method getInstanceMethod = agentClassLoaderClass.getDeclaredMethod("getDefaultInstance");
+//            getInstanceMethod.setAccessible(true);
+//            defaultAgentClassLoader = (ClassLoader) getInstanceMethod.invoke(null);
+//            return defaultAgentClassLoader;
+//        } catch (Exception e) {
+//            e.printStackTrace(System.out);
+//            return null;
+//        }
     }
 
     public static IAopLogger createAopLogger(ClassLoader defaultAgentClassLoader,

@@ -12,7 +12,7 @@ import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
-import com.sbss.bithon.agent.core.utils.expt.AgentException;
+import com.sbss.bithon.agent.core.expt.AgentException;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.dynamic.DynamicType;

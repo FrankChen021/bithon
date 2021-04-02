@@ -5,11 +5,9 @@ import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
-import com.sbss.bithon.agent.core.utils.expt.AgentException;
+import com.sbss.bithon.agent.core.expt.AgentException;
 import shaded.net.bytebuddy.ByteBuddy;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
-import shaded.net.bytebuddy.description.type.TypeDescription;
-import shaded.net.bytebuddy.dynamic.ClassFileLocator;
 import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.dynamic.loading.ClassInjector;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
@@ -39,7 +37,7 @@ public class BootstrapInterceptorInstaller {
 
     public BootstrapInterceptorInstaller(Instrumentation instrumentation,
                                          AgentBuilder agentBuilder) {
-        this.typePool = TypePool.Default.of(BootstrapInterceptorInstaller.class.getClassLoader());
+        this.typePool = TypePool.Default.of(Object.class.getClassLoader());
         this.instrumentation = instrumentation;
         this.agentBuilder = agentBuilder;
     }
@@ -82,16 +80,16 @@ public class BootstrapInterceptorInstaller {
         this.inject("shaded.net.bytebuddy.implementation.bind.annotation.Morph");
 
         // inject Aop class into bootstrap class loader
-        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapConstructorAop");
-        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapMethodAop");
-        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapHelper");
-        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext");
-        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AroundMethodAop");
-        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor");
-        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.ISuperMethod");
-        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.IAopLogger");
-        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject");
-        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision");
+//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapConstructorAop");
+//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapMethodAop");
+//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapHelper");
+//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext");
+//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AroundMethodAop");
+//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor");
+//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.ISuperMethod");
+//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.IAopLogger");
+//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject");
+//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision");
 
         ClassInjector.UsingUnsafe.Factory factory = ClassInjector.UsingUnsafe.Factory.resolve(instrumentation);
         factory.make(null, null).injectRaw(classesTypeMap);
@@ -129,15 +127,18 @@ public class BootstrapInterceptorInstaller {
                                   MethodPointCutDescriptor methodPointCutDescriptor) {
         String targetAopClassName = bootstrapAopClass(interceptorClass);
 
-        TypeDescription baseType = typePool.describe(baseBootstrapAopClass).resolve();
+        //TypeDescription baseType = typePool.describe(baseBootstrapAopClass).resolve();
 
-        DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(baseType,
-                                                                        ClassFileLocator.ForClassLoader
-                                                                            .of(BootstrapInterceptorInstaller.class.getClassLoader()))
-                                                              .name(targetAopClassName)
-                                                              .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
-                                                              .value(interceptorClass)
-                                                              .make();
+        DynamicType.Unloaded<?> aopClassType = null;
+        try {
+            aopClassType = new ByteBuddy().redefine(Class.forName(baseBootstrapAopClass, true, null))
+                                          .name(targetAopClassName)
+                                          .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
+                                          .value(interceptorClass)
+                                          .make();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
 
         if (methodPointCutDescriptor.isDebug()) {
             new TransformationDebugger().saveClassToFile(aopClassType);

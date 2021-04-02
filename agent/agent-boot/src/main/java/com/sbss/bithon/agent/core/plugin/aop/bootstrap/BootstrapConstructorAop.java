@@ -1,25 +1,23 @@
 package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
-import com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller;
+
 import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
-import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
 import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
 import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import shaded.net.bytebuddy.implementation.bind.annotation.This;
 import shaded.net.bytebuddy.pool.TypePool;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
 import java.util.Map;
 
 
 /**
  * @author frankchen
- * @date 2021-02-18 20:20
+ * @date 2021-02-18 18:03
  */
-public class BootstrapMethodAop {
+public class BootstrapConstructorAop {
     /**
-     * assigned by {@link BootstrapInterceptorInstaller#generateAopClass(Map, TypePool, String, String, MethodPointCutDescriptor)}
+     * assigned by {@link com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller#generateAopClass(Map, TypePool, String, String, com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor)}
      */
     private static String INTERCEPTOR_CLASS_NAME;
 
@@ -27,23 +25,21 @@ public class BootstrapMethodAop {
     private static IAopLogger log;
 
     @RuntimeType
-    public static Object intercept(@Origin Class<?> targetClass,
-                                   @Morph ISuperMethod superMethod,
-                                   @This(optional = true) Object target,
-                                   @Origin Method method,
-                                   @AllArguments Object[] args) throws Exception {
-        AbstractInterceptor interceptor = ensureInterceptor();
-        if (interceptor == null) {
-            return superMethod.invoke(args);
+    public static void onConstruct(@Origin Class<?> targetClass,
+                                   @Origin Constructor<?> constructor,
+                                   @This Object targetObject,
+                                   @AllArguments Object[] args) {
+        try {
+            AbstractInterceptor interceptor = ensureInterceptor();
+            if (interceptor == null) {
+                return;
+            }
+            interceptor.onConstruct(new AopContext(targetClass, constructor, targetObject, args));
+        } catch (Throwable e) {
+            log.error(String.format("Failed to invoke onConstruct interceptor[%s]",
+                                    INTERCEPTOR_CLASS_NAME),
+                      e);
         }
-
-        return AroundMethodAop.intercept(log,
-                                         INTERCEPTOR,
-                                         targetClass,
-                                         superMethod,
-                                         target,
-                                         method,
-                                         args);
     }
 
     private static AbstractInterceptor ensureInterceptor() {
@@ -72,11 +68,9 @@ public class BootstrapMethodAop {
                 INTERCEPTOR = (AbstractInterceptor) interceptorClass.newInstance();
             }
             INTERCEPTOR.initialize();
-
         } catch (Exception e) {
             log.error(String.format("Failed to instantiate interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
         }
         return INTERCEPTOR;
     }
 }
-

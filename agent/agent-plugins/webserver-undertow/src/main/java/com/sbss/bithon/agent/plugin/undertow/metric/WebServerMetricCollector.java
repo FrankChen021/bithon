@@ -5,7 +5,7 @@ import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerType;
-import com.sbss.bithon.agent.core.utils.expt.AgentException;
+import com.sbss.bithon.agent.core.expt.AgentException;
 import io.undertow.server.ConnectorStatistics;
 
 import java.lang.reflect.InvocationTargetException;

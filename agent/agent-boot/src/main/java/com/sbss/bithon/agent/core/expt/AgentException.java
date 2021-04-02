@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.core.utils.expt;
+package com.sbss.bithon.agent.core.expt;
 
 /**
  * @author frank.chen021@outlook.com
@@ -15,5 +15,9 @@ public class AgentException extends RuntimeException {
 
     public AgentException(String format, Object... args) {
         super(String.format(format, args));
+    }
+
+    public AgentException(Exception e, String format, Object... args) {
+        super(String.format(format, args), e);
     }
 }

@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.bootstrap;
+package com.sbss.bithon.agent.core.plugin.aop;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,8 +9,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -19,28 +17,24 @@ import java.util.stream.Collectors;
 public class AgentClassLoader extends ClassLoader {
 
     private static AgentClassLoader instance;
+
     public static AgentClassLoader getDefaultInstance() {
         return instance;
     }
 
-    public static AgentClassLoader createInstance(List<File> jars, ClassLoader parent) {
-        instance = new AgentClassLoader(jars, parent);
+    public static AgentClassLoader createInstance(File agentDirectory) {
+        List<JarFileItem> jars = JarFileResolver.resolve(new File(agentDirectory, "lib"),
+                                                         new File(agentDirectory, "plugins"));
+        instance = new AgentClassLoader(jars);
         return instance;
     }
 
     List<JarFileItem> jars;
 
-    private AgentClassLoader(List<File> jars, ClassLoader parent) {
-        super(parent);
-        this.jars = jars.stream().map(j -> {
-            try {
-                return new JarFileItem(new JarFile(j), j);
-            } catch (IOException e) {
-                return null;
-            }
-        }).collect(Collectors.toList());
+    private AgentClassLoader(List<JarFileItem> jars) {
+        super(null);
+        this.jars = jars;
     }
-
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {

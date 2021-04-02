@@ -8,7 +8,7 @@
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>agent-core</artifactId>
+  <artifactId>agent-boot</artifactId>
 
   <dependencies>
     <!-- 3rd Dependency -->
@@ -16,11 +16,6 @@
       <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-dependencies</artifactId>
       <version>1.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-boot</artifactId>
-      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

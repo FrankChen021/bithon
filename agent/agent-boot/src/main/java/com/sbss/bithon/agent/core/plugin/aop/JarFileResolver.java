@@ -1,7 +1,6 @@
-package com.sbss.bithon.agent.bootstrap;
+package com.sbss.bithon.agent.core.plugin.aop;
 
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import com.sbss.bithon.agent.core.expt.AgentException;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,8 +13,6 @@ import java.util.jar.JarFile;
  * @date 2021/1/10 3:43 下午
  */
 public class JarFileResolver {
-    static Logger log = LoggerFactory.getLogger(JarFileResolver.class);
-
     /**
      * resolve all jars under searchLocations
      */
@@ -36,7 +33,7 @@ public class JarFileResolver {
                     File jar = new File(dir, fileName);
                     jarFiles.add(new JarFileItem(new JarFile(jar), jar));
                 } catch (IOException e) {
-                    log.error("Failed to read jar[{}]", fileName, e);
+                    throw new AgentException(e, "Exception when processing jar [%s]", fileName);
                 }
             }
         }

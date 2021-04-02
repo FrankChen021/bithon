@@ -19,6 +19,7 @@
     </properties>
 
     <modules>
+        <module>agent-boot</module>
         <module>agent-core</module>
         <module>agent-dispatcher-grpc</module>
         <module>agent-dispatcher-thrift</module>
@@ -28,8 +29,11 @@
 
     <dependencyManagement>
         <dependencies>
-
-            <!-- Collector Client -->
+            <dependency>
+                <groupId>com.sbss.bithon.agent</groupId>
+                <artifactId>agent-boot</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- Core -->
             <dependency>

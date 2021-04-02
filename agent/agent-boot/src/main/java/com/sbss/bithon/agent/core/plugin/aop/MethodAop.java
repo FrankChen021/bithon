@@ -20,9 +20,9 @@ public class MethodAop {
 
     private static final IAopLogger aopLogger = AopLogger.getLogger(MethodAop.class);
 
-    private final AbstractInterceptor interceptor;
+    private final Object interceptor;
 
-    public MethodAop(AbstractInterceptor interceptor) {
+    public MethodAop(Object interceptor) {
         this.interceptor = interceptor;
     }
 
@@ -33,7 +33,7 @@ public class MethodAop {
                             @This(optional = true) Object targetObject,
                             @AllArguments Object[] args) throws Exception {
         return AroundMethodAop.intercept(aopLogger,
-                                         interceptor,
+                                         (AbstractInterceptor)interceptor,
                                          targetClass,
                                          superMethod,
                                          targetObject,
