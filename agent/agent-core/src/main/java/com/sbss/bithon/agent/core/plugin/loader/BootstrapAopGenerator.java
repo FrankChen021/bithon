@@ -6,7 +6,7 @@ import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import com.sbss.bithon.agent.core.expt.AgentException;
-import com.sbss.bithon.agent.dependency.AgentDependencyManager;
+import com.sbss.bithon.agent.bootstrap.AgentDependencyManager;
 import shaded.net.bytebuddy.ByteBuddy;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.dynamic.DynamicType;

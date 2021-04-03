@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 
 import com.sbss.bithon.agent.core.expt.AgentException;
-import com.sbss.bithon.agent.dependency.AgentDependencyManager;
+import com.sbss.bithon.agent.bootstrap.AgentDependencyManager;
 
 import java.lang.reflect.Method;
 

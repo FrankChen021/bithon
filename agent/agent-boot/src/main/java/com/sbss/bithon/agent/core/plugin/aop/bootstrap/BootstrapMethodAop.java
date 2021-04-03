@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 
-import com.sbss.bithon.agent.dependency.AgentDependencyManager;
+import com.sbss.bithon.agent.bootstrap.AgentDependencyManager;
 import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
 import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
 import shaded.net.bytebuddy.implementation.bind.annotation.Origin;

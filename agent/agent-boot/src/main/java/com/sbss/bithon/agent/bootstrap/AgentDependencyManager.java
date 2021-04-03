@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.dependency;
+package com.sbss.bithon.agent.bootstrap;
 
 import java.io.File;
 import java.util.Collections;

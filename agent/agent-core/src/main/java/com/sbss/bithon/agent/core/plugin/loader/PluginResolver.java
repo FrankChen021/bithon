@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
-import com.sbss.bithon.agent.dependency.AgentDependencyManager;
+import com.sbss.bithon.agent.bootstrap.AgentDependencyManager;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.org.slf4j.LoggerFactory;
 
