@@ -11,7 +11,6 @@
   <artifactId>agent-boot</artifactId>
 
   <dependencies>
-    <!-- 3rd Dependency -->
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-dependencies</artifactId>

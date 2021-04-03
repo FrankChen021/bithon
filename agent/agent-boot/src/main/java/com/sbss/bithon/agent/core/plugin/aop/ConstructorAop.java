@@ -2,12 +2,12 @@ package com.sbss.bithon.agent.core.plugin.aop;
 
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapHelper;
+import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IAopLogger;
 import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
 import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
 import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import shaded.net.bytebuddy.implementation.bind.annotation.This;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 
@@ -16,7 +16,7 @@ import java.lang.reflect.Constructor;
  * @date 2020-12-31 22:21:36
  */
 public class ConstructorAop {
-    private static final Logger log = LoggerFactory.getLogger(ConstructorAop.class);
+    private static final IAopLogger log = BootstrapHelper.createAopLogger(ConstructorAop.class);
 
     private final AbstractInterceptor interceptor;
 

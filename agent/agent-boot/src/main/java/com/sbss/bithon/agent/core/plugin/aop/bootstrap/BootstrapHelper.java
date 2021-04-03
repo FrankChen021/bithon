@@ -1,5 +1,6 @@
 package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 
+import com.sbss.bithon.agent.core.expt.AgentException;
 import com.sbss.bithon.agent.dependency.AgentDependencyManager;
 
 import java.lang.reflect.Method;
@@ -39,17 +40,15 @@ public class BootstrapHelper {
 //        }
     }
 
-    public static IAopLogger createAopLogger(ClassLoader defaultAgentClassLoader,
-                                             Class<?> logClass) {
+    public static IAopLogger createAopLogger(Class<?> logClass) {
         try {
-            Class<?> loggerClass = Class.forName("com.sbss.bithon.agent.core.plugin.aop.AopLogger",
+            Class<?> loggerClass = Class.forName("com.sbss.bithon.agent.core.plugin.loader.AopLogger",
                                                  true,
-                                                 defaultAgentClassLoader);
+                                                 AgentDependencyManager.getClassLoader());
             Method getLoggerMethod = loggerClass.getDeclaredMethod("getLogger", Class.class);
             return (IAopLogger) getLoggerMethod.invoke(null, logClass);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new AgentException(e);
         }
-        return null;
     }
 }

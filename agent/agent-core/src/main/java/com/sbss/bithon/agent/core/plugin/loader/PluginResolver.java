@@ -2,11 +2,12 @@ package com.sbss.bithon.agent.core.plugin.loader;
 
 import com.sbss.bithon.agent.dependency.AgentDependencyManager;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.dependency.JarFileItem;
 import shaded.org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.JarFile;
 
 /**
  * @author frank.chen021@outlook.com
@@ -17,9 +18,9 @@ public class PluginResolver {
     public List<AbstractPlugin> resolve() {
 
         final List<AbstractPlugin> plugins = new ArrayList<>();
-        for (JarFileItem jar : AgentDependencyManager.getPlugins()) {
+        for (JarFile jar : AgentDependencyManager.getPlugins()) {
             try {
-                String pluginClassName = jar.getJarFile().getManifest().getMainAttributes().getValue("Plugin-Class");
+                String pluginClassName = jar.getManifest().getMainAttributes().getValue("Plugin-Class");
                 AbstractPlugin plugin = (AbstractPlugin) Class.forName(pluginClassName,
                                                                        true,
                                                                        AgentDependencyManager.getClassLoader())
@@ -27,7 +28,8 @@ public class PluginResolver {
                 plugins.add(plugin);
             } catch (Throwable e) {
                 LoggerFactory.getLogger(PluginResolver.class)
-                             .error(String.format("Failed to add plugin from jar %s", jar.getSourceFile().getName()),
+                             .error(String.format("Failed to add plugin from jar %s",
+                                                  new File(jar.getName()).getName()),
                                     e);
             }
         }

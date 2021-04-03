@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.core.plugin.aop;
+package com.sbss.bithon.agent.core.plugin.loader;
 
 import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IAopLogger;
 import shaded.org.slf4j.Logger;

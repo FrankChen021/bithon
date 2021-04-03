@@ -3,6 +3,7 @@ package com.sbss.bithon.agent.dependency;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.jar.JarFile;
 
 /**
  * @author frank.chen021@outlook.com
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public class AgentDependencyManager {
 
-    private static JarsClassLoader instance;
+    private static JarClassLoader instance;
 
     public static ClassLoader getClassLoader() {
         return instance;
@@ -20,13 +21,13 @@ public class AgentDependencyManager {
      * initialize class loader as a cascaded class loader
      */
     public static ClassLoader initialize(File agentDirectory) {
-        instance = new JarsClassLoader(new File(agentDirectory, "plugins"),
-                                       new JarsClassLoader(new File(agentDirectory, "lib"),
-                                                           Thread.currentThread().getContextClassLoader()));
+        instance = new JarClassLoader(new File(agentDirectory, "plugins"),
+                                      new JarClassLoader(new File(agentDirectory, "lib"),
+                                                         Thread.currentThread().getContextClassLoader()));
         return instance;
     }
 
-    public static List<JarFileItem> getPlugins() {
+    public static List<JarFile> getPlugins() {
         return Collections.unmodifiableList(instance.jars);
     }
 }
