@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.core.plugin.loader;
+package com.sbss.bithon.agent.dependency;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,9 +25,12 @@ public final class JarFileItem {
 
         try (BufferedInputStream inputStream = new BufferedInputStream(classFileUrl.openStream());
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            int ch;
-            while ((ch = inputStream.read()) != -1) {
-                outputStream.write(ch);
+
+            byte[] buffer = new byte[2048];
+            int len;
+
+            while ((len = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, len);
             }
             return outputStream.toByteArray();
         }

@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
 
-import com.sbss.bithon.agent.core.plugin.aop.AgentClassLoader;
+import com.sbss.bithon.agent.dependency.AgentDependencyManager;
 
 import java.lang.reflect.Method;
 
@@ -21,7 +21,7 @@ public class BootstrapHelper {
      * we must use reflection to get the Default Agent Class Loader which has been instantiated when agent starts
      */
     public static ClassLoader getAgentClassLoader() {
-        return AgentClassLoader.getDefaultInstance();
+        return AgentDependencyManager.getClassLoader();
 //        if (defaultAgentClassLoader != null) {
 //            return defaultAgentClassLoader;
 //        }

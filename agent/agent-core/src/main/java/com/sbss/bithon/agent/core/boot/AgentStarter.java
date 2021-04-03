@@ -1,8 +1,8 @@
-package com.sbss.bithon.agent.core.plugin;
+package com.sbss.bithon.agent.core.boot;
 
 import com.sbss.bithon.agent.core.config.AgentConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.plugin.loader.PluginClassLoader;
+import com.sbss.bithon.agent.core.plugin.loader.PluginDependencyManager;
 import com.sbss.bithon.agent.core.plugin.loader.PluginInstaller;
 import com.sbss.bithon.agent.core.setting.AgentSettingManager;
 import shaded.org.apache.log4j.xml.DOMConfigurator;
@@ -28,9 +28,8 @@ public class AgentStarter {
     private static final String CATALINA_HOME = System.getProperty("catalina.home");
     private String agentPath;
 
-    public void start(String agentPath, ClassLoader agentClassLoader, Instrumentation inst) throws Exception {
-        this.agentPath= agentPath;
-        showBanner();
+    public void start(String agentPath, Instrumentation inst) throws Exception {
+        this.agentPath = agentPath;
 
         // init log
         DOMConfigurator.configure(agentPath + separator + AgentContext.CONF_DIR + separator + CONF_LOG_FILE);
@@ -45,23 +44,9 @@ public class AgentStarter {
 
         loadContext(agentContext.getConfig());
 
-        PluginClassLoader.setAgentClassLoader(agentClassLoader);
+        PluginDependencyManager.initialize();
 
         PluginInstaller.install(agentContext, inst);
-    }
-
-    /**
-     * The banner is generated on https://manytools.org/hacker-tools/ascii-banner/ with font = 3D-ASCII
-     */
-    private void showBanner() {
-        System.out.println(" ________  ___  _________  ___  ___  ________  ________      \n"
-                           + "|\\   __  \\|\\  \\|\\___   ___\\\\  \\|\\  \\|\\   __  \\|\\   ___  \\    \n"
-                           + "\\ \\  \\|\\ /\\ \\  \\|___ \\  \\_\\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\ \\  \\   \n"
-                           + " \\ \\   __  \\ \\  \\   \\ \\  \\ \\ \\   __  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\  \n"
-                           + "  \\ \\  \\|\\  \\ \\  \\   \\ \\  \\ \\ \\  \\ \\  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\ \n"
-                           + "   \\ \\_______\\ \\__\\   \\ \\__\\ \\ \\__\\ \\__\\ \\_______\\ \\__\\\\ \\__\\\n"
-                           + "    \\|_______|\\|__|    \\|__|  \\|__|\\|__|\\|_______|\\|__| \\|__|\n"
-                           + "                                                             ");
     }
 
     private void loadContext(AgentConfig config) throws Exception {
@@ -73,7 +58,7 @@ public class AgentStarter {
 
     private void ensureTemporaryDir(AgentConfig config) {
         File tmpDir = new File(agentPath + separator + AgentContext.TMP_DIR + separator +
-                        config.getBootstrap().getAppName());
+                               config.getBootstrap().getAppName());
 
         if (!tmpDir.exists()) {
             tmpDir.mkdirs();

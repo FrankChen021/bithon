@@ -60,7 +60,7 @@
 <!--            </manifest>-->
             <manifestEntries>
               <!-- See: https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/compact3-package-summary.html -->
-              <Premain-Class>com.sbss.bithon.agent.bootstrap.AgentApp</Premain-Class>
+              <Premain-Class>com.sbss.bithon.agent.bootstrap.Main</Premain-Class>
               <Can-Redefine-Classes>true</Can-Redefine-Classes>
               <Boot-Class-Path>./boot/agent-boot-${project.version}.jar</Boot-Class-Path>
             </manifestEntries>

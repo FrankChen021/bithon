@@ -37,7 +37,7 @@ import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
  * @author frank.chen021@outlook.com
  * @date 2021/1/24 9:24 下午
  */
-public class PluginInterceptorInstaller {
+class PluginInterceptorInstaller {
     private static final Logger log = LoggerFactory.getLogger(AbstractPlugin.class);
 
     AgentBuilder agentBuilder;
@@ -209,7 +209,7 @@ public class PluginInterceptorInstaller {
      */
     private Class<?> getBootstrapAopClass(String methodsInterceptor) {
         try {
-            return Class.forName(BootstrapInterceptorInstaller.bootstrapAopClass(methodsInterceptor));
+            return Class.forName(BootstrapAopGenerator.bootstrapAopClass(methodsInterceptor));
         } catch (ClassNotFoundException e) {
             throw new AgentException(e.getMessage(), e);
         }

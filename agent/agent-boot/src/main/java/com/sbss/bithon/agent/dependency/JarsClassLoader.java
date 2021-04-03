@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.core.plugin.aop;
+package com.sbss.bithon.agent.dependency;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,28 +12,14 @@ import java.util.jar.JarEntry;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/31 21:44
+ * @date 2021/4/3 12:20
  */
-public class AgentClassLoader extends ClassLoader {
+class JarsClassLoader extends ClassLoader {
+    final List<JarFileItem> jars;
 
-    private static AgentClassLoader instance;
-
-    public static AgentClassLoader getDefaultInstance() {
-        return instance;
-    }
-
-    public static AgentClassLoader createInstance(File agentDirectory) {
-        List<JarFileItem> jars = JarFileResolver.resolve(new File(agentDirectory, "lib"),
-                                                         new File(agentDirectory, "plugins"));
-        instance = new AgentClassLoader(jars);
-        return instance;
-    }
-
-    List<JarFileItem> jars;
-
-    private AgentClassLoader(List<JarFileItem> jars) {
-        super(null);
-        this.jars = jars;
+    JarsClassLoader(File directory, ClassLoader parent) {
+        super(parent);
+        this.jars = JarFileResolver.resolve(directory);
     }
 
     @Override

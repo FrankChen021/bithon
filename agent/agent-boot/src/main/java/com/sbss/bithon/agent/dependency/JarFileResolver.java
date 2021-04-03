@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.core.plugin.aop;
+package com.sbss.bithon.agent.dependency;
 
 import com.sbss.bithon.agent.core.expt.AgentException;
 
