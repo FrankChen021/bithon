@@ -88,7 +88,7 @@ public class UriNormalizer {
         for (String part : parts) {
             boolean appended = false;
             for (UriPattern partRule : partRules) {
-                if (partRule.getMatcher().matches(path)) {
+                if (partRule.getMatcher().matches(part)) {
                     normalizedParts.add(partRule.getReplacement());
                     appended = true;
                     normalized = true;
