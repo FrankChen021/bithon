@@ -81,8 +81,27 @@ class ChartComponent {
             contentType: "application/json",
             success: (data) => {
                 this._chart.hideLoading();
-                //this.showLines(option, option.processResult(data));
-                this._chart.setOption(option.processResult(data));
+                if (option.incremental) {
+                    const result = option.processResult(data);
+                    let chartOption = {
+                        xAxis: this._chart.getOption().xAxis,
+                        series: this._chart.getOption().series
+                    };
+
+                    $.each(chartOption.series, (index, series) => {
+                        //TODO: if series.data.length is less than max size of search range, no shift
+                        series.data.shift();
+                        series.data = series.data.concat(result.series[index].data);
+                    });
+
+                    //TODO: if series.data.length is less than max size of search range, no shift
+                    chartOption.xAxis[0].data.shift();
+                    chartOption.xAxis[0].data = chartOption.xAxis[0].data.concat(result.xAxis.data);
+
+                    this._chart.setOption(chartOption);
+                } else {
+                    this._chart.setOption(option.processResult(data));
+                }
             },
             error: (data) => {
                 this._chart.hideLoading();
