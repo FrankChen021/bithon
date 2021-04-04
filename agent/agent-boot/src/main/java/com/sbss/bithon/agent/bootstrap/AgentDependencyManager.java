@@ -28,6 +28,6 @@ public class AgentDependencyManager {
     }
 
     public static List<JarFile> getPlugins() {
-        return Collections.unmodifiableList(instance.jars);
+        return instance.getJars();
     }
 }

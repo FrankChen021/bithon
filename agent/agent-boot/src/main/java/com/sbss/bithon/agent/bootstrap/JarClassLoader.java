@@ -3,6 +3,7 @@ package com.sbss.bithon.agent.bootstrap;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -15,11 +16,15 @@ import java.util.jar.JarFile;
  * @date 2021/4/3 12:20
  */
 class JarClassLoader extends ClassLoader {
-    final List<JarFile> jars;
+    private final List<JarFile> jars;
+    private final ClassLoader parent;
 
     JarClassLoader(File directory, ClassLoader parent) {
-        super(parent);
+        // NOTE:  parent is assigned to parent class loader
+        // This is the key to implement agent lib isolation from app libs
+        super(null);
         this.jars = JarResolver.resolve(directory);
+        this.parent = parent;
     }
 
     @Override
@@ -34,26 +39,30 @@ class JarClassLoader extends ClassLoader {
             try {
                 byte[] classBytes = JarUtils.openClassFile(jarFile, path);
                 return defineClass(name, classBytes, 0, classBytes.length);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ignored) {
             }
         }
-        throw new ClassNotFoundException("Can't find " + name);
+
+        // delegate to parent to load class
+        return parent.loadClass(name);
     }
 
     @Override
     public URL getResource(String name) {
         for (JarFile jarFile : jars) {
             JarEntry entry = jarFile.getJarEntry(name);
-            if (entry != null) {
-                try {
-                    return JarUtils.getClassURL(jarFile, name);
-                } catch (IOException e) {
-                    // resource didn't exist in current jarFile, search the next one
-                }
+            if (entry == null) {
+                continue;
+            }
+            try {
+                return JarUtils.getClassURL(jarFile, name);
+            } catch (IOException ignored) {
+                // resource didn't exist in current jarFile, search the next one
             }
         }
-        return super.getResource(name);
+
+        // delegate to parent to get resources
+        return parent.getResource(name);
     }
 
     @Override
@@ -78,5 +87,9 @@ class JarClassLoader extends ClassLoader {
                 return iterator.next();
             }
         };
+    }
+
+    public List<JarFile> getJars() {
+        return Collections.unmodifiableList(this.jars);
     }
 }

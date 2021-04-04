@@ -11,14 +11,15 @@ import java.lang.instrument.Instrumentation;
 
 import static java.io.File.separator;
 
+/**
+ * @author frankchen
+ */
 public class AgentStarter {
-    private static final String CONF_LOG_FILE = "log4j.xml";
 
     public void start(String agentPath, Instrumentation inst) throws Exception {
         PluginDependencyManager.initialize();
 
-        // init log
-        DOMConfigurator.configure(agentPath + separator + AgentContext.CONF_DIR + separator + CONF_LOG_FILE);
+        initAgentLogger(agentPath);
 
         AgentContext agentContext = AgentContext.createInstance(agentPath);
 
@@ -29,6 +30,25 @@ public class AgentStarter {
                                            agentContext.getConfig().getFetcher());
 
         PluginInstaller.install(agentContext, inst);
+    }
+
+    private void initAgentLogger(String agentPath) {
+        String logConfigName = "log4j.configuration";
+        String logConfigFile = agentPath + separator + AgentContext.CONF_DIR + separator + "log4j.xml";
+        String oldLogConfig = System.getProperty(logConfigName);
+
+        // replace original property
+        System.setProperty(logConfigName, logConfigFile);
+
+        // log config
+        DOMConfigurator.configure(logConfigFile);
+
+        // restore original property
+        if ( oldLogConfig != null ) {
+            System.setProperty(logConfigName, oldLogConfig);
+        } else {
+            System.clearProperty(logConfigName);
+        }
     }
 
     private void ensureApplicationTempDirectory(AgentContext context) {
