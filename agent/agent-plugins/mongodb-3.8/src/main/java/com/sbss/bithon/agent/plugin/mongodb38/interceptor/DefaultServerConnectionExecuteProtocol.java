@@ -7,9 +7,9 @@ import com.mongodb.session.SessionContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
+import com.sbss.bithon.agent.boot.aop.IBithonObject;
 
 /**
  * @author frankchen

@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.springweb;
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import shaded.org.slf4j.Logger;

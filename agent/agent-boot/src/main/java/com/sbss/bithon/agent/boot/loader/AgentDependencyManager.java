@@ -1,7 +1,6 @@
-package com.sbss.bithon.agent.bootstrap;
+package com.sbss.bithon.agent.boot.loader;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.jar.JarFile;
 

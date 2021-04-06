@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.bootstrap;
+package com.sbss.bithon.agent.boot.loader;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;

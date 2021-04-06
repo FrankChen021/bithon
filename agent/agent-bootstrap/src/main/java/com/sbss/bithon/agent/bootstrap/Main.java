@@ -1,5 +1,7 @@
 package com.sbss.bithon.agent.bootstrap;
 
+import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
+
 import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;

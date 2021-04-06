@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
+package com.sbss.bithon.agent.boot.aop;
 
 /**
  * Since Aop, which is injected into bootstrap class loader, depends on log,

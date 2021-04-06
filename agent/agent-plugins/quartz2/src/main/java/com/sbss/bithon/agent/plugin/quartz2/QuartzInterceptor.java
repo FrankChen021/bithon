@@ -2,8 +2,8 @@ package com.sbss.bithon.agent.plugin.quartz2;
 
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
 import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
 import org.quartz.impl.SchedulerRepository;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;

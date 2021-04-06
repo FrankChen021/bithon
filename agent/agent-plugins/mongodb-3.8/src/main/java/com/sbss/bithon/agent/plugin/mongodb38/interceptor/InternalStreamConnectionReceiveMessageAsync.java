@@ -4,9 +4,9 @@ import com.mongodb.async.SingleResultCallback;
 import com.mongodb.internal.connection.InternalStreamConnection;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
+import com.sbss.bithon.agent.boot.aop.InterceptionDecision;
 
 /**
  * @author frankchen

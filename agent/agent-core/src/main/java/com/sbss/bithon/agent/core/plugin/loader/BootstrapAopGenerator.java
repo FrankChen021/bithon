@@ -1,12 +1,14 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
 
+import com.sbss.bithon.agent.boot.aop.BootstrapConstructorAop;
+import com.sbss.bithon.agent.boot.aop.BootstrapMethodAop;
+import com.sbss.bithon.agent.boot.expt.AgentException;
+import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
-import com.sbss.bithon.agent.core.expt.AgentException;
-import com.sbss.bithon.agent.bootstrap.AgentDependencyManager;
 import shaded.net.bytebuddy.ByteBuddy;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.dynamic.DynamicType;
@@ -99,14 +101,14 @@ public class BootstrapAopGenerator {
         switch (methodPointCutDescriptor.getTargetMethodType()) {
             case INSTANCE_METHOD:
                 generateAopClass(classesTypeMap,
-                                 "com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapMethodAop",
+                                 BootstrapMethodAop.class,
                                  interceptorClass,
                                  methodPointCutDescriptor);
                 break;
 
             case CONSTRUCTOR:
                 generateAopClass(classesTypeMap,
-                                 "com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapConstructorAop",
+                                 BootstrapConstructorAop.class,
                                  interceptorClass,
                                  methodPointCutDescriptor);
                 break;
@@ -117,21 +119,17 @@ public class BootstrapAopGenerator {
     }
 
     private void generateAopClass(Map<String, byte[]> classesTypeMap,
-                                  String baseBootstrapAopClass,
+                                  Class<?> baseBootstrapAopClass,
                                   String interceptorClass,
                                   MethodPointCutDescriptor methodPointCutDescriptor) {
         String targetAopClassName = bootstrapAopClass(interceptorClass);
 
         DynamicType.Unloaded<?> aopClassType = null;
-        try {
-            aopClassType = new ByteBuddy().redefine(Class.forName(baseBootstrapAopClass, true, null))
-                                          .name(targetAopClassName)
-                                          .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
-                                          .value(interceptorClass)
-                                          .make();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        aopClassType = new ByteBuddy().redefine(baseBootstrapAopClass)
+                                      .name(targetAopClassName)
+                                      .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
+                                      .value(interceptorClass)
+                                      .make();
 
         if (methodPointCutDescriptor.isDebug()) {
             new TransformationDebugger().saveClassToFile(aopClassType);

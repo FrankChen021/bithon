@@ -4,7 +4,7 @@ import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.plugin.jdbc.druid.DruidPlugin;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;

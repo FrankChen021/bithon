@@ -2,9 +2,9 @@ package com.sbss.bithon.agent.plugin.httpclient.apache.metrics;
 
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
+import com.sbss.bithon.agent.boot.aop.InterceptionDecision;
 import org.apache.http.HttpConnection;
 import org.apache.http.HttpConnectionMetrics;
 import org.apache.http.HttpRequest;

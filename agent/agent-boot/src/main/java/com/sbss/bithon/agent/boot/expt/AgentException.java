@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.core.expt;
+package com.sbss.bithon.agent.boot.expt;
 
 /**
  * @author frank.chen021@outlook.com

@@ -5,8 +5,8 @@ import com.mongodb.internal.connection.InternalStreamConnection;
 import com.mongodb.internal.connection.ResponseBuffers;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
 
 /**
  * @author frankchen

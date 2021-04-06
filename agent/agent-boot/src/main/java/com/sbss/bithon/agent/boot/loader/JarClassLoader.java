@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.bootstrap;
+package com.sbss.bithon.agent.boot.loader;
 
 import java.io.File;
 import java.io.IOException;

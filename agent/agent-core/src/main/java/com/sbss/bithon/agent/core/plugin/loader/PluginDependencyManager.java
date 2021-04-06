@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
-import com.sbss.bithon.agent.bootstrap.AgentDependencyManager;
+import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

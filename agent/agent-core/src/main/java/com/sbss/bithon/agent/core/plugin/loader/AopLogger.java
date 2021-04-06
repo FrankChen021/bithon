@@ -1,6 +1,6 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IAopLogger;
+import com.sbss.bithon.agent.boot.aop.IAopLogger;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 

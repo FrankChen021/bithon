@@ -5,7 +5,7 @@ import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
+import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.core.setting.AgentSettingManager;
 import com.sbss.bithon.agent.core.setting.IAgentSettingRefreshListener;
 import com.sbss.bithon.agent.core.setting.SettingRootNames;
