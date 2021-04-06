@@ -30,6 +30,7 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,19 +52,20 @@ class MetricJdbcReader implements IMetricReader {
 
     // TODO: 具有多个纬度的聚合条件下，last/first应该按多个纬度分组求last/first，再聚合求和
     @Override
-    public List<Map<String, Object>> getMetricValueList(TimeSpan start,
-                                                        TimeSpan end,
-                                                        DataSourceSchema dataSourceSchema,
-                                                        Collection<DimensionCondition> filters,
-                                                        Collection<String> metrics) {
-        //TODO: interval should be calculated by range of timeline
-        int interval = 10;
+    public List<Map<String, Object>> timeseries(TimeSpan start,
+                                                TimeSpan end,
+                                                DataSourceSchema dataSourceSchema,
+                                                Collection<DimensionCondition> filters,
+                                                Collection<String> metrics,
+                                                int interval) {
         String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
         MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
                                                                                       "OUTER",
                                                                                       dataSourceSchema,
                                                                                       ImmutableMap.of("interval",
                                                                                                       interval));
+
+        String groupByExpression = String.format("UNIX_TIMESTAMP(\"timestamp\") / %d", interval);
         String metricList = metrics.stream()
                                    .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
                                    .collect(Collectors.joining(", "));
@@ -73,16 +75,47 @@ class MetricJdbcReader implements IMetricReader {
                                                              .accept(new SqlConditionBuilder(dimension.getDimension())))
                                   .collect(Collectors.joining(" AND "));
         String sql = String.format(
-            "SELECT \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY \"timestamp\"",
+            "SELECT %s * %d \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY %s",
+            groupByExpression,
+            interval,
             metricList,
             sqlTableName,
             "OUTER",
             condition,
             start.toISO8601(),
-            end.toISO8601()
+            end.toISO8601(),
+            groupByExpression
         );
-        log.info("Executing {}", sql);
-        return getMetricValueList(sql);
+
+        List<Map<String, Object>> queryResult = executeSql(sql);
+
+        //
+        // fill empty
+        //
+        List<Map<String, Object>> returns = new ArrayList<>();
+        int j = 0;
+        for (long slot = start.toSeconds() / interval * interval, endSlot = end.toSeconds() / interval * interval;
+             slot < endSlot;
+             slot += interval) {
+            if (j < queryResult.size()) {
+                long nextSlot = ((Number) queryResult.get(j).get("timestamp")).longValue();
+                while (slot < nextSlot) {
+                    Map<String, Object> empty = new HashMap<>(metrics.size());
+                    empty.put("timestamp", slot * 1000);
+                    metrics.forEach((metric) -> empty.put(metric, 0));
+                    returns.add(empty);
+                    slot += interval;
+                }
+                queryResult.get(j).put("timestamp", nextSlot * 1000);
+                returns.add(queryResult.get(j++));
+            } else {
+                Map<String, Object> empty = new HashMap<>(metrics.size());
+                empty.put("timestamp", slot * 1000);
+                metrics.forEach((metric) -> empty.put(metric, 0));
+                returns.add(empty);
+            }
+        }
+        return returns;
     }
 
     @Override
@@ -116,8 +149,7 @@ class MetricJdbcReader implements IMetricReader {
             start.toISO8601(),
             end.toISO8601()
         );
-        log.info("Executing {}", sql);
-        List<Map<String, Object>> values = getMetricValueList(sql);
+        List<Map<String, Object>> values = executeSql(sql);
         return CollectionUtils.isEmpty(values) ? Collections.emptyMap() : values.get(0);
     }
 
@@ -158,12 +190,13 @@ class MetricJdbcReader implements IMetricReader {
             end.toISO8601(),
             groupByFields
         );
-        log.info("Executing {}", sql);
-        return getMetricValueList(sql);
+        return executeSql(sql);
     }
 
     @Override
-    public List<Map<String, Object>> getMetricValueList(String sql) {
+    public List<Map<String, Object>> executeSql(String sql) {
+        log.info("Executing {}", sql);
+
         List<Record> records = dsl.fetch(sql);
 
         // PAY ATTENTION:

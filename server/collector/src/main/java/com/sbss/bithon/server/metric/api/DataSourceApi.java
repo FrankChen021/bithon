@@ -36,24 +36,50 @@ public class DataSourceApi {
     }
 
     @PostMapping("/api/datasource/metrics")
-    public List<Map<String, Object>> getMetrics(@Valid @RequestBody GetMetricsRequest request) {
-
+    public List<Map<String, Object>> timeseries(@Valid @RequestBody GetMetricsRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        return this.metricStorage.createMetricReader(schema).getMetricValueList(
-            TimeSpan.fromISO8601(request.getStartTimeISO8601()),
-            TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
+        int interval = getInterval(start, end);
+        return this.metricStorage.createMetricReader(schema).timeseries(
+            start,
+            end,
             schema,
             request.getDimensions().values(),
-            request.getMetrics()
+            request.getMetrics(),
+            interval
         );
+    }
+
+    /**
+     * TODO: interval should be consistent with retention rules
+     */
+    private int getInterval(TimeSpan start, TimeSpan end) {
+        long length = end.diff(start) / 1000;
+        if (length >= 7 * 24 * 3600) {
+            return 15 * 60;
+        }
+        if (length >= 3 * 24 * 3600) {
+            return 10 * 60;
+        }
+        if (length >= 24 * 3600) {
+            return 5 * 60;
+        }
+        if (length >= 12 * 3600) {
+            return 60;
+        }
+        if (length >= 6 * 3600) {
+            return 30;
+        }
+        return 10;
     }
 
     @PostMapping("/api/datasource/sql")
     public List<Map<String, Object>> getMetricsBySql(@Valid @RequestBody GetMetricsBySqlRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        return this.metricStorage.createMetricReader(schema).getMetricValueList(request.getSql());
+        return this.metricStorage.createMetricReader(schema).executeSql(request.getSql());
     }
 
     @PostMapping("/api/datasource/schemas")

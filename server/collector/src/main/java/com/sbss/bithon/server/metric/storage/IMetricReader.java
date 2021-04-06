@@ -22,11 +22,12 @@ public interface IMetricReader {
     /**
      * TODO: Actually, this method is a time-series implementation. Should be renamed some day
      */
-    List<Map<String, Object>> getMetricValueList(TimeSpan start,
-                                                 TimeSpan end,
-                                                 DataSourceSchema dataSourceSchema,
-                                                 Collection<DimensionCondition> filter,
-                                                 Collection<String> metrics);
+    List<Map<String, Object>> timeseries(TimeSpan start,
+                                         TimeSpan end,
+                                         DataSourceSchema dataSourceSchema,
+                                         Collection<DimensionCondition> filter,
+                                         Collection<String> metrics,
+                                         int interval);
 
     /**
      * Aggregate metrics by their pre-defined aggregators in the given period
@@ -40,7 +41,6 @@ public interface IMetricReader {
     /**
      * Aggregate metrics by their pre-defined aggregators in the given period
      *
-     * @return
      */
     List<Map<String, Object>> groupBy(TimeSpan start,
                                       TimeSpan end,
@@ -49,7 +49,7 @@ public interface IMetricReader {
                                       Collection<String> metrics,
                                       Collection<String> groupBy);
 
-    List<Map<String, Object>> getMetricValueList(String sql);
+    List<Map<String, Object>> executeSql(String sql);
 
     List<Map<String, String>> getDimensionValueList(TimeSpan start,
                                                     TimeSpan end,
