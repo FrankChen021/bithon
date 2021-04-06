@@ -88,6 +88,10 @@ class ChartComponent {
                         series: this._chart.getOption().series
                     };
 
+                    // TODO:
+                    //  1. 接口需要返回聚合的interval长度，下面再根据interval长度计算完整的周期数据点个数确定是否需要shift
+                    //  2. dashboard上维度变化时需要全加载
+                    //  3. 服务端数据点补齐
                     $.each(chartOption.series, (index, series) => {
                         //TODO: if series.data.length is less than max size of search range, no shift
                         series.data.shift();
