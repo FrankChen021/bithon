@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
+package com.sbss.bithon.agent.boot.aop;
 
 import java.lang.reflect.Executable;
 
@@ -41,7 +41,7 @@ public class AopContext {
 
     /**
      * The target object which intercepted method is invoked on
-     *
+     * <p>
      * If the intercepted method is a static method, returns null, otherwise returns non-null
      */
     public Object getTarget() {
@@ -68,7 +68,7 @@ public class AopContext {
 
     @SuppressWarnings("unchecked")
     public <T> T getArgAs(int i) {
-        return (T)args[i];
+        return (T) args[i];
     }
 
     public Object getUserContext() {

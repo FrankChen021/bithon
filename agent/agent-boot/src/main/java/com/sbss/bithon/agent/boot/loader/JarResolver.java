@@ -1,11 +1,10 @@
-package com.sbss.bithon.agent.core.plugin.loader;
+package com.sbss.bithon.agent.boot.loader;
 
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import com.sbss.bithon.agent.boot.expt.AgentException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarFile;
 
@@ -13,14 +12,12 @@ import java.util.jar.JarFile;
  * @author frank.chen021@outlook.com
  * @date 2021/1/10 3:43 下午
  */
-public class JarFileResolver {
-    static Logger log = LoggerFactory.getLogger(JarFileResolver.class);
-
+public class JarResolver {
     /**
      * resolve all jars under searchLocations
      */
-    public static List<JarFileItem> resolve(File... directories) {
-        List<JarFileItem> jarFiles = new LinkedList<>();
+    public static List<JarFile> resolve(File... directories) {
+        List<JarFile> jarFiles = new ArrayList<>();
         for (File dir : directories) {
             if (!dir.exists() || !dir.isDirectory()) {
                 continue;
@@ -34,9 +31,9 @@ public class JarFileResolver {
             for (String fileName : jarFileNames) {
                 try {
                     File jar = new File(dir, fileName);
-                    jarFiles.add(new JarFileItem(new JarFile(jar), jar));
+                    jarFiles.add(new JarFile(jar));
                 } catch (IOException e) {
-                    log.error("Failed to read jar[{}]", fileName, e);
+                    throw new AgentException(e, "Exception when processing jar [%s]", fileName);
                 }
             }
         }

@@ -8,6 +8,8 @@
   <includeBaseDirectory>false</includeBaseDirectory>
 
   <dependencySets>
+
+    <!-- agent-bootstrap -->
     <dependencySet>
       <includes>
         <include>${project.parent.groupId}:agent-bootstrap</include>
@@ -16,8 +18,18 @@
       <outputFileNameMapping>agent-bootstrap.jar</outputFileNameMapping>
     </dependencySet>
 
+    <!-- boot-class-path -->
+    <dependencySet>
+      <includes>
+        <include>${project.parent.groupId}:agent-boot</include>
+      </includes>
+      <outputDirectory>/boot</outputDirectory>
+    </dependencySet>
+
+    <!-- lib -->
     <dependencySet>
       <excludes>
+        <exclude>${project.parent.groupId}:agent-boot</exclude>
         <exclude>${project.parent.groupId}:agent-bootstrap</exclude>
         <exclude>org.slf4j:slf4j-api</exclude>
       </excludes>

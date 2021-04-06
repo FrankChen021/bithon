@@ -1,9 +1,5 @@
-package com.sbss.bithon.agent.core.plugin.aop;
+package com.sbss.bithon.agent.boot.aop;
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AroundMethodAop;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IAopLogger;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.ISuperMethod;
 import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
 import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
 import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
@@ -18,11 +14,11 @@ import java.lang.reflect.Method;
  */
 public class MethodAop {
 
-    private static final IAopLogger aopLogger = AopLogger.getLogger(MethodAop.class);
+    private static final IAopLogger aopLogger = BootstrapHelper.createAopLogger(MethodAop.class);
 
-    private final AbstractInterceptor interceptor;
+    private final Object interceptor;
 
-    public MethodAop(AbstractInterceptor interceptor) {
+    public MethodAop(Object interceptor) {
         this.interceptor = interceptor;
     }
 
@@ -33,7 +29,7 @@ public class MethodAop {
                             @This(optional = true) Object targetObject,
                             @AllArguments Object[] args) throws Exception {
         return AroundMethodAop.intercept(aopLogger,
-                                         interceptor,
+                                         (AbstractInterceptor) interceptor,
                                          targetClass,
                                          superMethod,
                                          targetObject,

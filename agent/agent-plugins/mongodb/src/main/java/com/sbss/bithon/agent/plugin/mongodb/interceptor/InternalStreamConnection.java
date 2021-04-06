@@ -3,9 +3,9 @@ package com.sbss.bithon.agent.plugin.mongodb.interceptor;
 import com.mongodb.connection.ServerId;
 import com.mongodb.connection.StreamFactory;
 import com.mongodb.event.ConnectionListener;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
+import com.sbss.bithon.agent.boot.aop.IBithonObject;
 
 /**
  * @author frank.chen021@outlook.com

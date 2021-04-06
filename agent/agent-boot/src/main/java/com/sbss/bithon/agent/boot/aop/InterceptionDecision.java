@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
+package com.sbss.bithon.agent.boot.aop;
 
 /**
  * @author frank.chen021@outlook.com

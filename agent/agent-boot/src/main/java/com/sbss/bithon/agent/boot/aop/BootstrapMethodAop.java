@@ -1,7 +1,6 @@
-package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
+package com.sbss.bithon.agent.boot.aop;
 
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
-import com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller;
+import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
 import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
 import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
 import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
@@ -19,7 +18,7 @@ import java.util.Map;
  */
 public class BootstrapMethodAop {
     /**
-     * assigned by {@link BootstrapInterceptorInstaller#generateAopClass(Map, TypePool, String, String, MethodPointCutDescriptor)}
+     * assigned by {@link com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller#generateAopClass(Map, TypePool, String, String, com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor)}
      */
     private static String INTERCEPTOR_CLASS_NAME;
 
@@ -51,18 +50,13 @@ public class BootstrapMethodAop {
             return INTERCEPTOR;
         }
 
-        ClassLoader loader = BootstrapHelper.getAgentClassLoader();
-        if (loader == null) {
-            return null;
-        }
-
-        log = BootstrapHelper.createAopLogger(loader, BootstrapMethodAop.class);
+        log = BootstrapHelper.createAopLogger(BootstrapMethodAop.class);
 
         try {
             // load class out of sync to eliminate potential dead lock
             Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
                                                       true,
-                                                      loader);
+                                                      AgentDependencyManager.getClassLoader());
             synchronized (INTERCEPTOR_CLASS_NAME) {
                 //double check
                 if (INTERCEPTOR != null) {

@@ -8,9 +8,9 @@ import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
+import com.sbss.bithon.agent.boot.aop.InterceptionDecision;
 import org.bson.BsonDocument;
 
 /**

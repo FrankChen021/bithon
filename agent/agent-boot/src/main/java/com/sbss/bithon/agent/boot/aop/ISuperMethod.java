@@ -1,4 +1,4 @@
-package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
+package com.sbss.bithon.agent.boot.aop;
 
 /**
  * See {@link net.bytebuddy.implementation.bind.annotation.Morph} for how this interface works

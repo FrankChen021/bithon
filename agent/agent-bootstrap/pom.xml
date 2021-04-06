@@ -28,16 +28,17 @@
           <artifactId>httpcore</artifactId>
           <groupId>org.apache.httpcomponents</groupId>
         </exclusion>
-        <exclusion>
-          <artifactId>slf4j-api</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-dependencies</artifactId>
       <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-boot</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 
@@ -53,13 +54,15 @@
             <exclude>*.yml</exclude>
           </excludes>
           <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>./lib/</classpathPrefix>
-            </manifest>
+<!--            <manifest>-->
+<!--              <addClasspath>true</addClasspath>-->
+<!--              <classpathPrefix>./lib/</classpathPrefix>-->
+<!--            </manifest>-->
             <manifestEntries>
-              <Premain-Class>com.sbss.bithon.agent.bootstrap.AgentApp</Premain-Class>
+              <!-- See: https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/compact3-package-summary.html -->
+              <Premain-Class>com.sbss.bithon.agent.bootstrap.Main</Premain-Class>
               <Can-Redefine-Classes>true</Can-Redefine-Classes>
+              <Boot-Class-Path>./boot/agent-boot-${project.version}.jar</Boot-Class-Path>
             </manifestEntries>
           </archive>
         </configuration>

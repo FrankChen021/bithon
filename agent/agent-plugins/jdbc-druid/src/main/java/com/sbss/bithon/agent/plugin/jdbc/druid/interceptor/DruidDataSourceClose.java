@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.plugin.jdbc.druid.interceptor;
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
+import com.sbss.bithon.agent.boot.aop.InterceptionDecision;
 import com.sbss.bithon.agent.plugin.jdbc.druid.metric.MonitoredSourceManager;
 
 /**

@@ -1,14 +1,13 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
-import com.sbss.bithon.agent.core.context.AgentContext;
+import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.io.File.separator;
+import java.util.jar.JarFile;
 
 /**
  * @author frank.chen021@outlook.com
@@ -16,27 +15,22 @@ import static java.io.File.separator;
  */
 public class PluginResolver {
 
-    private final List<JarFileItem> jars;
-
-    public PluginResolver(String agentDirectory) {
-        jars = JarFileResolver.resolve(new File(agentDirectory + separator + AgentContext.PLUGIN_DIR));
-
-        AgentClassloader.appendSearchFiles(jars);
-    }
-
     public List<AbstractPlugin> resolve() {
+
         final List<AbstractPlugin> plugins = new ArrayList<>();
-        for (JarFileItem jar : jars) {
+        for (JarFile jar : AgentDependencyManager.getPlugins()) {
             try {
-                String pluginClassName = jar.getJarFile().getManifest().getMainAttributes().getValue("Plugin-Class");
+                String pluginClassName = jar.getManifest().getMainAttributes().getValue("Plugin-Class");
                 AbstractPlugin plugin = (AbstractPlugin) Class.forName(pluginClassName,
                                                                        true,
-                                                                       AgentClassloader.getDefaultInstance())
+                                                                       AgentDependencyManager.getClassLoader())
                                                               .newInstance();
                 plugins.add(plugin);
             } catch (Throwable e) {
                 LoggerFactory.getLogger(PluginResolver.class)
-                             .error(String.format("Failed to add plugin from jar %s", jar.sourceFile.getName()), e);
+                             .error(String.format("Failed to add plugin from jar %s",
+                                                  new File(jar.getName()).getName()),
+                                    e);
             }
         }
         return plugins;

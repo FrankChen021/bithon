@@ -1,8 +1,7 @@
-package com.sbss.bithon.agent.core.plugin.aop.bootstrap;
+package com.sbss.bithon.agent.boot.aop;
 
 
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
-import com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller;
+import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
 import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
 import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
 import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
@@ -19,7 +18,7 @@ import java.util.Map;
  */
 public class BootstrapConstructorAop {
     /**
-     * assigned by {@link BootstrapInterceptorInstaller#generateAopClass(Map, TypePool, String, String, MethodPointCutDescriptor)}
+     * assigned by {@link com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller#generateAopClass(Map, TypePool, String, String, com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor)}
      */
     private static String INTERCEPTOR_CLASS_NAME;
 
@@ -38,9 +37,13 @@ public class BootstrapConstructorAop {
             }
             interceptor.onConstruct(new AopContext(targetClass, constructor, targetObject, args));
         } catch (Throwable e) {
-            log.error(String.format("Failed to invoke onConstruct interceptor[%s]",
-                                    INTERCEPTOR_CLASS_NAME),
-                      e);
+            if (log != null) {
+                log.error(String.format("Failed to invoke onConstruct interceptor[%s]",
+                                        INTERCEPTOR_CLASS_NAME),
+                          e);
+            } else {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -49,18 +52,13 @@ public class BootstrapConstructorAop {
             return INTERCEPTOR;
         }
 
-        ClassLoader loader = BootstrapHelper.getAgentClassLoader();
-        if (loader == null) {
-            return null;
-        }
-
-        log = BootstrapHelper.createAopLogger(loader, BootstrapMethodAop.class);
+        log = BootstrapHelper.createAopLogger(BootstrapMethodAop.class);
 
         try {
             // load class out of sync to eliminate potential dead lock
             Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
                                                       true,
-                                                      loader);
+                                                      AgentDependencyManager.getClassLoader());
             synchronized (INTERCEPTOR_CLASS_NAME) {
                 //double check
                 if (INTERCEPTOR != null) {

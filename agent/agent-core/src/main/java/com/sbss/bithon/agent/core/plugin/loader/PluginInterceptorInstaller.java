@@ -1,18 +1,20 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
+import com.sbss.bithon.agent.boot.aop.BootstrapConstructorAop;
+import com.sbss.bithon.agent.boot.aop.BootstrapMethodAop;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.aop.ConstructorAop;
-import com.sbss.bithon.agent.core.plugin.aop.MethodAop;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.ISuperMethod;
+import com.sbss.bithon.agent.boot.aop.ConstructorAop;
+import com.sbss.bithon.agent.boot.aop.MethodAop;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.IBithonObject;
+import com.sbss.bithon.agent.boot.aop.ISuperMethod;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
-import com.sbss.bithon.agent.core.utils.expt.AgentException;
+import com.sbss.bithon.agent.boot.expt.AgentException;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.dynamic.DynamicType;
@@ -37,7 +39,7 @@ import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
  * @author frank.chen021@outlook.com
  * @date 2021/1/24 9:24 下午
  */
-public class PluginInterceptorInstaller {
+class PluginInterceptorInstaller {
     private static final Logger log = LoggerFactory.getLogger(AbstractPlugin.class);
 
     AgentBuilder agentBuilder;
@@ -157,8 +159,8 @@ public class PluginInterceptorInstaller {
 
     /**
      * Since methods in
-     * {@link com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapMethodAop}
-     * {@link com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapConstructorAop}
+     * {@link BootstrapMethodAop}
+     * {@link BootstrapConstructorAop}
      * are defined as static, the interceptors must be installed as classes
      */
     private DynamicType.Builder<?> installBootstrapInterceptor(DynamicType.Builder<?> builder,
@@ -209,7 +211,7 @@ public class PluginInterceptorInstaller {
      */
     private Class<?> getBootstrapAopClass(String methodsInterceptor) {
         try {
-            return Class.forName(BootstrapInterceptorInstaller.bootstrapAopClass(methodsInterceptor));
+            return Class.forName(BootstrapAopGenerator.bootstrapAopClass(methodsInterceptor));
         } catch (ClassNotFoundException e) {
             throw new AgentException(e.getMessage(), e);
         }
