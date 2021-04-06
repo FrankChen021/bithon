@@ -4,6 +4,7 @@ import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -12,6 +13,8 @@ import java.lang.reflect.Method;
 public class Main {
     public static void premain(String agentArgs, Instrumentation inst) throws Exception {
         showBanner();
+
+        initAppLogger();
 
         File agentDirectory = new BootstrapJarLocator().locate(Main.class.getName()).getParentFile();
 
@@ -22,6 +25,20 @@ public class Main {
                                                             String.class,
                                                             Instrumentation.class);
         startMethod.invoke(starterObject, agentDirectory.getAbsolutePath(), inst);
+    }
+
+    /**
+     * see {@link https://issues.apache.org/jira/browse/LOG4J2-1094}
+     */
+    private static void initAppLogger() {
+        try {
+            Class<?> loggerFactoryClass = Class.forName("org.slf4j.LoggerFactory",
+                                                        true,
+                                                        ClassLoader.getSystemClassLoader());
+            Method getLoggerMethod = loggerFactoryClass.getDeclaredMethod("getLogger", String.class);
+            getLoggerMethod.invoke(null, "none");
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+        }
     }
 
     /**
