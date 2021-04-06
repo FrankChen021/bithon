@@ -51,6 +51,14 @@ public class TimeSpan {
         return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(new Date(milliseconds));
     }
 
+    public long diff(TimeSpan timeSpan) {
+        return this.getMilliseconds() - timeSpan.getMilliseconds();
+    }
+
+    public long toSeconds() {
+        return this.milliseconds / 1000;
+    }
+
     @Override
     public boolean equals(Object right) {
         if (right instanceof TimeSpan) {
