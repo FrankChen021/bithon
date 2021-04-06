@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptorBuilder.forClass;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 /**
@@ -35,11 +34,18 @@ public class MongoDb38Plugin extends AbstractPlugin {
                 ),
 
             forClass("com.mongodb.internal.connection.CommandProtocolImpl")
-                .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(takesArguments(9))
-                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.Protocol$CommandProtocol")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$Constructor"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("execute")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$Execute"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("executeAsync")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$ExecuteAsync")
                 ),
 
             //request statistics
@@ -58,6 +64,7 @@ public class MongoDb38Plugin extends AbstractPlugin {
             // By contrast to 3.4, ConnectionMessageSentEvent & ConnectionMessageReceivedEvent are removed
             // So we have to intercept the underlying StreamConnection to get the message size
             forClass("com.mongodb.internal.connection.InternalStreamConnection")
+                .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("sendMessage")
@@ -68,12 +75,8 @@ public class MongoDb38Plugin extends AbstractPlugin {
                                                    .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionSendMessageAsync"),
 
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("receiveMessage")
-                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionReceiveMessage"),
-
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("receiveMessageAsync")
-                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionReceiveMessageAsync")
+                                                   .onAllMethods("receiveMessageWithAdditionalTimeout")
+                                                   .to("com.sbss.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionReceiveMessage")
                 )
         );
     }

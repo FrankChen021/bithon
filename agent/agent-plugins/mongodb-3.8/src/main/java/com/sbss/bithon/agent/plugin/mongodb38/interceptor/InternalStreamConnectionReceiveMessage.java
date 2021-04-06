@@ -3,7 +3,9 @@ package com.sbss.bithon.agent.plugin.mongodb38.interceptor;
 import com.mongodb.connection.ConnectionId;
 import com.mongodb.internal.connection.InternalStreamConnection;
 import com.mongodb.internal.connection.ResponseBuffers;
+import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
 import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.AopContext;
@@ -25,6 +27,8 @@ public class InternalStreamConnectionReceiveMessage extends AbstractInterceptor 
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
+        MongoCommand command = InterceptorContext.getAs("mongo-3.8-command");
+
         InternalStreamConnection target = (InternalStreamConnection) aopContext.getTarget();
         ConnectionId connectionId = target.getDescription().getConnectionId();
 
@@ -32,7 +36,8 @@ public class InternalStreamConnectionReceiveMessage extends AbstractInterceptor 
         int bytesIn = result.getReplyHeader().getMessageLength();
         bytesIn += result.getBodyByteBuffer().remaining();
 
-        metricCollector.getOrCreateMetric(connectionId.getServerId().getAddress().toString())
+        metricCollector.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
+                                          command.getDatabase())
                        .addBytesIn(bytesIn);
     }
 }
