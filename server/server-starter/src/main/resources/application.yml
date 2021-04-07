@@ -1,0 +1,7 @@
+server:
+  port: 9897
+spring:
+  application:
+    name: server
+  profiles:
+    active: dev, collector, webapp
