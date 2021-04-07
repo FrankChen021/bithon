@@ -1,43 +1,43 @@
-var mongodb_metrics_dashboard = {
+const mongodb_metrics_dashboard = {
     "title": "",
-    "charts":[{
+    "charts": [{
         "dataSource": "mongodb-metrics",
         "title": "Commands",
         "width": 4, //1,2,3,4
-        "yAxis": [{},{}],
-        "metrics":[{
+        "yAxis": [{}, {}],
+        "metrics": [{
             "name": "callCount"
-        },{
+        }, {
             "name": "tps",
             "yAxis": 1
         }]
-    },{
+    }, {
         "dataSource": "mongodb-metrics",
         "title": "Time",
         "width": 4, //1,2,3,4
         "yAxis": [{
             "unit": "nano2Millisecond"
         }],
-        "metrics":[{
-            "name": "responseTime"
-        },{
+        "metrics": [{
+            "name": "avgResponseTime"
+        }, {
             "name": "minResponseTime"
-        },{
+        }, {
             "name": "maxResponseTime"
         }]
-    },{
+    }, {
         "dataSource": "mongodb-metrics",
         "title": "IO",
         "width": 4, //1,2,3,4
-        "yAxis": [ {
+        "yAxis": [{
             "minInterval": 1024 * 1024,
             "interval": 1024 * 1024 * 1024,
             "unit": "binary_byte"
         }],
-        "metrics":[{
+        "metrics": [{
             "name": "requestBytes"
-        },{
+        }, {
             "name": "responseBytes"
         }]
     }]
-}
+};
