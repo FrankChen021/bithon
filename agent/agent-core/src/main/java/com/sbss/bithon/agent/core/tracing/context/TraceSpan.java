@@ -73,7 +73,16 @@ public class TraceSpan {
     }
 
     public TraceSpan tag(String name, String value) {
-        tags.put(name, value);
+        if ( value != null ) {
+            tags.put(name, value);
+        }
+        return this;
+    }
+
+    public TraceSpan tag(Throwable exception) {
+        if ( exception != null ) {
+            tags.put("exception", exception.toString());
+        }
         return this;
     }
 
