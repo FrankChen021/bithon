@@ -16,6 +16,12 @@
       <groupId>com.sbss.bithon</groupId>
       <artifactId>agent-rpc-thrift</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>javax.annotation-api</artifactId>
+          <groupId>javax.annotation</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>

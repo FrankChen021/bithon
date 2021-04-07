@@ -6,6 +6,7 @@ import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
@@ -24,8 +25,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,33 +36,6 @@ public class KafkaCollectorStarter implements SmartLifecycle, ApplicationContext
     ApplicationContext context;
 
     private final List<IKafkaCollector> collectors = new ArrayList<>();
-
-    private static class NamedThreadFactory implements ThreadFactory {
-        private final ThreadGroup group;
-        private final AtomicInteger threadNumber = new AtomicInteger(1);
-        private final String namePrefix;
-
-        /**
-         * given name.
-         *
-         * @param name the name of the threads, to be used in the pattern {@code
-         *             metrics-$NAME$-thread-$NUMBER$}
-         */
-        NamedThreadFactory(String name) {
-            final SecurityManager s = System.getSecurityManager();
-            this.group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
-            this.namePrefix = name + "-thread-";
-        }
-
-        @Override
-        public Thread newThread(Runnable r) {
-            final Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
-            if (t.getPriority() != Thread.NORM_PRIORITY) {
-                t.setPriority(Thread.NORM_PRIORITY);
-            }
-            return t;
-        }
-    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -85,7 +57,8 @@ public class KafkaCollectorStarter implements SmartLifecycle, ApplicationContext
                                                 context.getBean(ThreadPoolMetricMessageHandler.class),
                                                 context.getBean(JdbcPoolMetricMessageHandler.class),
                                                 context.getBean(RedisMetricMessageHandler.class),
-                                                context.getBean(SqlMetricMessageHandler.class))
+                                                context.getBean(SqlMetricMessageHandler.class),
+                                                context.getBean(MongoDbMetricMessageHandler.class))
                            .start(consumerProps));
 
         collectors.add(new KafkaTraceCollector(context.getBean(TraceMessageHandler.class)).start(consumerProps));

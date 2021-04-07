@@ -8,6 +8,7 @@ import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
@@ -15,7 +16,6 @@ import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,7 @@ import java.util.Map;
 public class LocalMetricSink implements IMessageSink<GenericMetricMessage> {
 
     @Getter
-    private final Map<String, IMessageHandler> handlers = new HashMap<>();
+    private final Map<String, IMessageHandler<?>> handlers = new HashMap<>();
 
     public LocalMetricSink(JvmMetricMessageHandler jvmMetricMessageHandler,
                            JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
@@ -42,7 +42,8 @@ public class LocalMetricSink implements IMessageSink<GenericMetricMessage> {
                            ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
                            JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
                            RedisMetricMessageHandler redisMetricMessageHandler,
-                           SqlMetricMessageHandler sqlMetricMessageHandler) {
+                           SqlMetricMessageHandler sqlMetricMessageHandler,
+                           MongoDbMetricMessageHandler mongoDbMetricMessageHandler) {
         add(jvmMetricMessageHandler);
         add(jvmGcMetricMessageHandler);
         add(webRequestMetricMessageHandler);
@@ -53,12 +54,14 @@ public class LocalMetricSink implements IMessageSink<GenericMetricMessage> {
         add(jdbcPoolMetricMessageHandler);
         add(redisMetricMessageHandler);
         add(sqlMetricMessageHandler);
+        add(mongoDbMetricMessageHandler);
     }
 
-    private void add(IMessageHandler handler) {
+    private void add(IMessageHandler<?> handler) {
         handlers.put(handler.getType(), handler);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void process(String messageType, GenericMetricMessage message) {
         IMessageHandler handler = handlers.get(messageType);

@@ -6,7 +6,7 @@ import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.http.HttpClientCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
-import com.sbss.bithon.agent.core.metric.domain.mongo.MongoClientCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
@@ -26,6 +26,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMes
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MemoryEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MetaspaceEntity;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MongoDbMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.NonHeapEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
@@ -106,8 +107,25 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, MongoClientCompositeMetric metric) {
-        return null;
+    public Object from(long timestamp,
+                       int interval,
+                       List<String> dimensions,
+                       MongoDbCompositeMetric metric) {
+        MongoDbMetricMessage message = new MongoDbMetricMessage();
+        message.setInterval(interval);
+        message.setTimestamp(timestamp);
+        message.setServer(dimensions.get(0));
+        message.setDatabase(dimensions.get(1));
+        message.setCollection(null);
+        message.setCommand(null);
+        message.setResponseTime(metric.getResponseTime().getSum().get());
+        message.setMaxResponseTime(metric.getResponseTime().getMax().get());
+        message.setMinResponseTime(metric.getResponseTime().getMin().get());
+        message.setCallCount(metric.getCallCount().get());
+        message.setExceptionCount(metric.getExceptionCount().get());
+        message.setRequestBytes(metric.getRequestBytes().get());
+        message.setResponseBytes(metric.getResponseBytes().get());
+        return message;
     }
 
     @Override

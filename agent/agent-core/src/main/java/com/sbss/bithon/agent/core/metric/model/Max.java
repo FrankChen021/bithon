@@ -15,6 +15,7 @@ public class Max implements ISimpleMetric {
     }
 
     public long get() {
-        return this.value.getAndSet(Long.MIN_VALUE);
+        long value = this.value.getAndSet(Long.MIN_VALUE);
+        return value == Long.MIN_VALUE ? 0 : value;
     }
 }

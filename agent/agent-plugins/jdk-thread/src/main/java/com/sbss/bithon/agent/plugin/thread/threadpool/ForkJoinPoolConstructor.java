@@ -1,6 +1,7 @@
 package com.sbss.bithon.agent.plugin.thread.threadpool;
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
 
 import java.util.concurrent.ForkJoinPool;
 
@@ -10,10 +11,10 @@ import java.util.concurrent.ForkJoinPool;
  */
 public class ForkJoinPoolConstructor extends AbstractInterceptor {
     @Override
-    public void onConstruct(Object constructedObject, Object[] args) {
+    public void onConstruct(AopContext aopContext) {
         ThreadPoolMetricsCollector collector = ThreadPoolMetricsCollector.getInstance();
         if (collector != null) {
-            ForkJoinPool pool = (ForkJoinPool) constructedObject;
+            ForkJoinPool pool = aopContext.castTargetAs();
             collector.addThreadPool(pool, new ForkJoinPoolCompositeMetric(pool));
         }
     }

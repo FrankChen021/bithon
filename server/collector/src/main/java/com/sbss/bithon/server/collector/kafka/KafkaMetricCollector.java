@@ -1,6 +1,5 @@
 package com.sbss.bithon.server.collector.kafka;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.sbss.bithon.server.collector.sink.local.LocalMetricSink;
 import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
@@ -8,6 +7,7 @@ import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
@@ -33,7 +33,8 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<GenericMetricMe
                                 ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
                                 JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
                                 RedisMetricMessageHandler redisMetricMessageHandler,
-                                SqlMetricMessageHandler sqlMetricMessageHandler) {
+                                SqlMetricMessageHandler sqlMetricMessageHandler,
+                                MongoDbMetricMessageHandler mongoDbMetricMessageHandler) {
         super(GenericMetricMessage.class);
         localSink = new LocalMetricSink(jvmMetricMessageHandler,
                                         jvmGcMetricMessageHandler,
@@ -44,7 +45,8 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<GenericMetricMe
                                         threadPoolMetricMessageHandler,
                                         jdbcPoolMetricMessageHandler,
                                         redisMetricMessageHandler,
-                                        sqlMetricMessageHandler);
+                                        sqlMetricMessageHandler,
+                                        mongoDbMetricMessageHandler);
     }
 
     @Override

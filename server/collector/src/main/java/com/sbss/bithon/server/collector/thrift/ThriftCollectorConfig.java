@@ -15,6 +15,7 @@ import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
@@ -60,7 +61,8 @@ public class ThriftCollectorConfig {
                                       ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
                                       JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
                                       RedisMetricMessageHandler redisMetricMessageHandler,
-                                      SqlMetricMessageHandler sqlMetricMessageHandler) {
+                                      SqlMetricMessageHandler sqlMetricMessageHandler,
+                                      MongoDbMetricMessageHandler mongoDbMetricMessageHandler) {
         if ("local".equals(config.getSink().getType())) {
             return new LocalMetricSink(jvmMetricMessageHandler,
                                        jvmGcMetricMessageHandler,
@@ -71,7 +73,8 @@ public class ThriftCollectorConfig {
                                        threadPoolMetricMessageHandler,
                                        jdbcPoolMetricMessageHandler,
                                        redisMetricMessageHandler,
-                                       sqlMetricMessageHandler);
+                                       sqlMetricMessageHandler,
+                                       mongoDbMetricMessageHandler);
         } else {
             return new KafkaMetricSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink()
                                                                                                    .getProps(),

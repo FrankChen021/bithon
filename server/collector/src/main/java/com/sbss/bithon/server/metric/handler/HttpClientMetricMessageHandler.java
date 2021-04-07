@@ -33,9 +33,10 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
-              2,
-              20,
-              Duration.ofSeconds(60), 4096);
+              1,
+              10,
+              Duration.ofSeconds(60),
+              4096);
         this.uriNormalizer = uriNormalizer;
     }
 

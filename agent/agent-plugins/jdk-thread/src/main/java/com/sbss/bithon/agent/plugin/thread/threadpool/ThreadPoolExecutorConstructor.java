@@ -1,6 +1,7 @@
 package com.sbss.bithon.agent.plugin.thread.threadpool;
 
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -10,11 +11,10 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class ThreadPoolExecutorConstructor extends AbstractInterceptor {
     @Override
-    public void onConstruct(Object constructedObject,
-                            Object[] args) throws Exception {
+    public void onConstruct(AopContext aopContext) {
         ThreadPoolMetricsCollector collector = ThreadPoolMetricsCollector.getInstance();
         if (collector != null) {
-            ThreadPoolExecutor executor = (ThreadPoolExecutor) constructedObject;
+            ThreadPoolExecutor executor = aopContext.castTargetAs();
             collector.addThreadPool(executor, new ThreadPoolExecutorCompositeMetric(executor));
         }
     }

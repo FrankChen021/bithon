@@ -24,8 +24,8 @@ public class JvmGcMetricMessageHandler extends AbstractMetricMessageHandler {
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
-              2,
-              10,
+              1,
+              5,
               Duration.ofSeconds(60),
               4096);
     }

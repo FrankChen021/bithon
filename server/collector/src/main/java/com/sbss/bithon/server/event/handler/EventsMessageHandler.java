@@ -20,7 +20,7 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Event
     final IEventWriter eventWriter;
 
     public EventsMessageHandler(IEventStorage eventStorage) {
-        super(1, 5, Duration.ofMinutes(3), 1024);
+        super("event",1, 5, Duration.ofMinutes(3), 1024);
         eventWriter = eventStorage.createWriter();
     }
 

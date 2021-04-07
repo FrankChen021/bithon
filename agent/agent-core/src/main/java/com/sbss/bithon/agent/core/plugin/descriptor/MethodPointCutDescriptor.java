@@ -10,7 +10,7 @@ import shaded.net.bytebuddy.matcher.ElementMatcher;
  */
 public class MethodPointCutDescriptor {
 
-    private final boolean debug;
+    private boolean debug;
     private final boolean isBootstrapClass;
     private final ElementMatcher.Junction<? super TypeDescription> classMatcher;
     private final ElementMatcher.Junction<? super MethodDescription> methodMatcher;
@@ -66,5 +66,9 @@ public class MethodPointCutDescriptor {
 
     public String getInterceptor() {
         return interceptor;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }

@@ -24,8 +24,8 @@ public class WebServerMetricMessageHandler extends AbstractMetricMessageHandler 
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
-              5,
-              10,
+              1,
+            5,
               Duration.ofMinutes(1),
               1024);
     }

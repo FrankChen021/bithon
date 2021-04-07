@@ -1,6 +1,8 @@
 package com.sbss.bithon.agent.core.tracing.context;
 
-import java.lang.reflect.Method;
+import shaded.org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Executable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,7 +73,16 @@ public class TraceSpan {
     }
 
     public TraceSpan tag(String name, String value) {
-        tags.put(name, value);
+        if ( value != null ) {
+            tags.put(name, value);
+        }
+        return this;
+    }
+
+    public TraceSpan tag(Throwable exception) {
+        if ( exception != null ) {
+            tags.put("exception", exception.toString());
+        }
         return this;
     }
 
@@ -106,7 +117,7 @@ public class TraceSpan {
         return method;
     }
 
-    public TraceSpan method(Method method) {
+    public TraceSpan method(Executable method) {
         this.method = method.getName();
         return this;
     }
@@ -138,7 +149,11 @@ public class TraceSpan {
 
     public void finish() {
         this.endTime = context().clock().currentMicroseconds();
-        this.traceContext.onSpanFinished(this);
+        try {
+            this.traceContext.onSpanFinished(this);
+        } catch(Throwable t) {
+            LoggerFactory.getLogger(TraceSpan.class).error("Exception occured when finish a span", t);
+        }
     }
 
     @Override

@@ -1,58 +1,57 @@
-
 class ChartComponent {
 
     constructor(option) {
-        this.option =  $.extend({
+        this.option = $.extend({
             height: '200px'
         }, option);
 
         this._chartId = option.containerId + '_chart';
-        this._card = $('#'+ option.containerId).append(
-        '    <div class="card card-block">                             ' +
-        '        <div class="card-body" style="padding: 0.25em">                    ' +
-        '            <div class="card-chart"></div> ' +
-        '        </div>                                     ' +
-        '    </div>                                         ')
-        .find('.card');
+        this._card = $('#' + option.containerId).append(
+            '    <div class="card card-block">                             ' +
+            '        <div class="card-body" style="padding: 0.25em">                    ' +
+            '            <div class="card-chart"></div> ' +
+            '        </div>                                     ' +
+            '    </div>                                         ')
+            .find('.card');
         $(this._card).find('.card-chart').attr('id', this._chartId).height(this.option.height);
 
         this._chart = echarts.init(document.getElementById(this._chartId));
-        window.addEventListener("resize", ()=>{
+        window.addEventListener("resize", () => {
             this._chart.resize();
         });
     }
 
     header(text) {
-        if ( this._header == null ) {
+        if (this._header == null) {
             var rnd = Math.random();
             this._header = $(this._card).prepend(
-            '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
-            '<span class="header-text btn-sm"></span>' +
-//            '<div id="intervalSelector" class="dropdown ml-auto">                                                                                         ' +
-//            '<button class="btn btn-sm"><span class="far fa-bell"></span></button>' +
-//            '    <button class="btn btn-sm dropdown-toggle" id="dropdownMenuButton-"' + rnd + ' type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> ' +
-//            '        Time Interval                                                                                                                ' +
-//            '    </button>                                                                                                                        ' +
-//            '    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton-' + rnd + '">                                                                 ' +
-//            '        <a class="dropdown-item" href="#">5 min</a>                                                                                  ' +
-//            '        <a class="dropdown-item" href="#">15 min</a>                                                                                 ' +
-//            '        <a class="dropdown-item" href="#">30 min</a>                                                                                 ' +
-//            '        <a class="dropdown-item" href="#">1 hour</a>                                                                                 ' +
-//            '        <a class="dropdown-item" href="#">3 hour</a>                                                                                 ' +
-//            '        <a class="dropdown-item" href="#">6 hour</a>                                                                                 ' +
-//            '        <a class="dropdown-item" href="#">12 hour</a>                                                                                ' +
-//            '        <a class="dropdown-item" href="#">24 hour</a>                                                                                ' +
-//            '        <a class="dropdown-item" href="#">Today</a>                                                                                  ' +
-//            '    </div>      ' +
-//            '</div></div>          ' +
-            '</div>').find('.header-text');
+                '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
+                '<span class="header-text btn-sm"></span>' +
+                //            '<div id="intervalSelector" class="dropdown ml-auto">                                                                                         ' +
+                //            '<button class="btn btn-sm"><span class="far fa-bell"></span></button>' +
+                //            '    <button class="btn btn-sm dropdown-toggle" id="dropdownMenuButton-"' + rnd + ' type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> ' +
+                //            '        Time Interval                                                                                                                ' +
+                //            '    </button>                                                                                                                        ' +
+                //            '    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton-' + rnd + '">                                                                 ' +
+                //            '        <a class="dropdown-item" href="#">5 min</a>                                                                                  ' +
+                //            '        <a class="dropdown-item" href="#">15 min</a>                                                                                 ' +
+                //            '        <a class="dropdown-item" href="#">30 min</a>                                                                                 ' +
+                //            '        <a class="dropdown-item" href="#">1 hour</a>                                                                                 ' +
+                //            '        <a class="dropdown-item" href="#">3 hour</a>                                                                                 ' +
+                //            '        <a class="dropdown-item" href="#">6 hour</a>                                                                                 ' +
+                //            '        <a class="dropdown-item" href="#">12 hour</a>                                                                                ' +
+                //            '        <a class="dropdown-item" href="#">24 hour</a>                                                                                ' +
+                //            '        <a class="dropdown-item" href="#">Today</a>                                                                                  ' +
+                //            '    </div>      ' +
+                //            '</div></div>          ' +
+                '</div>').find('.header-text');
         }
         $(this._header).html(text);
         return this;
     }
 
     title(text) {
-        if ( this._title == null ) {
+        if (this._title == null) {
             this._title = $(this._card).find('.card-body').prepend('<h5 class="card-title">Card title</h5>').find('.card-title');
         }
         $(this._title).html(text);
@@ -64,14 +63,14 @@ class ChartComponent {
     }
 
     load(option) {
-        option =  $.extend({
+        option = $.extend({
             ajaxType: 'POST',
-            processResult: function(data) {
+            processResult: function (data) {
                 return data;
             }
         }, option);
 
-        this._chart.showLoading({text:'Loading...'});
+        this._chart.showLoading({text: 'Loading...'});
 
         $.ajax({
             type: option.ajaxType,
@@ -96,7 +95,7 @@ class ChartComponent {
      *
      */
     showLines(option) {
-        var charOption = {
+        const charOption = {
             title: {
                 text: option.title,
                 left: "center",
@@ -104,7 +103,7 @@ class ChartComponent {
                     fontSize: 14
                 }
             },
-            color: ['#0098d9','#90c31d'],
+            color: ['#0098d9', '#90c31d'],
             tooltip: {
                 trigger: 'axis'
             },

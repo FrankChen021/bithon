@@ -1,0 +1,95 @@
+{
+  "displayText": "MongoDb",
+  "name": "mongodb-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance",
+      "required": true
+    },
+    {
+      "name": "server",
+      "displayText": "Mongodb Server",
+      "required": true
+    },
+    {
+      "name": "database",
+      "displayText": "Database",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "exceptionCount",
+      "displayText": "Exception Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "callCount",
+      "displayText": "Total Commands",
+      "unit": ""
+    },
+
+    {
+      "type": "longMin",
+      "name": "minResponseTime",
+      "displayText": "Min Response Time",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longSum",
+      "name": "responseTime",
+      "displayText": "responseTime",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longMax",
+      "name": "maxResponseTime",
+      "displayText": "Max Response Time",
+      "unit": "nanosecond"
+    },
+
+    {
+      "type": "post",
+      "name": "avgResponseTime",
+      "expression": "responseTime/callCount",
+      "displayText": "AVG Response Time",
+      "unit": "nanosecond",
+      "valueType": "double"
+    },
+
+    {
+      "type": "longSum",
+      "name": "requestBytes",
+      "displayText": "Request Bytes",
+      "unit": "byte"
+    },
+    {
+      "type": "longSum",
+      "name": "responseBytes",
+      "displayText": "Response Bytes",
+      "unit": "byte"
+    },
+    {
+      "type": "post",
+      "name": "tps",
+      "expression": "callCount/interval",
+      "displayText": "TPS",
+      "unit": "/s"
+    }
+  ]
+}
+
+
+

@@ -27,7 +27,7 @@ public class SqlMetricMessageHandler extends AbstractMetricMessageHandler {
               metricStorage,
               dataSourceSchemaManager,
               1,
-              10,
+              5,
               Duration.ofSeconds(60),
               1024);
     }

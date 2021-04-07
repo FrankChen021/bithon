@@ -229,3 +229,23 @@ struct RedisMetricMessage {
     9:i64 requestBytes;
     10:i64 responseBytes;
 }
+
+/**************************************************************************/
+/*******************************  MongoDb       ***************************/
+/**************************************************************************/
+struct MongoDbMetricMessage {
+    1:string server;
+    2:string database;
+    3:string collection;
+    4:string command;
+    5:i64 timestamp;
+    6:i32 interval;
+
+    7:i64 callCount;
+    8:i64 exceptionCount;
+    9:i64 responseTime;
+    10:i64 minResponseTime;
+    11:i64 maxResponseTime;
+    12:i64 requestBytes;
+    13:i64 responseBytes;
+}

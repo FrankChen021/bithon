@@ -1,22 +1,27 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
+import com.sbss.bithon.agent.boot.aop.BootstrapConstructorAop;
+import com.sbss.bithon.agent.boot.aop.BootstrapMethodAop;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.aop.ConstructorAop;
-import com.sbss.bithon.agent.core.plugin.aop.MethodAop;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject;
+import com.sbss.bithon.agent.boot.aop.ConstructorAop;
+import com.sbss.bithon.agent.boot.aop.MethodAop;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.IBithonObject;
+import com.sbss.bithon.agent.boot.aop.ISuperMethod;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
+import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
-import com.sbss.bithon.agent.core.utils.expt.AgentException;
+import com.sbss.bithon.agent.boot.expt.AgentException;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.implementation.FieldAccessor;
 import shaded.net.bytebuddy.implementation.MethodDelegation;
 import shaded.net.bytebuddy.implementation.SuperMethodCall;
+import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
 import shaded.net.bytebuddy.utility.JavaModule;
@@ -34,7 +39,7 @@ import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
  * @author frank.chen021@outlook.com
  * @date 2021/1/24 9:24 下午
  */
-public class PluginInterceptorInstaller {
+class PluginInterceptorInstaller {
     private static final Logger log = LoggerFactory.getLogger(AbstractPlugin.class);
 
     AgentBuilder agentBuilder;
@@ -49,7 +54,7 @@ public class PluginInterceptorInstaller {
     public void install(List<AbstractPlugin> plugins) {
         for (AbstractPlugin plugin : plugins) {
 
-            instrumentClass(agentBuilder, inst, plugin.getClassInstrumentations());
+            transformToBithonClass(agentBuilder, inst, plugin.getBithonClassDescriptor());
 
             for (InterceptorDescriptor interceptor : plugin.getInterceptors()) {
                 installInterceptor(agentBuilder,
@@ -60,30 +65,35 @@ public class PluginInterceptorInstaller {
         }
     }
 
-    private void instrumentClass(AgentBuilder agentBuilder, Instrumentation inst, String[] classList) {
-        if (classList == null || classList.length == 0) {
+    private void transformToBithonClass(AgentBuilder agentBuilder,
+                                        Instrumentation inst,
+                                        BithonClassDescriptor descriptor) {
+        if (descriptor == null) {
             return;
         }
 
-        agentBuilder
-            .type(ElementMatchers.namedOneOf(classList))
-            .transform((DynamicType.Builder<?> builder,
-                        TypeDescription typeDescription,
-                        ClassLoader classLoader,
-                        JavaModule javaModule) -> {
-                if (typeDescription.isAssignableTo(IBithonObject.class)) {
-                    return builder;
-                }
+        agentBuilder = agentBuilder.type(descriptor.getClassMatcher())
+                                   .transform((DynamicType.Builder<?> builder,
+                                               TypeDescription typeDescription,
+                                               ClassLoader classLoader,
+                                               JavaModule javaModule) -> {
+                                       if (typeDescription.isAssignableTo(IBithonObject.class)) {
+                                           return builder;
+                                       }
 
-                builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
-                                              Object.class,
-                                              ACC_PRIVATE | ACC_VOLATILE)
-                                 .implement(IBithonObject.class)
-                                 .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
+                                       builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
+                                                                     Object.class,
+                                                                     ACC_PRIVATE | ACC_VOLATILE)
+                                                        .implement(IBithonObject.class)
+                                                        .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
 
-                return builder;
-            })
-            .installOn(inst);
+                                       return builder;
+                                   });
+
+        if (descriptor.isDebug()) {
+            agentBuilder = agentBuilder.with(new TransformationDebugger());
+        }
+        agentBuilder.installOn(inst);
     }
 
     private void installInterceptor(AgentBuilder agentBuilder,
@@ -112,7 +122,7 @@ public class PluginInterceptorInstaller {
                 }
 
                 //
-                // Class instrumentation
+                // Transform target class to type of IBithonObject
                 //
                 if (!typeDescription.isAssignableTo(IBithonObject.class)) {
                     builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
@@ -147,16 +157,22 @@ public class PluginInterceptorInstaller {
         agentBuilder.installOn(inst);
     }
 
+    /**
+     * Since methods in
+     * {@link BootstrapMethodAop}
+     * {@link BootstrapConstructorAop}
+     * are defined as static, the interceptors must be installed as classes
+     */
     private DynamicType.Builder<?> installBootstrapInterceptor(DynamicType.Builder<?> builder,
                                                                String interceptorClassName,
                                                                MethodPointCutDescriptor pointCutDescriptor) {
         try {
             switch (pointCutDescriptor.getTargetMethodType()) {
                 case INSTANCE_METHOD:
-                    builder = builder.method(pointCutDescriptor.getMethodMatcher()).intercept(MethodDelegation
-                                                                                                  .withDefaultConfiguration()
-                                                                                                  .to(getBootstrapAopClass(
-                                                                                                      interceptorClassName)));
+                    builder = builder.method(pointCutDescriptor.getMethodMatcher())
+                                     .intercept(MethodDelegation.withDefaultConfiguration()
+                                                                .withBinders(Morph.Binder.install(ISuperMethod.class))
+                                                                .to(getBootstrapAopClass(interceptorClassName)));
                     break;
 
                 case CONSTRUCTOR:
@@ -195,7 +211,7 @@ public class PluginInterceptorInstaller {
      */
     private Class<?> getBootstrapAopClass(String methodsInterceptor) {
         try {
-            return Class.forName(BootstrapInterceptorInstaller.bootstrapAopClass(methodsInterceptor));
+            return Class.forName(BootstrapAopGenerator.bootstrapAopClass(methodsInterceptor));
         } catch (ClassNotFoundException e) {
             throw new AgentException(e.getMessage(), e);
         }
@@ -226,14 +242,15 @@ public class PluginInterceptorInstaller {
             switch (pointCutDescriptor.getTargetMethodType()) {
                 case INSTANCE_METHOD:
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
-                                     .intercept(MethodDelegation.to(new MethodAop(interceptor)));
+                                     .intercept(MethodDelegation.withDefaultConfiguration()
+                                                                .withBinders(Morph.Binder.install(ISuperMethod.class))
+                                                                .to(new MethodAop(interceptor)));
                     break;
 
                 case CONSTRUCTOR:
                     builder = builder.constructor(pointCutDescriptor.getMethodMatcher())
-                                     .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation.to(new ConstructorAop()
-                                                                                                         .setInterceptor(
-                                                                                                             interceptor))));
+                                     .intercept(SuperMethodCall.INSTANCE
+                                                    .andThen(MethodDelegation.to(new ConstructorAop(interceptor))));
                     break;
 
                 default:

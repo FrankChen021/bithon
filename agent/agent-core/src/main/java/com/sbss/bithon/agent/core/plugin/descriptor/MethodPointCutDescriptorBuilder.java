@@ -4,6 +4,7 @@ import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
 
+import static shaded.net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
 
@@ -68,7 +69,16 @@ public class MethodPointCutDescriptorBuilder {
         return this;
     }
 
+    public MethodPointCutDescriptorBuilder onConstructor(ElementMatcher.Junction<MethodDescription> matcher) {
+        this.method = isConstructor().and(matcher);
+        this.targetMethodType = TargetMethodType.CONSTRUCTOR;
+        return this;
+    }
+
     public MethodPointCutDescriptorBuilder onConstructor(String... args) {
+        if (args == null) {
+            throw new IllegalArgumentException("args should not be null");
+        }
         this.method = ElementMatchers.isConstructor();
         this.argsMatcher = MatcherUtils.createArgumentsMatcher(debug, args);
         this.targetMethodType = TargetMethodType.CONSTRUCTOR;

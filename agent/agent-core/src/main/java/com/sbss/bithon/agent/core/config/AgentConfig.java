@@ -2,7 +2,7 @@ package com.sbss.bithon.agent.core.config;
 
 import com.sbss.bithon.agent.core.utils.StringUtils;
 import com.sbss.bithon.agent.core.utils.YamlUtils;
-import com.sbss.bithon.agent.core.utils.expt.AgentException;
+import com.sbss.bithon.agent.boot.expt.AgentException;
 
 import java.io.File;
 import java.io.IOException;

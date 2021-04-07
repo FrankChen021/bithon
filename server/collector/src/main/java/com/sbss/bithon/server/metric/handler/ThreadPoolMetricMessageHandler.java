@@ -24,8 +24,8 @@ public class ThreadPoolMetricMessageHandler extends AbstractMetricMessageHandler
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
+              1,
               5,
-              20,
               Duration.ofSeconds(60),
               4096);
     }

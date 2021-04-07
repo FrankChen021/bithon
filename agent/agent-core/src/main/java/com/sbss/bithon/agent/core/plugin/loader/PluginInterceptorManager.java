@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -32,9 +32,10 @@ public class PluginInterceptorManager {
         }
 
         // load class out of lock in case of dead lock
-        ClassLoader interceptorClassLoader = AgentClassloaderManager.getAgentLoader(classLoader);
+        ClassLoader interceptorClassLoader = PluginDependencyManager.getClassLoader(classLoader);
         Class<?> interceptorClass = Class.forName(interceptorClassName, true, interceptorClassLoader);
 
+        String interceptorName = getInterceptorName(interceptorClass);
         INTERCEPTOR_INSTANTIATION_LOCK.lock();
         try {
             interceptor = INTERCEPTORS.get(interceptorId);
@@ -45,13 +46,13 @@ public class PluginInterceptorManager {
 
             interceptor = (AbstractInterceptor) interceptorClass.newInstance();
             if (!interceptor.initialize()) {
-                log.warn("Failed to initialize {}, interceptor skipped", interceptor.getClass().getSimpleName());
+                log.warn("Interceptor not loaded for failure of initialization: [{}.{}]", plugin.getClass().getSimpleName(), interceptorName);
                 return null;
             }
 
-            log.info("Interceptor {}.{} Loaded",
+            log.info("Loaded interceptor [{}.{}]",
                      plugin.getClass().getSimpleName(),
-                     interceptor.getClass().getSimpleName());
+                     interceptorName);
             INTERCEPTORS.put(interceptorId, interceptor);
             return interceptor;
         } finally {
@@ -59,35 +60,18 @@ public class PluginInterceptorManager {
         }
     }
 
-    static void loadInterceptor(String interceptorClassName) throws Exception {
-        ClassLoader interceptorClassLoader = AgentClassloader.getDefaultInstance();
-        String interceptorId = generateInterceptorId(interceptorClassName, interceptorClassLoader);
-
-        Class<?> interceptorClass = Class.forName(interceptorClassName,
-                                                  true,
-                                                  interceptorClassLoader);
-
-        INTERCEPTOR_INSTANTIATION_LOCK.lock();
-        try {
-            AbstractInterceptor interceptor = INTERCEPTORS.get(interceptorId);
-            if (interceptor == null) {
-                interceptor = (AbstractInterceptor) interceptorClass.newInstance();
-                if (interceptor.initialize()) {
-                    log.info("{} initialized", interceptor.getClass().getSimpleName());
-                    INTERCEPTORS.put(interceptorId, interceptor);
-                }
-            }
-        } finally {
-            INTERCEPTOR_INSTANTIATION_LOCK.unlock();
-        }
+    private static String getInterceptorName(Class<?> interceptorClass) {
+        String name = interceptorClass.getName();
+        int dot = name.lastIndexOf('.');
+        return dot == -1 ? name : name.substring(dot + 1);
     }
 
     private static String generateInterceptorId(String interceptorClass,
                                                 ClassLoader loader) {
         if (null == loader) {
-            return "bootstrap" + interceptorClass;
+            return "bootstrap-" + interceptorClass;
         }
-        return loader.hashCode() + interceptorClass;
+        return loader.hashCode() + "-" + interceptorClass;
     }
 
 }

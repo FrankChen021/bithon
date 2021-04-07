@@ -5,29 +5,32 @@ include "MetricMessages.thrift"
 
 service IMetricCollector {
     oneway void sendWebRequest(1:required HeaderMessages.MessageHeader header,
-                               2:required list<MetricMessages.WebRequestMetricMessage> message);
+                               2:required list<MetricMessages.WebRequestMetricMessage> messages);
 
     oneway void sendJvm(1:required HeaderMessages.MessageHeader header,
-                        2:required list<MetricMessages.JvmMetricMessage> message);
+                        2:required list<MetricMessages.JvmMetricMessage> messages);
 
     oneway void sendWebServer(1:required HeaderMessages.MessageHeader header,
-                              2:required list<MetricMessages.WebServerMetricMessage> message);
+                              2:required list<MetricMessages.WebServerMetricMessage> messages);
 
     oneway void sendException(1:required HeaderMessages.MessageHeader header,
-                              2:required list<MetricMessages.ExceptionMetricMessage> message);
+                              2:required list<MetricMessages.ExceptionMetricMessage> messages);
 
     oneway void sendHttpClient(1:required HeaderMessages.MessageHeader header,
-                               2:required list<MetricMessages.HttpClientMetricMessage> message);
+                               2:required list<MetricMessages.HttpClientMetricMessage> messages);
 
     oneway void sendThreadPool(1:required HeaderMessages.MessageHeader header,
-                               2:required list<MetricMessages.ThreadPoolMetricMessage> message);
+                               2:required list<MetricMessages.ThreadPoolMetricMessage> messages);
 
     oneway void sendJdbc(1:required HeaderMessages.MessageHeader header,
-                         2:required list<MetricMessages.JdbcPoolMetricMessage> message);
+                         2:required list<MetricMessages.JdbcPoolMetricMessage> messages);
 
     oneway void sendRedis(1:required HeaderMessages.MessageHeader header,
-                          2:required list<MetricMessages.RedisMetricMessage> message);
+                          2:required list<MetricMessages.RedisMetricMessage> messages);
 
     oneway void sendSql(1:required HeaderMessages.MessageHeader header,
-                        2:required list<MetricMessages.SqlMetricMessage> message);
+                        2:required list<MetricMessages.SqlMetricMessage> messages);
+
+    oneway void sendMongoDb(1:required HeaderMessages.MessageHeader header,
+                            2:required list<MetricMessages.MongoDbMetricMessage> messages);
 }

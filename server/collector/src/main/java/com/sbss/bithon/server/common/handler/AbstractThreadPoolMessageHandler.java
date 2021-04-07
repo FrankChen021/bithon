@@ -1,5 +1,6 @@
 package com.sbss.bithon.server.common.handler;
 
+import io.micrometer.core.instrument.util.NamedThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -15,20 +16,26 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageHandler<MSG> {
     protected final ThreadPoolExecutor executor;
 
-    public AbstractThreadPoolMessageHandler(int corePoolSize,
+    public AbstractThreadPoolMessageHandler(String name,
+                                            int corePoolSize,
                                             int maxPoolSize,
                                             Duration keepAliveTime,
                                             int queueSize) {
-        executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize,
+        executor = new ThreadPoolExecutor(corePoolSize,
+                                          maxPoolSize,
                                           keepAliveTime.getSeconds(),
                                           TimeUnit.SECONDS,
                                           new LinkedBlockingQueue<>(queueSize),
+                                          new NamedThreadFactory(name),
                                           new ThreadPoolExecutor.DiscardPolicy());
+        log.info("Starting executor [{}]", name);
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        Thread shutdownThread = new Thread(() -> {
             log.info("Shutting down executor [{}]", this.getType());
             executor.shutdown();
-        }));
+        });
+        shutdownThread.setName(name + "-shutdown");
+        Runtime.getRuntime().addShutdownHook(shutdownThread);
     }
 
     @Override

@@ -5,7 +5,7 @@ import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.http.HttpClientCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
-import com.sbss.bithon.agent.core.metric.domain.mongo.MongoClientCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
@@ -29,7 +29,10 @@ public interface IMessageConverter {
 
     Object from(long timestamp, int interval, List<String> dimensions, SqlCompositeMetric metric);
 
-    Object from(long timestamp, int interval, MongoClientCompositeMetric counter);
+    Object from(long timestamp,
+                int interval,
+                List<String> dimensions,
+                MongoDbCompositeMetric counter);
 
     Object from(long timestamp, int interval, List<String> dimensions, WebRequestCompositeMetric metric);
 
