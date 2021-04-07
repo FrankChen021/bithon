@@ -66,3 +66,9 @@ Attach agent to your java agent by adding following VM arguments.
 By default, the agent connects to collector running at local(127.0.0.1). 
 Collector address could be changed in file `agent/agent-bootstrap/src/main/resources/agent.yml`.
 Make sure to re-build the project after changing the configuration file above.
+
+# Development
+
+To develop for this project, intellij is recommended. 
+
+A code style template file(`dev/bithon_intellij_code_style`) must be imported into intellij for coding.
