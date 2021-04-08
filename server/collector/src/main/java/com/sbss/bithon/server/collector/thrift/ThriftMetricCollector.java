@@ -13,9 +13,12 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricM
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
+import com.sbss.bithon.server.common.utils.collection.SizedIterator;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -33,8 +36,29 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
 
     @Override
     public void sendWebRequest(MessageHeader header, List<WebRequestMetricMessage> messages) {
-        messages.forEach((message) -> metricSink.process("web-request-metrics",
-                                                         GenericMetricMessage.of(header, message)));
+        final int size = messages.size();
+        Iterator iterator = messages.iterator();
+        metricSink.process("web-request-metrics",
+                           new SizedIterator<GenericMetricMessage>(){
+                               @Override
+                               public boolean hasNext() {
+                                   return iterator.hasNext();
+                               }
+
+                               @Override
+                               public GenericMetricMessage next() {
+                                   return GenericMetricMessage.of(header, iterator.next());
+                               }
+
+                               @Override
+                               public void close() throws IOException {
+                               }
+
+                               @Override
+                               public int size() {
+                                   return size;
+                               }
+                           });
     }
 
     @Override

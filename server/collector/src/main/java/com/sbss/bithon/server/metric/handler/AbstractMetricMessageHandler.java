@@ -1,12 +1,15 @@
 package com.sbss.bithon.server.metric.handler;
 
 import com.sbss.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
+import com.sbss.bithon.server.common.utils.collection.SizedIterator;
 import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.MetadataType;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchema;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
+import com.sbss.bithon.server.metric.aggregator.IAggregator;
 import com.sbss.bithon.server.metric.input.InputRow;
+import com.sbss.bithon.server.metric.input.MetricSet;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
 import com.sbss.bithon.server.metric.storage.IMetricWriter;
 import lombok.Getter;
@@ -14,6 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author frank.chen021@outlook.com
@@ -21,12 +29,14 @@ import java.time.Duration;
  */
 @Slf4j
 @Getter
-public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMessageHandler<GenericMetricMessage> {
+public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMessageHandler<SizedIterator<GenericMetricMessage>> {
 
     private final DataSourceSchema schema;
+    private final DataSourceSchema topoSchema;
     private final IMetaStorage metaStorage;
     private final IMetricWriter metricStorageWriter;
     private final IMetricWriter topoMetricStorageWriter;
+
 
     public AbstractMetricMessageHandler(String dataSourceName,
                                         IMetaStorage metaStorage,
@@ -42,7 +52,7 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
         this.metaStorage = metaStorage;
         this.metricStorageWriter = metricStorage.createMetricWriter(schema);
 
-        DataSourceSchema topoSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
+        this.topoSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
         this.topoMetricStorageWriter = metricStorage.createMetricWriter(topoSchema);
     }
 
@@ -56,17 +66,70 @@ public abstract class AbstractMetricMessageHandler extends AbstractThreadPoolMes
     }
 
     @Override
-    final protected void onMessage(GenericMetricMessage metric) {
-        try {
-            if (beforeProcess(metric)) {
-                process(metric);
-            }
-        } catch (Exception e) {
-            log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}",
-                      this.schema.getName(),
-                      metric,
-                      e);
+    final protected void onMessage(SizedIterator<GenericMetricMessage> metric) {
+        if ( metric.isEmpty() ) {
+            return ;
         }
+
+        Map<Map<String, String>, Map<String, IAggregator>> endpointAggregators = new ConcurrentHashMap<>();
+        CountDownLatch countDownLatch = new CountDownLatch(metric.size());
+
+        //
+        // convert
+        //
+        while(metric.hasNext()) {
+            GenericMetricMessage message = metric.next();
+            try {
+                if (beforeProcess(metric)) {
+                    process(metric);
+                }
+
+                // extract endpoint
+                extractEndpointLink();
+
+                countDownLatch.countDown();
+            } catch (Exception e) {
+                log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}",
+                          this.schema.getName(),
+                          metric,
+                          e);
+            }
+        }
+
+        //
+        // aggregate for endpoint metrics
+        //
+        endpointAggregators.forEach((key, val)->{
+
+        });
+        try {
+            this.topoMetricStorageWriter.write(new InputRow(link));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //
+        // save metrics in batch
+        //
+
+    }
+
+    private void aggregate(DataSourceSchema schema,
+                           Map<Map<String, String>, Map<String, IAggregator>> database,
+                           MetricSet endpointLink) {
+        Map<String, IAggregator> metrics = database.computeIfAbsent(endpointLink.getDimensions(), dim -> {
+            Map<String, IAggregator> metricMap = new HashMap<>();
+            schema.getMetricsSpec().forEach((metricSpec)->{
+                metricMap.put(metricSpec.getName(), metricSpec.createAggregator());
+            });
+            return metricMap;
+        });
+
+        Map<String, Number> inputMetrics = endpointLink.getMetrics();
+        inputMetrics.forEach((metricName, metricValue)->{
+            IAggregator aggregator = metrics.computeIfAbsent(metricName, m -> schema.getMetricSpecByName(m).createAggregator());
+            aggregator.aggregate(endpointLink.getTimestamp(), metricValue);
+        });
     }
 
     private void process(GenericMetricMessage metric) {
