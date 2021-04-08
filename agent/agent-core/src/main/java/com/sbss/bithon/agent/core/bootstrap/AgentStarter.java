@@ -38,7 +38,7 @@ public class AgentStarter {
     private void initAgentLogger(String agentPath) throws IOException {
 
 
-        String logConfigName = "log4j.configuration";
+        String logConfigName = "log4j.configurationFile";
         String logConfigFile = agentPath + separator + AgentContext.CONF_DIR + separator + "log4j.xml";
         String oldLogConfig = System.getProperty(logConfigName);
 
