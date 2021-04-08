@@ -1,0 +1,18 @@
+server:
+  compression:
+    enabled: true
+    min-response-size: 4096
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    check-template-location: true
+    suffix: .html
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+    mode: HTML
+  devtools:
+    restart:
+      enabled: true
+
+

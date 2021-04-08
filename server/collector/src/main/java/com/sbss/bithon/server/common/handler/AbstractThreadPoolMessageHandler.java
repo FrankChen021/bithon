@@ -1,6 +1,6 @@
 package com.sbss.bithon.server.common.handler;
 
-import io.micrometer.core.instrument.util.NamedThreadFactory;
+import com.sbss.bithon.server.common.utils.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -26,7 +26,7 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
                                           keepAliveTime.getSeconds(),
                                           TimeUnit.SECONDS,
                                           new LinkedBlockingQueue<>(queueSize),
-                                          new NamedThreadFactory(name),
+                                          new ThreadUtils.NamedThreadFactory(name),
                                           new ThreadPoolExecutor.DiscardPolicy());
         log.info("Starting executor [{}]", name);
 

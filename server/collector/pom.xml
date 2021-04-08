@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>com.sbss.bithon.server</groupId>
+    <artifactId>server</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.sbss.bithon.collector</groupId>
-  <artifactId>collector-server</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>collector-server</name>
-  <description>Bithon Collector Server</description>
+  <artifactId>collector</artifactId>
+  <name>collector</name>
+  <description>Bithon Collector</description>
 
   <properties>
     <java.version>1.8</java.version>
@@ -17,10 +22,6 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -130,6 +131,7 @@
   </dependencyManagement>
 
   <build>
+    <finalName>${project.artifactId}</finalName>
     <plugins>
       <plugin>
         <groupId>org.antlr</groupId>

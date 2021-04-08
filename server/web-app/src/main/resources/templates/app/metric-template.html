@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}">
+<head>
+    <title>Bithon</title>
+    <script th:src="@{/js/api-client/metric-client.js}"></script>
+    <script th:src="@{'/js/metric/' + ${metricName} + '-dashboard.js'}"></script>
+</head>
+<body>
+
+<div layout:fragment="content" id="dashboard">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+    const dashboard = new Dashboard('dashboard', [[${appName}]], new SchemaApi());
+    dashboard.load([(${#strings.replace(metricName,'-','_')})]_dashboard);
+});
+</script>
+
+</div>
+</body>
+</html>

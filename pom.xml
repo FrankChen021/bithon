@@ -22,9 +22,7 @@
         <module>component/component-commons</module>
         <module>component/component-db</module>
         <module>agent</module>
-        <module>server/collector</module>
-        <module>server/alerting</module>
-        <module>server/web-server</module>
+        <module>server</module>
     </modules>
 
     <dependencyManagement>
