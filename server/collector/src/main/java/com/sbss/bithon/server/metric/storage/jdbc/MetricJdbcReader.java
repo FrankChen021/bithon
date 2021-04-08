@@ -65,7 +65,7 @@ class MetricJdbcReader implements IMetricReader {
                                                                                       ImmutableMap.of("interval",
                                                                                                       interval));
 
-        String groupByExpression = String.format("UNIX_TIMESTAMP(\"timestamp\") / %d", interval);
+        String groupByExpression = String.format("UNIX_TIMESTAMP(\"timestamp\") / %d * %d", interval, interval);
         String metricList = metrics.stream()
                                    .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
                                    .collect(Collectors.joining(", "));
@@ -75,16 +75,15 @@ class MetricJdbcReader implements IMetricReader {
                                                              .accept(new SqlConditionBuilder(dimension.getDimension())))
                                   .collect(Collectors.joining(" AND "));
         String sql = String.format(
-            "SELECT %s * %d \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY %s",
+            "SELECT %s \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY %s",
             groupByExpression,
-            interval,
             metricList,
             sqlTableName,
             "OUTER",
             condition,
             start.toISO8601(),
             end.toISO8601(),
-            groupByExpression
+            "\"timestamp\""
         );
 
         List<Map<String, Object>> queryResult = executeSql(sql);

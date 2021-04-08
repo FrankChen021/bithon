@@ -14,17 +14,13 @@
     </nav>
     <div id="appList"></div>
 
-<script type="text/javascript">
-var apiHost = 'http://localhost:9897';
+    <script type="text/javascript" th:src="@{/js/app-card-component.js}"></script>
+    <script type="text/javascript">
+        $(document).ready(() => {
+            new AppCardComponent(apiHost, 'appList').loadAppList();
+        });
 
-</script>
-<script type="text/javascript" th:src="@{/js/app-card-component.js}"></script>
-<script type="text/javascript">
-$(document).ready(()=>{
-    new AppCardComponent(apiHost, 'appList').loadAppList();
-});
-
-</script>
+    </script>
 </div>
 </body>
 </html>

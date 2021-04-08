@@ -26,10 +26,12 @@ mvn clean package
 
 Once the project has been built, you could run the project in a standalone mode to evaluate this project.
 
-## 1. Launch collector
+## 1. Launch collector & web server
+
+To launch server in a standalone mode, execute the following command:
 
 ```
-java -jar collector/target/collector-server.jar
+java -jar server/server-starter/target/server-starter.jar
 ```
 
 By default, the application opens and listens on following ports at local
@@ -40,16 +42,11 @@ By default, the application opens and listens on following ports at local
 | event  | 9896 |
 | metric | 9898 |
 | setting | 9899 |
+| web | 9897 |
 
-## 2. Launch web server
-```
-java -jar web-server/target/web-server.jar
-```
+Once the application has started, visit [http://localhost:9897/ui/home](http://localhost:9897/ui/home) to view the monitor.
 
-By default, web-server opens and listens on 9999 at local.
-Once web-server has started, visit [http://localhost:9999/ui/home](http://localhost:9999/ui/home) to view the monitor.
-
-## 3. Attach agent to your java application
+## 2. Attach agent to your java application
 
 Attach agent to your java agent by adding following VM arguments.
 

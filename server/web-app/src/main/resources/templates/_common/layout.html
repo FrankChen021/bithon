@@ -20,12 +20,18 @@
 
     <!-- bootstrap table -->
     <script type="text/javascript" th:src="@{/lib/bootstrap-table/bootstrap-table.js}"></script>
-<!--    <script type="text/javascript" th:src="@{/lib/bootstrap-table/locale/bootstrap-table-eu-US.min.js}"></script>-->
-    <script type="text/javascript" th:src="@{/lib/bootstrap-table/extensions/filter-control/bootstrap-table-filter-control.min.js}"></script>
+    <!--    <script type="text/javascript" th:src="@{/lib/bootstrap-table/locale/bootstrap-table-eu-US.min.js}"></script>-->
+    <script type="text/javascript"
+            th:src="@{/lib/bootstrap-table/extensions/filter-control/bootstrap-table-filter-control.min.js}"></script>
     <link rel="stylesheet" type="text/css" th:href="@{/lib/bootstrap-table/bootstrap-table.css}"/>
 
     <script th:src="@{/js/utils/number.js}"></script>
     <script th:src="@{/js/utils/time.js}"></script>
+
+    <script th:inline="javascript">
+        const apiHost = [[${apiHost}]];
+    </script>
+
 </head>
 <body>
 <div class="container" layout:fragment="content">

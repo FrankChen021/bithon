@@ -1,5 +1,6 @@
-package com.sbss.bithon.server.webapp.page;
+package com.sbss.bithon.server.webapp.ui;
 
+import com.sbss.bithon.server.webapp.services.ServiceDiscovery;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,8 +13,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 @Controller
 public class AppController {
 
-    @GetMapping("/ui/app/{appName}")
-    public String appHomePage(@PathVariable("appName") String appName) {
+    private final ServiceDiscovery serviceDiscovery;
+
+    public AppController(ServiceDiscovery serviceDiscovery) {
+        this.serviceDiscovery = serviceDiscovery;
+    }
+
+    @GetMapping("/ui/app/*")
+    public String appHomePage(Model model) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         return "app/index";
     }
 
@@ -21,6 +29,7 @@ public class AppController {
     public String webServerPage(@PathVariable("appName") String appName,
                                 @PathVariable("metricName") String metricName,
                                 Model model) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         model.addAttribute("appName", appName);
         model.addAttribute("metricName", metricName);
         return "app/metric-template";
@@ -29,6 +38,7 @@ public class AppController {
     @GetMapping("/ui/app/trace/{appName}")
     public String traceHomePage(@PathVariable("appName") String appName,
                                 Model model) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         model.addAttribute("appName", appName);
         return "app/trace";
     }
@@ -36,6 +46,7 @@ public class AppController {
     @GetMapping("/ui/app/topo/{appName}")
     public String topoHome(@PathVariable("appName") String appName,
                            Model model) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         model.addAttribute("appName", appName);
         return "app/topo";
     }

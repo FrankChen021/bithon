@@ -47,7 +47,11 @@
     <script th:src="@{/js/chart-component.js}"></script>
     <script th:src="@{/js/utils/number.js}"></script>
     <script th:src="@{/js/utils/time.js}"></script>
-    <script th:src="@{/js/global.js}"></script>
+
+    <script th:inline="javascript">
+        const apiHost = [[${apiHost}]];
+        const appName = [[${appName}]];
+    </script>
     <script th:src="@{/js/component/dashboard/component.js}"></script>
 </head>
 <body>
@@ -341,10 +345,9 @@
 </div>
 </body>
 <script th:inline="javascript">
-var appName = [[${appName}]];
-$(document).ready(()=>{
-    var metricSidebar = new MetricSidebar("metricSidebar", appName);
-    metricSidebar.load();
-});
+    $(document).ready(() => {
+        const metricSidebar = new MetricSidebar("metricSidebar", appName);
+        metricSidebar.load();
+    });
 </script>
 </html>

@@ -5,9 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
- * @author frankchenl
+ * @author frankchen
  */
-@ComponentScan("com.sbss.bithon.server")
+@ComponentScan("com.sbss.bithon")
 @SpringBootApplication
 public class StarterApplication {
 

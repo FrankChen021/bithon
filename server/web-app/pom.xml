@@ -50,13 +50,6 @@
       <groupId>nz.net.ultraq.thymeleaf</groupId>
       <artifactId>thymeleaf-layout-dialect</artifactId>
     </dependency>
-
-    <!-- DEV TOOLS -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-devtools</artifactId>
-      <optional>true</optional>
-    </dependency>
   </dependencies>
 
   <dependencyManagement>

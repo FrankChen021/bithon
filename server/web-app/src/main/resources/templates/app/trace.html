@@ -6,107 +6,102 @@
 <head>
     <title>Bithon</title>
     <script th:src="@{/lib/bootstrap-table/extensions/treegrid/bootstrap-table-treegrid.min.js}"></script>
-    <script th:inline="javascript">
-/*<![CDATA[*/
-var appName = /*[[${appName}]]*/;
-/*]]>*/
-    </script>
 </head>
 <body>
 
 <div class="container" layout:fragment="content">
 
-        <table id="table"></table>
+    <table id="table"></table>
 
-<script>
-/*
-      treeShowField: 'name',
-      parentIdField: 'pid',
-      onPostBody: function() {
-        var columns = $table.bootstrapTable('getOptions').columns
+    <script>
+        /*
+              treeShowField: 'name',
+              parentIdField: 'pid',
+              onPostBody: function() {
+                var columns = $table.bootstrapTable('getOptions').columns
 
-        if (columns && columns[0][1].visible) {
-          $table.treegrid({
-            treeColumn: 1,
-            onChange: function() {
-              $table.bootstrapTable('resetView')
-            }
-          })
-        }
-      }*/
+                if (columns && columns[0][1].visible) {
+                  $table.treegrid({
+                    treeColumn: 1,
+                    onChange: function() {
+                      $table.bootstrapTable('resetView')
+                    }
+                  })
+                }
+              }*/
 
-$('#table').bootstrapTable({
-      toolbar:'#toolbar',//工具栏
+        $('#table').bootstrapTable({
+            toolbar: '#toolbar',//工具栏
 
-      url: apiHost + '/api/trace/getTraceList',
-      method: 'post',
-      contentType: "application/json",
-      showRefresh: true,
+            url: apiHost + '/api/trace/getTraceList',
+            method: 'post',
+            contentType: "application/json",
+            showRefresh: true,
 
-      buttonsAlign: 'right',
-      sidePagination: "server",
-      pagination: true,
-      paginationPreText:'<',              //上一页按钮样式
-      paginationNextText:'>',             //下一页按钮样式
-      pageNumber: 1,
-      pageSize: 10,
-      pageList: [10, 25, 50],
-	  sortName: 'lastAlertAt',
-	  sortOrder: 'desc',
+            buttonsAlign: 'right',
+            sidePagination: "server",
+            pagination: true,
+            paginationPreText: '<',              //上一页按钮样式
+            paginationNextText: '>',             //下一页按钮样式
+            pageNumber: 1,
+            pageSize: 10,
+            pageList: [10, 25, 50],
+            sortName: 'lastAlertAt',
+            sortOrder: 'desc',
 
 //      treeEnable: true,
 //	  treeShowField: 'name',
 //      idField: 'spanId',
 //      parentIdField: 'parentSpanId',
 
-      queryParamsType: '',
-      queryParams: function(params) {
-        return {
-            pageSize: params.pageSize,
-            pageNumber: params.pageNumber - 1,
-            traceId: params.searchText,
-            appName: appName,
-            orderBy: params.sortName,
-            order: params.sortOrder
-        };
-      },
+            queryParamsType: '',
+            queryParams: function (params) {
+                return {
+                    pageSize: params.pageSize,
+                    pageNumber: params.pageNumber - 1,
+                    traceId: params.searchText,
+                    appName: appName,
+                    orderBy: params.sortName,
+                    order: params.sortOrder
+                };
+            },
 
-      filterControl: true,
-      filterShowClear: true,
-      search: true,
-      showSearchClearButton: true,
-      searchOnEnterKey: true,
-      formatSearch: function() {
-        return 'search by Trace Id';
-      },
+            filterControl: true,
+            filterShowClear: true,
+            search: true,
+            showSearchClearButton: true,
+            searchOnEnterKey: true,
+            formatSearch: function () {
+                return 'search by Trace Id';
+            },
 
-      uniqueId: 'traceId',
-      columns: [{
-        field: 'traceId',
-        title: 'Trace Id',
-        formatter: function(value, row) {
-            return '<a target="_blank" href="/ui/trace/detail/' + row.traceId + '">' + value + '</a>';
-        }
-      }, {
-        field: 'startTime',
-        title: 'Time',
-        formatter: function(value) {
-            return new Date(value).format('yyyy-MM-dd hh:mm:ss');
-        }
-      }, {
-        field: 'costTime',
-        title: 'Duration',
-        formatter: function(value, row) {
-            return nanoFormat(value*1000);
-        }
-      }, {
-        field: 'tags',
-        title: 'URL',
-        formatter: function(value, row) {
-            return value.uri;
-        }
-      }]
-    });
+            uniqueId: 'traceId',
+            columns: [{
+                field: 'traceId',
+                title: 'Trace Id',
+                formatter: function (value, row) {
+                    return '<a target="_blank" href="/ui/trace/detail/' + row.traceId + '">' + value + '</a>';
+                }
+            }, {
+                field: 'startTime',
+                title: 'Time',
+                formatter: function (value) {
+                    return new Date(value).format('yyyy-MM-dd hh:mm:ss');
+                }
+            }, {
+                field: 'costTime',
+                title: 'Duration',
+                formatter: function (value, row) {
+                    return nanoFormat(value * 1000);
+                }
+            }, {
+                field: 'tags',
+                title: 'URL',
+                formatter: function (value, row) {
+                    return value.uri;
+                }
+            }]
+        });
 
     </script>
 </div>
