@@ -1,8 +1,8 @@
 package com.sbss.bithon.server.metric.storage.jdbc;
 
 import com.sbss.bithon.server.metric.DataSourceSchema;
-import com.sbss.bithon.server.metric.aggregator.IMetricSpec;
-import com.sbss.bithon.server.metric.aggregator.PostAggregatorMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.spec.IMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.spec.PostAggregatorMetricSpec;
 import com.sbss.bithon.server.metric.dimension.IDimensionSpec;
 import com.sbss.bithon.server.metric.input.InputRow;
 import com.sbss.bithon.server.metric.storage.IMetricWriter;

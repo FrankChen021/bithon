@@ -1,9 +1,10 @@
-package com.sbss.bithon.server.metric.aggregator;
+package com.sbss.bithon.server.metric.aggregator.spec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbss.bithon.server.metric.DataSourceSchema;
+import com.sbss.bithon.server.metric.aggregator.IAggregator;
 import com.sbss.bithon.server.metric.aggregator.ast.PostAggregatorExpressionBaseVisitor;
 import com.sbss.bithon.server.metric.aggregator.ast.PostAggregatorExpressionLexer;
 import com.sbss.bithon.server.metric.aggregator.ast.PostAggregatorExpressionParser;
@@ -125,6 +126,11 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     @Override
     public <T> T accept(IMetricSpecVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public IAggregator createAggregator() {
+        throw new IllegalStateException("PostAggregatorSpec could not be aggregated");
     }
 
     @Override

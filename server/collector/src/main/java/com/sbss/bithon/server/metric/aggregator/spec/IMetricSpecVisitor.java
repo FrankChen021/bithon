@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.metric.aggregator;
+package com.sbss.bithon.server.metric.aggregator.spec;
 
 /**
  * @author frank.chen021@outlook.com

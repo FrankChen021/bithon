@@ -1,9 +1,11 @@
-package com.sbss.bithon.server.metric.aggregator;
+package com.sbss.bithon.server.metric.aggregator.spec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbss.bithon.server.metric.DataSourceSchema;
+import com.sbss.bithon.server.metric.aggregator.DoubleLastAggregator;
+import com.sbss.bithon.server.metric.aggregator.IAggregator;
 import com.sbss.bithon.server.metric.typing.DoubleValueType;
 import com.sbss.bithon.server.metric.typing.IValueType;
 import lombok.Getter;
@@ -15,7 +17,7 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
-public class DoubleSumMetricSpec implements IMetricSpec {
+public class DoubleLastMetricSpec implements IMetricSpec {
 
     @Getter
     private final String name;
@@ -30,20 +32,20 @@ public class DoubleSumMetricSpec implements IMetricSpec {
     private final boolean visible;
 
     @JsonCreator
-    public DoubleSumMetricSpec(@JsonProperty("name") @NotNull String name,
-                               @JsonProperty("displayText") @NotNull String displayText,
-                               @JsonProperty("unit") @NotNull String unit,
-                               @JsonProperty("visible") @Nullable Boolean visible) {
+    public DoubleLastMetricSpec(@JsonProperty("name") @NotNull String name,
+                                @JsonProperty("displayText") @NotNull String displayText,
+                                @JsonProperty("unit") @NotNull String unit,
+                                @JsonProperty("visible") @Nullable Boolean visible) {
         this.name = name;
         this.displayText = displayText;
         this.unit = unit;
-        this.visible = visible == null ? true : visible;
+        this.visible = visible == null || visible;
     }
 
     @JsonIgnore
     @Override
     public String getType() {
-        return IMetricSpec.DOUBLE_SUM;
+        return IMetricSpec.DOUBLE_LAST;
     }
 
     @Override
@@ -67,16 +69,22 @@ public class DoubleSumMetricSpec implements IMetricSpec {
     }
 
     @Override
+    public IAggregator createAggregator() {
+        return new DoubleLastAggregator();
+    }
+
+    @Override
     public int hashCode() {
         return name.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof DoubleSumMetricSpec) {
-            return this.name.equals(((DoubleSumMetricSpec) obj).name);
+        if (obj instanceof DoubleLastMetricSpec) {
+            return this.name.equals(((DoubleLastMetricSpec) obj).name);
         } else {
             return false;
         }
     }
+
 }
