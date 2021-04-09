@@ -3,9 +3,9 @@ package com.sbss.bithon.server.collector.thrift;
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.IMetricCollector;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.GcEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmGcMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MongoDbMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
@@ -21,7 +21,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -53,7 +52,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
 
         final int size = messages.size();
         final Iterator<JvmMetricMessage> iterator = messages.iterator();
-        metricSink.process("jvm-metrics", new SizedIterator<GenericMetricMessage>(){
+        metricSink.process("jvm-metrics", new SizedIterator<GenericMetricMessage>() {
             @Override
             public boolean hasNext() {
                 return iterator.hasNext();
@@ -73,33 +72,15 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
                 return size;
             }
         });
+    }
 
-        final List<GcEntity> gcList = messages.stream()
-                                              .flatMap(jvm -> jvm.gcEntities.stream())
-                                              .collect(Collectors.toList());
-        final Iterator<GcEntity> gc = gcList.iterator();
-        metricSink.process("jvm-gc-metrics", new SizedIterator<GenericMetricMessage>() {
-            @Override
-            public int size() {
-                return gcList.size();
-            }
+    @Override
+    public void sendJvmGc(MessageHeader header, List<JvmGcMetricMessage> messages) {
+        if (CollectionUtils.isEmpty(messages)) {
+            return;
+        }
 
-            @Override
-            public void close() {
-            }
-
-            @Override
-            public boolean hasNext() {
-                return gc.hasNext();
-            }
-
-            @Override
-            public GenericMetricMessage next() {
-                GenericMetricMessage message = GenericMetricMessage.of(header, gc.next());
-                message.set("timestamp", messages.get(0).timestamp);
-                return message;
-            }
-        });
+        metricSink.process("jvm-gc-metrics", new GenericMetricMessageSizedIterator(header, messages));
     }
 
     @Override

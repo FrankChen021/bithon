@@ -38,7 +38,7 @@ struct JvmGcMetricMessage {
     1:i64 timestamp;
     2:i32 interval;
     3:string gcName;
-    4:i32 generation;
+    4:string generation;
     5:i64 gcCount;
     6:i64 gcTime;
 }

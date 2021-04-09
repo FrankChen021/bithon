@@ -13,7 +13,7 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
   private static final org.apache.thrift.protocol.TField TIMESTAMP_FIELD_DESC = new org.apache.thrift.protocol.TField("timestamp", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField INTERVAL_FIELD_DESC = new org.apache.thrift.protocol.TField("interval", org.apache.thrift.protocol.TType.I32, (short)2);
   private static final org.apache.thrift.protocol.TField GC_NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("gcName", org.apache.thrift.protocol.TType.STRING, (short)3);
-  private static final org.apache.thrift.protocol.TField GENERATION_FIELD_DESC = new org.apache.thrift.protocol.TField("generation", org.apache.thrift.protocol.TType.I32, (short)4);
+  private static final org.apache.thrift.protocol.TField GENERATION_FIELD_DESC = new org.apache.thrift.protocol.TField("generation", org.apache.thrift.protocol.TType.STRING, (short)4);
   private static final org.apache.thrift.protocol.TField GC_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("gcCount", org.apache.thrift.protocol.TType.I64, (short)5);
   private static final org.apache.thrift.protocol.TField GC_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("gcTime", org.apache.thrift.protocol.TType.I64, (short)6);
 
@@ -23,7 +23,7 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
   public long timestamp; // required
   public int interval; // required
   public @org.apache.thrift.annotation.Nullable java.lang.String gcName; // required
-  public int generation; // required
+  public @org.apache.thrift.annotation.Nullable java.lang.String generation; // required
   public long gcCount; // required
   public long gcTime; // required
 
@@ -105,9 +105,8 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
   // isset id assignments
   private static final int __TIMESTAMP_ISSET_ID = 0;
   private static final int __INTERVAL_ISSET_ID = 1;
-  private static final int __GENERATION_ISSET_ID = 2;
-  private static final int __GCCOUNT_ISSET_ID = 3;
-  private static final int __GCTIME_ISSET_ID = 4;
+  private static final int __GCCOUNT_ISSET_ID = 2;
+  private static final int __GCTIME_ISSET_ID = 3;
   private byte __isset_bitfield = 0;
   public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -119,7 +118,7 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
     tmpMap.put(_Fields.GC_NAME, new org.apache.thrift.meta_data.FieldMetaData("gcName", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.GENERATION, new org.apache.thrift.meta_data.FieldMetaData("generation", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.GC_COUNT, new org.apache.thrift.meta_data.FieldMetaData("gcCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.GC_TIME, new org.apache.thrift.meta_data.FieldMetaData("gcTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -135,7 +134,7 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
     long timestamp,
     int interval,
     java.lang.String gcName,
-    int generation,
+    java.lang.String generation,
     long gcCount,
     long gcTime)
   {
@@ -146,7 +145,6 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
     setIntervalIsSet(true);
     this.gcName = gcName;
     this.generation = generation;
-    setGenerationIsSet(true);
     this.gcCount = gcCount;
     setGcCountIsSet(true);
     this.gcTime = gcTime;
@@ -163,7 +161,9 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
     if (other.isSetGcName()) {
       this.gcName = other.gcName;
     }
-    this.generation = other.generation;
+    if (other.isSetGeneration()) {
+      this.generation = other.generation;
+    }
     this.gcCount = other.gcCount;
     this.gcTime = other.gcTime;
   }
@@ -179,8 +179,7 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
     setIntervalIsSet(false);
     this.interval = 0;
     this.gcName = null;
-    setGenerationIsSet(false);
-    this.generation = 0;
+    this.generation = null;
     setGcCountIsSet(false);
     this.gcCount = 0;
     setGcTimeIsSet(false);
@@ -258,27 +257,29 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
     }
   }
 
-  public int getGeneration() {
+  @org.apache.thrift.annotation.Nullable
+  public java.lang.String getGeneration() {
     return this.generation;
   }
 
-  public JvmGcMetricMessage setGeneration(int generation) {
+  public JvmGcMetricMessage setGeneration(@org.apache.thrift.annotation.Nullable java.lang.String generation) {
     this.generation = generation;
-    setGenerationIsSet(true);
     return this;
   }
 
   public void unsetGeneration() {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __GENERATION_ISSET_ID);
+    this.generation = null;
   }
 
   /** Returns true if field generation is set (has been assigned a value) and false otherwise */
   public boolean isSetGeneration() {
-    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __GENERATION_ISSET_ID);
+    return this.generation != null;
   }
 
   public void setGenerationIsSet(boolean value) {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __GENERATION_ISSET_ID, value);
+    if (!value) {
+      this.generation = null;
+    }
   }
 
   public long getGcCount() {
@@ -357,7 +358,7 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
       if (value == null) {
         unsetGeneration();
       } else {
-        setGeneration((java.lang.Integer)value);
+        setGeneration((java.lang.String)value);
       }
       break;
 
@@ -468,12 +469,12 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
         return false;
     }
 
-    boolean this_present_generation = true;
-    boolean that_present_generation = true;
+    boolean this_present_generation = true && this.isSetGeneration();
+    boolean that_present_generation = true && that.isSetGeneration();
     if (this_present_generation || that_present_generation) {
       if (!(this_present_generation && that_present_generation))
         return false;
-      if (this.generation != that.generation)
+      if (!this.generation.equals(that.generation))
         return false;
     }
 
@@ -510,7 +511,9 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
     if (isSetGcName())
       hashCode = hashCode * 8191 + gcName.hashCode();
 
-    hashCode = hashCode * 8191 + generation;
+    hashCode = hashCode * 8191 + ((isSetGeneration()) ? 131071 : 524287);
+    if (isSetGeneration())
+      hashCode = hashCode * 8191 + generation.hashCode();
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(gcCount);
 
@@ -625,7 +628,11 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
     first = false;
     if (!first) sb.append(", ");
     sb.append("generation:");
-    sb.append(this.generation);
+    if (this.generation == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.generation);
+    }
     first = false;
     if (!first) sb.append(", ");
     sb.append("gcCount:");
@@ -705,8 +712,8 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
             }
             break;
           case 4: // GENERATION
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.generation = iprot.readI32();
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.generation = iprot.readString();
               struct.setGenerationIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -754,9 +761,11 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
         oprot.writeString(struct.gcName);
         oprot.writeFieldEnd();
       }
-      oprot.writeFieldBegin(GENERATION_FIELD_DESC);
-      oprot.writeI32(struct.generation);
-      oprot.writeFieldEnd();
+      if (struct.generation != null) {
+        oprot.writeFieldBegin(GENERATION_FIELD_DESC);
+        oprot.writeString(struct.generation);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldBegin(GC_COUNT_FIELD_DESC);
       oprot.writeI64(struct.gcCount);
       oprot.writeFieldEnd();
@@ -810,7 +819,7 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
         oprot.writeString(struct.gcName);
       }
       if (struct.isSetGeneration()) {
-        oprot.writeI32(struct.generation);
+        oprot.writeString(struct.generation);
       }
       if (struct.isSetGcCount()) {
         oprot.writeI64(struct.gcCount);
@@ -837,7 +846,7 @@ public class JvmGcMetricMessage implements org.apache.thrift.TBase<JvmGcMetricMe
         struct.setGcNameIsSet(true);
       }
       if (incoming.get(3)) {
-        struct.generation = iprot.readI32();
+        struct.generation = iprot.readString();
         struct.setGenerationIsSet(true);
       }
       if (incoming.get(4)) {

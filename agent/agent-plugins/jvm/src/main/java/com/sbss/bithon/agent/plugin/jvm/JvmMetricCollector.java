@@ -6,12 +6,14 @@ import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
 import com.sbss.bithon.agent.core.utils.time.DateTime;
 import com.sun.management.UnixOperatingSystemMXBean;
 import shaded.com.alibaba.fastjson.JSON;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +32,9 @@ import static com.sbss.bithon.agent.plugin.jvm.JmxBeans.RUNTIME_BEAN;
 public class JvmMetricCollector {
 
     private CpuMetricCollector cpuMetricCollector;
-    private GcMetricCollector gcMetricCollector;
+
 
     public void start() {
-        gcMetricCollector = new GcMetricCollector();
         cpuMetricCollector = new CpuMetricCollector();
 
         //
@@ -67,6 +68,26 @@ public class JvmMetricCollector {
                                                                        buildJvmMetrics()));
             }
         });
+
+        MetricCollectorManager.getInstance().register("jvm-gc-metrics", new IMetricCollector() {
+            private final GcMetricCollector gcCollector = new GcMetricCollector();
+
+            @Override
+            public boolean isEmpty() {
+                return false;
+            }
+
+            @Override
+            public List<Object> collect(IMessageConverter messageConverter, int interval, long timestamp) {
+                List<Object> metricMessages = new ArrayList<>(2);
+                for (GcCompositeMetric gcMetricSet : gcCollector.collect()) {
+                    metricMessages.add(messageConverter.from(timestamp,
+                                                             interval,
+                                                             gcMetricSet));
+                }
+                return metricMessages;
+            }
+        });
     }
 
     private JvmMetricSet buildJvmMetrics() {
@@ -77,7 +98,6 @@ public class JvmMetricCollector {
         jvmMetricSet.heapMetricsSet = MemoryMetricCollector.collectHeap();
         jvmMetricSet.nonHeapMetricsSet = MemoryMetricCollector.collectNonHeap();
         jvmMetricSet.metaspaceMetricsSet = MemoryMetricCollector.collectMeataSpace();
-        jvmMetricSet.gcCompositeMetrics = gcMetricCollector.collect();
         jvmMetricSet.threadMetricsSet = ThreadMetricCollector.collect();
         jvmMetricSet.classMetricsSet = ClassMetricCollector.collect();
         return jvmMetricSet;

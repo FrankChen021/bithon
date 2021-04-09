@@ -4,6 +4,7 @@ import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.http.HttpClientCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
@@ -54,4 +55,6 @@ public interface IMessageConverter {
     Object from(EventMessage event);
 
     Object from(Map<String, String> log);
+
+    Object from(long timestamp, int interval, GcCompositeMetric gcMetricSet);
 }
