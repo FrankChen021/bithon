@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbss.bithon.server.metric.DataSourceSchema;
-import com.sbss.bithon.server.metric.aggregator.IAggregator;
+import com.sbss.bithon.server.metric.aggregator.NumberAggregator;
 import com.sbss.bithon.server.metric.aggregator.LongSumAggregator;
 import com.sbss.bithon.server.metric.typing.IValueType;
 import com.sbss.bithon.server.metric.typing.LongValueType;
@@ -68,7 +68,7 @@ public class LongSumMetricSpec implements IMetricSpec {
     }
 
     @Override
-    public IAggregator createAggregator() {
+    public NumberAggregator createAggregator() {
         return new LongSumAggregator();
     }
 

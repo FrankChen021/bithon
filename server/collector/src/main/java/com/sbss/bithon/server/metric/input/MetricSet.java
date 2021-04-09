@@ -14,8 +14,12 @@ public class MetricSet {
 
     @Getter
     private final long timestamp;
+
+    @Getter
     private final Map<String, String> dimensions;
-    private final Map<String, Number> metrics;
+
+    @Getter
+    private final Map<String, ? extends Number> metrics;
 
     public String getDimension(String dimensionName) {
         return dimensions.get(dimensionName);
@@ -23,5 +27,14 @@ public class MetricSet {
 
     public Number getMetric(String metricName) {
         return metrics.get(metricName);
+    }
+
+    public Object getDimension(String name, String defaultValue) {
+        return dimensions.getOrDefault(name, defaultValue);
+    }
+
+    public Number getMetric(String name, int defaultValue) {
+        Number number = metrics.get(name);
+        return number == null ? defaultValue : number;
     }
 }

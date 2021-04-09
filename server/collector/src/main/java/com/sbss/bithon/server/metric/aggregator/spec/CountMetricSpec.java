@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbss.bithon.server.metric.DataSourceSchema;
-import com.sbss.bithon.server.metric.aggregator.IAggregator;
+import com.sbss.bithon.server.metric.aggregator.NumberAggregator;
 import com.sbss.bithon.server.metric.typing.IValueType;
 import com.sbss.bithon.server.metric.typing.LongValueType;
 import lombok.Getter;
@@ -68,17 +68,37 @@ public class CountMetricSpec implements IMetricSpec {
     }
 
     @Override
-    public IAggregator createAggregator() {
-        return new IAggregator() {
-            private long count;
+    public NumberAggregator createAggregator() {
+        return new NumberAggregator() {
+            @Override
+            public int intValue() {
+                return (int)value;
+            }
+
+            @Override
+            public long longValue() {
+                return value;
+            }
+
+            @Override
+            public float floatValue() {
+                return value;
+            }
+
+            @Override
+            public double doubleValue() {
+                return value;
+            }
+
+            private long value;
             @Override
             public void aggregate(long timestamp, Object value) {
-                count++;
+                this.value++;
             }
 
             @Override
             public Object getValue() {
-                return count;
+                return value;
             }
         };
     }

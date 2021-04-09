@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbss.bithon.server.metric.DataSourceSchema;
-import com.sbss.bithon.server.metric.aggregator.IAggregator;
+import com.sbss.bithon.server.metric.aggregator.NumberAggregator;
 import com.sbss.bithon.server.metric.aggregator.ast.PostAggregatorExpressionBaseVisitor;
 import com.sbss.bithon.server.metric.aggregator.ast.PostAggregatorExpressionLexer;
 import com.sbss.bithon.server.metric.aggregator.ast.PostAggregatorExpressionParser;
@@ -129,7 +129,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     }
 
     @Override
-    public IAggregator createAggregator() {
+    public NumberAggregator createAggregator() {
         throw new IllegalStateException("PostAggregatorSpec could not be aggregated");
     }
 

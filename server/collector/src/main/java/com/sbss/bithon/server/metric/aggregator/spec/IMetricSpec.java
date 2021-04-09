@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.sbss.bithon.server.metric.DataSourceSchema;
-import com.sbss.bithon.server.metric.aggregator.IAggregator;
+import com.sbss.bithon.server.metric.aggregator.NumberAggregator;
 import com.sbss.bithon.server.metric.typing.IValueType;
 
 /**
@@ -73,5 +73,5 @@ public interface IMetricSpec {
 
     <T> T accept(IMetricSpecVisitor<T> visitor);
 
-    IAggregator createAggregator();
+    NumberAggregator createAggregator();
 }

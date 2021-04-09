@@ -5,6 +5,7 @@ import com.sbss.bithon.server.metric.aggregator.spec.IMetricSpec;
 import com.sbss.bithon.server.metric.aggregator.spec.PostAggregatorMetricSpec;
 import com.sbss.bithon.server.metric.dimension.IDimensionSpec;
 import com.sbss.bithon.server.metric.input.InputRow;
+import com.sbss.bithon.server.metric.input.MetricSet;
 import com.sbss.bithon.server.metric.storage.IMetricWriter;
 import com.sbss.bithon.server.metric.typing.DoubleValueType;
 import com.sbss.bithon.server.metric.typing.IValueType;
@@ -17,6 +18,7 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Index;
 import org.jooq.InsertSetMoreStep;
+import org.jooq.Query;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
@@ -26,6 +28,7 @@ import org.springframework.dao.DuplicateKeyException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -34,6 +37,7 @@ import java.util.List;
  */
 @Slf4j
 class MetricJdbcWriter implements IMetricWriter {
+    private static final int BATCH_SIZE = 20;
     private final DSLContext dsl;
     private final MetricTable table;
 
@@ -64,11 +68,77 @@ class MetricJdbcWriter implements IMetricWriter {
 
             try {
                 step.execute();
-            } catch(DuplicateKeyException e) {
+            } catch (DuplicateKeyException e) {
                 // TODO: this is a bug???
                 log.error("Duplicate Key:{}", inputRow);
             }
         }
+    }
+
+    @Override
+    public void write(List<InputRow> inputRowList) {
+        int index = 0;
+        int thisBatch = 0;
+        List<Query> queries = new ArrayList<>(BATCH_SIZE);
+        for (int leftSize = inputRowList.size(); leftSize > 0; leftSize -= thisBatch) {
+            thisBatch = Math.min(BATCH_SIZE, leftSize);
+
+            queries.clear();
+            for (int i = 0; i < thisBatch; i++, index++) {
+                queries.add(toInsertSql(inputRowList.get(index)));
+            }
+            dsl.batch(queries.toArray(new Query[0])).execute();
+        }
+    }
+
+    @Override
+    public void write(Collection<MetricSet> metricSetList) {
+        int index = 0;
+        int thisBatch = 0;
+        List<Query> queries = new ArrayList<>(BATCH_SIZE);
+        for (int leftSize = metricSetList.size(); leftSize > 0; leftSize -= thisBatch) {
+            thisBatch = Math.min(BATCH_SIZE, leftSize);
+
+            queries.clear();
+            for (int i = 0; i < thisBatch; i++, index++) {
+                queries.add(toInsertSql(((List<MetricSet>) metricSetList).get(index)));
+            }
+            dsl.batch(queries.toArray(new Query[0])).execute();
+        }
+    }
+
+    private InsertSetMoreStep toInsertSql(InputRow inputRow) {
+        InsertSetMoreStep<?> step = dsl.insertInto(table)
+                                       .set(table.timestampField,
+                                            new Timestamp(inputRow.getColAsLong("timestamp")));
+
+        for (Field dimension : table.dimensions) {
+            Object value = inputRow.getCol(dimension.getName(), "");
+            step.set(dimension, value);
+        }
+        for (Field metric : table.metrics) {
+            Object value = inputRow.getCol(metric.getName(), 0);
+            step.set(metric, value);
+        }
+
+        return step;
+    }
+
+    private InsertSetMoreStep toInsertSql(MetricSet metricSet) {
+        InsertSetMoreStep<?> step = dsl.insertInto(table)
+                                       .set(table.timestampField,
+                                            new Timestamp(metricSet.getTimestamp()));
+
+        for (Field dimension : table.dimensions) {
+            Object value = metricSet.getDimension(dimension.getName(), "");
+            step.set(dimension, value);
+        }
+        for (Field metric : table.metrics) {
+            Object value = metricSet.getMetric(metric.getName(), 0);
+            step.set(metric, value);
+        }
+
+        return step;
     }
 
     @Override
@@ -93,7 +163,7 @@ class MetricJdbcWriter implements IMetricWriter {
             }
 
             for (IMetricSpec metric : schema.getMetricsSpec()) {
-                if ( metric instanceof PostAggregatorMetricSpec ) {
+                if (metric instanceof PostAggregatorMetricSpec) {
                     continue;
                 }
                 metrics.add(createField(metric.getName(), metric.getValueType()));

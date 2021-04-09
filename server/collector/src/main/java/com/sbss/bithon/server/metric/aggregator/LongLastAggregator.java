@@ -4,15 +4,14 @@ package com.sbss.bithon.server.metric.aggregator;
  * @author frank.chen021@outlook.com
  * @date 2021/4/6 9:26 下午
  */
-public class LongLastAggregator implements IAggregator {
+public class LongLastAggregator extends AbstractLongAggregator {
     private long timestamp = Long.MIN_VALUE;
-    private long value;
 
     @Override
-    public void aggregate(long timestamp, Object value) {
+    protected void aggregate(long timestamp, long value) {
         if (this.timestamp < timestamp) {
             this.timestamp = timestamp;
-            this.value = NumberUtils.getLong(value);
+            this.value = value;
         }
     }
 
