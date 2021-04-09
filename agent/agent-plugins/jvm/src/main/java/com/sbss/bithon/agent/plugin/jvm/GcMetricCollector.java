@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * TODO: Separate Gc Metric from JVM Metric
- *
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 8:39 下午
  */
@@ -22,7 +20,7 @@ public class GcMetricCollector {
         private final GarbageCollectorMXBean gcBean;
         private final Delta gcCount = new Delta();
         private final Delta gcTime = new Delta();
-        private final int generation;
+        private final String generation;
 
         GarbageCollector(GarbageCollectorMXBean bean) {
             this.gcBean = bean;
@@ -39,33 +37,35 @@ public class GcMetricCollector {
             return null;
         }
 
-        private int getGeneration(String gcName) {
+        private String getGeneration(String gcName) {
             switch (gcName) {
                 // CMS
                 case "ParNew":
-                    return 0;
+                    return "new";
                 case "ConcurrentMarkSweep":
-                    return 1;
+                    return "old";
 
                 // G1
                 case "G1 Young Generation":
-                    return 0;
+                    return "new";
                 case "G1 Old Generation":
-                    return 1;
+                    return "old";
 
                 // Parallel
                 case "PS Scavenge":
-                    return 0;
+                    return "new";
                 case "PS MarkSweep":
-                    return 1;
+                    return "old";
 
                 // Serial
                 case "Copy":
-                    return 0;
+                    return "new";
                 case "MarkSweepCompact":
-                    return 1;
+                    return "old";
+
+                // unknown
                 default:
-                    return -1;
+                    return gcName;
             }
         }
     }

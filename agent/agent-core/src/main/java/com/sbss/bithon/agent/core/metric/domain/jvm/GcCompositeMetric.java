@@ -11,7 +11,7 @@ public class GcCompositeMetric {
      * 0 - NEW
      * 1 - OLD
      */
-    public int generation;
+    public String generation;
 
     /**
      * count of GC between two intervals
@@ -23,7 +23,7 @@ public class GcCompositeMetric {
      */
     public long gcTime;
 
-    public GcCompositeMetric(String gcName, int generation, long gcCount, long gcTime) {
+    public GcCompositeMetric(String gcName, String generation, long gcCount, long gcTime) {
         this.gcName = gcName;
         this.generation = generation;
         this.gcCount = gcCount;

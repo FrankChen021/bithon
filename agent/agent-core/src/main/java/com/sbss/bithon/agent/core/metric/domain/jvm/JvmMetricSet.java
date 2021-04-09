@@ -23,7 +23,6 @@ public class JvmMetricSet {
     public MemoryCompositeMetric memoryMetricsSet;
     public HeapCompositeMetric heapMetricsSet;
     public NonHeapCompositeMetric nonHeapMetricsSet;
-    public List<GcCompositeMetric> gcCompositeMetrics;
     public ThreadCompositeMetric threadMetricsSet;
     public ClassCompositeMetric classMetricsSet;
     public MetaspaceCompositeMetric metaspaceMetricsSet;

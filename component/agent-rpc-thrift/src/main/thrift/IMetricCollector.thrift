@@ -10,6 +10,9 @@ service IMetricCollector {
     oneway void sendJvm(1:required HeaderMessages.MessageHeader header,
                         2:required list<MetricMessages.JvmMetricMessage> messages);
 
+    oneway void sendJvmGc(1:required HeaderMessages.MessageHeader header,
+                          2:required list<MetricMessages.JvmGcMetricMessage> messages);
+
     oneway void sendWebServer(1:required HeaderMessages.MessageHeader header,
                               2:required list<MetricMessages.WebServerMetricMessage> messages);
 

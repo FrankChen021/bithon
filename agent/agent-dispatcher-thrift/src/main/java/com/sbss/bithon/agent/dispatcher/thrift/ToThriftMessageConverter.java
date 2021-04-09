@@ -5,6 +5,7 @@ import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.http.HttpClientCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
+import com.sbss.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
@@ -18,11 +19,11 @@ import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ClassEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.CpuEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.GcEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HeapEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.InstanceTimeEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmGcMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MemoryEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MetaspaceEntity;
@@ -38,7 +39,6 @@ import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -177,14 +177,6 @@ public class ToThriftMessageConverter implements IMessageConverter {
                                                  metric.threadMetricsSet.activeDaemonCount,
                                                  metric.threadMetricsSet.totalCreatedCount,
                                                  metric.threadMetricsSet.activeThreadsCount));
-        message.setGcEntities(metric.gcCompositeMetrics.stream().map(gcMetric -> {
-            GcEntity e = new GcEntity(gcMetric.generation,
-                                      gcMetric.gcCount,
-                                      gcMetric.gcTime);
-            e.setGcName(gcMetric.gcName);
-            return e;
-        }).collect(Collectors.toList()));
-
         message.setClassesEntity(new ClassEntity(metric.classMetricsSet.currentLoadedClasses,
                                                  metric.classMetricsSet.totalLoadedClasses,
                                                  metric.classMetricsSet.totalUnloadedClasses));
@@ -276,6 +268,20 @@ public class ToThriftMessageConverter implements IMessageConverter {
     @Override
     public Object from(Map<String, String> log) {
         return null;
+    }
+
+    @Override
+    public Object from(long timestamp, int interval, GcCompositeMetric metrics) {
+        JvmGcMetricMessage message = new JvmGcMetricMessage();
+        message.setInterval(interval);
+        message.setTimestamp(timestamp);
+        message.setInterval(interval);
+        message.setTimestamp(timestamp);
+        message.setGcName(metrics.gcName);
+        message.setGeneration(metrics.generation);
+        message.setGcCount(metrics.gcCount);
+        message.setGcTime(metrics.gcTime);
+        return message;
     }
 
     @Override
