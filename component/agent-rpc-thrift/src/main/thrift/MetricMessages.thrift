@@ -29,10 +29,18 @@ struct JvmMetricMessage {
     9:MemoryEntity memoryEntity;
     10:HeapEntity heapEntity;
     11:NonHeapEntity nonHeapEntity;
-    12:list<GcEntity> gcEntities;
-    13:ThreadEntity threadEntity;
-    14:ClassEntity classesEntity;
-    15:MetaspaceEntity metaspaceEntity;
+    12:ThreadEntity threadEntity;
+    13:ClassEntity classesEntity;
+    14:MetaspaceEntity metaspaceEntity;
+}
+
+struct JvmGcMetricMessage {
+    1:i64 timestamp;
+    2:i32 interval;
+    3:string gcName;
+    4:i32 generation;
+    5:i64 gcCount;
+    6:i64 gcTime;
 }
 
 struct InstanceTimeEntity {
@@ -80,13 +88,6 @@ struct NonHeapEntity {
     3:i64 nonHeapUsed;
     // 当前可使用的内存大小，包括used（单位：字节）
     4:i64 nonHeapCommitted;
-}
-
-struct GcEntity {
-    1:optional string gcName;
-    2:i32 generation;
-    3:i64 gcCount;
-    4:i64 gcTime;
 }
 
 struct ThreadEntity {
