@@ -1,11 +1,13 @@
-package com.sbss.bithon.server.metric.aggregator;
+package com.sbss.bithon.server.metric.aggregator.spec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbss.bithon.server.metric.DataSourceSchema;
+import com.sbss.bithon.server.metric.aggregator.DoubleLastAggregator;
+import com.sbss.bithon.server.metric.aggregator.NumberAggregator;
+import com.sbss.bithon.server.metric.typing.DoubleValueType;
 import com.sbss.bithon.server.metric.typing.IValueType;
-import com.sbss.bithon.server.metric.typing.LongValueType;
 import lombok.Getter;
 
 import javax.annotation.Nullable;
@@ -13,9 +15,9 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/16
+ * @date 2020/12/23
  */
-public class LongMinMetricSpec implements IMetricSpec {
+public class DoubleLastMetricSpec implements IMetricSpec {
 
     @Getter
     private final String name;
@@ -30,29 +32,30 @@ public class LongMinMetricSpec implements IMetricSpec {
     private final boolean visible;
 
     @JsonCreator
-    public LongMinMetricSpec(@JsonProperty("name") @NotNull String name,
-                             @JsonProperty("displayText") @NotNull String displayText,
-                             @JsonProperty("unit") @NotNull String unit,
-                             @JsonProperty("visible") @Nullable Boolean visible) {
+    public DoubleLastMetricSpec(@JsonProperty("name") @NotNull String name,
+                                @JsonProperty("displayText") @NotNull String displayText,
+                                @JsonProperty("unit") @NotNull String unit,
+                                @JsonProperty("visible") @Nullable Boolean visible) {
         this.name = name;
         this.displayText = displayText;
         this.unit = unit;
-        this.visible = visible == null ? true : visible;
+        this.visible = visible == null || visible;
     }
 
     @JsonIgnore
     @Override
     public String getType() {
-        return IMetricSpec.LONG_MIN;
+        return IMetricSpec.DOUBLE_LAST;
     }
 
     @Override
     public IValueType getValueType() {
-        return LongValueType.INSTANCE;
+        return DoubleValueType.INSTANCE;
     }
 
     @Override
     public void setOwner(DataSourceSchema dataSource) {
+
     }
 
     @Override
@@ -66,16 +69,22 @@ public class LongMinMetricSpec implements IMetricSpec {
     }
 
     @Override
+    public NumberAggregator createAggregator() {
+        return new DoubleLastAggregator();
+    }
+
+    @Override
     public int hashCode() {
         return name.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof LongMinMetricSpec) {
-            return this.name.equals(((LongMinMetricSpec) obj).name);
+        if (obj instanceof DoubleLastMetricSpec) {
+            return this.name.equals(((DoubleLastMetricSpec) obj).name);
         } else {
             return false;
         }
     }
+
 }

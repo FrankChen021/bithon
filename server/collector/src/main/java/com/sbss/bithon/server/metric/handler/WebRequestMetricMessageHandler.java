@@ -5,6 +5,7 @@ import com.sbss.bithon.server.common.service.UriNormalizer;
 import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
+import com.sbss.bithon.server.metric.input.MetricSet;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,11 @@ public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler
         }
         message.set("uri", result.getUri());
 
+        return true;
+    }
+
+    @Override
+    protected MetricSet extractEndpointLink(GenericMetricMessage message) {
         String srcApplication;
         EndPointType srcEndPointType;
         if (StringUtils.isEmpty(message.getString("srcApplication"))) {
@@ -60,20 +66,19 @@ public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler
             srcApplication = message.getString("srcApplication");
             srcEndPointType = EndPointType.APPLICATION;
         }
-        message.set("endpoint", EndPointLink.builder()
-                                            .timestamp(message.getTimestamp())
-                                            // dimension
-                                            .srcEndpointType(srcEndPointType)
-                                            .srcEndpoint(srcApplication)
-                                            .dstEndpointType(EndPointType.APPLICATION)
-                                            .dstEndpoint(message.getApplicationName())
-                                            // metric
-                                            .interval(message.getLong("interval"))
-                                            .minResponseTime(message.getLong("minResponseTime"))
-                                            .maxResponseTime(message.getLong("maxResponseTime"))
-                                            .responseTime(message.getLong("responseTime"))
-                                            .callCount(message.getLong("callCount"))
-                                            .build());
-        return true;
+        return EndPointMetricSetBuilder.builder()
+                                       .timestamp(message.getTimestamp())
+                                       // dimension
+                                       .srcEndpointType(srcEndPointType)
+                                       .srcEndpoint(srcApplication)
+                                       .dstEndpointType(EndPointType.APPLICATION)
+                                       .dstEndpoint(message.getApplicationName())
+                                       // metric
+                                       .interval(message.getLong("interval"))
+                                       .minResponseTime(message.getLong("minResponseTime"))
+                                       .maxResponseTime(message.getLong("maxResponseTime"))
+                                       .responseTime(message.getLong("responseTime"))
+                                       .callCount(message.getLong("callCount"))
+                                       .build();
     }
 }

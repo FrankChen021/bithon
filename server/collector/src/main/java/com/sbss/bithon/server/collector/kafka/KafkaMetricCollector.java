@@ -1,6 +1,8 @@
 package com.sbss.bithon.server.collector.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sbss.bithon.server.collector.sink.local.LocalMetricSink;
+import com.sbss.bithon.server.common.utils.collection.SizedIterator;
 import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
@@ -20,7 +22,7 @@ import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaMetricCollector extends AbstractKafkaCollector<GenericMetricMessage> {
+public class KafkaMetricCollector extends AbstractKafkaCollector<SizedIterator<GenericMetricMessage>> {
 
     private final LocalMetricSink localSink;
 
@@ -35,7 +37,7 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<GenericMetricMe
                                 RedisMetricMessageHandler redisMetricMessageHandler,
                                 SqlMetricMessageHandler sqlMetricMessageHandler,
                                 MongoDbMetricMessageHandler mongoDbMetricMessageHandler) {
-        super(GenericMetricMessage.class);
+        super(null);
         localSink = new LocalMetricSink(jvmMetricMessageHandler,
                                         jvmGcMetricMessageHandler,
                                         webRequestMetricMessageHandler,
@@ -60,7 +62,38 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<GenericMetricMe
     }
 
     @Override
-    protected void onMessage(String topic, GenericMetricMessage metric) {
-        localSink.process(topic, metric);
+    protected void onMessage(String topic, String rawMessage) {
+        try {
+            GenericMetricMessage[] messages = objectMapper.readValue(rawMessage, GenericMetricMessage[].class);
+
+            localSink.process(topic, new SizedIterator<GenericMetricMessage>() {
+                int index = 0;
+
+                @Override
+                public int size() {
+                    return messages.length;
+                }
+
+                @Override
+                public void close() {
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return index < messages.length;
+                }
+
+                @Override
+                public GenericMetricMessage next() {
+                    return messages[index++];
+                }
+            });
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onMessage(String topic, SizedIterator<GenericMetricMessage> metric) {
     }
 }

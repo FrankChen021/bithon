@@ -1,4 +1,4 @@
-package com.sbss.bithon.server.metric.aggregator;
+package com.sbss.bithon.server.metric.aggregator.spec;
 
 import javax.validation.constraints.NotNull;
 
@@ -8,6 +8,6 @@ import javax.validation.constraints.NotNull;
  */
 public class InvalidExpressionException extends RuntimeException {
     public InvalidExpressionException(@NotNull String expression, int charPos, String parseExceptionMessage) {
-        super(String.format("表达式[%s]无效: 位置 %d, %s", expression, charPos, parseExceptionMessage));
+        super(String.format("Invalid expression [%s] at position %d, %s", expression, charPos, parseExceptionMessage));
     }
 }

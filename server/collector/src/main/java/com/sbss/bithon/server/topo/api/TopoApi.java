@@ -83,7 +83,7 @@ public class TopoApi {
                              .dstEndpoint(dstEndpoint.getName())
                              .avgResponseTime(inputRow.getColAsDouble("avgResponseTime", 0))
                              .maxResponseTime(inputRow.getColAsLong("maxResponseTime", 0))
-                             .maxResponseTime(inputRow.getColAsLong("minResponseTime", 0))
+                             .minResponseTime(inputRow.getColAsLong("minResponseTime", 0))
                              .callCount(inputRow.getColAsLong("callCount", 0))
                              .errorCount(inputRow.getColAsLong("errorCount", 0))
                              .build());

@@ -1,6 +1,6 @@
-import com.sbss.bithon.server.metric.aggregator.IMetricSpec;
-import com.sbss.bithon.server.metric.aggregator.PostAggregatorExpressionVisitor;
-import com.sbss.bithon.server.metric.aggregator.PostAggregatorMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.spec.IMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.spec.PostAggregatorExpressionVisitor;
+import com.sbss.bithon.server.metric.aggregator.spec.PostAggregatorMetricSpec;
 import org.junit.Assert;
 import org.junit.Test;
 

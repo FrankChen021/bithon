@@ -19,7 +19,7 @@ import java.util.Map;
 public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector {
     ConcurrentMessageListenerContainer<String, String> consumerContainer;
 
-    private final ObjectMapper objectMapper;
+    protected final ObjectMapper objectMapper;
     private Class<MSG> clazz;
 
     public AbstractKafkaCollector(Class<MSG> clazz) {

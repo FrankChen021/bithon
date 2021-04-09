@@ -1,9 +1,11 @@
-package com.sbss.bithon.server.metric.aggregator;
+package com.sbss.bithon.server.metric.aggregator.spec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbss.bithon.server.metric.DataSourceSchema;
+import com.sbss.bithon.server.metric.aggregator.NumberAggregator;
+import com.sbss.bithon.server.metric.aggregator.LongSumAggregator;
 import com.sbss.bithon.server.metric.typing.IValueType;
 import com.sbss.bithon.server.metric.typing.LongValueType;
 import lombok.Getter;
@@ -13,9 +15,9 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/16
+ * @date 2020/11/30 5:38 下午
  */
-public class LongMaxMetricSpec implements IMetricSpec {
+public class LongSumMetricSpec implements IMetricSpec {
 
     @Getter
     private final String name;
@@ -30,7 +32,7 @@ public class LongMaxMetricSpec implements IMetricSpec {
     private final boolean visible;
 
     @JsonCreator
-    public LongMaxMetricSpec(@JsonProperty("name") @NotNull String name,
+    public LongSumMetricSpec(@JsonProperty("name") @NotNull String name,
                              @JsonProperty("displayText") @NotNull String displayText,
                              @JsonProperty("unit") @NotNull String unit,
                              @JsonProperty("visible") @Nullable Boolean visible) {
@@ -43,7 +45,7 @@ public class LongMaxMetricSpec implements IMetricSpec {
     @JsonIgnore
     @Override
     public String getType() {
-        return IMetricSpec.LONG_MAX;
+        return IMetricSpec.LONG_SUM;
     }
 
     @Override
@@ -66,14 +68,19 @@ public class LongMaxMetricSpec implements IMetricSpec {
     }
 
     @Override
+    public NumberAggregator createAggregator() {
+        return new LongSumAggregator();
+    }
+
+    @Override
     public int hashCode() {
         return name.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof LongMaxMetricSpec) {
-            return this.name.equals(((LongMaxMetricSpec) obj).name);
+        if (obj instanceof LongSumMetricSpec) {
+            return this.name.equals(((LongSumMetricSpec) obj).name);
         } else {
             return false;
         }

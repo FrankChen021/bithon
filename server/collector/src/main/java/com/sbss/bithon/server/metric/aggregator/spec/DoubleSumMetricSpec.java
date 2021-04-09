@@ -1,9 +1,11 @@
-package com.sbss.bithon.server.metric.aggregator;
+package com.sbss.bithon.server.metric.aggregator.spec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbss.bithon.server.metric.DataSourceSchema;
+import com.sbss.bithon.server.metric.aggregator.DoubleSumAggregator;
+import com.sbss.bithon.server.metric.aggregator.NumberAggregator;
 import com.sbss.bithon.server.metric.typing.DoubleValueType;
 import com.sbss.bithon.server.metric.typing.IValueType;
 import lombok.Getter;
@@ -64,6 +66,11 @@ public class DoubleSumMetricSpec implements IMetricSpec {
     @Override
     public <T> T accept(IMetricSpecVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public NumberAggregator createAggregator() {
+        return new DoubleSumAggregator();
     }
 
     @Override

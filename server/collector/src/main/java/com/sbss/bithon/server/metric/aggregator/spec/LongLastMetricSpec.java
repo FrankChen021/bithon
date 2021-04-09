@@ -1,9 +1,11 @@
-package com.sbss.bithon.server.metric.aggregator;
+package com.sbss.bithon.server.metric.aggregator.spec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sbss.bithon.server.metric.DataSourceSchema;
+import com.sbss.bithon.server.metric.aggregator.NumberAggregator;
+import com.sbss.bithon.server.metric.aggregator.LongLastAggregator;
 import com.sbss.bithon.server.metric.typing.IValueType;
 import com.sbss.bithon.server.metric.typing.LongValueType;
 import lombok.Getter;
@@ -13,9 +15,9 @@ import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/11/30 5:38 下午
+ * @date 2021/2/26 11:08 下午
  */
-public class LongSumMetricSpec implements IMetricSpec {
+public class LongLastMetricSpec implements IMetricSpec {
 
     @Getter
     private final String name;
@@ -30,10 +32,10 @@ public class LongSumMetricSpec implements IMetricSpec {
     private final boolean visible;
 
     @JsonCreator
-    public LongSumMetricSpec(@JsonProperty("name") @NotNull String name,
-                             @JsonProperty("displayText") @NotNull String displayText,
-                             @JsonProperty("unit") @NotNull String unit,
-                             @JsonProperty("visible") @Nullable Boolean visible) {
+    public LongLastMetricSpec(@JsonProperty("name") @NotNull String name,
+                              @JsonProperty("displayText") @NotNull String displayText,
+                              @JsonProperty("unit") @NotNull String unit,
+                              @JsonProperty("visible") @Nullable Boolean visible) {
         this.name = name;
         this.displayText = displayText;
         this.unit = unit;
@@ -43,7 +45,7 @@ public class LongSumMetricSpec implements IMetricSpec {
     @JsonIgnore
     @Override
     public String getType() {
-        return IMetricSpec.LONG_SUM;
+        return IMetricSpec.LONG_LAST;
     }
 
     @Override
@@ -66,14 +68,19 @@ public class LongSumMetricSpec implements IMetricSpec {
     }
 
     @Override
+    public NumberAggregator createAggregator() {
+        return new LongLastAggregator();
+    }
+
+    @Override
     public int hashCode() {
         return name.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof LongSumMetricSpec) {
-            return this.name.equals(((LongSumMetricSpec) obj).name);
+        if (obj instanceof LongLastMetricSpec) {
+            return this.name.equals(((LongLastMetricSpec) obj).name);
         } else {
             return false;
         }

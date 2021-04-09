@@ -2,9 +2,9 @@ package com.sbss.bithon.server.metric.handler;
 
 import com.sbss.bithon.component.db.dao.EndPointType;
 import com.sbss.bithon.server.common.utils.MiscUtils;
-import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
+import com.sbss.bithon.server.metric.input.MetricSet;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,19 +50,24 @@ public class SqlMetricMessageHandler extends AbstractMetricMessageHandler {
         MiscUtils.ConnectionString conn = MiscUtils.parseConnectionString(metricObject.getString("connectionString"));
         metricObject.set("server", conn.getHostAndPort());
         metricObject.set("database", conn.getDatabase());
-        metricObject.set("endpoint", EndPointLink.builder()
-                                                 .timestamp(metricObject.getTimestamp())
-                                                 .srcEndpointType(EndPointType.APPLICATION)
-                                                 .srcEndpoint(metricObject.getApplicationName())
-                                                 .dstEndpointType(conn.getEndPointType())
-                                                 .dstEndpoint(conn.getHostAndPort())
-                                                 .interval(metricObject.getLong("interval"))
-                                                 .callCount(metricObject.getLong("callCount"))
-                                                 .errorCount(metricObject.getLong("errorCount"))
-                                                 .responseTime(metricObject.getLong("responseTime"))
-                                                 .minResponseTime(metricObject.getLong("minResponseTime"))
-                                                 .maxResponseTime(metricObject.getLong("maxResponseTime"))
-                                                 .build());
+        metricObject.set("endpointType", conn.getEndPointType().name());
         return true;
+    }
+
+    @Override
+    protected MetricSet extractEndpointLink(GenericMetricMessage metricObject) {
+        return EndPointMetricSetBuilder.builder()
+                                       .timestamp(metricObject.getTimestamp())
+                                       .srcEndpointType(EndPointType.APPLICATION)
+                                       .srcEndpoint(metricObject.getApplicationName())
+                                       .dstEndpointType(metricObject.getString("endpointType"))
+                                       .dstEndpoint(metricObject.getString("server"))
+                                       .interval(metricObject.getLong("interval"))
+                                       .callCount(metricObject.getLong("callCount"))
+                                       .errorCount(metricObject.getLong("errorCount"))
+                                       .responseTime(metricObject.getLong("responseTime"))
+                                       .minResponseTime(metricObject.getLong("minResponseTime"))
+                                       .maxResponseTime(metricObject.getLong("maxResponseTime"))
+                                       .build();
     }
 }
