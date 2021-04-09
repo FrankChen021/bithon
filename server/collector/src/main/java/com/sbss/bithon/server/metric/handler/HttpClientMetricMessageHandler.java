@@ -6,6 +6,7 @@ import com.sbss.bithon.server.common.utils.NetworkUtils;
 import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
+import com.sbss.bithon.server.metric.input.MetricSet;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.tools.StringUtils;
@@ -71,6 +72,7 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
                                                          .srcEndpoint(metricObject.getApplicationName())
                                                          .dstEndpointType(EndPointType.APPLICATION)
                                                          .dstEndpoint(targetApplicationName)
+                                                         .errorCount(metricObject.getLong("countException"))
                                                          .interval(metricObject.getLong("interval"))
                                                          .callCount(metricObject.getLong("requestCount"))
                                                          .responseTime(metricObject.getLong("responseTime"))
@@ -83,18 +85,21 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
                 // it of course can't be found in the metadata storage
                 //
                 // TODO: This record should be fixed when a new instance is inserted into the metadata storage
-                metricObject.set("endpoint", EndPointLink.builder()
-                                                         .timestamp(metricObject.getTimestamp())
-                                                         .srcEndpointType(EndPointType.APPLICATION)
-                                                         .srcEndpoint(metricObject.getApplicationName())
-                                                         .dstEndpointType(EndPointType.WEB_SERVICE)
-                                                         .dstEndpoint(targetHostPort)
-                                                         .interval(metricObject.getLong("interval"))
-                                                         .callCount(metricObject.getLong("requestCount"))
-                                                         .responseTime(metricObject.getLong("responseTime"))
-                                                         .minResponseTime(metricObject.getLong("minResponseTime"))
-                                                         .maxResponseTime(metricObject.getLong("maxResponseTime"))
-                                                         .build());
+                metricObject.set("endpoint", EndPointMetricSetBuilder.builder()
+                                                                     .timestamp(metricObject.getTimestamp())
+                                                                     .srcEndpointType(EndPointType.APPLICATION)
+                                                                     .srcEndpoint(metricObject.getApplicationName())
+                                                                     .dstEndpointType(EndPointType.WEB_SERVICE)
+                                                                     .dstEndpoint(targetHostPort)
+                                                                     .errorCount(metricObject.getLong("countException"))
+                                                                     .interval(metricObject.getLong("interval"))
+                                                                     .callCount(metricObject.getLong("requestCount"))
+                                                                     .responseTime(metricObject.getLong("responseTime"))
+                                                                     .minResponseTime(metricObject.getLong(
+                                                                         "minResponseTime"))
+                                                                     .maxResponseTime(metricObject.getLong(
+                                                                         "maxResponseTime"))
+                                                                     .build());
             }
         } else { // if uri.getHost is not IP address
             //TODO: targetHostPort may be an service name if it's a service call such as point to point via service auto discovery
@@ -105,6 +110,7 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
                                                          .srcEndpoint(metricObject.getApplicationName())
                                                          .dstEndpointType(EndPointType.APPLICATION)
                                                          .dstEndpoint(targetHostPort)
+                                                         .errorCount(metricObject.getLong("countException"))
                                                          .interval(metricObject.getLong("interval"))
                                                          .callCount(metricObject.getLong("requestCount"))
                                                          .responseTime(metricObject.getLong("responseTime"))
@@ -118,6 +124,7 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
                                                          .srcEndpoint(metricObject.getApplicationName())
                                                          .dstEndpointType(EndPointType.WEB_SERVICE)
                                                          .dstEndpoint(targetHostPort)
+                                                         .errorCount(metricObject.getLong("countException"))
                                                          .interval(metricObject.getLong("interval"))
                                                          .callCount(metricObject.getLong("requestCount"))
                                                          .responseTime(metricObject.getLong("responseTime"))
@@ -127,6 +134,11 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
             }
         }
         return true;
+    }
+
+    @Override
+    protected MetricSet extractEndpointLink(GenericMetricMessage message) {
+        return null;
     }
 
     private String toHostPort(String targetHost, int targetPort) {

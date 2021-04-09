@@ -2,12 +2,12 @@ package com.sbss.bithon.server.metric.handler;
 
 import com.sbss.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import com.sbss.bithon.server.common.utils.collection.SizedIterator;
-import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.MetadataType;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchema;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.aggregator.NumberAggregator;
+import com.sbss.bithon.server.metric.aggregator.spec.IMetricSpec;
 import com.sbss.bithon.server.metric.input.InputRow;
 import com.sbss.bithon.server.metric.input.MetricSet;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
@@ -32,11 +32,10 @@ public abstract class AbstractMetricMessageHandler
     extends AbstractThreadPoolMessageHandler<SizedIterator<GenericMetricMessage>> {
 
     private final DataSourceSchema schema;
-    private final DataSourceSchema topoSchema;
+    private final DataSourceSchema endpointSchema;
     private final IMetaStorage metaStorage;
     private final IMetricWriter metricStorageWriter;
     private final IMetricWriter endpointMetricStorageWriter;
-
 
     public AbstractMetricMessageHandler(String dataSourceName,
                                         IMetaStorage metaStorage,
@@ -52,8 +51,8 @@ public abstract class AbstractMetricMessageHandler
         this.metaStorage = metaStorage;
         this.metricStorageWriter = metricStorage.createMetricWriter(schema);
 
-        this.topoSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
-        this.endpointMetricStorageWriter = metricStorage.createMetricWriter(topoSchema);
+        this.endpointSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
+        this.endpointMetricStorageWriter = metricStorage.createMetricWriter(endpointSchema);
     }
 
     @Override
@@ -71,30 +70,30 @@ public abstract class AbstractMetricMessageHandler
             return;
         }
 
-        LocalDataSource endpointDataSource = new LocalDataSource(this.topoSchema, 30);
+        LocalDataSource endpointDataSource = new LocalDataSource(this.endpointSchema, 30);
 
         //
         // convert
         //
         List<InputRow> inputRowList = new ArrayList<>(metricMessages.size());
         while (metricMessages.hasNext()) {
-            GenericMetricMessage metric = metricMessages.next();
-
-            // extract endpoint
-            MetricSet metricSet = extractEndpointLink(metric);
-            if (metricSet != null) {
-                endpointDataSource.aggregate(metricSet);
-            }
+            GenericMetricMessage metricMessage = metricMessages.next();
 
             try {
-                if (beforeProcess(metric)) {
-                    process(metric);
-                    inputRowList.add(new InputRow(metric));
+                if (!beforeProcess(metricMessage)) {
+                    continue;
                 }
+
+                // extract endpoint
+                endpointDataSource.aggregate(extractEndpointLink(metricMessage));
+
+                process(metricMessage);
+
+                inputRowList.add(new InputRow(metricMessage));
             } catch (Exception e) {
                 log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}",
                           this.schema.getName(),
-                          metric,
+                          metricMessage,
                           e);
             }
         }
@@ -120,7 +119,9 @@ public abstract class AbstractMetricMessageHandler
         }
     }
 
-    protected abstract MetricSet extractEndpointLink(GenericMetricMessage message);
+    protected MetricSet extractEndpointLink(GenericMetricMessage message) {
+        return null;
+    }
 
     static class TimeSlot extends HashMap<Map<String, String>, Map<String, NumberAggregator>> {
         @Getter
@@ -140,21 +141,40 @@ public abstract class AbstractMetricMessageHandler
             this.timeSlot = new TimeSlot[minutes];
         }
 
-        public void aggregate(MetricSet endpointLink) {
-            TimeSlot slotStorage = getSlot(endpointLink.getTimestamp());
+        public void aggregate(MetricSet metricSet) {
+            if (metricSet == null) {
+                return;
+            }
 
-            Map<String, NumberAggregator> metrics = slotStorage.computeIfAbsent(endpointLink.getDimensions(), dim -> {
+            TimeSlot slotStorage = getSlot(metricSet.getTimestamp());
+
+            // get or create metrics
+            Map<String, NumberAggregator> metrics = slotStorage.computeIfAbsent(metricSet.getDimensions(), dim -> {
                 Map<String, NumberAggregator> metricMap = new HashMap<>();
-                schema.getMetricsSpec().forEach((metricSpec) -> metricMap.put(metricSpec.getName(), metricSpec.createAggregator()));
+                schema.getMetricsSpec()
+                      .forEach((metricSpec) -> {
+                          NumberAggregator aggregator = metricSpec.createAggregator();
+                          if (aggregator != null) {
+                              metricMap.put(metricSpec.getName(), aggregator);
+                          }
+                      });
                 return metricMap;
             });
 
-            Map<String, ? extends Number> inputMetrics = endpointLink.getMetrics();
+            Map<String, ? extends Number> inputMetrics = metricSet.getMetrics();
             inputMetrics.forEach((metricName, metricValue) -> {
                 NumberAggregator aggregator = metrics.computeIfAbsent(metricName,
-                                                                      m -> schema.getMetricSpecByName(m)
-                                                                                 .createAggregator());
-                aggregator.aggregate(endpointLink.getTimestamp(), metricValue);
+                                                                      m -> {
+                                                                          IMetricSpec spec = schema.getMetricSpecByName(
+                                                                              m);
+                                                                          if (spec != null) {
+                                                                              return spec.createAggregator();
+                                                                          }
+                                                                          return null;
+                                                                      });
+                if (aggregator != null) {
+                    aggregator.aggregate(metricSet.getTimestamp(), metricValue);
+                }
             });
         }
 
@@ -170,7 +190,9 @@ public abstract class AbstractMetricMessageHandler
             List<MetricSet> metricSetList = new ArrayList<>(8);
             for (TimeSlot slot : timeSlot) {
                 if (slot != null) {
-                    slot.forEach((dimensions, metrics) -> metricSetList.add(new MetricSet(slot.getTimestamp(), dimensions, metrics)));
+                    slot.forEach((dimensions, metrics) -> metricSetList.add(new MetricSet(slot.getTimestamp(),
+                                                                                          dimensions,
+                                                                                          metrics)));
                 }
             }
             return metricSetList;
@@ -178,10 +200,6 @@ public abstract class AbstractMetricMessageHandler
     }
 
     private void process(GenericMetricMessage metric) {
-        if (metric == null) {
-            return;
-        }
-
         //
         // save application
         //
@@ -224,24 +242,24 @@ public abstract class AbstractMetricMessageHandler
         //
         // save topo
         //
-        EndPointLink link = metric.getAs("endpoint");
-        if (link != null) {
-            try {
-                this.endpointMetricStorageWriter.write(new InputRow(link));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        //
-        // save metrics
-        //
-        try {
-            this.metricStorageWriter.write(new InputRow(metric));
-        } catch (IOException e) {
-            log.error("Failed to save metrics [dataSource={}] due to: {}",
-                      this.schema.getName(),
-                      e);
-        }
+//        EndPointLink link = metric.getAs("endpoint");
+//        if (link != null) {
+//            try {
+//                this.endpointMetricStorageWriter.write(new InputRow(link));
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//        //
+//        // save metrics
+//        //
+//        try {
+//            this.metricStorageWriter.write(new InputRow(metric));
+//        } catch (IOException e) {
+//            log.error("Failed to save metrics [dataSource={}] due to: {}",
+//                      this.schema.getName(),
+//                      e);
+//        }
     }
 }

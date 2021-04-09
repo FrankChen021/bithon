@@ -2,6 +2,7 @@ package com.sbss.bithon.server.collector.sink.local;
 
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.handler.IMessageHandler;
+import com.sbss.bithon.server.common.utils.collection.SizedIterator;
 import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
@@ -28,10 +29,10 @@ import java.util.Map;
  * @date 2021/3/15
  */
 @Slf4j
-public class LocalMetricSink implements IMessageSink<GenericMetricMessage> {
+public class LocalMetricSink implements IMessageSink<SizedIterator<GenericMetricMessage>> {
 
     @Getter
-    private final Map<String, IMessageHandler<?>> handlers = new HashMap<>();
+    private final Map<String, IMessageHandler<SizedIterator<GenericMetricMessage>>> handlers = new HashMap<>();
 
     public LocalMetricSink(JvmMetricMessageHandler jvmMetricMessageHandler,
                            JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
@@ -57,16 +58,15 @@ public class LocalMetricSink implements IMessageSink<GenericMetricMessage> {
         add(mongoDbMetricMessageHandler);
     }
 
-    private void add(IMessageHandler<?> handler) {
+    private void add(IMessageHandler<SizedIterator<GenericMetricMessage>> handler) {
         handlers.put(handler.getType(), handler);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public void process(String messageType, GenericMetricMessage message) {
-        IMessageHandler handler = handlers.get(messageType);
+    public void process(String messageType, SizedIterator<GenericMetricMessage> messages) {
+        IMessageHandler<SizedIterator<GenericMetricMessage>> handler = handlers.get(messageType);
         if (handler != null) {
-            handler.submit(message);
+            handler.submit(messages);
         } else {
             log.error("No Handler for message [{}]", messageType);
         }

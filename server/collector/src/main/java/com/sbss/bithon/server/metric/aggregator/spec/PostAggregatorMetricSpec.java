@@ -130,7 +130,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
 
     @Override
     public NumberAggregator createAggregator() {
-        throw new IllegalStateException("PostAggregatorSpec could not be aggregated");
+        return null;
     }
 
     @Override
