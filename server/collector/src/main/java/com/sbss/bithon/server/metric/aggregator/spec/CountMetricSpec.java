@@ -95,11 +95,6 @@ public class CountMetricSpec implements IMetricSpec {
             public void aggregate(long timestamp, Object value) {
                 this.value++;
             }
-
-            @Override
-            public Object getValue() {
-                return value;
-            }
         };
     }
 

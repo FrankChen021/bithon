@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -179,7 +180,8 @@ public abstract class AbstractMetricMessageHandler
         }
 
         private TimeSlot getSlot(long timestamp) {
-            int slotIndex = (int) ((timestamp / 1000 / 60) % 60);
+            int slotIndex = (int) ((timestamp / 1000 / 60) % timeSlot.length);
+
             if (timeSlot[slotIndex] == null) {
                 timeSlot[slotIndex] = new TimeSlot(timestamp);
             }

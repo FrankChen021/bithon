@@ -14,9 +14,4 @@ public class LongLastAggregator extends AbstractLongAggregator {
             this.value = value;
         }
     }
-
-    @Override
-    public Object getValue() {
-        return value;
-    }
 }

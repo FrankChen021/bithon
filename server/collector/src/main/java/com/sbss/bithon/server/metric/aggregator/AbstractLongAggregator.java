@@ -16,11 +16,6 @@ public abstract class AbstractLongAggregator extends NumberAggregator {
     abstract protected void aggregate(long timestamp, long value);
 
     @Override
-    public Object getValue() {
-        return value;
-    }
-
-    @Override
     public int intValue() {
         return (int) value;
     }

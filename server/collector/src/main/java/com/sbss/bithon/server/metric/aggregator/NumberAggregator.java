@@ -6,6 +6,4 @@ package com.sbss.bithon.server.metric.aggregator;
  */
 abstract public class NumberAggregator extends Number {
     abstract public void aggregate(long timestamp, Object value);
-
-    abstract public Object getValue();
 }
