@@ -18,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +87,7 @@ public abstract class AbstractMetricMessageHandler
                 // extract endpoint
                 endpointDataSource.aggregate(extractEndpointLink(metricMessage));
 
-                process(metricMessage);
+                processMeta(metricMessage);
 
                 inputRowList.add(new InputRow(metricMessage));
             } catch (Exception e) {
@@ -201,10 +200,7 @@ public abstract class AbstractMetricMessageHandler
         }
     }
 
-    private void process(GenericMetricMessage metric) {
-        //
-        // save application
-        //
+    private void processMeta(GenericMetricMessage metric) {
         String appName = metric.getApplicationName();
         String instanceName = metric.getInstanceName();
         try {
@@ -216,52 +212,5 @@ public abstract class AbstractMetricMessageHandler
                       instanceName,
                       e);
         }
-
-        //
-        // save dimensions in meta data storage
-        //
-        /*
-        for (IDimensionSpec dimensionSpec : this.schema.getDimensionsSpec()) {
-            Object dimensionValue = metricObject.get(dimensionSpec.getName());
-            if (dimensionValue == null) {
-                continue;
-            }
-            try {
-                this.metaStorage.createMetricDimension(this.schema.getName(),
-                                                       dimensionSpec.getName(),
-                                                       dimensionValue.toString(),
-                                                       metricObject.getTimestamp());
-            } catch (Exception e) {
-                log.error("Failed to save metrics dimension[dataSource={}, name={}, value={}] due to: {}",
-                          this.schema.getName(),
-                          dimensionSpec.getName(),
-                          dimensionValue,
-                          e);
-            }
-        }
-        */
-
-        //
-        // save topo
-        //
-//        EndPointLink link = metric.getAs("endpoint");
-//        if (link != null) {
-//            try {
-//                this.endpointMetricStorageWriter.write(new InputRow(link));
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        //
-//        // save metrics
-//        //
-//        try {
-//            this.metricStorageWriter.write(new InputRow(metric));
-//        } catch (IOException e) {
-//            log.error("Failed to save metrics [dataSource={}] due to: {}",
-//                      this.schema.getName(),
-//                      e);
-//        }
     }
 }
