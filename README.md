@@ -28,7 +28,7 @@ Once the project has been built, you could run the project in a standalone mode 
 
 ## 1. Launch collector & web server
 
-To launch server in a standalone mode, execute the following command:
+To launch server in evaluation mode, execute the following command:
 
 ```
 java -jar server/server-starter/target/server-starter.jar
@@ -60,7 +60,7 @@ Attach agent to your java agent by adding following VM arguments.
 | YOUR_APPLICATION_NAME  | the name of your application. It could be any string |
 | YOUR_APPLICATION_ENV | the name of your environment to label your application. It could be any string. Usually it could be `dev`, `test`, `prd` |
 
-By default, the agent connects to collector running at local(127.0.0.1). 
+By default, the agent connects collector running at local(127.0.0.1). 
 Collector address could be changed in file `agent/agent-bootstrap/src/main/resources/agent.yml`.
 Make sure to re-build the project after changing the configuration file above.
 
@@ -69,3 +69,7 @@ Make sure to re-build the project after changing the configuration file above.
 To develop for this project, intellij is recommended. 
 
 A code style template file(`dev/bithon_intellij_code_style`) must be imported into intellij for coding.
+
+### License
+
+[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
