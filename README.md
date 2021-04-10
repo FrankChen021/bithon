@@ -31,7 +31,7 @@ Once the project has been built, you could run the project in a standalone mode 
 To launch server in evaluation mode, execute the following command:
 
 ```
-java -jar server/server-starter/target/server-starter.jar
+java -jar server/server-starter/target/bithon-server-starter.jar
 ```
 
 By default, the application opens and listens on following ports at local
@@ -69,6 +69,8 @@ Make sure to re-build the project after changing the configuration file above.
 To develop for this project, intellij is recommended. 
 
 A code style template file(`dev/bithon_intellij_code_style`) must be imported into intellij for coding.
+
+For more information, check [Here](dev/README.md).
 
 ### License
 

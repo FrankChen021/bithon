@@ -129,6 +129,9 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <headerDefinitions>
+                        <headerDefinition>licenses/style.xml</headerDefinition>
+                    </headerDefinitions>
                     <licenseSets>
                         <licenseSet>
                             <header>licenses/template.txt</header>

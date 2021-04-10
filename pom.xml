@@ -120,12 +120,15 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <headerDefinitions>
+                        <headerDefinition>licenses/style.xml</headerDefinition>
+                    </headerDefinitions>
                     <licenseSets>
                         <licenseSet>
                             <header>licenses/template.txt</header>
                             <excludes>
                                 <exclude>**/README</exclude>
-                                <exclude>src/main/java/com/sbss/bithon/component/db/**</exclude>
+                                <exclude>src/main/java/com/sbss/bithon/component/db/jooq/**</exclude>
                                 <exclude>src/main/java/com/sbss/bithon/agent/rpc/thrift/**</exclude>
                                 <exclude>src/main/resources/static/**</exclude>
                                 <exclude>**/*.properties</exclude>
