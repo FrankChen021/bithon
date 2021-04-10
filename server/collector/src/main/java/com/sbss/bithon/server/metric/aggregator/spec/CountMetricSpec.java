@@ -72,7 +72,7 @@ public class CountMetricSpec implements IMetricSpec {
         return new NumberAggregator() {
             @Override
             public int intValue() {
-                return (int)value;
+                return (int) value;
             }
 
             @Override
@@ -91,6 +91,7 @@ public class CountMetricSpec implements IMetricSpec {
             }
 
             private long value;
+
             @Override
             public void aggregate(long timestamp, Object value) {
                 this.value++;

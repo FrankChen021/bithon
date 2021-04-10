@@ -119,27 +119,27 @@ public class UriNormalizer {
 
     @Data
     @AllArgsConstructor
-    static public class UriPattern {
+    public static class UriPattern {
         private IStringMatcher matcher;
         private String replacement;
     }
 
     @Data
-    static public class UriNormalizationRuleConfig {
+    public static class UriNormalizationRuleConfig {
         private List<UriPattern> pathRules = new ArrayList<>();
         private List<UriPattern> partRules = new ArrayList<>();
         private List<IStringMatcher> filters = new ArrayList<>();
     }
 
     @Data
-    static public class RuleConfigs {
+    public static class RuleConfigs {
         private UriNormalizationRuleConfig globalRules;
         private Map<String, UriNormalizationRuleConfig> instanceRules;
     }
 
     @Data
     @AllArgsConstructor
-    static public class NormalizedResult {
+    public static class NormalizedResult {
         private boolean normalized;
         private String uri;
     }

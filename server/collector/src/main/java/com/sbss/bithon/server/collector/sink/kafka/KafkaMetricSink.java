@@ -28,7 +28,7 @@ public class KafkaMetricSink implements IMessageSink<SizedIterator<GenericMetric
     public void process(String messageType, SizedIterator<GenericMetricMessage> messages) {
         try {
             List<GenericMetricMessage> metricMessage = new ArrayList<>();
-            while(messages.hasNext()) {
+            while (messages.hasNext()) {
                 metricMessage.add(messages.next());
             }
             producer.send(messageType,

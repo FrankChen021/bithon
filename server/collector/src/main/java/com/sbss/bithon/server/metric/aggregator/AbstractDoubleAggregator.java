@@ -9,11 +9,11 @@ public abstract class AbstractDoubleAggregator extends NumberAggregator {
     protected double value;
 
     @Override
-    final public void aggregate(long timestamp, Object value) {
+    public final void aggregate(long timestamp, Object value) {
         aggregate(timestamp, NumberUtils.getDouble(value));
     }
 
-    abstract protected void aggregate(long timestamp, double value);
+    protected abstract void aggregate(long timestamp, double value);
 
     @Override
     public int intValue() {

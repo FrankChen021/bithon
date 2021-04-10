@@ -27,7 +27,7 @@ public class InputRow {
 
     public InputRow(final Map<String, Object> map) {
         this.columns = map;
-        this.rootNode = null;//om.convertValue(map, JsonNode.class);
+        this.rootNode = null; //om.convertValue(map, JsonNode.class);
     }
 
     public InputRow(Object obj) throws IOException {

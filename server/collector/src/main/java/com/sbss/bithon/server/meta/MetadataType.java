@@ -12,9 +12,7 @@ public enum MetadataType {
     HTTP_TARGET_HOST("http-target-host"),
     HTTP_URI("http-uri"),
     DB_INSTANCE("db-instance"),
-    DB_DATABASE("db-database"),
-
-    ;
+    DB_DATABASE("db-database");
 
     @Getter
     private final String type;

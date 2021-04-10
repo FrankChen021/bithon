@@ -3,7 +3,6 @@ package com.sbss.bithon.server.metric.handler;
 import com.sbss.bithon.component.db.dao.EndPointType;
 import com.sbss.bithon.server.common.service.UriNormalizer;
 import com.sbss.bithon.server.common.utils.NetworkUtils;
-import com.sbss.bithon.server.meta.EndPointLink;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.input.MetricSet;

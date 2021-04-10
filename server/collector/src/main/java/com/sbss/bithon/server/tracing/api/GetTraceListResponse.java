@@ -4,7 +4,6 @@ import com.sbss.bithon.server.tracing.handler.TraceSpan;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**

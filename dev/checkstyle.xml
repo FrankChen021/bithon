@@ -108,11 +108,6 @@
       <property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
     </module>
 
-    <module name="Indentation">
-      <property name="basicOffset" value="4"/>
-      <property name="caseIndent" value="4"/>
-    </module>
-
     <module name="MethodParamPad">
       <property name="allowLineBreaks" value="true"/>
     </module>

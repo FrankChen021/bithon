@@ -10,7 +10,7 @@ import java.text.DecimalFormat;
  */
 public class DoubleValueType implements IValueType {
 
-    public final static IValueType INSTANCE = new DoubleValueType();
+    public static final IValueType INSTANCE = new DoubleValueType();
 
     @Override
     public String format(Number value) {

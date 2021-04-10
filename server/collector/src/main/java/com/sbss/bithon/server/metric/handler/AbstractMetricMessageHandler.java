@@ -65,7 +65,7 @@ public abstract class AbstractMetricMessageHandler
     }
 
     @Override
-    final protected void onMessage(SizedIterator<GenericMetricMessage> metricMessages) {
+    protected final void onMessage(SizedIterator<GenericMetricMessage> metricMessages) {
         if (metricMessages.isEmpty()) {
             return;
         }

@@ -7,7 +7,7 @@ package com.sbss.bithon.server.metric.aggregator;
 public class DoubleMaxAggregator extends AbstractDoubleAggregator {
 
     public DoubleMaxAggregator() {
-        this.value = Double.MIN_VALUE;
+        this.value = Double.NEGATIVE_INFINITY;
     }
 
     @Override
@@ -17,21 +17,21 @@ public class DoubleMaxAggregator extends AbstractDoubleAggregator {
 
     @Override
     public int intValue() {
-        return (int) (value == Double.MIN_VALUE ? 0 : value);
+        return (int) (value == Double.NEGATIVE_INFINITY ? 0 : value);
     }
 
     @Override
     public long longValue() {
-        return (long) (value == Double.MIN_VALUE ? 0 : value);
+        return (long) (value == Double.NEGATIVE_INFINITY ? 0 : value);
     }
 
     @Override
     public float floatValue() {
-        return (float) (value == Double.MIN_VALUE ? 0 : value);
+        return (float) (value == Double.NEGATIVE_INFINITY ? 0 : value);
     }
 
     @Override
     public double doubleValue() {
-        return (value == Double.MIN_VALUE ? 0 : value);
+        return (value == Double.NEGATIVE_INFINITY ? 0 : value);
     }
 }

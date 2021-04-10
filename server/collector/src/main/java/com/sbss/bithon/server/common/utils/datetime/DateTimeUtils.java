@@ -10,9 +10,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class DateTimeUtils {
 
-    public final static long MIN_LENGTH_IN_MILLI = 60 * 1000L;
-    public final static long HOUR_LENGTH_IN_MILLI = 3600 * 1000L;
-    public final static long DAY_LENGTH_IN_MILLI = 24 * 3600 * 1000L;
+    public static final long MIN_LENGTH_IN_MILLI = 60 * 1000L;
+    public static final long HOUR_LENGTH_IN_MILLI = 3600 * 1000L;
+    public static final long DAY_LENGTH_IN_MILLI = 24 * 3600 * 1000L;
 
     public static long dropMilliseconds(long timestamp) {
         return timestamp / 1000 * 1000;

@@ -41,6 +41,7 @@ public class TimestampSpec {
      * This field is a derivative of {@link #timestampFormat}; not checked in {@link #equals} and {@link #hashCode}
      */
     private final Function<Object, DateTime> timestampConverter;
+
     @JsonCreator
     public TimestampSpec(
         @JsonProperty("column") @Nullable String timestampColumn,

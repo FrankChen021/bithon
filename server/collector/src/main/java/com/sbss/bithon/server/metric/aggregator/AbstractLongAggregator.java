@@ -9,11 +9,11 @@ public abstract class AbstractLongAggregator extends NumberAggregator {
     protected long value;
 
     @Override
-    final public void aggregate(long timestamp, Object value) {
+    public final void aggregate(long timestamp, Object value) {
         aggregate(timestamp, NumberUtils.getLong(value));
     }
 
-    abstract protected void aggregate(long timestamp, long value);
+    protected abstract void aggregate(long timestamp, long value);
 
     @Override
     public int intValue() {

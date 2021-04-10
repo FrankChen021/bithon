@@ -6,7 +6,7 @@ package com.sbss.bithon.server.metric.aggregator;
  */
 public class NumberUtils {
     public static long getLong(Object value) {
-        if ( value == null ) {
+        if (value == null) {
             return 0;
         }
         if (value instanceof Number) {
@@ -19,7 +19,7 @@ public class NumberUtils {
     }
 
     public static double getDouble(Object value) {
-        if ( value == null ) {
+        if (value == null) {
             return 0;
         }
         if (value instanceof Number) {

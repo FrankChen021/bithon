@@ -8,7 +8,7 @@ import java.text.DecimalFormat;
  */
 public class LongValueType implements IValueType {
 
-    public final static IValueType INSTANCE = new LongValueType();
+    public static final IValueType INSTANCE = new LongValueType();
 
     @Override
     public String format(Number value) {
