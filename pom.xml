@@ -22,7 +22,9 @@
         <module>component/component-commons</module>
         <module>component/component-db</module>
         <module>agent</module>
-        <module>server</module>
+        <module>server/collector</module>
+        <module>server/web-app</module>
+        <module>server/server-starter</module>
     </modules>
 
     <licenses>
@@ -61,16 +63,6 @@
     </dependencyManagement>
 
     <build>
-        <!-- To define the plugin version in your parent POM -->
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>com.mycila</groupId>
-                    <artifactId>license-maven-plugin</artifactId>
-                    <version>4.0</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -141,7 +133,6 @@
                         </licenseSet>
                     </licenseSets>
                     <strictCheck>true</strictCheck>
-                    <aggregate>true</aggregate>
                     <mapping>
                         <java>SLASHSTAR_STYLE</java>
                     </mapping>
