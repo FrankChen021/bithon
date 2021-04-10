@@ -3,7 +3,7 @@ package com.sbss.bithon.agent.core.tracing.propagation.extractor;
 import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 
-/*
+/**
  * Transplanted from brave to support trace propagation from systems such as zipkin
  *
  * @author frank.chen021@outlook.com

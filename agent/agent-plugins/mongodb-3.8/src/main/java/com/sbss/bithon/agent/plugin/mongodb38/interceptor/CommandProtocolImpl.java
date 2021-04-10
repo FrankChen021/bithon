@@ -2,7 +2,6 @@ package com.sbss.bithon.agent.plugin.mongodb38.interceptor;
 
 import com.mongodb.MongoNamespace;
 import com.mongodb.async.SingleResultCallback;
-import com.mongodb.internal.connection.ClusterClock;
 import com.mongodb.internal.connection.InternalConnection;
 import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.AopContext;
@@ -12,11 +11,10 @@ import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
-import org.bson.BsonDocument;
 
 /**
  * CommandHelper is called before InternalStreamConnection#sendMessage
- *
+ * <p>
  * intercept related methods to set database for interceptors of sendMessage
  *
  * @author frank.chen021@outlook.com

@@ -1,11 +1,11 @@
 package com.sbss.bithon.agent.plugin.undertow.metric;
 
+import com.sbss.bithon.agent.boot.expt.AgentException;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerType;
-import com.sbss.bithon.agent.boot.expt.AgentException;
 import io.undertow.server.ConnectorStatistics;
 
 import java.lang.reflect.InvocationTargetException;
@@ -75,14 +75,14 @@ public class WebServerMetricCollector implements IMetricCollector {
 
         TaskPoolAccessor(Object taskPool) {
             this.taskPool = taskPool;
-            getActiveCount = getMethod(this.taskPool.getClass(),"getActiveCount");
+            getActiveCount = getMethod(this.taskPool.getClass(), "getActiveCount");
             getActiveCount.setAccessible(true);
-            getMaximumPoolSize = getMethod(this.taskPool.getClass(),"getMaximumPoolSize");
+            getMaximumPoolSize = getMethod(this.taskPool.getClass(), "getMaximumPoolSize");
             getMaximumPoolSize.setAccessible(true);
         }
 
         Method getMethod(Class<?> clazz, String name) {
-            while( clazz != null ) {
+            while (clazz != null) {
                 try {
                     return clazz.getDeclaredMethod(name);
                 } catch (NoSuchMethodException e) {

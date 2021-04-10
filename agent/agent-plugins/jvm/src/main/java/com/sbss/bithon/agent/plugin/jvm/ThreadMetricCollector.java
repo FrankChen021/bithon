@@ -14,9 +14,9 @@ public class ThreadMetricCollector {
     public static ThreadCompositeMetric collect() {
         final ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
         return new ThreadCompositeMetric(threadBean.getPeakThreadCount(),
-                                   threadBean.getDaemonThreadCount(),
-                                   threadBean.getTotalStartedThreadCount(),
-                                   threadBean.getThreadCount());
+                                         threadBean.getDaemonThreadCount(),
+                                         threadBean.getTotalStartedThreadCount(),
+                                         threadBean.getThreadCount());
 
     }
 }

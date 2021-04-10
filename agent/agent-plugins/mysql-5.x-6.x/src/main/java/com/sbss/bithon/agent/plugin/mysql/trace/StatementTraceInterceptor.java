@@ -1,9 +1,9 @@
 package com.sbss.bithon.agent.plugin.mysql.trace;
 
-import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.boot.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
@@ -49,9 +49,10 @@ public class StatementTraceInterceptor extends AbstractInterceptor {
             return;
         }
         try {
-//            if (context.getArgs() != null && context.getArgs().length > 0 && needIgnore(context.getArgs()[0].toString())) {
-//                return;
-//            }
+            /*
+            if (context.getArgs() != null && context.getArgs().length > 0 && needIgnore(context.getArgs()[0].toString())) {
+                return;
+            }*/
 
             String sql;
             if ((sql = (String) InterceptorContext.get(ConnectionTraceInterceptor.KEY)) != null) {

@@ -25,7 +25,8 @@ public class RedisAsyncCommandDispatch extends AbstractInterceptor {
         asyncContext.setStartTime(System.nanoTime());
         result.setInjectedObject(asyncContext);
 
-        StatefulConnection<?, ?> connection = ((StatefulConnection<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(), "connection"));
+        StatefulConnection<?, ?> connection = ((StatefulConnection<?, ?>) ReflectionUtils.getFieldValue(aopContext.getTarget(),
+                                                                                                        "connection"));
         if (connection instanceof IBithonObject) {
             String endpoint = (String) ((IBithonObject) connection).getInjectedObject();
             asyncContext.setEndpoint(endpoint);

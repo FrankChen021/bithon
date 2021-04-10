@@ -1,10 +1,10 @@
 package com.sbss.bithon.agent.plugin.httpclient.apache.metrics;
 
-import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
 import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.boot.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
 import org.apache.http.HttpConnection;
 import org.apache.http.HttpConnectionMetrics;
 import org.apache.http.HttpRequest;
@@ -26,13 +26,13 @@ import java.util.Set;
  */
 public class HttpClientExecuteInterceptor extends AbstractInterceptor {
     private static final Logger log = LoggerFactory.getLogger(HttpClientExecuteInterceptor.class);
-    private final static Set<String> ignoredSuffixes = new HashSet<>();
+    private static final Set<String> IGNORED_SUFFIXES = new HashSet<>();
     private HttpClientMetricCollector metricCollector;
     private boolean isNewVersion = true;
 
     public static boolean filter(String uri) {
         String suffix = uri.substring(uri.lastIndexOf(".") + 1).toLowerCase();
-        return ignoredSuffixes.contains(suffix);
+        return IGNORED_SUFFIXES.contains(suffix);
     }
 
     @Override

@@ -16,24 +16,24 @@ public class MemoryMetricCollector {
 
     public static MemoryCompositeMetric buildMemoryMetrics() {
         return new MemoryCompositeMetric(Runtime.getRuntime().totalMemory(),
-                                   Runtime.getRuntime().freeMemory());
+                                         Runtime.getRuntime().freeMemory());
 
     }
 
     public static HeapCompositeMetric collectHeap() {
         return new HeapCompositeMetric(JmxBeans.MEM_BEAN.getHeapMemoryUsage().getMax(),
-                                 JmxBeans.MEM_BEAN.getHeapMemoryUsage().getInit(),
-                                 JmxBeans.MEM_BEAN.getHeapMemoryUsage().getUsed(),
-                                 JmxBeans.MEM_BEAN.getHeapMemoryUsage().getCommitted());
+                                       JmxBeans.MEM_BEAN.getHeapMemoryUsage().getInit(),
+                                       JmxBeans.MEM_BEAN.getHeapMemoryUsage().getUsed(),
+                                       JmxBeans.MEM_BEAN.getHeapMemoryUsage().getCommitted());
 
     }
 
     public static NonHeapCompositeMetric collectNonHeap() {
         return new NonHeapCompositeMetric(JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getMax(),
-                                    JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getInit(),
-                                    JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getUsed(),
-                                    JmxBeans.MEM_BEAN.getNonHeapMemoryUsage()
-                                                  .getCommitted());
+                                          JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getInit(),
+                                          JmxBeans.MEM_BEAN.getNonHeapMemoryUsage().getUsed(),
+                                          JmxBeans.MEM_BEAN.getNonHeapMemoryUsage()
+                                                           .getCommitted());
     }
 
     public static MetaspaceCompositeMetric collectMeataSpace() {

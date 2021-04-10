@@ -39,7 +39,7 @@ public class AgentSettingManager {
         this.listeners = new HashMap<>();
     }
 
-    public synchronized static void createInstance(AppInstance appInstance,
+    public static synchronized void createInstance(AppInstance appInstance,
                                                    FetcherConfig fetcherConfig) throws Exception {
         if (INSTANCE != null) {
             return;

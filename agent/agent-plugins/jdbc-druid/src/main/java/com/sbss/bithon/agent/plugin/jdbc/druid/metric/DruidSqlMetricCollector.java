@@ -1,10 +1,10 @@
 package com.sbss.bithon.agent.plugin.jdbc.druid.metric;
 
+import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
-import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.plugin.jdbc.druid.DruidPlugin;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public class DruidSqlMetricCollector implements IMetricCollector {
 
         Boolean isQuery = null;
         if (DruidPlugin.METHOD_EXECUTE_UPDATE.equals(methodName)
-                || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
+            || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
             isQuery = false;
         } else if (DruidPlugin.METHOD_EXECUTE.equals(methodName) && !(boolean) aopContext.castReturningAs()) {
             isQuery = false;
@@ -68,7 +68,10 @@ public class DruidSqlMetricCollector implements IMetricCollector {
         for (MonitoredSource source : MonitoredSourceManager.getInstance().getMonitoredSources()) {
             SqlCompositeMetric metric = source.getSqlMetric();
             if (metric.peekTotalCount() > 0) {
-                Object message = messageConverter.from(timestamp, interval, Collections.singletonList(source.getConnectionString()), source.getSqlMetric());
+                Object message = messageConverter.from(timestamp,
+                                                       interval,
+                                                       Collections.singletonList(source.getConnectionString()),
+                                                       source.getSqlMetric());
                 if (message != null) {
                     messages.add(message);
                 }

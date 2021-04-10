@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frank.chen021@outlook.com
  * @date 2021/3/25 4:37 下午
  */
-abstract public class IntervalMetricCollector<T extends IMetric> implements IMetricCollector {
+public abstract class IntervalMetricCollector<T extends IMetric> implements IMetricCollector {
 
     private Map<List<String>, T> metricsMap = new ConcurrentHashMap<>();
 

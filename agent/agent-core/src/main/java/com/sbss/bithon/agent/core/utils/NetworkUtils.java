@@ -44,7 +44,8 @@ public class NetworkUtils {
 
     public static class IpAddress {
 
-        List<InetAddress> localIPs, netIPs;
+        final List<InetAddress> localIPs;
+        final List<InetAddress> netIPs;
 
         IpAddress(List<InetAddress> localIPs, List<InetAddress> netIPs) {
             this.localIPs = localIPs;

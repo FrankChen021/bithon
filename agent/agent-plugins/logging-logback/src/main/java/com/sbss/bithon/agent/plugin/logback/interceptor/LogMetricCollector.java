@@ -30,25 +30,6 @@ class LogMetricCollector implements IMetricCollector {
         return exceptionList.isEmpty();
     }
 
-//    private void addTrace(String msg) {
-//        Tracer trace = null;
-//        Tracer.SpanInScope scope = null;
-//        try{
-//            trace = TraceHolder.get();
-//            if(trace != null){
-//                Span span = trace.currentSpan();
-//                if(span != null){
-//                    Span s = trace.newChild(span.context()).name(KEY).start();
-//                    s.tag("error",msg);
-//                    s.finish();
-//                }
-//
-//            }
-//        }catch (Exception ex){
-//            //log.error(e.getMessage(),e);
-//        }
-//    }
-
     @Override
     public List<Object> collect(IMessageConverter messageConverter,
                                 int interval,

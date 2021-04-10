@@ -16,7 +16,7 @@ public class MonitoredSourceManager {
     private final Map<String, MonitoredSource> connectionMap = new ConcurrentHashMap<>();
     private final Map<DruidDataSource, MonitoredSource> dataSourceMap = new ConcurrentHashMap<>();
 
-    static public MonitoredSourceManager getInstance() {
+    public static MonitoredSourceManager getInstance() {
         return INSTANCE;
     }
 

@@ -1,9 +1,9 @@
 package com.sbss.bithon.agent.plugin.quartz2;
 
-import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
-import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
 import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.AopContext;
+import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
+import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
 import org.quartz.impl.SchedulerRepository;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -50,40 +50,43 @@ public class QuartzInterceptor extends AbstractInterceptor {
         quartzMonitor = Quartz2Monitor.getQuartz2MonitorInstance((SchedulerRepository) aopContext.castTargetAs());
     }
 
-//    private QuartzEntity buildJobCountsEntity() throws SchedulerException {
-//        QuartzEntity q = quartzMonitor.buildQuartzData();
-//
-//        q.setAppName(dispatcher.getAppName());
-//        q.setHostName(dispatcher.getIpAddress());
-//        q.setPort(dispatcher.getPort());
-//        q.setCollectCount(1);
-//        q.setTimestamp(System.currentTimeMillis());
-//        q.setInterval(checkPeriod);
-//
-//        return q;
-//    }
+    /*
+    private QuartzEntity buildJobCountsEntity() throws SchedulerException {
+        QuartzEntity q = quartzMonitor.buildQuartzData();
 
-//    private QuartzInfoEntity buildJobListEntity() throws SchedulerException {
-//        List<JobTriggerEntity> jobTriggerEntityList = quartzMonitor.buildQuartJobList();
-//
-//        QuartzInfoEntity quartzInfoEntity = new QuartzInfoEntity();
-//
-//        quartzInfoEntity.setAppName(dispatcher.getAppName());
-//        quartzInfoEntity.setHostName(dispatcher.getIpAddress());
-//        quartzInfoEntity.setPort(dispatcher.getPort());
-//        quartzInfoEntity.setJobTriggerList(jobTriggerEntityList);
-//
-//        return quartzInfoEntity;
-//    }
+        q.setAppName(dispatcher.getAppName());
+        q.setHostName(dispatcher.getIpAddress());
+        q.setPort(dispatcher.getPort());
+        q.setCollectCount(1);
+        q.setTimestamp(System.currentTimeMillis());
+        q.setInterval(checkPeriod);
+
+        return q;
+    }
+
+    private QuartzInfoEntity buildJobListEntity() throws SchedulerException {
+        List<JobTriggerEntity> jobTriggerEntityList = quartzMonitor.buildQuartJobList();
+
+        QuartzInfoEntity quartzInfoEntity = new QuartzInfoEntity();
+
+        quartzInfoEntity.setAppName(dispatcher.getAppName());
+        quartzInfoEntity.setHostName(dispatcher.getIpAddress());
+        quartzInfoEntity.setPort(dispatcher.getPort());
+        quartzInfoEntity.setJobTriggerList(jobTriggerEntityList);
+
+        return quartzInfoEntity;
+    }*/
 
     private void dispatch() {
         try {
             if (dispatcher.isReady()) {
-//                dispatcher.sendMetrics(buildJobCountsEntity());
-//                QuartzInfoEntity quartzInfoEntity = buildJobListEntity();
-//                if (!quartzInfoEntity.getJobTriggerList().isEmpty()) {
-//                    dispatcher.sendMetrics(quartzInfoEntity);
-//                }
+                /*
+                dispatcher.sendMetrics(buildJobCountsEntity());
+                QuartzInfoEntity quartzInfoEntity = buildJobListEntity();
+                if (!quartzInfoEntity.getJobTriggerList().isEmpty()) {
+                    dispatcher.sendMetrics(quartzInfoEntity);
+                }
+                */
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);

@@ -36,7 +36,8 @@ public class WebRequestMetricCollector extends IntervalMetricCollector<WebReques
             responseByteSize = jettyResponse.getContentCount();
         }
 
-        WebRequestCompositeMetric webRequestMetricsSet = getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
+        WebRequestCompositeMetric webRequestMetricsSet = getOrCreateMetric(srcApplication == null ? "" : srcApplication,
+                                                                           uri);
         webRequestMetricsSet.updateRequest(costTime, errorCount, count4xx, count5xx);
         webRequestMetricsSet.updateBytes(requestByteSize, responseByteSize);
     }

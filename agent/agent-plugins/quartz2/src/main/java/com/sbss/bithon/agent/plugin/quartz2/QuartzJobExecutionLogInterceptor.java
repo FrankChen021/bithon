@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.plugin.quartz2;
 
-import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.AopContext;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 

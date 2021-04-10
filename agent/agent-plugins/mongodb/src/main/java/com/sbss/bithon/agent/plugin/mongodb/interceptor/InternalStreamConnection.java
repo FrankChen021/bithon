@@ -20,7 +20,7 @@ public class InternalStreamConnection {
         @Override
         public void onConstruct(AopContext aopContext) {
             IBithonObject bithonObject = aopContext.castTargetAs();
-            bithonObject.setInjectedObject(((ServerId)aopContext.getArgAs(0)).getAddress().toString());
+            bithonObject.setInjectedObject(((ServerId) aopContext.getArgAs(0)).getAddress().toString());
         }
     }
 }

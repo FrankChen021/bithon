@@ -1,10 +1,10 @@
 package com.sbss.bithon.agent.plugin.jetty.interceptor;
 
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.web.RequestUriFilter;
 import com.sbss.bithon.agent.core.metric.domain.web.UserAgentFilter;
-import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
-import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.plugin.jetty.metric.WebRequestMetricCollector;
 import org.eclipse.jetty.server.Request;
 

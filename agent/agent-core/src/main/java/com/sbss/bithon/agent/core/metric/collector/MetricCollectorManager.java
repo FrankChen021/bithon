@@ -52,7 +52,7 @@ public class MetricCollectorManager {
         }
 
         public boolean isEmpty() {
-            if ( lastCollectedAt != 0 ) {
+            if (lastCollectedAt != 0) {
                 long now = System.currentTimeMillis();
                 interval = (int) ((now - lastCollectedAt) / 1000);
                 this.lastCollectedAt = now;

@@ -44,7 +44,7 @@ public class AgentStarter {
         DOMConfigurator.configure(logConfigFile);
 
         // restore original property
-        if ( oldLogConfig != null ) {
+        if (oldLogConfig != null) {
             System.setProperty(logConfigName, oldLogConfig);
         } else {
             System.clearProperty(logConfigName);

@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
-import com.sbss.bithon.agent.core.metric.model.Delta;
 import com.sbss.bithon.agent.core.metric.domain.jvm.CpuCompositeMetric;
+import com.sbss.bithon.agent.core.metric.model.Delta;
 
 import java.util.concurrent.TimeUnit;
 
@@ -39,8 +39,8 @@ public class CpuMetricCollector {
                                       / cpuCores * 100;
 
         return new CpuCompositeMetric(cpuCores,
-                                processCpuTimeDelta,
-                                OS_BEAN.getSystemLoadAverage(),
-                                processCpuPercentage);
+                                      processCpuTimeDelta,
+                                      OS_BEAN.getSystemLoadAverage(),
+                                      processCpuPercentage);
     }
 }

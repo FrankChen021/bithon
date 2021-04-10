@@ -2,7 +2,6 @@ package com.sbss.bithon.agent.core.context;
 
 import com.sbss.bithon.agent.core.config.AgentConfig;
 
-import java.io.File;
 import java.io.IOException;
 
 import static java.io.File.separator;

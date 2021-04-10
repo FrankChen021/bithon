@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.core.metric.domain.web;
 
 import com.sbss.bithon.agent.core.metric.model.ICompositeMetric;
-import com.sbss.bithon.agent.core.metric.model.Timer;
 import com.sbss.bithon.agent.core.metric.model.Sum;
+import com.sbss.bithon.agent.core.metric.model.Timer;
 
 /**
  * Web Request Counter

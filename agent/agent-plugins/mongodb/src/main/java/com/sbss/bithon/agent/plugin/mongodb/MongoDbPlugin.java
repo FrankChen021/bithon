@@ -147,42 +147,4 @@ public class MongoDbPlugin extends AbstractPlugin {
                 )
         );
     }
-
-//                new InterceptorDescriptor() {
-//                    @Override
-//                    public String getHandlerClass() {
-//                        return "com.sbss.commons.agent.plugin.mongodb.MongoDbTraceHandler";
-//                    }
-//
-//                    @Override
-//                    public AgentPointcut[] getPointcuts() {
-//                        return new AgentPointcut[]{
-//                                new AgentPointcut() {
-//                                    @Override
-//                                    public ITargetClassMatcher getClassMatcher() {
-//                                        return TargetClassNameMatcher.byName("com.mongodb.connection.DefaultServerConnection");
-//                                    }
-//
-//                                    @Override
-//                                    public TargetMethodMatcher getMethodMatcher() {
-//                                        return TargetMethodMatcher.byNameAndArgs("executeProtocol", new String[]{"com.mongodb.connection.Protocol<T>"});
-//                                    }
-//                                },
-//
-//                                new AgentPointcut() {
-//                                    @Override
-//                                    public ITargetClassMatcher getClassMatcher() {
-//                                        return TargetClassNameMatcher.byName("com.mongodb.connection.DefaultServerConnection");
-//                                    }
-//
-//                                    @Override
-//                                    public TargetMethodMatcher getMethodMatcher() {
-//                                        return TargetMethodMatcher.byNameAndArgs("executeProtocolAsync", new String[]{"com.mongodb.connection.Protocol<T>", "com.mongodb.async.SingleResultCallback<T>"});
-//                                    }
-//                                },
-//                        };
-//                    }
-//                }
-//        };
-
 }

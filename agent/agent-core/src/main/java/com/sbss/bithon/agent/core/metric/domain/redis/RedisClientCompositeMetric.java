@@ -1,8 +1,8 @@
 package com.sbss.bithon.agent.core.metric.domain.redis;
 
 import com.sbss.bithon.agent.core.metric.model.ICompositeMetric;
-import com.sbss.bithon.agent.core.metric.model.Timer;
 import com.sbss.bithon.agent.core.metric.model.Sum;
+import com.sbss.bithon.agent.core.metric.model.Timer;
 
 /**
  * @author frankchen

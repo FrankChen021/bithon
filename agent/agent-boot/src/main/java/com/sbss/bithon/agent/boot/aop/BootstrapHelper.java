@@ -14,32 +14,6 @@ import java.lang.reflect.Method;
  */
 public class BootstrapHelper {
 
-    static ClassLoader defaultAgentClassLoader = null;
-
-    /**
-     * this method is called within bootstrap AOP which is loaded by bootstrap class loader
-     * interceptors are defined in plugins which are loaded by Agent Class loader
-     * we must use reflection to get the Default Agent Class Loader which has been instantiated when agent starts
-     */
-    public static ClassLoader getAgentClassLoader() {
-        return AgentDependencyManager.getClassLoader();
-//        if (defaultAgentClassLoader != null) {
-//            return defaultAgentClassLoader;
-//        }
-//
-//        // no need to sync, so no lock is required to eliminate potential dead lock
-//        try {
-//            Class<?> agentClassLoaderClass = Class.forName("com.sbss.bithon.agent.bootstrap.AgentClassLoader");
-//            Method getInstanceMethod = agentClassLoaderClass.getDeclaredMethod("getDefaultInstance");
-//            getInstanceMethod.setAccessible(true);
-//            defaultAgentClassLoader = (ClassLoader) getInstanceMethod.invoke(null);
-//            return defaultAgentClassLoader;
-//        } catch (Exception e) {
-//            e.printStackTrace(System.out);
-//            return null;
-//        }
-    }
-
     public static IAopLogger createAopLogger(Class<?> logClass) {
         try {
             Class<?> loggerClass = Class.forName("com.sbss.bithon.agent.core.plugin.loader.AopLogger",

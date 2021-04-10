@@ -16,8 +16,8 @@ public class HttpOpenListenerSetRootHandler extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         HttpOpenListener openListener = aopContext.castTargetAs();
         openListener.setUndertowOptions(OptionMap.builder().addAll(openListener.getUndertowOptions())
-                                            .set(UndertowOptions.ENABLE_CONNECTOR_STATISTICS, true)
-                                            .getMap());
+                                                 .set(UndertowOptions.ENABLE_CONNECTOR_STATISTICS, true)
+                                                 .getMap());
         WebServerMetricCollector.getInstance().setConnectorStatistics(openListener.getConnectorStatistics());
     }
 }

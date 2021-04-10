@@ -13,8 +13,8 @@ public class ClassMetricCollector {
     public static ClassCompositeMetric collect() {
         final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
         return new ClassCompositeMetric(classLoadingMXBean.getTotalLoadedClassCount(),
-                                  classLoadingMXBean.getLoadedClassCount(),
-                                  classLoadingMXBean.getUnloadedClassCount());
+                                        classLoadingMXBean.getLoadedClassCount(),
+                                        classLoadingMXBean.getUnloadedClassCount());
 
     }
 }

@@ -1,20 +1,20 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
+import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.BootstrapConstructorAop;
 import com.sbss.bithon.agent.boot.aop.BootstrapMethodAop;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.boot.aop.ConstructorAop;
-import com.sbss.bithon.agent.boot.aop.MethodAop;
-import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.IBithonObject;
 import com.sbss.bithon.agent.boot.aop.ISuperMethod;
+import com.sbss.bithon.agent.boot.aop.MethodAop;
+import com.sbss.bithon.agent.boot.expt.AgentException;
+import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
-import com.sbss.bithon.agent.boot.expt.AgentException;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.dynamic.DynamicType;

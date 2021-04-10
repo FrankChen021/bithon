@@ -21,7 +21,6 @@ public abstract class AbstractPlugin {
     /**
      * ALL classes in {@link #getInterceptors()} will be transformed as {@link IBithonObject} automatically.
      * But some classes needs to be transformed too to support passing objects especially those which provide ASYNC ability
-     *
      */
     public BithonClassDescriptor getBithonClassDescriptor() {
         return null;

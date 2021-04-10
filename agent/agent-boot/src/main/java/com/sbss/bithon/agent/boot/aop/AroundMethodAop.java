@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
  * @author frankchen
  * @date 2020-12-31 22:22:05
  */
-final public class AroundMethodAop {
+public final class AroundMethodAop {
 
     public static Object intercept(IAopLogger log,
                                    AbstractInterceptor interceptor,

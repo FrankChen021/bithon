@@ -82,5 +82,81 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <configLocation>../dev/checkstyle.xml</configLocation>
+                    <suppressionsLocation>../dev/checkstyle-suppressions.xml</suppressionsLocation>
+                    <!--                    <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>-->
+                    <encoding>UTF-8</encoding>
+                    <headerLocation>../dev/checkstyle-header.txt</headerLocation>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>8.29</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>4.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                            <goal>remove</goal>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <licenseSets>
+                        <licenseSet>
+                            <header>licenses/template.txt</header>
+                            <excludes>
+                                <exclude>**/README</exclude>
+                                <exclude>src/main/java/com/sbss/bithon/component/db/**</exclude>
+                                <exclude>src/main/java/com/sbss/bithon/agent/rpc/thrift/**</exclude>
+                                <exclude>src/main/resources/static/**</exclude>
+                                <exclude>**/*.properties</exclude>
+                                <exclude>**/*.sh</exclude>
+                                <exclude>**/*.yml</exclude>
+                                <exclude>**/.editorconfig</exclude>
+                                <exclude>**/.gitignore</exclude>
+                                <exclude>**/*.md</exclude>
+                                <exclude>**/*.xml</exclude>
+                                <exclude>**/*.html</exclude>
+                                <exclude>**/*.js</exclude>
+                                <exclude>**/*.css</exclude>
+                                <exclude>**/*.txt</exclude>
+                            </excludes>
+                        </licenseSet>
+                    </licenseSets>
+                    <strictCheck>true</strictCheck>
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                    </mapping>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 </project>

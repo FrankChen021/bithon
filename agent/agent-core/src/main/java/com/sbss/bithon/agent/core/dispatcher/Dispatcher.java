@@ -82,7 +82,7 @@ public class Dispatcher {
         return (IMessageChannelFactory) Class.forName(config.getClient().getFactory()).newInstance();
     }
 
-    synchronized private void startTask(int port) {
+    private synchronized void startTask(int port) {
         if (appPort != 0 || port == 0) {
             return;
         }

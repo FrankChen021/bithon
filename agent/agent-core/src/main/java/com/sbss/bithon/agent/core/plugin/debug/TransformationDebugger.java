@@ -46,7 +46,7 @@ public class TransformationDebugger extends AgentBuilder.Listener.Adapter {
         }
     }
 
-    synchronized public void saveClassToFile(DynamicType dynamicType) {
+    public synchronized void saveClassToFile(DynamicType dynamicType) {
         try {
             log.info("[{}] Saved to [{}]", dynamicType.getTypeDescription().getTypeName(), classRootPath);
             dynamicType.saveIn(classRootPath);
@@ -73,7 +73,7 @@ public class TransformationDebugger extends AgentBuilder.Listener.Adapter {
         log.error(String.format("Failed to transform %s", s), throwable);
     }
 
-    synchronized private void cleanup() {
+    private synchronized void cleanup() {
         if (cleaned) {
             return;
         }

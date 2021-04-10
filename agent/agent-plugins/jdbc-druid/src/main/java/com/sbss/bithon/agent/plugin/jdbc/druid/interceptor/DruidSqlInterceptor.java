@@ -1,9 +1,9 @@
 package com.sbss.bithon.agent.plugin.jdbc.druid.interceptor;
 
-import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.boot.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.utils.MiscUtils;
 import com.sbss.bithon.agent.plugin.jdbc.druid.metric.DruidSqlMetricCollector;
 
@@ -18,7 +18,8 @@ public class DruidSqlInterceptor extends AbstractInterceptor {
 
     @Override
     public boolean initialize() throws Exception {
-        metricCollector = MetricCollectorManager.getInstance().getOrRegister("sql-metrics(druid)", DruidSqlMetricCollector.class);
+        metricCollector = MetricCollectorManager.getInstance()
+                                                .getOrRegister("sql-metrics(druid)", DruidSqlMetricCollector.class);
         return super.initialize();
     }
 
@@ -33,8 +34,8 @@ public class DruidSqlInterceptor extends AbstractInterceptor {
         // In some cases, a connection might be aborted by server
         // then, a getConnection() call would throw an exception saying that connection has been closed
         aopContext.setUserContext(MiscUtils.cleanupConnectionString(statement.getConnection()
-                .getMetaData()
-                .getURL()));
+                                                                             .getMetaData()
+                                                                             .getURL()));
 
         return InterceptionDecision.CONTINUE;
     }
@@ -44,9 +45,9 @@ public class DruidSqlInterceptor extends AbstractInterceptor {
         String connectionString = aopContext.castUserContextAs();
         if (connectionString != null) {
             metricCollector.update(aopContext.getMethod().getName(),
-                    connectionString,
-                    aopContext,
-                    aopContext.getCostTime());
+                                   connectionString,
+                                   aopContext,
+                                   aopContext.getCostTime());
         }
     }
 }

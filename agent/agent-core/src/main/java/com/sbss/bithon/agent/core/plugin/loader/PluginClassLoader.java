@@ -6,11 +6,11 @@ import java.net.URL;
 
 /**
  * Class loader for agent to load interceptors and their application class dependencies
- *
+ * <p>
  * This class loader has two parents:
  * 1. AgentClassLoader, which is responsible for loading classes from directories 'lib' and 'plugins'
  * 2. Application class loader, which is responsible for loading application classes. Since interceptors rely on application classes
- *    this ensures that those classes could be found for interceptors
+ * this ensures that those classes could be found for interceptors
  *
  * @author frankchen
  * @date 2020-12-31 22:25:45

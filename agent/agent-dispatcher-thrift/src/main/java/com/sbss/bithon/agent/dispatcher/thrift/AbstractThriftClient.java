@@ -132,7 +132,7 @@ public abstract class AbstractThriftClient<T extends TServiceClient> {
         client = null;
     }
 
-    abstract protected T createClient(org.apache.thrift.protocol.TProtocol protocol);
+    protected abstract T createClient(org.apache.thrift.protocol.TProtocol protocol);
 
     static class HostAndPort {
         final String host;

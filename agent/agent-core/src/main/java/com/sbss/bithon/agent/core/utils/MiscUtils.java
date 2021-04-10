@@ -8,7 +8,7 @@ public class MiscUtils {
 
     /**
      * clean up parameters on connection string
-     *
+     * <p>
      * We don't parse DB,HostAndPort from connection string at agent side
      * because the rules are a little bit complex which would cause more frequent upgrading of agent
      */

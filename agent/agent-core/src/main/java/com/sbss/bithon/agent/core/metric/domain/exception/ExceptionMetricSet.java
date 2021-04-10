@@ -44,11 +44,11 @@ public class ExceptionMetricSet {
             MessageDigest md5 = MessageDigest.getInstance("MD5");
             md5.update(byteArray);
             byte[] bytes = md5.digest();
-            final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+            final char[] digits = "0123456789ABCDEF".toCharArray();
             StringBuilder ret = new StringBuilder(bytes.length * 2);
             for (byte aByte : bytes) {
-                ret.append(HEX_DIGITS[(aByte >> 4) & 0x0f]);
-                ret.append(HEX_DIGITS[aByte & 0x0f]);
+                ret.append(digits[(aByte >> 4) & 0x0f]);
+                ret.append(digits[aByte & 0x0f]);
             }
             return ret.toString();
         } catch (Exception ignored) {

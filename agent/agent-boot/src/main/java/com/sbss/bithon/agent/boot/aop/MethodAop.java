@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
  */
 public class MethodAop {
 
-    private static final IAopLogger aopLogger = BootstrapHelper.createAopLogger(MethodAop.class);
+    private static final IAopLogger LOGGER = BootstrapHelper.createAopLogger(MethodAop.class);
 
     private final Object interceptor;
 
@@ -28,7 +28,7 @@ public class MethodAop {
                             @Morph ISuperMethod superMethod,
                             @This(optional = true) Object targetObject,
                             @AllArguments Object[] args) throws Exception {
-        return AroundMethodAop.intercept(aopLogger,
+        return AroundMethodAop.intercept(LOGGER,
                                          (AbstractInterceptor) interceptor,
                                          targetClass,
                                          superMethod,

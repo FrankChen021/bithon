@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public class TypeResolver {
 
-    private final static TypeResolver INSTANCE = new TypeResolver();
+    private static final TypeResolver INSTANCE = new TypeResolver();
     private final Map<ClassLoader, TypePool> pools = new HashMap<>();
 
     public static TypeResolver getInstance() {

@@ -17,7 +17,8 @@ public class TraceSpan {
     private final String parentSpanId;
     private final Map<String, String> tags = new HashMap<>();
     private final Map<String, String> args = new HashMap<>();
-    /*
+
+    /**
      * in micro-seconds
      */
     private long startTime;
@@ -73,14 +74,14 @@ public class TraceSpan {
     }
 
     public TraceSpan tag(String name, String value) {
-        if ( value != null ) {
+        if (value != null) {
             tags.put(name, value);
         }
         return this;
     }
 
     public TraceSpan tag(Throwable exception) {
-        if ( exception != null ) {
+        if (exception != null) {
             tags.put("exception", exception.toString());
         }
         return this;
@@ -151,7 +152,7 @@ public class TraceSpan {
         this.endTime = context().clock().currentMicroseconds();
         try {
             this.traceContext.onSpanFinished(this);
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             LoggerFactory.getLogger(TraceSpan.class).error("Exception occured when finish a span", t);
         }
     }

@@ -1,8 +1,6 @@
 package com.sbss.bithon.agent.core.metric.domain.jvm;
 
 
-import java.util.List;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/10/27 2:17 下午

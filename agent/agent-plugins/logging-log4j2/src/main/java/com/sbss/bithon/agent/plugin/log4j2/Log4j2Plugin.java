@@ -21,7 +21,7 @@ public class Log4j2Plugin extends AbstractPlugin {
         return Collections.singletonList(
             forClass("org.apache.logging.log4j.core.Logger")
                 .methods(
-                    /*
+                    /**
                      * java.lang.String
                      * org.apache.logging.log4j.Level
                      * org.apache.logging.log4j.Marker

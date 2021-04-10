@@ -34,8 +34,10 @@ public class MethodMatchingInterceptor extends AbstractInterceptor {
 
         //TODO: keep patterns in temp storage
         // and send the patterns after detectHandlerMethods(final Object handler) has been intercepted
-//        EventMessage eventMessage = new EventMessage();
-//        Dispatcher eventDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVNETS);
-//        eventDispatcher.sendMessage(eventMessage);
+        /*
+        EventMessage eventMessage = new EventMessage();
+        Dispatcher eventDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVNETS);
+        eventDispatcher.sendMessage(eventMessage);
+         */
     }
 }

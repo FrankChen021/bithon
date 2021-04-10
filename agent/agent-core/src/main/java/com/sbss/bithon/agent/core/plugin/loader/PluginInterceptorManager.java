@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -46,7 +46,9 @@ public class PluginInterceptorManager {
 
             interceptor = (AbstractInterceptor) interceptorClass.newInstance();
             if (!interceptor.initialize()) {
-                log.warn("Interceptor not loaded for failure of initialization: [{}.{}]", plugin.getClass().getSimpleName(), interceptorName);
+                log.warn("Interceptor not loaded for failure of initialization: [{}.{}]",
+                         plugin.getClass().getSimpleName(),
+                         interceptorName);
                 return null;
             }
 

@@ -1,10 +1,10 @@
 package com.sbss.bithon.agent.plugin.mysql.metrics;
 
-import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.domain.sql.SqlMetricCollector;
 import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.boot.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.sql.SqlMetricCollector;
 import com.sbss.bithon.agent.core.utils.MiscUtils;
 import com.sbss.bithon.agent.plugin.mysql.MySqlPlugin;
 
@@ -20,7 +20,8 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        sqlMetricCollector = MetricCollectorManager.getInstance().getOrRegister("mysql-metrics", SqlMetricCollector.class);
+        sqlMetricCollector = MetricCollectorManager.getInstance()
+                                                   .getOrRegister("mysql-metrics", SqlMetricCollector.class);
         statementMetricCollector = StatementMetricCollector.getInstance();
         return true;
     }
@@ -48,16 +49,17 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
         String methodName = aopContext.getMethod().getName();
         boolean isQuery = true;
         if (MySqlPlugin.METHOD_EXECUTE_UPDATE.equals(methodName) ||
-                MySqlPlugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {
+            MySqlPlugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {
             isQuery = false;
         } else if ((MySqlPlugin.METHOD_EXECUTE.equals(methodName) ||
-                MySqlPlugin.METHOD_EXECUTE_INTERNAL.equals(methodName))) {
+                    MySqlPlugin.METHOD_EXECUTE_INTERNAL.equals(methodName))) {
             Object result = aopContext.castReturningAs();
             if (result instanceof Boolean && !(boolean) result) {
                 isQuery = false;
             }
         }
-        sqlMetricCollector.getOrCreateMetric(connectionString).update(isQuery, aopContext.hasException(), aopContext.getCostTime());
+        sqlMetricCollector.getOrCreateMetric(connectionString)
+                          .update(isQuery, aopContext.hasException(), aopContext.getCostTime());
 
 
         statementMetricCollector.sqlStats(aopContext, (String) aopContext.getUserContext());

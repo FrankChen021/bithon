@@ -23,9 +23,9 @@ public class OkHttp32HttpClientPlugin extends AbstractPlugin {
             forClass("okhttp3.RealCall")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onMethodAndArgs("getResponseWithInterceptorChain",
-                                         "boolean")
-                        .to("com.sbss.bithon.agent.plugin.httpclient.okhttp32.OkHttp32Interceptor")
+                                                   .onMethodAndArgs("getResponseWithInterceptorChain",
+                                                                    "boolean")
+                                                   .to("com.sbss.bithon.agent.plugin.httpclient.okhttp32.OkHttp32Interceptor")
                 )
 
             /*

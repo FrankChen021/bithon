@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.jvm;
 
-import com.sbss.bithon.agent.core.metric.model.Delta;
 import com.sbss.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
+import com.sbss.bithon.agent.core.metric.model.Delta;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;

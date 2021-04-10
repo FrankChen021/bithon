@@ -79,18 +79,6 @@ public class BootstrapAopGenerator {
         this.inject("shaded.net.bytebuddy.implementation.bind.annotation.Origin");
         this.inject("shaded.net.bytebuddy.implementation.bind.annotation.Morph");
 
-        // inject Aop class into bootstrap class loader
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapConstructorAop");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapMethodAop");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapHelper");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AroundMethodAop");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.ISuperMethod");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.IAopLogger");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision");
-
         ClassInjector.UsingUnsafe.Factory factory = ClassInjector.UsingUnsafe.Factory.resolve(instrumentation);
         factory.make(null, null).injectRaw(classesTypeMap);
         return agentBuilder.with(new AgentBuilder.InjectionStrategy.UsingUnsafe.OfFactory(factory));

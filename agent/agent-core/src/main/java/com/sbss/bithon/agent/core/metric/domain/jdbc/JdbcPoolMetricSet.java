@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.core.metric.domain.jdbc;
 
-import com.sbss.bithon.agent.core.metric.model.Sum;
 import com.sbss.bithon.agent.core.metric.model.Gauge;
+import com.sbss.bithon.agent.core.metric.model.Sum;
 
 /**
  * @author frankchen

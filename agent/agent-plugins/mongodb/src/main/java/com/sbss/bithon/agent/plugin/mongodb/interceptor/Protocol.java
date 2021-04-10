@@ -2,10 +2,10 @@ package com.sbss.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.MongoNamespace;
 import com.mongodb.WriteConcern;
-import com.sbss.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.AopContext;
 import com.sbss.bithon.agent.boot.aop.IBithonObject;
+import com.sbss.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import org.bson.BsonDocument;
 import org.bson.FieldNameValidator;
 import org.bson.codecs.Decoder;

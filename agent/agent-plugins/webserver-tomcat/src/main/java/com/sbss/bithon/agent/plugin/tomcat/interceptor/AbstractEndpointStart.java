@@ -1,9 +1,9 @@
 package com.sbss.bithon.agent.plugin.tomcat.interceptor;
 
-import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.boot.aop.AopContext;
+import com.sbss.bithon.agent.core.context.AgentContext;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.plugin.tomcat.metric.WebServerMetricCollector;
 import org.apache.tomcat.util.net.AbstractEndpoint;
 

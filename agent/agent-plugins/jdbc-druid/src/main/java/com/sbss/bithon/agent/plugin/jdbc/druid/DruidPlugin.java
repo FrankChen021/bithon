@@ -13,10 +13,10 @@ import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor
  * @author frankchen
  */
 public class DruidPlugin extends AbstractPlugin {
-    static public final String METHOD_EXECUTE = "execute";
-    static public final String METHOD_EXECUTE_QUERY = "executeQuery";
-    static public final String METHOD_EXECUTE_UPDATE = "executeUpdate";
-    static public final String METHOD_EXECUTE_BATCH = "executeBatch";
+    public static final String METHOD_EXECUTE = "execute";
+    public static final String METHOD_EXECUTE_QUERY = "executeQuery";
+    public static final String METHOD_EXECUTE_UPDATE = "executeUpdate";
+    public static final String METHOD_EXECUTE_BATCH = "executeBatch";
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
@@ -98,7 +98,4 @@ public class DruidPlugin extends AbstractPlugin {
                 }*/
         );
     }
-
-//        TargetClassNameMatcher.byName("com.alibaba.druid.stat.JdbcDataSourceStat");
-//        TargetMethodMatcher.byName("getSqlStatMapAndReset");
 }

@@ -21,36 +21,37 @@ public class UndertowPlugin extends AbstractPlugin {
             forClass("io.undertow.Undertow")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("start")
-                        .noArgs()
-                        .to("com.sbss.bithon.agent.plugin.undertow.interceptor.UndertowStart")
+                                                   .onAllMethods("start")
+                                                   .noArgs()
+                                                   .to("com.sbss.bithon.agent.plugin.undertow.interceptor.UndertowStart")
                 ),
 
             forClass("io.undertow.server.protocol.http.HttpOpenListener")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("setRootHandler")
-                        .onArgs("io.undertow.server.HttpHandler")
-                        .to("com.sbss.bithon.agent.plugin.undertow.interceptor.HttpOpenListenerSetRootHandler")
+                                                   .onAllMethods("setRootHandler")
+                                                   .onArgs("io.undertow.server.HttpHandler")
+                                                   .to("com.sbss.bithon.agent.plugin.undertow.interceptor.HttpOpenListenerSetRootHandler")
                 ),
 
             forClass("io.undertow.server.HttpServerExchange")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("dispatch")
-                        .onArgs("java.util.concurrent.Executor", "io.undertow.server.HttpHandler")
-                        .to("com.sbss.bithon.agent.plugin.undertow.interceptor.HttpServerExchangeDispatch")
+                                                   .onAllMethods("dispatch")
+                                                   .onArgs("java.util.concurrent.Executor",
+                                                           "io.undertow.server.HttpHandler")
+                                                   .to("com.sbss.bithon.agent.plugin.undertow.interceptor.HttpServerExchangeDispatch")
                 ),
 
             forClass("io.undertow.servlet.api.LoggingExceptionHandlerHandleThrowable")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                        .onAllMethods("handleThrowable")
-                        .onArgs("io.undertow.server.HttpServerExchange",
-                                "javax.servlet.ServletRequest",
-                                "javax.servlet.ServletResponse",
-                                "java.lang.Throwable")
-                        .to("com.sbss.bithon.agent.plugin.undertow.interceptor.LoggingExceptionHandlerHandleThrowable")
+                                                   .onAllMethods("handleThrowable")
+                                                   .onArgs("io.undertow.server.HttpServerExchange",
+                                                           "javax.servlet.ServletRequest",
+                                                           "javax.servlet.ServletResponse",
+                                                           "java.lang.Throwable")
+                                                   .to("com.sbss.bithon.agent.plugin.undertow.interceptor.LoggingExceptionHandlerHandleThrowable")
                 )
         );
     }
