@@ -25,9 +25,23 @@
         <module>server</module>
     </modules>
 
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
+
+    <inceptionYear>2020</inceptionYear>
+
+    <scm>
+        <connection>scm:git@github.com:FrankChen021/bithon.git</connection>
+        <developerConnection>scm:git@github.com:FrankChen021/bithon.git</developerConnection>
+        <url>https://github.com/FrankChen021/bithon.git</url>
+    </scm>
+
     <dependencyManagement>
         <dependencies>
-
             <dependency>
                 <groupId>com.sbss.bithon</groupId>
                 <artifactId>agent-rpc-thrift</artifactId>
@@ -47,6 +61,16 @@
     </dependencyManagement>
 
     <build>
+        <!-- To define the plugin version in your parent POM -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>4.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -78,6 +102,50 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>4.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                            <goal>remove</goal>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <licenseSets>
+                        <licenseSet>
+                            <header>licenses/template.txt</header>
+                            <excludes>
+                                <exclude>**/README</exclude>
+                                <exclude>src/main/java/com/sbss/bithon/component/db/**</exclude>
+                                <exclude>src/main/java/com/sbss/bithon/agent/rpc/thrift/**</exclude>
+                                <exclude>src/main/resources/static/**</exclude>
+                                <exclude>**/*.properties</exclude>
+                                <exclude>**/*.sh</exclude>
+                                <exclude>**/*.yml</exclude>
+                                <exclude>**/.editorconfig</exclude>
+                                <exclude>**/.gitignore</exclude>
+                                <exclude>**/*.md</exclude>
+                                <exclude>**/*.xml</exclude>
+                                <exclude>**/*.html</exclude>
+                                <exclude>**/*.js</exclude>
+                                <exclude>**/*.css</exclude>
+                                <exclude>**/*.txt</exclude>
+                            </excludes>
+                        </licenseSet>
+                    </licenseSets>
+                    <strictCheck>true</strictCheck>
+                    <aggregate>true</aggregate>
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                    </mapping>
+                </configuration>
             </plugin>
         </plugins>
     </build>
