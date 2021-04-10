@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2020 bithon.cn
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package com.sbss.bithon.server.common.service;
 
 import com.sbss.bithon.server.common.matcher.IStringMatcher;
@@ -119,27 +135,27 @@ public class UriNormalizer {
 
     @Data
     @AllArgsConstructor
-    static public class UriPattern {
+    public static class UriPattern {
         private IStringMatcher matcher;
         private String replacement;
     }
 
     @Data
-    static public class UriNormalizationRuleConfig {
+    public static class UriNormalizationRuleConfig {
         private List<UriPattern> pathRules = new ArrayList<>();
         private List<UriPattern> partRules = new ArrayList<>();
         private List<IStringMatcher> filters = new ArrayList<>();
     }
 
     @Data
-    static public class RuleConfigs {
+    public static class RuleConfigs {
         private UriNormalizationRuleConfig globalRules;
         private Map<String, UriNormalizationRuleConfig> instanceRules;
     }
 
     @Data
     @AllArgsConstructor
-    static public class NormalizedResult {
+    public static class NormalizedResult {
         private boolean normalized;
         private String uri;
     }

@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2020 bithon.cn
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package com.sbss.bithon.server.metric.parser;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -16,10 +32,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-/**
- * Author: frank.chen021@outlook.com
- * Date: 2020/11/30 5:52 下午
- */
 public class ParserUtils {
     private static final String DEFAULT_COLUMN_NAME_PREFIX = "column_";
 
@@ -76,7 +88,7 @@ public class ParserUtils {
     public static void validateFields(Iterable<String> fieldNames) {
         Set<String> duplicates = findDuplicates(fieldNames);
         if (!duplicates.isEmpty()) {
-//            throw new ParseException("Duplicate column entries found : %s", duplicates.toString());
+            throw new RuntimeException(String.format("Duplicate column entries found : %s", duplicates.toString()));
         }
     }
 

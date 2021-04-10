@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<additionalHeaders>
+  <SLASHSTAR_STYLE>
+    <firstLine>/*</firstLine>
+    <beforeEachLine> * </beforeEachLine>
+    <endLine> */EOL</endLine>
+    <firstLineDetectionPattern>(\s|\t)*/\*.*$</firstLineDetectionPattern>
+    <lastLineDetectionPattern>.*\*/(\s|\t)*$</lastLineDetectionPattern>
+    <allowBlankLines>true</allowBlankLines>
+    <isMultiline>true</isMultiline>
+    <padLines>false</padLines>
+  </SLASHSTAR_STYLE>
+</additionalHeaders>

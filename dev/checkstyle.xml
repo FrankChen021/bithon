@@ -57,7 +57,7 @@
       <!--<property name="max" value="120"/>-->
     <!--</module>-->
     <module name="AvoidStarImport"/>
-    <module name="AvoidStaticImport"/>
+<!--    <module name="AvoidStaticImport"/>-->
     <module name="RedundantImport"/>
     <module name="UnusedImports" />
     <module name="NeedBraces"/>
@@ -106,11 +106,6 @@
       <property name="tokens" value="PACKAGE_DEF,IMPORT,STATIC_IMPORT,INTERFACE_DEF,STATIC_INIT,INSTANCE_INIT,CTOR_DEF,VARIABLE_DEF"/>
       <property name="allowNoEmptyLineBetweenFields" value="true"/>
       <property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
-    </module>
-
-    <module name="Indentation">
-      <property name="basicOffset" value="4"/>
-      <property name="caseIndent" value="4"/>
     </module>
 
     <module name="MethodParamPad">

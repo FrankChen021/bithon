@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2020 bithon.cn
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package com.sbss.bithon.agent.core.plugin.loader;
 
 
@@ -78,18 +94,6 @@ public class BootstrapAopGenerator {
         this.inject("shaded.net.bytebuddy.implementation.bind.annotation.SuperCall");
         this.inject("shaded.net.bytebuddy.implementation.bind.annotation.Origin");
         this.inject("shaded.net.bytebuddy.implementation.bind.annotation.Morph");
-
-        // inject Aop class into bootstrap class loader
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapConstructorAop");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapMethodAop");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.BootstrapHelper");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AopContext");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AroundMethodAop");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.AbstractInterceptor");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.ISuperMethod");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.IAopLogger");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.IBithonObject");
-//        this.inject("com.sbss.bithon.agent.core.plugin.aop.bootstrap.InterceptionDecision");
 
         ClassInjector.UsingUnsafe.Factory factory = ClassInjector.UsingUnsafe.Factory.resolve(instrumentation);
         factory.make(null, null).injectRaw(classesTypeMap);

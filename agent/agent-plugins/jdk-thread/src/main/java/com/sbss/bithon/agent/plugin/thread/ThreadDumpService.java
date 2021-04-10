@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2020 bithon.cn
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package com.sbss.bithon.agent.plugin.thread;
 
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
@@ -52,42 +68,42 @@ public class ThreadDumpService {
 
         return false;
     }
+/*
+    private ExtendEntity buildEntity(Thread thread,
+                                     StackTraceElement[] stackTraces) {
+        Map<String, String> threadStringFields = new HashMap<>();
+        Map<String, Long> threadNumberFields = new HashMap<>();
+        boolean cpuTimeEnabled = THREAD_MX_BEAN.isThreadCpuTimeSupported() && THREAD_MX_BEAN.isThreadCpuTimeEnabled();
 
-//    private ExtendEntity buildEntity(Thread thread,
-//                                     StackTraceElement[] stackTraces) {
-//        Map<String, String> threadStringFields = new HashMap<>();
-//        Map<String, Long> threadNumberFields = new HashMap<>();
-//        boolean cpuTimeEnabled = THREAD_MX_BEAN.isThreadCpuTimeSupported() && THREAD_MX_BEAN.isThreadCpuTimeEnabled();
-//
-//        threadStringFields.put(THREAD_NAME, thread.getName());
-//        threadNumberFields.put(THREAD_ID, thread.getId());
-//        threadStringFields.put(THREAD_IS_DAEMON, thread.isDaemon() ? "yes" : "no");
-//        threadNumberFields.put(THREAD_PRIORITY, (long) thread.getPriority());
-//        threadStringFields.put(THREAD_STATE, thread.getState().toString());
-//        threadStringFields.put(THREAD_DECLARER, stackTraces.length > 0 ? stackTraces[0].toString() : null);
-//        threadNumberFields.put(THREAD_CPU_TIME_MILLIS,
-//                               cpuTimeEnabled ? THREAD_MX_BEAN.getThreadCpuTime(thread.getId())
-//                                   : THREAD_TIME_UNAVAILABLE);
-//        threadNumberFields.put(THREAD_USER_TIME_MILLIS,
-//                               cpuTimeEnabled ? THREAD_MX_BEAN.getThreadUserTime(thread.getId())
-//                                   : THREAD_TIME_UNAVAILABLE);
-//
-//        return new ExtendEntity(dispatcher.getAppName(),
-//                                dispatcher.getIpAddress(),
-//                                dispatcher.getPort(),
-//                                System.currentTimeMillis(),
-//                                checkPeriod,
-//                                1,
-//                                THREAD_ENTITY_NAME,
-//                                threadStringFields,
-//                                threadNumberFields);
-//    }
+        threadStringFields.put(THREAD_NAME, thread.getName());
+        threadNumberFields.put(THREAD_ID, thread.getId());
+        threadStringFields.put(THREAD_IS_DAEMON, thread.isDaemon() ? "yes" : "no");
+        threadNumberFields.put(THREAD_PRIORITY, (long) thread.getPriority());
+        threadStringFields.put(THREAD_STATE, thread.getState().toString());
+        threadStringFields.put(THREAD_DECLARER, stackTraces.length > 0 ? stackTraces[0].toString() : null);
+        threadNumberFields.put(THREAD_CPU_TIME_MILLIS,
+                               cpuTimeEnabled ? THREAD_MX_BEAN.getThreadCpuTime(thread.getId())
+                                   : THREAD_TIME_UNAVAILABLE);
+        threadNumberFields.put(THREAD_USER_TIME_MILLIS,
+                               cpuTimeEnabled ? THREAD_MX_BEAN.getThreadUserTime(thread.getId())
+                                   : THREAD_TIME_UNAVAILABLE);
+
+        return new ExtendEntity(dispatcher.getAppName(),
+                                dispatcher.getIpAddress(),
+                                dispatcher.getPort(),
+                                System.currentTimeMillis(),
+                                checkPeriod,
+                                1,
+                                THREAD_ENTITY_NAME,
+                                threadStringFields,
+                                threadNumberFields);
+    }*/
 
     private void dispatch(Thread thread,
                           StackTraceElement[] stackTraces) {
         try {
             if (dispatcher.isReady()) {
-                //dispatcher.sendMetrics(buildEntity(thread, stackTraces));
+                /*dispatcher.sendMetrics(buildEntity(thread, stackTraces));*/
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);

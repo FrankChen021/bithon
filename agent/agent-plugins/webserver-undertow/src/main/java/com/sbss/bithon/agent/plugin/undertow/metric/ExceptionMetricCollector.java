@@ -1,3 +1,19 @@
+/*
+ *    Copyright 2020 bithon.cn
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package com.sbss.bithon.agent.plugin.undertow.metric;
 
 import com.sbss.bithon.agent.core.context.InterceptorContext;
@@ -100,66 +116,53 @@ public class ExceptionMetricCollector implements IMetricCollector {
     public List<Object> collect(IMessageConverter messageConverter,
                                 int interval,
                                 long timestamp) {
-//        List<FailureMessageDetailEntity> failureMessageDetailEntities = new ArrayList<>();
-//        ClientException clientException;
-//        long buildTimestamp = System.currentTimeMillis();
-//        int occurTimes = 0;
-//        Map<String, FailureMessageDetailEntity> entityMap = new HashMap<>();
-//        if (earliestRecordTimestamp > buildTimestamp || latestRecordTimestamp < buildTimestamp - (interval * 1000)) {
-//            // no record in time_window, refresh the earliestTimestamp & latestTimestamp
-//            earliestRecordTimestamp = buildTimestamp;
-//            latestRecordTimestamp = buildTimestamp;
-//        } else {
-//            do {
-//                clientException = exceptionStorage.poll();
-//                if (null == clientException) {
-//                    break;
-//                }
-//
-//                occurTimes++;
-//                Throwable t = clientException.getRootException();
-//                ExceptionEntity rootException = getExceptionEntityFromThrowable(t);
-//                // List<ExceptionEntity> causedByException = new LinkedList<>();
-//                // deepSearchCausedByExceptions(causedByException, t);
-//
-//                FailureMessageDetailEntity entity = null;
-//                if ((entity = entityMap.get(clientException.getUri() + rootException.getExceptionId() +
-//                                                rootException.getMessageId())) == null) {
-//                    entity = new FailureMessageDetailEntity(clientException.getTimestamp(), rootException, null);
-//                    entity.setUrl(clientException.getUri());
-//                    entityMap.put(clientException.getUri() + rootException.getExceptionId() +
-//                                      rootException.getMessageId(),
-//                                  entity);
-//                    failureMessageDetailEntities.add(entity);
-//                }
-//            } while (clientException.timestamp < buildTimestamp);
-//
-//            earliestRecordTimestamp = buildTimestamp;
-//        }
-//
-//        return Collections.singletonList(new FailureMessageEntity(appName,
-//                                                                  ipAddress,
-//                                                                  port,
-//                                                                  failureMessageDetailEntities,
-//                                                                  occurTimes,
-//                                                                  null,
-//                                                                  ERROR_SOURCE_TYPE_UNDERTOW));
+        /*
+        List<FailureMessageDetailEntity> failureMessageDetailEntities = new ArrayList<>();
+        ClientException clientException;
+        long buildTimestamp = System.currentTimeMillis();
+        int occurTimes = 0;
+        Map<String, FailureMessageDetailEntity> entityMap = new HashMap<>();
+        if (earliestRecordTimestamp > buildTimestamp || latestRecordTimestamp < buildTimestamp - (interval * 1000)) {
+            // no record in time_window, refresh the earliestTimestamp & latestTimestamp
+            earliestRecordTimestamp = buildTimestamp;
+            latestRecordTimestamp = buildTimestamp;
+        } else {
+            do {
+                clientException = exceptionStorage.poll();
+                if (null == clientException) {
+                    break;
+                }
+
+                occurTimes++;
+                Throwable t = clientException.getRootException();
+                ExceptionEntity rootException = getExceptionEntityFromThrowable(t);
+                // List<ExceptionEntity> causedByException = new LinkedList<>();
+                // deepSearchCausedByExceptions(causedByException, t);
+
+                FailureMessageDetailEntity entity = null;
+                if ((entity = entityMap.get(clientException.getUri() + rootException.getExceptionId() +
+                                                rootException.getMessageId())) == null) {
+                    entity = new FailureMessageDetailEntity(clientException.getTimestamp(), rootException, null);
+                    entity.setUrl(clientException.getUri());
+                    entityMap.put(clientException.getUri() + rootException.getExceptionId() +
+                                      rootException.getMessageId(),
+                                  entity);
+                    failureMessageDetailEntities.add(entity);
+                }
+            } while (clientException.timestamp < buildTimestamp);
+
+            earliestRecordTimestamp = buildTimestamp;
+        }
+
+        return Collections.singletonList(new FailureMessageEntity(appName,
+                                                                  ipAddress,
+                                                                  port,
+                                                                  failureMessageDetailEntities,
+                                                                  occurTimes,
+                                                                  null,
+                                                                  ERROR_SOURCE_TYPE_UNDERTOW));
+
+         */
         return Collections.emptyList();
     }
-
-//    private ExceptionEntity getExceptionEntityFromThrowable(Throwable t) {
-//        return new ExceptionEntity(t.getClass().getName(),
-//                                   t.getMessage(),
-//                                   (t.getStackTrace() == null ||
-//                                       t.getStackTrace().length < 1) ? null : t.getStackTrace()[0].toString());
-//    }
-//
-//    private void deepSearchCausedByExceptions(List<ExceptionEntity> causedByException,
-//                                              Throwable t) {
-//        if (null != t.getCause()) {
-//            Throwable cause = t.getCause();
-//            causedByException.add(getExceptionEntityFromThrowable(cause));
-//            deepSearchCausedByExceptions(causedByException, cause);
-//        }
-//    }
 }
