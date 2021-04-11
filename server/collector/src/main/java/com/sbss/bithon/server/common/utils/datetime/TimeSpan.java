@@ -64,7 +64,7 @@ public class TimeSpan {
     }
 
     public String toISO8601() {
-        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(new Date(milliseconds));
+        return DateTimeUtils.toISO8601(this.milliseconds);
     }
 
     public long diff(TimeSpan timeSpan) {

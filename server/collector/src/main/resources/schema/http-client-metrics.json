@@ -1,6 +1,7 @@
 {
   "displayText": "HTTP Client",
   "name": "http-client-metrics",
+  "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"

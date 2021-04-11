@@ -19,6 +19,7 @@ package com.sbss.bithon.server.metric;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sbss.bithon.server.common.utils.datetime.Period;
 import com.sbss.bithon.server.metric.aggregator.spec.CountMetricSpec;
 import com.sbss.bithon.server.metric.aggregator.spec.IMetricSpec;
 import com.sbss.bithon.server.metric.dimension.IDimensionSpec;
@@ -27,9 +28,8 @@ import com.sbss.bithon.server.metric.filter.IFilter;
 import com.sbss.bithon.server.metric.flatten.IFlattener;
 import lombok.Getter;
 
+
 import javax.annotation.Nullable;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -70,14 +70,19 @@ public class DataSourceSchema {
     @JsonIgnore
     private final Map<String, IMetricSpec> metricsMap = new HashMap<>();
 
+    @Getter
+    private final Period ttl;
+
     @JsonCreator
     public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,
-                            @JsonProperty("name") @NotNull String name,
-                            @JsonProperty("timestampSpec") @NotNull TimestampSpec timestampSpec,
-                            @JsonProperty("dimensionsSpec") @NotNull @NotEmpty List<IDimensionSpec> dimensionsSpec,
-                            @JsonProperty("metricsSpec") @NotNull @NotEmpty List<IMetricSpec> metricsSpec,
+                            @JsonProperty("name") String name,
+                            @JsonProperty("timestampSpec") TimestampSpec timestampSpec,
+                            @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
+                            @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
                             @JsonProperty("filtersSpec") @Nullable List<IFilter> filtersSpec,
-                            @JsonProperty("flattenSpec") @Nullable List<IFlattener> flattenSpec) {
+                            @JsonProperty("flattenSpec") @Nullable List<IFlattener> flattenSpec,
+                            @JsonProperty("ttl") @Nullable Period ttl) {
+        this.ttl = ttl == null ? Period.years(99) : ttl;
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
         this.timestampSpec = timestampSpec;

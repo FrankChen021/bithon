@@ -1,6 +1,7 @@
 {
   "displayText": "Thread Pool",
   "name": "thread-pool-metrics",
+  "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"

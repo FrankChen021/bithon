@@ -19,6 +19,7 @@ package com.sbss.bithon.server.metric;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -34,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Service
-public class DataSourceSchemaManager {
+public class DataSourceSchemaManager implements SmartLifecycle {
     private final List<IDataSourceSchemaListener> listeners = new ArrayList<>();
     private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
 
@@ -87,6 +88,20 @@ public class DataSourceSchemaManager {
 
     public void addListener(IDataSourceSchemaListener listener) {
         listeners.add(listener);
+    }
+
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void stop() {
+    }
+
+    @Override
+    public boolean isRunning() {
+        return false;
     }
 
     public interface IDataSourceSchemaListener {

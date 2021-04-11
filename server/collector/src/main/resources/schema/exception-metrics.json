@@ -1,6 +1,7 @@
 {
   "displayText": "Exception",
   "name": "exception-metrics",
+  "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"
