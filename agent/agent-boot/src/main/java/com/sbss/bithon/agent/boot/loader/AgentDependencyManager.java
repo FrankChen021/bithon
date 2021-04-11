@@ -17,8 +17,6 @@
 package com.sbss.bithon.agent.boot.loader;
 
 import java.io.File;
-import java.util.List;
-import java.util.jar.JarFile;
 
 /**
  * @author frank.chen021@outlook.com
@@ -34,15 +32,12 @@ public class AgentDependencyManager {
 
     /**
      * initialize class loader as a cascaded class loader
+     * it's parent is context class loader of thread so that any classes used by jars in libs could be found by application's class loader
      */
     public static ClassLoader initialize(File agentDirectory) {
-        instance = new JarClassLoader(new File(agentDirectory, "plugins"),
-                                      new JarClassLoader(new File(agentDirectory, "lib"),
-                                                         Thread.currentThread().getContextClassLoader()));
+        instance = new JarClassLoader("agent-boot",
+                                      JarResolver.resolve(new File(agentDirectory, "lib")),
+                                      () -> Thread.currentThread().getContextClassLoader());
         return instance;
-    }
-
-    public static List<JarFile> getPlugins() {
-        return instance.getJars();
     }
 }

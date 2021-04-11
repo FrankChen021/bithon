@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.agent.boot.loader;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -31,16 +31,39 @@ import java.util.jar.JarFile;
  * @author frank.chen021@outlook.com
  * @date 2021/4/3 12:20
  */
-class JarClassLoader extends ClassLoader {
+public class JarClassLoader extends ClassLoader {
+    private final String name;
     private final List<JarFile> jars;
-    private final ClassLoader parent;
+    private final IClassLoaderProvider[] parents;
 
-    JarClassLoader(File directory, ClassLoader parent) {
+    interface IClassLoaderProvider {
+        ClassLoader getClassLoader();
+    }
+
+    static class ClassLoaderProvider implements IClassLoaderProvider {
+        private final ClassLoader classLoader;
+
+        ClassLoaderProvider(ClassLoader classLoader) {
+            this.classLoader = classLoader;
+        }
+
+        @Override
+        public ClassLoader getClassLoader() {
+            return classLoader;
+        }
+    }
+
+    public JarClassLoader(String name, List<JarFile> jars, ClassLoader... parents) {
+        this(name, jars, Arrays.stream(parents).map(ClassLoaderProvider::new).toArray(IClassLoaderProvider[]::new));
+    }
+
+    public JarClassLoader(String name, List<JarFile> jars, IClassLoaderProvider... parents) {
         // NOTE:  parent is assigned to parent class loader
         // This is the key to implement agent lib isolation from app libs
         super(null);
-        this.jars = JarResolver.resolve(directory);
-        this.parent = parent;
+        this.name = name;
+        this.jars = jars;
+        this.parents = parents;
     }
 
     @Override
@@ -59,8 +82,13 @@ class JarClassLoader extends ClassLoader {
             }
         }
 
-        // delegate to parent to load class
-        return parent.loadClass(name);
+        for (IClassLoaderProvider parent : parents) {
+            try {
+                return parent.getClassLoader().loadClass(name);
+            } catch (ClassNotFoundException ignored) {
+            }
+        }
+        throw new ClassNotFoundException(name);
     }
 
     @Override
@@ -77,8 +105,14 @@ class JarClassLoader extends ClassLoader {
             }
         }
 
-        // delegate to parent to get resources
-        return parent.getResource(name);
+        // delegate to parent to get resource
+        for (IClassLoaderProvider parent : parents) {
+            URL url = parent.getClassLoader().getResource(name);
+            if (url != null) {
+                return url;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -107,5 +141,10 @@ class JarClassLoader extends ClassLoader {
 
     public List<JarFile> getJars() {
         return Collections.unmodifiableList(this.jars);
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

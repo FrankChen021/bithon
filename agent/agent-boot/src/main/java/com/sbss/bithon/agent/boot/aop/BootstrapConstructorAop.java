@@ -17,7 +17,6 @@
 package com.sbss.bithon.agent.boot.aop;
 
 
-import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
 import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
 import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
 import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
@@ -74,7 +73,7 @@ public class BootstrapConstructorAop {
             // load class out of sync to eliminate potential dead lock
             Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
                                                       true,
-                                                      AgentDependencyManager.getClassLoader());
+                                                      BootstrapHelper.getPluginClassLoader());
             synchronized (INTERCEPTOR_CLASS_NAME) {
                 //double check
                 if (INTERCEPTOR != null) {
