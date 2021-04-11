@@ -46,6 +46,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -103,7 +104,15 @@ class MetricJdbcWriter implements IMetricWriter {
             for (int i = 0; i < thisBatch; i++, index++) {
                 queries.add(toInsertSql(inputRowList.get(index)));
             }
-            dsl.batch(queries.toArray(new Query[0])).execute();
+
+            try {
+                dsl.batch(queries.toArray(new Query[0])).execute();
+            } catch (Exception e) {
+                log.error("Failed to insert records into [{}]. Error message: {}. SQL:{}",
+                          this.table.getName(),
+                          e.getMessage(),
+                          queries.stream().map(Query::getSQL).collect(Collectors.joining("\n")));
+            }
         }
     }
 
@@ -119,7 +128,15 @@ class MetricJdbcWriter implements IMetricWriter {
             for (int i = 0; i < thisBatch; i++, index++) {
                 queries.add(toInsertSql(((List<MetricSet>) metricSetList).get(index)));
             }
-            dsl.batch(queries.toArray(new Query[0])).execute();
+
+            try {
+                dsl.batch(queries.toArray(new Query[0])).execute();
+            } catch (Exception e) {
+                log.error("Failed to insert records into [{}]. Error message: {}. SQL:{}",
+                          this.table.getName(),
+                          e.getMessage(),
+                          queries.stream().map(Query::getSQL).collect(Collectors.joining("\n")));
+            }
         }
     }
 

@@ -22,13 +22,12 @@ import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -38,7 +37,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 class ThreadPoolMetricsCollector implements IMetricCollector {
     static ThreadPoolMetricsCollector INSTANCE;
     private final Map<AbstractExecutorService, ThreadPoolCompositeMetric> executorMetrics = new ConcurrentHashMap<>();
-    private final Queue<ThreadPoolCompositeMetric> flushed = new ConcurrentLinkedQueue<>();
+    private Map<List<String>, ThreadPoolCompositeMetric> shutdownThreadMetrics = new ConcurrentHashMap<>();
+
+    private static final String[] POOL_CLASS_EXCLUDE_PREFIX_LIST = {
+        // a lamda class in the following class. it's a helper class which has no meaning to monitor it
+        "org.springframework.cloud.commons.util.InetUtils"
+    };
 
     public static ThreadPoolMetricsCollector getInstance() {
         // See MetricCollectorManager for more detail to find why there's such a check below
@@ -61,14 +65,34 @@ class ThreadPoolMetricsCollector implements IMetricCollector {
     }
 
     public void addThreadPool(AbstractExecutorService pool, ThreadPoolCompositeMetric metrics) {
+        for (String excludePrefix : POOL_CLASS_EXCLUDE_PREFIX_LIST) {
+            if (metrics.getExecutorClass().startsWith(excludePrefix)) {
+                return;
+            }
+        }
         executorMetrics.put(pool, metrics);
     }
 
     public void deleteThreadPool(AbstractExecutorService executor) {
         ThreadPoolCompositeMetric metrics = executorMetrics.remove(executor);
-        if (metrics != null) {
-            flushed.add(metrics);
+        if (metrics == null) {
+            return;
         }
+
+        List<String> dimensions = Arrays.asList(metrics.getThreadPoolName(), metrics.getExecutorClass());
+        ThreadPoolCompositeMetric existMetrics = shutdownThreadMetrics.putIfAbsent(dimensions, metrics);
+        if (existMetrics == null) {
+            return;
+        }
+
+        // merge metrics
+        existMetrics.callerRunTaskCount.update(metrics.callerRunTaskCount.get());
+        existMetrics.abortedTaskCount.update(metrics.abortedTaskCount.get());
+        existMetrics.discardedTaskCount.update(metrics.discardedOldestTaskCount.get());
+        existMetrics.discardedOldestTaskCount.update(metrics.discardedOldestTaskCount.get());
+        existMetrics.exceptionTaskCount.update(metrics.exceptionTaskCount.get());
+        existMetrics.successfulTaskCount.update(metrics.successfulTaskCount.get());
+        existMetrics.totalTaskCount.update(metrics.totalTaskCount.get());
     }
 
     private Optional<ThreadPoolCompositeMetric> getMetrics(AbstractExecutorService executor) {
@@ -116,14 +140,17 @@ class ThreadPoolMetricsCollector implements IMetricCollector {
     public List<Object> collect(IMessageConverter messageConverter,
                                 int interval,
                                 long timestamp) {
-        List<Object> messageList = new ArrayList<>(flushed.size() + executorMetrics.size());
+        List<Object> messageList = new ArrayList<>(shutdownThreadMetrics.size() + executorMetrics.size());
 
-        ThreadPoolCompositeMetric flushedMetric = this.flushed.poll();
-        while (flushedMetric != null) {
-            messageList.add(messageConverter.from(timestamp,
-                                                  interval,
-                                                  flushedMetric));
-            flushedMetric = this.flushed.poll();
+
+        if (!this.shutdownThreadMetrics.isEmpty()) {
+            //swap metrics
+            Map<List<String>, ThreadPoolCompositeMetric> tmpShutdownThreadsMetrics = this.shutdownThreadMetrics;
+            this.shutdownThreadMetrics = new ConcurrentHashMap<>();
+
+            tmpShutdownThreadsMetrics.values().forEach((metricSet) -> messageList.add(messageConverter.from(timestamp,
+                                                                                                            interval,
+                                                                                                            metricSet)));
         }
 
         for (ThreadPoolCompositeMetric threadPoolMetric : this.executorMetrics.values()) {
