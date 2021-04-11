@@ -14,8 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.springweb;
-
+package com.sbss.bithon.agent.plugin.spring.mvc;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
@@ -24,15 +23,14 @@ import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
-import feign.Request;
-import feign.Response;
+
+import java.net.URI;
 
 /**
  * @author frankchen
- * @date 2021-02-16 14:41
+ * @date 2021-02-16 14:36
  */
-public class FeignClientInterceptor extends AbstractInterceptor {
-
+public class RestTemplateExecuteInterceptor extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         TraceContext traceContext = TraceContextHolder.get();
@@ -44,14 +42,24 @@ public class FeignClientInterceptor extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        Request request = (Request) aopContext.getArgs()[0];
-        aopContext.setUserContext(span.newChildSpan("feignClient")
+        String uri = null;
+        Object obj = aopContext.getArgs()[0];
+        if (obj instanceof String) {
+            uri = (String) obj;
+        } else if (obj instanceof URI) {
+            uri = obj.toString();
+        }
+
+        aopContext.setUserContext(span.newChildSpan("restTemplate")
+                                      .clazz(aopContext.getTargetClass())
+                                      .method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag("uri", request.url())
+                                      .tag("uri", uri)
                                       .start());
 
         return InterceptionDecision.CONTINUE;
     }
+
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
@@ -59,9 +67,6 @@ public class FeignClientInterceptor extends AbstractInterceptor {
         if (span == null) {
             return;
         }
-
-        Response response = (Response) aopContext.castReturningAs();
-        span.tag("status", String.valueOf(response.status()));
         span.finish();
     }
 }
