@@ -35,9 +35,10 @@ public class AgentDependencyManager {
      * it's parent is context class loader of thread so that any classes used by jars in libs could be found by application's class loader
      */
     public static ClassLoader initialize(File agentDirectory) {
+        final Thread mainThread = Thread.currentThread();
         instance = new JarClassLoader("agent-boot",
                                       JarResolver.resolve(new File(agentDirectory, "lib")),
-                                      () -> Thread.currentThread().getContextClassLoader());
+                                      mainThread::getContextClassLoader);
         return instance;
     }
 }
