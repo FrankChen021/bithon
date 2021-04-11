@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -88,7 +89,12 @@ public class JarClassLoader extends ClassLoader {
             } catch (ClassNotFoundException ignored) {
             }
         }
-        throw new ClassNotFoundException(name);
+        throw new ClassNotFoundException(String.format("%s not found in %s, parents:%s",
+                                                       name,
+                                                       this.name,
+                                                       Arrays.stream(this.parents)
+                                                             .map(p -> p.getClassLoader().getClass().getName())
+                                                             .collect(Collectors.joining(","))));
     }
 
     @Override
