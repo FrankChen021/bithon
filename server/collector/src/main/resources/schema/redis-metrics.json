@@ -1,6 +1,7 @@
 {
   "displayText": "Redis",
   "name": "redis-metrics",
+  "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"

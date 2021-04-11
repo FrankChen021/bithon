@@ -1,6 +1,7 @@
 {
   "displayText": "Web Request",
   "name": "web-request-metrics",
+  "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"

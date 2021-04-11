@@ -1,6 +1,7 @@
 {
   "displayText": "Application Topo",
   "name": "topo-metrics",
+  "ttl": "P7D",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"

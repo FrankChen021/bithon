@@ -1,6 +1,7 @@
 {
   "displayText": "JVM",
   "name": "jvm-metrics",
+  "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"

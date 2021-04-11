@@ -123,6 +123,12 @@ class MetricJdbcWriter implements IMetricWriter {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public void deleteBefore(long timestamp) {
+        dsl.deleteFrom(table).where(table.timestampField.lt(new Timestamp(timestamp))).execute();
+    }
+
     private InsertSetMoreStep toInsertSql(InputRow inputRow) {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
                                        .set(table.timestampField,
@@ -167,7 +173,7 @@ class MetricJdbcWriter implements IMetricWriter {
         private final List<Field> dimensions = new ArrayList<>();
         @Getter
         private final List<Field> metrics = new ArrayList<>();
-        Field timestampField;
+        Field<Timestamp> timestampField;
 
         public MetricTable(DataSourceSchema schema) {
             super(DSL.name("bithon_" + schema.getName().replace("-", "_")));

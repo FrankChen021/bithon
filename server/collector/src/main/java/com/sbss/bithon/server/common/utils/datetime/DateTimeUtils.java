@@ -18,6 +18,8 @@ package com.sbss.bithon.server.common.utils.datetime;
 
 import org.joda.time.DateTime;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -78,5 +80,9 @@ public class DateTimeUtils {
 
     public static long fromISO8601(String dateTime) {
         return DateTime.parse(dateTime).getMillis();
+    }
+
+    public static String toISO8601(long milliseconds) {
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(new Date(milliseconds));
     }
 }

@@ -1,6 +1,7 @@
 {
   "displayText": "Garbage Collection",
   "name": "jvm-gc-metrics",
+  "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"
