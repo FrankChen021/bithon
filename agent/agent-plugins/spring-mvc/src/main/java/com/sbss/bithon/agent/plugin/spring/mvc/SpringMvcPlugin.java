@@ -19,21 +19,42 @@ package com.sbss.bithon.agent.plugin.spring.mvc;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
+import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptorBuilder.forClass;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.isAnnotatedWith;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.isPublic;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.not;
 
 /**
  * @author frankchen
  */
 public class SpringMvcPlugin extends AbstractPlugin {
 
+    /**
+     * {@link org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#createBeanInstance(String, RootBeanDefinition, Object[])}
+     * {@link org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#applyBeanPostProcessorsBeforeInstantiation}
+     * @return
+     */
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
 
         return Arrays.asList(
+
+//            forClass(isAnnotatedWith(Component.class).or(isAnnotatedWith(Service.class)).or(isAnnotatedWith(Repository.class)))
+//                .debug()
+//                .methods(
+//                    MethodPointCutDescriptorBuilder.build()
+//                                                   .onMethod(isPublic().and(not(named("java.lang.Object.toString").or(named("java.lang.Object.hashCode")))))
+//                                                   .to("com.sbss.bithon.agent.plugin.spring.mvc.SpringBeanInterceptor")
+//                ),
 
             forClass(
                 "org.springframework.web.servlet.handler.AbstractHandlerMethodMapping")
