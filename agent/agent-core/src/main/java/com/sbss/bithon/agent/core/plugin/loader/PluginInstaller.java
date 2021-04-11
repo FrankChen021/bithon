@@ -31,7 +31,7 @@ public class PluginInstaller {
 
     public static void install(AgentContext agentContext, Instrumentation inst) {
         // find all plugins first
-        List<AbstractPlugin> plugins = new PluginResolver().resolve();
+        List<AbstractPlugin> plugins = PluginClassLoaderManager.resolvePlugins();
 
         // install interceptors for bootstrap classes
         AgentBuilder agentBuilder = new BootstrapAopGenerator(inst,
