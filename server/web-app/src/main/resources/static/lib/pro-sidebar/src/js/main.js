@@ -35,10 +35,12 @@ jQuery(function ($) {
   $('#pin-sidebar').click(function () {
     if ($('.page-wrapper').hasClass('pinned')) {
       // unpin sidebar when hovered
-      $('.page-wrapper').removeClass('pinned');
+      $('.page-wrapper').removeClass('pinned')
+                        .trigger('unpinned');
       $('#sidebar').unbind('hover');
     } else {
-      $('.page-wrapper').addClass('pinned');
+      $('.page-wrapper').addClass('pinned')
+                        .trigger('pinned');
       $('#sidebar').hover(
         function () {
           console.log('mouseenter');
