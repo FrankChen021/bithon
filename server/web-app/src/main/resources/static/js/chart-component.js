@@ -156,4 +156,8 @@ class ChartComponent {
     hideLoading() {
         this._chart.hideLoading();
     }
+
+    resize() {
+        this._chart.resize();
+    }
 }

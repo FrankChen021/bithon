@@ -495,4 +495,10 @@ class Dashboard {
                 return null;
         }
     }
+
+    resize() {
+        for (const id in this._chartComponents) {
+            this._chartComponents[id].resize();
+        }
+    }
 }
