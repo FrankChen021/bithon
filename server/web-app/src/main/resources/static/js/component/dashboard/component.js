@@ -1,6 +1,5 @@
 class Dashboard {
     constructor(containerId, appName, schemaApi) {
-        this._appName = appName;
         this._schemaApi = schemaApi;
 
         // View
@@ -11,9 +10,10 @@ class Dashboard {
         this._container.append(this._stackLayoutRow);
 
         // Model
+        this._schema = {};
         this._chartComponents = {};
         this._chartDescriptors = {};
-        this._dimensions = {};
+        this._selectedDimensions = {};
         this.addDimension('appName', appName);
 
         this._intervalFn = () => {
@@ -22,11 +22,14 @@ class Dashboard {
                 end: moment().utc().local().toISOString()
             };
         };
+
+        this.addDimension('appName', appName);
     }
 
     // PUBLIC
     load(dashboard) {
         this._dashboard = dashboard;
+
         //
         // App Filter
         //
@@ -43,7 +46,7 @@ class Dashboard {
         //
         // dataSource --> Charts
         //
-        var dataSource2Charts = {};
+        const dataSource2Charts = {};
         $.each(this._dashboard.charts, (index, chartDescriptor) => {
             const chartId = 'chart_' + index;
             chartDescriptor['id'] = chartId;
@@ -65,6 +68,8 @@ class Dashboard {
                 dataSourceName,
                 (schema) => {
                     if (schema.name === dataSourceFilter) {
+                        this._schema = schema;
+
                         // create dimension filter
                         // Note: first two dimensions MUST be app/instance
                         var filterBar = $('#filterBar');
@@ -73,20 +78,9 @@ class Dashboard {
                             if (!dimension.visible)
                                 continue;
 
-                            this.createDimensionFilter(filterBar, dimension.name, dimension.displayText);
+                            this.createDimensionFilter(filterBar, index, dimension.name, dimension.displayText);
                         }
                     }
-
-                    //
-                    // This should be changed in future
-                    // converts dimensionSpec from Array to Map
-                    //
-                    var dimensionMap = {};
-                    for (var index = 0; index < schema.dimensionsSpec.length; index++) {
-                        var dimension = schema.dimensionsSpec[index];
-                        dimensionMap[dimension.name] = dimension;
-                    }
-                    schema.dimensionsSpec = dimensionMap;
 
                     //
                     // This should be changed in future
@@ -106,7 +100,7 @@ class Dashboard {
 
                     // refresh dashboard after schema has been retrieved
                     // because there may be value transformers on different units
-                    var charts = dataSource2Charts[schema.name];
+                    const charts = dataSource2Charts[schema.name];
                     $.each(charts, (index, chartId) => {
                         this.refreshChart(chartId);
                     })
@@ -139,7 +133,7 @@ class Dashboard {
     }
 
     // PRIVATE
-    createDimensionFilter(filterBar, dimensionName, displayText) {
+    createDimensionFilter(filterBar, dimensionIndex, dimensionName, displayText) {
         const appendedSelect = filterBar.append(`<li class="nav-item"><select style="width:150px"></select></li>`).find('select').last();
         appendedSelect.select2({
             theme: 'bootstrap4',
@@ -147,7 +141,7 @@ class Dashboard {
             dropdownAutoWidth: true,
             placeholder: displayText,
             //TODO: must be a function to support dynamic change
-            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionName)
+            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionIndex, dimensionName)
         }).on('change', (event) => {
             if (event.target.selectedIndex == null || event.target.selectedIndex < 0) {
                 this.rmvDimension(dimensionName);
@@ -161,31 +155,25 @@ class Dashboard {
     }
 
     // PRIVATE
-    getDimensionAjaxOptions(dataSourceName, dimensionName) {
-        const filters = [{
-            dimension: 'appName',
-            matcher: {
-                type: 'equal',
-                pattern: this._appName
-            }
-        }];
-//                for(var p = 0; p < dimensionIndex; p++) {
-//                    var dim = dataSource.dimensions[p];
-//                    filters.push({
-//                        type: '==',
-//                        dimension: dim.name,
-//                        expected: {
-//                            value: gEditingConditions[rowId].dimensions[dim.name].expected.value
-//                        }
-//                    });
-//                }
-
+    getDimensionAjaxOptions(dataSourceName, dimensionIndex, dimensionName) {
         return {
             cache: true,
             type: 'POST',
             url: apiHost + '/api/datasource/dimensions',
             data: () => {
-                var interval = this._intervalFn.apply();
+                const filters = [];
+
+               for(let p = 0; p < dimensionIndex; p++) {
+                   const dim = this._schema.dimensionsSpec[p];
+                   if ( !dim.visible ) {
+                       continue;
+                   }
+                   if ( this._selectedDimensions[dim.name] != null ) {
+                       filters.push(this._selectedDimensions[dim.name]);
+                   }
+               }
+
+                const interval = this._intervalFn.apply();
                 return JSON.stringify({
                     dataSource: dataSourceName,
                     dimension: dimensionName,
@@ -326,7 +314,7 @@ class Dashboard {
      * }
      */
     addDimension(dimensionName, dimensionValue) {
-        this._dimensions[dimensionName] = {
+        this._selectedDimensions[dimensionName] = {
             dimension: dimensionName,
             matcher: {
                 type: 'equal',
@@ -337,7 +325,7 @@ class Dashboard {
     }
 
     rmvDimension(dimensionName) {
-        delete this._dimensions[dimensionName];
+        delete this._selectedDimensions[dimensionName];
         this.refreshDashboard();
     }
 
@@ -352,7 +340,7 @@ class Dashboard {
                 dataSource: chartDescriptor.dataSource,
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                dimensions: this._dimensions,
+                dimensions: this._selectedDimensions,
                 metrics: chartComponent.getOption().metrics,
             }),
             processResult: (data) => {
@@ -403,7 +391,7 @@ class Dashboard {
                 const yAxis = chartDescriptor.yAxis[yIndex];
                 if (yAxis.unit === 'millisecond' && schema.metricsSpec[metricName].unit === 'nanosecond') {
                     return function (data, metricName) {
-                        var val = data[metricName];
+                        const val = data[metricName];
                         return val == null ? 0 : (val / 1000 / 1000).toFixed(2);
                     }
                 }
