@@ -165,9 +165,6 @@ class Dashboard {
 
                for(let p = 0; p < dimensionIndex; p++) {
                    const dim = this._schema.dimensionsSpec[p];
-                   if ( !dim.visible ) {
-                       continue;
-                   }
                    if ( this._selectedDimensions[dim.name] != null ) {
                        filters.push(this._selectedDimensions[dim.name]);
                    }
