@@ -4,6 +4,10 @@ Bithon is a word combining binocular together with python.
 
 It targets application metrics, logging, distributed tracing, alert and application risk governance under micro-service environment.
 
+# Demon
+
+A preview demo is hosted [here](https://www.bithon.cn:9897/ui/home).
+
 # Build
 
 ## 1. install dependencies
@@ -64,7 +68,7 @@ By default, the agent connects collector running at local(127.0.0.1).
 Collector address could be changed in file `agent/agent-bootstrap/src/main/resources/agent.yml`.
 Make sure to re-build the project after changing the configuration file above.
 
-# Development
+# Contribution
 
 To develop for this project, intellij is recommended. 
 
@@ -72,6 +76,6 @@ A code style template file(`dev/bithon_intellij_code_style`) must be imported in
 
 For more information, check [Here](dev/README.md).
 
-### License
+# License
 
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
