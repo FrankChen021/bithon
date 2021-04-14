@@ -582,7 +582,7 @@ class MetricJdbcReader implements IMetricReader {
                 if (nestedClause.length() > 0) {
                     nestedClause.append(",");
                 }
-                int interval = (int) this.variables.get("interval");
+                int interval = ((Number) this.variables.get("interval")).intValue();
                 nestedClause.append(String.format(
                     "FIRST_VALUE(\"%s\") OVER (partition by UNIX_TIMESTAMP(\"timestamp\")/%d*%d ORDER BY \"timestamp\" DESC) \"%s\"",
                     metricName,
