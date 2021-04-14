@@ -74,34 +74,9 @@ class MetricJdbcReader implements IMetricReader {
                                                 Collection<DimensionCondition> filters,
                                                 Collection<String> metrics,
                                                 int interval) {
-        String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
-        MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
-                                                                                      "OUTER",
-                                                                                      dataSourceSchema,
-                                                                                      ImmutableMap.of("interval",
-                                                                                                      interval));
-
-        String groupByExpression = String.format("UNIX_TIMESTAMP(\"timestamp\") / %d * %d", interval, interval);
-        String metricList = metrics.stream()
-                                   .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
-                                   .collect(Collectors.joining(", "));
-
-        String condition = filters.stream()
-                                  .map(dimension -> dimension.getMatcher()
-                                                             .accept(new SqlConditionBuilder(dimension.getDimension())))
-                                  .collect(Collectors.joining(" AND "));
-        String sql = String.format(
-            "SELECT %s \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY %s",
-            groupByExpression,
-            metricList,
-            sqlTableName,
-            "OUTER",
-            condition,
-            start.toISO8601(),
-            end.toISO8601(),
-            "\"timestamp\""
-        );
-
+        String sql = new SQLClauseBuilder(start, end, dataSourceSchema, interval).filters(filters)
+                                                                                 .metrics(metrics)
+                                                                                 .build();
         List<Map<String, Object>> queryResult = executeSql(sql);
 
         //
@@ -137,33 +112,16 @@ class MetricJdbcReader implements IMetricReader {
     public Map<String, Object> getMetricValue(TimeSpan start,
                                               TimeSpan end,
                                               DataSourceSchema dataSourceSchema,
-                                              Collection<DimensionCondition> dimensions,
+                                              Collection<DimensionCondition> filters,
                                               Collection<String> metrics) {
-        String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
-        MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
-                                                                                      "OUTER",
-                                                                                      dataSourceSchema,
-                                                                                      ImmutableMap.of("interval",
-                                                                                                      (end.getMilliseconds()
-                                                                                                       - start.getMilliseconds())
-                                                                                                      / 1000));
-        String metricList = metrics.stream()
-                                   .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
-                                   .collect(Collectors.joining(", "));
+        String sql = new SQLClauseBuilder(start,
+                                          end,
+                                          dataSourceSchema,
+                                          (end.getMilliseconds() - start.getMilliseconds()) / 1000).filters(filters)
+                                                                                                   .metrics(metrics)
+                                                                                                   .build();
+        List<Map<String, Object>> queryResult = executeSql(sql);
 
-        String condition = dimensions.stream()
-                                     .map(dimension -> dimension.getMatcher()
-                                                                .accept(new SqlConditionBuilder(dimension.getDimension())))
-                                     .collect(Collectors.joining(" AND "));
-        String sql = String.format(
-            "SELECT %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s'",
-            metricList,
-            sqlTableName,
-            "OUTER",
-            condition,
-            start.toISO8601(),
-            end.toISO8601()
-        );
         List<Map<String, Object>> values = executeSql(sql);
         return CollectionUtils.isEmpty(values) ? Collections.emptyMap() : values.get(0);
     }
@@ -465,6 +423,242 @@ class MetricJdbcReader implements IMetricReader {
                 sb.append('"');
             }
             return sb.toString();
+        }
+    }
+
+    static class SQLClauseBuilder {
+        private final StringBuilder metricClause = new StringBuilder();
+        private final StringBuilder nestedClause = new StringBuilder();
+        private final String tableName;
+        private DataSourceSchema schema;
+        private final long interval;
+        private String filters;
+        private final TimeSpan start;
+        private final TimeSpan end;
+
+        static class MetricClauseBuilder implements IMetricSpecVisitor<String> {
+            private final StringBuilder metricClause;
+            private final StringBuilder nestedClause;
+            private final String sqlTableName;
+            private final String tableAlias;
+            private final DataSourceSchema dataSource;
+            private final boolean addAlias;
+            private final Map<String, Object> variables;
+            private boolean hasLast;
+
+            public MetricClauseBuilder(String sqlTableName,
+                                       String tableAlias,
+                                       DataSourceSchema dataSource,
+                                       Map<String, Object> variables,
+                                       boolean addAlias,
+                                       StringBuilder metricClause,
+                                       StringBuilder nestedClause) {
+                this.sqlTableName = sqlTableName;
+                this.tableAlias = tableAlias;
+                this.dataSource = dataSource;
+                this.variables = variables;
+                this.addAlias = addAlias;
+                this.metricClause = metricClause;
+                this.nestedClause = nestedClause;
+            }
+
+            @Override
+            public String visit(LongSumMetricSpec metricSpec) {
+                visit(metricSpec, "sum");
+                return null;
+            }
+
+            @Override
+            public String visit(DoubleSumMetricSpec metricSpec) {
+                visit(metricSpec, "sum");
+                return null;
+            }
+
+            @Override
+            public String visit(PostAggregatorMetricSpec metricSpec) {
+                StringBuilder sb = new StringBuilder();
+                metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
+                    @Override
+                    public void visitMetric(IMetricSpec metricSpec) {
+                        metricSpec.accept(new MetricClauseBuilder(null,
+                                                                  null,
+                                                                  dataSource,
+                                                                  variables,
+                                                                  false,
+                                                                  sb,
+                                                                  null));
+                    }
+
+                    @Override
+                    public void visitNumber(String number) {
+                        sb.append(number);
+                    }
+
+                    @Override
+                    public void visitorOperator(String operator) {
+                        sb.append(operator);
+                    }
+
+                    @Override
+                    public void startBrace() {
+                        sb.append('(');
+                    }
+
+                    @Override
+                    public void endBrace() {
+                        sb.append(')');
+                    }
+
+                    @Override
+                    public void visitVariable(String variable) {
+                        Object variableValue = variables.get(variable);
+                        if (variableValue == null) {
+                            throw new RuntimeException(String.format("variable (%s) not provided in context",
+                                                                     variable));
+                        }
+                        sb.append(variableValue);
+                    }
+                });
+                sb.append(String.format(" \"%s\"", metricSpec.getName()));
+                return sb.toString();
+            }
+
+            @Override
+            public String visit(CountMetricSpec metricSpec) {
+                visit(metricSpec, "sum");
+                return null;
+            }
+
+            /**
+             * Since FIRST/LAST aggregators are not supported in many SQL databases,
+             * A embedded query is created to simulate FIRST/LAST
+             */
+            @Override
+            public String visit(LongLastMetricSpec metricSpec) {
+                return visitLast(metricSpec.getName());
+            }
+
+            @Override
+            public String visit(DoubleLastMetricSpec metricSpec) {
+                return visitLast(metricSpec.getName());
+            }
+
+            @Override
+            public String visit(LongMinMetricSpec metricSpec) {
+                visit(metricSpec, "min");
+                return null;
+            }
+
+            @Override
+            public String visit(LongMaxMetricSpec metricSpec) {
+                visit(metricSpec, "max");
+                return null;
+            }
+
+            private void visit(IMetricSpec metricSpec, String aggregator) {
+                if (metricClause.length() > 0) {
+                    metricClause.append(",");
+                }
+                metricClause.append(String.format("%s(\"%s\")", aggregator, metricSpec.getName()));
+                if (addAlias) {
+                    metricClause.append(String.format(" \"%s\"", metricSpec.getName()));
+                }
+
+                if (nestedClause != null) {
+                    if (nestedClause.length() > 0) {
+                        nestedClause.append(",");
+                    }
+                    nestedClause.append(String.format(" \"%s\"", metricSpec.getName()));
+                }
+            }
+
+            private String visitLast(String metricName) {
+                this.hasLast = true;
+                if (metricClause.length() > 0) {
+                    metricClause.append(",");
+                }
+                metricClause.append(String.format(" \"%s\"", metricName));
+
+                if (nestedClause.length() > 0) {
+                    nestedClause.append(",");
+                }
+                int interval = (int) this.variables.get("interval");
+                nestedClause.append(String.format(
+                    "FIRST_VALUE(\"%s\") OVER (partition by UNIX_TIMESTAMP(\"timestamp\")/%d*%d ORDER BY \"timestamp\" DESC) \"%s\"",
+                    metricName,
+                    interval,
+                    interval,
+                    metricName));
+                return null;
+            }
+        }
+
+        SQLClauseBuilder(TimeSpan start,
+                         TimeSpan end,
+                         DataSourceSchema dataSourceSchema,
+                         long interval) {
+            tableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
+            this.start = start;
+            this.end = end;
+            this.schema = dataSourceSchema;
+            this.interval = interval;
+        }
+
+        SQLClauseBuilder metrics(Collection<String> metrics) {
+            MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(tableName,
+                                                                              "OUTER",
+                                                                              schema,
+                                                                              ImmutableMap.of("interval", interval),
+                                                                              true,
+                                                                              metricClause,
+                                                                              nestedClause);
+            for (String metric : metrics) {
+                schema.getMetricSpecByName(metric).accept(metricFieldsBuilder);
+            }
+            if (!metricFieldsBuilder.hasLast) {
+                this.nestedClause.delete(0, this.nestedClause.length());
+            }
+            return this;
+        }
+
+        SQLClauseBuilder filters(Collection<DimensionCondition> filters) {
+            this.filters = filters.stream()
+                                  .map(dimension -> dimension.getMatcher()
+                                                             .accept(new SqlConditionBuilder(dimension.getDimension())))
+                                  .collect(Collectors.joining(" AND "));
+            return this;
+        }
+
+        String build() {
+            if (nestedClause.length() == 0) {
+                String groupByExpression = String.format("UNIX_TIMESTAMP(\"timestamp\") / %d * %d", interval, interval);
+                return String.format(
+                    "SELECT %s \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY %s",
+                    groupByExpression,
+                    metricClause.toString(),
+                    tableName,
+                    "OUTER",
+                    this.filters,
+                    start.toISO8601(),
+                    end.toISO8601(),
+                    groupByExpression
+                );
+            } else {
+                String groupByExpression = String.format("UNIX_TIMESTAMP(\"timestamp\") / %d * %d", interval, interval);
+                return String.format(
+                    "SELECT \"timestamp\", %s FROM "
+                    + "("
+                    + "     SELECT %s, %s \"timestamp\" FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s'"
+                    + ")GROUP BY \"timestamp\"",
+                    metricClause.toString(),
+                    nestedClause.toString(),
+                    groupByExpression,
+                    tableName,
+                    this.filters,
+                    start.toISO8601(),
+                    end.toISO8601()
+                );
+            }
         }
     }
 }
