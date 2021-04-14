@@ -14,7 +14,7 @@ class AutoRefresher {
             '           <span></span>' +
             '       </button>' +
             '       <div class="dropdown-menu" aria-labelledby="autoRefresh">' +
-            '           <a class="dropdown-item" data-text="(DISABLED)" href="#">Disable</a>' +
+            '           <a class="dropdown-item" data-text="Off" href="#">Off</a>' +
             '           <a class="dropdown-item" data-text="10" href="#">10s</a>' +
             '           <a class="dropdown-item" data-text="30" href="#">30s</a>' +
             '           <a class="dropdown-item" data-text="60" href="#">60s</a>' +
@@ -25,7 +25,7 @@ class AutoRefresher {
         this._control.find('a').click((clickEvent) => {
             // click auto refresh items
             const text = $(clickEvent.target).attr('data-text');
-            if (text !== '(DISABLED)') {
+            if (text !== 'Off') {
                 $(this._countDownText).text(text);
 
                 // restart timer
