@@ -429,7 +429,7 @@ class MetricJdbcReader implements IMetricReader {
         }
     }
 
-    static abstract class MetricSpecVisitor implements IMetricSpecVisitor<Void> {
+    abstract static class MetricSpecVisitor implements IMetricSpecVisitor<Void> {
         @Override
         public Void visit(LongSumMetricSpec metricSpec) {
             visit(metricSpec, "sum");
