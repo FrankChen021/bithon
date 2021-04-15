@@ -17,17 +17,7 @@
 package com.sbss.bithon.server.collector.kafka;
 
 import com.sbss.bithon.server.event.handler.EventsMessageHandler;
-import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.AbstractMetricMessageHandler;
 import com.sbss.bithon.server.tracing.handler.TraceMessageHandler;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -64,21 +54,13 @@ public class KafkaCollectorStarter implements SmartLifecycle, ApplicationContext
         Map<String, Object> consumerProps = config.getConsumer();
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        collectors.add(new KafkaMetricCollector(context.getBean(JvmMetricMessageHandler.class),
-                                                context.getBean(JvmGcMetricMessageHandler.class),
-                                                context.getBean(WebRequestMetricMessageHandler.class),
-                                                context.getBean(WebServerMetricMessageHandler.class),
-                                                context.getBean(ExceptionMetricMessageHandler.class),
-                                                context.getBean(HttpClientMetricMessageHandler.class),
-                                                context.getBean(ThreadPoolMetricMessageHandler.class),
-                                                context.getBean(JdbcPoolMetricMessageHandler.class),
-                                                context.getBean(RedisMetricMessageHandler.class),
-                                                context.getBean(SqlMetricMessageHandler.class),
-                                                context.getBean(MongoDbMetricMessageHandler.class))
-                           .start(consumerProps));
 
         collectors.add(new KafkaTraceCollector(context.getBean(TraceMessageHandler.class)).start(consumerProps));
         collectors.add(new KafkaEventCollector(context.getBean(EventsMessageHandler.class)).start(consumerProps));
+
+        context.getBeansOfType(AbstractMetricMessageHandler.class).values().forEach(metricHandler -> {
+            collectors.add(new KafkaMetricCollector(metricHandler).start(consumerProps));
+        });
     }
 
     @Override

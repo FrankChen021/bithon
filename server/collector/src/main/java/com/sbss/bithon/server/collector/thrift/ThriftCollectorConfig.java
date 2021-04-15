@@ -101,7 +101,6 @@ public class ThriftCollectorConfig {
                                                            ImmutableMap.of("client.id", "metric")),
                                        om);
         }
-
     }
 
     @Bean("eventSink")

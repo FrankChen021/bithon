@@ -38,8 +38,8 @@ public class KafkaEventCollector extends AbstractKafkaCollector<EventMessage> {
     }
 
     @Override
-    protected String[] getTopics() {
-        return new String[]{"event"};
+    protected String getTopic() {
+        return "event";
     }
 
     @Override

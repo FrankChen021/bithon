@@ -47,7 +47,7 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector {
 
     protected abstract String getGroupId();
 
-    protected abstract String[] getTopics();
+    protected abstract String getTopic();
 
     protected abstract void onMessage(String topic, MSG msg);
 
@@ -62,7 +62,7 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector {
     @Override
     public IKafkaCollector start(Map<String, Object> consumerProps) {
 
-        ContainerProperties containerProperties = new ContainerProperties(getTopics());
+        ContainerProperties containerProperties = new ContainerProperties(getTopic());
         containerProperties.setAckMode(ContainerProperties.AckMode.TIME);
         containerProperties.setAckTime(5000);
         containerProperties.setPollTimeout(1000);

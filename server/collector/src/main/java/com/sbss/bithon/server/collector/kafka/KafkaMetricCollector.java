@@ -17,20 +17,9 @@
 package com.sbss.bithon.server.collector.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sbss.bithon.server.collector.sink.local.LocalMetricSink;
 import com.sbss.bithon.server.common.utils.collection.SizedIterator;
-import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.AbstractMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
-import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
 
 /**
  * Kafka collector that is connecting to {@link com.sbss.bithon.server.collector.sink.kafka.KafkaMetricSink}
@@ -40,41 +29,21 @@ import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
  */
 public class KafkaMetricCollector extends AbstractKafkaCollector<SizedIterator<GenericMetricMessage>> {
 
-    private final LocalMetricSink localSink;
+    private final AbstractMetricMessageHandler messageHandler;
 
-    public KafkaMetricCollector(JvmMetricMessageHandler jvmMetricMessageHandler,
-                                JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
-                                WebRequestMetricMessageHandler webRequestMetricMessageHandler,
-                                WebServerMetricMessageHandler webServerMetricMessageHandler,
-                                ExceptionMetricMessageHandler exceptionMetricMessageHandler,
-                                HttpClientMetricMessageHandler httpClientMetricMessageHandler,
-                                ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
-                                JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
-                                RedisMetricMessageHandler redisMetricMessageHandler,
-                                SqlMetricMessageHandler sqlMetricMessageHandler,
-                                MongoDbMetricMessageHandler mongoDbMetricMessageHandler) {
+    public KafkaMetricCollector(AbstractMetricMessageHandler messageHandler) {
         super(null);
-        localSink = new LocalMetricSink(jvmMetricMessageHandler,
-                                        jvmGcMetricMessageHandler,
-                                        webRequestMetricMessageHandler,
-                                        webServerMetricMessageHandler,
-                                        exceptionMetricMessageHandler,
-                                        httpClientMetricMessageHandler,
-                                        threadPoolMetricMessageHandler,
-                                        jdbcPoolMetricMessageHandler,
-                                        redisMetricMessageHandler,
-                                        sqlMetricMessageHandler,
-                                        mongoDbMetricMessageHandler);
+        this.messageHandler = messageHandler;
     }
 
     @Override
     protected String getGroupId() {
-        return "bithon-collector-metric";
+        return "bithon-collector-consumer-" + this.messageHandler.getType();
     }
 
     @Override
-    protected String[] getTopics() {
-        return this.localSink.getHandlers().keySet().toArray(new String[0]);
+    protected String getTopic() {
+        return this.messageHandler.getType();
     }
 
     @Override
@@ -82,7 +51,7 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<SizedIterator<G
         try {
             GenericMetricMessage[] messages = objectMapper.readValue(rawMessage, GenericMetricMessage[].class);
 
-            localSink.process(topic, new SizedIterator<GenericMetricMessage>() {
+            messageHandler.submit(new SizedIterator<GenericMetricMessage>() {
                 int index = 0;
 
                 @Override

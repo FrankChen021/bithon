@@ -41,8 +41,8 @@ public class KafkaTraceCollector extends AbstractKafkaCollector<TraceMessage> {
     }
 
     @Override
-    protected String[] getTopics() {
-        return new String[]{"trace"};
+    protected String getTopic() {
+        return "trace";
     }
 
     @Override
