@@ -28,7 +28,6 @@ import com.sbss.bithon.server.metric.filter.IFilter;
 import com.sbss.bithon.server.metric.flatten.IFlattener;
 import lombok.Getter;
 
-
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;

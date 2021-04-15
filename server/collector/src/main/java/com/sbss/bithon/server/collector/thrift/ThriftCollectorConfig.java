@@ -25,7 +25,7 @@ import com.sbss.bithon.server.collector.sink.kafka.KafkaTraceSink;
 import com.sbss.bithon.server.collector.sink.local.LocalEventSink;
 import com.sbss.bithon.server.collector.sink.local.LocalMetricSink;
 import com.sbss.bithon.server.collector.sink.local.LocalTraceSink;
-import com.sbss.bithon.server.common.utils.collection.SizedIterator;
+import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.event.handler.EventsMessageHandler;
 import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
@@ -68,19 +68,19 @@ public class ThriftCollectorConfig {
     }
 
     @Bean("metricSink")
-    public IMessageSink<SizedIterator<GenericMetricMessage>> metricSink(ThriftCollectorConfig config,
-                                                                        ObjectMapper om,
-                                                                        JvmMetricMessageHandler jvmMetricMessageHandler,
-                                                                        JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
-                                                                        WebRequestMetricMessageHandler webRequestMetricMessageHandler,
-                                                                        WebServerMetricMessageHandler webServerMetricMessageHandler,
-                                                                        ExceptionMetricMessageHandler exceptionMetricMessageHandler,
-                                                                        HttpClientMetricMessageHandler httpClientMetricMessageHandler,
-                                                                        ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
-                                                                        JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
-                                                                        RedisMetricMessageHandler redisMetricMessageHandler,
-                                                                        SqlMetricMessageHandler sqlMetricMessageHandler,
-                                                                        MongoDbMetricMessageHandler mongoDbMetricMessageHandler) {
+    public IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink(ThriftCollectorConfig config,
+                                                                            ObjectMapper om,
+                                                                            JvmMetricMessageHandler jvmMetricMessageHandler,
+                                                                            JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
+                                                                            WebRequestMetricMessageHandler webRequestMetricMessageHandler,
+                                                                            WebServerMetricMessageHandler webServerMetricMessageHandler,
+                                                                            ExceptionMetricMessageHandler exceptionMetricMessageHandler,
+                                                                            HttpClientMetricMessageHandler httpClientMetricMessageHandler,
+                                                                            ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
+                                                                            JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
+                                                                            RedisMetricMessageHandler redisMetricMessageHandler,
+                                                                            SqlMetricMessageHandler sqlMetricMessageHandler,
+                                                                            MongoDbMetricMessageHandler mongoDbMetricMessageHandler) {
         if ("local".equals(config.getSink().getType())) {
             return new LocalMetricSink(jvmMetricMessageHandler,
                                        jvmGcMetricMessageHandler,

@@ -24,20 +24,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.listener.BatchMessageListener;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.MessageListener;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector {
+public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, MessageListener<String, String> {
     ConcurrentMessageListenerContainer<String, String> consumerContainer;
 
     protected final ObjectMapper objectMapper;
@@ -54,52 +52,36 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector {
 
     protected abstract String getTopic();
 
-    protected abstract void onMessage(String topic, CloseableIterator<MSG> msg);
+    protected abstract void onMessage(CloseableIterator<MSG> msg);
 
-    protected void onMessage(List<ConsumerRecord<String, String>> records) {
-        final Iterator<ConsumerRecord<String, String>> recordIterator = records.iterator();
-        CloseableIterator<ConsumerRecord<String, String>> iterator = new CloseableIterator<ConsumerRecord<String, String>>() {
-            @Override
-            public void close() {
-            }
+    @Override
+    public final void onMessage(ConsumerRecord<String, String> record) {
+        CloseableIterator<MSG> metricIterator;
+        try (JsonParser parser = new JsonFactory().createParser(record.value())) {
+            final MappingIterator<MSG> delegate = objectMapper.readValues(parser, clazz);
+            metricIterator = new CloseableIterator<MSG>() {
+                @Override
+                public boolean hasNext() {
+                    return delegate.hasNext();
+                }
 
-            @Override
-            public boolean hasNext() {
-                return recordIterator.hasNext();
-            }
+                @Override
+                public MSG next() {
+                    return delegate.next();
+                }
 
-            @Override
-            public ConsumerRecord<String, String> next() {
-                return recordIterator.next();
-            }
-        };
-        CloseableIterator<MSG> i = iterator.flatMap((ConsumerRecord<String, String> record) -> {
-            try (JsonParser parser = new JsonFactory().createParser(record.value())) {
-                final MappingIterator<MSG> delegate = objectMapper.readValues(parser, clazz);
-                return new CloseableIterator<MSG>() {
-                    @Override
-                    public boolean hasNext() {
-                        return delegate.hasNext();
-                    }
+                @Override
+                public void close() throws IOException {
+                    delegate.close();
+                }
+            };
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("Can't parse text into %s.\n%s",
+                                                     clazz.getSimpleName(),
+                                                     record.value()));
+        }
 
-                    @Override
-                    public MSG next() {
-                        return delegate.next();
-                    }
-
-                    @Override
-                    public void close() throws IOException {
-                        delegate.close();
-                    }
-                };
-            } catch (IOException e) {
-                throw new RuntimeException(String.format("Can't parse text into %s.\n%s",
-                                                         clazz.getSimpleName(),
-                                                         record.value()));
-            }
-        });
-
-        onMessage(getTopic(), i);
+        onMessage(metricIterator);
     }
 
     @Override
@@ -113,12 +95,7 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector {
         containerProperties.setClientId(getGroupId());
         consumerContainer = new ConcurrentMessageListenerContainer<>(new DefaultKafkaConsumerFactory<>(consumerProps),
                                                                      containerProperties);
-        consumerContainer.setupMessageListener(new BatchMessageListener<String, String>() {
-            @Override
-            public void onMessage(List<ConsumerRecord<String, String>> records) {
-                AbstractKafkaCollector.this.onMessage(records);
-            }
-        });
+        consumerContainer.setupMessageListener(this);
         consumerContainer.start();
 
         return this;

@@ -20,8 +20,10 @@ import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.ITraceCollector;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
+import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.tracing.handler.TraceSpan;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -32,14 +34,18 @@ import java.util.List;
 @Slf4j
 public class ThriftTraceCollector implements ITraceCollector.Iface {
 
-    private final IMessageSink<List<TraceSpan>> traceSink;
+    private final IMessageSink<CloseableIterator<TraceSpan>> traceSink;
 
-    public ThriftTraceCollector(IMessageSink<List<TraceSpan>> traceSink) {
+    public ThriftTraceCollector(IMessageSink<CloseableIterator<TraceSpan>> traceSink) {
         this.traceSink = traceSink;
     }
 
     @Override
     public void sendTrace(MessageHeader header, List<TraceSpanMessage> spans) {
+        if (CollectionUtils.isEmpty(spans)) {
+            return;
+        }
+
         log.info("Receiving trace message:{}", spans);
         traceSink.process("trace", TraceSpan.from(header, spans));
     }

@@ -19,7 +19,7 @@ package com.sbss.bithon.server.collector.sink.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
-import com.sbss.bithon.server.common.utils.collection.SizedIterator;
+import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 import org.springframework.kafka.core.KafkaTemplate;
 
@@ -30,7 +30,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class KafkaMetricSink implements IMessageSink<SizedIterator<GenericMetricMessage>> {
+public class KafkaMetricSink implements IMessageSink<CloseableIterator<GenericMetricMessage>> {
 
     private final KafkaTemplate<String, String> producer;
     private final ObjectMapper objectMapper;
@@ -41,18 +41,33 @@ public class KafkaMetricSink implements IMessageSink<SizedIterator<GenericMetric
     }
 
     @Override
-    public void process(String messageType, SizedIterator<GenericMetricMessage> messages) {
-        try {
-            List<GenericMetricMessage> metricMessage = new ArrayList<>();
-            while (messages.hasNext()) {
-                metricMessage.add(messages.next());
-            }
-            producer.send(messageType,
-                          metricMessage.get(0).getInstanceName(),
-                          objectMapper.writeValueAsString(metricMessage));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            //TODO: log here
+    public void process(String messageType, CloseableIterator<GenericMetricMessage> messages) {
+        if (!messages.hasNext()) {
+            return;
         }
+
+        //
+        // a batch message in written into a single kafka message in which each text line is a single metric message
+        //
+        // of course we could also send messages in this batch one by one to Kafka,
+        // but I don't think it has advantages over the way below
+        //
+        StringBuilder messageText = new StringBuilder();
+        List<GenericMetricMessage> metricMessage = new ArrayList<>();
+        while (messages.hasNext()) {
+            try {
+                messageText.append(objectMapper.writeValueAsString(messages.next()));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+
+            //it's not necessary, only used to improve readability of text when debugging
+            messageText.append('\n');
+        }
+
+        producer.send(messageType,
+                      // Sink receives messages from an agent, it's safe to use instance name of first item
+                      metricMessage.get(0).getInstanceName(),
+                      messageText.toString());
     }
 }

@@ -16,8 +16,7 @@
 
 package com.sbss.bithon.server.collector.kafka;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sbss.bithon.server.common.utils.collection.SizedIterator;
+import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.handler.AbstractMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 
@@ -27,7 +26,7 @@ import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaMetricCollector extends AbstractKafkaCollector<SizedIterator<GenericMetricMessage>> {
+public class KafkaMetricCollector extends AbstractKafkaCollector<GenericMetricMessage> {
 
     private final AbstractMetricMessageHandler messageHandler;
 
@@ -38,7 +37,7 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<SizedIterator<G
 
     @Override
     protected String getGroupId() {
-        return "bithon-collector-consumer-" + this.messageHandler.getType();
+        return "bithon-metric-consumer-" + this.messageHandler.getType();
     }
 
     @Override
@@ -47,38 +46,7 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<SizedIterator<G
     }
 
     @Override
-    protected void onMessage(String topic, String rawMessage) {
-        try {
-            GenericMetricMessage[] messages = objectMapper.readValue(rawMessage, GenericMetricMessage[].class);
-
-            messageHandler.submit(new SizedIterator<GenericMetricMessage>() {
-                int index = 0;
-
-                @Override
-                public int size() {
-                    return messages.length;
-                }
-
-                @Override
-                public void close() {
-                }
-
-                @Override
-                public boolean hasNext() {
-                    return index < messages.length;
-                }
-
-                @Override
-                public GenericMetricMessage next() {
-                    return messages[index++];
-                }
-            });
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    protected void onMessage(String topic, SizedIterator<GenericMetricMessage> metric) {
+    protected void onMessage(CloseableIterator<GenericMetricMessage> msg) {
+        messageHandler.submit(msg);
     }
 }

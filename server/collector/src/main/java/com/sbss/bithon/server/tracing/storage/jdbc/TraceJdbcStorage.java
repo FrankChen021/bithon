@@ -101,8 +101,8 @@ public class TraceJdbcStorage implements ITraceStorage {
         @Override
         public int getTraceListSize(String applicationName) {
             return dslContext.fetchCount(dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                             .where(Tables.BITHON_TRACE_SPAN.APP_NAME.eq(applicationName))
-                             .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq("")));
+                                                   .where(Tables.BITHON_TRACE_SPAN.APP_NAME.eq(applicationName))
+                                                   .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq("")));
         }
 
         @Override

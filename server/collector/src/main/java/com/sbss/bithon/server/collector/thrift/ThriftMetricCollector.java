@@ -30,7 +30,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricM
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
-import com.sbss.bithon.server.common.utils.collection.SizedIterator;
+import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
@@ -45,9 +45,9 @@ import java.util.List;
 @Slf4j
 public class ThriftMetricCollector implements IMetricCollector.Iface {
 
-    private final IMessageSink<SizedIterator<GenericMetricMessage>> metricSink;
+    private final IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink;
 
-    public ThriftMetricCollector(IMessageSink<SizedIterator<GenericMetricMessage>> metricSink) {
+    public ThriftMetricCollector(IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink) {
         this.metricSink = metricSink;
     }
 
@@ -66,9 +66,8 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        final int size = messages.size();
         final Iterator<JvmMetricMessage> iterator = messages.iterator();
-        metricSink.process("jvm-metrics", new SizedIterator<GenericMetricMessage>() {
+        metricSink.process("jvm-metrics", new CloseableIterator<GenericMetricMessage>() {
             @Override
             public boolean hasNext() {
                 return iterator.hasNext();
@@ -81,11 +80,6 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
 
             @Override
             public void close() {
-            }
-
-            @Override
-            public int size() {
-                return size;
             }
         });
     }
@@ -171,20 +165,13 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
         metricSink.process("mongo-metrics", new GenericMetricMessageSizedIterator(header, messages));
     }
 
-    private static class GenericMetricMessageSizedIterator implements SizedIterator<GenericMetricMessage> {
-        private final int size;
+    private static class GenericMetricMessageSizedIterator implements CloseableIterator<GenericMetricMessage> {
         private final Iterator<?> iterator;
         private final MessageHeader header;
 
         public GenericMetricMessageSizedIterator(MessageHeader header, List<?> messages) {
             this.header = header;
-            this.size = messages.size();
             this.iterator = messages.iterator();
-        }
-
-        @Override
-        public int size() {
-            return size;
         }
 
         @Override
