@@ -139,7 +139,7 @@ class Dashboard {
             theme: 'bootstrap4',
             allowClear: true,
             dropdownAutoWidth: true,
-            placeholder: displayText
+            placeholder: displayText,
             ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionIndex, dimensionName)
         }).on('change', (event) => {
             if (event.target.selectedIndex == null || event.target.selectedIndex < 0) {
