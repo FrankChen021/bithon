@@ -16,26 +16,32 @@
 
 package com.sbss.bithon.agent.core.metric.domain.jvm;
 
-/**
- * @author frank.chen021@outlook.com
- * @date 2020/12/29 9:52 下午
- */
-public class HeapCompositeMetric {
-    /**
-     * approximate to -Xmx
-     */
-    public long heapBytes;
-    /**
-     * approximate to -Xms
-     */
-    public long heapInitBytes;
-    public long heapUsedBytes;
-    public long heapAvailableBytes;
+import java.lang.management.MemoryUsage;
 
-    public HeapCompositeMetric(long heapBytes, long heapInitBytes, long heapUsedBytes, long heapAvailableBytes) {
-        this.heapBytes = heapBytes;
-        this.heapInitBytes = heapInitBytes;
-        this.heapUsedBytes = heapUsedBytes;
-        this.heapAvailableBytes = heapAvailableBytes;
+/**
+ * @author: frank.chen021@outlook.com
+ * @date: 2020/12/29 9:54 下午
+ */
+public class MemoryRegionCompositeMetric {
+
+    // approximate to -XX:MaxPermSize
+    public long max = -1;
+
+    // approximate to -XX:PermSize
+    public long init = -1;
+
+    public long used = -1;
+
+    // available memory including used
+    public long committed = -1;
+
+    public MemoryRegionCompositeMetric() {
+    }
+
+    public MemoryRegionCompositeMetric(MemoryUsage usage) {
+        this.max = usage.getMax();
+        this.init = usage.getInit();
+        this.used = usage.getUsed();
+        this.committed = usage.getCommitted();
     }
 }

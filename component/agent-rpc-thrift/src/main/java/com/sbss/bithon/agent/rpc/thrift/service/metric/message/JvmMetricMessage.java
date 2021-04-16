@@ -15,41 +15,95 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
 
   private static final org.apache.thrift.protocol.TField TIMESTAMP_FIELD_DESC = new org.apache.thrift.protocol.TField("timestamp", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField INTERVAL_FIELD_DESC = new org.apache.thrift.protocol.TField("interval", org.apache.thrift.protocol.TType.I32, (short)2);
-  private static final org.apache.thrift.protocol.TField INSTANCE_TIME_ENTITY_FIELD_DESC = new org.apache.thrift.protocol.TField("instanceTimeEntity", org.apache.thrift.protocol.TType.STRUCT, (short)7);
-  private static final org.apache.thrift.protocol.TField CPU_ENTITY_FIELD_DESC = new org.apache.thrift.protocol.TField("cpuEntity", org.apache.thrift.protocol.TType.STRUCT, (short)8);
-  private static final org.apache.thrift.protocol.TField MEMORY_ENTITY_FIELD_DESC = new org.apache.thrift.protocol.TField("memoryEntity", org.apache.thrift.protocol.TType.STRUCT, (short)9);
-  private static final org.apache.thrift.protocol.TField HEAP_ENTITY_FIELD_DESC = new org.apache.thrift.protocol.TField("heapEntity", org.apache.thrift.protocol.TType.STRUCT, (short)10);
-  private static final org.apache.thrift.protocol.TField NON_HEAP_ENTITY_FIELD_DESC = new org.apache.thrift.protocol.TField("nonHeapEntity", org.apache.thrift.protocol.TType.STRUCT, (short)11);
-  private static final org.apache.thrift.protocol.TField THREAD_ENTITY_FIELD_DESC = new org.apache.thrift.protocol.TField("threadEntity", org.apache.thrift.protocol.TType.STRUCT, (short)12);
-  private static final org.apache.thrift.protocol.TField CLASSES_ENTITY_FIELD_DESC = new org.apache.thrift.protocol.TField("classesEntity", org.apache.thrift.protocol.TType.STRUCT, (short)13);
-  private static final org.apache.thrift.protocol.TField METASPACE_ENTITY_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceEntity", org.apache.thrift.protocol.TType.STRUCT, (short)14);
+  private static final org.apache.thrift.protocol.TField INSTANCE_UP_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("instanceUpTime", org.apache.thrift.protocol.TType.I64, (short)3);
+  private static final org.apache.thrift.protocol.TField INSTANCE_START_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("instanceStartTime", org.apache.thrift.protocol.TType.I64, (short)4);
+  private static final org.apache.thrift.protocol.TField PROCESSORS_FIELD_DESC = new org.apache.thrift.protocol.TField("processors", org.apache.thrift.protocol.TType.I64, (short)5);
+  private static final org.apache.thrift.protocol.TField PROCESS_CPU_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("processCpuTime", org.apache.thrift.protocol.TType.I64, (short)6);
+  private static final org.apache.thrift.protocol.TField SYSTEM_LOAD_AVG_FIELD_DESC = new org.apache.thrift.protocol.TField("systemLoadAvg", org.apache.thrift.protocol.TType.DOUBLE, (short)7);
+  private static final org.apache.thrift.protocol.TField PROCESS_CPU_LOAD_FIELD_DESC = new org.apache.thrift.protocol.TField("processCpuLoad", org.apache.thrift.protocol.TType.DOUBLE, (short)8);
+  private static final org.apache.thrift.protocol.TField TOTAL_MEM_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("totalMemBytes", org.apache.thrift.protocol.TType.I64, (short)9);
+  private static final org.apache.thrift.protocol.TField FREE_MEM_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("freeMemBytes", org.apache.thrift.protocol.TType.I64, (short)10);
+  private static final org.apache.thrift.protocol.TField HEAP_MAX_FIELD_DESC = new org.apache.thrift.protocol.TField("heapMax", org.apache.thrift.protocol.TType.I64, (short)11);
+  private static final org.apache.thrift.protocol.TField HEAP_INIT_FIELD_DESC = new org.apache.thrift.protocol.TField("heapInit", org.apache.thrift.protocol.TType.I64, (short)12);
+  private static final org.apache.thrift.protocol.TField HEAP_USED_FIELD_DESC = new org.apache.thrift.protocol.TField("heapUsed", org.apache.thrift.protocol.TType.I64, (short)13);
+  private static final org.apache.thrift.protocol.TField HEAP_COMMITTED_FIELD_DESC = new org.apache.thrift.protocol.TField("heapCommitted", org.apache.thrift.protocol.TType.I64, (short)14);
+  private static final org.apache.thrift.protocol.TField NON_HEAP_MAX_FIELD_DESC = new org.apache.thrift.protocol.TField("nonHeapMax", org.apache.thrift.protocol.TType.I64, (short)15);
+  private static final org.apache.thrift.protocol.TField NON_HEAP_INIT_FIELD_DESC = new org.apache.thrift.protocol.TField("nonHeapInit", org.apache.thrift.protocol.TType.I64, (short)16);
+  private static final org.apache.thrift.protocol.TField NON_HEAP_USED_FIELD_DESC = new org.apache.thrift.protocol.TField("nonHeapUsed", org.apache.thrift.protocol.TType.I64, (short)17);
+  private static final org.apache.thrift.protocol.TField NON_HEAP_COMMITTED_FIELD_DESC = new org.apache.thrift.protocol.TField("nonHeapCommitted", org.apache.thrift.protocol.TType.I64, (short)18);
+  private static final org.apache.thrift.protocol.TField PEAK_THREADS_FIELD_DESC = new org.apache.thrift.protocol.TField("peakThreads", org.apache.thrift.protocol.TType.I64, (short)19);
+  private static final org.apache.thrift.protocol.TField DAEMON_THREADS_FIELD_DESC = new org.apache.thrift.protocol.TField("daemonThreads", org.apache.thrift.protocol.TType.I64, (short)20);
+  private static final org.apache.thrift.protocol.TField TOTAL_THREADS_FIELD_DESC = new org.apache.thrift.protocol.TField("totalThreads", org.apache.thrift.protocol.TType.I64, (short)21);
+  private static final org.apache.thrift.protocol.TField ACTIVE_THREADS_FIELD_DESC = new org.apache.thrift.protocol.TField("activeThreads", org.apache.thrift.protocol.TType.I64, (short)22);
+  private static final org.apache.thrift.protocol.TField CLASS_LOADED_FIELD_DESC = new org.apache.thrift.protocol.TField("classLoaded", org.apache.thrift.protocol.TType.I64, (short)23);
+  private static final org.apache.thrift.protocol.TField CLASS_UNLOADED_FIELD_DESC = new org.apache.thrift.protocol.TField("classUnloaded", org.apache.thrift.protocol.TType.I64, (short)24);
+  private static final org.apache.thrift.protocol.TField METASPACE_COMMITTED_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceCommitted", org.apache.thrift.protocol.TType.I64, (short)25);
+  private static final org.apache.thrift.protocol.TField METASPACE_USED_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceUsed", org.apache.thrift.protocol.TType.I64, (short)26);
+  private static final org.apache.thrift.protocol.TField METASPACE_INIT_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceInit", org.apache.thrift.protocol.TType.I64, (short)27);
+  private static final org.apache.thrift.protocol.TField METASPACE_MAX_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceMax", org.apache.thrift.protocol.TType.I64, (short)28);
 
   private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new JvmMetricMessageStandardSchemeFactory();
   private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new JvmMetricMessageTupleSchemeFactory();
 
   public long timestamp; // required
   public int interval; // required
-  public @org.apache.thrift.annotation.Nullable InstanceTimeEntity instanceTimeEntity; // required
-  public @org.apache.thrift.annotation.Nullable CpuEntity cpuEntity; // required
-  public @org.apache.thrift.annotation.Nullable MemoryEntity memoryEntity; // required
-  public @org.apache.thrift.annotation.Nullable HeapEntity heapEntity; // required
-  public @org.apache.thrift.annotation.Nullable NonHeapEntity nonHeapEntity; // required
-  public @org.apache.thrift.annotation.Nullable ThreadEntity threadEntity; // required
-  public @org.apache.thrift.annotation.Nullable ClassEntity classesEntity; // required
-  public @org.apache.thrift.annotation.Nullable MetaspaceEntity metaspaceEntity; // required
+  public long instanceUpTime; // required
+  public long instanceStartTime; // required
+  public long processors; // required
+  public long processCpuTime; // required
+  public double systemLoadAvg; // required
+  public double processCpuLoad; // required
+  public long totalMemBytes; // required
+  public long freeMemBytes; // required
+  public long heapMax; // required
+  public long heapInit; // required
+  public long heapUsed; // required
+  public long heapCommitted; // required
+  public long nonHeapMax; // required
+  public long nonHeapInit; // required
+  public long nonHeapUsed; // required
+  public long nonHeapCommitted; // required
+  public long peakThreads; // required
+  public long daemonThreads; // required
+  public long totalThreads; // required
+  public long activeThreads; // required
+  public long classLoaded; // required
+  public long classUnloaded; // required
+  public long metaspaceCommitted; // required
+  public long metaspaceUsed; // required
+  public long metaspaceInit; // required
+  public long metaspaceMax; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     TIMESTAMP((short)1, "timestamp"),
     INTERVAL((short)2, "interval"),
-    INSTANCE_TIME_ENTITY((short)7, "instanceTimeEntity"),
-    CPU_ENTITY((short)8, "cpuEntity"),
-    MEMORY_ENTITY((short)9, "memoryEntity"),
-    HEAP_ENTITY((short)10, "heapEntity"),
-    NON_HEAP_ENTITY((short)11, "nonHeapEntity"),
-    THREAD_ENTITY((short)12, "threadEntity"),
-    CLASSES_ENTITY((short)13, "classesEntity"),
-    METASPACE_ENTITY((short)14, "metaspaceEntity");
+    INSTANCE_UP_TIME((short)3, "instanceUpTime"),
+    INSTANCE_START_TIME((short)4, "instanceStartTime"),
+    PROCESSORS((short)5, "processors"),
+    PROCESS_CPU_TIME((short)6, "processCpuTime"),
+    SYSTEM_LOAD_AVG((short)7, "systemLoadAvg"),
+    PROCESS_CPU_LOAD((short)8, "processCpuLoad"),
+    TOTAL_MEM_BYTES((short)9, "totalMemBytes"),
+    FREE_MEM_BYTES((short)10, "freeMemBytes"),
+    HEAP_MAX((short)11, "heapMax"),
+    HEAP_INIT((short)12, "heapInit"),
+    HEAP_USED((short)13, "heapUsed"),
+    HEAP_COMMITTED((short)14, "heapCommitted"),
+    NON_HEAP_MAX((short)15, "nonHeapMax"),
+    NON_HEAP_INIT((short)16, "nonHeapInit"),
+    NON_HEAP_USED((short)17, "nonHeapUsed"),
+    NON_HEAP_COMMITTED((short)18, "nonHeapCommitted"),
+    PEAK_THREADS((short)19, "peakThreads"),
+    DAEMON_THREADS((short)20, "daemonThreads"),
+    TOTAL_THREADS((short)21, "totalThreads"),
+    ACTIVE_THREADS((short)22, "activeThreads"),
+    CLASS_LOADED((short)23, "classLoaded"),
+    CLASS_UNLOADED((short)24, "classUnloaded"),
+    METASPACE_COMMITTED((short)25, "metaspaceCommitted"),
+    METASPACE_USED((short)26, "metaspaceUsed"),
+    METASPACE_INIT((short)27, "metaspaceInit"),
+    METASPACE_MAX((short)28, "metaspaceMax");
 
     private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -69,22 +123,58 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
           return TIMESTAMP;
         case 2: // INTERVAL
           return INTERVAL;
-        case 7: // INSTANCE_TIME_ENTITY
-          return INSTANCE_TIME_ENTITY;
-        case 8: // CPU_ENTITY
-          return CPU_ENTITY;
-        case 9: // MEMORY_ENTITY
-          return MEMORY_ENTITY;
-        case 10: // HEAP_ENTITY
-          return HEAP_ENTITY;
-        case 11: // NON_HEAP_ENTITY
-          return NON_HEAP_ENTITY;
-        case 12: // THREAD_ENTITY
-          return THREAD_ENTITY;
-        case 13: // CLASSES_ENTITY
-          return CLASSES_ENTITY;
-        case 14: // METASPACE_ENTITY
-          return METASPACE_ENTITY;
+        case 3: // INSTANCE_UP_TIME
+          return INSTANCE_UP_TIME;
+        case 4: // INSTANCE_START_TIME
+          return INSTANCE_START_TIME;
+        case 5: // PROCESSORS
+          return PROCESSORS;
+        case 6: // PROCESS_CPU_TIME
+          return PROCESS_CPU_TIME;
+        case 7: // SYSTEM_LOAD_AVG
+          return SYSTEM_LOAD_AVG;
+        case 8: // PROCESS_CPU_LOAD
+          return PROCESS_CPU_LOAD;
+        case 9: // TOTAL_MEM_BYTES
+          return TOTAL_MEM_BYTES;
+        case 10: // FREE_MEM_BYTES
+          return FREE_MEM_BYTES;
+        case 11: // HEAP_MAX
+          return HEAP_MAX;
+        case 12: // HEAP_INIT
+          return HEAP_INIT;
+        case 13: // HEAP_USED
+          return HEAP_USED;
+        case 14: // HEAP_COMMITTED
+          return HEAP_COMMITTED;
+        case 15: // NON_HEAP_MAX
+          return NON_HEAP_MAX;
+        case 16: // NON_HEAP_INIT
+          return NON_HEAP_INIT;
+        case 17: // NON_HEAP_USED
+          return NON_HEAP_USED;
+        case 18: // NON_HEAP_COMMITTED
+          return NON_HEAP_COMMITTED;
+        case 19: // PEAK_THREADS
+          return PEAK_THREADS;
+        case 20: // DAEMON_THREADS
+          return DAEMON_THREADS;
+        case 21: // TOTAL_THREADS
+          return TOTAL_THREADS;
+        case 22: // ACTIVE_THREADS
+          return ACTIVE_THREADS;
+        case 23: // CLASS_LOADED
+          return CLASS_LOADED;
+        case 24: // CLASS_UNLOADED
+          return CLASS_UNLOADED;
+        case 25: // METASPACE_COMMITTED
+          return METASPACE_COMMITTED;
+        case 26: // METASPACE_USED
+          return METASPACE_USED;
+        case 27: // METASPACE_INIT
+          return METASPACE_INIT;
+        case 28: // METASPACE_MAX
+          return METASPACE_MAX;
         default:
           return null;
       }
@@ -128,7 +218,33 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
   // isset id assignments
   private static final int __TIMESTAMP_ISSET_ID = 0;
   private static final int __INTERVAL_ISSET_ID = 1;
-  private byte __isset_bitfield = 0;
+  private static final int __INSTANCEUPTIME_ISSET_ID = 2;
+  private static final int __INSTANCESTARTTIME_ISSET_ID = 3;
+  private static final int __PROCESSORS_ISSET_ID = 4;
+  private static final int __PROCESSCPUTIME_ISSET_ID = 5;
+  private static final int __SYSTEMLOADAVG_ISSET_ID = 6;
+  private static final int __PROCESSCPULOAD_ISSET_ID = 7;
+  private static final int __TOTALMEMBYTES_ISSET_ID = 8;
+  private static final int __FREEMEMBYTES_ISSET_ID = 9;
+  private static final int __HEAPMAX_ISSET_ID = 10;
+  private static final int __HEAPINIT_ISSET_ID = 11;
+  private static final int __HEAPUSED_ISSET_ID = 12;
+  private static final int __HEAPCOMMITTED_ISSET_ID = 13;
+  private static final int __NONHEAPMAX_ISSET_ID = 14;
+  private static final int __NONHEAPINIT_ISSET_ID = 15;
+  private static final int __NONHEAPUSED_ISSET_ID = 16;
+  private static final int __NONHEAPCOMMITTED_ISSET_ID = 17;
+  private static final int __PEAKTHREADS_ISSET_ID = 18;
+  private static final int __DAEMONTHREADS_ISSET_ID = 19;
+  private static final int __TOTALTHREADS_ISSET_ID = 20;
+  private static final int __ACTIVETHREADS_ISSET_ID = 21;
+  private static final int __CLASSLOADED_ISSET_ID = 22;
+  private static final int __CLASSUNLOADED_ISSET_ID = 23;
+  private static final int __METASPACECOMMITTED_ISSET_ID = 24;
+  private static final int __METASPACEUSED_ISSET_ID = 25;
+  private static final int __METASPACEINIT_ISSET_ID = 26;
+  private static final int __METASPACEMAX_ISSET_ID = 27;
+  private int __isset_bitfield = 0;
   public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -136,22 +252,58 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.INTERVAL, new org.apache.thrift.meta_data.FieldMetaData("interval", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.INSTANCE_TIME_ENTITY, new org.apache.thrift.meta_data.FieldMetaData("instanceTimeEntity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "InstanceTimeEntity")));
-    tmpMap.put(_Fields.CPU_ENTITY, new org.apache.thrift.meta_data.FieldMetaData("cpuEntity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "CpuEntity")));
-    tmpMap.put(_Fields.MEMORY_ENTITY, new org.apache.thrift.meta_data.FieldMetaData("memoryEntity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "MemoryEntity")));
-    tmpMap.put(_Fields.HEAP_ENTITY, new org.apache.thrift.meta_data.FieldMetaData("heapEntity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "HeapEntity")));
-    tmpMap.put(_Fields.NON_HEAP_ENTITY, new org.apache.thrift.meta_data.FieldMetaData("nonHeapEntity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "NonHeapEntity")));
-    tmpMap.put(_Fields.THREAD_ENTITY, new org.apache.thrift.meta_data.FieldMetaData("threadEntity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "ThreadEntity")));
-    tmpMap.put(_Fields.CLASSES_ENTITY, new org.apache.thrift.meta_data.FieldMetaData("classesEntity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "ClassEntity")));
-    tmpMap.put(_Fields.METASPACE_ENTITY, new org.apache.thrift.meta_data.FieldMetaData("metaspaceEntity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "MetaspaceEntity")));
+    tmpMap.put(_Fields.INSTANCE_UP_TIME, new org.apache.thrift.meta_data.FieldMetaData("instanceUpTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.INSTANCE_START_TIME, new org.apache.thrift.meta_data.FieldMetaData("instanceStartTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.PROCESSORS, new org.apache.thrift.meta_data.FieldMetaData("processors", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.PROCESS_CPU_TIME, new org.apache.thrift.meta_data.FieldMetaData("processCpuTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.SYSTEM_LOAD_AVG, new org.apache.thrift.meta_data.FieldMetaData("systemLoadAvg", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE)));
+    tmpMap.put(_Fields.PROCESS_CPU_LOAD, new org.apache.thrift.meta_data.FieldMetaData("processCpuLoad", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.DOUBLE)));
+    tmpMap.put(_Fields.TOTAL_MEM_BYTES, new org.apache.thrift.meta_data.FieldMetaData("totalMemBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.FREE_MEM_BYTES, new org.apache.thrift.meta_data.FieldMetaData("freeMemBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.HEAP_MAX, new org.apache.thrift.meta_data.FieldMetaData("heapMax", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.HEAP_INIT, new org.apache.thrift.meta_data.FieldMetaData("heapInit", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.HEAP_USED, new org.apache.thrift.meta_data.FieldMetaData("heapUsed", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.HEAP_COMMITTED, new org.apache.thrift.meta_data.FieldMetaData("heapCommitted", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.NON_HEAP_MAX, new org.apache.thrift.meta_data.FieldMetaData("nonHeapMax", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.NON_HEAP_INIT, new org.apache.thrift.meta_data.FieldMetaData("nonHeapInit", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.NON_HEAP_USED, new org.apache.thrift.meta_data.FieldMetaData("nonHeapUsed", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.NON_HEAP_COMMITTED, new org.apache.thrift.meta_data.FieldMetaData("nonHeapCommitted", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.PEAK_THREADS, new org.apache.thrift.meta_data.FieldMetaData("peakThreads", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.DAEMON_THREADS, new org.apache.thrift.meta_data.FieldMetaData("daemonThreads", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.TOTAL_THREADS, new org.apache.thrift.meta_data.FieldMetaData("totalThreads", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.ACTIVE_THREADS, new org.apache.thrift.meta_data.FieldMetaData("activeThreads", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.CLASS_LOADED, new org.apache.thrift.meta_data.FieldMetaData("classLoaded", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.CLASS_UNLOADED, new org.apache.thrift.meta_data.FieldMetaData("classUnloaded", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.METASPACE_COMMITTED, new org.apache.thrift.meta_data.FieldMetaData("metaspaceCommitted", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.METASPACE_USED, new org.apache.thrift.meta_data.FieldMetaData("metaspaceUsed", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.METASPACE_INIT, new org.apache.thrift.meta_data.FieldMetaData("metaspaceInit", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.METASPACE_MAX, new org.apache.thrift.meta_data.FieldMetaData("metaspaceMax", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(JvmMetricMessage.class, metaDataMap);
   }
@@ -162,28 +314,90 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
   public JvmMetricMessage(
     long timestamp,
     int interval,
-    InstanceTimeEntity instanceTimeEntity,
-    CpuEntity cpuEntity,
-    MemoryEntity memoryEntity,
-    HeapEntity heapEntity,
-    NonHeapEntity nonHeapEntity,
-    ThreadEntity threadEntity,
-    ClassEntity classesEntity,
-    MetaspaceEntity metaspaceEntity)
+    long instanceUpTime,
+    long instanceStartTime,
+    long processors,
+    long processCpuTime,
+    double systemLoadAvg,
+    double processCpuLoad,
+    long totalMemBytes,
+    long freeMemBytes,
+    long heapMax,
+    long heapInit,
+    long heapUsed,
+    long heapCommitted,
+    long nonHeapMax,
+    long nonHeapInit,
+    long nonHeapUsed,
+    long nonHeapCommitted,
+    long peakThreads,
+    long daemonThreads,
+    long totalThreads,
+    long activeThreads,
+    long classLoaded,
+    long classUnloaded,
+    long metaspaceCommitted,
+    long metaspaceUsed,
+    long metaspaceInit,
+    long metaspaceMax)
   {
     this();
     this.timestamp = timestamp;
     setTimestampIsSet(true);
     this.interval = interval;
     setIntervalIsSet(true);
-    this.instanceTimeEntity = instanceTimeEntity;
-    this.cpuEntity = cpuEntity;
-    this.memoryEntity = memoryEntity;
-    this.heapEntity = heapEntity;
-    this.nonHeapEntity = nonHeapEntity;
-    this.threadEntity = threadEntity;
-    this.classesEntity = classesEntity;
-    this.metaspaceEntity = metaspaceEntity;
+    this.instanceUpTime = instanceUpTime;
+    setInstanceUpTimeIsSet(true);
+    this.instanceStartTime = instanceStartTime;
+    setInstanceStartTimeIsSet(true);
+    this.processors = processors;
+    setProcessorsIsSet(true);
+    this.processCpuTime = processCpuTime;
+    setProcessCpuTimeIsSet(true);
+    this.systemLoadAvg = systemLoadAvg;
+    setSystemLoadAvgIsSet(true);
+    this.processCpuLoad = processCpuLoad;
+    setProcessCpuLoadIsSet(true);
+    this.totalMemBytes = totalMemBytes;
+    setTotalMemBytesIsSet(true);
+    this.freeMemBytes = freeMemBytes;
+    setFreeMemBytesIsSet(true);
+    this.heapMax = heapMax;
+    setHeapMaxIsSet(true);
+    this.heapInit = heapInit;
+    setHeapInitIsSet(true);
+    this.heapUsed = heapUsed;
+    setHeapUsedIsSet(true);
+    this.heapCommitted = heapCommitted;
+    setHeapCommittedIsSet(true);
+    this.nonHeapMax = nonHeapMax;
+    setNonHeapMaxIsSet(true);
+    this.nonHeapInit = nonHeapInit;
+    setNonHeapInitIsSet(true);
+    this.nonHeapUsed = nonHeapUsed;
+    setNonHeapUsedIsSet(true);
+    this.nonHeapCommitted = nonHeapCommitted;
+    setNonHeapCommittedIsSet(true);
+    this.peakThreads = peakThreads;
+    setPeakThreadsIsSet(true);
+    this.daemonThreads = daemonThreads;
+    setDaemonThreadsIsSet(true);
+    this.totalThreads = totalThreads;
+    setTotalThreadsIsSet(true);
+    this.activeThreads = activeThreads;
+    setActiveThreadsIsSet(true);
+    this.classLoaded = classLoaded;
+    setClassLoadedIsSet(true);
+    this.classUnloaded = classUnloaded;
+    setClassUnloadedIsSet(true);
+    this.metaspaceCommitted = metaspaceCommitted;
+    setMetaspaceCommittedIsSet(true);
+    this.metaspaceUsed = metaspaceUsed;
+    setMetaspaceUsedIsSet(true);
+    this.metaspaceInit = metaspaceInit;
+    setMetaspaceInitIsSet(true);
+    this.metaspaceMax = metaspaceMax;
+    setMetaspaceMaxIsSet(true);
   }
 
   /**
@@ -193,30 +407,32 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     __isset_bitfield = other.__isset_bitfield;
     this.timestamp = other.timestamp;
     this.interval = other.interval;
-    if (other.isSetInstanceTimeEntity()) {
-      this.instanceTimeEntity = new InstanceTimeEntity(other.instanceTimeEntity);
-    }
-    if (other.isSetCpuEntity()) {
-      this.cpuEntity = new CpuEntity(other.cpuEntity);
-    }
-    if (other.isSetMemoryEntity()) {
-      this.memoryEntity = new MemoryEntity(other.memoryEntity);
-    }
-    if (other.isSetHeapEntity()) {
-      this.heapEntity = new HeapEntity(other.heapEntity);
-    }
-    if (other.isSetNonHeapEntity()) {
-      this.nonHeapEntity = new NonHeapEntity(other.nonHeapEntity);
-    }
-    if (other.isSetThreadEntity()) {
-      this.threadEntity = new ThreadEntity(other.threadEntity);
-    }
-    if (other.isSetClassesEntity()) {
-      this.classesEntity = new ClassEntity(other.classesEntity);
-    }
-    if (other.isSetMetaspaceEntity()) {
-      this.metaspaceEntity = new MetaspaceEntity(other.metaspaceEntity);
-    }
+    this.instanceUpTime = other.instanceUpTime;
+    this.instanceStartTime = other.instanceStartTime;
+    this.processors = other.processors;
+    this.processCpuTime = other.processCpuTime;
+    this.systemLoadAvg = other.systemLoadAvg;
+    this.processCpuLoad = other.processCpuLoad;
+    this.totalMemBytes = other.totalMemBytes;
+    this.freeMemBytes = other.freeMemBytes;
+    this.heapMax = other.heapMax;
+    this.heapInit = other.heapInit;
+    this.heapUsed = other.heapUsed;
+    this.heapCommitted = other.heapCommitted;
+    this.nonHeapMax = other.nonHeapMax;
+    this.nonHeapInit = other.nonHeapInit;
+    this.nonHeapUsed = other.nonHeapUsed;
+    this.nonHeapCommitted = other.nonHeapCommitted;
+    this.peakThreads = other.peakThreads;
+    this.daemonThreads = other.daemonThreads;
+    this.totalThreads = other.totalThreads;
+    this.activeThreads = other.activeThreads;
+    this.classLoaded = other.classLoaded;
+    this.classUnloaded = other.classUnloaded;
+    this.metaspaceCommitted = other.metaspaceCommitted;
+    this.metaspaceUsed = other.metaspaceUsed;
+    this.metaspaceInit = other.metaspaceInit;
+    this.metaspaceMax = other.metaspaceMax;
   }
 
   public JvmMetricMessage deepCopy() {
@@ -229,14 +445,58 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     this.timestamp = 0;
     setIntervalIsSet(false);
     this.interval = 0;
-    this.instanceTimeEntity = null;
-    this.cpuEntity = null;
-    this.memoryEntity = null;
-    this.heapEntity = null;
-    this.nonHeapEntity = null;
-    this.threadEntity = null;
-    this.classesEntity = null;
-    this.metaspaceEntity = null;
+    setInstanceUpTimeIsSet(false);
+    this.instanceUpTime = 0;
+    setInstanceStartTimeIsSet(false);
+    this.instanceStartTime = 0;
+    setProcessorsIsSet(false);
+    this.processors = 0;
+    setProcessCpuTimeIsSet(false);
+    this.processCpuTime = 0;
+    setSystemLoadAvgIsSet(false);
+    this.systemLoadAvg = 0.0;
+    setProcessCpuLoadIsSet(false);
+    this.processCpuLoad = 0.0;
+    setTotalMemBytesIsSet(false);
+    this.totalMemBytes = 0;
+    setFreeMemBytesIsSet(false);
+    this.freeMemBytes = 0;
+    setHeapMaxIsSet(false);
+    this.heapMax = 0;
+    setHeapInitIsSet(false);
+    this.heapInit = 0;
+    setHeapUsedIsSet(false);
+    this.heapUsed = 0;
+    setHeapCommittedIsSet(false);
+    this.heapCommitted = 0;
+    setNonHeapMaxIsSet(false);
+    this.nonHeapMax = 0;
+    setNonHeapInitIsSet(false);
+    this.nonHeapInit = 0;
+    setNonHeapUsedIsSet(false);
+    this.nonHeapUsed = 0;
+    setNonHeapCommittedIsSet(false);
+    this.nonHeapCommitted = 0;
+    setPeakThreadsIsSet(false);
+    this.peakThreads = 0;
+    setDaemonThreadsIsSet(false);
+    this.daemonThreads = 0;
+    setTotalThreadsIsSet(false);
+    this.totalThreads = 0;
+    setActiveThreadsIsSet(false);
+    this.activeThreads = 0;
+    setClassLoadedIsSet(false);
+    this.classLoaded = 0;
+    setClassUnloadedIsSet(false);
+    this.classUnloaded = 0;
+    setMetaspaceCommittedIsSet(false);
+    this.metaspaceCommitted = 0;
+    setMetaspaceUsedIsSet(false);
+    this.metaspaceUsed = 0;
+    setMetaspaceInitIsSet(false);
+    this.metaspaceInit = 0;
+    setMetaspaceMaxIsSet(false);
+    this.metaspaceMax = 0;
   }
 
   public long getTimestamp() {
@@ -285,204 +545,602 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __INTERVAL_ISSET_ID, value);
   }
 
-  @org.apache.thrift.annotation.Nullable
-  public InstanceTimeEntity getInstanceTimeEntity() {
-    return this.instanceTimeEntity;
+  public long getInstanceUpTime() {
+    return this.instanceUpTime;
   }
 
-  public JvmMetricMessage setInstanceTimeEntity(@org.apache.thrift.annotation.Nullable InstanceTimeEntity instanceTimeEntity) {
-    this.instanceTimeEntity = instanceTimeEntity;
+  public JvmMetricMessage setInstanceUpTime(long instanceUpTime) {
+    this.instanceUpTime = instanceUpTime;
+    setInstanceUpTimeIsSet(true);
     return this;
   }
 
-  public void unsetInstanceTimeEntity() {
-    this.instanceTimeEntity = null;
+  public void unsetInstanceUpTime() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __INSTANCEUPTIME_ISSET_ID);
   }
 
-  /** Returns true if field instanceTimeEntity is set (has been assigned a value) and false otherwise */
-  public boolean isSetInstanceTimeEntity() {
-    return this.instanceTimeEntity != null;
+  /** Returns true if field instanceUpTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetInstanceUpTime() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __INSTANCEUPTIME_ISSET_ID);
   }
 
-  public void setInstanceTimeEntityIsSet(boolean value) {
-    if (!value) {
-      this.instanceTimeEntity = null;
-    }
+  public void setInstanceUpTimeIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __INSTANCEUPTIME_ISSET_ID, value);
   }
 
-  @org.apache.thrift.annotation.Nullable
-  public CpuEntity getCpuEntity() {
-    return this.cpuEntity;
+  public long getInstanceStartTime() {
+    return this.instanceStartTime;
   }
 
-  public JvmMetricMessage setCpuEntity(@org.apache.thrift.annotation.Nullable CpuEntity cpuEntity) {
-    this.cpuEntity = cpuEntity;
+  public JvmMetricMessage setInstanceStartTime(long instanceStartTime) {
+    this.instanceStartTime = instanceStartTime;
+    setInstanceStartTimeIsSet(true);
     return this;
   }
 
-  public void unsetCpuEntity() {
-    this.cpuEntity = null;
+  public void unsetInstanceStartTime() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __INSTANCESTARTTIME_ISSET_ID);
   }
 
-  /** Returns true if field cpuEntity is set (has been assigned a value) and false otherwise */
-  public boolean isSetCpuEntity() {
-    return this.cpuEntity != null;
+  /** Returns true if field instanceStartTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetInstanceStartTime() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __INSTANCESTARTTIME_ISSET_ID);
   }
 
-  public void setCpuEntityIsSet(boolean value) {
-    if (!value) {
-      this.cpuEntity = null;
-    }
+  public void setInstanceStartTimeIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __INSTANCESTARTTIME_ISSET_ID, value);
   }
 
-  @org.apache.thrift.annotation.Nullable
-  public MemoryEntity getMemoryEntity() {
-    return this.memoryEntity;
+  public long getProcessors() {
+    return this.processors;
   }
 
-  public JvmMetricMessage setMemoryEntity(@org.apache.thrift.annotation.Nullable MemoryEntity memoryEntity) {
-    this.memoryEntity = memoryEntity;
+  public JvmMetricMessage setProcessors(long processors) {
+    this.processors = processors;
+    setProcessorsIsSet(true);
     return this;
   }
 
-  public void unsetMemoryEntity() {
-    this.memoryEntity = null;
+  public void unsetProcessors() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __PROCESSORS_ISSET_ID);
   }
 
-  /** Returns true if field memoryEntity is set (has been assigned a value) and false otherwise */
-  public boolean isSetMemoryEntity() {
-    return this.memoryEntity != null;
+  /** Returns true if field processors is set (has been assigned a value) and false otherwise */
+  public boolean isSetProcessors() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __PROCESSORS_ISSET_ID);
   }
 
-  public void setMemoryEntityIsSet(boolean value) {
-    if (!value) {
-      this.memoryEntity = null;
-    }
+  public void setProcessorsIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __PROCESSORS_ISSET_ID, value);
   }
 
-  @org.apache.thrift.annotation.Nullable
-  public HeapEntity getHeapEntity() {
-    return this.heapEntity;
+  public long getProcessCpuTime() {
+    return this.processCpuTime;
   }
 
-  public JvmMetricMessage setHeapEntity(@org.apache.thrift.annotation.Nullable HeapEntity heapEntity) {
-    this.heapEntity = heapEntity;
+  public JvmMetricMessage setProcessCpuTime(long processCpuTime) {
+    this.processCpuTime = processCpuTime;
+    setProcessCpuTimeIsSet(true);
     return this;
   }
 
-  public void unsetHeapEntity() {
-    this.heapEntity = null;
+  public void unsetProcessCpuTime() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __PROCESSCPUTIME_ISSET_ID);
   }
 
-  /** Returns true if field heapEntity is set (has been assigned a value) and false otherwise */
-  public boolean isSetHeapEntity() {
-    return this.heapEntity != null;
+  /** Returns true if field processCpuTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetProcessCpuTime() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __PROCESSCPUTIME_ISSET_ID);
   }
 
-  public void setHeapEntityIsSet(boolean value) {
-    if (!value) {
-      this.heapEntity = null;
-    }
+  public void setProcessCpuTimeIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __PROCESSCPUTIME_ISSET_ID, value);
   }
 
-  @org.apache.thrift.annotation.Nullable
-  public NonHeapEntity getNonHeapEntity() {
-    return this.nonHeapEntity;
+  public double getSystemLoadAvg() {
+    return this.systemLoadAvg;
   }
 
-  public JvmMetricMessage setNonHeapEntity(@org.apache.thrift.annotation.Nullable NonHeapEntity nonHeapEntity) {
-    this.nonHeapEntity = nonHeapEntity;
+  public JvmMetricMessage setSystemLoadAvg(double systemLoadAvg) {
+    this.systemLoadAvg = systemLoadAvg;
+    setSystemLoadAvgIsSet(true);
     return this;
   }
 
-  public void unsetNonHeapEntity() {
-    this.nonHeapEntity = null;
+  public void unsetSystemLoadAvg() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __SYSTEMLOADAVG_ISSET_ID);
   }
 
-  /** Returns true if field nonHeapEntity is set (has been assigned a value) and false otherwise */
-  public boolean isSetNonHeapEntity() {
-    return this.nonHeapEntity != null;
+  /** Returns true if field systemLoadAvg is set (has been assigned a value) and false otherwise */
+  public boolean isSetSystemLoadAvg() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __SYSTEMLOADAVG_ISSET_ID);
   }
 
-  public void setNonHeapEntityIsSet(boolean value) {
-    if (!value) {
-      this.nonHeapEntity = null;
-    }
+  public void setSystemLoadAvgIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __SYSTEMLOADAVG_ISSET_ID, value);
   }
 
-  @org.apache.thrift.annotation.Nullable
-  public ThreadEntity getThreadEntity() {
-    return this.threadEntity;
+  public double getProcessCpuLoad() {
+    return this.processCpuLoad;
   }
 
-  public JvmMetricMessage setThreadEntity(@org.apache.thrift.annotation.Nullable ThreadEntity threadEntity) {
-    this.threadEntity = threadEntity;
+  public JvmMetricMessage setProcessCpuLoad(double processCpuLoad) {
+    this.processCpuLoad = processCpuLoad;
+    setProcessCpuLoadIsSet(true);
     return this;
   }
 
-  public void unsetThreadEntity() {
-    this.threadEntity = null;
+  public void unsetProcessCpuLoad() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __PROCESSCPULOAD_ISSET_ID);
   }
 
-  /** Returns true if field threadEntity is set (has been assigned a value) and false otherwise */
-  public boolean isSetThreadEntity() {
-    return this.threadEntity != null;
+  /** Returns true if field processCpuLoad is set (has been assigned a value) and false otherwise */
+  public boolean isSetProcessCpuLoad() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __PROCESSCPULOAD_ISSET_ID);
   }
 
-  public void setThreadEntityIsSet(boolean value) {
-    if (!value) {
-      this.threadEntity = null;
-    }
+  public void setProcessCpuLoadIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __PROCESSCPULOAD_ISSET_ID, value);
   }
 
-  @org.apache.thrift.annotation.Nullable
-  public ClassEntity getClassesEntity() {
-    return this.classesEntity;
+  public long getTotalMemBytes() {
+    return this.totalMemBytes;
   }
 
-  public JvmMetricMessage setClassesEntity(@org.apache.thrift.annotation.Nullable ClassEntity classesEntity) {
-    this.classesEntity = classesEntity;
+  public JvmMetricMessage setTotalMemBytes(long totalMemBytes) {
+    this.totalMemBytes = totalMemBytes;
+    setTotalMemBytesIsSet(true);
     return this;
   }
 
-  public void unsetClassesEntity() {
-    this.classesEntity = null;
+  public void unsetTotalMemBytes() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __TOTALMEMBYTES_ISSET_ID);
   }
 
-  /** Returns true if field classesEntity is set (has been assigned a value) and false otherwise */
-  public boolean isSetClassesEntity() {
-    return this.classesEntity != null;
+  /** Returns true if field totalMemBytes is set (has been assigned a value) and false otherwise */
+  public boolean isSetTotalMemBytes() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __TOTALMEMBYTES_ISSET_ID);
   }
 
-  public void setClassesEntityIsSet(boolean value) {
-    if (!value) {
-      this.classesEntity = null;
-    }
+  public void setTotalMemBytesIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __TOTALMEMBYTES_ISSET_ID, value);
   }
 
-  @org.apache.thrift.annotation.Nullable
-  public MetaspaceEntity getMetaspaceEntity() {
-    return this.metaspaceEntity;
+  public long getFreeMemBytes() {
+    return this.freeMemBytes;
   }
 
-  public JvmMetricMessage setMetaspaceEntity(@org.apache.thrift.annotation.Nullable MetaspaceEntity metaspaceEntity) {
-    this.metaspaceEntity = metaspaceEntity;
+  public JvmMetricMessage setFreeMemBytes(long freeMemBytes) {
+    this.freeMemBytes = freeMemBytes;
+    setFreeMemBytesIsSet(true);
     return this;
   }
 
-  public void unsetMetaspaceEntity() {
-    this.metaspaceEntity = null;
+  public void unsetFreeMemBytes() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __FREEMEMBYTES_ISSET_ID);
   }
 
-  /** Returns true if field metaspaceEntity is set (has been assigned a value) and false otherwise */
-  public boolean isSetMetaspaceEntity() {
-    return this.metaspaceEntity != null;
+  /** Returns true if field freeMemBytes is set (has been assigned a value) and false otherwise */
+  public boolean isSetFreeMemBytes() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __FREEMEMBYTES_ISSET_ID);
   }
 
-  public void setMetaspaceEntityIsSet(boolean value) {
-    if (!value) {
-      this.metaspaceEntity = null;
-    }
+  public void setFreeMemBytesIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __FREEMEMBYTES_ISSET_ID, value);
+  }
+
+  public long getHeapMax() {
+    return this.heapMax;
+  }
+
+  public JvmMetricMessage setHeapMax(long heapMax) {
+    this.heapMax = heapMax;
+    setHeapMaxIsSet(true);
+    return this;
+  }
+
+  public void unsetHeapMax() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __HEAPMAX_ISSET_ID);
+  }
+
+  /** Returns true if field heapMax is set (has been assigned a value) and false otherwise */
+  public boolean isSetHeapMax() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __HEAPMAX_ISSET_ID);
+  }
+
+  public void setHeapMaxIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __HEAPMAX_ISSET_ID, value);
+  }
+
+  public long getHeapInit() {
+    return this.heapInit;
+  }
+
+  public JvmMetricMessage setHeapInit(long heapInit) {
+    this.heapInit = heapInit;
+    setHeapInitIsSet(true);
+    return this;
+  }
+
+  public void unsetHeapInit() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __HEAPINIT_ISSET_ID);
+  }
+
+  /** Returns true if field heapInit is set (has been assigned a value) and false otherwise */
+  public boolean isSetHeapInit() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __HEAPINIT_ISSET_ID);
+  }
+
+  public void setHeapInitIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __HEAPINIT_ISSET_ID, value);
+  }
+
+  public long getHeapUsed() {
+    return this.heapUsed;
+  }
+
+  public JvmMetricMessage setHeapUsed(long heapUsed) {
+    this.heapUsed = heapUsed;
+    setHeapUsedIsSet(true);
+    return this;
+  }
+
+  public void unsetHeapUsed() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __HEAPUSED_ISSET_ID);
+  }
+
+  /** Returns true if field heapUsed is set (has been assigned a value) and false otherwise */
+  public boolean isSetHeapUsed() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __HEAPUSED_ISSET_ID);
+  }
+
+  public void setHeapUsedIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __HEAPUSED_ISSET_ID, value);
+  }
+
+  public long getHeapCommitted() {
+    return this.heapCommitted;
+  }
+
+  public JvmMetricMessage setHeapCommitted(long heapCommitted) {
+    this.heapCommitted = heapCommitted;
+    setHeapCommittedIsSet(true);
+    return this;
+  }
+
+  public void unsetHeapCommitted() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __HEAPCOMMITTED_ISSET_ID);
+  }
+
+  /** Returns true if field heapCommitted is set (has been assigned a value) and false otherwise */
+  public boolean isSetHeapCommitted() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __HEAPCOMMITTED_ISSET_ID);
+  }
+
+  public void setHeapCommittedIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __HEAPCOMMITTED_ISSET_ID, value);
+  }
+
+  public long getNonHeapMax() {
+    return this.nonHeapMax;
+  }
+
+  public JvmMetricMessage setNonHeapMax(long nonHeapMax) {
+    this.nonHeapMax = nonHeapMax;
+    setNonHeapMaxIsSet(true);
+    return this;
+  }
+
+  public void unsetNonHeapMax() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __NONHEAPMAX_ISSET_ID);
+  }
+
+  /** Returns true if field nonHeapMax is set (has been assigned a value) and false otherwise */
+  public boolean isSetNonHeapMax() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __NONHEAPMAX_ISSET_ID);
+  }
+
+  public void setNonHeapMaxIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __NONHEAPMAX_ISSET_ID, value);
+  }
+
+  public long getNonHeapInit() {
+    return this.nonHeapInit;
+  }
+
+  public JvmMetricMessage setNonHeapInit(long nonHeapInit) {
+    this.nonHeapInit = nonHeapInit;
+    setNonHeapInitIsSet(true);
+    return this;
+  }
+
+  public void unsetNonHeapInit() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __NONHEAPINIT_ISSET_ID);
+  }
+
+  /** Returns true if field nonHeapInit is set (has been assigned a value) and false otherwise */
+  public boolean isSetNonHeapInit() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __NONHEAPINIT_ISSET_ID);
+  }
+
+  public void setNonHeapInitIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __NONHEAPINIT_ISSET_ID, value);
+  }
+
+  public long getNonHeapUsed() {
+    return this.nonHeapUsed;
+  }
+
+  public JvmMetricMessage setNonHeapUsed(long nonHeapUsed) {
+    this.nonHeapUsed = nonHeapUsed;
+    setNonHeapUsedIsSet(true);
+    return this;
+  }
+
+  public void unsetNonHeapUsed() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __NONHEAPUSED_ISSET_ID);
+  }
+
+  /** Returns true if field nonHeapUsed is set (has been assigned a value) and false otherwise */
+  public boolean isSetNonHeapUsed() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __NONHEAPUSED_ISSET_ID);
+  }
+
+  public void setNonHeapUsedIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __NONHEAPUSED_ISSET_ID, value);
+  }
+
+  public long getNonHeapCommitted() {
+    return this.nonHeapCommitted;
+  }
+
+  public JvmMetricMessage setNonHeapCommitted(long nonHeapCommitted) {
+    this.nonHeapCommitted = nonHeapCommitted;
+    setNonHeapCommittedIsSet(true);
+    return this;
+  }
+
+  public void unsetNonHeapCommitted() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __NONHEAPCOMMITTED_ISSET_ID);
+  }
+
+  /** Returns true if field nonHeapCommitted is set (has been assigned a value) and false otherwise */
+  public boolean isSetNonHeapCommitted() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __NONHEAPCOMMITTED_ISSET_ID);
+  }
+
+  public void setNonHeapCommittedIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __NONHEAPCOMMITTED_ISSET_ID, value);
+  }
+
+  public long getPeakThreads() {
+    return this.peakThreads;
+  }
+
+  public JvmMetricMessage setPeakThreads(long peakThreads) {
+    this.peakThreads = peakThreads;
+    setPeakThreadsIsSet(true);
+    return this;
+  }
+
+  public void unsetPeakThreads() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __PEAKTHREADS_ISSET_ID);
+  }
+
+  /** Returns true if field peakThreads is set (has been assigned a value) and false otherwise */
+  public boolean isSetPeakThreads() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __PEAKTHREADS_ISSET_ID);
+  }
+
+  public void setPeakThreadsIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __PEAKTHREADS_ISSET_ID, value);
+  }
+
+  public long getDaemonThreads() {
+    return this.daemonThreads;
+  }
+
+  public JvmMetricMessage setDaemonThreads(long daemonThreads) {
+    this.daemonThreads = daemonThreads;
+    setDaemonThreadsIsSet(true);
+    return this;
+  }
+
+  public void unsetDaemonThreads() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __DAEMONTHREADS_ISSET_ID);
+  }
+
+  /** Returns true if field daemonThreads is set (has been assigned a value) and false otherwise */
+  public boolean isSetDaemonThreads() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __DAEMONTHREADS_ISSET_ID);
+  }
+
+  public void setDaemonThreadsIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __DAEMONTHREADS_ISSET_ID, value);
+  }
+
+  public long getTotalThreads() {
+    return this.totalThreads;
+  }
+
+  public JvmMetricMessage setTotalThreads(long totalThreads) {
+    this.totalThreads = totalThreads;
+    setTotalThreadsIsSet(true);
+    return this;
+  }
+
+  public void unsetTotalThreads() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __TOTALTHREADS_ISSET_ID);
+  }
+
+  /** Returns true if field totalThreads is set (has been assigned a value) and false otherwise */
+  public boolean isSetTotalThreads() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __TOTALTHREADS_ISSET_ID);
+  }
+
+  public void setTotalThreadsIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __TOTALTHREADS_ISSET_ID, value);
+  }
+
+  public long getActiveThreads() {
+    return this.activeThreads;
+  }
+
+  public JvmMetricMessage setActiveThreads(long activeThreads) {
+    this.activeThreads = activeThreads;
+    setActiveThreadsIsSet(true);
+    return this;
+  }
+
+  public void unsetActiveThreads() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __ACTIVETHREADS_ISSET_ID);
+  }
+
+  /** Returns true if field activeThreads is set (has been assigned a value) and false otherwise */
+  public boolean isSetActiveThreads() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __ACTIVETHREADS_ISSET_ID);
+  }
+
+  public void setActiveThreadsIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __ACTIVETHREADS_ISSET_ID, value);
+  }
+
+  public long getClassLoaded() {
+    return this.classLoaded;
+  }
+
+  public JvmMetricMessage setClassLoaded(long classLoaded) {
+    this.classLoaded = classLoaded;
+    setClassLoadedIsSet(true);
+    return this;
+  }
+
+  public void unsetClassLoaded() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __CLASSLOADED_ISSET_ID);
+  }
+
+  /** Returns true if field classLoaded is set (has been assigned a value) and false otherwise */
+  public boolean isSetClassLoaded() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __CLASSLOADED_ISSET_ID);
+  }
+
+  public void setClassLoadedIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __CLASSLOADED_ISSET_ID, value);
+  }
+
+  public long getClassUnloaded() {
+    return this.classUnloaded;
+  }
+
+  public JvmMetricMessage setClassUnloaded(long classUnloaded) {
+    this.classUnloaded = classUnloaded;
+    setClassUnloadedIsSet(true);
+    return this;
+  }
+
+  public void unsetClassUnloaded() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __CLASSUNLOADED_ISSET_ID);
+  }
+
+  /** Returns true if field classUnloaded is set (has been assigned a value) and false otherwise */
+  public boolean isSetClassUnloaded() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __CLASSUNLOADED_ISSET_ID);
+  }
+
+  public void setClassUnloadedIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __CLASSUNLOADED_ISSET_ID, value);
+  }
+
+  public long getMetaspaceCommitted() {
+    return this.metaspaceCommitted;
+  }
+
+  public JvmMetricMessage setMetaspaceCommitted(long metaspaceCommitted) {
+    this.metaspaceCommitted = metaspaceCommitted;
+    setMetaspaceCommittedIsSet(true);
+    return this;
+  }
+
+  public void unsetMetaspaceCommitted() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __METASPACECOMMITTED_ISSET_ID);
+  }
+
+  /** Returns true if field metaspaceCommitted is set (has been assigned a value) and false otherwise */
+  public boolean isSetMetaspaceCommitted() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __METASPACECOMMITTED_ISSET_ID);
+  }
+
+  public void setMetaspaceCommittedIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __METASPACECOMMITTED_ISSET_ID, value);
+  }
+
+  public long getMetaspaceUsed() {
+    return this.metaspaceUsed;
+  }
+
+  public JvmMetricMessage setMetaspaceUsed(long metaspaceUsed) {
+    this.metaspaceUsed = metaspaceUsed;
+    setMetaspaceUsedIsSet(true);
+    return this;
+  }
+
+  public void unsetMetaspaceUsed() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __METASPACEUSED_ISSET_ID);
+  }
+
+  /** Returns true if field metaspaceUsed is set (has been assigned a value) and false otherwise */
+  public boolean isSetMetaspaceUsed() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __METASPACEUSED_ISSET_ID);
+  }
+
+  public void setMetaspaceUsedIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __METASPACEUSED_ISSET_ID, value);
+  }
+
+  public long getMetaspaceInit() {
+    return this.metaspaceInit;
+  }
+
+  public JvmMetricMessage setMetaspaceInit(long metaspaceInit) {
+    this.metaspaceInit = metaspaceInit;
+    setMetaspaceInitIsSet(true);
+    return this;
+  }
+
+  public void unsetMetaspaceInit() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __METASPACEINIT_ISSET_ID);
+  }
+
+  /** Returns true if field metaspaceInit is set (has been assigned a value) and false otherwise */
+  public boolean isSetMetaspaceInit() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __METASPACEINIT_ISSET_ID);
+  }
+
+  public void setMetaspaceInitIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __METASPACEINIT_ISSET_ID, value);
+  }
+
+  public long getMetaspaceMax() {
+    return this.metaspaceMax;
+  }
+
+  public JvmMetricMessage setMetaspaceMax(long metaspaceMax) {
+    this.metaspaceMax = metaspaceMax;
+    setMetaspaceMaxIsSet(true);
+    return this;
+  }
+
+  public void unsetMetaspaceMax() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __METASPACEMAX_ISSET_ID);
+  }
+
+  /** Returns true if field metaspaceMax is set (has been assigned a value) and false otherwise */
+  public boolean isSetMetaspaceMax() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __METASPACEMAX_ISSET_ID);
+  }
+
+  public void setMetaspaceMaxIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __METASPACEMAX_ISSET_ID, value);
   }
 
   public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
@@ -503,67 +1161,211 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       }
       break;
 
-    case INSTANCE_TIME_ENTITY:
+    case INSTANCE_UP_TIME:
       if (value == null) {
-        unsetInstanceTimeEntity();
+        unsetInstanceUpTime();
       } else {
-        setInstanceTimeEntity((InstanceTimeEntity)value);
+        setInstanceUpTime((java.lang.Long)value);
       }
       break;
 
-    case CPU_ENTITY:
+    case INSTANCE_START_TIME:
       if (value == null) {
-        unsetCpuEntity();
+        unsetInstanceStartTime();
       } else {
-        setCpuEntity((CpuEntity)value);
+        setInstanceStartTime((java.lang.Long)value);
       }
       break;
 
-    case MEMORY_ENTITY:
+    case PROCESSORS:
       if (value == null) {
-        unsetMemoryEntity();
+        unsetProcessors();
       } else {
-        setMemoryEntity((MemoryEntity)value);
+        setProcessors((java.lang.Long)value);
       }
       break;
 
-    case HEAP_ENTITY:
+    case PROCESS_CPU_TIME:
       if (value == null) {
-        unsetHeapEntity();
+        unsetProcessCpuTime();
       } else {
-        setHeapEntity((HeapEntity)value);
+        setProcessCpuTime((java.lang.Long)value);
       }
       break;
 
-    case NON_HEAP_ENTITY:
+    case SYSTEM_LOAD_AVG:
       if (value == null) {
-        unsetNonHeapEntity();
+        unsetSystemLoadAvg();
       } else {
-        setNonHeapEntity((NonHeapEntity)value);
+        setSystemLoadAvg((java.lang.Double)value);
       }
       break;
 
-    case THREAD_ENTITY:
+    case PROCESS_CPU_LOAD:
       if (value == null) {
-        unsetThreadEntity();
+        unsetProcessCpuLoad();
       } else {
-        setThreadEntity((ThreadEntity)value);
+        setProcessCpuLoad((java.lang.Double)value);
       }
       break;
 
-    case CLASSES_ENTITY:
+    case TOTAL_MEM_BYTES:
       if (value == null) {
-        unsetClassesEntity();
+        unsetTotalMemBytes();
       } else {
-        setClassesEntity((ClassEntity)value);
+        setTotalMemBytes((java.lang.Long)value);
       }
       break;
 
-    case METASPACE_ENTITY:
+    case FREE_MEM_BYTES:
       if (value == null) {
-        unsetMetaspaceEntity();
+        unsetFreeMemBytes();
       } else {
-        setMetaspaceEntity((MetaspaceEntity)value);
+        setFreeMemBytes((java.lang.Long)value);
+      }
+      break;
+
+    case HEAP_MAX:
+      if (value == null) {
+        unsetHeapMax();
+      } else {
+        setHeapMax((java.lang.Long)value);
+      }
+      break;
+
+    case HEAP_INIT:
+      if (value == null) {
+        unsetHeapInit();
+      } else {
+        setHeapInit((java.lang.Long)value);
+      }
+      break;
+
+    case HEAP_USED:
+      if (value == null) {
+        unsetHeapUsed();
+      } else {
+        setHeapUsed((java.lang.Long)value);
+      }
+      break;
+
+    case HEAP_COMMITTED:
+      if (value == null) {
+        unsetHeapCommitted();
+      } else {
+        setHeapCommitted((java.lang.Long)value);
+      }
+      break;
+
+    case NON_HEAP_MAX:
+      if (value == null) {
+        unsetNonHeapMax();
+      } else {
+        setNonHeapMax((java.lang.Long)value);
+      }
+      break;
+
+    case NON_HEAP_INIT:
+      if (value == null) {
+        unsetNonHeapInit();
+      } else {
+        setNonHeapInit((java.lang.Long)value);
+      }
+      break;
+
+    case NON_HEAP_USED:
+      if (value == null) {
+        unsetNonHeapUsed();
+      } else {
+        setNonHeapUsed((java.lang.Long)value);
+      }
+      break;
+
+    case NON_HEAP_COMMITTED:
+      if (value == null) {
+        unsetNonHeapCommitted();
+      } else {
+        setNonHeapCommitted((java.lang.Long)value);
+      }
+      break;
+
+    case PEAK_THREADS:
+      if (value == null) {
+        unsetPeakThreads();
+      } else {
+        setPeakThreads((java.lang.Long)value);
+      }
+      break;
+
+    case DAEMON_THREADS:
+      if (value == null) {
+        unsetDaemonThreads();
+      } else {
+        setDaemonThreads((java.lang.Long)value);
+      }
+      break;
+
+    case TOTAL_THREADS:
+      if (value == null) {
+        unsetTotalThreads();
+      } else {
+        setTotalThreads((java.lang.Long)value);
+      }
+      break;
+
+    case ACTIVE_THREADS:
+      if (value == null) {
+        unsetActiveThreads();
+      } else {
+        setActiveThreads((java.lang.Long)value);
+      }
+      break;
+
+    case CLASS_LOADED:
+      if (value == null) {
+        unsetClassLoaded();
+      } else {
+        setClassLoaded((java.lang.Long)value);
+      }
+      break;
+
+    case CLASS_UNLOADED:
+      if (value == null) {
+        unsetClassUnloaded();
+      } else {
+        setClassUnloaded((java.lang.Long)value);
+      }
+      break;
+
+    case METASPACE_COMMITTED:
+      if (value == null) {
+        unsetMetaspaceCommitted();
+      } else {
+        setMetaspaceCommitted((java.lang.Long)value);
+      }
+      break;
+
+    case METASPACE_USED:
+      if (value == null) {
+        unsetMetaspaceUsed();
+      } else {
+        setMetaspaceUsed((java.lang.Long)value);
+      }
+      break;
+
+    case METASPACE_INIT:
+      if (value == null) {
+        unsetMetaspaceInit();
+      } else {
+        setMetaspaceInit((java.lang.Long)value);
+      }
+      break;
+
+    case METASPACE_MAX:
+      if (value == null) {
+        unsetMetaspaceMax();
+      } else {
+        setMetaspaceMax((java.lang.Long)value);
       }
       break;
 
@@ -579,29 +1381,83 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     case INTERVAL:
       return getInterval();
 
-    case INSTANCE_TIME_ENTITY:
-      return getInstanceTimeEntity();
+    case INSTANCE_UP_TIME:
+      return getInstanceUpTime();
 
-    case CPU_ENTITY:
-      return getCpuEntity();
+    case INSTANCE_START_TIME:
+      return getInstanceStartTime();
 
-    case MEMORY_ENTITY:
-      return getMemoryEntity();
+    case PROCESSORS:
+      return getProcessors();
 
-    case HEAP_ENTITY:
-      return getHeapEntity();
+    case PROCESS_CPU_TIME:
+      return getProcessCpuTime();
 
-    case NON_HEAP_ENTITY:
-      return getNonHeapEntity();
+    case SYSTEM_LOAD_AVG:
+      return getSystemLoadAvg();
 
-    case THREAD_ENTITY:
-      return getThreadEntity();
+    case PROCESS_CPU_LOAD:
+      return getProcessCpuLoad();
 
-    case CLASSES_ENTITY:
-      return getClassesEntity();
+    case TOTAL_MEM_BYTES:
+      return getTotalMemBytes();
 
-    case METASPACE_ENTITY:
-      return getMetaspaceEntity();
+    case FREE_MEM_BYTES:
+      return getFreeMemBytes();
+
+    case HEAP_MAX:
+      return getHeapMax();
+
+    case HEAP_INIT:
+      return getHeapInit();
+
+    case HEAP_USED:
+      return getHeapUsed();
+
+    case HEAP_COMMITTED:
+      return getHeapCommitted();
+
+    case NON_HEAP_MAX:
+      return getNonHeapMax();
+
+    case NON_HEAP_INIT:
+      return getNonHeapInit();
+
+    case NON_HEAP_USED:
+      return getNonHeapUsed();
+
+    case NON_HEAP_COMMITTED:
+      return getNonHeapCommitted();
+
+    case PEAK_THREADS:
+      return getPeakThreads();
+
+    case DAEMON_THREADS:
+      return getDaemonThreads();
+
+    case TOTAL_THREADS:
+      return getTotalThreads();
+
+    case ACTIVE_THREADS:
+      return getActiveThreads();
+
+    case CLASS_LOADED:
+      return getClassLoaded();
+
+    case CLASS_UNLOADED:
+      return getClassUnloaded();
+
+    case METASPACE_COMMITTED:
+      return getMetaspaceCommitted();
+
+    case METASPACE_USED:
+      return getMetaspaceUsed();
+
+    case METASPACE_INIT:
+      return getMetaspaceInit();
+
+    case METASPACE_MAX:
+      return getMetaspaceMax();
 
     }
     throw new java.lang.IllegalStateException();
@@ -618,22 +1474,58 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       return isSetTimestamp();
     case INTERVAL:
       return isSetInterval();
-    case INSTANCE_TIME_ENTITY:
-      return isSetInstanceTimeEntity();
-    case CPU_ENTITY:
-      return isSetCpuEntity();
-    case MEMORY_ENTITY:
-      return isSetMemoryEntity();
-    case HEAP_ENTITY:
-      return isSetHeapEntity();
-    case NON_HEAP_ENTITY:
-      return isSetNonHeapEntity();
-    case THREAD_ENTITY:
-      return isSetThreadEntity();
-    case CLASSES_ENTITY:
-      return isSetClassesEntity();
-    case METASPACE_ENTITY:
-      return isSetMetaspaceEntity();
+    case INSTANCE_UP_TIME:
+      return isSetInstanceUpTime();
+    case INSTANCE_START_TIME:
+      return isSetInstanceStartTime();
+    case PROCESSORS:
+      return isSetProcessors();
+    case PROCESS_CPU_TIME:
+      return isSetProcessCpuTime();
+    case SYSTEM_LOAD_AVG:
+      return isSetSystemLoadAvg();
+    case PROCESS_CPU_LOAD:
+      return isSetProcessCpuLoad();
+    case TOTAL_MEM_BYTES:
+      return isSetTotalMemBytes();
+    case FREE_MEM_BYTES:
+      return isSetFreeMemBytes();
+    case HEAP_MAX:
+      return isSetHeapMax();
+    case HEAP_INIT:
+      return isSetHeapInit();
+    case HEAP_USED:
+      return isSetHeapUsed();
+    case HEAP_COMMITTED:
+      return isSetHeapCommitted();
+    case NON_HEAP_MAX:
+      return isSetNonHeapMax();
+    case NON_HEAP_INIT:
+      return isSetNonHeapInit();
+    case NON_HEAP_USED:
+      return isSetNonHeapUsed();
+    case NON_HEAP_COMMITTED:
+      return isSetNonHeapCommitted();
+    case PEAK_THREADS:
+      return isSetPeakThreads();
+    case DAEMON_THREADS:
+      return isSetDaemonThreads();
+    case TOTAL_THREADS:
+      return isSetTotalThreads();
+    case ACTIVE_THREADS:
+      return isSetActiveThreads();
+    case CLASS_LOADED:
+      return isSetClassLoaded();
+    case CLASS_UNLOADED:
+      return isSetClassUnloaded();
+    case METASPACE_COMMITTED:
+      return isSetMetaspaceCommitted();
+    case METASPACE_USED:
+      return isSetMetaspaceUsed();
+    case METASPACE_INIT:
+      return isSetMetaspaceInit();
+    case METASPACE_MAX:
+      return isSetMetaspaceMax();
     }
     throw new java.lang.IllegalStateException();
   }
@@ -669,75 +1561,237 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         return false;
     }
 
-    boolean this_present_instanceTimeEntity = true && this.isSetInstanceTimeEntity();
-    boolean that_present_instanceTimeEntity = true && that.isSetInstanceTimeEntity();
-    if (this_present_instanceTimeEntity || that_present_instanceTimeEntity) {
-      if (!(this_present_instanceTimeEntity && that_present_instanceTimeEntity))
+    boolean this_present_instanceUpTime = true;
+    boolean that_present_instanceUpTime = true;
+    if (this_present_instanceUpTime || that_present_instanceUpTime) {
+      if (!(this_present_instanceUpTime && that_present_instanceUpTime))
         return false;
-      if (!this.instanceTimeEntity.equals(that.instanceTimeEntity))
-        return false;
-    }
-
-    boolean this_present_cpuEntity = true && this.isSetCpuEntity();
-    boolean that_present_cpuEntity = true && that.isSetCpuEntity();
-    if (this_present_cpuEntity || that_present_cpuEntity) {
-      if (!(this_present_cpuEntity && that_present_cpuEntity))
-        return false;
-      if (!this.cpuEntity.equals(that.cpuEntity))
+      if (this.instanceUpTime != that.instanceUpTime)
         return false;
     }
 
-    boolean this_present_memoryEntity = true && this.isSetMemoryEntity();
-    boolean that_present_memoryEntity = true && that.isSetMemoryEntity();
-    if (this_present_memoryEntity || that_present_memoryEntity) {
-      if (!(this_present_memoryEntity && that_present_memoryEntity))
+    boolean this_present_instanceStartTime = true;
+    boolean that_present_instanceStartTime = true;
+    if (this_present_instanceStartTime || that_present_instanceStartTime) {
+      if (!(this_present_instanceStartTime && that_present_instanceStartTime))
         return false;
-      if (!this.memoryEntity.equals(that.memoryEntity))
-        return false;
-    }
-
-    boolean this_present_heapEntity = true && this.isSetHeapEntity();
-    boolean that_present_heapEntity = true && that.isSetHeapEntity();
-    if (this_present_heapEntity || that_present_heapEntity) {
-      if (!(this_present_heapEntity && that_present_heapEntity))
-        return false;
-      if (!this.heapEntity.equals(that.heapEntity))
+      if (this.instanceStartTime != that.instanceStartTime)
         return false;
     }
 
-    boolean this_present_nonHeapEntity = true && this.isSetNonHeapEntity();
-    boolean that_present_nonHeapEntity = true && that.isSetNonHeapEntity();
-    if (this_present_nonHeapEntity || that_present_nonHeapEntity) {
-      if (!(this_present_nonHeapEntity && that_present_nonHeapEntity))
+    boolean this_present_processors = true;
+    boolean that_present_processors = true;
+    if (this_present_processors || that_present_processors) {
+      if (!(this_present_processors && that_present_processors))
         return false;
-      if (!this.nonHeapEntity.equals(that.nonHeapEntity))
-        return false;
-    }
-
-    boolean this_present_threadEntity = true && this.isSetThreadEntity();
-    boolean that_present_threadEntity = true && that.isSetThreadEntity();
-    if (this_present_threadEntity || that_present_threadEntity) {
-      if (!(this_present_threadEntity && that_present_threadEntity))
-        return false;
-      if (!this.threadEntity.equals(that.threadEntity))
+      if (this.processors != that.processors)
         return false;
     }
 
-    boolean this_present_classesEntity = true && this.isSetClassesEntity();
-    boolean that_present_classesEntity = true && that.isSetClassesEntity();
-    if (this_present_classesEntity || that_present_classesEntity) {
-      if (!(this_present_classesEntity && that_present_classesEntity))
+    boolean this_present_processCpuTime = true;
+    boolean that_present_processCpuTime = true;
+    if (this_present_processCpuTime || that_present_processCpuTime) {
+      if (!(this_present_processCpuTime && that_present_processCpuTime))
         return false;
-      if (!this.classesEntity.equals(that.classesEntity))
+      if (this.processCpuTime != that.processCpuTime)
         return false;
     }
 
-    boolean this_present_metaspaceEntity = true && this.isSetMetaspaceEntity();
-    boolean that_present_metaspaceEntity = true && that.isSetMetaspaceEntity();
-    if (this_present_metaspaceEntity || that_present_metaspaceEntity) {
-      if (!(this_present_metaspaceEntity && that_present_metaspaceEntity))
+    boolean this_present_systemLoadAvg = true;
+    boolean that_present_systemLoadAvg = true;
+    if (this_present_systemLoadAvg || that_present_systemLoadAvg) {
+      if (!(this_present_systemLoadAvg && that_present_systemLoadAvg))
         return false;
-      if (!this.metaspaceEntity.equals(that.metaspaceEntity))
+      if (this.systemLoadAvg != that.systemLoadAvg)
+        return false;
+    }
+
+    boolean this_present_processCpuLoad = true;
+    boolean that_present_processCpuLoad = true;
+    if (this_present_processCpuLoad || that_present_processCpuLoad) {
+      if (!(this_present_processCpuLoad && that_present_processCpuLoad))
+        return false;
+      if (this.processCpuLoad != that.processCpuLoad)
+        return false;
+    }
+
+    boolean this_present_totalMemBytes = true;
+    boolean that_present_totalMemBytes = true;
+    if (this_present_totalMemBytes || that_present_totalMemBytes) {
+      if (!(this_present_totalMemBytes && that_present_totalMemBytes))
+        return false;
+      if (this.totalMemBytes != that.totalMemBytes)
+        return false;
+    }
+
+    boolean this_present_freeMemBytes = true;
+    boolean that_present_freeMemBytes = true;
+    if (this_present_freeMemBytes || that_present_freeMemBytes) {
+      if (!(this_present_freeMemBytes && that_present_freeMemBytes))
+        return false;
+      if (this.freeMemBytes != that.freeMemBytes)
+        return false;
+    }
+
+    boolean this_present_heapMax = true;
+    boolean that_present_heapMax = true;
+    if (this_present_heapMax || that_present_heapMax) {
+      if (!(this_present_heapMax && that_present_heapMax))
+        return false;
+      if (this.heapMax != that.heapMax)
+        return false;
+    }
+
+    boolean this_present_heapInit = true;
+    boolean that_present_heapInit = true;
+    if (this_present_heapInit || that_present_heapInit) {
+      if (!(this_present_heapInit && that_present_heapInit))
+        return false;
+      if (this.heapInit != that.heapInit)
+        return false;
+    }
+
+    boolean this_present_heapUsed = true;
+    boolean that_present_heapUsed = true;
+    if (this_present_heapUsed || that_present_heapUsed) {
+      if (!(this_present_heapUsed && that_present_heapUsed))
+        return false;
+      if (this.heapUsed != that.heapUsed)
+        return false;
+    }
+
+    boolean this_present_heapCommitted = true;
+    boolean that_present_heapCommitted = true;
+    if (this_present_heapCommitted || that_present_heapCommitted) {
+      if (!(this_present_heapCommitted && that_present_heapCommitted))
+        return false;
+      if (this.heapCommitted != that.heapCommitted)
+        return false;
+    }
+
+    boolean this_present_nonHeapMax = true;
+    boolean that_present_nonHeapMax = true;
+    if (this_present_nonHeapMax || that_present_nonHeapMax) {
+      if (!(this_present_nonHeapMax && that_present_nonHeapMax))
+        return false;
+      if (this.nonHeapMax != that.nonHeapMax)
+        return false;
+    }
+
+    boolean this_present_nonHeapInit = true;
+    boolean that_present_nonHeapInit = true;
+    if (this_present_nonHeapInit || that_present_nonHeapInit) {
+      if (!(this_present_nonHeapInit && that_present_nonHeapInit))
+        return false;
+      if (this.nonHeapInit != that.nonHeapInit)
+        return false;
+    }
+
+    boolean this_present_nonHeapUsed = true;
+    boolean that_present_nonHeapUsed = true;
+    if (this_present_nonHeapUsed || that_present_nonHeapUsed) {
+      if (!(this_present_nonHeapUsed && that_present_nonHeapUsed))
+        return false;
+      if (this.nonHeapUsed != that.nonHeapUsed)
+        return false;
+    }
+
+    boolean this_present_nonHeapCommitted = true;
+    boolean that_present_nonHeapCommitted = true;
+    if (this_present_nonHeapCommitted || that_present_nonHeapCommitted) {
+      if (!(this_present_nonHeapCommitted && that_present_nonHeapCommitted))
+        return false;
+      if (this.nonHeapCommitted != that.nonHeapCommitted)
+        return false;
+    }
+
+    boolean this_present_peakThreads = true;
+    boolean that_present_peakThreads = true;
+    if (this_present_peakThreads || that_present_peakThreads) {
+      if (!(this_present_peakThreads && that_present_peakThreads))
+        return false;
+      if (this.peakThreads != that.peakThreads)
+        return false;
+    }
+
+    boolean this_present_daemonThreads = true;
+    boolean that_present_daemonThreads = true;
+    if (this_present_daemonThreads || that_present_daemonThreads) {
+      if (!(this_present_daemonThreads && that_present_daemonThreads))
+        return false;
+      if (this.daemonThreads != that.daemonThreads)
+        return false;
+    }
+
+    boolean this_present_totalThreads = true;
+    boolean that_present_totalThreads = true;
+    if (this_present_totalThreads || that_present_totalThreads) {
+      if (!(this_present_totalThreads && that_present_totalThreads))
+        return false;
+      if (this.totalThreads != that.totalThreads)
+        return false;
+    }
+
+    boolean this_present_activeThreads = true;
+    boolean that_present_activeThreads = true;
+    if (this_present_activeThreads || that_present_activeThreads) {
+      if (!(this_present_activeThreads && that_present_activeThreads))
+        return false;
+      if (this.activeThreads != that.activeThreads)
+        return false;
+    }
+
+    boolean this_present_classLoaded = true;
+    boolean that_present_classLoaded = true;
+    if (this_present_classLoaded || that_present_classLoaded) {
+      if (!(this_present_classLoaded && that_present_classLoaded))
+        return false;
+      if (this.classLoaded != that.classLoaded)
+        return false;
+    }
+
+    boolean this_present_classUnloaded = true;
+    boolean that_present_classUnloaded = true;
+    if (this_present_classUnloaded || that_present_classUnloaded) {
+      if (!(this_present_classUnloaded && that_present_classUnloaded))
+        return false;
+      if (this.classUnloaded != that.classUnloaded)
+        return false;
+    }
+
+    boolean this_present_metaspaceCommitted = true;
+    boolean that_present_metaspaceCommitted = true;
+    if (this_present_metaspaceCommitted || that_present_metaspaceCommitted) {
+      if (!(this_present_metaspaceCommitted && that_present_metaspaceCommitted))
+        return false;
+      if (this.metaspaceCommitted != that.metaspaceCommitted)
+        return false;
+    }
+
+    boolean this_present_metaspaceUsed = true;
+    boolean that_present_metaspaceUsed = true;
+    if (this_present_metaspaceUsed || that_present_metaspaceUsed) {
+      if (!(this_present_metaspaceUsed && that_present_metaspaceUsed))
+        return false;
+      if (this.metaspaceUsed != that.metaspaceUsed)
+        return false;
+    }
+
+    boolean this_present_metaspaceInit = true;
+    boolean that_present_metaspaceInit = true;
+    if (this_present_metaspaceInit || that_present_metaspaceInit) {
+      if (!(this_present_metaspaceInit && that_present_metaspaceInit))
+        return false;
+      if (this.metaspaceInit != that.metaspaceInit)
+        return false;
+    }
+
+    boolean this_present_metaspaceMax = true;
+    boolean that_present_metaspaceMax = true;
+    if (this_present_metaspaceMax || that_present_metaspaceMax) {
+      if (!(this_present_metaspaceMax && that_present_metaspaceMax))
+        return false;
+      if (this.metaspaceMax != that.metaspaceMax)
         return false;
     }
 
@@ -752,37 +1806,57 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
 
     hashCode = hashCode * 8191 + interval;
 
-    hashCode = hashCode * 8191 + ((isSetInstanceTimeEntity()) ? 131071 : 524287);
-    if (isSetInstanceTimeEntity())
-      hashCode = hashCode * 8191 + instanceTimeEntity.hashCode();
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(instanceUpTime);
 
-    hashCode = hashCode * 8191 + ((isSetCpuEntity()) ? 131071 : 524287);
-    if (isSetCpuEntity())
-      hashCode = hashCode * 8191 + cpuEntity.hashCode();
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(instanceStartTime);
 
-    hashCode = hashCode * 8191 + ((isSetMemoryEntity()) ? 131071 : 524287);
-    if (isSetMemoryEntity())
-      hashCode = hashCode * 8191 + memoryEntity.hashCode();
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(processors);
 
-    hashCode = hashCode * 8191 + ((isSetHeapEntity()) ? 131071 : 524287);
-    if (isSetHeapEntity())
-      hashCode = hashCode * 8191 + heapEntity.hashCode();
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(processCpuTime);
 
-    hashCode = hashCode * 8191 + ((isSetNonHeapEntity()) ? 131071 : 524287);
-    if (isSetNonHeapEntity())
-      hashCode = hashCode * 8191 + nonHeapEntity.hashCode();
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(systemLoadAvg);
 
-    hashCode = hashCode * 8191 + ((isSetThreadEntity()) ? 131071 : 524287);
-    if (isSetThreadEntity())
-      hashCode = hashCode * 8191 + threadEntity.hashCode();
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(processCpuLoad);
 
-    hashCode = hashCode * 8191 + ((isSetClassesEntity()) ? 131071 : 524287);
-    if (isSetClassesEntity())
-      hashCode = hashCode * 8191 + classesEntity.hashCode();
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(totalMemBytes);
 
-    hashCode = hashCode * 8191 + ((isSetMetaspaceEntity()) ? 131071 : 524287);
-    if (isSetMetaspaceEntity())
-      hashCode = hashCode * 8191 + metaspaceEntity.hashCode();
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(freeMemBytes);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(heapMax);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(heapInit);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(heapUsed);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(heapCommitted);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(nonHeapMax);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(nonHeapInit);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(nonHeapUsed);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(nonHeapCommitted);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(peakThreads);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(daemonThreads);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(totalThreads);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(activeThreads);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(classLoaded);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(classUnloaded);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(metaspaceCommitted);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(metaspaceUsed);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(metaspaceInit);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(metaspaceMax);
 
     return hashCode;
   }
@@ -815,82 +1889,262 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetInstanceTimeEntity(), other.isSetInstanceTimeEntity());
+    lastComparison = java.lang.Boolean.compare(isSetInstanceUpTime(), other.isSetInstanceUpTime());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetInstanceTimeEntity()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.instanceTimeEntity, other.instanceTimeEntity);
+    if (isSetInstanceUpTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.instanceUpTime, other.instanceUpTime);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetCpuEntity(), other.isSetCpuEntity());
+    lastComparison = java.lang.Boolean.compare(isSetInstanceStartTime(), other.isSetInstanceStartTime());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetCpuEntity()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.cpuEntity, other.cpuEntity);
+    if (isSetInstanceStartTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.instanceStartTime, other.instanceStartTime);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetMemoryEntity(), other.isSetMemoryEntity());
+    lastComparison = java.lang.Boolean.compare(isSetProcessors(), other.isSetProcessors());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMemoryEntity()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.memoryEntity, other.memoryEntity);
+    if (isSetProcessors()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.processors, other.processors);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetHeapEntity(), other.isSetHeapEntity());
+    lastComparison = java.lang.Boolean.compare(isSetProcessCpuTime(), other.isSetProcessCpuTime());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetHeapEntity()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.heapEntity, other.heapEntity);
+    if (isSetProcessCpuTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.processCpuTime, other.processCpuTime);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetNonHeapEntity(), other.isSetNonHeapEntity());
+    lastComparison = java.lang.Boolean.compare(isSetSystemLoadAvg(), other.isSetSystemLoadAvg());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetNonHeapEntity()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.nonHeapEntity, other.nonHeapEntity);
+    if (isSetSystemLoadAvg()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.systemLoadAvg, other.systemLoadAvg);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetThreadEntity(), other.isSetThreadEntity());
+    lastComparison = java.lang.Boolean.compare(isSetProcessCpuLoad(), other.isSetProcessCpuLoad());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetThreadEntity()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.threadEntity, other.threadEntity);
+    if (isSetProcessCpuLoad()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.processCpuLoad, other.processCpuLoad);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetClassesEntity(), other.isSetClassesEntity());
+    lastComparison = java.lang.Boolean.compare(isSetTotalMemBytes(), other.isSetTotalMemBytes());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetClassesEntity()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.classesEntity, other.classesEntity);
+    if (isSetTotalMemBytes()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.totalMemBytes, other.totalMemBytes);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetMetaspaceEntity(), other.isSetMetaspaceEntity());
+    lastComparison = java.lang.Boolean.compare(isSetFreeMemBytes(), other.isSetFreeMemBytes());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMetaspaceEntity()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metaspaceEntity, other.metaspaceEntity);
+    if (isSetFreeMemBytes()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.freeMemBytes, other.freeMemBytes);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetHeapMax(), other.isSetHeapMax());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetHeapMax()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.heapMax, other.heapMax);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetHeapInit(), other.isSetHeapInit());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetHeapInit()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.heapInit, other.heapInit);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetHeapUsed(), other.isSetHeapUsed());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetHeapUsed()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.heapUsed, other.heapUsed);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetHeapCommitted(), other.isSetHeapCommitted());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetHeapCommitted()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.heapCommitted, other.heapCommitted);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetNonHeapMax(), other.isSetNonHeapMax());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetNonHeapMax()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.nonHeapMax, other.nonHeapMax);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetNonHeapInit(), other.isSetNonHeapInit());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetNonHeapInit()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.nonHeapInit, other.nonHeapInit);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetNonHeapUsed(), other.isSetNonHeapUsed());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetNonHeapUsed()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.nonHeapUsed, other.nonHeapUsed);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetNonHeapCommitted(), other.isSetNonHeapCommitted());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetNonHeapCommitted()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.nonHeapCommitted, other.nonHeapCommitted);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetPeakThreads(), other.isSetPeakThreads());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetPeakThreads()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.peakThreads, other.peakThreads);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetDaemonThreads(), other.isSetDaemonThreads());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetDaemonThreads()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.daemonThreads, other.daemonThreads);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetTotalThreads(), other.isSetTotalThreads());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetTotalThreads()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.totalThreads, other.totalThreads);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetActiveThreads(), other.isSetActiveThreads());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetActiveThreads()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.activeThreads, other.activeThreads);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetClassLoaded(), other.isSetClassLoaded());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetClassLoaded()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.classLoaded, other.classLoaded);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetClassUnloaded(), other.isSetClassUnloaded());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetClassUnloaded()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.classUnloaded, other.classUnloaded);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetMetaspaceCommitted(), other.isSetMetaspaceCommitted());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMetaspaceCommitted()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metaspaceCommitted, other.metaspaceCommitted);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetMetaspaceUsed(), other.isSetMetaspaceUsed());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMetaspaceUsed()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metaspaceUsed, other.metaspaceUsed);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetMetaspaceInit(), other.isSetMetaspaceInit());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMetaspaceInit()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metaspaceInit, other.metaspaceInit);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetMetaspaceMax(), other.isSetMetaspaceMax());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMetaspaceMax()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metaspaceMax, other.metaspaceMax);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -924,68 +2178,108 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     sb.append(this.interval);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("instanceTimeEntity:");
-    if (this.instanceTimeEntity == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.instanceTimeEntity);
-    }
+    sb.append("instanceUpTime:");
+    sb.append(this.instanceUpTime);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("cpuEntity:");
-    if (this.cpuEntity == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.cpuEntity);
-    }
+    sb.append("instanceStartTime:");
+    sb.append(this.instanceStartTime);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("memoryEntity:");
-    if (this.memoryEntity == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.memoryEntity);
-    }
+    sb.append("processors:");
+    sb.append(this.processors);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("heapEntity:");
-    if (this.heapEntity == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.heapEntity);
-    }
+    sb.append("processCpuTime:");
+    sb.append(this.processCpuTime);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("nonHeapEntity:");
-    if (this.nonHeapEntity == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.nonHeapEntity);
-    }
+    sb.append("systemLoadAvg:");
+    sb.append(this.systemLoadAvg);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("threadEntity:");
-    if (this.threadEntity == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.threadEntity);
-    }
+    sb.append("processCpuLoad:");
+    sb.append(this.processCpuLoad);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("classesEntity:");
-    if (this.classesEntity == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.classesEntity);
-    }
+    sb.append("totalMemBytes:");
+    sb.append(this.totalMemBytes);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("metaspaceEntity:");
-    if (this.metaspaceEntity == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.metaspaceEntity);
-    }
+    sb.append("freeMemBytes:");
+    sb.append(this.freeMemBytes);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("heapMax:");
+    sb.append(this.heapMax);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("heapInit:");
+    sb.append(this.heapInit);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("heapUsed:");
+    sb.append(this.heapUsed);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("heapCommitted:");
+    sb.append(this.heapCommitted);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("nonHeapMax:");
+    sb.append(this.nonHeapMax);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("nonHeapInit:");
+    sb.append(this.nonHeapInit);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("nonHeapUsed:");
+    sb.append(this.nonHeapUsed);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("nonHeapCommitted:");
+    sb.append(this.nonHeapCommitted);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("peakThreads:");
+    sb.append(this.peakThreads);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("daemonThreads:");
+    sb.append(this.daemonThreads);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("totalThreads:");
+    sb.append(this.totalThreads);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("activeThreads:");
+    sb.append(this.activeThreads);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("classLoaded:");
+    sb.append(this.classLoaded);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("classUnloaded:");
+    sb.append(this.classUnloaded);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("metaspaceCommitted:");
+    sb.append(this.metaspaceCommitted);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("metaspaceUsed:");
+    sb.append(this.metaspaceUsed);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("metaspaceInit:");
+    sb.append(this.metaspaceInit);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("metaspaceMax:");
+    sb.append(this.metaspaceMax);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -1048,74 +2342,210 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 7: // INSTANCE_TIME_ENTITY
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.instanceTimeEntity = new InstanceTimeEntity();
-              struct.instanceTimeEntity.read(iprot);
-              struct.setInstanceTimeEntityIsSet(true);
+          case 3: // INSTANCE_UP_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.instanceUpTime = iprot.readI64();
+              struct.setInstanceUpTimeIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 8: // CPU_ENTITY
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.cpuEntity = new CpuEntity();
-              struct.cpuEntity.read(iprot);
-              struct.setCpuEntityIsSet(true);
+          case 4: // INSTANCE_START_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.instanceStartTime = iprot.readI64();
+              struct.setInstanceStartTimeIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 9: // MEMORY_ENTITY
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.memoryEntity = new MemoryEntity();
-              struct.memoryEntity.read(iprot);
-              struct.setMemoryEntityIsSet(true);
+          case 5: // PROCESSORS
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.processors = iprot.readI64();
+              struct.setProcessorsIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 10: // HEAP_ENTITY
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.heapEntity = new HeapEntity();
-              struct.heapEntity.read(iprot);
-              struct.setHeapEntityIsSet(true);
+          case 6: // PROCESS_CPU_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.processCpuTime = iprot.readI64();
+              struct.setProcessCpuTimeIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 11: // NON_HEAP_ENTITY
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.nonHeapEntity = new NonHeapEntity();
-              struct.nonHeapEntity.read(iprot);
-              struct.setNonHeapEntityIsSet(true);
+          case 7: // SYSTEM_LOAD_AVG
+            if (schemeField.type == org.apache.thrift.protocol.TType.DOUBLE) {
+              struct.systemLoadAvg = iprot.readDouble();
+              struct.setSystemLoadAvgIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 12: // THREAD_ENTITY
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.threadEntity = new ThreadEntity();
-              struct.threadEntity.read(iprot);
-              struct.setThreadEntityIsSet(true);
+          case 8: // PROCESS_CPU_LOAD
+            if (schemeField.type == org.apache.thrift.protocol.TType.DOUBLE) {
+              struct.processCpuLoad = iprot.readDouble();
+              struct.setProcessCpuLoadIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 13: // CLASSES_ENTITY
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.classesEntity = new ClassEntity();
-              struct.classesEntity.read(iprot);
-              struct.setClassesEntityIsSet(true);
+          case 9: // TOTAL_MEM_BYTES
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.totalMemBytes = iprot.readI64();
+              struct.setTotalMemBytesIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 14: // METASPACE_ENTITY
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.metaspaceEntity = new MetaspaceEntity();
-              struct.metaspaceEntity.read(iprot);
-              struct.setMetaspaceEntityIsSet(true);
+          case 10: // FREE_MEM_BYTES
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.freeMemBytes = iprot.readI64();
+              struct.setFreeMemBytesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 11: // HEAP_MAX
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.heapMax = iprot.readI64();
+              struct.setHeapMaxIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 12: // HEAP_INIT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.heapInit = iprot.readI64();
+              struct.setHeapInitIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 13: // HEAP_USED
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.heapUsed = iprot.readI64();
+              struct.setHeapUsedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 14: // HEAP_COMMITTED
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.heapCommitted = iprot.readI64();
+              struct.setHeapCommittedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 15: // NON_HEAP_MAX
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.nonHeapMax = iprot.readI64();
+              struct.setNonHeapMaxIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 16: // NON_HEAP_INIT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.nonHeapInit = iprot.readI64();
+              struct.setNonHeapInitIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 17: // NON_HEAP_USED
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.nonHeapUsed = iprot.readI64();
+              struct.setNonHeapUsedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 18: // NON_HEAP_COMMITTED
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.nonHeapCommitted = iprot.readI64();
+              struct.setNonHeapCommittedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 19: // PEAK_THREADS
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.peakThreads = iprot.readI64();
+              struct.setPeakThreadsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 20: // DAEMON_THREADS
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.daemonThreads = iprot.readI64();
+              struct.setDaemonThreadsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 21: // TOTAL_THREADS
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.totalThreads = iprot.readI64();
+              struct.setTotalThreadsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 22: // ACTIVE_THREADS
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.activeThreads = iprot.readI64();
+              struct.setActiveThreadsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 23: // CLASS_LOADED
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.classLoaded = iprot.readI64();
+              struct.setClassLoadedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 24: // CLASS_UNLOADED
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.classUnloaded = iprot.readI64();
+              struct.setClassUnloadedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 25: // METASPACE_COMMITTED
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.metaspaceCommitted = iprot.readI64();
+              struct.setMetaspaceCommittedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 26: // METASPACE_USED
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.metaspaceUsed = iprot.readI64();
+              struct.setMetaspaceUsedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 27: // METASPACE_INIT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.metaspaceInit = iprot.readI64();
+              struct.setMetaspaceInitIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 28: // METASPACE_MAX
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.metaspaceMax = iprot.readI64();
+              struct.setMetaspaceMaxIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -1141,46 +2571,84 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       oprot.writeFieldBegin(INTERVAL_FIELD_DESC);
       oprot.writeI32(struct.interval);
       oprot.writeFieldEnd();
-      if (struct.instanceTimeEntity != null) {
-        oprot.writeFieldBegin(INSTANCE_TIME_ENTITY_FIELD_DESC);
-        struct.instanceTimeEntity.write(oprot);
-        oprot.writeFieldEnd();
-      }
-      if (struct.cpuEntity != null) {
-        oprot.writeFieldBegin(CPU_ENTITY_FIELD_DESC);
-        struct.cpuEntity.write(oprot);
-        oprot.writeFieldEnd();
-      }
-      if (struct.memoryEntity != null) {
-        oprot.writeFieldBegin(MEMORY_ENTITY_FIELD_DESC);
-        struct.memoryEntity.write(oprot);
-        oprot.writeFieldEnd();
-      }
-      if (struct.heapEntity != null) {
-        oprot.writeFieldBegin(HEAP_ENTITY_FIELD_DESC);
-        struct.heapEntity.write(oprot);
-        oprot.writeFieldEnd();
-      }
-      if (struct.nonHeapEntity != null) {
-        oprot.writeFieldBegin(NON_HEAP_ENTITY_FIELD_DESC);
-        struct.nonHeapEntity.write(oprot);
-        oprot.writeFieldEnd();
-      }
-      if (struct.threadEntity != null) {
-        oprot.writeFieldBegin(THREAD_ENTITY_FIELD_DESC);
-        struct.threadEntity.write(oprot);
-        oprot.writeFieldEnd();
-      }
-      if (struct.classesEntity != null) {
-        oprot.writeFieldBegin(CLASSES_ENTITY_FIELD_DESC);
-        struct.classesEntity.write(oprot);
-        oprot.writeFieldEnd();
-      }
-      if (struct.metaspaceEntity != null) {
-        oprot.writeFieldBegin(METASPACE_ENTITY_FIELD_DESC);
-        struct.metaspaceEntity.write(oprot);
-        oprot.writeFieldEnd();
-      }
+      oprot.writeFieldBegin(INSTANCE_UP_TIME_FIELD_DESC);
+      oprot.writeI64(struct.instanceUpTime);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(INSTANCE_START_TIME_FIELD_DESC);
+      oprot.writeI64(struct.instanceStartTime);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(PROCESSORS_FIELD_DESC);
+      oprot.writeI64(struct.processors);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(PROCESS_CPU_TIME_FIELD_DESC);
+      oprot.writeI64(struct.processCpuTime);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(SYSTEM_LOAD_AVG_FIELD_DESC);
+      oprot.writeDouble(struct.systemLoadAvg);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(PROCESS_CPU_LOAD_FIELD_DESC);
+      oprot.writeDouble(struct.processCpuLoad);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(TOTAL_MEM_BYTES_FIELD_DESC);
+      oprot.writeI64(struct.totalMemBytes);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(FREE_MEM_BYTES_FIELD_DESC);
+      oprot.writeI64(struct.freeMemBytes);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(HEAP_MAX_FIELD_DESC);
+      oprot.writeI64(struct.heapMax);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(HEAP_INIT_FIELD_DESC);
+      oprot.writeI64(struct.heapInit);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(HEAP_USED_FIELD_DESC);
+      oprot.writeI64(struct.heapUsed);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(HEAP_COMMITTED_FIELD_DESC);
+      oprot.writeI64(struct.heapCommitted);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(NON_HEAP_MAX_FIELD_DESC);
+      oprot.writeI64(struct.nonHeapMax);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(NON_HEAP_INIT_FIELD_DESC);
+      oprot.writeI64(struct.nonHeapInit);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(NON_HEAP_USED_FIELD_DESC);
+      oprot.writeI64(struct.nonHeapUsed);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(NON_HEAP_COMMITTED_FIELD_DESC);
+      oprot.writeI64(struct.nonHeapCommitted);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(PEAK_THREADS_FIELD_DESC);
+      oprot.writeI64(struct.peakThreads);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(DAEMON_THREADS_FIELD_DESC);
+      oprot.writeI64(struct.daemonThreads);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(TOTAL_THREADS_FIELD_DESC);
+      oprot.writeI64(struct.totalThreads);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(ACTIVE_THREADS_FIELD_DESC);
+      oprot.writeI64(struct.activeThreads);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(CLASS_LOADED_FIELD_DESC);
+      oprot.writeI64(struct.classLoaded);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(CLASS_UNLOADED_FIELD_DESC);
+      oprot.writeI64(struct.classUnloaded);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(METASPACE_COMMITTED_FIELD_DESC);
+      oprot.writeI64(struct.metaspaceCommitted);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(METASPACE_USED_FIELD_DESC);
+      oprot.writeI64(struct.metaspaceUsed);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(METASPACE_INIT_FIELD_DESC);
+      oprot.writeI64(struct.metaspaceInit);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(METASPACE_MAX_FIELD_DESC);
+      oprot.writeI64(struct.metaspaceMax);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1205,67 +2673,175 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       if (struct.isSetInterval()) {
         optionals.set(1);
       }
-      if (struct.isSetInstanceTimeEntity()) {
+      if (struct.isSetInstanceUpTime()) {
         optionals.set(2);
       }
-      if (struct.isSetCpuEntity()) {
+      if (struct.isSetInstanceStartTime()) {
         optionals.set(3);
       }
-      if (struct.isSetMemoryEntity()) {
+      if (struct.isSetProcessors()) {
         optionals.set(4);
       }
-      if (struct.isSetHeapEntity()) {
+      if (struct.isSetProcessCpuTime()) {
         optionals.set(5);
       }
-      if (struct.isSetNonHeapEntity()) {
+      if (struct.isSetSystemLoadAvg()) {
         optionals.set(6);
       }
-      if (struct.isSetThreadEntity()) {
+      if (struct.isSetProcessCpuLoad()) {
         optionals.set(7);
       }
-      if (struct.isSetClassesEntity()) {
+      if (struct.isSetTotalMemBytes()) {
         optionals.set(8);
       }
-      if (struct.isSetMetaspaceEntity()) {
+      if (struct.isSetFreeMemBytes()) {
         optionals.set(9);
       }
-      oprot.writeBitSet(optionals, 10);
+      if (struct.isSetHeapMax()) {
+        optionals.set(10);
+      }
+      if (struct.isSetHeapInit()) {
+        optionals.set(11);
+      }
+      if (struct.isSetHeapUsed()) {
+        optionals.set(12);
+      }
+      if (struct.isSetHeapCommitted()) {
+        optionals.set(13);
+      }
+      if (struct.isSetNonHeapMax()) {
+        optionals.set(14);
+      }
+      if (struct.isSetNonHeapInit()) {
+        optionals.set(15);
+      }
+      if (struct.isSetNonHeapUsed()) {
+        optionals.set(16);
+      }
+      if (struct.isSetNonHeapCommitted()) {
+        optionals.set(17);
+      }
+      if (struct.isSetPeakThreads()) {
+        optionals.set(18);
+      }
+      if (struct.isSetDaemonThreads()) {
+        optionals.set(19);
+      }
+      if (struct.isSetTotalThreads()) {
+        optionals.set(20);
+      }
+      if (struct.isSetActiveThreads()) {
+        optionals.set(21);
+      }
+      if (struct.isSetClassLoaded()) {
+        optionals.set(22);
+      }
+      if (struct.isSetClassUnloaded()) {
+        optionals.set(23);
+      }
+      if (struct.isSetMetaspaceCommitted()) {
+        optionals.set(24);
+      }
+      if (struct.isSetMetaspaceUsed()) {
+        optionals.set(25);
+      }
+      if (struct.isSetMetaspaceInit()) {
+        optionals.set(26);
+      }
+      if (struct.isSetMetaspaceMax()) {
+        optionals.set(27);
+      }
+      oprot.writeBitSet(optionals, 28);
       if (struct.isSetTimestamp()) {
         oprot.writeI64(struct.timestamp);
       }
       if (struct.isSetInterval()) {
         oprot.writeI32(struct.interval);
       }
-      if (struct.isSetInstanceTimeEntity()) {
-        struct.instanceTimeEntity.write(oprot);
+      if (struct.isSetInstanceUpTime()) {
+        oprot.writeI64(struct.instanceUpTime);
       }
-      if (struct.isSetCpuEntity()) {
-        struct.cpuEntity.write(oprot);
+      if (struct.isSetInstanceStartTime()) {
+        oprot.writeI64(struct.instanceStartTime);
       }
-      if (struct.isSetMemoryEntity()) {
-        struct.memoryEntity.write(oprot);
+      if (struct.isSetProcessors()) {
+        oprot.writeI64(struct.processors);
       }
-      if (struct.isSetHeapEntity()) {
-        struct.heapEntity.write(oprot);
+      if (struct.isSetProcessCpuTime()) {
+        oprot.writeI64(struct.processCpuTime);
       }
-      if (struct.isSetNonHeapEntity()) {
-        struct.nonHeapEntity.write(oprot);
+      if (struct.isSetSystemLoadAvg()) {
+        oprot.writeDouble(struct.systemLoadAvg);
       }
-      if (struct.isSetThreadEntity()) {
-        struct.threadEntity.write(oprot);
+      if (struct.isSetProcessCpuLoad()) {
+        oprot.writeDouble(struct.processCpuLoad);
       }
-      if (struct.isSetClassesEntity()) {
-        struct.classesEntity.write(oprot);
+      if (struct.isSetTotalMemBytes()) {
+        oprot.writeI64(struct.totalMemBytes);
       }
-      if (struct.isSetMetaspaceEntity()) {
-        struct.metaspaceEntity.write(oprot);
+      if (struct.isSetFreeMemBytes()) {
+        oprot.writeI64(struct.freeMemBytes);
+      }
+      if (struct.isSetHeapMax()) {
+        oprot.writeI64(struct.heapMax);
+      }
+      if (struct.isSetHeapInit()) {
+        oprot.writeI64(struct.heapInit);
+      }
+      if (struct.isSetHeapUsed()) {
+        oprot.writeI64(struct.heapUsed);
+      }
+      if (struct.isSetHeapCommitted()) {
+        oprot.writeI64(struct.heapCommitted);
+      }
+      if (struct.isSetNonHeapMax()) {
+        oprot.writeI64(struct.nonHeapMax);
+      }
+      if (struct.isSetNonHeapInit()) {
+        oprot.writeI64(struct.nonHeapInit);
+      }
+      if (struct.isSetNonHeapUsed()) {
+        oprot.writeI64(struct.nonHeapUsed);
+      }
+      if (struct.isSetNonHeapCommitted()) {
+        oprot.writeI64(struct.nonHeapCommitted);
+      }
+      if (struct.isSetPeakThreads()) {
+        oprot.writeI64(struct.peakThreads);
+      }
+      if (struct.isSetDaemonThreads()) {
+        oprot.writeI64(struct.daemonThreads);
+      }
+      if (struct.isSetTotalThreads()) {
+        oprot.writeI64(struct.totalThreads);
+      }
+      if (struct.isSetActiveThreads()) {
+        oprot.writeI64(struct.activeThreads);
+      }
+      if (struct.isSetClassLoaded()) {
+        oprot.writeI64(struct.classLoaded);
+      }
+      if (struct.isSetClassUnloaded()) {
+        oprot.writeI64(struct.classUnloaded);
+      }
+      if (struct.isSetMetaspaceCommitted()) {
+        oprot.writeI64(struct.metaspaceCommitted);
+      }
+      if (struct.isSetMetaspaceUsed()) {
+        oprot.writeI64(struct.metaspaceUsed);
+      }
+      if (struct.isSetMetaspaceInit()) {
+        oprot.writeI64(struct.metaspaceInit);
+      }
+      if (struct.isSetMetaspaceMax()) {
+        oprot.writeI64(struct.metaspaceMax);
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, JvmMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-      java.util.BitSet incoming = iprot.readBitSet(10);
+      java.util.BitSet incoming = iprot.readBitSet(28);
       if (incoming.get(0)) {
         struct.timestamp = iprot.readI64();
         struct.setTimestampIsSet(true);
@@ -1275,44 +2851,108 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         struct.setIntervalIsSet(true);
       }
       if (incoming.get(2)) {
-        struct.instanceTimeEntity = new InstanceTimeEntity();
-        struct.instanceTimeEntity.read(iprot);
-        struct.setInstanceTimeEntityIsSet(true);
+        struct.instanceUpTime = iprot.readI64();
+        struct.setInstanceUpTimeIsSet(true);
       }
       if (incoming.get(3)) {
-        struct.cpuEntity = new CpuEntity();
-        struct.cpuEntity.read(iprot);
-        struct.setCpuEntityIsSet(true);
+        struct.instanceStartTime = iprot.readI64();
+        struct.setInstanceStartTimeIsSet(true);
       }
       if (incoming.get(4)) {
-        struct.memoryEntity = new MemoryEntity();
-        struct.memoryEntity.read(iprot);
-        struct.setMemoryEntityIsSet(true);
+        struct.processors = iprot.readI64();
+        struct.setProcessorsIsSet(true);
       }
       if (incoming.get(5)) {
-        struct.heapEntity = new HeapEntity();
-        struct.heapEntity.read(iprot);
-        struct.setHeapEntityIsSet(true);
+        struct.processCpuTime = iprot.readI64();
+        struct.setProcessCpuTimeIsSet(true);
       }
       if (incoming.get(6)) {
-        struct.nonHeapEntity = new NonHeapEntity();
-        struct.nonHeapEntity.read(iprot);
-        struct.setNonHeapEntityIsSet(true);
+        struct.systemLoadAvg = iprot.readDouble();
+        struct.setSystemLoadAvgIsSet(true);
       }
       if (incoming.get(7)) {
-        struct.threadEntity = new ThreadEntity();
-        struct.threadEntity.read(iprot);
-        struct.setThreadEntityIsSet(true);
+        struct.processCpuLoad = iprot.readDouble();
+        struct.setProcessCpuLoadIsSet(true);
       }
       if (incoming.get(8)) {
-        struct.classesEntity = new ClassEntity();
-        struct.classesEntity.read(iprot);
-        struct.setClassesEntityIsSet(true);
+        struct.totalMemBytes = iprot.readI64();
+        struct.setTotalMemBytesIsSet(true);
       }
       if (incoming.get(9)) {
-        struct.metaspaceEntity = new MetaspaceEntity();
-        struct.metaspaceEntity.read(iprot);
-        struct.setMetaspaceEntityIsSet(true);
+        struct.freeMemBytes = iprot.readI64();
+        struct.setFreeMemBytesIsSet(true);
+      }
+      if (incoming.get(10)) {
+        struct.heapMax = iprot.readI64();
+        struct.setHeapMaxIsSet(true);
+      }
+      if (incoming.get(11)) {
+        struct.heapInit = iprot.readI64();
+        struct.setHeapInitIsSet(true);
+      }
+      if (incoming.get(12)) {
+        struct.heapUsed = iprot.readI64();
+        struct.setHeapUsedIsSet(true);
+      }
+      if (incoming.get(13)) {
+        struct.heapCommitted = iprot.readI64();
+        struct.setHeapCommittedIsSet(true);
+      }
+      if (incoming.get(14)) {
+        struct.nonHeapMax = iprot.readI64();
+        struct.setNonHeapMaxIsSet(true);
+      }
+      if (incoming.get(15)) {
+        struct.nonHeapInit = iprot.readI64();
+        struct.setNonHeapInitIsSet(true);
+      }
+      if (incoming.get(16)) {
+        struct.nonHeapUsed = iprot.readI64();
+        struct.setNonHeapUsedIsSet(true);
+      }
+      if (incoming.get(17)) {
+        struct.nonHeapCommitted = iprot.readI64();
+        struct.setNonHeapCommittedIsSet(true);
+      }
+      if (incoming.get(18)) {
+        struct.peakThreads = iprot.readI64();
+        struct.setPeakThreadsIsSet(true);
+      }
+      if (incoming.get(19)) {
+        struct.daemonThreads = iprot.readI64();
+        struct.setDaemonThreadsIsSet(true);
+      }
+      if (incoming.get(20)) {
+        struct.totalThreads = iprot.readI64();
+        struct.setTotalThreadsIsSet(true);
+      }
+      if (incoming.get(21)) {
+        struct.activeThreads = iprot.readI64();
+        struct.setActiveThreadsIsSet(true);
+      }
+      if (incoming.get(22)) {
+        struct.classLoaded = iprot.readI64();
+        struct.setClassLoadedIsSet(true);
+      }
+      if (incoming.get(23)) {
+        struct.classUnloaded = iprot.readI64();
+        struct.setClassUnloadedIsSet(true);
+      }
+      if (incoming.get(24)) {
+        struct.metaspaceCommitted = iprot.readI64();
+        struct.setMetaspaceCommittedIsSet(true);
+      }
+      if (incoming.get(25)) {
+        struct.metaspaceUsed = iprot.readI64();
+        struct.setMetaspaceUsedIsSet(true);
+      }
+      if (incoming.get(26)) {
+        struct.metaspaceInit = iprot.readI64();
+        struct.setMetaspaceInitIsSet(true);
+      }
+      if (incoming.get(27)) {
+        struct.metaspaceMax = iprot.readI64();
+        struct.setMetaspaceMaxIsSet(true);
       }
     }
   }

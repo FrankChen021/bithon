@@ -109,13 +109,13 @@ public class JvmMetricCollector {
     private JvmMetricSet buildJvmMetrics() {
         JvmMetricSet jvmMetricSet = new JvmMetricSet(RUNTIME_BEAN.getUptime(),
                                                      RUNTIME_BEAN.getStartTime());
-        jvmMetricSet.cpuMetricsSet = cpuMetricCollector.collect();
-        jvmMetricSet.memoryMetricsSet = MemoryMetricCollector.buildMemoryMetrics();
-        jvmMetricSet.heapMetricsSet = MemoryMetricCollector.collectHeap();
-        jvmMetricSet.nonHeapMetricsSet = MemoryMetricCollector.collectNonHeap();
-        jvmMetricSet.metaspaceMetricsSet = MemoryMetricCollector.collectMeataSpace();
-        jvmMetricSet.threadMetricsSet = ThreadMetricCollector.collect();
-        jvmMetricSet.classMetricsSet = ClassMetricCollector.collect();
+        jvmMetricSet.cpuMetricSet = cpuMetricCollector.collect();
+        jvmMetricSet.memoryMetricSet = MemoryMetricCollector.buildMemoryMetrics();
+        jvmMetricSet.heapMetricSet = MemoryMetricCollector.collectHeap();
+        jvmMetricSet.nonHeapMetricSet = MemoryMetricCollector.collectNonHeap();
+        jvmMetricSet.metaspaceMetricSet = MemoryMetricCollector.collectMetaSpace();
+        jvmMetricSet.threadMetricSet = ThreadMetricCollector.collect();
+        jvmMetricSet.classMetricSet = ClassMetricCollector.collect();
         return jvmMetricSet;
     }
 

@@ -49,9 +49,10 @@
       "displayText": "Running Time",
       "unit": "millisecond"
     },
+
     {
       "type": "longLast",
-      "name": "heap",
+      "name": "heapMax",
       "displayText": "Heap(-Xmx)",
       "unit": "byte"
     },
@@ -73,6 +74,83 @@
       "displayText": "Available Heap",
       "unit": "byte"
     },
+
+    {
+      "type": "longLast",
+      "name": "nonHeapMax",
+      "displayText": "-XX:MaxPermSize",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "nonHeapInit",
+      "displayText": "Init nonHeap Size",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "nonHeapUsed",
+      "displayText": "nonHeap Used",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "nonHeapCommitted",
+      "displayText": "Available non-Heap",
+      "unit": "byte"
+    },
+
+    {
+      "type": "longLast",
+      "name": "classLoaded",
+      "displayText": "Loaded Classes",
+      "unit": "count"
+    },
+    {
+      "type": "longLast",
+      "name": "classUnloaded",
+      "displayText": "Unloaded Classes",
+      "unit": "count"
+    },
+
+    {
+      "type": "longLast",
+      "name": "metaspaceMax",
+      "displayText": "Max Metaspace",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "metaspaceInit",
+      "displayText": "Init Metaspace",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "metaspaceCommitted",
+      "displayText": "Available Metaspace",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "metaspaceUsed",
+      "displayText": "Used Metaspace",
+      "unit": "byte"
+    },
+
+    {
+      "type": "longLast",
+      "name": "totalMemBytes",
+      "displayText": "Total Memory",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "freeMemBytes",
+      "displayText": "Free Memory",
+      "unit": "byte"
+    },
+
     {
       "type": "longLast",
       "name": "peakThreads",
@@ -97,6 +175,7 @@
       "displayText": "Active Threads",
       "unit": "count"
     }
+
   ]
 }
 
