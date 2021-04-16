@@ -17,7 +17,6 @@
 package com.sbss.bithon.server.metric.handler;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
 
 import java.util.HashMap;
@@ -34,23 +33,6 @@ public class GenericMetricMessage extends HashMap<String, Object> {
         GenericMetricMessage metricMessage = new GenericMetricMessage();
         ReflectionUtils.getFields(header, metricMessage);
         ReflectionUtils.getFields(message, metricMessage);
-        return metricMessage;
-    }
-
-    public static GenericMetricMessage of(MessageHeader header, JvmMetricMessage message) {
-        GenericMetricMessage metricMessage = new GenericMetricMessage();
-        ReflectionUtils.getFields(header, metricMessage);
-        ReflectionUtils.getFields(message.classesEntity, metricMessage);
-        ReflectionUtils.getFields(message.cpuEntity, metricMessage);
-        ReflectionUtils.getFields(message.heapEntity, metricMessage);
-        ReflectionUtils.getFields(message.instanceTimeEntity, metricMessage);
-        ReflectionUtils.getFields(message.memoryEntity, metricMessage);
-        ReflectionUtils.getFields(message.nonHeapEntity, metricMessage);
-        ReflectionUtils.getFields(message.metaspaceEntity, metricMessage);
-        ReflectionUtils.getFields(message.threadEntity, metricMessage);
-
-        metricMessage.put("interval", message.interval);
-        metricMessage.put("timestamp", message.timestamp);
         return metricMessage;
     }
 

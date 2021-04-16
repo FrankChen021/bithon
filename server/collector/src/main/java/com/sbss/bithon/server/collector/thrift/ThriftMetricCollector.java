@@ -57,7 +57,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("web-request-metrics", new GenericMetricMessageSizedIterator(header, messages));
+        metricSink.process("web-request-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
@@ -66,22 +66,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        final Iterator<JvmMetricMessage> iterator = messages.iterator();
-        metricSink.process("jvm-metrics", new CloseableIterator<GenericMetricMessage>() {
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-
-            @Override
-            public GenericMetricMessage next() {
-                return GenericMetricMessage.of(header, iterator.next());
-            }
-
-            @Override
-            public void close() {
-            }
-        });
+        metricSink.process("jvm-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
@@ -90,7 +75,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("jvm-gc-metrics", new GenericMetricMessageSizedIterator(header, messages));
+        metricSink.process("jvm-gc-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
@@ -99,7 +84,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("web-server-metrics", new GenericMetricMessageSizedIterator(header, messages));
+        metricSink.process("web-server-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
@@ -108,7 +93,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("exception-metrics", new GenericMetricMessageSizedIterator(header, messages));
+        metricSink.process("exception-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
@@ -117,7 +102,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("exception-metrics", new GenericMetricMessageSizedIterator(header, messages));
+        metricSink.process("exception-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
@@ -126,7 +111,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("thread-pool-metrics", new GenericMetricMessageSizedIterator(header, messages));
+        metricSink.process("thread-pool-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
@@ -135,7 +120,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("jdbc-pool-metrics", new GenericMetricMessageSizedIterator(header, messages));
+        metricSink.process("jdbc-pool-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
@@ -144,7 +129,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("redis-metrics", new GenericMetricMessageSizedIterator(header, messages));
+        metricSink.process("redis-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
@@ -153,7 +138,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("sql-metrics", new GenericMetricMessageSizedIterator(header, messages));
+        metricSink.process("sql-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
@@ -162,14 +147,14 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("mongo-metrics", new GenericMetricMessageSizedIterator(header, messages));
+        metricSink.process("mongo-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
-    private static class GenericMetricMessageSizedIterator implements CloseableIterator<GenericMetricMessage> {
+    private static class GenericMetricMessageIterator implements CloseableIterator<GenericMetricMessage> {
         private final Iterator<?> iterator;
         private final MessageHeader header;
 
-        public GenericMetricMessageSizedIterator(MessageHeader header, List<?> messages) {
+        public GenericMetricMessageIterator(MessageHeader header, List<?> messages) {
             this.header = header;
             this.iterator = messages.iterator();
         }

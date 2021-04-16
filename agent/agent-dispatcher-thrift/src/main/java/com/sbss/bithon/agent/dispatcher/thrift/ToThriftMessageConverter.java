@@ -32,22 +32,14 @@ import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ClassEntity;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.CpuEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HeapEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.InstanceTimeEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmGcMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MemoryEntity;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MetaspaceEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MongoDbMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.NonHeapEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadEntity;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
@@ -167,37 +159,42 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp,
-                       int interval,
-                       JvmMetricSet metric) {
+    public Object from(long timestamp, int interval, JvmMetricSet metric) {
         JvmMetricMessage message = new JvmMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
 
-        message.setInstanceTimeEntity(new InstanceTimeEntity(metric.upTime, metric.startTime));
-        message.setCpuEntity(new CpuEntity(metric.cpuMetricsSet.processorNumber,
-                                           metric.cpuMetricsSet.processCpuTime,
-                                           metric.cpuMetricsSet.avgSystemLoad,
-                                           metric.cpuMetricsSet.processCpuLoad));
-        message.setMemoryEntity(new MemoryEntity(metric.memoryMetricsSet.allocatedBytes,
-                                                 metric.memoryMetricsSet.freeBytes));
-        message.setHeapEntity(new HeapEntity(metric.heapMetricsSet.heapBytes,
-                                             metric.heapMetricsSet.heapInitBytes,
-                                             metric.heapMetricsSet.heapUsedBytes,
-                                             metric.heapMetricsSet.heapAvailableBytes));
-        message.setNonHeapEntity(new NonHeapEntity(metric.nonHeapMetricsSet.nonHeapBytes,
-                                                   metric.nonHeapMetricsSet.nonHeapInitBytes,
-                                                   metric.nonHeapMetricsSet.nonHeapUsedBytes,
-                                                   metric.nonHeapMetricsSet.nonHeapAvailableBytes));
-        message.setThreadEntity(new ThreadEntity(metric.threadMetricsSet.peakActiveCount,
-                                                 metric.threadMetricsSet.activeDaemonCount,
-                                                 metric.threadMetricsSet.totalCreatedCount,
-                                                 metric.threadMetricsSet.activeThreadsCount));
-        message.setClassesEntity(new ClassEntity(metric.classMetricsSet.currentLoadedClasses,
-                                                 metric.classMetricsSet.totalLoadedClasses,
-                                                 metric.classMetricsSet.totalUnloadedClasses));
-        message.setMetaspaceEntity(new MetaspaceEntity(metric.metaspaceMetricsSet.metaspaceCommittedBytes,
-                                                       metric.metaspaceMetricsSet.metaspaceUsedBytes));
+        message.instanceStartTime = metric.startTime;
+        message.instanceUpTime = metric.upTime;
+
+        message.processors = metric.cpuMetricsSet.processorNumber;
+        message.processCpuLoad = metric.cpuMetricsSet.processCpuLoad;
+        message.processCpuTime = metric.cpuMetricsSet.processCpuTime;
+        message.systemLoadAvg = metric.cpuMetricsSet.avgSystemLoad;
+
+        message.totalMemBytes = metric.memoryMetricsSet.allocatedBytes;
+        message.freeMemBytes = metric.memoryMetricsSet.freeBytes;
+
+        message.heap = metric.heapMetricsSet.heapBytes;
+        message.heapInit = metric.heapMetricsSet.heapInitBytes;
+        message.heapCommitted = metric.heapMetricsSet.heapAvailableBytes;
+        message.heapUsed = metric.heapMetricsSet.heapUsedBytes;
+
+        message.nonHeap = metric.nonHeapMetricsSet.nonHeapBytes;
+        message.nonHeapInit = metric.nonHeapMetricsSet.nonHeapInitBytes;
+        message.nonHeapCommitted = metric.nonHeapMetricsSet.nonHeapAvailableBytes;
+        message.nonHeapUsed = metric.nonHeapMetricsSet.nonHeapUsedBytes;
+
+        message.peakThreads = metric.threadMetricsSet.peakActiveCount;
+        message.activeThreads = metric.threadMetricsSet.activeThreadsCount;
+        message.daemonThreads = metric.threadMetricsSet.activeDaemonCount;
+        message.totalThreads = metric.threadMetricsSet.totalCreatedCount;
+
+        message.classLoaded = metric.classMetricsSet.currentLoadedClasses;
+        message.classUnloaded = metric.classMetricsSet.totalUnloadedClasses;
+
+        message.metaspaceCommitted = metric.metaspaceMetricsSet.metaspaceCommittedBytes;
+        message.metaspaceUsed = metric.metaspaceMetricsSet.metaspaceUsedBytes;
         return message;
     }
 
