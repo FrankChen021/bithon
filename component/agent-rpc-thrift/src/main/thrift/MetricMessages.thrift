@@ -35,7 +35,7 @@ struct JvmMetricMessage {
     9:i64 totalMemBytes;
     10:i64 freeMemBytes;
 
-    11:i64 heap;        // approximately to -Xmx
+    11:i64 heapMax;     // approximately to -Xmx
     12:i64 heapInit;    // approximate to -Xms
     13:i64 heapUsed;
     14:i64 heapCommitted;
@@ -43,7 +43,7 @@ struct JvmMetricMessage {
     //
     // heap
     //
-    15:i64 nonHeap;     // -XX:MaxPermSize
+    15:i64 nonHeapMax;  // -XX:MaxPermSize
     16:i64 nonHeapInit; // -XX:PermSize
     17:i64 nonHeapUsed;
     18:i64 nonHeapCommitted;
@@ -68,7 +68,7 @@ struct JvmMetricMessage {
     25:i64 metaspaceCommitted;
     26:i64 metaspaceUsed;
     27:i64 metaspaceInit;
-    28:i64 metaspace;
+    28:i64 metaspaceMax;
 }
 
 struct JvmGcMetricMessage {

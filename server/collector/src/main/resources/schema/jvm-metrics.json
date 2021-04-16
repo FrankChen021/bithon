@@ -52,7 +52,7 @@
 
     {
       "type": "longLast",
-      "name": "heap",
+      "name": "heapMax",
       "displayText": "Heap(-Xmx)",
       "unit": "byte"
     },
@@ -77,7 +77,7 @@
 
     {
       "type": "longLast",
-      "name": "nonHeap",
+      "name": "nonHeapMax",
       "displayText": "-XX:MaxPermSize",
       "unit": "byte"
     },
@@ -115,7 +115,7 @@
 
     {
       "type": "longLast",
-      "name": "metaspace",
+      "name": "metaspaceMax",
       "displayText": "Max Metaspace",
       "unit": "byte"
     },

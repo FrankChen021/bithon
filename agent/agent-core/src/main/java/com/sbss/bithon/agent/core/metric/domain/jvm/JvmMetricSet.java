@@ -35,11 +35,11 @@ public class JvmMetricSet {
 
     public CpuCompositeMetric cpuMetricSet;
     public MemoryCompositeMetric memoryMetricSet;
-    public HeapCompositeMetric heapMetricSet;
-    public NonHeapCompositeMetric nonHeapMetricSet;
+    public MemoryRegionCompositeMetric heapMetricSet;
+    public MemoryRegionCompositeMetric nonHeapMetricSet;
     public ThreadCompositeMetric threadMetricSet;
     public ClassCompositeMetric classMetricSet;
-    public MetaspaceCompositeMetric metaspaceMetricSet;
+    public MemoryRegionCompositeMetric metaspaceMetricSet;
 
     public JvmMetricSet(long upTime, long startTime) {
         this.upTime = upTime;

@@ -23,11 +23,11 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
   private static final org.apache.thrift.protocol.TField PROCESS_CPU_LOAD_FIELD_DESC = new org.apache.thrift.protocol.TField("processCpuLoad", org.apache.thrift.protocol.TType.DOUBLE, (short)8);
   private static final org.apache.thrift.protocol.TField TOTAL_MEM_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("totalMemBytes", org.apache.thrift.protocol.TType.I64, (short)9);
   private static final org.apache.thrift.protocol.TField FREE_MEM_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("freeMemBytes", org.apache.thrift.protocol.TType.I64, (short)10);
-  private static final org.apache.thrift.protocol.TField HEAP_FIELD_DESC = new org.apache.thrift.protocol.TField("heap", org.apache.thrift.protocol.TType.I64, (short)11);
+  private static final org.apache.thrift.protocol.TField HEAP_MAX_FIELD_DESC = new org.apache.thrift.protocol.TField("heapMax", org.apache.thrift.protocol.TType.I64, (short)11);
   private static final org.apache.thrift.protocol.TField HEAP_INIT_FIELD_DESC = new org.apache.thrift.protocol.TField("heapInit", org.apache.thrift.protocol.TType.I64, (short)12);
   private static final org.apache.thrift.protocol.TField HEAP_USED_FIELD_DESC = new org.apache.thrift.protocol.TField("heapUsed", org.apache.thrift.protocol.TType.I64, (short)13);
   private static final org.apache.thrift.protocol.TField HEAP_COMMITTED_FIELD_DESC = new org.apache.thrift.protocol.TField("heapCommitted", org.apache.thrift.protocol.TType.I64, (short)14);
-  private static final org.apache.thrift.protocol.TField NON_HEAP_FIELD_DESC = new org.apache.thrift.protocol.TField("nonHeap", org.apache.thrift.protocol.TType.I64, (short)15);
+  private static final org.apache.thrift.protocol.TField NON_HEAP_MAX_FIELD_DESC = new org.apache.thrift.protocol.TField("nonHeapMax", org.apache.thrift.protocol.TType.I64, (short)15);
   private static final org.apache.thrift.protocol.TField NON_HEAP_INIT_FIELD_DESC = new org.apache.thrift.protocol.TField("nonHeapInit", org.apache.thrift.protocol.TType.I64, (short)16);
   private static final org.apache.thrift.protocol.TField NON_HEAP_USED_FIELD_DESC = new org.apache.thrift.protocol.TField("nonHeapUsed", org.apache.thrift.protocol.TType.I64, (short)17);
   private static final org.apache.thrift.protocol.TField NON_HEAP_COMMITTED_FIELD_DESC = new org.apache.thrift.protocol.TField("nonHeapCommitted", org.apache.thrift.protocol.TType.I64, (short)18);
@@ -40,7 +40,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
   private static final org.apache.thrift.protocol.TField METASPACE_COMMITTED_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceCommitted", org.apache.thrift.protocol.TType.I64, (short)25);
   private static final org.apache.thrift.protocol.TField METASPACE_USED_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceUsed", org.apache.thrift.protocol.TType.I64, (short)26);
   private static final org.apache.thrift.protocol.TField METASPACE_INIT_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceInit", org.apache.thrift.protocol.TType.I64, (short)27);
-  private static final org.apache.thrift.protocol.TField METASPACE_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspace", org.apache.thrift.protocol.TType.I64, (short)28);
+  private static final org.apache.thrift.protocol.TField METASPACE_MAX_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceMax", org.apache.thrift.protocol.TType.I64, (short)28);
 
   private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new JvmMetricMessageStandardSchemeFactory();
   private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new JvmMetricMessageTupleSchemeFactory();
@@ -55,11 +55,11 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
   public double processCpuLoad; // required
   public long totalMemBytes; // required
   public long freeMemBytes; // required
-  public long heap; // required
+  public long heapMax; // required
   public long heapInit; // required
   public long heapUsed; // required
   public long heapCommitted; // required
-  public long nonHeap; // required
+  public long nonHeapMax; // required
   public long nonHeapInit; // required
   public long nonHeapUsed; // required
   public long nonHeapCommitted; // required
@@ -72,7 +72,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
   public long metaspaceCommitted; // required
   public long metaspaceUsed; // required
   public long metaspaceInit; // required
-  public long metaspace; // required
+  public long metaspaceMax; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -86,11 +86,11 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     PROCESS_CPU_LOAD((short)8, "processCpuLoad"),
     TOTAL_MEM_BYTES((short)9, "totalMemBytes"),
     FREE_MEM_BYTES((short)10, "freeMemBytes"),
-    HEAP((short)11, "heap"),
+    HEAP_MAX((short)11, "heapMax"),
     HEAP_INIT((short)12, "heapInit"),
     HEAP_USED((short)13, "heapUsed"),
     HEAP_COMMITTED((short)14, "heapCommitted"),
-    NON_HEAP((short)15, "nonHeap"),
+    NON_HEAP_MAX((short)15, "nonHeapMax"),
     NON_HEAP_INIT((short)16, "nonHeapInit"),
     NON_HEAP_USED((short)17, "nonHeapUsed"),
     NON_HEAP_COMMITTED((short)18, "nonHeapCommitted"),
@@ -103,7 +103,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     METASPACE_COMMITTED((short)25, "metaspaceCommitted"),
     METASPACE_USED((short)26, "metaspaceUsed"),
     METASPACE_INIT((short)27, "metaspaceInit"),
-    METASPACE((short)28, "metaspace");
+    METASPACE_MAX((short)28, "metaspaceMax");
 
     private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -139,16 +139,16 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
           return TOTAL_MEM_BYTES;
         case 10: // FREE_MEM_BYTES
           return FREE_MEM_BYTES;
-        case 11: // HEAP
-          return HEAP;
+        case 11: // HEAP_MAX
+          return HEAP_MAX;
         case 12: // HEAP_INIT
           return HEAP_INIT;
         case 13: // HEAP_USED
           return HEAP_USED;
         case 14: // HEAP_COMMITTED
           return HEAP_COMMITTED;
-        case 15: // NON_HEAP
-          return NON_HEAP;
+        case 15: // NON_HEAP_MAX
+          return NON_HEAP_MAX;
         case 16: // NON_HEAP_INIT
           return NON_HEAP_INIT;
         case 17: // NON_HEAP_USED
@@ -173,8 +173,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
           return METASPACE_USED;
         case 27: // METASPACE_INIT
           return METASPACE_INIT;
-        case 28: // METASPACE
-          return METASPACE;
+        case 28: // METASPACE_MAX
+          return METASPACE_MAX;
         default:
           return null;
       }
@@ -226,11 +226,11 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
   private static final int __PROCESSCPULOAD_ISSET_ID = 7;
   private static final int __TOTALMEMBYTES_ISSET_ID = 8;
   private static final int __FREEMEMBYTES_ISSET_ID = 9;
-  private static final int __HEAP_ISSET_ID = 10;
+  private static final int __HEAPMAX_ISSET_ID = 10;
   private static final int __HEAPINIT_ISSET_ID = 11;
   private static final int __HEAPUSED_ISSET_ID = 12;
   private static final int __HEAPCOMMITTED_ISSET_ID = 13;
-  private static final int __NONHEAP_ISSET_ID = 14;
+  private static final int __NONHEAPMAX_ISSET_ID = 14;
   private static final int __NONHEAPINIT_ISSET_ID = 15;
   private static final int __NONHEAPUSED_ISSET_ID = 16;
   private static final int __NONHEAPCOMMITTED_ISSET_ID = 17;
@@ -243,7 +243,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
   private static final int __METASPACECOMMITTED_ISSET_ID = 24;
   private static final int __METASPACEUSED_ISSET_ID = 25;
   private static final int __METASPACEINIT_ISSET_ID = 26;
-  private static final int __METASPACE_ISSET_ID = 27;
+  private static final int __METASPACEMAX_ISSET_ID = 27;
   private int __isset_bitfield = 0;
   public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -268,7 +268,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.FREE_MEM_BYTES, new org.apache.thrift.meta_data.FieldMetaData("freeMemBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.HEAP, new org.apache.thrift.meta_data.FieldMetaData("heap", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.HEAP_MAX, new org.apache.thrift.meta_data.FieldMetaData("heapMax", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.HEAP_INIT, new org.apache.thrift.meta_data.FieldMetaData("heapInit", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
@@ -276,7 +276,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.HEAP_COMMITTED, new org.apache.thrift.meta_data.FieldMetaData("heapCommitted", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.NON_HEAP, new org.apache.thrift.meta_data.FieldMetaData("nonHeap", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.NON_HEAP_MAX, new org.apache.thrift.meta_data.FieldMetaData("nonHeapMax", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.NON_HEAP_INIT, new org.apache.thrift.meta_data.FieldMetaData("nonHeapInit", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
@@ -302,7 +302,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.METASPACE_INIT, new org.apache.thrift.meta_data.FieldMetaData("metaspaceInit", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.METASPACE, new org.apache.thrift.meta_data.FieldMetaData("metaspace", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.METASPACE_MAX, new org.apache.thrift.meta_data.FieldMetaData("metaspaceMax", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(JvmMetricMessage.class, metaDataMap);
@@ -322,11 +322,11 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     double processCpuLoad,
     long totalMemBytes,
     long freeMemBytes,
-    long heap,
+    long heapMax,
     long heapInit,
     long heapUsed,
     long heapCommitted,
-    long nonHeap,
+    long nonHeapMax,
     long nonHeapInit,
     long nonHeapUsed,
     long nonHeapCommitted,
@@ -339,7 +339,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     long metaspaceCommitted,
     long metaspaceUsed,
     long metaspaceInit,
-    long metaspace)
+    long metaspaceMax)
   {
     this();
     this.timestamp = timestamp;
@@ -362,16 +362,16 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     setTotalMemBytesIsSet(true);
     this.freeMemBytes = freeMemBytes;
     setFreeMemBytesIsSet(true);
-    this.heap = heap;
-    setHeapIsSet(true);
+    this.heapMax = heapMax;
+    setHeapMaxIsSet(true);
     this.heapInit = heapInit;
     setHeapInitIsSet(true);
     this.heapUsed = heapUsed;
     setHeapUsedIsSet(true);
     this.heapCommitted = heapCommitted;
     setHeapCommittedIsSet(true);
-    this.nonHeap = nonHeap;
-    setNonHeapIsSet(true);
+    this.nonHeapMax = nonHeapMax;
+    setNonHeapMaxIsSet(true);
     this.nonHeapInit = nonHeapInit;
     setNonHeapInitIsSet(true);
     this.nonHeapUsed = nonHeapUsed;
@@ -396,8 +396,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     setMetaspaceUsedIsSet(true);
     this.metaspaceInit = metaspaceInit;
     setMetaspaceInitIsSet(true);
-    this.metaspace = metaspace;
-    setMetaspaceIsSet(true);
+    this.metaspaceMax = metaspaceMax;
+    setMetaspaceMaxIsSet(true);
   }
 
   /**
@@ -415,11 +415,11 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     this.processCpuLoad = other.processCpuLoad;
     this.totalMemBytes = other.totalMemBytes;
     this.freeMemBytes = other.freeMemBytes;
-    this.heap = other.heap;
+    this.heapMax = other.heapMax;
     this.heapInit = other.heapInit;
     this.heapUsed = other.heapUsed;
     this.heapCommitted = other.heapCommitted;
-    this.nonHeap = other.nonHeap;
+    this.nonHeapMax = other.nonHeapMax;
     this.nonHeapInit = other.nonHeapInit;
     this.nonHeapUsed = other.nonHeapUsed;
     this.nonHeapCommitted = other.nonHeapCommitted;
@@ -432,7 +432,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     this.metaspaceCommitted = other.metaspaceCommitted;
     this.metaspaceUsed = other.metaspaceUsed;
     this.metaspaceInit = other.metaspaceInit;
-    this.metaspace = other.metaspace;
+    this.metaspaceMax = other.metaspaceMax;
   }
 
   public JvmMetricMessage deepCopy() {
@@ -461,16 +461,16 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     this.totalMemBytes = 0;
     setFreeMemBytesIsSet(false);
     this.freeMemBytes = 0;
-    setHeapIsSet(false);
-    this.heap = 0;
+    setHeapMaxIsSet(false);
+    this.heapMax = 0;
     setHeapInitIsSet(false);
     this.heapInit = 0;
     setHeapUsedIsSet(false);
     this.heapUsed = 0;
     setHeapCommittedIsSet(false);
     this.heapCommitted = 0;
-    setNonHeapIsSet(false);
-    this.nonHeap = 0;
+    setNonHeapMaxIsSet(false);
+    this.nonHeapMax = 0;
     setNonHeapInitIsSet(false);
     this.nonHeapInit = 0;
     setNonHeapUsedIsSet(false);
@@ -495,8 +495,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     this.metaspaceUsed = 0;
     setMetaspaceInitIsSet(false);
     this.metaspaceInit = 0;
-    setMetaspaceIsSet(false);
-    this.metaspace = 0;
+    setMetaspaceMaxIsSet(false);
+    this.metaspaceMax = 0;
   }
 
   public long getTimestamp() {
@@ -729,27 +729,27 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __FREEMEMBYTES_ISSET_ID, value);
   }
 
-  public long getHeap() {
-    return this.heap;
+  public long getHeapMax() {
+    return this.heapMax;
   }
 
-  public JvmMetricMessage setHeap(long heap) {
-    this.heap = heap;
-    setHeapIsSet(true);
+  public JvmMetricMessage setHeapMax(long heapMax) {
+    this.heapMax = heapMax;
+    setHeapMaxIsSet(true);
     return this;
   }
 
-  public void unsetHeap() {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __HEAP_ISSET_ID);
+  public void unsetHeapMax() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __HEAPMAX_ISSET_ID);
   }
 
-  /** Returns true if field heap is set (has been assigned a value) and false otherwise */
-  public boolean isSetHeap() {
-    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __HEAP_ISSET_ID);
+  /** Returns true if field heapMax is set (has been assigned a value) and false otherwise */
+  public boolean isSetHeapMax() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __HEAPMAX_ISSET_ID);
   }
 
-  public void setHeapIsSet(boolean value) {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __HEAP_ISSET_ID, value);
+  public void setHeapMaxIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __HEAPMAX_ISSET_ID, value);
   }
 
   public long getHeapInit() {
@@ -821,27 +821,27 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __HEAPCOMMITTED_ISSET_ID, value);
   }
 
-  public long getNonHeap() {
-    return this.nonHeap;
+  public long getNonHeapMax() {
+    return this.nonHeapMax;
   }
 
-  public JvmMetricMessage setNonHeap(long nonHeap) {
-    this.nonHeap = nonHeap;
-    setNonHeapIsSet(true);
+  public JvmMetricMessage setNonHeapMax(long nonHeapMax) {
+    this.nonHeapMax = nonHeapMax;
+    setNonHeapMaxIsSet(true);
     return this;
   }
 
-  public void unsetNonHeap() {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __NONHEAP_ISSET_ID);
+  public void unsetNonHeapMax() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __NONHEAPMAX_ISSET_ID);
   }
 
-  /** Returns true if field nonHeap is set (has been assigned a value) and false otherwise */
-  public boolean isSetNonHeap() {
-    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __NONHEAP_ISSET_ID);
+  /** Returns true if field nonHeapMax is set (has been assigned a value) and false otherwise */
+  public boolean isSetNonHeapMax() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __NONHEAPMAX_ISSET_ID);
   }
 
-  public void setNonHeapIsSet(boolean value) {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __NONHEAP_ISSET_ID, value);
+  public void setNonHeapMaxIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __NONHEAPMAX_ISSET_ID, value);
   }
 
   public long getNonHeapInit() {
@@ -1120,27 +1120,27 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __METASPACEINIT_ISSET_ID, value);
   }
 
-  public long getMetaspace() {
-    return this.metaspace;
+  public long getMetaspaceMax() {
+    return this.metaspaceMax;
   }
 
-  public JvmMetricMessage setMetaspace(long metaspace) {
-    this.metaspace = metaspace;
-    setMetaspaceIsSet(true);
+  public JvmMetricMessage setMetaspaceMax(long metaspaceMax) {
+    this.metaspaceMax = metaspaceMax;
+    setMetaspaceMaxIsSet(true);
     return this;
   }
 
-  public void unsetMetaspace() {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __METASPACE_ISSET_ID);
+  public void unsetMetaspaceMax() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __METASPACEMAX_ISSET_ID);
   }
 
-  /** Returns true if field metaspace is set (has been assigned a value) and false otherwise */
-  public boolean isSetMetaspace() {
-    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __METASPACE_ISSET_ID);
+  /** Returns true if field metaspaceMax is set (has been assigned a value) and false otherwise */
+  public boolean isSetMetaspaceMax() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __METASPACEMAX_ISSET_ID);
   }
 
-  public void setMetaspaceIsSet(boolean value) {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __METASPACE_ISSET_ID, value);
+  public void setMetaspaceMaxIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __METASPACEMAX_ISSET_ID, value);
   }
 
   public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
@@ -1225,11 +1225,11 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       }
       break;
 
-    case HEAP:
+    case HEAP_MAX:
       if (value == null) {
-        unsetHeap();
+        unsetHeapMax();
       } else {
-        setHeap((java.lang.Long)value);
+        setHeapMax((java.lang.Long)value);
       }
       break;
 
@@ -1257,11 +1257,11 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       }
       break;
 
-    case NON_HEAP:
+    case NON_HEAP_MAX:
       if (value == null) {
-        unsetNonHeap();
+        unsetNonHeapMax();
       } else {
-        setNonHeap((java.lang.Long)value);
+        setNonHeapMax((java.lang.Long)value);
       }
       break;
 
@@ -1361,11 +1361,11 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       }
       break;
 
-    case METASPACE:
+    case METASPACE_MAX:
       if (value == null) {
-        unsetMetaspace();
+        unsetMetaspaceMax();
       } else {
-        setMetaspace((java.lang.Long)value);
+        setMetaspaceMax((java.lang.Long)value);
       }
       break;
 
@@ -1405,8 +1405,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     case FREE_MEM_BYTES:
       return getFreeMemBytes();
 
-    case HEAP:
-      return getHeap();
+    case HEAP_MAX:
+      return getHeapMax();
 
     case HEAP_INIT:
       return getHeapInit();
@@ -1417,8 +1417,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     case HEAP_COMMITTED:
       return getHeapCommitted();
 
-    case NON_HEAP:
-      return getNonHeap();
+    case NON_HEAP_MAX:
+      return getNonHeapMax();
 
     case NON_HEAP_INIT:
       return getNonHeapInit();
@@ -1456,8 +1456,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     case METASPACE_INIT:
       return getMetaspaceInit();
 
-    case METASPACE:
-      return getMetaspace();
+    case METASPACE_MAX:
+      return getMetaspaceMax();
 
     }
     throw new java.lang.IllegalStateException();
@@ -1490,16 +1490,16 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       return isSetTotalMemBytes();
     case FREE_MEM_BYTES:
       return isSetFreeMemBytes();
-    case HEAP:
-      return isSetHeap();
+    case HEAP_MAX:
+      return isSetHeapMax();
     case HEAP_INIT:
       return isSetHeapInit();
     case HEAP_USED:
       return isSetHeapUsed();
     case HEAP_COMMITTED:
       return isSetHeapCommitted();
-    case NON_HEAP:
-      return isSetNonHeap();
+    case NON_HEAP_MAX:
+      return isSetNonHeapMax();
     case NON_HEAP_INIT:
       return isSetNonHeapInit();
     case NON_HEAP_USED:
@@ -1524,8 +1524,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       return isSetMetaspaceUsed();
     case METASPACE_INIT:
       return isSetMetaspaceInit();
-    case METASPACE:
-      return isSetMetaspace();
+    case METASPACE_MAX:
+      return isSetMetaspaceMax();
     }
     throw new java.lang.IllegalStateException();
   }
@@ -1633,12 +1633,12 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         return false;
     }
 
-    boolean this_present_heap = true;
-    boolean that_present_heap = true;
-    if (this_present_heap || that_present_heap) {
-      if (!(this_present_heap && that_present_heap))
+    boolean this_present_heapMax = true;
+    boolean that_present_heapMax = true;
+    if (this_present_heapMax || that_present_heapMax) {
+      if (!(this_present_heapMax && that_present_heapMax))
         return false;
-      if (this.heap != that.heap)
+      if (this.heapMax != that.heapMax)
         return false;
     }
 
@@ -1669,12 +1669,12 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         return false;
     }
 
-    boolean this_present_nonHeap = true;
-    boolean that_present_nonHeap = true;
-    if (this_present_nonHeap || that_present_nonHeap) {
-      if (!(this_present_nonHeap && that_present_nonHeap))
+    boolean this_present_nonHeapMax = true;
+    boolean that_present_nonHeapMax = true;
+    if (this_present_nonHeapMax || that_present_nonHeapMax) {
+      if (!(this_present_nonHeapMax && that_present_nonHeapMax))
         return false;
-      if (this.nonHeap != that.nonHeap)
+      if (this.nonHeapMax != that.nonHeapMax)
         return false;
     }
 
@@ -1786,12 +1786,12 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         return false;
     }
 
-    boolean this_present_metaspace = true;
-    boolean that_present_metaspace = true;
-    if (this_present_metaspace || that_present_metaspace) {
-      if (!(this_present_metaspace && that_present_metaspace))
+    boolean this_present_metaspaceMax = true;
+    boolean that_present_metaspaceMax = true;
+    if (this_present_metaspaceMax || that_present_metaspaceMax) {
+      if (!(this_present_metaspaceMax && that_present_metaspaceMax))
         return false;
-      if (this.metaspace != that.metaspace)
+      if (this.metaspaceMax != that.metaspaceMax)
         return false;
     }
 
@@ -1822,7 +1822,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(freeMemBytes);
 
-    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(heap);
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(heapMax);
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(heapInit);
 
@@ -1830,7 +1830,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(heapCommitted);
 
-    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(nonHeap);
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(nonHeapMax);
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(nonHeapInit);
 
@@ -1856,7 +1856,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(metaspaceInit);
 
-    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(metaspace);
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(metaspaceMax);
 
     return hashCode;
   }
@@ -1969,12 +1969,12 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetHeap(), other.isSetHeap());
+    lastComparison = java.lang.Boolean.compare(isSetHeapMax(), other.isSetHeapMax());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetHeap()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.heap, other.heap);
+    if (isSetHeapMax()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.heapMax, other.heapMax);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -2009,12 +2009,12 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetNonHeap(), other.isSetNonHeap());
+    lastComparison = java.lang.Boolean.compare(isSetNonHeapMax(), other.isSetNonHeapMax());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetNonHeap()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.nonHeap, other.nonHeap);
+    if (isSetNonHeapMax()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.nonHeapMax, other.nonHeapMax);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -2139,12 +2139,12 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetMetaspace(), other.isSetMetaspace());
+    lastComparison = java.lang.Boolean.compare(isSetMetaspaceMax(), other.isSetMetaspaceMax());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMetaspace()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metaspace, other.metaspace);
+    if (isSetMetaspaceMax()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metaspaceMax, other.metaspaceMax);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -2210,8 +2210,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     sb.append(this.freeMemBytes);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("heap:");
-    sb.append(this.heap);
+    sb.append("heapMax:");
+    sb.append(this.heapMax);
     first = false;
     if (!first) sb.append(", ");
     sb.append("heapInit:");
@@ -2226,8 +2226,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     sb.append(this.heapCommitted);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("nonHeap:");
-    sb.append(this.nonHeap);
+    sb.append("nonHeapMax:");
+    sb.append(this.nonHeapMax);
     first = false;
     if (!first) sb.append(", ");
     sb.append("nonHeapInit:");
@@ -2278,8 +2278,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     sb.append(this.metaspaceInit);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("metaspace:");
-    sb.append(this.metaspace);
+    sb.append("metaspaceMax:");
+    sb.append(this.metaspaceMax);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -2406,10 +2406,10 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 11: // HEAP
+          case 11: // HEAP_MAX
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.heap = iprot.readI64();
-              struct.setHeapIsSet(true);
+              struct.heapMax = iprot.readI64();
+              struct.setHeapMaxIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -2438,10 +2438,10 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 15: // NON_HEAP
+          case 15: // NON_HEAP_MAX
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.nonHeap = iprot.readI64();
-              struct.setNonHeapIsSet(true);
+              struct.nonHeapMax = iprot.readI64();
+              struct.setNonHeapMaxIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -2542,10 +2542,10 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 28: // METASPACE
+          case 28: // METASPACE_MAX
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.metaspace = iprot.readI64();
-              struct.setMetaspaceIsSet(true);
+              struct.metaspaceMax = iprot.readI64();
+              struct.setMetaspaceMaxIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -2595,8 +2595,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       oprot.writeFieldBegin(FREE_MEM_BYTES_FIELD_DESC);
       oprot.writeI64(struct.freeMemBytes);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(HEAP_FIELD_DESC);
-      oprot.writeI64(struct.heap);
+      oprot.writeFieldBegin(HEAP_MAX_FIELD_DESC);
+      oprot.writeI64(struct.heapMax);
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(HEAP_INIT_FIELD_DESC);
       oprot.writeI64(struct.heapInit);
@@ -2607,8 +2607,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       oprot.writeFieldBegin(HEAP_COMMITTED_FIELD_DESC);
       oprot.writeI64(struct.heapCommitted);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(NON_HEAP_FIELD_DESC);
-      oprot.writeI64(struct.nonHeap);
+      oprot.writeFieldBegin(NON_HEAP_MAX_FIELD_DESC);
+      oprot.writeI64(struct.nonHeapMax);
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(NON_HEAP_INIT_FIELD_DESC);
       oprot.writeI64(struct.nonHeapInit);
@@ -2646,8 +2646,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       oprot.writeFieldBegin(METASPACE_INIT_FIELD_DESC);
       oprot.writeI64(struct.metaspaceInit);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(METASPACE_FIELD_DESC);
-      oprot.writeI64(struct.metaspace);
+      oprot.writeFieldBegin(METASPACE_MAX_FIELD_DESC);
+      oprot.writeI64(struct.metaspaceMax);
       oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -2697,7 +2697,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       if (struct.isSetFreeMemBytes()) {
         optionals.set(9);
       }
-      if (struct.isSetHeap()) {
+      if (struct.isSetHeapMax()) {
         optionals.set(10);
       }
       if (struct.isSetHeapInit()) {
@@ -2709,7 +2709,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       if (struct.isSetHeapCommitted()) {
         optionals.set(13);
       }
-      if (struct.isSetNonHeap()) {
+      if (struct.isSetNonHeapMax()) {
         optionals.set(14);
       }
       if (struct.isSetNonHeapInit()) {
@@ -2748,7 +2748,7 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       if (struct.isSetMetaspaceInit()) {
         optionals.set(26);
       }
-      if (struct.isSetMetaspace()) {
+      if (struct.isSetMetaspaceMax()) {
         optionals.set(27);
       }
       oprot.writeBitSet(optionals, 28);
@@ -2782,8 +2782,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       if (struct.isSetFreeMemBytes()) {
         oprot.writeI64(struct.freeMemBytes);
       }
-      if (struct.isSetHeap()) {
-        oprot.writeI64(struct.heap);
+      if (struct.isSetHeapMax()) {
+        oprot.writeI64(struct.heapMax);
       }
       if (struct.isSetHeapInit()) {
         oprot.writeI64(struct.heapInit);
@@ -2794,8 +2794,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       if (struct.isSetHeapCommitted()) {
         oprot.writeI64(struct.heapCommitted);
       }
-      if (struct.isSetNonHeap()) {
-        oprot.writeI64(struct.nonHeap);
+      if (struct.isSetNonHeapMax()) {
+        oprot.writeI64(struct.nonHeapMax);
       }
       if (struct.isSetNonHeapInit()) {
         oprot.writeI64(struct.nonHeapInit);
@@ -2833,8 +2833,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       if (struct.isSetMetaspaceInit()) {
         oprot.writeI64(struct.metaspaceInit);
       }
-      if (struct.isSetMetaspace()) {
-        oprot.writeI64(struct.metaspace);
+      if (struct.isSetMetaspaceMax()) {
+        oprot.writeI64(struct.metaspaceMax);
       }
     }
 
@@ -2883,8 +2883,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         struct.setFreeMemBytesIsSet(true);
       }
       if (incoming.get(10)) {
-        struct.heap = iprot.readI64();
-        struct.setHeapIsSet(true);
+        struct.heapMax = iprot.readI64();
+        struct.setHeapMaxIsSet(true);
       }
       if (incoming.get(11)) {
         struct.heapInit = iprot.readI64();
@@ -2899,8 +2899,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         struct.setHeapCommittedIsSet(true);
       }
       if (incoming.get(14)) {
-        struct.nonHeap = iprot.readI64();
-        struct.setNonHeapIsSet(true);
+        struct.nonHeapMax = iprot.readI64();
+        struct.setNonHeapMaxIsSet(true);
       }
       if (incoming.get(15)) {
         struct.nonHeapInit = iprot.readI64();
@@ -2951,8 +2951,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         struct.setMetaspaceInitIsSet(true);
       }
       if (incoming.get(27)) {
-        struct.metaspace = iprot.readI64();
-        struct.setMetaspaceIsSet(true);
+        struct.metaspaceMax = iprot.readI64();
+        struct.setMetaspaceMaxIsSet(true);
       }
     }
   }

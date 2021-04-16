@@ -175,15 +175,15 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.totalMemBytes = metric.memoryMetricSet.allocatedBytes;
         message.freeMemBytes = metric.memoryMetricSet.freeBytes;
 
-        message.heap = metric.heapMetricSet.heapBytes;
-        message.heapInit = metric.heapMetricSet.heapInitBytes;
-        message.heapCommitted = metric.heapMetricSet.heapAvailableBytes;
-        message.heapUsed = metric.heapMetricSet.heapUsedBytes;
+        message.heapMax = metric.heapMetricSet.max;
+        message.heapInit = metric.heapMetricSet.init;
+        message.heapCommitted = metric.heapMetricSet.committed;
+        message.heapUsed = metric.heapMetricSet.used;
 
-        message.nonHeap = metric.nonHeapMetricSet.nonHeapBytes;
-        message.nonHeapInit = metric.nonHeapMetricSet.nonHeapInitBytes;
-        message.nonHeapCommitted = metric.nonHeapMetricSet.nonHeapAvailableBytes;
-        message.nonHeapUsed = metric.nonHeapMetricSet.nonHeapUsedBytes;
+        message.nonHeapMax = metric.nonHeapMetricSet.max;
+        message.nonHeapInit = metric.nonHeapMetricSet.init;
+        message.nonHeapCommitted = metric.nonHeapMetricSet.committed;
+        message.nonHeapUsed = metric.nonHeapMetricSet.used;
 
         message.peakThreads = metric.threadMetricSet.peakActiveCount;
         message.activeThreads = metric.threadMetricSet.activeThreadsCount;
@@ -193,9 +193,10 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.classLoaded = metric.classMetricSet.currentLoadedClasses;
         message.classUnloaded = metric.classMetricSet.totalUnloadedClasses;
 
-        message.metaspaceCommitted = metric.metaspaceMetricSet.metaspaceCommittedBytes;
-        message.metaspaceUsed = metric.metaspaceMetricSet.metaspaceUsedBytes;
-        message.metaspaceInit = metric.metaspaceMetricSet.metaspaceInitBytes;
+        message.metaspaceCommitted = metric.metaspaceMetricSet.committed;
+        message.metaspaceUsed = metric.metaspaceMetricSet.used;
+        message.metaspaceInit = metric.metaspaceMetricSet.init;
+        message.metaspaceMax = metric.metaspaceMetricSet.max;
         return message;
     }
 

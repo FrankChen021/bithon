@@ -32,7 +32,7 @@ var jvm_metrics_dashboard = {
             "unit": "binary_byte"
         }],
         "metrics":[{
-            "name": "heap",
+            "name": "heapMax",
         },{
             "name": "heapUsed"
         },{
@@ -48,7 +48,7 @@ var jvm_metrics_dashboard = {
             "unit": "binary_byte"
         }],
         "metrics":[{
-            "name": "nonHeap",
+            "name": "nonHeapMax",
         },{
             "name": "nonHeapUsed"
         },{
@@ -64,7 +64,7 @@ var jvm_metrics_dashboard = {
             "unit": "binary_byte"
         }],
         "metrics":[{
-            "name": "metaspace",
+            "name": "metaspaceMax",
         },{
             "name": "metaspaceUsed"
         },{
