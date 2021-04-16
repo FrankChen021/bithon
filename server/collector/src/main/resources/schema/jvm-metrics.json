@@ -49,6 +49,7 @@
       "displayText": "Running Time",
       "unit": "millisecond"
     },
+
     {
       "type": "longLast",
       "name": "heap",
@@ -73,6 +74,70 @@
       "displayText": "Available Heap",
       "unit": "byte"
     },
+
+    {
+      "type": "longLast",
+      "name": "nonHeap",
+      "displayText": "-XX:MaxPermSize",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "nonHeapInit",
+      "displayText": "Init nonHeap Size",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "nonHeapUsed",
+      "displayText": "nonHeap Used",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "nonHeapCommitted",
+      "displayText": "Available non-Heap",
+      "unit": "byte"
+    },
+
+    {
+      "type": "longLast",
+      "name": "classLoaded",
+      "displayText": "Loaded Classes",
+      "unit": "count"
+    },
+    {
+      "type": "longLast",
+      "name": "classUnloaded",
+      "displayText": "Unloaded Classes",
+      "unit": "count"
+    },
+
+    {
+      "type": "longLast",
+      "name": "metaspace",
+      "displayText": "Max Metaspace",
+      "unit": "count"
+    },
+    {
+      "type": "longLast",
+      "name": "metaspaceInit",
+      "displayText": "Init Metaspace",
+      "unit": "count"
+    },
+    {
+      "type": "longLast",
+      "name": "metaspaceCommitted",
+      "displayText": "Available Metaspace",
+      "unit": "count"
+    },
+    {
+      "type": "longLast",
+      "name": "metaspaceUsed",
+      "displayText": "Used Metaspace",
+      "unit": "count"
+    },
+
     {
       "type": "longLast",
       "name": "peakThreads",
@@ -97,6 +162,7 @@
       "displayText": "Active Threads",
       "unit": "count"
     }
+
   ]
 }
 

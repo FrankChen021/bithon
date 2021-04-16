@@ -167,34 +167,35 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.instanceStartTime = metric.startTime;
         message.instanceUpTime = metric.upTime;
 
-        message.processors = metric.cpuMetricsSet.processorNumber;
-        message.processCpuLoad = metric.cpuMetricsSet.processCpuLoad;
-        message.processCpuTime = metric.cpuMetricsSet.processCpuTime;
-        message.systemLoadAvg = metric.cpuMetricsSet.avgSystemLoad;
+        message.processors = metric.cpuMetricSet.processorNumber;
+        message.processCpuLoad = metric.cpuMetricSet.processCpuLoad;
+        message.processCpuTime = metric.cpuMetricSet.processCpuTime;
+        message.systemLoadAvg = metric.cpuMetricSet.avgSystemLoad;
 
-        message.totalMemBytes = metric.memoryMetricsSet.allocatedBytes;
-        message.freeMemBytes = metric.memoryMetricsSet.freeBytes;
+        message.totalMemBytes = metric.memoryMetricSet.allocatedBytes;
+        message.freeMemBytes = metric.memoryMetricSet.freeBytes;
 
-        message.heap = metric.heapMetricsSet.heapBytes;
-        message.heapInit = metric.heapMetricsSet.heapInitBytes;
-        message.heapCommitted = metric.heapMetricsSet.heapAvailableBytes;
-        message.heapUsed = metric.heapMetricsSet.heapUsedBytes;
+        message.heap = metric.heapMetricSet.heapBytes;
+        message.heapInit = metric.heapMetricSet.heapInitBytes;
+        message.heapCommitted = metric.heapMetricSet.heapAvailableBytes;
+        message.heapUsed = metric.heapMetricSet.heapUsedBytes;
 
-        message.nonHeap = metric.nonHeapMetricsSet.nonHeapBytes;
-        message.nonHeapInit = metric.nonHeapMetricsSet.nonHeapInitBytes;
-        message.nonHeapCommitted = metric.nonHeapMetricsSet.nonHeapAvailableBytes;
-        message.nonHeapUsed = metric.nonHeapMetricsSet.nonHeapUsedBytes;
+        message.nonHeap = metric.nonHeapMetricSet.nonHeapBytes;
+        message.nonHeapInit = metric.nonHeapMetricSet.nonHeapInitBytes;
+        message.nonHeapCommitted = metric.nonHeapMetricSet.nonHeapAvailableBytes;
+        message.nonHeapUsed = metric.nonHeapMetricSet.nonHeapUsedBytes;
 
-        message.peakThreads = metric.threadMetricsSet.peakActiveCount;
-        message.activeThreads = metric.threadMetricsSet.activeThreadsCount;
-        message.daemonThreads = metric.threadMetricsSet.activeDaemonCount;
-        message.totalThreads = metric.threadMetricsSet.totalCreatedCount;
+        message.peakThreads = metric.threadMetricSet.peakActiveCount;
+        message.activeThreads = metric.threadMetricSet.activeThreadsCount;
+        message.daemonThreads = metric.threadMetricSet.activeDaemonCount;
+        message.totalThreads = metric.threadMetricSet.totalCreatedCount;
 
-        message.classLoaded = metric.classMetricsSet.currentLoadedClasses;
-        message.classUnloaded = metric.classMetricsSet.totalUnloadedClasses;
+        message.classLoaded = metric.classMetricSet.currentLoadedClasses;
+        message.classUnloaded = metric.classMetricSet.totalUnloadedClasses;
 
-        message.metaspaceCommitted = metric.metaspaceMetricsSet.metaspaceCommittedBytes;
-        message.metaspaceUsed = metric.metaspaceMetricsSet.metaspaceUsedBytes;
+        message.metaspaceCommitted = metric.metaspaceMetricSet.metaspaceCommittedBytes;
+        message.metaspaceUsed = metric.metaspaceMetricSet.metaspaceUsedBytes;
+        message.metaspaceInit = metric.metaspaceMetricSet.metaspaceInitBytes;
         return message;
     }
 

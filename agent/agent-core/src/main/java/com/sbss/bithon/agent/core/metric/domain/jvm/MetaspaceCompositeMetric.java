@@ -24,6 +24,8 @@ public class MetaspaceCompositeMetric {
     /**
      * allocated metaspace in bytes
      */
+    public long metaspaceBytes = -1;
+    public long metaspaceInitBytes = -1;
     public long metaspaceCommittedBytes = -1;
     public long metaspaceUsedBytes = -1;
 

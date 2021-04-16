@@ -52,12 +52,14 @@ public class MemoryMetricCollector {
                                                            .getCommitted());
     }
 
-    public static MetaspaceCompositeMetric collectMeataSpace() {
+    public static MetaspaceCompositeMetric collectMetaSpace() {
         MetaspaceCompositeMetric metrics = new MetaspaceCompositeMetric();
         for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans()) {
             if ("Metaspace".equalsIgnoreCase(bean.getName())) {
                 metrics.metaspaceCommittedBytes = bean.getUsage().getCommitted();
                 metrics.metaspaceUsedBytes = bean.getUsage().getUsed();
+                metrics.metaspaceInitBytes = bean.getUsage().getInit();
+                metrics.metaspaceBytes = bean.getUsage().getMax();
             }
         }
         return metrics;

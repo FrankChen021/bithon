@@ -39,6 +39,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
   private static final org.apache.thrift.protocol.TField CLASS_UNLOADED_FIELD_DESC = new org.apache.thrift.protocol.TField("classUnloaded", org.apache.thrift.protocol.TType.I64, (short)24);
   private static final org.apache.thrift.protocol.TField METASPACE_COMMITTED_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceCommitted", org.apache.thrift.protocol.TType.I64, (short)25);
   private static final org.apache.thrift.protocol.TField METASPACE_USED_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceUsed", org.apache.thrift.protocol.TType.I64, (short)26);
+  private static final org.apache.thrift.protocol.TField METASPACE_INIT_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspaceInit", org.apache.thrift.protocol.TType.I64, (short)27);
+  private static final org.apache.thrift.protocol.TField METASPACE_FIELD_DESC = new org.apache.thrift.protocol.TField("metaspace", org.apache.thrift.protocol.TType.I64, (short)28);
 
   private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new JvmMetricMessageStandardSchemeFactory();
   private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new JvmMetricMessageTupleSchemeFactory();
@@ -69,6 +71,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
   public long classUnloaded; // required
   public long metaspaceCommitted; // required
   public long metaspaceUsed; // required
+  public long metaspaceInit; // required
+  public long metaspace; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -97,7 +101,9 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     CLASS_LOADED((short)23, "classLoaded"),
     CLASS_UNLOADED((short)24, "classUnloaded"),
     METASPACE_COMMITTED((short)25, "metaspaceCommitted"),
-    METASPACE_USED((short)26, "metaspaceUsed");
+    METASPACE_USED((short)26, "metaspaceUsed"),
+    METASPACE_INIT((short)27, "metaspaceInit"),
+    METASPACE((short)28, "metaspace");
 
     private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -165,6 +171,10 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
           return METASPACE_COMMITTED;
         case 26: // METASPACE_USED
           return METASPACE_USED;
+        case 27: // METASPACE_INIT
+          return METASPACE_INIT;
+        case 28: // METASPACE
+          return METASPACE;
         default:
           return null;
       }
@@ -232,6 +242,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
   private static final int __CLASSUNLOADED_ISSET_ID = 23;
   private static final int __METASPACECOMMITTED_ISSET_ID = 24;
   private static final int __METASPACEUSED_ISSET_ID = 25;
+  private static final int __METASPACEINIT_ISSET_ID = 26;
+  private static final int __METASPACE_ISSET_ID = 27;
   private int __isset_bitfield = 0;
   public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -288,6 +300,10 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.METASPACE_USED, new org.apache.thrift.meta_data.FieldMetaData("metaspaceUsed", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.METASPACE_INIT, new org.apache.thrift.meta_data.FieldMetaData("metaspaceInit", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.METASPACE, new org.apache.thrift.meta_data.FieldMetaData("metaspace", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(JvmMetricMessage.class, metaDataMap);
   }
@@ -321,7 +337,9 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     long classLoaded,
     long classUnloaded,
     long metaspaceCommitted,
-    long metaspaceUsed)
+    long metaspaceUsed,
+    long metaspaceInit,
+    long metaspace)
   {
     this();
     this.timestamp = timestamp;
@@ -376,6 +394,10 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     setMetaspaceCommittedIsSet(true);
     this.metaspaceUsed = metaspaceUsed;
     setMetaspaceUsedIsSet(true);
+    this.metaspaceInit = metaspaceInit;
+    setMetaspaceInitIsSet(true);
+    this.metaspace = metaspace;
+    setMetaspaceIsSet(true);
   }
 
   /**
@@ -409,6 +431,8 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     this.classUnloaded = other.classUnloaded;
     this.metaspaceCommitted = other.metaspaceCommitted;
     this.metaspaceUsed = other.metaspaceUsed;
+    this.metaspaceInit = other.metaspaceInit;
+    this.metaspace = other.metaspace;
   }
 
   public JvmMetricMessage deepCopy() {
@@ -469,6 +493,10 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     this.metaspaceCommitted = 0;
     setMetaspaceUsedIsSet(false);
     this.metaspaceUsed = 0;
+    setMetaspaceInitIsSet(false);
+    this.metaspaceInit = 0;
+    setMetaspaceIsSet(false);
+    this.metaspace = 0;
   }
 
   public long getTimestamp() {
@@ -1069,6 +1097,52 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __METASPACEUSED_ISSET_ID, value);
   }
 
+  public long getMetaspaceInit() {
+    return this.metaspaceInit;
+  }
+
+  public JvmMetricMessage setMetaspaceInit(long metaspaceInit) {
+    this.metaspaceInit = metaspaceInit;
+    setMetaspaceInitIsSet(true);
+    return this;
+  }
+
+  public void unsetMetaspaceInit() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __METASPACEINIT_ISSET_ID);
+  }
+
+  /** Returns true if field metaspaceInit is set (has been assigned a value) and false otherwise */
+  public boolean isSetMetaspaceInit() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __METASPACEINIT_ISSET_ID);
+  }
+
+  public void setMetaspaceInitIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __METASPACEINIT_ISSET_ID, value);
+  }
+
+  public long getMetaspace() {
+    return this.metaspace;
+  }
+
+  public JvmMetricMessage setMetaspace(long metaspace) {
+    this.metaspace = metaspace;
+    setMetaspaceIsSet(true);
+    return this;
+  }
+
+  public void unsetMetaspace() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __METASPACE_ISSET_ID);
+  }
+
+  /** Returns true if field metaspace is set (has been assigned a value) and false otherwise */
+  public boolean isSetMetaspace() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __METASPACE_ISSET_ID);
+  }
+
+  public void setMetaspaceIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __METASPACE_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
     switch (field) {
     case TIMESTAMP:
@@ -1279,6 +1353,22 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       }
       break;
 
+    case METASPACE_INIT:
+      if (value == null) {
+        unsetMetaspaceInit();
+      } else {
+        setMetaspaceInit((java.lang.Long)value);
+      }
+      break;
+
+    case METASPACE:
+      if (value == null) {
+        unsetMetaspace();
+      } else {
+        setMetaspace((java.lang.Long)value);
+      }
+      break;
+
     }
   }
 
@@ -1363,6 +1453,12 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     case METASPACE_USED:
       return getMetaspaceUsed();
 
+    case METASPACE_INIT:
+      return getMetaspaceInit();
+
+    case METASPACE:
+      return getMetaspace();
+
     }
     throw new java.lang.IllegalStateException();
   }
@@ -1426,6 +1522,10 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       return isSetMetaspaceCommitted();
     case METASPACE_USED:
       return isSetMetaspaceUsed();
+    case METASPACE_INIT:
+      return isSetMetaspaceInit();
+    case METASPACE:
+      return isSetMetaspace();
     }
     throw new java.lang.IllegalStateException();
   }
@@ -1677,6 +1777,24 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         return false;
     }
 
+    boolean this_present_metaspaceInit = true;
+    boolean that_present_metaspaceInit = true;
+    if (this_present_metaspaceInit || that_present_metaspaceInit) {
+      if (!(this_present_metaspaceInit && that_present_metaspaceInit))
+        return false;
+      if (this.metaspaceInit != that.metaspaceInit)
+        return false;
+    }
+
+    boolean this_present_metaspace = true;
+    boolean that_present_metaspace = true;
+    if (this_present_metaspace || that_present_metaspace) {
+      if (!(this_present_metaspace && that_present_metaspace))
+        return false;
+      if (this.metaspace != that.metaspace)
+        return false;
+    }
+
     return true;
   }
 
@@ -1735,6 +1853,10 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(metaspaceCommitted);
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(metaspaceUsed);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(metaspaceInit);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(metaspace);
 
     return hashCode;
   }
@@ -2007,6 +2129,26 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
         return lastComparison;
       }
     }
+    lastComparison = java.lang.Boolean.compare(isSetMetaspaceInit(), other.isSetMetaspaceInit());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMetaspaceInit()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metaspaceInit, other.metaspaceInit);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetMetaspace(), other.isSetMetaspace());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMetaspace()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metaspace, other.metaspace);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -2130,6 +2272,14 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
     if (!first) sb.append(", ");
     sb.append("metaspaceUsed:");
     sb.append(this.metaspaceUsed);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("metaspaceInit:");
+    sb.append(this.metaspaceInit);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("metaspace:");
+    sb.append(this.metaspace);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -2384,6 +2534,22 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 27: // METASPACE_INIT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.metaspaceInit = iprot.readI64();
+              struct.setMetaspaceInitIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 28: // METASPACE
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.metaspace = iprot.readI64();
+              struct.setMetaspaceIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -2476,6 +2642,12 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(METASPACE_USED_FIELD_DESC);
       oprot.writeI64(struct.metaspaceUsed);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(METASPACE_INIT_FIELD_DESC);
+      oprot.writeI64(struct.metaspaceInit);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(METASPACE_FIELD_DESC);
+      oprot.writeI64(struct.metaspace);
       oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -2573,7 +2745,13 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       if (struct.isSetMetaspaceUsed()) {
         optionals.set(25);
       }
-      oprot.writeBitSet(optionals, 26);
+      if (struct.isSetMetaspaceInit()) {
+        optionals.set(26);
+      }
+      if (struct.isSetMetaspace()) {
+        optionals.set(27);
+      }
+      oprot.writeBitSet(optionals, 28);
       if (struct.isSetTimestamp()) {
         oprot.writeI64(struct.timestamp);
       }
@@ -2652,12 +2830,18 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       if (struct.isSetMetaspaceUsed()) {
         oprot.writeI64(struct.metaspaceUsed);
       }
+      if (struct.isSetMetaspaceInit()) {
+        oprot.writeI64(struct.metaspaceInit);
+      }
+      if (struct.isSetMetaspace()) {
+        oprot.writeI64(struct.metaspace);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, JvmMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-      java.util.BitSet incoming = iprot.readBitSet(26);
+      java.util.BitSet incoming = iprot.readBitSet(28);
       if (incoming.get(0)) {
         struct.timestamp = iprot.readI64();
         struct.setTimestampIsSet(true);
@@ -2761,6 +2945,14 @@ public class JvmMetricMessage implements org.apache.thrift.TBase<JvmMetricMessag
       if (incoming.get(25)) {
         struct.metaspaceUsed = iprot.readI64();
         struct.setMetaspaceUsedIsSet(true);
+      }
+      if (incoming.get(26)) {
+        struct.metaspaceInit = iprot.readI64();
+        struct.setMetaspaceInitIsSet(true);
+      }
+      if (incoming.get(27)) {
+        struct.metaspace = iprot.readI64();
+        struct.setMetaspaceIsSet(true);
       }
     }
   }
