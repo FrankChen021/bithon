@@ -31,7 +31,7 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<GenericMetricMe
     private final AbstractMetricMessageHandler messageHandler;
 
     public KafkaMetricCollector(AbstractMetricMessageHandler messageHandler) {
-        super(null);
+        super(GenericMetricMessage.class);
         this.messageHandler = messageHandler;
     }
 

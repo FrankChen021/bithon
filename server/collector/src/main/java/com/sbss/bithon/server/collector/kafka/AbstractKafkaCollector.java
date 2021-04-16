@@ -57,7 +57,8 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, Me
     @Override
     public final void onMessage(ConsumerRecord<String, String> record) {
         CloseableIterator<MSG> metricIterator;
-        try (JsonParser parser = new JsonFactory().createParser(record.value())) {
+        try {
+            final JsonParser parser = new JsonFactory().createParser(record.value());
             final MappingIterator<MSG> delegate = objectMapper.readValues(parser, clazz);
             metricIterator = new CloseableIterator<MSG>() {
                 @Override

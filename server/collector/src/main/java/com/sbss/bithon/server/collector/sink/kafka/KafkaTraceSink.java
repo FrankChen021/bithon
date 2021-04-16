@@ -20,12 +20,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
-import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 import com.sbss.bithon.server.tracing.handler.TraceSpan;
 import org.springframework.kafka.core.KafkaTemplate;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -47,6 +43,8 @@ public class KafkaTraceSink implements IMessageSink<CloseableIterator<TraceSpan>
             return;
         }
 
+        String key = null;
+
         //
         // a batch message in written into a single kafka message in which each text line is a single metric message
         //
@@ -54,10 +52,15 @@ public class KafkaTraceSink implements IMessageSink<CloseableIterator<TraceSpan>
         // but I don't think it has advantages over the way below
         //
         StringBuilder messageText = new StringBuilder();
-        List<GenericMetricMessage> metricMessage = new ArrayList<>();
         while (spans.hasNext()) {
+
+            TraceSpan span = spans.next();
+
+            // Sink receives messages from an agent, it's safe to use instance name of first item
+            key = span.getTraceId();
+
             try {
-                messageText.append(objectMapper.writeValueAsString(spans.next()));
+                messageText.append(objectMapper.writeValueAsString(span));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
@@ -66,9 +69,6 @@ public class KafkaTraceSink implements IMessageSink<CloseableIterator<TraceSpan>
             messageText.append('\n');
         }
 
-        producer.send(messageType,
-                      // Sink receives messages from an agent, it's safe to use instance name of first item
-                      metricMessage.get(0).getInstanceName(),
-                      messageText.toString());
+        producer.send(messageType, key, messageText.toString());
     }
 }

@@ -23,9 +23,6 @@ import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 import org.springframework.kafka.core.KafkaTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
@@ -46,6 +43,8 @@ public class KafkaMetricSink implements IMessageSink<CloseableIterator<GenericMe
             return;
         }
 
+        String key = null;
+
         //
         // a batch message in written into a single kafka message in which each text line is a single metric message
         //
@@ -53,10 +52,15 @@ public class KafkaMetricSink implements IMessageSink<CloseableIterator<GenericMe
         // but I don't think it has advantages over the way below
         //
         StringBuilder messageText = new StringBuilder();
-        List<GenericMetricMessage> metricMessage = new ArrayList<>();
         while (messages.hasNext()) {
+            GenericMetricMessage metricMessage = messages.next();
+
+            // Sink receives messages from an agent, it's safe to use instance name of first item
+            key = metricMessage.getInstanceName();
+
+            // deserialization
             try {
-                messageText.append(objectMapper.writeValueAsString(messages.next()));
+                messageText.append(objectMapper.writeValueAsString(metricMessage));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
@@ -65,9 +69,6 @@ public class KafkaMetricSink implements IMessageSink<CloseableIterator<GenericMe
             messageText.append('\n');
         }
 
-        producer.send(messageType,
-                      // Sink receives messages from an agent, it's safe to use instance name of first item
-                      metricMessage.get(0).getInstanceName(),
-                      messageText.toString());
+        producer.send(messageType, key, messageText.toString());
     }
 }
