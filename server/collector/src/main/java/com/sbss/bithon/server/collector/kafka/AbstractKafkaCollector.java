@@ -16,27 +16,30 @@
 
 package com.sbss.bithon.server.collector.kafka;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.kafka.clients.consumer.Consumer;
+import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.listener.ConsumerAwareMessageListener;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.MessageListener;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector {
+public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, MessageListener<String, String> {
     ConcurrentMessageListenerContainer<String, String> consumerContainer;
 
     protected final ObjectMapper objectMapper;
-    private Class<MSG> clazz;
+    private final Class<MSG> clazz;
 
     public AbstractKafkaCollector(Class<MSG> clazz) {
         this.clazz = clazz;
@@ -47,22 +50,45 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector {
 
     protected abstract String getGroupId();
 
-    protected abstract String[] getTopics();
+    protected abstract String getTopic();
 
-    protected abstract void onMessage(String topic, MSG msg);
+    protected abstract void onMessage(CloseableIterator<MSG> msg);
 
-    protected void onMessage(String topic, String rawMessage) {
+    @Override
+    public final void onMessage(ConsumerRecord<String, String> record) {
+        CloseableIterator<MSG> metricIterator;
         try {
-            onMessage(topic, objectMapper.readValue(rawMessage, clazz));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            final JsonParser parser = new JsonFactory().createParser(record.value());
+            final MappingIterator<MSG> delegate = objectMapper.readValues(parser, clazz);
+            metricIterator = new CloseableIterator<MSG>() {
+                @Override
+                public boolean hasNext() {
+                    return delegate.hasNext();
+                }
+
+                @Override
+                public MSG next() {
+                    return delegate.next();
+                }
+
+                @Override
+                public void close() throws IOException {
+                    delegate.close();
+                }
+            };
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("Can't parse text into %s.\n%s",
+                                                     clazz.getSimpleName(),
+                                                     record.value()));
         }
+
+        onMessage(metricIterator);
     }
 
     @Override
     public IKafkaCollector start(Map<String, Object> consumerProps) {
 
-        ContainerProperties containerProperties = new ContainerProperties(getTopics());
+        ContainerProperties containerProperties = new ContainerProperties(getTopic());
         containerProperties.setAckMode(ContainerProperties.AckMode.TIME);
         containerProperties.setAckTime(5000);
         containerProperties.setPollTimeout(1000);
@@ -70,20 +96,7 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector {
         containerProperties.setClientId(getGroupId());
         consumerContainer = new ConcurrentMessageListenerContainer<>(new DefaultKafkaConsumerFactory<>(consumerProps),
                                                                      containerProperties);
-        consumerContainer.setupMessageListener(new ConsumerAwareMessageListener<String, String>() {
-            @Override
-            public void onMessage(ConsumerRecord<String, String> consumerRecord) {
-                AbstractKafkaCollector.this.onMessage(consumerRecord.topic(),
-                                                      consumerRecord.value());
-            }
-
-            @Override
-            public void onMessage(ConsumerRecord<String, String> consumerRecord,
-                                  Consumer<?, ?> consumer) {
-                AbstractKafkaCollector.this.onMessage(consumerRecord.topic(),
-                                                      consumerRecord.value());
-            }
-        });
+        consumerContainer.setupMessageListener(this);
         consumerContainer.start();
 
         return this;

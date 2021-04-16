@@ -24,9 +24,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 
-/**
- * @author frankchen
- */
 public interface CloseableIterator<T> extends Iterator<T>, Closeable {
     default <R> CloseableIterator<R> map(Function<T, R> mapFunction) {
         final CloseableIterator<T> delegate = this;

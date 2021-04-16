@@ -16,40 +16,35 @@
 
 package com.sbss.bithon.server.collector.kafka;
 
-import com.sbss.bithon.server.collector.sink.local.LocalTraceSink;
+import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.tracing.handler.TraceMessageHandler;
 import com.sbss.bithon.server.tracing.handler.TraceSpan;
-
-import java.util.ArrayList;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaTraceCollector extends AbstractKafkaCollector<TraceMessage> {
-    private final LocalTraceSink localSink;
+public class KafkaTraceCollector extends AbstractKafkaCollector<TraceSpan> {
+    private final TraceMessageHandler traceHandler;
 
-    public KafkaTraceCollector(TraceMessageHandler traceMessageHandler) {
-        super(TraceMessage.class);
+    public KafkaTraceCollector(TraceMessageHandler traceHandler) {
+        super(TraceSpan.class);
 
-        localSink = new LocalTraceSink(traceMessageHandler);
+        this.traceHandler = traceHandler;
     }
 
     @Override
     protected String getGroupId() {
-        return "bithon-collector-trace";
+        return "bithon-trace-consumer";
     }
 
     @Override
-    protected String[] getTopics() {
-        return new String[]{"trace"};
+    protected String getTopic() {
+        return "trace";
     }
 
     @Override
-    protected void onMessage(String topic, TraceMessage traceSpans) {
-        localSink.process(topic, traceSpans);
+    protected void onMessage(CloseableIterator<TraceSpan> traceMessages) {
+        traceHandler.submit(traceMessages);
     }
-}
-
-class TraceMessage extends ArrayList<TraceSpan> {
 }

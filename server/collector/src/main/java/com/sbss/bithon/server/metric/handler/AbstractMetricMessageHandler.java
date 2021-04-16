@@ -17,7 +17,7 @@
 package com.sbss.bithon.server.metric.handler;
 
 import com.sbss.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
-import com.sbss.bithon.server.common.utils.collection.SizedIterator;
+import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.meta.MetadataType;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchema;
@@ -45,7 +45,7 @@ import java.util.Map;
 @Slf4j
 @Getter
 public abstract class AbstractMetricMessageHandler
-    extends AbstractThreadPoolMessageHandler<SizedIterator<GenericMetricMessage>> {
+    extends AbstractThreadPoolMessageHandler<CloseableIterator<GenericMetricMessage>> {
 
     private final DataSourceSchema schema;
     private final DataSourceSchema endpointSchema;
@@ -81,8 +81,8 @@ public abstract class AbstractMetricMessageHandler
     }
 
     @Override
-    protected final void onMessage(SizedIterator<GenericMetricMessage> metricMessages) {
-        if (metricMessages.isEmpty()) {
+    protected final void onMessage(CloseableIterator<GenericMetricMessage> metricMessages) {
+        if (!metricMessages.hasNext()) {
             return;
         }
 
@@ -91,7 +91,7 @@ public abstract class AbstractMetricMessageHandler
         //
         // convert
         //
-        List<InputRow> inputRowList = new ArrayList<>(metricMessages.size());
+        List<InputRow> inputRowList = new ArrayList<>(8);
         while (metricMessages.hasNext()) {
             GenericMetricMessage metricMessage = metricMessages.next();
 

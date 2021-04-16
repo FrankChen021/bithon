@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.server.collector.kafka;
 
-import com.sbss.bithon.server.collector.sink.local.LocalEventSink;
+import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.event.handler.EventMessage;
 import com.sbss.bithon.server.event.handler.EventsMessageHandler;
 
@@ -25,25 +25,27 @@ import com.sbss.bithon.server.event.handler.EventsMessageHandler;
  * @date 2021/3/18
  */
 public class KafkaEventCollector extends AbstractKafkaCollector<EventMessage> {
-    private final LocalEventSink localSink;
+    private final EventsMessageHandler eventHandler;
 
     public KafkaEventCollector(EventsMessageHandler handler) {
         super(EventMessage.class);
-        localSink = new LocalEventSink(handler);
+        this.eventHandler = handler;
     }
 
     @Override
     protected String getGroupId() {
-        return "bithon-collector-event";
+        return "bithon-event-consumer";
     }
 
     @Override
-    protected String[] getTopics() {
-        return new String[]{"event"};
+    protected String getTopic() {
+        return "event";
     }
 
     @Override
-    protected void onMessage(String topic, EventMessage eventMessage) {
-        localSink.process(topic, eventMessage);
+    protected void onMessage(CloseableIterator<EventMessage> messages) {
+        while (messages.hasNext()) {
+            eventHandler.submit(messages.next());
+        }
     }
 }

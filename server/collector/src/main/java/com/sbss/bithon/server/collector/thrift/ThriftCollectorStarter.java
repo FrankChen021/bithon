@@ -68,6 +68,9 @@ public class ThriftCollectorStarter implements SmartLifecycle, ApplicationContex
         ThriftCollectorConfig config = applicationContext.getBean(ThriftCollectorConfig.class);
         Map<Integer, ServiceGroup> serviceGroups = new HashMap<>();
 
+        //
+        // group services by their listening ports
+        //
         for (Map.Entry<String, Integer> entry : config.getPort().entrySet()) {
             String service = entry.getKey();
             Integer port = entry.getValue();

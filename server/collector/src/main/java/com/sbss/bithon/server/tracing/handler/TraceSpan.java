@@ -18,11 +18,10 @@ package com.sbss.bithon.server.tracing.handler;
 
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
+import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import lombok.Data;
-import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -47,30 +46,41 @@ public class TraceSpan {
     public String clazz;
     public String method;
 
-    public static List<TraceSpan> from(MessageHeader header, List<TraceSpanMessage> message) {
-        if (CollectionUtils.isEmpty(message)) {
-            return Collections.emptyList();
-        }
+    public static CloseableIterator<TraceSpan> from(MessageHeader header, List<TraceSpanMessage> messages) {
 
-        List<TraceSpan> spans = new ArrayList<>();
-        message.forEach((spanMessage) -> {
-            TraceSpan traceSpan = new TraceSpan();
-            traceSpan.appName = header.appName;
-            traceSpan.instanceName = header.instanceName;
-            traceSpan.kind = spanMessage.kind;
-            traceSpan.name = spanMessage.name;
-            traceSpan.traceId = spanMessage.traceId;
-            traceSpan.spanId = spanMessage.spanId;
-            traceSpan.parentSpanId = spanMessage.parentSpanId == null ? "" : spanMessage.parentSpanId;
-            traceSpan.parentApplication = spanMessage.parentAppName;
-            traceSpan.startTime = spanMessage.startTime;
-            traceSpan.endTime = spanMessage.endTime;
-            traceSpan.costTime = spanMessage.endTime - spanMessage.startTime;
-            traceSpan.tags = spanMessage.tags;
-            traceSpan.clazz = spanMessage.clazz;
-            traceSpan.method = spanMessage.method;
-            spans.add(traceSpan);
-        });
-        return spans;
+        Iterator<TraceSpanMessage> delegate = messages.iterator();
+        return new CloseableIterator<TraceSpan>() {
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public boolean hasNext() {
+                return delegate.hasNext();
+            }
+
+            @Override
+            public TraceSpan next() {
+                TraceSpanMessage spanMessage = delegate.next();
+
+                TraceSpan traceSpan = new TraceSpan();
+                traceSpan.appName = header.appName;
+                traceSpan.instanceName = header.instanceName;
+                traceSpan.kind = spanMessage.kind;
+                traceSpan.name = spanMessage.name;
+                traceSpan.traceId = spanMessage.traceId;
+                traceSpan.spanId = spanMessage.spanId;
+                traceSpan.parentSpanId = spanMessage.parentSpanId == null ? "" : spanMessage.parentSpanId;
+                traceSpan.parentApplication = spanMessage.parentAppName;
+                traceSpan.startTime = spanMessage.startTime;
+                traceSpan.endTime = spanMessage.endTime;
+                traceSpan.costTime = spanMessage.endTime - spanMessage.startTime;
+                traceSpan.tags = spanMessage.tags;
+                traceSpan.clazz = spanMessage.clazz;
+                traceSpan.method = spanMessage.method;
+
+                return traceSpan;
+            }
+        };
     }
 }
