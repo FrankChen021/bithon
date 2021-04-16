@@ -9,8 +9,8 @@ class AutoRefresher {
         this._control = $(
             '<div class="input-group">' +
             '   <div class="input-group-prepend">' +
-            '       <button class="btn btn-outline-secondary" type="button" id="manualRefresh"><i class="fas fa-sync-alt"></i></button>' +
-            '       <button class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" type="button" id="autoRefresh" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> ' +
+            '       <button class="btn btn-outline-secondary" style="border-radius:0px;border-color: #ced4da" type="button" id="manualRefresh"><i class="fas fa-sync-alt"></i></button>' +
+            '       <button class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" style="border-radius:0px;border-color: #ced4da" type="button" id="autoRefresh" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> ' +
             '           <span></span>' +
             '       </button>' +
             '       <div class="dropdown-menu" aria-labelledby="autoRefresh">' +

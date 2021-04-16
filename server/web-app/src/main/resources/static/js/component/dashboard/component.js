@@ -139,8 +139,7 @@ class Dashboard {
             theme: 'bootstrap4',
             allowClear: true,
             dropdownAutoWidth: true,
-            placeholder: displayText,
-            //TODO: must be a function to support dynamic change
+            placeholder: displayText
             ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionIndex, dimensionName)
         }).on('change', (event) => {
             if (event.target.selectedIndex == null || event.target.selectedIndex < 0) {
@@ -278,7 +277,7 @@ class Dashboard {
         }
         this._stackLayoutRowFill += width;
 
-        return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}"></div>`);
+        return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}" style="margin-bottom: 0em;padding-bottom: 10px;padding-left: 5px;padding-right: 5px"></div>`);
     }
 
     //
