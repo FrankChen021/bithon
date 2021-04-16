@@ -24,8 +24,8 @@ var jvm_metrics_dashboard = {
         }]
     },{
         "dataSource": "jvm-metrics",
-        "title": "Memory",
-        "width": 4,
+        "title": "Heap",
+        "width": 1,
         "yAxis": [ {
             "minInterval": 1024 * 1024,
             "interval": 1024 * 1024 * 1024,
@@ -39,6 +39,52 @@ var jvm_metrics_dashboard = {
             "name": "heapCommitted"
         }]
      },{
+        "dataSource": "jvm-metrics",
+        "title": "Non-Heap",
+        "width": 1,
+        "yAxis": [ {
+            "minInterval": 1024 * 1024,
+            "interval": 1024 * 1024 * 1024,
+            "unit": "binary_byte"
+        }],
+        "metrics":[{
+            "name": "nonHeap",
+        },{
+            "name": "nonHeapUsed"
+        },{
+            "name": "nonHeapCommitted"
+        }]
+    },{
+        "dataSource": "jvm-metrics",
+        "title": "Metaspace",
+        "width": 1,
+        "yAxis": [ {
+            "minInterval": 1024 * 1024,
+            "interval": 1024 * 1024 * 1024,
+            "unit": "binary_byte"
+        }],
+        "metrics":[{
+            "name": "metaspace",
+        },{
+            "name": "metaspaceUsed"
+        },{
+            "name": "metaspaceCommitted"
+        }]
+    },{
+        "dataSource": "jvm-metrics",
+        "title": "Memory",
+        "width": 1,
+        "yAxis": [ {
+            "minInterval": 1024 * 1024,
+            "interval": 1024 * 1024 * 1024,
+            "unit": "binary_byte"
+        }],
+        "metrics":[{
+            "name": "totalMemBytes",
+        },{
+            "name": "freeMemBytes"
+        }]
+    },{
         "dataSource": "jvm-gc-metrics",
         "title": "Garbage Collection",
         "width": 4,

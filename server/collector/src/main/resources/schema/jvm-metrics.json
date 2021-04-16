@@ -117,25 +117,38 @@
       "type": "longLast",
       "name": "metaspace",
       "displayText": "Max Metaspace",
-      "unit": "count"
+      "unit": "byte"
     },
     {
       "type": "longLast",
       "name": "metaspaceInit",
       "displayText": "Init Metaspace",
-      "unit": "count"
+      "unit": "byte"
     },
     {
       "type": "longLast",
       "name": "metaspaceCommitted",
       "displayText": "Available Metaspace",
-      "unit": "count"
+      "unit": "byte"
     },
     {
       "type": "longLast",
       "name": "metaspaceUsed",
       "displayText": "Used Metaspace",
-      "unit": "count"
+      "unit": "byte"
+    },
+
+    {
+      "type": "longLast",
+      "name": "totalMemBytes",
+      "displayText": "Total Memory",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "freeMemBytes",
+      "displayText": "Free Memory",
+      "unit": "byte"
     },
 
     {
