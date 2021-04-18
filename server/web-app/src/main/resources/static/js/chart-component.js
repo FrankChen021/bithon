@@ -19,34 +19,24 @@ class ChartComponent {
         window.addEventListener("resize", () => {
             this._chart.resize();
         });
+
+        this._openHandler = null;
     }
 
     header(text) {
-        if (this._header == null) {
-            var rnd = Math.random();
-            this._header = $(this._card).prepend(
+        let headerText = $(this._card).find('.header-text');
+        if (headerText.length === 0) {
+            const header = $(this._card).prepend(
                 '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
                 '<span class="header-text btn-sm"></span>' +
-                //            '<div id="intervalSelector" class="dropdown ml-auto">                                                                                         ' +
-                //            '<button class="btn btn-sm"><span class="far fa-bell"></span></button>' +
-                //            '    <button class="btn btn-sm dropdown-toggle" id="dropdownMenuButton-"' + rnd + ' type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> ' +
-                //            '        Time Interval                                                                                                                ' +
-                //            '    </button>                                                                                                                        ' +
-                //            '    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton-' + rnd + '">                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">5 min</a>                                                                                  ' +
-                //            '        <a class="dropdown-item" href="#">15 min</a>                                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">30 min</a>                                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">1 hour</a>                                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">3 hour</a>                                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">6 hour</a>                                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">12 hour</a>                                                                                ' +
-                //            '        <a class="dropdown-item" href="#">24 hour</a>                                                                                ' +
-                //            '        <a class="dropdown-item" href="#">Today</a>                                                                                  ' +
-                //            '    </div>      ' +
-                //            '</div></div>          ' +
-                '</div>').find('.header-text');
+                '<div class="tools ml-auto">' +
+                //'    <button class="btn btn-sm btn-alert"><span class="far fa-bell" title="alert"></span></button>' +
+                '</div>' +
+                '</div>');
+
+            headerText = header.find('.header-text');
         }
-        $(this._header).html(text);
+        $(headerText).html(text);
         return this;
     }
 
@@ -159,5 +149,18 @@ class ChartComponent {
 
     resize() {
         this._chart.resize();
+    }
+
+    setOpenHandler(openHandler) {
+        if ($(this._card).find('btn-open').length === 0) {
+            const ctrl = $(this._card).find('.tools').append('<button class="btn btn-sm btn-open"><span class="far fa-square" title="open"></span></button>');
+            ctrl.find(".btn-open").click(() => {
+                if (this._openHandler != null)
+                    this._openHandler.apply();
+            });
+        }
+
+        this._openHandler = openHandler;
+        return this;
     }
 }

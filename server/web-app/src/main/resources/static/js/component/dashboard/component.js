@@ -67,13 +67,14 @@ class Dashboard {
             this._schemaApi.getSchema(
                 dataSourceName,
                 (schema) => {
+                    let index;
                     if (schema.name === dataSourceFilter) {
                         this._schema = schema;
 
                         // create dimension filter
                         // Note: first two dimensions MUST be app/instance
                         var filterBar = $('#filterBar');
-                        for (var index = 1; index < schema.dimensionsSpec.length; index++) {
+                        for (index = 1; index < schema.dimensionsSpec.length; index++) {
                             var dimension = schema.dimensionsSpec[index];
                             if (!dimension.visible)
                                 continue;
@@ -86,9 +87,9 @@ class Dashboard {
                     // This should be changed in future
                     // converts metricsSpec from Array to Map
                     //
-                    var metricMap = {};
-                    for (var index = 0; index < schema.metricsSpec.length; index++) {
-                        var metric = schema.metricsSpec[index];
+                    const metricMap = {};
+                    for (index = 0; index < schema.metricsSpec.length; index++) {
+                        const metric = schema.metricsSpec[index];
                         metricMap[metric.name] = metric;
                     }
                     schema.metricsSpec = metricMap;
@@ -102,8 +103,8 @@ class Dashboard {
                     // because there may be value transformers on different units
                     const charts = dataSource2Charts[schema.name];
                     $.each(charts, (index, chartId) => {
-                        this.refreshChart(chartId);
-                    })
+                        this.refreshChart(this._chartDescriptors[chartId], this._chartComponents[chartId]);
+                    });
                 },
                 (error) => {
                 }
@@ -127,8 +128,16 @@ class Dashboard {
             this.setInterval(fn);
         });
 
-        $.each(dashboard.charts, (index, chart) => {
-            this.createChartComponent(index, chart);
+        $.each(dashboard.charts, (index, chartDescriptor) => {
+
+            this.layout(chartDescriptor.id, chartDescriptor.width * 3);
+
+            const chartComponent = this.createChartComponent(chartDescriptor.id, chartDescriptor).setOpenHandler(() => {
+                this.openChart(chartDescriptor.id);
+            });
+
+            this._chartComponents[chartDescriptor.id] = chartComponent;
+            this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
         });
     }
 
@@ -162,12 +171,12 @@ class Dashboard {
             data: () => {
                 const filters = [];
 
-               for(let p = 0; p < dimensionIndex; p++) {
-                   const dim = this._schema.dimensionsSpec[p];
-                   if ( this._selectedDimensions[dim.name] != null ) {
-                       filters.push(this._selectedDimensions[dim.name]);
-                   }
-               }
+                for (let p = 0; p < dimensionIndex; p++) {
+                    const dim = this._schema.dimensionsSpec[p];
+                    if (this._selectedDimensions[dim.name] != null) {
+                        filters.push(this._selectedDimensions[dim.name]);
+                    }
+                }
 
                 const interval = this._intervalFn.apply();
                 return JSON.stringify({
@@ -194,9 +203,7 @@ class Dashboard {
     }
 
     // PRIVATE
-    createChartComponent(index, chartDescriptor) {
-        const chartId = chartDescriptor.id;
-        const chartContainer = this.layout(chartDescriptor.id, chartDescriptor.width * 3);
+    createChartComponent(chartId, chartDescriptor) {
 
         const chartOption = this.getDefaultChartOption();
         chartOption.legend.data = chartDescriptor.metrics.map(metric => {
@@ -207,16 +214,16 @@ class Dashboard {
         });
         if (chartDescriptor.yAxis != null) {
             const formatterFns = chartDescriptor.yAxis.map(y => this.getFormatter(y.unit));
-            for (var i = 1; i < formatterFns.length; i++) {
+            for (let i = 1; i < formatterFns.length; i++) {
                 if (formatterFns[i] == null)
                     formatterFns[i] = formatterFns[i - 1]; //default to prev config
             }
             chartOption.tooltip.formatter = params => {
-                var currentChartOption = this.getChartCurrentOption(chartId);
+                const currentChartOption = this.getChartCurrentOption(chartId);
                 let result = (params[0] || params).axisValue;
                 params.forEach(p => {
-                    var yAxisIndex = currentChartOption.series[p.seriesIndex].yAxisIndex;
-                    var formatterFn = formatterFns[yAxisIndex];
+                    const yAxisIndex = currentChartOption.series[p.seriesIndex].yAxisIndex;
+                    const formatterFn = formatterFns[yAxisIndex];
                     const s = formatterFn != null ? formatterFn(p.data) : p.data;
                     result += `<br />${p.marker}${p.seriesName}: ${s}`;
                 });
@@ -257,14 +264,11 @@ class Dashboard {
             chartOption.grid.right = 15;
         }
 
-        const chartComponent = new ChartComponent({
-            containerId: chartDescriptor.id,
+        return new ChartComponent({
+            containerId: chartId,
             metrics: chartDescriptor.metrics.map(metric => metric.name),
         }).header('<b>' + chartDescriptor.title + '</b>')
             .setChartOption(chartOption);
-
-        this._chartComponents[chartDescriptor.id] = chartComponent;
-        this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
     }
 
     // PRIVATE
@@ -294,8 +298,8 @@ class Dashboard {
         }
 
         // refresh each chart
-        for (var id in this._chartComponents) {
-            this.refreshChart(id);
+        for (const id in this._chartComponents) {
+            this.refreshChart(this._chartDescriptors[id], this._chartComponents[id]);
         }
     }
 
@@ -325,11 +329,9 @@ class Dashboard {
         this.refreshDashboard();
     }
 
-    refreshChart(chartId) {
-        var interval = this._intervalFn.apply();
+    refreshChart(chartDescriptor, chartComponent) {
+        const interval = this._intervalFn.apply();
 
-        var chartDescriptor = this._chartDescriptors[chartId];
-        var chartComponent = this._chartComponents[chartId];
         chartComponent.load({
             url: apiHost + "/api/datasource/metrics",
             ajaxData: JSON.stringify({
@@ -340,8 +342,6 @@ class Dashboard {
                 metrics: chartComponent.getOption().metrics,
             }),
             processResult: (data) => {
-                const chartDescriptor = this._chartDescriptors[chartId];
-
                 const timeLabels = data.map(d => moment(d.timestamp).local().format('HH:mm:ss'));
 
                 const series = chartDescriptor.metrics.map(metric => {
@@ -484,5 +484,40 @@ class Dashboard {
         for (const id in this._chartComponents) {
             this._chartComponents[id].resize();
         }
+    }
+
+    //PRIVATE
+    openChart(chartId) {
+        const chartDescriptor = this._chartDescriptors[chartId];
+        const metrics = this._chartComponents[chartId].getOption().metrics;
+
+        const dialogContent =
+            "<div>" +
+            "   <div style='padding: 10px 0 0 0'>" +
+            "       <div class='btn-group btn-group-sm' role='group' aria-label='...'>" +
+            "       <button class='btn btn-default select-time-length' id='select-hour-1' data-value='1'>1小时</button>" +
+            "       <button class='btn btn-default select-time-length' id='select-hour-3' data-value='3'>3小时</button>" +
+            "       <button class='btn btn-default select-time-length' id='select-hour-6' data-value='6'>6小时</button>" +
+            "       <button class='btn btn-default select-time-length' id='select-hour-12' data-value='12'>12小时</button>" +
+            "       <button class='btn btn-default select-time-length' id='select-hour-24' data-value='24'>24小时</button></div></div>" +
+            "       <div id='popup_charts' style='height:400px;width:100%'></div>" +
+            "   </div>" +
+            "</div>";
+
+        bootbox.dialog({
+            size: 'large',
+            onEscape: true,
+            backdrop: true,
+            message: dialogContent,
+            onShown: (e) => {
+                //$("#select-hour-" + this.option.hours).addClass('btn-primary');
+                const popupChart = this.createChartComponent('popup_charts', chartDescriptor);
+                this._chartComponents['popup_charts'] = popupChart;
+                this.refreshChart(chartDescriptor, popupChart);
+            },
+            onHidden: (e) => {
+                delete this._chartComponents['popup_charts'];
+            }
+        });
     }
 }
