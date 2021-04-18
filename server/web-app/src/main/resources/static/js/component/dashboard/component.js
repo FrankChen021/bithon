@@ -492,17 +492,28 @@ class Dashboard {
         const metrics = this._chartComponents[chartId].getOption().metrics;
 
         const dialogContent =
-            "<div>" +
-            "   <div style='padding: 10px 0 0 0'>" +
-            "       <div class='btn-group btn-group-sm' role='group' aria-label='...'>" +
-            "       <button class='btn btn-default select-time-length' id='select-hour-1' data-value='1'>1小时</button>" +
-            "       <button class='btn btn-default select-time-length' id='select-hour-3' data-value='3'>3小时</button>" +
-            "       <button class='btn btn-default select-time-length' id='select-hour-6' data-value='6'>6小时</button>" +
-            "       <button class='btn btn-default select-time-length' id='select-hour-12' data-value='12'>12小时</button>" +
-            "       <button class='btn btn-default select-time-length' id='select-hour-24' data-value='24'>24小时</button></div></div>" +
-            "       <div id='popup_charts' style='height:400px;width:100%'></div>" +
-            "   </div>" +
-            "</div>";
+            '<ul class="nav nav-tabs">' +
+            '  <li class="nav-item">' +
+            '    <a class="nav-link active" data-toggle="tab" href="#nav-current" role="tab" aria-controls="nav-current" aria-selected="true">Current</a>' +
+            '  </li>' +
+            '  <li class="nav-item">' +
+            '    <a class="nav-link" data-toggle="tab" href="#nav-compare" role="tab" aria-controls="nav-compare" aria-selected="true">Comparison</a>' +
+            '  </li>' +
+            '</ul>' +
+            '<div class="tab-content">' +
+            '   <div class="tab-pane fade show active" id="nav-current" role="tabpanel" aria-labelledby="nav-current-tab">' +
+            '       <div class="btn-group btn-group-sm" role="group" aria-label="..." style="padding-top:5px">' +
+            '           <button class="btn btn-outline-secondary" style="border-color: #ced4da" id="select-hour-1"  data-value="1">1小时</button>' +
+            '           <button class="btn btn btn-outline-secondary" style="border-color: #ced4da" id="select-hour-3"  data-value="3">3小时</button>' +
+            '           <button class="btn btn btn-outline-secondary" style="border-color: #ced4da" id="select-hour-6"  data-value="6">6小时</button>' +
+            '           <button class="btn btn btn-outline-secondary" style="border-color: #ced4da" id="select-hour-12"  data-value="12">12小时</button>' +
+            '           <button class="btn btn btn-outline-secondary" style="border-color: #ced4da" id="select-hour-24"  data-value="24">24小时</button>' +
+            '       </div>' +
+            '   </div>' +
+            '   <div class="tab-pane fade" id="nav-compare" role="tabpanel" aria-labelledby="nav-compare-tab">' +
+            '   </div>' +
+            '</div>' +
+            '<div id="popup_charts" style="padding-top:5px;height:400px;width:100%"></div>';
 
         bootbox.dialog({
             size: 'large',
@@ -510,7 +521,6 @@ class Dashboard {
             backdrop: true,
             message: dialogContent,
             onShown: (e) => {
-                //$("#select-hour-" + this.option.hours).addClass('btn-primary');
                 const popupChart = this.createChartComponent('popup_charts', chartDescriptor);
                 this._chartComponents['popup_charts'] = popupChart;
                 this.refreshChart(chartDescriptor, popupChart);
