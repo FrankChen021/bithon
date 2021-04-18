@@ -319,10 +319,16 @@
 <script th:inline="javascript">
     $(document).ready(() => {
         $('.page-wrapper').bind('pinned', ()=>{
-            $(window).trigger('resize');
+            const handler = window.setInterval(() => {
+                $(window).trigger('resize');
+                window.clearInterval(handler);
+            }, 300);
         });
         $('.page-wrapper').bind('unpinned', ()=>{
-            $(window).trigger('resize');
+            const handler = window.setInterval(() => {
+                $(window).trigger('resize');
+                window.clearInterval(handler);
+            }, 300);
         })
         new MetricSidebar("metricSidebar", appName).load();
     });
