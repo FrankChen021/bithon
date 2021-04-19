@@ -17,10 +17,7 @@ class Dashboard {
         this.addDimension('appName', appName);
 
         this._intervalFn = () => {
-            return {
-                start: moment().utc().subtract(5, 'minute').local().toISOString(),
-                end: moment().utc().local().toISOString()
-            };
+            return this.getLatestInterval(5, 'minute');
         };
 
         this.addDimension('appName', appName);
@@ -63,7 +60,7 @@ class Dashboard {
         //
         // Loaded Dimension Filter
         //
-        for (var dataSourceName in dataSource2Charts) {
+        for (const dataSourceName in dataSource2Charts) {
             this._schemaApi.getSchema(
                 dataSourceName,
                 (schema) => {
@@ -73,9 +70,9 @@ class Dashboard {
 
                         // create dimension filter
                         // Note: first two dimensions MUST be app/instance
-                        var filterBar = $('#filterBar');
+                        const filterBar = $('#filterBar');
                         for (index = 1; index < schema.dimensionsSpec.length; index++) {
-                            var dimension = schema.dimensionsSpec[index];
+                            const dimension = schema.dimensionsSpec[index];
                             if (!dimension.visible)
                                 continue;
 
@@ -103,7 +100,9 @@ class Dashboard {
                     // because there may be value transformers on different units
                     const charts = dataSource2Charts[schema.name];
                     $.each(charts, (index, chartId) => {
-                        this.refreshChart(this._chartDescriptors[chartId], this._chartComponents[chartId]);
+                        this.refreshChart(this._chartDescriptors[chartId],
+                            this._chartComponents[chartId],
+                            this._intervalFn.apply());
                     });
                 },
                 (error) => {
@@ -281,7 +280,7 @@ class Dashboard {
         }
         this._stackLayoutRowFill += width;
 
-        return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}" style="margin-bottom: 0em;padding-bottom: 10px;padding-left: 5px;padding-right: 5px"></div>`);
+        return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}" style="margin-bottom: 0;padding-bottom: 10px;padding-left: 5px;padding-right: 5px"></div>`);
     }
 
     //
@@ -299,7 +298,7 @@ class Dashboard {
 
         // refresh each chart
         for (const id in this._chartComponents) {
-            this.refreshChart(this._chartDescriptors[id], this._chartComponents[id]);
+            this.refreshChart(this._chartDescriptors[id], this._chartComponents[id], this._intervalFn.apply());
         }
     }
 
@@ -329,9 +328,7 @@ class Dashboard {
         this.refreshDashboard();
     }
 
-    refreshChart(chartDescriptor, chartComponent) {
-        const interval = this._intervalFn.apply();
-
+    refreshChart(chartDescriptor, chartComponent, interval) {
         chartComponent.load({
             url: apiHost + "/api/datasource/metrics",
             ajaxData: JSON.stringify({
@@ -489,12 +486,11 @@ class Dashboard {
     //PRIVATE
     openChart(chartId) {
         const chartDescriptor = this._chartDescriptors[chartId];
-        const metrics = this._chartComponents[chartId].getOption().metrics;
 
         const dialogContent =
             '<ul class="nav nav-tabs">' +
             '  <li class="nav-item">' +
-            '    <a class="nav-link active" data-toggle="tab" href="#nav-current" role="tab" aria-controls="nav-current" aria-selected="true">Current</a>' +
+            '    <a class="nav-link active" data-toggle="tab" href="#nav-current" role="tab" aria-controls="nav-current" aria-selected="true">Latest</a>' +
             '  </li>' +
             '  <li class="nav-item">' +
             '    <a class="nav-link" data-toggle="tab" href="#nav-compare" role="tab" aria-controls="nav-compare" aria-selected="true">Comparison</a>' +
@@ -503,14 +499,19 @@ class Dashboard {
             '<div class="tab-content">' +
             '   <div class="tab-pane fade show active" id="nav-current" role="tabpanel" aria-labelledby="nav-current-tab">' +
             '       <div class="btn-group btn-group-sm" role="group" aria-label="..." style="padding-top:5px">' +
-            '           <button class="btn btn-outline-secondary" style="border-color: #ced4da" id="select-hour-1"  data-value="1">1小时</button>' +
-            '           <button class="btn btn btn-outline-secondary" style="border-color: #ced4da" id="select-hour-3"  data-value="3">3小时</button>' +
-            '           <button class="btn btn btn-outline-secondary" style="border-color: #ced4da" id="select-hour-6"  data-value="6">6小时</button>' +
-            '           <button class="btn btn btn-outline-secondary" style="border-color: #ced4da" id="select-hour-12"  data-value="12">12小时</button>' +
-            '           <button class="btn btn btn-outline-secondary" style="border-color: #ced4da" id="select-hour-24"  data-value="24">24小时</button>' +
+            '           <button class="btn btn btn-outline-secondary btn-popup-latest" style="border-color: #ced4da" data-value="1">1h</button>' +
+            '           <button class="btn btn btn-outline-secondary btn-popup-latest" style="border-color: #ced4da" data-value="3">3h</button>' +
+            '           <button class="btn btn btn-outline-secondary btn-popup-latest" style="border-color: #ced4da" data-value="6">6h</button>' +
+            '           <button class="btn btn btn-outline-secondary btn-popup-latest" style="border-color: #ced4da" data-value="12">12h</button>' +
+            '           <button class="btn btn btn-outline-secondary btn-popup-latest" style="border-color: #ced4da" data-value="24">24h</button>' +
             '       </div>' +
             '   </div>' +
             '   <div class="tab-pane fade" id="nav-compare" role="tabpanel" aria-labelledby="nav-compare-tab">' +
+            '       <div class="btn-group btn-group-sm" role="group" aria-label="..." style="padding-top:5px">' +
+            '           <button class="btn btn-outline-secondary" style="border-color: #ced4da" data-value="1">-1d</button>' +
+            '           <button class="btn btn-outline-secondary" style="border-color: #ced4da" data-value="1">-3d</button>' +
+            '           <button class="btn btn-outline-secondary" style="border-color: #ced4da" data-value="1">-7d</button>' +
+            '       </div>' +
             '   </div>' +
             '</div>' +
             '<div id="popup_charts" style="padding-top:5px;height:400px;width:100%"></div>';
@@ -520,14 +521,40 @@ class Dashboard {
             onEscape: true,
             backdrop: true,
             message: dialogContent,
-            onShown: (e) => {
+            onShown: () => {
                 const popupChart = this.createChartComponent('popup_charts', chartDescriptor);
                 this._chartComponents['popup_charts'] = popupChart;
-                this.refreshChart(chartDescriptor, popupChart);
+                this.refreshChart(chartDescriptor, popupChart, this._intervalFn.apply());
+
+                $('.btn-popup-latest').click((e)=>{
+                    const hour = parseInt($(e.target).attr('data-value'));
+                    this.refreshChart(chartDescriptor, popupChart, this.getLatestInterval(hour, 'hour'));
+                });
             },
-            onHidden: (e) => {
+            onHidden: () => {
                 delete this._chartComponents['popup_charts'];
             }
         });
+    }
+
+    //PRIVATE
+    /**
+     * "year" | "years" | "y" |
+     * "month" | "months" | "M" |
+     * "week" | "weeks" | "w" |
+     * "day" | "days" | "d" |
+     * "hour" | "hours" | "h" |
+     * "minute" | "minutes" | "m" |
+     * "second" | "seconds" | "s" |
+     * millisecond" | "milliseconds" | "ms"
+     *  @param value
+     * @param unit
+     * @returns {{start: string, end: string}}
+     */
+    getLatestInterval(value, unit) {
+        return {
+            start: moment().utc().subtract(value, unit).local().toISOString(),
+            end: moment().utc().local().toISOString()
+        }
     }
 }
