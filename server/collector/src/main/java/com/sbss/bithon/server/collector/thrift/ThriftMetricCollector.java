@@ -102,7 +102,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("exception-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("http-client-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
