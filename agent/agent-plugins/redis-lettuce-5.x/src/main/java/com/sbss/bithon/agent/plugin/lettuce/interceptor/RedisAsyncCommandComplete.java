@@ -23,7 +23,6 @@ import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.redis.RedisMetricCollector;
 import com.sbss.bithon.agent.plugin.lettuce.LettuceAsyncContext;
 import io.lettuce.core.protocol.AsyncCommand;
-import shaded.org.slf4j.LoggerFactory;
 
 /**
  * @author frankchen
@@ -40,9 +39,6 @@ public class RedisAsyncCommandComplete extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        LoggerFactory.getLogger(RedisAsyncCommandComplete.class)
-                     .info("after {} AsyncCommandInterceptor", aopContext.getMethod().getName());
-
         if (!(aopContext.getTarget() instanceof IBithonObject)) {
             return;
         }
