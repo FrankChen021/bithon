@@ -131,11 +131,11 @@ class Dashboard {
 
             this.layout(chartDescriptor.id, chartDescriptor.width * 3);
 
-            const chartComponent = this.createChartComponent(chartDescriptor.id, chartDescriptor).setOpenHandler(() => {
-                this.openChart(chartDescriptor.id);
-            });
+            this.createChartComponent(chartDescriptor.id, chartDescriptor)
+                .setOpenHandler(() => {
+                    this.openChart(chartDescriptor.id);
+                });
 
-            this._chartComponents[chartDescriptor.id] = chartComponent;
             this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
         });
     }
@@ -263,11 +263,15 @@ class Dashboard {
             chartOption.grid.right = 15;
         }
 
-        return new ChartComponent({
+        const chartComponent = new ChartComponent({
             containerId: chartId,
             metrics: chartDescriptor.metrics.map(metric => metric.name),
         }).header('<b>' + chartDescriptor.title + '</b>')
             .setChartOption(chartOption);
+
+        this._chartComponents[chartId] = chartComponent;
+
+        return chartComponent;
     }
 
     // PRIVATE
@@ -328,7 +332,10 @@ class Dashboard {
         this.refreshDashboard();
     }
 
-    refreshChart(chartDescriptor, chartComponent, interval) {
+    refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix) {
+        if (metricNamePrefix == null) {
+            metricNamePrefix = '';
+        }
         chartComponent.load({
             url: apiHost + "/api/datasource/metrics",
             ajaxData: JSON.stringify({
@@ -336,14 +343,14 @@ class Dashboard {
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
                 dimensions: this._selectedDimensions,
-                metrics: chartComponent.getOption().metrics,
+                metrics: chartComponent.getOption().metrics
             }),
             processResult: (data) => {
                 const timeLabels = data.map(d => moment(d.timestamp).local().format('HH:mm:ss'));
 
                 const series = chartDescriptor.metrics.map(metric => {
                     return {
-                        name: metric.name,
+                        name: metricNamePrefix + metric.name,
                         type: metric.chartType || 'line',
                         areaStyle: {opacity: 0.3},
                         data: data.map(d => metric.transformer(d, metric.name)),
@@ -499,22 +506,30 @@ class Dashboard {
             '<div class="tab-content">' +
             '   <div class="tab-pane fade show active" id="nav-current" role="tabpanel" aria-labelledby="nav-current-tab">' +
             '       <div class="btn-group btn-group-sm" role="group" aria-label="..." style="padding-top:5px">' +
-            '           <button class="btn btn btn-outline-secondary btn-popup-latest" style="border-color: #ced4da" data-value="1">1h</button>' +
-            '           <button class="btn btn btn-outline-secondary btn-popup-latest" style="border-color: #ced4da" data-value="3">3h</button>' +
-            '           <button class="btn btn btn-outline-secondary btn-popup-latest" style="border-color: #ced4da" data-value="6">6h</button>' +
-            '           <button class="btn btn btn-outline-secondary btn-popup-latest" style="border-color: #ced4da" data-value="12">12h</button>' +
-            '           <button class="btn btn btn-outline-secondary btn-popup-latest" style="border-color: #ced4da" data-value="24">24h</button>' +
+            '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="1">1h</button>' +
+            '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="3">3h</button>' +
+            '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="6">6h</button>' +
+            '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="12">12h</button>' +
+            '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="24">24h</button>' +
             '       </div>' +
+            '       <div id="latest_charts" style="padding-top:5px;height:400px;width:100%"></div>' +
             '   </div>' +
             '   <div class="tab-pane fade" id="nav-compare" role="tabpanel" aria-labelledby="nav-compare-tab">' +
-            '       <div class="btn-group btn-group-sm" role="group" aria-label="..." style="padding-top:5px">' +
-            '           <button class="btn btn-outline-secondary" style="border-color: #ced4da" data-value="1">-1d</button>' +
-            '           <button class="btn btn-outline-secondary" style="border-color: #ced4da" data-value="1">-3d</button>' +
-            '           <button class="btn btn-outline-secondary" style="border-color: #ced4da" data-value="1">-7d</button>' +
+            '       <div class="btn-group btn-group-sm" id="btn-remove-buttons" role="group" aria-label="..." style="padding-top:5px">' +
             '       </div>' +
+            '       <div class="btn-group btn-group-sm dropright" role="group" aria-label="..." style="padding-top:5px">' +
+            '           <button class="btn btn-compare-remove-add dropdown-toggle" style="border-color: #ced4da" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Adds</button>' +
+            '           <div class="dropdown-menu" style="min-width: 0">      ' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-value="0">today</a>' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-value="1">-1d</a>' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-value="3">-3d</a>     ' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-value="7">-7d</a>     ' +
+            '           </div>' +
+            '       </div>' +
+            '       <div id="compare_charts" style="padding-top:5px;height:400px;width:100%"></div>' +
             '   </div>' +
-            '</div>' +
-            '<div id="popup_charts" style="padding-top:5px;height:400px;width:100%"></div>';
+
+            '</div>';
 
         bootbox.dialog({
             size: 'large',
@@ -522,17 +537,71 @@ class Dashboard {
             backdrop: true,
             message: dialogContent,
             onShown: () => {
-                const popupChart = this.createChartComponent('popup_charts', chartDescriptor);
-                this._chartComponents['popup_charts'] = popupChart;
-                this.refreshChart(chartDescriptor, popupChart, this._intervalFn.apply());
+                const latestCharts = this.createChartComponent('latest_charts', chartDescriptor);
+                const compareChart = this.createChartComponent('compare_charts', chartDescriptor);
 
-                $('.btn-popup-latest').click((e)=>{
-                    const hour = parseInt($(e.target).attr('data-value'));
-                    this.refreshChart(chartDescriptor, popupChart, this.getLatestInterval(hour, 'hour'));
+                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                    latestCharts.resize();
+                    compareChart.resize();
+                })
+
+                const latestButtons = $('.btn-popup-latest');
+                latestButtons.click((e) => {
+                    const target = $(e.target);
+                    if (target.hasClass('btn-primary'))
+                        return;
+
+                    $('.btn-popup-latest').removeClass('btn-primary');
+                    target.addClass('btn-primary');
+
+                    const hour = parseInt(target.attr('data-value'));
+                    this.refreshChart(chartDescriptor, latestCharts, this.getLatestInterval(hour, 'hour'));
                 });
+
+                // Add line
+                $('.btn-compare-add').click((e) => {
+                    const day = $(e.target).attr('data-value');
+                    const removeButtonId = 'btn-popup-compare-' + day;
+                    if ($('#btn-remove-buttons').find('#' + removeButtonId).length > 0) {
+                        return;
+                    }
+
+                    // remove line
+                    const text = $(e.target).text();
+                    const removeButton = $(`<button id="${removeButtonId}" class="btn btn-compare-remove" style="border-color: #ced4da" data-value="${day}" data-label="today">${text}&nbsp;&nbsp;<span aria-hidden="true">×</span></button>`)
+                        .click((e) => {
+                            // remove button from UI
+                            let button = e.target;
+                            if (e.target.nodeName === 'SPAN')
+                                button = button.parentElement;
+                            $(button).remove();
+
+                            // remove lines from chart
+                            compareChart.clearLines(text + '-');
+                        });
+                    $('#btn-remove-buttons').append(removeButton);
+
+                    const todayStart = moment().startOf('day');
+                    const baseStart = todayStart.clone().subtract(day, 'day');
+                    const baseEnd = baseStart.clone().add(1, 'day');
+
+                    this.refreshChart(chartDescriptor,
+                        compareChart,
+                        {
+                            start: baseStart.toISOString(true),
+                            end: baseEnd.toISOString(true)
+                        },
+                        text + '-');
+                });
+
+                latestButtons[0].click();
             },
             onHidden: () => {
-                delete this._chartComponents['popup_charts'];
+                this._chartComponents['latest_charts'].dispose();
+                this._chartComponents['compare_charts'].dispose();
+
+                delete this._chartComponents['latest_charts'];
+                delete this._chartComponents['compare_charts'];
             }
         });
     }
@@ -553,8 +622,8 @@ class Dashboard {
      */
     getLatestInterval(value, unit) {
         return {
-            start: moment().utc().subtract(value, unit).local().toISOString(),
-            end: moment().utc().local().toISOString()
+            start: moment().subtract(value, unit).toISOString(true),
+            end: moment().toISOString(true)
         }
     }
 }

@@ -21,6 +21,7 @@ class ChartComponent {
         });
 
         this._openHandler = null;
+        this._chartSeries = {};
     }
 
     header(text) {
@@ -52,12 +53,23 @@ class ChartComponent {
         return this.option;
     }
 
+    /**
+     * {
+     *     ajaxType: 'POST',
+     *     processResult: function (data){
+     *         return echarts_option;
+     *     },
+     *     url: url,
+     *     ajaxData: {},
+     *     operation: merge | replace
+     * }
+     */
     load(option) {
         option = $.extend({
             ajaxType: 'POST',
             processResult: function (data) {
                 return data;
-            }
+            },
         }, option);
 
         this._chart.showLoading({text: 'Loading...'});
@@ -71,14 +83,77 @@ class ChartComponent {
             contentType: "application/json",
             success: (data) => {
                 this._chart.hideLoading();
-                //this.showLines(option, option.processResult(data));
-                this._chart.setOption(option.processResult(data));
+                const returnedOption = option.processResult(data);
+                if (returnedOption.series != null) {
+                    //
+                    // merge series
+                    //
+                    $.each(returnedOption.series, (index, s) => {
+                        this._chartSeries[s.name] = s;
+                    });
+                    const series = [];
+                    for (const name in this._chartSeries) {
+                        series.push(this._chartSeries[name]);
+                    }
+                    returnedOption.series = series;
+                }
+                returnedOption.legend = {
+                    data: returnedOption.series.map(s => {
+                        return {
+                            name: s.name,
+                            icon: 'circle'
+                        }
+                    })
+                };
+                this.setChartOption(returnedOption);
             },
             error: (data) => {
                 this._chart.hideLoading();
                 console.log(data);
             }
         });
+    }
+
+    clearLines(name) {
+        if (name == null) {
+            this._chartSeries = [];
+            this.setChartOption({
+                legend: {
+                    data: []
+                },
+                series: []
+            });
+        } else {
+            const currentOption = this.getChartOption();
+            const newSeries = [];
+            const newList = [];
+            for(let i = 0; i < currentOption.legend[0].data.length; i++) {
+                const legend = currentOption.legend[0].data[i];
+
+                if ( legend.name.startsWith(name) ) {
+                    delete this._chartSeries[legend.name];
+                    currentOption.series[i].data = [];
+                } else {
+                    newList.push(legend);
+                }
+                newSeries.push(currentOption.series[i]);
+            }
+            this.setChartOption({
+                legend: {
+                    data: newList
+                },
+                series: newSeries
+            });
+        }
+    }
+
+    containsLine(name) {
+        for (const s in this._chartSeries) {
+            if (s.name === name) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -149,6 +224,11 @@ class ChartComponent {
 
     resize() {
         this._chart.resize();
+    }
+
+    dispose() {
+        this._chart.dispose();
+        this._chartSeries = {};
     }
 
     setOpenHandler(openHandler) {
