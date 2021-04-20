@@ -31,7 +31,7 @@ class MetricSidebar {
             id: 'mongodb-metrics',
             text: 'MongoDb'
         },{
-            id: 'mongodb-metrics',
+            id: 'redis-metrics',
             text: 'Redis'
         }];
         $.each(data, (index, item)=>{
