@@ -512,7 +512,7 @@ class Dashboard {
             '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="12">12h</button>' +
             '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="24">24h</button>' +
             '       </div>' +
-            '       <div id="latest_charts" style="padding-top:5px;height:400px;width:100%"></div>' +
+            '       <div id="latest_charts" style="padding-top:5px;height:470px;width:100%"></div>' +
             '   </div>' +
             '   <div class="tab-pane fade" id="nav-compare" role="tabpanel" aria-labelledby="nav-compare-tab">' +
             '       <div class="btn-group btn-group-sm" id="btn-remove-buttons" role="group" aria-label="..." style="padding-top:5px">' +
@@ -526,19 +526,20 @@ class Dashboard {
             '               <a class="dropdown-item btn-compare-add" href="#" data-value="7">-7d</a>     ' +
             '           </div>' +
             '       </div>' +
-            '       <div id="compare_charts" style="padding-top:5px;height:400px;width:100%"></div>' +
+            '       <div id="compare_charts" style="padding-top:5px;height:470px;width:100%"></div>' +
             '   </div>' +
 
             '</div>';
 
         bootbox.dialog({
-            size: 'large',
+            centerVertical: true,
+            size: 'xl',
             onEscape: true,
             backdrop: true,
             message: dialogContent,
             onShown: () => {
-                const latestCharts = this.createChartComponent('latest_charts', chartDescriptor);
-                const compareChart = this.createChartComponent('compare_charts', chartDescriptor);
+                const latestCharts = this.createChartComponent('latest_charts', chartDescriptor).height('400px');
+                const compareChart = this.createChartComponent('compare_charts', chartDescriptor).height('400px');
 
                 $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                     latestCharts.resize();

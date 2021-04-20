@@ -41,6 +41,11 @@ class ChartComponent {
         return this;
     }
 
+    height(height) {
+        $(this._card).find('.card-chart').height(height);
+        return this;
+    }
+
     title(text) {
         if (this._title == null) {
             this._title = $(this._card).find('.card-body').prepend('<h5 class="card-title">Card title</h5>').find('.card-title');
