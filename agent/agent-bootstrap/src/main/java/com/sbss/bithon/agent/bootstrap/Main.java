@@ -28,6 +28,12 @@ import java.lang.reflect.Method;
  */
 public class Main {
     public static void premain(String agentArgs, Instrumentation inst) throws Exception {
+        String disabled = System.getProperty("bithon.disabled", "false");
+        if ("".equals(disabled) || "true".equals(disabled)) {
+            System.out.println("bithon is disabled for the sake of -Dbithon.disabled");
+            return;
+        }
+
         showBanner();
 
         initAppLogger();
