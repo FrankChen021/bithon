@@ -14,17 +14,30 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.boot.aop;
+package com.sbss.bithon.agent.bootstrap.expt;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/21 9:37 下午
+ * @date 2021/2/18 8:42 下午
  */
-public interface IBithonObject {
+public class AgentException extends RuntimeException {
+    public AgentException(String message, Throwable e) {
+        super(message, e);
+    }
 
-    String INJECTED_FIELD_NAME = "_$BITHON_INJECTED_OBJECT$_";
+    public AgentException(String message) {
+        super(message);
+    }
 
-    Object getInjectedObject();
+    public AgentException(String format, Object... args) {
+        super(String.format(format, args));
+    }
 
-    void setInjectedObject(Object value);
+    public AgentException(Exception e, String format, Object... args) {
+        super(String.format(format, args), e);
+    }
+
+    public AgentException(Exception e) {
+        super(e);
+    }
 }

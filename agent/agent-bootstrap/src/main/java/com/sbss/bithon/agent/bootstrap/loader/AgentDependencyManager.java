@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.boot.loader;
+package com.sbss.bithon.agent.bootstrap.loader;
 
 import java.io.File;
 
@@ -36,7 +36,7 @@ public class AgentDependencyManager {
      */
     public static ClassLoader initialize(File agentDirectory) {
         final Thread mainThread = Thread.currentThread();
-        instance = new JarClassLoader("agent-boot",
+        instance = new JarClassLoader("agent-bootstrap",
                                       JarResolver.resolve(new File(agentDirectory, "lib")),
                                       mainThread::getContextClassLoader);
         return instance;

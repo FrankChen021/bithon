@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.agent.core.plugin.loader;
 
-import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
-import com.sbss.bithon.agent.boot.loader.JarClassLoader;
-import com.sbss.bithon.agent.boot.loader.JarResolver;
+import com.sbss.bithon.agent.bootstrap.loader.AgentDependencyManager;
+import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
+import com.sbss.bithon.agent.bootstrap.loader.JarResolver;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.org.slf4j.LoggerFactory;

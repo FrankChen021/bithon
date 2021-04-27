@@ -37,7 +37,7 @@
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-boot</artifactId>
+      <artifactId>agent-bootstrap</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
@@ -62,7 +62,7 @@
               <!-- See: https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/compact3-package-summary.html -->
               <Premain-Class>com.sbss.bithon.agen.main.Main</Premain-Class>
               <Can-Redefine-Classes>true</Can-Redefine-Classes>
-              <Boot-Class-Path>./boot/agent-boot-${project.version}.jar</Boot-Class-Path>
+              <Boot-Class-Path>./boot/agent-bootstrap-${project.version}.jar</Boot-Class-Path>
             </manifestEntries>
           </archive>
         </configuration>

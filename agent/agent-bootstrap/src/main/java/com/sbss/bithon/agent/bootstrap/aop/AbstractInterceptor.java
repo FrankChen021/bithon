@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.boot.aop;
+package com.sbss.bithon.agent.bootstrap.aop;
 
 /**
  * <pre>

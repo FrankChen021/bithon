@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.plugin.undertow.metric;
 
-import com.sbss.bithon.agent.boot.expt.AgentException;
+import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;

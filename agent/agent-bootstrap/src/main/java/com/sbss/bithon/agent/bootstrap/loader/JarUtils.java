@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.boot.loader;
+package com.sbss.bithon.agent.bootstrap.loader;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;

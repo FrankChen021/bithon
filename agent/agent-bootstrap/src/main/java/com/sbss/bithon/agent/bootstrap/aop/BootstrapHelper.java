@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.boot.aop;
+package com.sbss.bithon.agent.bootstrap.aop;
 
-import com.sbss.bithon.agent.boot.expt.AgentException;
+import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 
 import java.lang.reflect.Method;
 

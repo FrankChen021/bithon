@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agen.main;
 
-import com.sbss.bithon.agent.boot.expt.AgentException;
+import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 
 import java.io.File;
 import java.net.URL;

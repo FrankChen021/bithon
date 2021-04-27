@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agen.main;
 
-import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
+import com.sbss.bithon.agent.bootstrap.loader.AgentDependencyManager;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;

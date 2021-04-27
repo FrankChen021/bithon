@@ -8,7 +8,7 @@
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>agent-boot</artifactId>
+  <artifactId>agent-bootstrap</artifactId>
 
   <dependencies>
     <dependency>

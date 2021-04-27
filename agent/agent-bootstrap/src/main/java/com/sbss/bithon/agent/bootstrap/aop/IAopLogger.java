@@ -14,30 +14,20 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.boot.expt;
+package com.sbss.bithon.agent.bootstrap.aop;
 
 /**
+ * Since Aop, which is injected into bootstrap class loader, depends on log,
+ * and shaded.slf4j is not loaded by bootstrap class loader, we provide this class for Aop to log
+ * <p>
+ * NOTE: this class is injected into Bootstrap class loader
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/2/18 8:42 下午
+ * @date 2021/2/19 10:45 下午
  */
-public class AgentException extends RuntimeException {
-    public AgentException(String message, Throwable e) {
-        super(message, e);
-    }
+public interface IAopLogger {
 
-    public AgentException(String message) {
-        super(message);
-    }
+    void warn(String message, Throwable e);
 
-    public AgentException(String format, Object... args) {
-        super(String.format(format, args));
-    }
-
-    public AgentException(Exception e, String format, Object... args) {
-        super(String.format(format, args), e);
-    }
-
-    public AgentException(Exception e) {
-        super(e);
-    }
+    void error(String message, Throwable e);
 }

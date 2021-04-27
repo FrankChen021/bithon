@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.plugin.jdbc.druid.metric;
 
-import com.sbss.bithon.agent.boot.aop.AopContext;
+import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;

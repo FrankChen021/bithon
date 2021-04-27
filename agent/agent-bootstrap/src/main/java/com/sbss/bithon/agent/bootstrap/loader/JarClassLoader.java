@@ -14,12 +14,11 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.boot.loader;
+package com.sbss.bithon.agent.bootstrap.loader;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -58,6 +57,10 @@ public class JarClassLoader extends ClassLoader {
         this(name, jars, Arrays.stream(parents).map(ClassLoaderProvider::new).toArray(IClassLoaderProvider[]::new));
     }
 
+    /**
+     *
+     * @param name used for logging
+     */
     public JarClassLoader(String name, List<JarFile> jars, IClassLoaderProvider... parents) {
         // NOTE:  parent is assigned to parent class loader
         // This is the key to implement agent lib isolation from app libs
@@ -143,10 +146,6 @@ public class JarClassLoader extends ClassLoader {
                 return iterator.next();
             }
         };
-    }
-
-    public List<JarFile> getJars() {
-        return Collections.unmodifiableList(this.jars);
     }
 
     @Override

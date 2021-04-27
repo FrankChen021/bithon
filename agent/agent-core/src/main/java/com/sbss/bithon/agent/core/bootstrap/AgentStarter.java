@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.core.bootstrap;
 
-import com.sbss.bithon.agent.boot.aop.BootstrapHelper;
+import com.sbss.bithon.agent.bootstrap.aop.BootstrapHelper;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.loader.PluginClassLoaderManager;
 import com.sbss.bithon.agent.core.plugin.loader.PluginInstaller;

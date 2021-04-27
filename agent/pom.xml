@@ -19,7 +19,7 @@
     </properties>
 
     <modules>
-        <module>agent-boot</module>
+        <module>agent-bootstrap</module>
         <module>agent-core</module>
         <module>agent-dispatcher-grpc</module>
         <module>agent-dispatcher-thrift</module>
@@ -31,7 +31,7 @@
         <dependencies>
             <dependency>
                 <groupId>com.sbss.bithon.agent</groupId>
-                <artifactId>agent-boot</artifactId>
+                <artifactId>agent-bootstrap</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

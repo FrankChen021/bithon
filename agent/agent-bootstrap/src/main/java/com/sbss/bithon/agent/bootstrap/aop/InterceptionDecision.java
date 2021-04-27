@@ -14,14 +14,18 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.boot.aop;
+package com.sbss.bithon.agent.bootstrap.aop;
 
 /**
- * See {@link net.bytebuddy.implementation.bind.annotation.Morph} for how this interface works
- *
  * @author frank.chen021@outlook.com
- * @date 2021/3/30 22:49
+ * @date 2021/1/17 11:34 下午
  */
-public interface ISuperMethod {
-    Object invoke(Object[] args);
+public enum InterceptionDecision {
+    CONTINUE,
+
+    /**
+     * Whether or not SKIP call of {@link AbstractInterceptor#onMethodLeave}
+     * It's very useful when implement interceptors for tracing
+     */
+    SKIP_LEAVE
 }

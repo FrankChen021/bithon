@@ -16,14 +16,14 @@
 
 package com.sbss.bithon.agent.core.plugin.loader;
 
-import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
-import com.sbss.bithon.agent.boot.aop.BootstrapConstructorAop;
-import com.sbss.bithon.agent.boot.aop.BootstrapMethodAop;
-import com.sbss.bithon.agent.boot.aop.ConstructorAop;
-import com.sbss.bithon.agent.boot.aop.IBithonObject;
-import com.sbss.bithon.agent.boot.aop.ISuperMethod;
-import com.sbss.bithon.agent.boot.aop.MethodAop;
-import com.sbss.bithon.agent.boot.expt.AgentException;
+import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
+import com.sbss.bithon.agent.bootstrap.aop.BootstrapMethodAop;
+import com.sbss.bithon.agent.bootstrap.aop.ConstructorAop;
+import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
+import com.sbss.bithon.agent.bootstrap.aop.ISuperMethod;
+import com.sbss.bithon.agent.bootstrap.aop.MethodAop;
+import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;

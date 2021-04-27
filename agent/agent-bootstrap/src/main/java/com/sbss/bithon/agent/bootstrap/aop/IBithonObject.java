@@ -14,18 +14,17 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.boot.aop;
+package com.sbss.bithon.agent.bootstrap.aop;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/17 11:34 下午
+ * @date 2021/2/21 9:37 下午
  */
-public enum InterceptionDecision {
-    CONTINUE,
+public interface IBithonObject {
 
-    /**
-     * Whether or not SKIP call of {@link AbstractInterceptor#onMethodLeave}
-     * It's very useful when implement interceptors for tracing
-     */
-    SKIP_LEAVE
+    String INJECTED_FIELD_NAME = "_$BITHON_INJECTED_OBJECT$_";
+
+    Object getInjectedObject();
+
+    void setInjectedObject(Object value);
 }

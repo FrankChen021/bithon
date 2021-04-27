@@ -17,10 +17,10 @@
 package com.sbss.bithon.agent.core.plugin.loader;
 
 
-import com.sbss.bithon.agent.boot.aop.BootstrapConstructorAop;
-import com.sbss.bithon.agent.boot.aop.BootstrapMethodAop;
-import com.sbss.bithon.agent.boot.expt.AgentException;
-import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
+import com.sbss.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
+import com.sbss.bithon.agent.bootstrap.aop.BootstrapMethodAop;
+import com.sbss.bithon.agent.bootstrap.expt.AgentException;
+import com.sbss.bithon.agent.bootstrap.loader.AgentDependencyManager;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;

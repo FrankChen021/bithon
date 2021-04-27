@@ -17,8 +17,8 @@
 package com.sbss.bithon.agent.plugin.mongodb.interceptor;
 
 import com.mongodb.connection.ConnectionId;
-import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
-import com.sbss.bithon.agent.boot.aop.AopContext;
+import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoCommand;

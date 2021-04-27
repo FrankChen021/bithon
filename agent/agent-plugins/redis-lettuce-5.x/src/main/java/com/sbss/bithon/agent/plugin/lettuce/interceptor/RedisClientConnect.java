@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.agent.plugin.lettuce.interceptor;
 
-import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
-import com.sbss.bithon.agent.boot.aop.AopContext;
-import com.sbss.bithon.agent.boot.aop.IBithonObject;
+import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.bootstrap.aop.AopContext;
+import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.core.utils.HostAndPort;
 import com.sbss.bithon.agent.core.utils.ReflectionUtils;
 import io.lettuce.core.RedisURI;

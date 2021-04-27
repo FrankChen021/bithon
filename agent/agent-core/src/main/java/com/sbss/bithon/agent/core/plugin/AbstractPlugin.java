@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.core.plugin;
 
-import com.sbss.bithon.agent.boot.aop.IBithonObject;
+import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;

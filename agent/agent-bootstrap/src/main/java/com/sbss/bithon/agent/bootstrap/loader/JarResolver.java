@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.boot.loader;
+package com.sbss.bithon.agent.bootstrap.loader;
 
-import com.sbss.bithon.agent.boot.expt.AgentException;
+import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 
 import java.io.File;
 import java.io.IOException;
