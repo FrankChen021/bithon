@@ -55,7 +55,7 @@ Once the application has started, visit [http://localhost:9897/ui/home](http://l
 Attach agent to your java agent by adding following VM arguments.
 
 ```
--javaagent:<YOUR_PROJECT_DIRECTORY>/agent/dest/agent-bootstrap.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>
+-javaagent:<YOUR_PROJECT_DIRECTORY>/agent/dest/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>
 ```
 
 |Variable|Description|
@@ -65,7 +65,7 @@ Attach agent to your java agent by adding following VM arguments.
 | YOUR_APPLICATION_ENV | the name of your environment to label your application. It could be any string. Usually it could be `dev`, `test`, `prd` |
 
 By default, the agent connects collector running at local(127.0.0.1). 
-Collector address could be changed in file `agent/agent-bootstrap/src/main/resources/agent.yml`.
+Collector address could be changed in file `agent/agent-main/src/main/resources/agent.yml`.
 Make sure to re-build the project after changing the configuration file above.
 
 # Contribution

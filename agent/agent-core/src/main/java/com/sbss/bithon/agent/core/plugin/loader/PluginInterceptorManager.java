@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.core.plugin.loader;
 
-import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;

@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.agent.plugin.log4j2.interceptor;
 
-import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
-import com.sbss.bithon.agent.boot.aop.AopContext;
-import com.sbss.bithon.agent.boot.aop.InterceptionDecision;
+import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.bootstrap.aop.AopContext;
+import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.plugin.log4j2.LogMetricCollector;

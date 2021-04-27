@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.agent.core.plugin.loader;
 
-import com.sbss.bithon.agent.boot.loader.AgentDependencyManager;
-import com.sbss.bithon.agent.boot.loader.JarClassLoader;
-import com.sbss.bithon.agent.boot.loader.JarResolver;
+import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
+import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
+import com.sbss.bithon.agent.bootstrap.loader.JarResolver;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.org.slf4j.LoggerFactory;
@@ -51,14 +51,14 @@ public final class PluginClassLoaderManager {
                : LOADER_MAPPING.computeIfAbsent(appClassLoader,
                                                 k -> new JarClassLoader("plugin",
                                                                         pluginJars,
-                                                                        AgentDependencyManager.getClassLoader(),
+                                                                        AgentClassLoader.getClassLoader(),
                                                                         appClassLoader));
     }
 
     public static ClassLoader createDefault(String agentPath) {
         pluginJars = JarResolver.resolve(new File(agentPath + "/" + AgentContext.PLUGIN_DIR));
 
-        defaultLoader = new JarClassLoader("plugin", pluginJars, AgentDependencyManager.getClassLoader());
+        defaultLoader = new JarClassLoader("plugin", pluginJars, AgentClassLoader.getClassLoader());
         return defaultLoader;
     }
 

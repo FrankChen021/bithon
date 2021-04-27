@@ -19,7 +19,7 @@
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-boot</artifactId>
+      <artifactId>agent-bootstrap</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

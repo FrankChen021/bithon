@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.agent.plugin.httpclient.jdk;
 
-import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
-import com.sbss.bithon.agent.boot.aop.AopContext;
-import com.sbss.bithon.agent.boot.aop.IBithonObject;
+import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.bootstrap.aop.AopContext;
+import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 
 /**
  * @author frank.chen021@outlook.com

@@ -19,9 +19,9 @@ package com.sbss.bithon.agent.plugin.mongodb.interceptor;
 import com.mongodb.connection.ServerId;
 import com.mongodb.connection.StreamFactory;
 import com.mongodb.event.ConnectionListener;
-import com.sbss.bithon.agent.boot.aop.AbstractInterceptor;
-import com.sbss.bithon.agent.boot.aop.AopContext;
-import com.sbss.bithon.agent.boot.aop.IBithonObject;
+import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import com.sbss.bithon.agent.bootstrap.aop.AopContext;
+import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 
 /**
  * @author frank.chen021@outlook.com
