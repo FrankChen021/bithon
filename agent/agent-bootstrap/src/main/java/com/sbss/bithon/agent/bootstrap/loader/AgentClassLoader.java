@@ -22,7 +22,7 @@ import java.io.File;
  * @author frank.chen021@outlook.com
  * @date 2021/3/31 21:44
  */
-public class AgentDependencyManager {
+public class AgentClassLoader {
 
     private static JarClassLoader instance;
 

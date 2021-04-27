@@ -20,7 +20,7 @@ package com.sbss.bithon.agent.core.plugin.loader;
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapMethodAop;
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
-import com.sbss.bithon.agent.bootstrap.loader.AgentDependencyManager;
+import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
@@ -148,8 +148,8 @@ public class BootstrapAopGenerator {
     private void inject(String className) {
         String classResourceName = className.replaceAll("\\.", "/") + ".class";
         try {
-            try (InputStream resourceAsStream = AgentDependencyManager.getClassLoader()
-                                                                      .getResourceAsStream(classResourceName)) {
+            try (InputStream resourceAsStream = AgentClassLoader.getClassLoader()
+                                                                .getResourceAsStream(classResourceName)) {
                 if (resourceAsStream == null) {
                     throw new AgentException("Class [%s] for bootstrap injection not found", className);
                 }

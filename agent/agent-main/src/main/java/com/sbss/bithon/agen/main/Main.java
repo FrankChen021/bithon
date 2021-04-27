@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agen.main;
 
-import com.sbss.bithon.agent.bootstrap.loader.AgentDependencyManager;
+import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -40,7 +40,7 @@ public class Main {
 
         File agentDirectory = new BootstrapJarLocator().locate(Main.class.getName()).getParentFile();
 
-        ClassLoader classLoader = AgentDependencyManager.initialize(agentDirectory);
+        ClassLoader classLoader = AgentClassLoader.initialize(agentDirectory);
         Class<?> starterClass = classLoader.loadClass("com.sbss.bithon.agent.core.bootstrap.AgentStarter");
         Object starterObject = starterClass.newInstance();
         Method startMethod = starterClass.getDeclaredMethod("start",
