@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.bootstrap;
+package com.sbss.bithon.agen.main;
 
 import com.sbss.bithon.agent.boot.expt.AgentException;
 

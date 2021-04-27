@@ -1,5 +1,5 @@
 <assembly>
-  <id>bootstrap</id>
+  <id>main</id>
 
   <formats>
     <format>dir</format>
@@ -12,10 +12,10 @@
     <!-- agent-bootstrap -->
     <dependencySet>
       <includes>
-        <include>${project.parent.groupId}:agent-bootstrap</include>
+        <include>${project.parent.groupId}:agent-main</include>
       </includes>
       <outputDirectory>/</outputDirectory>
-      <outputFileNameMapping>agent-bootstrap.jar</outputFileNameMapping>
+      <outputFileNameMapping>agent-main.jar</outputFileNameMapping>
     </dependencySet>
 
     <!-- boot-class-path -->
@@ -30,7 +30,7 @@
     <dependencySet>
       <excludes>
         <exclude>${project.parent.groupId}:agent-boot</exclude>
-        <exclude>${project.parent.groupId}:agent-bootstrap</exclude>
+        <exclude>${project.parent.groupId}:agent-main</exclude>
         <exclude>org.slf4j:slf4j-api</exclude>
       </excludes>
       <outputDirectory>/lib</outputDirectory>

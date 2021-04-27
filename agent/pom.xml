@@ -24,7 +24,7 @@
         <module>agent-dispatcher-grpc</module>
         <module>agent-dispatcher-thrift</module>
         <module>agent-plugins</module>
-        <module>agent-bootstrap</module>
+        <module>agent-main</module>
     </modules>
 
     <dependencyManagement>
