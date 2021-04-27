@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.bootstrap;
+package com.sbss.bithon.agent.core.starter;
 
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapHelper;
 import com.sbss.bithon.agent.core.context.AgentContext;

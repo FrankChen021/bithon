@@ -41,7 +41,7 @@ public class Main {
         File agentDirectory = new BootstrapJarLocator().locate(Main.class.getName()).getParentFile();
 
         ClassLoader classLoader = AgentClassLoader.initialize(agentDirectory);
-        Class<?> starterClass = classLoader.loadClass("com.sbss.bithon.agent.core.bootstrap.AgentStarter");
+        Class<?> starterClass = classLoader.loadClass("com.sbss.bithon.agent.core.starter.AgentStarter");
         Object starterObject = starterClass.newInstance();
         Method startMethod = starterClass.getDeclaredMethod("start",
                                                             String.class,
