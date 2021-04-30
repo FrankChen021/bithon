@@ -38,10 +38,14 @@ public class MemoryRegionCompositeMetric {
     public MemoryRegionCompositeMetric() {
     }
 
+    public MemoryRegionCompositeMetric(long max, long init, long used, long committed) {
+        this.max = max;
+        this.init = init;
+        this.used = used;
+        this.committed = committed;
+    }
+
     public MemoryRegionCompositeMetric(MemoryUsage usage) {
-        this.max = usage.getMax();
-        this.init = usage.getInit();
-        this.used = usage.getUsed();
-        this.committed = usage.getCommitted();
+        this(usage.getMax(), usage.getInit(), usage.getUsed(), usage.getCommitted());
     }
 }

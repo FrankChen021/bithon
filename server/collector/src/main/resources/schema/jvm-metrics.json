@@ -140,6 +140,19 @@
 
     {
       "type": "longLast",
+      "name": "directUsed",
+      "displayText": "Used Direct Mem",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "directMax",
+      "displayText": "Max Direct Mem",
+      "unit": "byte"
+    },
+
+    {
+      "type": "longLast",
       "name": "totalMemBytes",
       "displayText": "Total Memory",
       "unit": "byte"

@@ -72,7 +72,7 @@ var jvm_metrics_dashboard = {
         }]
     },{
         "dataSource": "jvm-metrics",
-        "title": "Memory",
+        "title": "Direct Memory",
         "width": 1,
         "yAxis": [ {
             "minInterval": 1024 * 1024,
@@ -80,9 +80,9 @@ var jvm_metrics_dashboard = {
             "unit": "binary_byte"
         }],
         "metrics":[{
-            "name": "totalMemBytes",
+            "name": "directUsed",
         },{
-            "name": "freeMemBytes"
+            "name": "directMax"
         }]
     },{
         "dataSource": "jvm-gc-metrics",

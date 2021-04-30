@@ -197,6 +197,9 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.metaspaceUsed = metric.metaspaceMetricSet.used;
         message.metaspaceInit = metric.metaspaceMetricSet.init;
         message.metaspaceMax = metric.metaspaceMetricSet.max;
+
+        message.directMax = metric.directMemMetricSet.max;
+        message.directUsed = metric.directMemMetricSet.used;
         return message;
     }
 

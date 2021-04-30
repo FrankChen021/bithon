@@ -69,6 +69,9 @@ struct JvmMetricMessage {
     26:i64 metaspaceUsed;
     27:i64 metaspaceInit;
     28:i64 metaspaceMax;
+
+    29:i64 directMax;
+    30:i64 directUsed;
 }
 
 struct JvmGcMetricMessage {
