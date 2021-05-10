@@ -20,18 +20,34 @@ import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * @author frankchen
  */
 public class Main {
     public static void premain(String agentArgs, Instrumentation inst) throws Exception {
+        //
+        // check whether to start agent
+        //
         String disabled = System.getProperty("bithon.disabled", "false");
         if ("".equals(disabled) || "true".equals(disabled)) {
             System.out.println("bithon is disabled for the sake of -Dbithon.disabled");
             return;
+        }
+
+        //
+        // check if agent is deployed correctly
+        //
+        boolean hasBootstrapJar = Arrays.stream(ManagementFactory.getRuntimeMXBean()
+                                                                 .getBootClassPath()
+                                                                 .split(File.pathSeparator))
+                                        .anyMatch(path -> "agent-bootstrap.jar".equals(new File(path).getName()));
+        if (!hasBootstrapJar) {
+            throw new IllegalStateException("agent-bootstrap.jar is not on boot class path");
         }
 
         showBanner();
