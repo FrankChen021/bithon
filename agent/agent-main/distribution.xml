@@ -24,6 +24,7 @@
         <include>${project.parent.groupId}:agent-bootstrap</include>
       </includes>
       <outputDirectory>/boot</outputDirectory>
+      <outputFileNameMapping>agent-bootstrap.jar</outputFileNameMapping>
     </dependencySet>
 
     <!-- lib -->
