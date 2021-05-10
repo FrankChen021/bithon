@@ -30,9 +30,15 @@
   ],
   "metricsSpec": [
     {
-      "type": "longSum",
+      "type": "longLast",
       "name": "activeCount",
       "displayText": "Active Count",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "poolingCount",
+      "displayText": "Pooling Count",
       "unit": ""
     },
     {
@@ -99,6 +105,12 @@
       "type": "longSum",
       "name": "startTransactionCount",
       "displayText": "Transaction Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "waitThreadCount",
+      "displayText": "Wait Thread Count",
       "unit": ""
     }
   ]

@@ -86,6 +86,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setActiveCount(metric.activeCount.get());
         message.setCreateCount(metric.createCount.get());
         message.setDestroyCount(metric.destroyCount.get());
+        message.setPoolingCount(metric.poolingCount.get());
         message.setPoolingPeak(metric.poolingPeak.get());
         message.setActivePeak(metric.activePeak.get());
         message.setLogicConnectCount(metric.logicConnectionCount.get());
@@ -95,6 +96,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setCommitCount(metric.commitCount.get());
         message.setRollbackCount(metric.rollbackCount.get());
         message.setStartTransactionCount(metric.startTransactionCount.get());
+        message.setWaitThreadCount(metric.waitThreadCount.get());
         return message;
     }
 
