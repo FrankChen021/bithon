@@ -37,8 +37,8 @@ public class Gauge implements ISimpleMetric {
     }
 
     @Override
-    public long update(long delta) {
-        return value.addAndGet(delta);
+    public long update(long value) {
+        return this.value.getAndSet(value);
     }
 
     public long get() {
