@@ -50,11 +50,13 @@ public class DruidJdbcMetricCollector implements IMetricCollector {
         if (source == null) {
             return;
         }
+
         source.getJdbcMetric().activeCount.update(dataSource.getActiveCount());
         source.getJdbcMetric().createCount.update(statistic.getPhysicalConnectCount());
         source.getJdbcMetric().destroyCount.update(statistic.getPhysicalCloseCount());
         source.getJdbcMetric().createErrorCount.update(statistic.getPhysicalConnectErrorCount());
         source.getJdbcMetric().poolingPeak.update(statistic.getPoolingPeak());
+        source.getJdbcMetric().poolingCount.update(statistic.getPoolingCount());
         source.getJdbcMetric().activePeak.update(statistic.getActivePeak());
         source.getJdbcMetric().logicConnectionCount.update(statistic.getConnectCount());
         source.getJdbcMetric().logicCloseCount.update(statistic.getCloseCount());
@@ -62,6 +64,7 @@ public class DruidJdbcMetricCollector implements IMetricCollector {
         source.getJdbcMetric().commitCount.update(statistic.getCommitCount());
         source.getJdbcMetric().rollbackCount.update(statistic.getRollbackCount());
         source.getJdbcMetric().startTransactionCount.update(statistic.getStartTransactionCount());
+        source.getJdbcMetric().waitThreadCount.update(statistic.getWaitThreadCount());
     }
 
     @Override

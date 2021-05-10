@@ -28,11 +28,12 @@ public class JdbcPoolMetricSet {
     private final String driverClass;
 
     // metrics
-    public Sum activeCount = new Sum();
+    public Gauge activeCount = new Gauge();
+    public Gauge activePeak = new Gauge();
+    public Gauge poolingPeak = new Gauge();
+    public Gauge poolingCount = new Gauge();
     public Sum createCount = new Sum();
     public Sum destroyCount = new Sum();
-    public Gauge poolingPeak = new Gauge();
-    public Gauge activePeak = new Gauge();
     public Sum logicConnectionCount = new Sum();
     public Sum logicCloseCount = new Sum();
     public Sum createErrorCount = new Sum();
@@ -40,6 +41,7 @@ public class JdbcPoolMetricSet {
     public Sum commitCount = new Sum();
     public Sum rollbackCount = new Sum();
     public Sum startTransactionCount = new Sum();
+    public Sum waitThreadCount = new Sum();
 
     public JdbcPoolMetricSet(String connectionString, String driverClass) {
         this.connectionString = connectionString;

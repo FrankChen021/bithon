@@ -7,7 +7,13 @@ var jdbc_pool_metrics_dashboard = {
         "metrics":[{
             "name": "activeCount"
         },{
+            "name": "poolingCount",
+        },{
             "name": "createCount",
+        },{
+            "name": "destroyCount",
+        },{
+            "name": "waitThreadCount",
         }]
     },{
         "dataSource": "jdbc-pool-metrics",
@@ -15,6 +21,8 @@ var jdbc_pool_metrics_dashboard = {
         "width": 4, //1,2,3,4
         "metrics":[{
           "name": "executeCount"
+        },{
+            "name": "startTransactionCount"
         },{
            "name": "commitCount"
         },{
