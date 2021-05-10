@@ -45,7 +45,7 @@ public class Main {
         boolean hasBootstrapJar = Arrays.stream(ManagementFactory.getRuntimeMXBean()
                                                                  .getBootClassPath()
                                                                  .split(File.pathSeparator))
-                                        .anyMatch(path -> "agent-bootstrap.jar".equals(new File(path).getName()));
+                                        .anyMatch(path -> path.endsWith("/agent-bootstrap.jar"));
         if (!hasBootstrapJar) {
             throw new IllegalStateException("agent-bootstrap.jar is not on boot class path");
         }
