@@ -57,6 +57,10 @@ public class JarClassLoader extends ClassLoader {
         this(name, jars, Arrays.stream(parents).map(ClassLoaderProvider::new).toArray(IClassLoaderProvider[]::new));
     }
 
+    public List<JarFile> getJars() {
+        return jars;
+    }
+
     /**
      *
      * @param name used for logging

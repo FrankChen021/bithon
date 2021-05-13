@@ -16,12 +16,19 @@
 
 package com.sbss.bithon.agent.core.plugin.loader;
 
+import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
+import shaded.org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.lang.instrument.Instrumentation;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.jar.JarFile;
+import java.util.zip.ZipFile;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,7 +38,7 @@ public class PluginInstaller {
 
     public static void install(AgentContext agentContext, Instrumentation inst) {
         // find all plugins first
-        List<AbstractPlugin> plugins = PluginClassLoaderManager.resolvePlugins();
+        List<AbstractPlugin> plugins = resolvePlugins();
 
         // install interceptors for bootstrap classes
         AgentBuilder agentBuilder = new BootstrapAopGenerator(inst,
@@ -45,5 +52,37 @@ public class PluginInstaller {
 
         // install shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> plugins.forEach((plugin) -> plugin.stop())));
+    }
+
+    public static List<AbstractPlugin> resolvePlugins() {
+
+        JarClassLoader pluginClassLoader = PluginClassLoaderManager.getDefaultLoader();
+        List<JarFile> pluginJars = new ArrayList<>(pluginClassLoader.getJars());
+        pluginJars.sort(Comparator.comparing(ZipFile::getName));
+
+        final List<AbstractPlugin> plugins = new ArrayList<>();
+        for (JarFile jar : pluginJars) {
+            try {
+                String pluginClassName = jar.getManifest().getMainAttributes().getValue("Plugin-Class");
+                if (pluginClassName == null) {
+                    continue;
+                }
+
+                AbstractPlugin plugin = (AbstractPlugin) Class.forName(pluginClassName,
+                                                                       true,
+                                                                       pluginClassLoader)
+                                                              .newInstance();
+                plugins.add(plugin);
+
+                LoggerFactory.getLogger(PluginClassLoaderManager.class)
+                             .info("Found {}", new File(jar.getName()).getName());
+            } catch (Throwable e) {
+                LoggerFactory.getLogger(PluginClassLoaderManager.class)
+                             .error(String.format("Failed to add plugin from jar %s",
+                                                  new File(jar.getName()).getName()),
+                                    e);
+            }
+        }
+        return plugins;
     }
 }
