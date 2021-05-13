@@ -20,11 +20,8 @@ import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
 import com.sbss.bithon.agent.bootstrap.loader.JarResolver;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,9 +34,8 @@ import java.util.jar.JarFile;
  * @date 2020-12-31 22:28:23
  */
 public final class PluginClassLoaderManager {
-    private static ClassLoader defaultLoader;
+    private static JarClassLoader defaultLoader;
     private static final Map<ClassLoader, ClassLoader> LOADER_MAPPING = new ConcurrentHashMap<>();
-    private static List<JarFile> pluginJars;
 
     /**
      * class loader for class which is being transformed.
@@ -50,35 +46,19 @@ public final class PluginClassLoaderManager {
                ? defaultLoader
                : LOADER_MAPPING.computeIfAbsent(appClassLoader,
                                                 k -> new JarClassLoader("plugin",
-                                                                        pluginJars,
+                                                                        defaultLoader.getJars(),
                                                                         AgentClassLoader.getClassLoader(),
                                                                         appClassLoader));
     }
 
-    public static ClassLoader createDefault(String agentPath) {
-        pluginJars = JarResolver.resolve(new File(agentPath + "/" + AgentContext.PLUGIN_DIR));
-
-        defaultLoader = new JarClassLoader("plugin", pluginJars, AgentClassLoader.getClassLoader());
+    public static JarClassLoader getDefaultLoader() {
         return defaultLoader;
     }
 
-    public static List<AbstractPlugin> resolvePlugins() {
-        final List<AbstractPlugin> plugins = new ArrayList<>();
-        for (JarFile jar : pluginJars) {
-            try {
-                String pluginClassName = jar.getManifest().getMainAttributes().getValue("Plugin-Class");
-                AbstractPlugin plugin = (AbstractPlugin) Class.forName(pluginClassName,
-                                                                       true,
-                                                                       defaultLoader)
-                                                              .newInstance();
-                plugins.add(plugin);
-            } catch (Throwable e) {
-                LoggerFactory.getLogger(PluginClassLoaderManager.class)
-                             .error(String.format("Failed to add plugin from jar %s",
-                                                  new File(jar.getName()).getName()),
-                                    e);
-            }
-        }
-        return plugins;
+    public static ClassLoader createDefault(String agentPath) {
+        List<JarFile> pluginJars = JarResolver.resolve(new File(agentPath + "/" + AgentContext.PLUGIN_DIR));
+
+        defaultLoader = new JarClassLoader("plugin", pluginJars, AgentClassLoader.getClassLoader());
+        return defaultLoader;
     }
 }
