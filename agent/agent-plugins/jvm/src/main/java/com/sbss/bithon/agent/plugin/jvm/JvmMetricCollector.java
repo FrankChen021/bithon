@@ -110,7 +110,7 @@ public class JvmMetricCollector {
         JvmMetricSet jvmMetricSet = new JvmMetricSet(RUNTIME_BEAN.getUptime(),
                                                      RUNTIME_BEAN.getStartTime());
         jvmMetricSet.cpuMetricSet = cpuMetricCollector.collect();
-        jvmMetricSet.memoryMetricSet = MemoryMetricCollector.buildMemoryMetrics();
+        jvmMetricSet.memoryMetricSet = MemoryMetricCollector.collectTotal();
         jvmMetricSet.heapMetricSet = MemoryMetricCollector.collectHeap();
         jvmMetricSet.nonHeapMetricSet = MemoryMetricCollector.collectNonHeap();
         jvmMetricSet.metaspaceMetricSet = MemoryMetricCollector.collectMetaSpace();

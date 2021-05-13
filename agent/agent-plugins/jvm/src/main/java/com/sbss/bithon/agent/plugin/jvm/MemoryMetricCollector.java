@@ -42,7 +42,7 @@ public class MemoryMetricCollector {
                                                                                 .findFirst()
                                                                                 .get();
 
-    public static MemoryCompositeMetric buildMemoryMetrics() {
+    public static MemoryCompositeMetric collectTotal() {
         return new MemoryCompositeMetric(Runtime.getRuntime().totalMemory(),
                                          Runtime.getRuntime().freeMemory());
 
