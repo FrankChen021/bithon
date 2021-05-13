@@ -30,16 +30,17 @@ import java.lang.management.MemoryPoolMXBean;
  */
 public class MemoryMetricCollector {
 
-    private static MemoryPoolMXBean metaSpaceBean = ManagementFactory.getMemoryPoolMXBeans()
-                                                                     .stream()
-                                                                     .filter(bean -> "Metaspace".equalsIgnoreCase(bean.getName()))
-                                                                     .findFirst()
-                                                                     .get();
+    private static final MemoryPoolMXBean META_SPACE_BEAN = ManagementFactory.getMemoryPoolMXBeans()
+                                                                             .stream()
+                                                                             .filter(bean -> "Metaspace".equalsIgnoreCase(bean.getName()))
+                                                                             .findFirst()
+                                                                             .get();
 
-    private static BufferPoolMXBean directMemoryBean = ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)
-                                                                        .stream()
-                                                                        .filter(e -> e.getName().equals("direct"))
-                                                                        .findFirst().get();
+    private static final BufferPoolMXBean DIRECT_MEMORY_BEAN = ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)
+                                                                                .stream()
+                                                                                .filter(bean -> "direct".equalsIgnoreCase(bean.getName()))
+                                                                                .findFirst()
+                                                                                .get();
 
     public static MemoryCompositeMetric buildMemoryMetrics() {
         return new MemoryCompositeMetric(Runtime.getRuntime().totalMemory(),
@@ -57,12 +58,12 @@ public class MemoryMetricCollector {
     }
 
     public static MemoryRegionCompositeMetric collectMetaSpace() {
-        return new MemoryRegionCompositeMetric(metaSpaceBean.getUsage());
+        return new MemoryRegionCompositeMetric(META_SPACE_BEAN.getUsage());
     }
 
     public static MemoryRegionCompositeMetric collectDirectMemory() {
         long max = VM.maxDirectMemory();
-        long used = directMemoryBean.getMemoryUsed();
+        long used = DIRECT_MEMORY_BEAN.getMemoryUsed();
         return new MemoryRegionCompositeMetric(max, 0, used, max - used);
     }
 }
