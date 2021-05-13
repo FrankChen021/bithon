@@ -18,7 +18,9 @@ package com.sbss.bithon.agent.plugin.jvm;
 
 import com.sbss.bithon.agent.core.metric.domain.jvm.MemoryCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jvm.MemoryRegionCompositeMetric;
+import sun.misc.VM;
 
+import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 
@@ -28,7 +30,19 @@ import java.lang.management.MemoryPoolMXBean;
  */
 public class MemoryMetricCollector {
 
-    public static MemoryCompositeMetric buildMemoryMetrics() {
+    private static final MemoryPoolMXBean META_SPACE_BEAN = ManagementFactory.getMemoryPoolMXBeans()
+                                                                             .stream()
+                                                                             .filter(bean -> "Metaspace".equalsIgnoreCase(bean.getName()))
+                                                                             .findFirst()
+                                                                             .get();
+
+    private static final BufferPoolMXBean DIRECT_MEMORY_BEAN = ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)
+                                                                                .stream()
+                                                                                .filter(bean -> "direct".equalsIgnoreCase(bean.getName()))
+                                                                                .findFirst()
+                                                                                .get();
+
+    public static MemoryCompositeMetric collectTotal() {
         return new MemoryCompositeMetric(Runtime.getRuntime().totalMemory(),
                                          Runtime.getRuntime().freeMemory());
 
@@ -44,11 +58,12 @@ public class MemoryMetricCollector {
     }
 
     public static MemoryRegionCompositeMetric collectMetaSpace() {
-        for (MemoryPoolMXBean bean : ManagementFactory.getMemoryPoolMXBeans()) {
-            if ("Metaspace".equalsIgnoreCase(bean.getName())) {
-                return new MemoryRegionCompositeMetric(bean.getUsage());
-            }
-        }
-        return new MemoryRegionCompositeMetric();
+        return new MemoryRegionCompositeMetric(META_SPACE_BEAN.getUsage());
+    }
+
+    public static MemoryRegionCompositeMetric collectDirectMemory() {
+        long max = VM.maxDirectMemory();
+        long used = DIRECT_MEMORY_BEAN.getMemoryUsed();
+        return new MemoryRegionCompositeMetric(max, 0, used, max - used);
     }
 }
