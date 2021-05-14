@@ -53,7 +53,7 @@ public class ChannelsWriteInterceptor extends AbstractInterceptor {
 
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
 
-        final TraceSpan span = TraceSpanBuilder.build("httpClient-jetty")
+        final TraceSpan span = TraceSpanBuilder.buildAsyncSpan("httpClient-jetty")
                                                .method(aopContext.getMethod())
                                                .kind(SpanKind.CLIENT)
                                                .tag("uri", httpRequest.getUri())
@@ -66,6 +66,8 @@ public class ChannelsWriteInterceptor extends AbstractInterceptor {
                 headersArgs.set(key, value);
             });
         }
+
+        aopContext.setUserContext(span);
 
         return super.onMethodEnter(aopContext);
     }
@@ -113,6 +115,7 @@ public class ChannelsWriteInterceptor extends AbstractInterceptor {
             try {
                 span.tag(channelFuture.getCause());
                 span.finish();
+                span.context().finish();
             } catch (Exception ignored) {
             }
         });

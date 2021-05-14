@@ -54,7 +54,7 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
         HttpRequest httpRequest = aopContext.castTargetAs();
 
-        final TraceSpan span = TraceSpanBuilder.build("httpClient-jetty")
+        final TraceSpan span = TraceSpanBuilder.buildAsyncSpan("httpClient-jetty")
                                                .method(aopContext.getMethod())
                                                .kind(SpanKind.CLIENT)
                                                .tag("uri", httpRequest.getURI().getPath())
@@ -132,6 +132,7 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
                 try {
                     span.tag(result.getFailure());
                     span.finish();
+                    span.context().finish();
                 } catch (Throwable ignored) {
                 }
 

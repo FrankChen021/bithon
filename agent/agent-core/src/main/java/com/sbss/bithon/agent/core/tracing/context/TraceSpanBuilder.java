@@ -82,4 +82,25 @@ public class TraceSpanBuilder {
         // create a span and save it in user-context
         return parentSpan.newChildSpan(name);
     }
+
+    public static TraceSpan buildAsyncSpan(String name) {
+        TraceContext traceContext = TraceContextHolder.get();
+        if (traceContext == null) {
+            return NoopSpan.INSTANCE;
+        }
+
+        TraceSpan parentSpan = traceContext.currentSpan();
+        if (parentSpan == null) {
+            return NoopSpan.INSTANCE;
+        }
+
+        return new TraceContext(traceContext.traceId(),
+                                traceContext.spanIdGenerator().newSpanId(),
+                                parentSpan.spanId(),
+                                traceContext.reporter(),
+                                traceContext.traceIdGenerator(),
+                                traceContext.spanIdGenerator())
+            .currentSpan()
+            .component(name);
+    }
 }

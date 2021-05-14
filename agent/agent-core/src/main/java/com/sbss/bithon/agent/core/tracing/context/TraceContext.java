@@ -22,6 +22,7 @@ import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter
 import com.sbss.bithon.agent.core.tracing.report.ITraceReporter;
 import com.sbss.bithon.agent.core.tracing.sampling.SamplingMode;
 import com.sbss.bithon.agent.core.utils.time.Clock;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,12 +46,7 @@ public class TraceContext {
     public TraceContext(String traceId,
                         ITraceReporter reporter,
                         ITraceIdGenerator idGenerator) {
-        this.traceId = traceId;
-        this.reporter = reporter;
-        this.idGenerator = idGenerator;
-        this.samplingMode = samplingMode;
-        this.spanIdGenerator = new DefaultSpanIdGenerator();
-        this.onSpanCreated(new TraceSpan(spanIdGenerator.newSpanId(), null, this).start());
+        this(traceId, reporter, idGenerator, new DefaultSpanIdGenerator());
     }
 
     public TraceContext(String traceId,
@@ -58,11 +54,32 @@ public class TraceContext {
                         String parentSpanId,
                         ITraceReporter reporter,
                         ITraceIdGenerator idGenerator) {
+        this(traceId, spanId, parentSpanId, reporter, idGenerator, new DefaultSpanIdGenerator());
+    }
+
+    public TraceContext(String traceId,
+                        String spanId,
+                        String parentSpanId,
+                        ITraceReporter reporter,
+                        ITraceIdGenerator idGenerator,
+                        ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
         this.reporter = reporter;
         this.idGenerator = idGenerator;
-        this.spanIdGenerator = new DefaultSpanIdGenerator();
+        this.spanIdGenerator = spanIdGenerator;
         this.onSpanCreated(new TraceSpan(spanId, parentSpanId, this).start());
+    }
+
+    public TraceContext(String traceId,
+                        ITraceReporter reporter,
+                        ITraceIdGenerator idGenerator,
+                        ISpanIdGenerator spanIdGenerator) {
+        this.traceId = traceId;
+        this.reporter = reporter;
+        this.idGenerator = idGenerator;
+        this.samplingMode = samplingMode;
+        this.spanIdGenerator = spanIdGenerator;
+        this.onSpanCreated(new TraceSpan(spanIdGenerator.newSpanId(), null, this).start());
     }
 
     public String traceId() {
@@ -77,6 +94,10 @@ public class TraceContext {
         return clock;
     }
 
+    public ITraceReporter reporter() {
+        return reporter;
+    }
+
     public ITraceIdGenerator traceIdGenerator() {
         return idGenerator;
     }
@@ -89,7 +110,11 @@ public class TraceContext {
         if (!spanStack.isEmpty()) {
             // TODO: ERROR
         }
-        this.reporter.report(this.spans);
+        try {
+            this.reporter.report(this.spans);
+        } catch(Throwable e) {
+            LoggerFactory.getLogger(TraceContext.class).error("Exception occured when finish a context", e);
+        }
     }
 
     TraceSpan onSpanCreated(TraceSpan span) {
