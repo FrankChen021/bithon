@@ -34,6 +34,11 @@ public class TraceSpanBuilder {
         static NoopSpan INSTANCE = new NoopSpan(null, null, null);
 
         @Override
+        public boolean isNull() {
+            return true;
+        }
+
+        @Override
         public TraceSpan start() {
             return this;
         }

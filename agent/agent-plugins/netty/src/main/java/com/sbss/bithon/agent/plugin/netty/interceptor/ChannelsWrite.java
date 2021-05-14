@@ -14,39 +14,34 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.httpclient.jdk;
+package com.sbss.bithon.agent.plugin.netty.interceptor;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
-import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
-import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
-import sun.net.www.MessageHeader;
-
-import java.net.HttpURLConnection;
+import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 
 /**
- * @author frankchen
+ * interceptor of {@link org.jboss.netty.channel.Channels#write(Channel, Object)}
+ *
+ * @author frank.chen021@outlook.com
+ * @date 2021/5/13 5:32 下午
  */
-public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
-
-    private String thisApplication;
+public class ChannelsWrite extends AbstractInterceptor {
 
     @Override
-    public boolean initialize() throws Exception {
-        thisApplication = AgentContext.getInstance().getAppInstance().getAppName();
-        return super.initialize();
-    }
+    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+        if (!(aopContext.getArgs()[1] instanceof HttpRequest)) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
-    @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
-        headers.set(InterceptorContext.HEADER_SRC_APPLICATION_NAME, thisApplication);
+        HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
 
         TraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
@@ -57,26 +52,40 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        IBithonObject injectedObject = aopContext.castTargetAs();
-        HttpURLConnection connection = (HttpURLConnection) injectedObject.getInjectedObject();
-
-        /*
-         * starts a span which will be finished after HttpClient.parseHttp
-         */
-        aopContext.setUserContext(span.newChildSpan("httpClient")
-                                      .clazz(aopContext.getTargetClass())
+        aopContext.setUserContext(span.newChildSpan("nettyHttpClient")
                                       .method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag("uri", connection.getURL().toString())
+                                      .tag("uri", httpRequest.getUri())
                                       .start());
 
         //
         // propagate tracing after span creation
         //
-        traceContext.propagate(headers, (headersArgs, key, value) -> {
+        traceContext.propagate(httpRequest.headers(), (headersArgs, key, value) -> {
             headersArgs.set(key, value);
         });
 
-        return InterceptionDecision.CONTINUE;
+        return super.onMethodEnter(aopContext);
+    }
+
+    @Override
+    public void onMethodLeave(AopContext aopContext) {
+        if (aopContext.hasException()) {
+            return;
+        }
+
+        final TraceSpan span = (TraceSpan) aopContext.getUserContext();
+
+        // unlink reference
+        aopContext.setUserContext(null);
+
+        ChannelFuture future = aopContext.castTargetAs();
+        future.addListener(channelFuture -> {
+            try {
+                span.tag(channelFuture.getCause());
+                span.finish();
+            } catch (Exception ignored) {
+            }
+        });
     }
 }

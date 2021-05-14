@@ -37,6 +37,7 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
         //
         // TODO: sampling decision making first
         //
+
         SamplingMode mode = Tracer.get().samplingDecisionMaker().decideSamplingMode(request);
         if (mode == SamplingMode.NONE) {
             return null;

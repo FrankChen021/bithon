@@ -28,6 +28,7 @@
     <module>httpclient-okhttp32</module>
     <module>httpclient-jdk</module>
     <module>httpclient-apache</module>
+    <module>httpclient-jetty</module>
     <module>redis-jedis</module>
     <module>redis-lettuce-5.x</module>
     <module>mongodb</module>
@@ -35,6 +36,7 @@
     <module>logging-log4j2</module>
     <module>logging-logback</module>
     <module>springweb</module>
+    <module>netty</module>
   </modules>
 
   <dependencies>
@@ -113,6 +115,11 @@
       <artifactId>agent-plugin-httpclient-apache</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${project.parent.groupId}</groupId>
+      <artifactId>agent-plugin-httpclient-jetty</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- Redis -->
     <dependency>
@@ -155,7 +162,11 @@
       <version>${project.version}</version>
     </dependency>
 
-
+    <dependency>
+      <groupId>${project.parent.groupId}</groupId>
+      <artifactId>agent-plugin-netty</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <!-- end-->
 
 

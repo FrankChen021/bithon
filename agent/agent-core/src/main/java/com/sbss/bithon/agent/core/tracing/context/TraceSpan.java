@@ -135,8 +135,7 @@ public class TraceSpan {
     }
 
     public TraceSpan method(Executable method) {
-        this.method = method.getName();
-        return this;
+        return clazz(method.getDeclaringClass()).method(method.getName());
     }
 
     public TraceSpan method(String method) {
@@ -171,6 +170,10 @@ public class TraceSpan {
         } catch (Throwable t) {
             LoggerFactory.getLogger(TraceSpan.class).error("Exception occured when finish a span", t);
         }
+    }
+
+    public boolean isNull() {
+        return false;
     }
 
     @Override
