@@ -45,6 +45,9 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        //
+        // propagate source application
+        //
         MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
         headers.set(InterceptorContext.HEADER_SRC_APPLICATION_NAME, thisApplication);
 
@@ -60,10 +63,10 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
         IBithonObject injectedObject = aopContext.castTargetAs();
         HttpURLConnection connection = (HttpURLConnection) injectedObject.getInjectedObject();
 
-        /*
-         * starts a span which will be finished after HttpClient.parseHttp
-         */
-        aopContext.setUserContext(span.newChildSpan("httpClient")
+        //
+        // starts a span which will be finished after HttpClient.parseHttp
+        //
+        aopContext.setUserContext(span.newChildSpan("httpClient-jdk")
                                       .clazz(aopContext.getTargetClass())
                                       .method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)

@@ -19,11 +19,18 @@ package com.sbss.bithon.agent.plugin.httpclient.jetty;
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
 import org.eclipse.jetty.client.HttpRequest;
 import org.eclipse.jetty.client.api.Response;
+import org.eclipse.jetty.client.api.Result;
+import org.eclipse.jetty.http.HttpField;
+import org.eclipse.jetty.util.Callback;
+
+import java.nio.ByteBuffer;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,45 +38,121 @@ import org.eclipse.jetty.client.api.Response;
  */
 public class HttpRequestInterceptor extends AbstractInterceptor {
 
+    private HttpClientMetricCollector metricCollector;
+
+    @Override
+    public boolean initialize() {
+        metricCollector = MetricCollectorManager.getInstance()
+                                                .getOrRegister("httpClient-jetty", HttpClientMetricCollector.class);
+        return true;
+    }
+
     /**
      * {@link org.eclipse.jetty.client.HttpRequest#send(Response.CompleteListener)}
-     *
-     * @param aopContext
-     * @return
      */
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+        HttpRequest httpRequest = aopContext.castTargetAs();
 
         final TraceSpan span = TraceSpanBuilder.build("httpClient-jetty")
                                                .method(aopContext.getMethod())
                                                .kind(SpanKind.CLIENT)
+                                               .tag("uri", httpRequest.getURI().getPath())
                                                .start();
-
-        if (span.isNull()) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
 
         //
         // propagate tracing after span creation
         //
-        HttpRequest httpRequest = aopContext.castTargetAs();
-        span.context().propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> {
-            headersArgs.put(key, value);
-        });
+        if (!span.isNull()) {
+            span.context().propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> {
+                headersArgs.put(key, value);
+            });
+        }
+
+        final long startAt = aopContext.getStartTimestamp();
 
         // replace listener
-        final Response.CompleteListener rawListener = (Response.CompleteListener) aopContext.getArgs()[0];
-        aopContext.getArgs()[0] = (Response.CompleteListener) result -> {
-            if (result.isFailed()) {
-                if (result.getRequestFailure() != null) {
-                    span.tag(result.getRequestFailure());
-                }
-                if (result.getResponseFailure() != null) {
-                    span.tag(result.getResponseFailure());
+        final Object rawListener = aopContext.getArgs()[0];
+        aopContext.getArgs()[0] = new Response.Listener() {
+            @Override
+            public void onSuccess(Response response) {
+                if (rawListener instanceof Response.SuccessListener) {
+                    ((Response.SuccessListener) rawListener).onSuccess(response);
                 }
             }
-            span.finish();
-            rawListener.onComplete(result);
+
+            @Override
+            public void onHeaders(Response response) {
+                if (rawListener instanceof Response.HeadersListener) {
+                    ((Response.HeadersListener) rawListener).onHeaders(response);
+                }
+            }
+
+            @Override
+            public boolean onHeader(Response response, HttpField httpField) {
+                if (rawListener instanceof Response.HeaderListener) {
+                    return ((Response.HeaderListener) rawListener).onHeader(response, httpField);
+                }
+                return true;
+            }
+
+            @Override
+            public void onFailure(Response response, Throwable throwable) {
+                if (rawListener instanceof Response.FailureListener) {
+                    ((Response.FailureListener) rawListener).onFailure(response, throwable);
+                }
+            }
+
+            @Override
+            public void onContent(Response response, ByteBuffer byteBuffer) {
+                if (rawListener instanceof Response.ContentListener) {
+                    ((Response.ContentListener) rawListener).onContent(response, byteBuffer);
+                }
+            }
+
+            @Override
+            public void onComplete(Result result) {
+                //
+                // metrics
+                //
+                if (result.isFailed()) {
+                    metricCollector.addExceptionRequest(result.getRequest().getURI().getPath(),
+                                                        result.getRequest().getMethod(),
+                                                        System.nanoTime() - startAt);
+                } else {
+                    metricCollector.addRequest(result.getRequest().getURI().getPath(),
+                                               result.getRequest().getMethod(),
+                                               result.getResponse().getStatus(),
+                                               System.nanoTime() - startAt);
+                }
+
+                //
+                // trace
+                //
+                try {
+                    span.tag(result.getFailure());
+                    span.finish();
+                } catch (Throwable ignored) {
+                }
+
+                if (rawListener instanceof Response.CompleteListener) {
+                    ((Response.CompleteListener) rawListener).onComplete(result);
+                }
+            }
+
+            @Override
+            public void onBegin(Response response) {
+                if (rawListener instanceof Response.BeginListener) {
+                    ((Response.BeginListener) rawListener).onBegin(response);
+                }
+            }
+
+            @Override
+            public void onContent(Response response, ByteBuffer byteBuffer, Callback callback) {
+                if (rawListener instanceof Response.AsyncContentListener) {
+                    ((Response.AsyncContentListener) rawListener).onContent(response, byteBuffer, callback);
+                }
+            }
         };
 
         return super.onMethodEnter(aopContext);

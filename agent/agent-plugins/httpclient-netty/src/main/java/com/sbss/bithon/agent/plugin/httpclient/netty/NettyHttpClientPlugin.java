@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.netty;
+package com.sbss.bithon.agent.plugin.httpclient.netty;
 
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
@@ -28,7 +28,7 @@ import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor
 /**
  * @author frankchen
  */
-public class NettyPlugin extends AbstractPlugin {
+public class NettyHttpClientPlugin extends AbstractPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
@@ -40,7 +40,7 @@ public class NettyPlugin extends AbstractPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("write", "org.jboss.netty.channel.Channel", "java.lang.Object")
-                                                   .to("com.sbss.bithon.agent.plugin.netty.interceptor.ChannelsWrite")
+                                                   .to("com.sbss.bithon.agent.plugin.httpclient.netty.ChannelsWriteInterceptor")
 
                 )
         );
