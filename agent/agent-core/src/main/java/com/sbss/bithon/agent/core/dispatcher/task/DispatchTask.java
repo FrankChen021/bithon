@@ -20,6 +20,7 @@ import com.sbss.bithon.agent.core.config.DispatcherConfig;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -60,14 +61,10 @@ public class DispatchTask {
     private void send() {
         while (true) {
             try {
-                Object message = queue.dequeue();
+                Object message = queue.dequeue(10, TimeUnit.MILLISECONDS);
                 if (message != null) {
                     this.messageConsumer.accept(message);
                     gcIfNeed();
-                }
-                try {
-                    Thread.sleep(10L);
-                } catch (InterruptedException ignored) {
                 }
             } catch (Exception e) {
                 log.error("Sending Entity Failed! \n" + e, e);

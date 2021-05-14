@@ -16,18 +16,33 @@
 
 package com.sbss.bithon.agent.core.dispatcher.task;
 
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2021/5/14 10:46 上午
  */
-public interface IMessageQueue {
+public class BlockingQueue implements IMessageQueue {
+    private java.util.concurrent.LinkedBlockingQueue queue = new LinkedBlockingQueue(4096);
 
-    void enqueue(Object item);
+    @Override
+    public void enqueue(Object item) {
+        queue.offer(item);
+    }
 
-    Object dequeue(int timeout, TimeUnit unit) throws InterruptedException;
+    @Override
+    public Object dequeue(int timeout, TimeUnit unit) {
+        //ignore timeout
+        return queue.poll();
+    }
 
-    void gc();
+    @Override
+    public void gc() {
+    }
 
-    long size();
+    @Override
+    public long size() {
+        return queue.size();
+    }
 }

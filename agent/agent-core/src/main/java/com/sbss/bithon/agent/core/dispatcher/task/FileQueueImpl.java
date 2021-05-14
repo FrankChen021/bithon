@@ -23,6 +23,7 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frankchen
@@ -50,8 +51,12 @@ public class FileQueueImpl implements IMessageQueue {
     }
 
     @Override
-    public Object dequeue() {
+    public Object dequeue(int timeout, TimeUnit unit) {
         if (queue.isEmpty()) {
+            try {
+                Thread.sleep(unit.toMillis(timeout));
+            } catch (InterruptedException ignored) {
+            }
             return null;
         }
         Object result = null;

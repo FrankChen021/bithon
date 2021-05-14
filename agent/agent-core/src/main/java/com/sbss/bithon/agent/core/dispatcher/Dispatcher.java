@@ -18,20 +18,16 @@ package com.sbss.bithon.agent.core.dispatcher;
 
 
 import com.sbss.bithon.agent.core.config.DispatcherConfig;
-import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannel;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
+import com.sbss.bithon.agent.core.dispatcher.task.BlockingQueue;
 import com.sbss.bithon.agent.core.dispatcher.task.DispatchTask;
-import com.sbss.bithon.agent.core.dispatcher.task.FileQueueImpl;
 import com.sbss.bithon.agent.core.dispatcher.task.IMessageQueue;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
-
-import static java.io.File.separator;
 
 /**
  * @author frankchen
@@ -115,7 +111,8 @@ public class Dispatcher {
     }
 
     private IMessageQueue createQueue() {
-        try {
+        return new BlockingQueue();
+        /*
             return new FileQueueImpl(agentPath
                                      + separator
                                      + AgentContext.TMP_DIR
@@ -123,11 +120,6 @@ public class Dispatcher {
                                      + dispatcherName
                                      + separator
                                      + appName,
-                                     String.valueOf(appPort));
-        } catch (IOException e) {
-
-            System.exit(0);
-            return null;
-        }
+                                     String.valueOf(appPort));*/
     }
 }
