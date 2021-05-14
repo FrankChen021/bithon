@@ -42,8 +42,7 @@ CREATE TABLE `bithon_metadata` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_name` (`name`,`type`),
-  KEY `idx_parent_id` (`parent_id`)
+  UNIQUE KEY `uq_name` (`name`,`type`, `parent_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=100000 DEFAULT CHARSET=utf8mb4 COMMENT='应用';
 
 DROP TABLE IF EXISTS `bithon_agent_setting`;
