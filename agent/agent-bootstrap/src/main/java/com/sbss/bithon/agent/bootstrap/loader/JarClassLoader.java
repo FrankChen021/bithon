@@ -62,7 +62,6 @@ public class JarClassLoader extends ClassLoader {
     }
 
     /**
-     *
      * @param name used for logging
      */
     public JarClassLoader(String name, List<JarFile> jars, IClassLoaderProvider... parents) {
@@ -85,6 +84,16 @@ public class JarClassLoader extends ClassLoader {
 
             try {
                 byte[] classBytes = JarUtils.openClassFile(jarFile, path);
+
+                // define package object for customer loaded classes,
+                // so that getPackage could work
+                int lastIndex = name.lastIndexOf(".");
+                if (lastIndex > 0) {
+                    String pkg = name.substring(0, lastIndex);
+                    if (getPackage(pkg) == null) {
+                        definePackage(pkg, null, null, null, null, null, null, null);
+                    }
+                }
                 return defineClass(name, classBytes, 0, classBytes.length);
             } catch (IOException ignored) {
             }
