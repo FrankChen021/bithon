@@ -21,7 +21,9 @@ import com.sbss.bithon.agent.core.config.FetcherConfig;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
 import com.sbss.bithon.agent.core.utils.StringUtils;
-import shaded.com.alibaba.fastjson.JSONObject;
+import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
+import shaded.com.fasterxml.jackson.databind.JsonNode;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -109,23 +111,30 @@ public class AgentSettingManager {
             return;
         }
 
+        ObjectMapper om = new ObjectMapper();
+        om.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
         settings.forEach((sectionName, settingString) -> {
             List<IAgentSettingRefreshListener> listeners = this.listeners.get(sectionName);
             if (CollectionUtils.isEmpty(listeners)) {
                 return;
             }
 
-            JSONObject sectionSetting;
+            JsonNode configNode;
             try {
-                sectionSetting = JSONObject.parseObject(settingString);
+                configNode = om.readTree(settingString);
             } catch (Exception e) {
-                log.warn("Can't deserialize plugin setting for {}.\n{}", sectionName, settingString);
+                log.warn("Can't deserialize setting for {}.\n{}", sectionName, settingString);
                 return;
             }
 
-            // DON'T catch exception so that there's a chance to retry on next round
             for (IAgentSettingRefreshListener listener : listeners) {
-                listener.onRefresh(sectionSetting);
+                try {
+                    listener.onRefresh(om, configNode);
+                } catch (Exception e) {
+                    log.warn(String.format("Exception when refresh setting {}.\n{}", sectionName, settingString), e);
+                }
             }
         });
     }
