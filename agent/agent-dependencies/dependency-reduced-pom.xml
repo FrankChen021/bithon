@@ -55,8 +55,8 @@
                   <shadedPattern>shaded.com.alibaba.druid</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>com.alibaba.fastjson</pattern>
-                  <shadedPattern>shaded.com.alibaba.fastjson</shadedPattern>
+                  <pattern>com.fasterxml.jackson</pattern>
+                  <shadedPattern>shaded.com.fasterxml.jackson</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>
@@ -95,9 +95,9 @@
     </dependency>
   </dependencies>
   <properties>
-    <maven.compiler.target>8</maven.compiler.target>
-    <maven.compiler.source>8</maven.compiler.source>
     <apache.kafka.version>2.6.0</apache.kafka.version>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
   </properties>
 </project>
 

@@ -28,6 +28,8 @@ import com.sbss.bithon.agent.core.setting.SettingRootNames;
 import com.sbss.bithon.agent.core.utils.MiscUtils;
 import shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
 import shaded.com.alibaba.druid.util.JdbcConstants;
+import shaded.com.fasterxml.jackson.databind.JsonNode;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -126,10 +128,10 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
     }
 
     @Override
-    public void onRefresh(Map<String, Object> config) {
-        Object val = config.get("sqlTime");
-        if (val instanceof Number) {
-            this.sqlTimeThreshold = ((Number) val).intValue();
+    public void onRefresh(ObjectMapper om, JsonNode configNode) {
+        JsonNode val = configNode.get("sqlTime");
+        if (val.isNumber()) {
+            this.sqlTimeThreshold = val.asInt();
         }
     }
 }

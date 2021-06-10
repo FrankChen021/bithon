@@ -16,12 +16,17 @@
 
 package com.sbss.bithon.agent.core.setting;
 
-import java.util.Map;
+import shaded.com.fasterxml.jackson.databind.JsonNode;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author frankchen
  * @date 2020-05-27 14:41:22
  */
 public interface IAgentSettingRefreshListener {
-    void onRefresh(Map<String, Object> pluginSetting);
+    /**
+     * om.treeToValue(configNode, YourPojo.class)
+     * om.readValue(configNode, YourPojo.class)
+     */
+    void onRefresh(ObjectMapper om, JsonNode configNode);
 }
