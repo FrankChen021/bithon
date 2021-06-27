@@ -21,7 +21,7 @@
     <modules>
         <module>agent-bootstrap</module>
         <module>agent-core</module>
-        <module>agent-dispatcher-grpc</module>
+        <module>agent-dispatcher-netty</module>
         <module>agent-dispatcher-thrift</module>
         <module>agent-plugins</module>
         <module>agent-main</module>
@@ -46,6 +46,13 @@
             <dependency>
                 <groupId>com.sbss.bithon.agent</groupId>
                 <artifactId>agent-dispatcher-thrift</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Dispatcher Kafka client -->
+            <dependency>
+                <groupId>com.sbss.bithon.agent</groupId>
+                <artifactId>agent-dispatcher-netty</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

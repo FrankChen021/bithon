@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package cn.bithon.rpc.services.metrics;
+
+option java_multiple_files = true;
+
+enum ApplicationType {
+  JAVA = 0 ;
+}
+
+/***************************************************************************/
+/*************************** MessageHeader       ***************************/
+/***************************************************************************/
+message MessageHeader {
+  string appName = 1;
+  string env = 2;
+  string instanceName = 3;
+  string hostIp = 4;
+  int32 port = 5;
+  ApplicationType appType = 6;
+}
+

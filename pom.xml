@@ -19,6 +19,7 @@
 
     <modules>
         <module>component/agent-rpc-thrift</module>
+        <module>component/agent-rpc-netty</module>
         <module>component/component-commons</module>
         <module>component/component-db</module>
         <module>agent</module>
@@ -130,6 +131,7 @@
                                 <exclude>**/README</exclude>
                                 <exclude>src/main/java/com/sbss/bithon/component/db/jooq/**</exclude>
                                 <exclude>src/main/java/com/sbss/bithon/agent/rpc/thrift/**</exclude>
+                                <exclude>src/main/java/cn/bithon/rpc/services/metrics/**</exclude>
                                 <exclude>src/main/resources/static/**</exclude>
                                 <exclude>**/*.properties</exclude>
                                 <exclude>**/*.sh</exclude>
