@@ -20,6 +20,7 @@ import cn.bithon.rpc.channel.ClientChannel;
 import cn.bithon.rpc.endpoint.EndPoint;
 import cn.bithon.rpc.endpoint.RoundRobinEndPointProvider;
 import cn.bithon.rpc.services.IMetricCollector;
+import cn.bithon.rpc.services.metrics.ApplicationType;
 import cn.bithon.rpc.services.metrics.MessageHeader;
 import com.sbss.bithon.agent.core.config.DispatcherConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
@@ -88,6 +89,7 @@ public class MetricMessageChannel implements IMessageChannel {
                                    .setInstanceName(appInstance.getHostIp() + ":" + appInstance.getPort())
                                    .setHostIp(appInstance.getHostIp())
                                    .setPort(appInstance.getPort())
+                                   .setAppType(ApplicationType.JAVA)
                                    .build();
         appInstance.addListener(port -> this.header = MessageHeader.newBuilder()
                                                                    .setAppName(appInstance.getAppName())
@@ -97,6 +99,7 @@ public class MetricMessageChannel implements IMessageChannel {
                                                                                     + appInstance.getPort())
                                                                    .setHostIp(appInstance.getHostIp())
                                                                    .setPort(appInstance.getPort())
+                                                                   .setAppType(ApplicationType.JAVA)
                                                                    .build());
     }
 
@@ -105,6 +108,10 @@ public class MetricMessageChannel implements IMessageChannel {
         if (!(message instanceof List)) {
             return;
         }
+        if (((List<?>) message).isEmpty()) {
+            return;
+        }
+
         final String messageClass = ((List<?>) message).get(0).getClass().getName();
 
         Method method = sendMethods.get(messageClass);

@@ -49,7 +49,7 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Dispatcher Kafka client -->
+            <!-- Dispatcher Netty client -->
             <dependency>
                 <groupId>com.sbss.bithon.agent</groupId>
                 <artifactId>agent-dispatcher-netty</artifactId>

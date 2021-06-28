@@ -12,7 +12,7 @@ bootstrap:
 
 fetcher:
   servers: 127.0.0.1:9899
-  client: com.sbss.bithon.agent.dispatcher.thrift.SettingFetcherFactory
+  client: com.sbss.bithon.agent.dispatcher.netty.SettingFetcherFactory
 
 dispatchers:
   metric:
@@ -22,7 +22,7 @@ dispatchers:
       # in SECONDS
       gcPeriod: 60
     client:
-      factory: com.sbss.bithon.agent.dispatcher.thrift.MessageChannelFactory
+      factory: com.sbss.bithon.agent.dispatcher.netty.MessageChannelFactory
       # in milliseconds
       timeout: 3000
     servers: 127.0.0.1:9898
@@ -35,7 +35,7 @@ dispatchers:
       # in SECONDS
       gcPeriod: 60
     client:
-      factory: com.sbss.bithon.agent.dispatcher.thrift.MessageChannelFactory
+      factory: com.sbss.bithon.agent.dispatcher.netty.MessageChannelFactory
       # in milliseconds
       timeout: 3000
     servers: 127.0.0.1:9895
@@ -46,7 +46,7 @@ dispatchers:
       # in SECONDS
       gcPeriod: 60
     client:
-      factory: com.sbss.bithon.agent.dispatcher.thrift.MessageChannelFactory
+      factory: com.sbss.bithon.agent.dispatcher.netty.MessageChannelFactory
       # in milliseconds
       timeout: 3000
     servers: 127.0.0.1:9896

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.server.collector.thrift;
+package com.sbss.bithon.server.collector.netty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -42,7 +42,6 @@ import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
 import com.sbss.bithon.server.tracing.handler.TraceMessageHandler;
 import lombok.Data;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,9 +56,8 @@ import java.util.Map;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "collector-thrift")
-@ConditionalOnProperty(value = "collector-thrift.enabled", havingValue = "true", matchIfMissing = false)
-public class ThriftCollectorConfig {
+@ConfigurationProperties(prefix = "collector-netty")
+public class NettyCollectorConfig {
     private Map<String, Integer> port;
     private SinkConfig sink;
 
@@ -70,7 +68,7 @@ public class ThriftCollectorConfig {
     }
 
     @Bean("metricSink")
-    public IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink(ThriftCollectorConfig config,
+    public IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink(NettyCollectorConfig config,
                                                                             ObjectMapper om,
                                                                             JvmMetricMessageHandler jvmMetricMessageHandler,
                                                                             JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
@@ -106,7 +104,7 @@ public class ThriftCollectorConfig {
     }
 
     @Bean("eventSink")
-    public IMessageSink<?> eventSink(ThriftCollectorConfig config,
+    public IMessageSink<?> eventSink(NettyCollectorConfig config,
                                      EventsMessageHandler handler,
                                      ObjectMapper om) {
         if ("local".equals(config.getSink().getType())) {
@@ -121,7 +119,7 @@ public class ThriftCollectorConfig {
     }
 
     @Bean("traceSink")
-    public IMessageSink<?> traceSink(ThriftCollectorConfig config,
+    public IMessageSink<?> traceSink(NettyCollectorConfig config,
                                      TraceMessageHandler traceMessageHandler,
                                      ObjectMapper om) {
 

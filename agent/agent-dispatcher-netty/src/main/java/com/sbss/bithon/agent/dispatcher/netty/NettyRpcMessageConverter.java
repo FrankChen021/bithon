@@ -16,6 +16,7 @@
 
 package com.sbss.bithon.agent.dispatcher.netty;
 
+import cn.bithon.rpc.services.metrics.JvmMetricMessage;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
@@ -67,7 +68,38 @@ public class NettyRpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(long timestamp, int interval, JvmMetricSet metric) {
-        return null;
+        JvmMetricMessage.Builder builder = JvmMetricMessage.newBuilder();
+        builder.setInterval(interval);
+        builder.setTimestamp(timestamp);
+        builder.setInstanceStartTime(metric.startTime);
+        builder.setInstanceUpTime(metric.upTime);
+        builder.setProcessors(metric.cpuMetricSet.processorNumber);
+        builder.setProcessCpuLoad(metric.cpuMetricSet.processCpuLoad);
+        builder.setProcessCpuTime(metric.cpuMetricSet.processCpuTime);
+        builder.setSystemLoadAvg(metric.cpuMetricSet.avgSystemLoad);
+        builder.setTotalMemBytes(metric.memoryMetricSet.allocatedBytes);
+        builder.setFreeMemBytes(metric.memoryMetricSet.freeBytes);
+        builder.setHeapMax(metric.heapMetricSet.max);
+        builder.setHeapInit(metric.heapMetricSet.init);
+        builder.setHeapCommitted(metric.heapMetricSet.committed);
+        builder.setHeapUsed(metric.heapMetricSet.used);
+        builder.setNonHeapMax(metric.nonHeapMetricSet.max);
+        builder.setNonHeapInit(metric.nonHeapMetricSet.init);
+        builder.setNonHeapCommitted(metric.nonHeapMetricSet.committed);
+        builder.setNonHeapUsed(metric.nonHeapMetricSet.used);
+        builder.setPeakThreads(metric.threadMetricSet.peakActiveCount);
+        builder.setActiveThreads(metric.threadMetricSet.activeThreadsCount);
+        builder.setDaemonThreads(metric.threadMetricSet.activeDaemonCount);
+        builder.setTotalThreads(metric.threadMetricSet.totalCreatedCount);
+        builder.setClassLoaded(metric.classMetricSet.currentLoadedClasses);
+        builder.setClassUnloaded(metric.classMetricSet.totalUnloadedClasses);
+        builder.setMetaspaceCommitted(metric.metaspaceMetricSet.committed);
+        builder.setMetaspaceUsed(metric.metaspaceMetricSet.used);
+        builder.setMetaspaceInit(metric.metaspaceMetricSet.init);
+        builder.setMetaspaceMax(metric.metaspaceMetricSet.max);
+        builder.setDirectMax(metric.directMemMetricSet.max);
+        builder.setDirectUsed(metric.directMemMetricSet.used);
+        return builder.build();
     }
 
     @Override
