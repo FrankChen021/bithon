@@ -35,22 +35,27 @@ public class ReflectionUtils {
 
     public static Map<String, Object> getFields(Object object, Map<String, Object> map) {
         if (null != object) {
-            try {
-                Field[] declaredFields = object.getClass().getFields();
-                for (Field field : declaredFields) {
-                    if (Modifier.isStatic(field.getModifiers())) {
-                        continue;
-                    }
-
-                    String fieldName = field.getName();
-                    String methodName = "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-                    Method method = object.getClass().getMethod(methodName);
-                    Object value = method.invoke(object);
-
-                    map.put(fieldName, value);
+            Field[] declaredFields = object.getClass().getDeclaredFields();
+            for (Field field : declaredFields) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
                 }
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
+
+                String fieldName = field.getName();
+                if (fieldName.endsWith("_")) {
+                    // protobuf generated message classes
+                    fieldName = fieldName.substring(0, fieldName.length() - 1);
+                }
+
+                String methodName = "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                Method method = null;
+                try {
+                    method = object.getClass().getMethod(methodName);
+                    method.setAccessible(true);
+                    Object value = method.invoke(object);
+                    map.put(fieldName, value);
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+                }
             }
         }
         return map;
