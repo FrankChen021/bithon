@@ -19,6 +19,8 @@ package cn.bithon.rpc.message.serializer;
 
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
+import com.google.protobuf.ExtensionRegistryLite;
+import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.MessageLite;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -552,14 +554,16 @@ public class ProtocolBufferSerializer {
 
         @Override
         public void serialize(Object obj, CodedOutputStream os) throws IOException {
-            ((MessageLite) obj).writeTo(os);
+            os.writeMessageNoTag((MessageLite) obj);
         }
 
         @Override
         public Object deserialize(Type type, CodedInputStream is) throws IOException {
             try {
-                Method method = ((Class<?>) type).getDeclaredMethod("parseFrom", CodedInputStream.class);
-                return method.invoke(null, is);
+                Method newBuilderMethod = ((Class<?>) type).getDeclaredMethod("newBuilder");
+                GeneratedMessageV3.Builder builder = (GeneratedMessageV3.Builder) newBuilderMethod.invoke(null);
+                is.readMessage(builder, ExtensionRegistryLite.getEmptyRegistry());
+                return builder.build();
             } catch (NoSuchMethodException e) {
                 throw new IllegalStateException("Unknown protocolBuf class to deserialize");
             } catch (InvocationTargetException e) {

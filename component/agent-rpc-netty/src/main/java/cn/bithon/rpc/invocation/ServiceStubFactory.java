@@ -46,7 +46,7 @@ public class ServiceStubFactory {
 
     @SuppressWarnings("unchecked")
     public static <T extends IService> T create(IChannelWriter channelWriter, Class<T> serviceInterface) {
-        return (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
+        return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(),
                                           new Class[]{serviceInterface, IServiceController.class},
                                           new ServiceInvocationHandler(channelWriter,
                                                                        ClientInvocationManager.getInstance()));

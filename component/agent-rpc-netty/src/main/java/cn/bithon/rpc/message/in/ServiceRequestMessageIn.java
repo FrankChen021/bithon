@@ -73,7 +73,7 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
         for (int i = 0; i < argLength; i++) {
             try {
                 inputArgs[i] = serializer.deserialize(this.args, parameterTypes[i]);
-            } catch (IOException e) {
+            } catch (IOException | IllegalStateException e) {
                 throw new BadRequestException("Bad args for %s#%s: %s",
                                               serviceName,
                                               methodName,

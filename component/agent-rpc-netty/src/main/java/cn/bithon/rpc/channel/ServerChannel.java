@@ -54,7 +54,7 @@ public class ServerChannel implements Closeable {
     private final ServiceMessageChannelHandler channelReader = new ServiceMessageChannelHandler(serviceRegistry);
     private final Map<EndPoint, ClientService> clientServices = new ConcurrentHashMap<>();
 
-    public <T extends IService> ServerChannel bindService(Class<T> interfaceClass, T impl) {
+    public <T extends IService> ServerChannel bindService(Class<T> interfaceClass, IService impl) {
         serviceRegistry.addService(interfaceClass, impl);
         return this;
     }

@@ -31,7 +31,7 @@ public class ServiceRegistry {
 
     private final Map<String, RegistryItem> registry = new ConcurrentHashMap<>();
 
-    public <T extends IService> void addService(Class<T> serviceType, T serviceImpl) {
+    public <T extends IService> void addService(Class<T> serviceType, IService serviceImpl) {
         // override methods are not supported
         for (Method method : serviceType.getDeclaredMethods()) {
             String qualifiedName = method.toString();

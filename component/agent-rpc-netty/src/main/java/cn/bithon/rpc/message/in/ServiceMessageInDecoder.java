@@ -17,6 +17,7 @@
 package cn.bithon.rpc.message.in;
 
 import cn.bithon.rpc.message.ServiceMessageType;
+import cn.bithon.rpc.message.UnknownMessageException;
 import com.google.protobuf.CodedInputStream;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -37,7 +38,7 @@ public class ServiceMessageInDecoder extends ByteToMessageDecoder {
         } else if (messageType == ServiceMessageType.SERVER_RESPONSE) {
             out.add(new ServiceResponseMessageIn().decode(is));
         } else {
-            throw new RuntimeException("Unknown message type: " + messageType);
+            throw new UnknownMessageException(messageType);
         }
     }
 }

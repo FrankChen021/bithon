@@ -5,7 +5,10 @@ package cn.bithon.rpc.services.metrics;
 option java_multiple_files = true;
 
 enum ApplicationType {
-  JAVA = 0 ;
+  /**
+   * enum must start from 0
+   */
+  JAVA = 0;
 }
 
 /***************************************************************************/
@@ -19,4 +22,3 @@ message MessageHeader {
   int32 port = 5;
   ApplicationType appType = 6;
 }
-
