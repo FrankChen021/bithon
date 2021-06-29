@@ -22,8 +22,6 @@ import cn.bithon.rpc.exception.ServiceInvocationException;
 import cn.bithon.rpc.exception.TimeoutException;
 import cn.bithon.rpc.message.in.ServiceResponseMessageIn;
 import cn.bithon.rpc.message.out.ServiceRequestMessageOut;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.netty.channel.Channel;
 import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
@@ -48,7 +46,6 @@ public class ClientInvocationManager {
 
     private static final ClientInvocationManager INSTANCE = new ClientInvocationManager();
     private final AtomicLong transactionId = new AtomicLong(21515);
-    private final ObjectMapper om = new JsonMapper();
     private final Map<Long, InflightRequest> inflightRequests = new ConcurrentHashMap<>();
 
     public static ClientInvocationManager getInstance() {
