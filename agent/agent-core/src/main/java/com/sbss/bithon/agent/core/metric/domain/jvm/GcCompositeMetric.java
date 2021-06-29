@@ -21,23 +21,39 @@ package com.sbss.bithon.agent.core.metric.domain.jvm;
  * @date 2020/12/29 9:58 下午
  */
 public class GcCompositeMetric {
-    public String gcName;
+    private String gcName;
 
     /**
      * 0 - NEW
      * 1 - OLD
      */
-    public String generation;
+    private String generation;
 
     /**
      * count of GC between two intervals
      */
-    public long gcCount;
+    private long gcCount;
 
     /**
      * time of total GC between two intervals in milli seconds
      */
-    public long gcTime;
+    private long gcTime;
+
+    public String getGcName() {
+        return gcName;
+    }
+
+    public String getGeneration() {
+        return generation;
+    }
+
+    public long getGcCount() {
+        return gcCount;
+    }
+
+    public long getGcTime() {
+        return gcTime;
+    }
 
     public GcCompositeMetric(String gcName, String generation, long gcCount, long gcTime) {
         this.gcName = gcName;

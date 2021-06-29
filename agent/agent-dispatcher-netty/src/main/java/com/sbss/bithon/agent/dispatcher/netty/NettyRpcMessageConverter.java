@@ -16,7 +16,15 @@
 
 package com.sbss.bithon.agent.dispatcher.netty;
 
+import cn.bithon.rpc.services.metrics.ExceptionMetricMessage;
+import cn.bithon.rpc.services.metrics.HttpClientMetricMessage;
+import cn.bithon.rpc.services.metrics.JdbcPoolMetricMessage;
+import cn.bithon.rpc.services.metrics.JvmGcMetricMessage;
 import cn.bithon.rpc.services.metrics.JvmMetricMessage;
+import cn.bithon.rpc.services.metrics.RedisMetricMessage;
+import cn.bithon.rpc.services.metrics.ThreadPoolMetricMessage;
+import cn.bithon.rpc.services.metrics.WebRequestMetricMessage;
+import cn.bithon.rpc.services.metrics.WebServerMetricMessage;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
@@ -43,12 +51,43 @@ import java.util.Map;
 public class NettyRpcMessageConverter implements IMessageConverter {
     @Override
     public Object from(long timestamp, int interval, List<String> dimensions, HttpClientCompositeMetric metric) {
-        return null;
+        return HttpClientMetricMessage.newBuilder()
+                                      .setTimestamp(timestamp)
+                                      .setInterval(interval)
+                                      .setMaxResponseTime(metric.getResponseTime().getMax().get())
+                                      .setMinResponseTime(metric.getResponseTime().getMin().get())
+                                      .setResponseTime(metric.getResponseTime().getSum().get())
+                                      .setCount4Xx(metric.getCount4xx())
+                                      .setCount5Xx(metric.getCount5xx())
+                                      .setExceptionCount(metric.getExceptionCount())
+                                      .setRequestCount(metric.getRequestCount())
+                                      .setRequestBytes(metric.getRequestBytes())
+                                      .setResponseBytes(metric.getResponseBytes())
+                                      .build();
     }
 
     @Override
     public Object from(long timestamp, int interval, JdbcPoolMetricSet metric) {
-        return null;
+        return JdbcPoolMetricMessage.newBuilder()
+                                    .setTimestamp(timestamp)
+                                    .setInterval(interval)
+                                    .setConnectionString(metric.getConnectionString())
+                                    .setDriverClass(metric.getDriverClass())
+                                    .setActiveCount(metric.activeCount.get())
+                                    .setActivePeak(metric.activePeak.get())
+                                    .setPoolingCount(metric.poolingCount.get())
+                                    .setPoolingPeak(metric.poolingPeak.get())
+                                    .setCreateCount(metric.createCount.get())
+                                    .setDestroyCount(metric.destroyCount.get())
+                                    .setLogicCloseCount(metric.logicCloseCount.get())
+                                    .setLogicCloseCount(metric.logicCloseCount.get())
+                                    .setCreateErrorCount(metric.createErrorCount.get())
+                                    .setExecuteCount(metric.executeCount.get())
+                                    .setCommitCount(metric.commitCount.get())
+                                    .setRollbackCount(metric.rollbackCount.get())
+                                    .setStartTransactionCount(metric.startTransactionCount.get())
+                                    .setWaitThreadCount(metric.waitThreadCount.get())
+                                    .build();
     }
 
     @Override
@@ -63,7 +102,21 @@ public class NettyRpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(long timestamp, int interval, List<String> dimensions, WebRequestCompositeMetric metric) {
-        return null;
+        return WebRequestMetricMessage.newBuilder()
+                                      .setTimestamp(timestamp)
+                                      .setInterval(interval)
+                                      .setSrcApplication(dimensions.get(0))
+                                      .setUri(dimensions.get(1))
+                                      .setResponseTime(metric.getResponseTime().getSum().get())
+                                      .setMaxResponseTime(metric.getResponseTime().getMax().get())
+                                      .setMinResponseTime(metric.getResponseTime().getMin().get())
+                                      .setCallCount(metric.getRequestCount().get())
+                                      .setErrorCount(metric.getErrorCount().get())
+                                      .setCount4Xx(metric.getCount4xx().get())
+                                      .setCount5Xx(metric.getCount5xx().get())
+                                      .setRequestBytes(metric.getRequestBytes().get())
+                                      .setResponseBytes(metric.getResponseBytes().get())
+                                      .build();
     }
 
     @Override
@@ -104,7 +157,15 @@ public class NettyRpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(long timestamp, int interval, WebServerMetricSet metric) {
-        return null;
+        return WebServerMetricMessage.newBuilder()
+                                     .setTimestamp(timestamp)
+                                     .setInterval(interval)
+                                     .setActiveThreads(metric.getActiveThreads())
+                                     .setConnectionCount(metric.getConnectionCount())
+                                     .setMaxConnections(metric.getMaxConnections())
+                                     .setMaxThreads(metric.getMaxThreads())
+                                     .setType(metric.getServerType().toString())
+                                     .build();
     }
 
     @Override
@@ -114,17 +175,45 @@ public class NettyRpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(long timestamp, int interval, List<String> dimensions, RedisClientCompositeMetric metric) {
-        return null;
+        return RedisMetricMessage.newBuilder()
+                                 .setTimestamp(timestamp)
+                                 .setInterval(interval)
+                                 .setUri(dimensions.get(0))
+                                 .setCommand(dimensions.get(1))
+                                 .setRequestTime(metric.getRequestTime().getSum().get())
+                                 .setResponseTime(metric.getResponseTime().getSum().get())
+                                 .setTotalCount(metric.getCallCount())
+                                 .setExceptionCount(metric.getExceptionCount())
+                                 .setRequestBytes(metric.getRequestBytes())
+                                 .setResponseBytes(metric.getResponseBytes())
+                                 .build();
     }
 
     @Override
     public Object from(long timestamp, int interval, ExceptionMetricSet metric) {
-        return null;
+        return ExceptionMetricMessage.newBuilder()
+                                     .setTimestamp(timestamp)
+                                     .setInterval(interval)
+                                     .setUri(metric.getUri())
+                                     .setMessage(metric.getMessage())
+                                     .setExceptionCount(metric.getCount())
+                                     .build();
     }
 
     @Override
     public Object from(long timestamp, int interval, ThreadPoolCompositeMetric metric) {
-        return null;
+        return ThreadPoolMetricMessage.newBuilder().setTimestamp(timestamp)
+                                      .setInterval(interval)
+                                      .setExecutorClass(metric.getExecutorClass())
+                                      .setPoolName(metric.getThreadPoolName())
+                                      .setCallerRunTaskCount(metric.getCallerRunTaskCount())
+                                      .setAbortedTaskCount(metric.getAbortedTaskCount())
+                                      .setDiscardedOldestTaskCount(metric.getDiscardedOldestTaskCount())
+                                      .setDiscardedTaskCount(metric.getDiscardedTaskCount())
+                                      .setExceptionTaskCount(metric.getExceptionTaskCount())
+                                      .setSuccessfulTaskCount(metric.getSuccessfulTaskCount())
+                                      .setTotalTaskCount(metric.getTotalTaskCount())
+                                      .build();
     }
 
     @Override
@@ -144,6 +233,12 @@ public class NettyRpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(long timestamp, int interval, GcCompositeMetric gcMetricSet) {
-        return null;
+        return JvmGcMetricMessage.newBuilder().setTimestamp(timestamp)
+                                 .setInterval(interval)
+                                 .setGcName(gcMetricSet.getGcName())
+                                 .setGeneration(gcMetricSet.getGeneration())
+                                 .setGcTime(gcMetricSet.getGcTime())
+                                 .setGcCount(gcMetricSet.getGcCount())
+                                 .build();
     }
 }
