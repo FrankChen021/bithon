@@ -195,6 +195,19 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <echo message="****** Clear Agent Plugin Output Directory: ../${project.distribution.dir}/plugins *****" />
+                <delete dir="../${project.distribution.dir}/plugins" />
+              </tasks>
+            </configuration>
+          </execution>
+          <execution>
             <phase>package</phase>
             <goals>
               <goal>run</goal>
