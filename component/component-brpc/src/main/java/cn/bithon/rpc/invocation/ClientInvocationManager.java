@@ -153,6 +153,21 @@ public class ClientInvocationManager {
         }
     }
 
+    public void onClientException(long txId, Throwable e) {
+        InflightRequest inflightRequest = inflightRequests.remove(txId);
+        if (inflightRequest == null) {
+            return;
+        }
+
+        inflightRequest.exception = e.toString();
+
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
+        synchronized (inflightRequest) {
+            inflightRequest.returned = true;
+            inflightRequest.notify();
+        }
+    }
+
     static class InflightRequest {
         long requestAt;
         long responseAt;

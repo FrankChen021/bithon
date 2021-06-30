@@ -33,7 +33,7 @@ public class ServiceMessageInDecoder extends ByteToMessageDecoder {
         CodedInputStream is = CodedInputStream.newInstance(new ByteBufInputStream(in));
 
         int messageType = is.readInt32();
-        if (messageType == ServiceMessageType.CLIENT_REQUEST) {
+        if (messageType == ServiceMessageType.CLIENT_REQUEST || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY) {
             out.add(new ServiceRequestMessageIn().decode(is));
         } else if (messageType == ServiceMessageType.SERVER_RESPONSE) {
             out.add(new ServiceResponseMessageIn().decode(is));

@@ -25,6 +25,7 @@ import java.io.IOException;
 
 public class ServiceRequestMessageOut extends ServiceMessageOut {
 
+    private boolean isOneway;
     private String serviceName;
     private String methodName;
 
@@ -47,7 +48,7 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
 
     @Override
     public int getMessageType() {
-        return ServiceMessageType.CLIENT_REQUEST;
+        return isOneway ? ServiceMessageType.CLIENT_REQUEST_ONEWAY : ServiceMessageType.CLIENT_REQUEST;
     }
 
     @Override
@@ -86,6 +87,11 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
 
         public Builder args(Object[] args) {
             request.args = args;
+            return this;
+        }
+
+        public Builder isOneway(boolean isOneway) {
+            request.isOneway = isOneway;
             return this;
         }
 
