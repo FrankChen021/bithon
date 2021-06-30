@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.agent.rpc.brpc.tracing;
 
-import cn.bithon.rpc.IService;
-import cn.bithon.rpc.Oneway;
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
+import com.sbss.bithon.component.brpc.IService;
+import com.sbss.bithon.component.brpc.Oneway;
 
 import java.util.List;
 

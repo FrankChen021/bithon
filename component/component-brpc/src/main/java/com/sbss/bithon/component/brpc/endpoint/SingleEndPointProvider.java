@@ -14,16 +14,21 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
+package com.sbss.bithon.component.brpc.endpoint;
 
-import com.sbss.bithon.component.brpc.IService;
+public class SingleEndPointProvider implements IEndPointProvider {
+    private final EndPoint ep;
+    private final String host;
+    private final int port;
 
-import java.util.Map;
+    public SingleEndPointProvider(String host, int port) {
+        this.host = host;
+        this.port = port;
+        ep = new EndPoint(host, port);
+    }
 
-/**
- * @author frank.chen021@outlook.com
- * @date 2021/6/30 3:25 下午
- */
-public interface ISettingFetcher extends IService {
-    Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
+    @Override
+    public EndPoint getEndpoint() {
+        return ep;
+    }
 }

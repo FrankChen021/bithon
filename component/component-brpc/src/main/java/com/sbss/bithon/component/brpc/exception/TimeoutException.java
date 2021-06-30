@@ -14,16 +14,10 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
+package com.sbss.bithon.component.brpc.exception;
 
-import com.sbss.bithon.component.brpc.IService;
-
-import java.util.Map;
-
-/**
- * @author frank.chen021@outlook.com
- * @date 2021/6/30 3:25 下午
- */
-public interface ISettingFetcher extends IService {
-    Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
+public class TimeoutException extends ServiceInvocationException {
+    public TimeoutException(CharSequence service, CharSequence method, int timeout) {
+        super(String.format("Timeout(%d millisecond) to call %s#%s", timeout, service, method));
+    }
 }

@@ -14,16 +14,17 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
-
-import com.sbss.bithon.component.brpc.IService;
-
-import java.util.Map;
+package com.sbss.bithon.component.brpc.exception;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/6/30 3:25 下午
+ * used only at server side for code simplification, and should not be used at client side
  */
-public interface ISettingFetcher extends IService {
-    Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
+public class BadRequestException extends ServiceInvocationException {
+    public BadRequestException(String message) {
+        super("Bad Request:" + message);
+    }
+
+    public BadRequestException(String messageFormat, Object... args) {
+        super(messageFormat, args);
+    }
 }

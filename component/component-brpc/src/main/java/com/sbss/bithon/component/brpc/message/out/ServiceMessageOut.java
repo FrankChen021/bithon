@@ -14,16 +14,14 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
+package com.sbss.bithon.component.brpc.message.out;
 
-import com.sbss.bithon.component.brpc.IService;
+import com.google.protobuf.CodedOutputStream;
+import com.sbss.bithon.component.brpc.message.ServiceMessage;
 
-import java.util.Map;
+import java.io.IOException;
 
-/**
- * @author frank.chen021@outlook.com
- * @date 2021/6/30 3:25 下午
- */
-public interface ISettingFetcher extends IService {
-    Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
+public abstract class ServiceMessageOut extends ServiceMessage {
+
+    public abstract void encode(CodedOutputStream out) throws IOException;
 }

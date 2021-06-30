@@ -17,9 +17,9 @@
 package com.sbss.bithon.agent.rpc.brpc.event;
 
 
-import cn.bithon.rpc.IService;
-import cn.bithon.rpc.Oneway;
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
+import com.sbss.bithon.component.brpc.IService;
+import com.sbss.bithon.component.brpc.Oneway;
 
 /**
  * @author frank.chen021@outlook.com

@@ -14,16 +14,19 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
+package com.sbss.bithon.component.brpc;
 
-import com.sbss.bithon.component.brpc.IService;
-
-import java.util.Map;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/6/30 3:25 下午
+ * Annotate a method to tell the RPC framework that there's no need to wait for response from RPC server
+ * <p>
+ * Usually, this annotation should only applied to a method returning 'void'
  */
-public interface ISettingFetcher extends IService {
-    Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Oneway {
 }

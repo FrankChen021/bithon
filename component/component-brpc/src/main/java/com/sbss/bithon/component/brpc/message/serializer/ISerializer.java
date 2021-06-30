@@ -14,16 +14,25 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
+package com.sbss.bithon.component.brpc.message.serializer;
 
-import com.sbss.bithon.component.brpc.IService;
+import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.CodedOutputStream;
 
-import java.util.Map;
+import java.io.IOException;
+import java.lang.reflect.Type;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/6/30 3:25 下午
+ * serializer for service arguments and returning object
  */
-public interface ISettingFetcher extends IService {
-    Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
+public interface ISerializer {
+    /**
+     * type of serializer
+     * Encoded in the message for deserialization
+     */
+    int getType();
+
+    void serialize(CodedOutputStream os, Object obj) throws IOException;
+
+    Object deserialize(CodedInputStream is, Type type) throws IOException;
 }

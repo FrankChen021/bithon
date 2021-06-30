@@ -14,16 +14,13 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
+package com.sbss.bithon.component.brpc.message.serializer;
 
-import com.sbss.bithon.component.brpc.IService;
-
-import java.util.Map;
-
-/**
- * @author frank.chen021@outlook.com
- * @date 2021/6/30 3:25 下午
- */
-public interface ISettingFetcher extends IService {
-    Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
+public class SerializerFactory {
+    public static ISerializer getSerializer(int type) {
+        if (type == BinarySerializer.INSTANCE.getType()) {
+            return BinarySerializer.INSTANCE;
+        }
+        throw new IllegalArgumentException("Unknown serializer: " + type);
+    }
 }

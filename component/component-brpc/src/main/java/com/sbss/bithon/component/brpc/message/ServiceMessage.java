@@ -14,16 +14,22 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
-
-import com.sbss.bithon.component.brpc.IService;
-
-import java.util.Map;
+package com.sbss.bithon.component.brpc.message;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/6/30 3:25 下午
+ * 4: messageType
+ * 4: serializer(JSON/Binary)
+ * 8: transactionId
  */
-public interface ISettingFetcher extends IService {
-    Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
+public abstract class ServiceMessage {
+    protected long transactionId;
+
+    /**
+     * {@link ServiceMessageType}
+     */
+    public abstract int getMessageType();
+
+    public long getTransactionId() {
+        return transactionId;
+    }
 }

@@ -16,9 +16,6 @@
 
 package com.sbss.bithon.agent.dispatcher.brpc;
 
-import cn.bithon.rpc.channel.ClientChannel;
-import cn.bithon.rpc.endpoint.EndPoint;
-import cn.bithon.rpc.endpoint.RoundRobinEndPointProvider;
 import com.sbss.bithon.agent.core.config.DispatcherConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
@@ -27,6 +24,9 @@ import com.sbss.bithon.agent.rpc.brpc.ApplicationType;
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
+import com.sbss.bithon.component.brpc.channel.ClientChannel;
+import com.sbss.bithon.component.brpc.endpoint.EndPoint;
+import com.sbss.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 

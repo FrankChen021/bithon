@@ -16,12 +16,12 @@
 
 package com.sbss.bithon.server.collector.brpc;
 
-import cn.bithon.rpc.IService;
-import cn.bithon.rpc.channel.ServerChannel;
 import com.sbss.bithon.agent.rpc.brpc.ISettingFetcher;
 import com.sbss.bithon.agent.rpc.brpc.event.IEventCollector;
 import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
+import com.sbss.bithon.component.brpc.IService;
+import com.sbss.bithon.component.brpc.channel.ServerChannel;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.setting.AgentSettingService;
 import com.sbss.bithon.server.setting.BrpcSettingFetcher;

@@ -14,16 +14,18 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
+package com.sbss.bithon.component.brpc.channel;
 
-import com.sbss.bithon.component.brpc.IService;
+import io.netty.channel.Channel;
 
-import java.util.Map;
+public interface IChannelWriter {
 
-/**
- * @author frank.chen021@outlook.com
- * @date 2021/6/30 3:25 下午
- */
-public interface ISettingFetcher extends IService {
-    Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
+    void connect();
+
+    /**
+     * get underlying channel object
+     */
+    Channel getChannel();
+
+    void writeAndFlush(Object obj);
 }
