@@ -19,6 +19,7 @@ package com.sbss.bithon.server.collector.netty;
 import cn.bithon.rpc.IService;
 import cn.bithon.rpc.channel.ServerChannel;
 import cn.bithon.rpc.services.IMetricCollector;
+import cn.bithon.rpc.services.ITraceCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -73,7 +74,7 @@ public class NettyCollectorStarter implements SmartLifecycle, ApplicationContext
             String service = entry.getKey();
             Integer port = entry.getValue();
 
-            Class clazz = null;
+            Class<? extends IService> clazz = null;
             IService processor = null;
             switch (service) {
                 case "metric":
@@ -85,6 +86,8 @@ public class NettyCollectorStarter implements SmartLifecycle, ApplicationContext
                     break;
 
                 case "tracing":
+                    clazz = ITraceCollector.class;
+                    processor = new NettyTraceCollector(applicationContext.getBean("traceSink", IMessageSink.class));
                     break;
 
                 case "setting":
@@ -102,10 +105,7 @@ public class NettyCollectorStarter implements SmartLifecycle, ApplicationContext
 
         serviceGroups.forEach((port, serviceGroup) -> {
             ServerChannel channel = new ServerChannel();
-
-            serviceGroup.getServices().forEach((service) -> {
-                channel.bindService(service.getClazz(), service.getImpl());
-            });
+            serviceGroup.getServices().forEach((service) -> channel.bindService(service.getClazz(), service.getImpl()));
             channel.start(port);
         });
 

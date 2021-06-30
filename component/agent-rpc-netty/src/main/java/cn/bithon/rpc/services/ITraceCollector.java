@@ -16,9 +16,19 @@
 
 package cn.bithon.rpc.services;
 
+import cn.bithon.rpc.IService;
+import cn.bithon.rpc.Oneway;
+import cn.bithon.rpc.services.metrics.MessageHeader;
+import cn.bithon.rpc.services.tracing.TraceSpanMessage;
+
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 19:57
  */
-public interface ITraceCollector {
+public interface ITraceCollector extends IService {
+
+    @Oneway
+    void sendTrace(MessageHeader header, List<TraceSpanMessage> spans);
 }

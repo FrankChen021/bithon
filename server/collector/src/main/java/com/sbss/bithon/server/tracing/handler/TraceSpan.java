@@ -20,6 +20,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import lombok.Data;
+import org.springframework.util.StringUtils;
 
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +46,44 @@ public class TraceSpan {
     public String name;
     public String clazz;
     public String method;
+
+    public static CloseableIterator<TraceSpan> of(cn.bithon.rpc.services.metrics.MessageHeader header, List<cn.bithon.rpc.services.tracing.TraceSpanMessage> messages) {
+
+        Iterator<cn.bithon.rpc.services.tracing.TraceSpanMessage> delegate = messages.iterator();
+        return new CloseableIterator<TraceSpan>() {
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public boolean hasNext() {
+                return delegate.hasNext();
+            }
+
+            @Override
+            public TraceSpan next() {
+                cn.bithon.rpc.services.tracing.TraceSpanMessage spanMessage = delegate.next();
+
+                TraceSpan traceSpan = new TraceSpan();
+                traceSpan.appName = header.getAppName();
+                traceSpan.instanceName = header.getInstanceName();
+                traceSpan.kind = spanMessage.getKind();
+                traceSpan.name = spanMessage.getName();
+                traceSpan.traceId = spanMessage.getTraceId();
+                traceSpan.spanId = spanMessage.getSpanId();
+                traceSpan.parentSpanId = StringUtils.isEmpty(spanMessage.getParentSpanId()) ? "" : spanMessage.getParentSpanId();
+                traceSpan.parentApplication = spanMessage.getParentAppName();
+                traceSpan.startTime = spanMessage.getStartTime();
+                traceSpan.endTime = spanMessage.getEndTime();
+                traceSpan.costTime = spanMessage.getEndTime() - spanMessage.getStartTime();
+                traceSpan.tags = spanMessage.getTagsMap();
+                traceSpan.clazz = spanMessage.getClazz();
+                traceSpan.method = spanMessage.getMethod();
+
+                return traceSpan;
+            }
+        };
+    }
 
     public static CloseableIterator<TraceSpan> from(MessageHeader header, List<TraceSpanMessage> messages) {
 

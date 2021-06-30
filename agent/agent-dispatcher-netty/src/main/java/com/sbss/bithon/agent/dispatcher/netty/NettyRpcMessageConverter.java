@@ -25,6 +25,7 @@ import cn.bithon.rpc.services.metrics.RedisMetricMessage;
 import cn.bithon.rpc.services.metrics.ThreadPoolMetricMessage;
 import cn.bithon.rpc.services.metrics.WebRequestMetricMessage;
 import cn.bithon.rpc.services.metrics.WebServerMetricMessage;
+import cn.bithon.rpc.services.tracing.TraceSpanMessage;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
@@ -218,7 +219,23 @@ public class NettyRpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(TraceSpan span) {
-        return null;
+        TraceSpanMessage.Builder builder = TraceSpanMessage.newBuilder()
+                                                           .setTraceId(span.traceId())
+                                                           .setSpanId(span.spanId())
+                                                           .setStartTime(span.startTime())
+                                                           .setEndTime(span.endTime())
+                                                           .setKind(span.kind().toString())
+                                                           .setName(span.component())
+                                                           .setClazz(span.clazz())
+                                                           .setMethod(span.method())
+                                                           .putAllTags(span.tags());
+        if (span.parentApplication() != null) {
+            builder.setParentAppName(span.parentApplication());
+        }
+        if (span.parentSpanId() != null) {
+            builder.setParentSpanId(span.parentSpanId());
+        }
+        return builder.build();
     }
 
     @Override
