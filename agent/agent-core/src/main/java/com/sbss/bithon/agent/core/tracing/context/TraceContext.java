@@ -22,6 +22,8 @@ import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter
 import com.sbss.bithon.agent.core.tracing.report.ITraceReporter;
 import com.sbss.bithon.agent.core.tracing.sampling.SamplingMode;
 import com.sbss.bithon.agent.core.utils.time.Clock;
+import shaded.org.slf4j.Logger;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,7 @@ import java.util.Stack;
  * @date 2021/2/5 8:48 下午
  */
 public class TraceContext {
+    private static final Logger log = LoggerFactory.getLogger(TraceContext.class);
 
     private final ITraceReporter reporter;
     private final ITraceIdGenerator idGenerator;
@@ -88,8 +91,13 @@ public class TraceContext {
     public void finish() {
         if (!spanStack.isEmpty()) {
             // TODO: ERROR
+            return;
         }
-        this.reporter.report(this.spans);
+        try {
+            this.reporter.report(this.spans);
+        } catch (Exception e) {
+            log.error("Exception when reporting tracing", e);
+        }
     }
 
     TraceSpan onSpanCreated(TraceSpan span) {
