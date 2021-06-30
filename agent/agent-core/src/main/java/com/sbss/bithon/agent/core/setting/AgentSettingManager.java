@@ -75,7 +75,7 @@ public class AgentSettingManager {
         } else {
             log.warn("Fetcher Impl has not configured.");
         }
-        INSTANCE = new AgentSettingManager(appInstance.getAppName(),
+        INSTANCE = new AgentSettingManager(appInstance.getRawAppName(),
                                            appInstance.getEnv(),
                                            fetcher);
         INSTANCE.start();
@@ -106,6 +106,8 @@ public class AgentSettingManager {
     }
 
     private void fetchSettings() {
+        log.info("Fetch setting for {}-{}", appName, env);
+
         Map<String, String> settings = settingFetcher.fetch(appName, env, lastModifiedAt);
         if (CollectionUtils.isEmpty(settings)) {
             return;

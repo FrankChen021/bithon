@@ -20,8 +20,11 @@ import cn.bithon.rpc.IService;
 import cn.bithon.rpc.channel.ServerChannel;
 import cn.bithon.rpc.services.IEventCollector;
 import cn.bithon.rpc.services.IMetricCollector;
+import cn.bithon.rpc.services.ISettingFetcher;
 import cn.bithon.rpc.services.ITraceCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
+import com.sbss.bithon.server.setting.AgentSettingService;
+import com.sbss.bithon.server.setting.BrpcSettingFetcher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +97,8 @@ public class NettyCollectorStarter implements SmartLifecycle, ApplicationContext
                     break;
 
                 case "setting":
-                    //processor = new SettingService.Processor<>(applicationContext.getBean(SettingService.Iface.class));
+                    clazz = ISettingFetcher.class;
+                    processor = new BrpcSettingFetcher(applicationContext.getBean(AgentSettingService.class));
                     break;
 
                 default:

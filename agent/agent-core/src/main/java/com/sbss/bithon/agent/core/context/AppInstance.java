@@ -31,6 +31,7 @@ import java.util.List;
 public class AppInstance {
     private static final Logger log = LoggerFactory.getLogger(AppInstance.class);
 
+    private final String rawAppName;
     private final String appName;
     private final String hostIp;
     private final String env;
@@ -38,6 +39,7 @@ public class AppInstance {
     private int port;
 
     AppInstance(String appName, String env) {
+        this.rawAppName = appName;
         this.appName = appName + "-" + env;
         this.env = env;
         this.port = 0;
@@ -67,6 +69,10 @@ public class AppInstance {
                 log.error("portChanged Notify failed", e);
             }
         }
+    }
+
+    public String getRawAppName() {
+        return rawAppName;
     }
 
     public String getHostIp() {
