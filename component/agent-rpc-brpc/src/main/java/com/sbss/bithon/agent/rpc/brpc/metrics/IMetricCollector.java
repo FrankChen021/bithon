@@ -14,21 +14,11 @@
  *    limitations under the License.
  */
 
-package cn.bithon.rpc.services;
+package com.sbss.bithon.agent.rpc.brpc.metrics;
 
 import cn.bithon.rpc.IService;
 import cn.bithon.rpc.Oneway;
-import cn.bithon.rpc.services.metrics.ExceptionMetricMessage;
-import cn.bithon.rpc.services.metrics.HttpClientMetricMessage;
-import cn.bithon.rpc.services.metrics.JdbcPoolMetricMessage;
-import cn.bithon.rpc.services.metrics.JvmGcMetricMessage;
-import cn.bithon.rpc.services.metrics.JvmMetricMessage;
-import cn.bithon.rpc.services.metrics.MongoDbMetricMessage;
-import cn.bithon.rpc.services.metrics.RedisMetricMessage;
-import cn.bithon.rpc.services.metrics.SqlMetricMessage;
-import cn.bithon.rpc.services.metrics.ThreadPoolMetricMessage;
-import cn.bithon.rpc.services.metrics.WebRequestMetricMessage;
-import cn.bithon.rpc.services.metrics.WebServerMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
 
 import java.util.List;
 
@@ -41,7 +31,6 @@ public interface IMetricCollector extends IService {
     @Oneway
     void sendWebRequest(MessageHeader header, List<WebRequestMetricMessage> messages);
 
-    @Oneway
     void sendJvm(MessageHeader header, List<JvmMetricMessage> messages);
 
     @Oneway

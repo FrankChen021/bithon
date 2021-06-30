@@ -14,19 +14,19 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.dispatcher.netty;
+package com.sbss.bithon.agent.dispatcher.brpc;
 
 import cn.bithon.rpc.channel.ClientChannel;
 import cn.bithon.rpc.endpoint.EndPoint;
 import cn.bithon.rpc.endpoint.RoundRobinEndPointProvider;
-import cn.bithon.rpc.services.ApplicationType;
-import cn.bithon.rpc.services.ITraceCollector;
-import cn.bithon.rpc.services.MessageHeader;
-import cn.bithon.rpc.services.tracing.TraceSpanMessage;
 import com.sbss.bithon.agent.core.config.DispatcherConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannel;
+import com.sbss.bithon.agent.rpc.brpc.ApplicationType;
+import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
+import com.sbss.bithon.agent.rpc.brpc.tracing.TraceSpanMessage;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 

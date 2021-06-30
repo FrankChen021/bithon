@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.server.metric.handler;
 
-import cn.bithon.rpc.services.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
 
 import java.util.HashMap;

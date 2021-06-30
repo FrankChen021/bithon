@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.server.collector.netty;
+package com.sbss.bithon.server.collector.brpc;
 
-import cn.bithon.rpc.services.IEventCollector;
-import cn.bithon.rpc.services.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.event.IEventCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.event.handler.EventMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -27,16 +27,16 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2021/2/14 3:59 下午
  */
 @Slf4j
-public class NettyEventCollector implements IEventCollector {
+public class BrpcEventCollector implements IEventCollector {
 
     private final IMessageSink<EventMessage> eventSink;
 
-    public NettyEventCollector(IMessageSink<EventMessage> eventSink) {
+    public BrpcEventCollector(IMessageSink<EventMessage> eventSink) {
         this.eventSink = eventSink;
     }
 
     @Override
-    public void sendEvent(MessageHeader header, cn.bithon.rpc.services.event.EventMessage message) {
+    public void sendEvent(MessageHeader header, com.sbss.bithon.agent.rpc.brpc.event.EventMessage message) {
         EventMessage eventMessage = EventMessage.builder().appName(header.getAppName())
                                                 .instanceName(header.getInstanceName())
                                                 .timestamp(message.getTimestamp())

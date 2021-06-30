@@ -14,18 +14,18 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.dispatcher.netty;
+package com.sbss.bithon.agent.dispatcher.brpc;
 
 import cn.bithon.rpc.channel.ClientChannel;
 import cn.bithon.rpc.endpoint.EndPoint;
 import cn.bithon.rpc.endpoint.RoundRobinEndPointProvider;
-import cn.bithon.rpc.services.ApplicationType;
-import cn.bithon.rpc.services.ISettingFetcher;
-import cn.bithon.rpc.services.MessageHeader;
 import com.sbss.bithon.agent.core.config.FetcherConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.setting.IAgentSettingFetcher;
+import com.sbss.bithon.agent.rpc.brpc.ApplicationType;
+import com.sbss.bithon.agent.rpc.brpc.ISettingFetcher;
+import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
 
 import java.time.Duration;
 import java.util.List;

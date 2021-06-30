@@ -42,7 +42,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <DispatcherFactory>com.sbss.bithon.agent.dispatcher.netty.MessageChannelFactory
+              <DispatcherFactory>com.sbss.bithon.agent.dispatcher.brpc.BrpcChannelFactory
               </DispatcherFactory>
             </manifestEntries>
           </archive>

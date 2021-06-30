@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package cn.bithon.rpc.services;
+package com.sbss.bithon.agent.rpc.brpc;
 
 option java_multiple_files = true;
 

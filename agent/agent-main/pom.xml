@@ -33,6 +33,13 @@
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-dispatcher-brpc</artifactId>
+      <exclusions>
+        <!-- exclude the common component since it has been shaded into agent-rpc-brpc-->
+        <exclusion>
+          <artifactId>component-brpc</artifactId>
+          <groupId>com.sbss.bithon</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>

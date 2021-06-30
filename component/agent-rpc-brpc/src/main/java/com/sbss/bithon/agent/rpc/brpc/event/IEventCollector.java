@@ -14,20 +14,20 @@
  *    limitations under the License.
  */
 
-package cn.bithon.rpc.services;
+package com.sbss.bithon.agent.rpc.brpc.event;
+
 
 import cn.bithon.rpc.IService;
 import cn.bithon.rpc.Oneway;
-import cn.bithon.rpc.services.tracing.TraceSpanMessage;
-
-import java.util.List;
+import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 19:57
  */
-public interface ITraceCollector extends IService {
+public interface IEventCollector extends IService {
 
     @Oneway
-    void sendTrace(MessageHeader header, List<TraceSpanMessage> spans);
+    void sendEvent(MessageHeader header, EventMessage body);
+
 }

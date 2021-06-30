@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.dispatcher.netty;
+package com.sbss.bithon.agent.dispatcher.brpc;
 
 import com.sbss.bithon.agent.core.config.FetcherConfig;
 import com.sbss.bithon.agent.core.setting.IAgentSettingFetcher;

@@ -16,7 +16,7 @@ collector-thrift:
       "[max.in.flight.requests.per.connection]": 1
       "[retries]": 3
 
-collector-netty:
+collector-brpc:
   enabled: true
   port:
     tracing: 9895

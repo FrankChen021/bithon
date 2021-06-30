@@ -14,24 +14,28 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.dispatcher.netty;
+package com.sbss.bithon.agent.dispatcher.brpc;
 
 import cn.bithon.rpc.channel.ClientChannel;
 import cn.bithon.rpc.endpoint.EndPoint;
 import cn.bithon.rpc.endpoint.RoundRobinEndPointProvider;
-import cn.bithon.rpc.services.ApplicationType;
-import cn.bithon.rpc.services.IEventCollector;
-import cn.bithon.rpc.services.MessageHeader;
-import cn.bithon.rpc.services.event.EventMessage;
 import com.sbss.bithon.agent.core.config.DispatcherConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannel;
+import com.sbss.bithon.agent.rpc.brpc.ApplicationType;
+import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
-import java.time.Duration;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,21 +43,42 @@ import java.util.stream.Stream;
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 20:14
  */
-public class EventMessageChannel implements IMessageChannel {
-    private static final Logger log = LoggerFactory.getLogger(EventMessageChannel.class);
+public class MetricMessageChannel implements IMessageChannel {
+    private static final Logger log = LoggerFactory.getLogger(MetricMessageChannel.class);
 
+    private final Map<String, Method> sendMethods = new HashMap<>();
     private final DispatcherConfig dispatcherConfig;
-    private final IEventCollector eventCollector;
     private MessageHeader header;
+    private final IMetricCollector metricCollector;
 
-    public EventMessageChannel(DispatcherConfig dispatcherConfig) {
+    public MetricMessageChannel(DispatcherConfig dispatcherConfig) {
+        Method[] methods = IMetricCollector.class.getDeclaredMethods();
+        for (Method method : methods) {
+            if (method.getParameterCount() != 2) {
+                continue;
+            }
+            if (!method.getName().startsWith("send")) {
+                continue;
+            }
+            Type[] paramTypes = method.getGenericParameterTypes();
+            if (!paramTypes[0].equals(MessageHeader.class)) {
+                continue;
+            }
+
+            Type metricMessageParamType = paramTypes[1];
+            if (metricMessageParamType instanceof ParameterizedType) {
+                Type messageType = ((ParameterizedType) metricMessageParamType).getActualTypeArguments()[0];
+                if (messageType instanceof Class) {
+                    sendMethods.put(((Class<?>) messageType).getName(), method);
+                }
+            }
+        }
+
         List<EndPoint> endpoints = Stream.of(dispatcherConfig.getServers().split(",")).map(hostAndPort -> {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        eventCollector = new ClientChannel(new RoundRobinEndPointProvider(endpoints))
-            .configureRetry(3, Duration.ofMillis(200))
-            .getRemoteService(IEventCollector.class);
+        metricCollector = new ClientChannel(new RoundRobinEndPointProvider(endpoints)).getRemoteService(IMetricCollector.class);
 
         this.dispatcherConfig = dispatcherConfig;
 
@@ -80,14 +105,30 @@ public class EventMessageChannel implements IMessageChannel {
 
     @Override
     public void sendMessage(Object message) {
-        if (!(message instanceof EventMessage)) {
+        if (!(message instanceof List)) {
+            return;
+        }
+        if (((List<?>) message).isEmpty()) {
             return;
         }
 
-        boolean isDebugOn = this.dispatcherConfig.getMessageDebug().getOrDefault(EventMessage.class.getName(), false);
-        if (isDebugOn) {
-            log.info("[Debugging] Sending Event Messages: {}", message);
+        final String messageClass = ((List<?>) message).get(0).getClass().getName();
+
+        Method method = sendMethods.get(messageClass);
+        if (null == method) {
+            log.error("No service method found for entity: " + messageClass);
+            return;
         }
-        eventCollector.sendEvent(header, (EventMessage) message);
+        try {
+            boolean isDebugOn = this.dispatcherConfig.getMessageDebug().getOrDefault(messageClass, false);
+            if (isDebugOn) {
+                log.info("[Debugging] Sending Thrift Messages: {}", message);
+            }
+            method.invoke(metricCollector, header, message);
+        } catch (IllegalAccessException e) {
+            log.warn("Failed to send metrics: []-[]", messageClass, method);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e.getTargetException());
+        }
     }
 }

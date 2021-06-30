@@ -14,14 +14,14 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.server.collector.netty;
+package com.sbss.bithon.server.collector.brpc;
 
 import cn.bithon.rpc.IService;
 import cn.bithon.rpc.channel.ServerChannel;
-import cn.bithon.rpc.services.IEventCollector;
-import cn.bithon.rpc.services.IMetricCollector;
-import cn.bithon.rpc.services.ISettingFetcher;
-import cn.bithon.rpc.services.ITraceCollector;
+import com.sbss.bithon.agent.rpc.brpc.ISettingFetcher;
+import com.sbss.bithon.agent.rpc.brpc.event.IEventCollector;
+import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
+import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.setting.AgentSettingService;
 import com.sbss.bithon.server.setting.BrpcSettingFetcher;
@@ -46,8 +46,8 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-@ConditionalOnProperty(value = "collector-netty.enabled", havingValue = "true", matchIfMissing = false)
-public class NettyCollectorStarter implements SmartLifecycle, ApplicationContextAware {
+@ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true", matchIfMissing = false)
+public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextAware {
 
     private final List<ServerChannel> servers = new ArrayList<>();
     private ApplicationContext applicationContext;
@@ -68,7 +68,7 @@ public class NettyCollectorStarter implements SmartLifecycle, ApplicationContext
     @SuppressWarnings("unchecked")
     @Override
     public void start() {
-        NettyCollectorConfig config = applicationContext.getBean(NettyCollectorConfig.class);
+        BrpcCollectorConfig config = applicationContext.getBean(BrpcCollectorConfig.class);
         Map<Integer, ServiceGroup> serviceGroups = new HashMap<>();
 
         //
@@ -83,17 +83,17 @@ public class NettyCollectorStarter implements SmartLifecycle, ApplicationContext
             switch (service) {
                 case "metric":
                     clazz = IMetricCollector.class;
-                    processor = new NettyMetricCollector(applicationContext.getBean("metricSink", IMessageSink.class));
+                    processor = new BrpcMetricCollector(applicationContext.getBean("metricSink", IMessageSink.class));
                     break;
 
                 case "event":
                     clazz = IEventCollector.class;
-                    processor = new NettyEventCollector(applicationContext.getBean("eventSink", IMessageSink.class));
+                    processor = new BrpcEventCollector(applicationContext.getBean("eventSink", IMessageSink.class));
                     break;
 
                 case "tracing":
                     clazz = ITraceCollector.class;
-                    processor = new NettyTraceCollector(applicationContext.getBean("traceSink", IMessageSink.class));
+                    processor = new BrpcTraceCollector(applicationContext.getBean("traceSink", IMessageSink.class));
                     break;
 
                 case "setting":

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.dispatcher.netty;
+package com.sbss.bithon.agent.dispatcher.brpc;
 
 
 import com.sbss.bithon.agent.core.config.DispatcherConfig;
@@ -26,7 +26,7 @@ import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 20:01
  */
-public class MessageChannelFactory implements IMessageChannelFactory {
+public class BrpcChannelFactory implements IMessageChannelFactory {
     @Override
     public IMessageChannel createMetricChannel(DispatcherConfig dispatcherConfig) {
         return new MetricMessageChannel(dispatcherConfig);
@@ -44,6 +44,6 @@ public class MessageChannelFactory implements IMessageChannelFactory {
 
     @Override
     public IMessageConverter createMessageConverter() {
-        return new NettyRpcMessageConverter();
+        return new BrpcMessageConverter();
     }
 }

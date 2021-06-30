@@ -14,18 +14,8 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.dispatcher.netty;
+package com.sbss.bithon.agent.dispatcher.brpc;
 
-import cn.bithon.rpc.services.metrics.ExceptionMetricMessage;
-import cn.bithon.rpc.services.metrics.HttpClientMetricMessage;
-import cn.bithon.rpc.services.metrics.JdbcPoolMetricMessage;
-import cn.bithon.rpc.services.metrics.JvmGcMetricMessage;
-import cn.bithon.rpc.services.metrics.JvmMetricMessage;
-import cn.bithon.rpc.services.metrics.RedisMetricMessage;
-import cn.bithon.rpc.services.metrics.ThreadPoolMetricMessage;
-import cn.bithon.rpc.services.metrics.WebRequestMetricMessage;
-import cn.bithon.rpc.services.metrics.WebServerMetricMessage;
-import cn.bithon.rpc.services.tracing.TraceSpanMessage;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
@@ -41,6 +31,16 @@ import com.sbss.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric
 import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.rpc.brpc.metrics.ExceptionMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.HttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.JdbcPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.JvmGcMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.JvmMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.RedisMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.ThreadPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.WebRequestMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.WebServerMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.tracing.TraceSpanMessage;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,7 +50,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 20:13
  */
-public class NettyRpcMessageConverter implements IMessageConverter {
+public class BrpcMessageConverter implements IMessageConverter {
     @Override
     public Object from(long timestamp, int interval, List<String> dimensions, HttpClientCompositeMetric metric) {
         return HttpClientMetricMessage.newBuilder()
@@ -241,13 +241,13 @@ public class NettyRpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(EventMessage event) {
-        return cn.bithon.rpc.services.event.EventMessage.newBuilder()
-                                                        .setTimestamp(System.currentTimeMillis())
-                                                        .setEventType(event.getMessageType())
-                                                        .putAllArguments(event.getArgs() == null
-                                                                         ? Collections.emptyMap()
-                                                                         : event.getArgs())
-                                                        .build();
+        return com.sbss.bithon.agent.rpc.brpc.event.EventMessage.newBuilder()
+                                                                .setTimestamp(System.currentTimeMillis())
+                                                                .setEventType(event.getMessageType())
+                                                                .putAllArguments(event.getArgs() == null
+                                                                                 ? Collections.emptyMap()
+                                                                                 : event.getArgs())
+                                                                .build();
     }
 
     @Override

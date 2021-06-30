@@ -14,9 +14,11 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.server.collector.netty;
+package com.sbss.bithon.server.collector.brpc;
 
-import cn.bithon.rpc.services.ITraceCollector;
+import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
+import com.sbss.bithon.agent.rpc.brpc.tracing.TraceSpanMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.tracing.handler.TraceSpan;
@@ -30,17 +32,17 @@ import java.util.List;
  * @date 2021/1/23 11:19 下午
  */
 @Slf4j
-public class NettyTraceCollector implements ITraceCollector {
+public class BrpcTraceCollector implements ITraceCollector {
 
     private final IMessageSink<CloseableIterator<TraceSpan>> traceSink;
 
-    public NettyTraceCollector(IMessageSink<CloseableIterator<TraceSpan>> traceSink) {
+    public BrpcTraceCollector(IMessageSink<CloseableIterator<TraceSpan>> traceSink) {
         this.traceSink = traceSink;
     }
 
     @Override
-    public void sendTrace(cn.bithon.rpc.services.MessageHeader header,
-                          List<cn.bithon.rpc.services.tracing.TraceSpanMessage> spans) {
+    public void sendTrace(MessageHeader header,
+                          List<TraceSpanMessage> spans) {
         if (CollectionUtils.isEmpty(spans)) {
             return;
         }

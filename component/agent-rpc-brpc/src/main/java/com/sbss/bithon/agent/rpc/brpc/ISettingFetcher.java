@@ -14,11 +14,16 @@
  *    limitations under the License.
  */
 
-package cn.bithon.rpc.services;
+package com.sbss.bithon.agent.rpc.brpc;
+
+import cn.bithon.rpc.IService;
+
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/6/27 19:58
+ * @date 2021/6/30 3:25 下午
  */
-public interface ICommandDispatcher {
+public interface ISettingFetcher extends IService {
+    Map<String, String> fetch(MessageHeader header, long lastModifiedSince);
 }

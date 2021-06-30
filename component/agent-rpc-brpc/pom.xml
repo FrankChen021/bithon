@@ -19,23 +19,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
-      <version>4.1.6.Final</version>
+      <groupId>com.sbss.bithon</groupId>
+      <artifactId>component-brpc</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
-      <version>3.17.3</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.30</version>
-      <scope>provided</scope>
-    </dependency>
-
   </dependencies>
 
   <build>

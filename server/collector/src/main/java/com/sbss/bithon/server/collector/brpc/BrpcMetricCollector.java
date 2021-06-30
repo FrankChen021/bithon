@@ -14,21 +14,22 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.server.collector.netty;
+package com.sbss.bithon.server.collector.brpc;
 
-import cn.bithon.rpc.services.IMetricCollector;
-import cn.bithon.rpc.services.MessageHeader;
-import cn.bithon.rpc.services.metrics.ExceptionMetricMessage;
-import cn.bithon.rpc.services.metrics.HttpClientMetricMessage;
-import cn.bithon.rpc.services.metrics.JdbcPoolMetricMessage;
-import cn.bithon.rpc.services.metrics.JvmGcMetricMessage;
-import cn.bithon.rpc.services.metrics.JvmMetricMessage;
-import cn.bithon.rpc.services.metrics.MongoDbMetricMessage;
-import cn.bithon.rpc.services.metrics.RedisMetricMessage;
-import cn.bithon.rpc.services.metrics.SqlMetricMessage;
-import cn.bithon.rpc.services.metrics.ThreadPoolMetricMessage;
-import cn.bithon.rpc.services.metrics.WebRequestMetricMessage;
-import cn.bithon.rpc.services.metrics.WebServerMetricMessage;
+
+import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.metrics.ExceptionMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.HttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
+import com.sbss.bithon.agent.rpc.brpc.metrics.JdbcPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.JvmGcMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.JvmMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.MongoDbMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.RedisMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.SqlMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.ThreadPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.WebRequestMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.WebServerMetricMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
@@ -43,11 +44,11 @@ import java.util.List;
  * @date 2021/1/10 2:37 下午
  */
 @Slf4j
-public class NettyMetricCollector implements IMetricCollector {
+public class BrpcMetricCollector implements IMetricCollector {
 
     private final IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink;
 
-    public NettyMetricCollector(IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink) {
+    public BrpcMetricCollector(IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink) {
         this.metricSink = metricSink;
     }
 

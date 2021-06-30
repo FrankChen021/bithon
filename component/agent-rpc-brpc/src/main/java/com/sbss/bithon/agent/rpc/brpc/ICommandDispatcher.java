@@ -14,19 +14,11 @@
  *    limitations under the License.
  */
 
-package cn.bithon.rpc.services;
-
-import cn.bithon.rpc.IService;
-import cn.bithon.rpc.Oneway;
-import cn.bithon.rpc.services.event.EventMessage;
+package com.sbss.bithon.agent.rpc.brpc;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/6/27 19:57
+ * @date 2021/6/27 19:58
  */
-public interface IEventCollector extends IService {
-
-    @Oneway
-    void sendEvent(MessageHeader header, EventMessage body);
-
+public interface ICommandDispatcher {
 }

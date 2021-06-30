@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.server.collector.netty;
+package com.sbss.bithon.server.collector.brpc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -57,9 +57,9 @@ import java.util.Map;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "collector-netty")
-@ConditionalOnProperty(value = "collector-netty.enabled", havingValue = "true", matchIfMissing = false)
-public class NettyCollectorConfig {
+@ConfigurationProperties(prefix = "collector-brpc")
+@ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true", matchIfMissing = false)
+public class BrpcCollectorConfig {
     private Map<String, Integer> port;
     private SinkConfig sink;
 
@@ -70,7 +70,7 @@ public class NettyCollectorConfig {
     }
 
     @Bean("metricSink")
-    public IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink(NettyCollectorConfig config,
+    public IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink(BrpcCollectorConfig config,
                                                                             ObjectMapper om,
                                                                             JvmMetricMessageHandler jvmMetricMessageHandler,
                                                                             JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
@@ -106,7 +106,7 @@ public class NettyCollectorConfig {
     }
 
     @Bean("eventSink")
-    public IMessageSink<?> eventSink(NettyCollectorConfig config,
+    public IMessageSink<?> eventSink(BrpcCollectorConfig config,
                                      EventsMessageHandler handler,
                                      ObjectMapper om) {
         if ("local".equals(config.getSink().getType())) {
@@ -121,7 +121,7 @@ public class NettyCollectorConfig {
     }
 
     @Bean("traceSink")
-    public IMessageSink<?> traceSink(NettyCollectorConfig config,
+    public IMessageSink<?> traceSink(BrpcCollectorConfig config,
                                      TraceMessageHandler traceMessageHandler,
                                      ObjectMapper om) {
 

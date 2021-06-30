@@ -47,9 +47,9 @@ public class TraceSpan {
     public String clazz;
     public String method;
 
-    public static CloseableIterator<TraceSpan> of(cn.bithon.rpc.services.MessageHeader header, List<cn.bithon.rpc.services.tracing.TraceSpanMessage> messages) {
+    public static CloseableIterator<TraceSpan> of(com.sbss.bithon.agent.rpc.brpc.MessageHeader header, List<com.sbss.bithon.agent.rpc.brpc.tracing.TraceSpanMessage> messages) {
 
-        Iterator<cn.bithon.rpc.services.tracing.TraceSpanMessage> delegate = messages.iterator();
+        Iterator<com.sbss.bithon.agent.rpc.brpc.tracing.TraceSpanMessage> delegate = messages.iterator();
         return new CloseableIterator<TraceSpan>() {
             @Override
             public void close() {
@@ -62,7 +62,7 @@ public class TraceSpan {
 
             @Override
             public TraceSpan next() {
-                cn.bithon.rpc.services.tracing.TraceSpanMessage spanMessage = delegate.next();
+                com.sbss.bithon.agent.rpc.brpc.tracing.TraceSpanMessage spanMessage = delegate.next();
 
                 TraceSpan traceSpan = new TraceSpan();
                 traceSpan.appName = header.getAppName();

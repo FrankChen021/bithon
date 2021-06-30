@@ -16,8 +16,8 @@
 
 package com.sbss.bithon.server.setting;
 
-import cn.bithon.rpc.services.ISettingFetcher;
-import cn.bithon.rpc.services.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.ISettingFetcher;
+import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
 
 import java.util.Map;
 

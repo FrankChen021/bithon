@@ -14,16 +14,20 @@
  *    limitations under the License.
  */
 
-package cn.bithon.rpc.services;
+package com.sbss.bithon.agent.rpc.brpc.tracing;
 
 import cn.bithon.rpc.IService;
+import cn.bithon.rpc.Oneway;
+import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/6/30 3:25 下午
+ * @date 2021/6/27 19:57
  */
-public interface ISettingFetcher extends IService {
-    Map<String, String> fetch(MessageHeader header, long lastModifiedSince);
+public interface ITraceCollector extends IService {
+
+    @Oneway
+    void sendTrace(MessageHeader header, List<TraceSpanMessage> spans);
 }

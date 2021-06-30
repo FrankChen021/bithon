@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package cn.bithon.rpc.services.tracing;
+package com.sbss.bithon.agent.rpc.brpc.tracing;
 
 option java_multiple_files = true;
 
