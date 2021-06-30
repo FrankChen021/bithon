@@ -32,7 +32,7 @@
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-dispatcher-netty</artifactId>
+      <artifactId>agent-dispatcher-brpc</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>

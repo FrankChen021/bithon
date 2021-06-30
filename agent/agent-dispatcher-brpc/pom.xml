@@ -9,12 +9,12 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>agent-dispatcher-netty</artifactId>
+  <artifactId>agent-dispatcher-brpc</artifactId>
 
   <dependencies>
     <dependency>
       <groupId>com.sbss.bithon</groupId>
-      <artifactId>agent-rpc-netty</artifactId>
+      <artifactId>agent-rpc-brpc</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>

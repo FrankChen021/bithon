@@ -19,7 +19,7 @@
 
     <modules>
         <module>component/agent-rpc-thrift</module>
-        <module>component/agent-rpc-netty</module>
+        <module>component/agent-rpc-brpc</module>
         <module>component/component-commons</module>
         <module>component/component-db</module>
         <module>agent</module>

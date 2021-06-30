@@ -10,7 +10,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>agent-rpc-netty</artifactId>
+  <artifactId>agent-rpc-brpc</artifactId>
 
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
