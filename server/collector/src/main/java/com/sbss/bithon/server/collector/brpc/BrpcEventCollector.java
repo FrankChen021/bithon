@@ -16,7 +16,8 @@
 
 package com.sbss.bithon.server.collector.brpc;
 
-import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import com.sbss.bithon.agent.rpc.brpc.event.IEventCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.event.handler.EventMessage;
@@ -36,7 +37,7 @@ public class BrpcEventCollector implements IEventCollector {
     }
 
     @Override
-    public void sendEvent(MessageHeader header, com.sbss.bithon.agent.rpc.brpc.event.EventMessage message) {
+    public void sendEvent(BrpcMessageHeader header, BrpcEventMessage message) {
         EventMessage eventMessage = EventMessage.builder().appName(header.getAppName())
                                                 .instanceName(header.getInstanceName())
                                                 .timestamp(message.getTimestamp())

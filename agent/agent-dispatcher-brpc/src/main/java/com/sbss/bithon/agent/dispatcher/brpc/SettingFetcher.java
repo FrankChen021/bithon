@@ -24,8 +24,8 @@ import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.setting.IAgentSettingFetcher;
 import com.sbss.bithon.agent.rpc.brpc.ApplicationType;
+import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.agent.rpc.brpc.ISettingFetcher;
-import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
 
 import java.time.Duration;
 import java.util.List;
@@ -53,14 +53,14 @@ public class SettingFetcher implements IAgentSettingFetcher {
     @Override
     public Map<String, String> fetch(String appName, String env, long lastModifiedSince) {
         AppInstance appInstance = AgentContext.getInstance().getAppInstance();
-        MessageHeader header = MessageHeader.newBuilder()
-                                            .setAppName(appInstance.getRawAppName())
-                                            .setEnv(appInstance.getEnv())
-                                            .setInstanceName(appInstance.getHostIp() + ":" + appInstance.getPort())
-                                            .setHostIp(appInstance.getHostIp())
-                                            .setPort(appInstance.getPort())
-                                            .setAppType(ApplicationType.JAVA)
-                                            .build();
+        BrpcMessageHeader header = BrpcMessageHeader.newBuilder()
+                                                    .setAppName(appInstance.getRawAppName())
+                                                    .setEnv(appInstance.getEnv())
+                                                    .setInstanceName(appInstance.getHostIp() + ":" + appInstance.getPort())
+                                                    .setHostIp(appInstance.getHostIp())
+                                                    .setPort(appInstance.getPort())
+                                                    .setAppType(ApplicationType.JAVA)
+                                                    .build();
         return fetcher.fetch(header, lastModifiedSince);
     }
 }

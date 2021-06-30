@@ -24,7 +24,7 @@ import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannel;
 import com.sbss.bithon.agent.rpc.brpc.ApplicationType;
-import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -48,7 +48,7 @@ public class MetricMessageChannel implements IMessageChannel {
 
     private final Map<String, Method> sendMethods = new HashMap<>();
     private final DispatcherConfig dispatcherConfig;
-    private MessageHeader header;
+    private BrpcMessageHeader header;
     private final IMetricCollector metricCollector;
 
     public MetricMessageChannel(DispatcherConfig dispatcherConfig) {
@@ -61,7 +61,7 @@ public class MetricMessageChannel implements IMessageChannel {
                 continue;
             }
             Type[] paramTypes = method.getGenericParameterTypes();
-            if (!paramTypes[0].equals(MessageHeader.class)) {
+            if (!paramTypes[0].equals(BrpcMessageHeader.class)) {
                 continue;
             }
 
@@ -83,7 +83,7 @@ public class MetricMessageChannel implements IMessageChannel {
         this.dispatcherConfig = dispatcherConfig;
 
         AppInstance appInstance = AgentContext.getInstance().getAppInstance();
-        this.header = MessageHeader.newBuilder()
+        this.header = BrpcMessageHeader.newBuilder()
                                    .setAppName(appInstance.getAppName())
                                    .setEnv(appInstance.getEnv())
                                    .setInstanceName(appInstance.getHostIp() + ":" + appInstance.getPort())
@@ -91,7 +91,7 @@ public class MetricMessageChannel implements IMessageChannel {
                                    .setPort(appInstance.getPort())
                                    .setAppType(ApplicationType.JAVA)
                                    .build();
-        appInstance.addListener(port -> this.header = MessageHeader.newBuilder()
+        appInstance.addListener(port -> this.header = BrpcMessageHeader.newBuilder()
                                                                    .setAppName(appInstance.getAppName())
                                                                    .setEnv(appInstance.getEnv())
                                                                    .setInstanceName(appInstance.getHostIp()

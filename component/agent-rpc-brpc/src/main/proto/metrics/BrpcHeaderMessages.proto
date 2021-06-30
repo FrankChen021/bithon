@@ -14,7 +14,7 @@ enum ApplicationType {
 /***************************************************************************/
 /*************************** MessageHeader       ***************************/
 /***************************************************************************/
-message MessageHeader {
+message BrpcMessageHeader {
   string appName = 1;
   string env = 2;
   string instanceName = 3;

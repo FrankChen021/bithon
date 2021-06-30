@@ -25,5 +25,5 @@ import java.util.Map;
  * @date 2021/6/30 3:25 下午
  */
 public interface ISettingFetcher extends IService {
-    Map<String, String> fetch(MessageHeader header, long lastModifiedSince);
+    Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
 }

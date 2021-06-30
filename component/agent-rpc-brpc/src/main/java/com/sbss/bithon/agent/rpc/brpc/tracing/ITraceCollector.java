@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.rpc.brpc.tracing;
 
 import cn.bithon.rpc.IService;
 import cn.bithon.rpc.Oneway;
-import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 
 import java.util.List;
 
@@ -29,5 +29,5 @@ import java.util.List;
 public interface ITraceCollector extends IService {
 
     @Oneway
-    void sendTrace(MessageHeader header, List<TraceSpanMessage> spans);
+    void sendTrace(BrpcMessageHeader header, List<BrpcTraceSpanMessage> spans);
 }

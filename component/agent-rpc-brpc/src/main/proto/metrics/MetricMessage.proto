@@ -4,7 +4,7 @@ package com.sbss.bithon.agent.rpc.brpc.metrics;
 
 option java_multiple_files = true;
 
-message WebRequestMetricMessage {
+message BrpcWebRequestMetricMessage {
     int64 timestamp         = 1;
     int32 interval          = 2;
     optional string srcApplication = 3;
@@ -24,7 +24,7 @@ message WebRequestMetricMessage {
 /***************************************************************************/
 /*************************** JVM Metrics ***********************************/
 /***************************************************************************/
-message JvmMetricMessage {
+message BrpcJvmMetricMessage {
     int64 timestamp = 1;
     int32 interval  = 2;
 
@@ -86,7 +86,7 @@ message JvmMetricMessage {
     int64 directUsed         = 30;
 }
 
-message JvmGcMetricMessage {
+message BrpcJvmGcMetricMessage {
     int64 timestamp = 1;
     int32 interval = 2;
     string gcName = 3;
@@ -98,7 +98,7 @@ message JvmGcMetricMessage {
 /***************************************************************************/
 /************************* Web Server Metrics ******************************/
 /***************************************************************************/
-message WebServerMetricMessage {
+message BrpcWebServerMetricMessage {
     int64 timestamp = 1;
     int32 interval  = 2;
     string type   = 3;
@@ -111,7 +111,7 @@ message WebServerMetricMessage {
 /***************************************************************************/
 /***************************  Application Exception ************************/
 /**************************************************************************/
-message ExceptionMetricMessage {
+message BrpcExceptionMetricMessage {
     int64 timestamp  =1;
     int32 interval  = 2;
     string className =3;
@@ -124,7 +124,7 @@ message ExceptionMetricMessage {
 /***************************************************************************/
 /******************* Http Client *******************************************/
 /**************************************************************************/
-message HttpClientMetricMessage {
+message BrpcHttpClientMetricMessage {
     int64 timestamp           =  1;
     int32 interval            =  2;
     string uri              =  3;
@@ -143,7 +143,7 @@ message HttpClientMetricMessage {
 /***************************************************************************/
 /******************* Thread Pool ******************************************/
 /**************************************************************************/
-message ThreadPoolMetricMessage {
+message BrpcThreadPoolMetricMessage {
     int64 timestamp                 =  1;
     int32 interval                  =  2;
     string executorClass          =  3;
@@ -165,7 +165,7 @@ message ThreadPoolMetricMessage {
 /***************************************************************************/
 /*******************************  JDBC Pool      ***************************/
 /***************************************************************************/
-message JdbcPoolMetricMessage {
+message BrpcJdbcPoolMetricMessage {
     int64 timestamp                           =  1;
     int32 interval                            =  2;
     string driverClass                      =  3;
@@ -189,7 +189,7 @@ message JdbcPoolMetricMessage {
 /***************************************************************************/
 /*******************************  SQL             ***************************/
 /***************************************************************************/
-message SqlMetricMessage {
+message BrpcSqlMetricMessage {
     int64 timestamp              =  1;
     int32 interval               =  2;
     string connectionString    =  3;
@@ -205,7 +205,7 @@ message SqlMetricMessage {
 /***************************************************************************/
 /*******************************  Redis          ***************************/
 /***************************************************************************/
-message RedisMetricMessage {
+message BrpcRedisMetricMessage {
     int64 timestamp             = 1;
     string uri                = 2;
     string command            = 3;
@@ -221,7 +221,7 @@ message RedisMetricMessage {
 /**************************************************************************/
 /*******************************  MongoDb       ***************************/
 /**************************************************************************/
-message MongoDbMetricMessage {
+message BrpcMongoDbMetricMessage {
     int64 timestamp            =  1;
     string server            =  2;
     string database          =  3;

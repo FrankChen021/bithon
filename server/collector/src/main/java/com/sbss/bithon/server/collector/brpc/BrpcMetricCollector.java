@@ -17,19 +17,19 @@
 package com.sbss.bithon.server.collector.brpc;
 
 
-import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
-import com.sbss.bithon.agent.rpc.brpc.metrics.ExceptionMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.HttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcMongoDbMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcWebRequestMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
-import com.sbss.bithon.agent.rpc.brpc.metrics.JdbcPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.JvmGcMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.JvmMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.MongoDbMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.RedisMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.SqlMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.ThreadPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.WebRequestMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.WebServerMetricMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
@@ -53,7 +53,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendWebRequest(MessageHeader header, List<WebRequestMetricMessage> messages) {
+    public void sendWebRequest(BrpcMessageHeader header, List<BrpcWebRequestMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -62,7 +62,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendJvm(MessageHeader header, List<JvmMetricMessage> messages) {
+    public void sendJvm(BrpcMessageHeader header, List<BrpcJvmMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -71,7 +71,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendJvmGc(MessageHeader header, List<JvmGcMetricMessage> messages) {
+    public void sendJvmGc(BrpcMessageHeader header, List<BrpcJvmGcMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -80,7 +80,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendWebServer(MessageHeader header, List<WebServerMetricMessage> messages) {
+    public void sendWebServer(BrpcMessageHeader header, List<BrpcWebServerMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -89,7 +89,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendException(MessageHeader header, List<ExceptionMetricMessage> messages) {
+    public void sendException(BrpcMessageHeader header, List<BrpcExceptionMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -98,7 +98,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendHttpClient(MessageHeader header, List<HttpClientMetricMessage> messages) {
+    public void sendHttpClient(BrpcMessageHeader header, List<BrpcHttpClientMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -107,7 +107,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendThreadPool(MessageHeader header, List<ThreadPoolMetricMessage> messages) {
+    public void sendThreadPool(BrpcMessageHeader header, List<BrpcThreadPoolMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -116,7 +116,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendJdbc(MessageHeader header, List<JdbcPoolMetricMessage> messages) {
+    public void sendJdbc(BrpcMessageHeader header, List<BrpcJdbcPoolMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -125,7 +125,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendRedis(MessageHeader header, List<RedisMetricMessage> messages) {
+    public void sendRedis(BrpcMessageHeader header, List<BrpcRedisMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -134,7 +134,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendSql(MessageHeader header, List<SqlMetricMessage> messages) {
+    public void sendSql(BrpcMessageHeader header, List<BrpcSqlMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -143,7 +143,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendMongoDb(MessageHeader header, List<MongoDbMetricMessage> messages) {
+    public void sendMongoDb(BrpcMessageHeader header, List<BrpcMongoDbMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
@@ -153,9 +153,9 @@ public class BrpcMetricCollector implements IMetricCollector {
 
     private static class GenericMetricMessageIterator implements CloseableIterator<GenericMetricMessage> {
         private final Iterator<?> iterator;
-        private final MessageHeader header;
+        private final BrpcMessageHeader header;
 
-        public GenericMetricMessageIterator(MessageHeader header, List<?> messages) {
+        public GenericMetricMessageIterator(BrpcMessageHeader header, List<?> messages) {
             this.header = header;
             this.iterator = messages.iterator();
         }

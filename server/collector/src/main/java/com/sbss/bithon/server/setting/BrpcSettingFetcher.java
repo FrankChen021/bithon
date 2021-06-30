@@ -16,8 +16,8 @@
 
 package com.sbss.bithon.server.setting;
 
+import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.agent.rpc.brpc.ISettingFetcher;
-import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
 
 import java.util.Map;
 
@@ -34,7 +34,7 @@ public class BrpcSettingFetcher implements ISettingFetcher {
     }
 
     @Override
-    public Map<String, String> fetch(MessageHeader header, long lastModifiedSince) {
+    public Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince) {
         return settingService.getSettings(header.getAppName(), header.getEnv(), lastModifiedSince);
     }
 }

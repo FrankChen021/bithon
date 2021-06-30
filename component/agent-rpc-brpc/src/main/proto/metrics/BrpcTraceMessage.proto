@@ -4,7 +4,7 @@ package com.sbss.bithon.agent.rpc.brpc.tracing;
 
 option java_multiple_files = true;
 
-message TraceSpanMessage {
+message BrpcTraceSpanMessage {
     string traceId = 1;
     string spanId  = 2;
     optional string parentSpanId = 3;

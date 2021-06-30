@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.rpc.brpc.metrics;
 
 import cn.bithon.rpc.IService;
 import cn.bithon.rpc.Oneway;
-import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 
 import java.util.List;
 
@@ -29,34 +29,34 @@ import java.util.List;
 public interface IMetricCollector extends IService {
 
     @Oneway
-    void sendWebRequest(MessageHeader header, List<WebRequestMetricMessage> messages);
+    void sendWebRequest(BrpcMessageHeader header, List<BrpcWebRequestMetricMessage> messages);
 
-    void sendJvm(MessageHeader header, List<JvmMetricMessage> messages);
-
-    @Oneway
-    void sendJvmGc(MessageHeader header, List<JvmGcMetricMessage> messages);
+    void sendJvm(BrpcMessageHeader header, List<BrpcJvmMetricMessage> messages);
 
     @Oneway
-    void sendWebServer(MessageHeader header, List<WebServerMetricMessage> messages);
+    void sendJvmGc(BrpcMessageHeader header, List<BrpcJvmGcMetricMessage> messages);
 
     @Oneway
-    void sendException(MessageHeader header, List<ExceptionMetricMessage> messages);
+    void sendWebServer(BrpcMessageHeader header, List<BrpcWebServerMetricMessage> messages);
 
     @Oneway
-    void sendHttpClient(MessageHeader header, List<HttpClientMetricMessage> messages);
+    void sendException(BrpcMessageHeader header, List<BrpcExceptionMetricMessage> messages);
 
     @Oneway
-    void sendThreadPool(MessageHeader header, List<ThreadPoolMetricMessage> messages);
+    void sendHttpClient(BrpcMessageHeader header, List<BrpcHttpClientMetricMessage> messages);
 
     @Oneway
-    void sendJdbc(MessageHeader header, List<JdbcPoolMetricMessage> messages);
+    void sendThreadPool(BrpcMessageHeader header, List<BrpcThreadPoolMetricMessage> messages);
 
     @Oneway
-    void sendRedis(MessageHeader header, List<RedisMetricMessage> messages);
+    void sendJdbc(BrpcMessageHeader header, List<BrpcJdbcPoolMetricMessage> messages);
 
     @Oneway
-    void sendSql(MessageHeader header, List<SqlMetricMessage> messages);
+    void sendRedis(BrpcMessageHeader header, List<BrpcRedisMetricMessage> messages);
 
     @Oneway
-    void sendMongoDb(MessageHeader header, List<MongoDbMetricMessage> messages);
+    void sendSql(BrpcMessageHeader header, List<BrpcSqlMetricMessage> messages);
+
+    @Oneway
+    void sendMongoDb(BrpcMessageHeader header, List<BrpcMongoDbMetricMessage> messages);
 }

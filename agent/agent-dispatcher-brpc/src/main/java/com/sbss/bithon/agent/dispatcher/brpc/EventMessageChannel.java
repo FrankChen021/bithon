@@ -24,8 +24,8 @@ import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannel;
 import com.sbss.bithon.agent.rpc.brpc.ApplicationType;
-import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
-import com.sbss.bithon.agent.rpc.brpc.event.EventMessage;
+import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import com.sbss.bithon.agent.rpc.brpc.event.IEventCollector;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class EventMessageChannel implements IMessageChannel {
 
     private final DispatcherConfig dispatcherConfig;
     private final IEventCollector eventCollector;
-    private MessageHeader header;
+    private BrpcMessageHeader header;
 
     public EventMessageChannel(DispatcherConfig dispatcherConfig) {
         List<EndPoint> endpoints = Stream.of(dispatcherConfig.getServers().split(",")).map(hostAndPort -> {
@@ -58,36 +58,37 @@ public class EventMessageChannel implements IMessageChannel {
         this.dispatcherConfig = dispatcherConfig;
 
         AppInstance appInstance = AgentContext.getInstance().getAppInstance();
-        this.header = MessageHeader.newBuilder()
-                                   .setAppName(appInstance.getAppName())
-                                   .setEnv(appInstance.getEnv())
-                                   .setInstanceName(appInstance.getHostIp() + ":" + appInstance.getPort())
-                                   .setHostIp(appInstance.getHostIp())
-                                   .setPort(appInstance.getPort())
-                                   .setAppType(ApplicationType.JAVA)
-                                   .build();
-        appInstance.addListener(port -> this.header = MessageHeader.newBuilder()
-                                                                   .setAppName(appInstance.getAppName())
-                                                                   .setEnv(appInstance.getEnv())
-                                                                   .setInstanceName(appInstance.getHostIp()
-                                                                                    + ":"
-                                                                                    + appInstance.getPort())
-                                                                   .setHostIp(appInstance.getHostIp())
-                                                                   .setPort(appInstance.getPort())
-                                                                   .setAppType(ApplicationType.JAVA)
-                                                                   .build());
+        this.header = BrpcMessageHeader.newBuilder()
+                                       .setAppName(appInstance.getAppName())
+                                       .setEnv(appInstance.getEnv())
+                                       .setInstanceName(appInstance.getHostIp() + ":" + appInstance.getPort())
+                                       .setHostIp(appInstance.getHostIp())
+                                       .setPort(appInstance.getPort())
+                                       .setAppType(ApplicationType.JAVA)
+                                       .build();
+        appInstance.addListener(port -> this.header = BrpcMessageHeader.newBuilder()
+                                                                       .setAppName(appInstance.getAppName())
+                                                                       .setEnv(appInstance.getEnv())
+                                                                       .setInstanceName(appInstance.getHostIp()
+                                                                                        + ":"
+                                                                                        + appInstance.getPort())
+                                                                       .setHostIp(appInstance.getHostIp())
+                                                                       .setPort(appInstance.getPort())
+                                                                       .setAppType(ApplicationType.JAVA)
+                                                                       .build());
     }
 
     @Override
     public void sendMessage(Object message) {
-        if (!(message instanceof EventMessage)) {
+        if (!(message instanceof BrpcEventMessage)) {
             return;
         }
 
-        boolean isDebugOn = this.dispatcherConfig.getMessageDebug().getOrDefault(EventMessage.class.getName(), false);
+        boolean isDebugOn = this.dispatcherConfig.getMessageDebug()
+                                                 .getOrDefault(BrpcEventMessage.class.getName(), false);
         if (isDebugOn) {
             log.info("[Debugging] Sending Event Messages: {}", message);
         }
-        eventCollector.sendEvent(header, (EventMessage) message);
+        eventCollector.sendEvent(header, (BrpcEventMessage) message);
     }
 }

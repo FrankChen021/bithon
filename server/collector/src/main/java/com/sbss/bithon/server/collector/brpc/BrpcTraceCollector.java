@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.server.collector.brpc;
 
-import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
-import com.sbss.bithon.agent.rpc.brpc.tracing.TraceSpanMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.tracing.handler.TraceSpan;
@@ -41,8 +41,8 @@ public class BrpcTraceCollector implements ITraceCollector {
     }
 
     @Override
-    public void sendTrace(MessageHeader header,
-                          List<TraceSpanMessage> spans) {
+    public void sendTrace(BrpcMessageHeader header,
+                          List<BrpcTraceSpanMessage> spans) {
         if (CollectionUtils.isEmpty(spans)) {
             return;
         }

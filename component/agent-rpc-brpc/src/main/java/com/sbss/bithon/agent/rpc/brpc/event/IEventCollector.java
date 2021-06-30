@@ -19,7 +19,7 @@ package com.sbss.bithon.agent.rpc.brpc.event;
 
 import cn.bithon.rpc.IService;
 import cn.bithon.rpc.Oneway;
-import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
+import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 
 /**
  * @author frank.chen021@outlook.com
@@ -28,6 +28,6 @@ import com.sbss.bithon.agent.rpc.brpc.MessageHeader;
 public interface IEventCollector extends IService {
 
     @Oneway
-    void sendEvent(MessageHeader header, EventMessage body);
+    void sendEvent(BrpcMessageHeader header, BrpcEventMessage body);
 
 }
