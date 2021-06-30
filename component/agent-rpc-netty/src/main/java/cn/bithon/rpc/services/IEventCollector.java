@@ -16,9 +16,17 @@
 
 package cn.bithon.rpc.services;
 
+import cn.bithon.rpc.IService;
+import cn.bithon.rpc.Oneway;
+import cn.bithon.rpc.services.event.EventMessage;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 19:57
  */
-public interface IEventCollector {
+public interface IEventCollector extends IService {
+
+    @Oneway
+    void sendEvent(MessageHeader header, EventMessage body);
+
 }

@@ -47,7 +47,7 @@ public class TraceSpan {
     public String clazz;
     public String method;
 
-    public static CloseableIterator<TraceSpan> of(cn.bithon.rpc.services.metrics.MessageHeader header, List<cn.bithon.rpc.services.tracing.TraceSpanMessage> messages) {
+    public static CloseableIterator<TraceSpan> of(cn.bithon.rpc.services.MessageHeader header, List<cn.bithon.rpc.services.tracing.TraceSpanMessage> messages) {
 
         Iterator<cn.bithon.rpc.services.tracing.TraceSpanMessage> delegate = messages.iterator();
         return new CloseableIterator<TraceSpan>() {

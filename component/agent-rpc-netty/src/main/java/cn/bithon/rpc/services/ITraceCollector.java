@@ -18,7 +18,6 @@ package cn.bithon.rpc.services;
 
 import cn.bithon.rpc.IService;
 import cn.bithon.rpc.Oneway;
-import cn.bithon.rpc.services.metrics.MessageHeader;
 import cn.bithon.rpc.services.tracing.TraceSpanMessage;
 
 import java.util.List;

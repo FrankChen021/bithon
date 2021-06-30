@@ -42,6 +42,7 @@ import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -240,7 +241,13 @@ public class NettyRpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(EventMessage event) {
-        return null;
+        return cn.bithon.rpc.services.event.EventMessage.newBuilder()
+                                                        .setTimestamp(System.currentTimeMillis())
+                                                        .setEventType(event.getMessageType())
+                                                        .putAllArguments(event.getArgs() == null
+                                                                         ? Collections.emptyMap()
+                                                                         : event.getArgs())
+                                                        .build();
     }
 
     @Override

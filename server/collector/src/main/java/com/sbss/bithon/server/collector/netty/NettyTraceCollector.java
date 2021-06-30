@@ -39,7 +39,7 @@ public class NettyTraceCollector implements ITraceCollector {
     }
 
     @Override
-    public void sendTrace(cn.bithon.rpc.services.metrics.MessageHeader header,
+    public void sendTrace(cn.bithon.rpc.services.MessageHeader header,
                           List<cn.bithon.rpc.services.tracing.TraceSpanMessage> spans) {
         if (CollectionUtils.isEmpty(spans)) {
             return;

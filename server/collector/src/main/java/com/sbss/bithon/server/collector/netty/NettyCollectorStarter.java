@@ -18,6 +18,7 @@ package com.sbss.bithon.server.collector.netty;
 
 import cn.bithon.rpc.IService;
 import cn.bithon.rpc.channel.ServerChannel;
+import cn.bithon.rpc.services.IEventCollector;
 import cn.bithon.rpc.services.IMetricCollector;
 import cn.bithon.rpc.services.ITraceCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
@@ -83,6 +84,8 @@ public class NettyCollectorStarter implements SmartLifecycle, ApplicationContext
                     break;
 
                 case "event":
+                    clazz = IEventCollector.class;
+                    processor = new NettyEventCollector(applicationContext.getBean("eventSink", IMessageSink.class));
                     break;
 
                 case "tracing":

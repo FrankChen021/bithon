@@ -78,7 +78,7 @@ public class ServerChannel implements Closeable {
                 @Override
                 protected void initChannel(NioSocketChannel ch) {
                     ChannelPipeline pipeline = ch.pipeline();
-                    pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(16384, 0, 4, 0, 4));
+                    pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 0, 4, 0, 4));
                     pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
                     pipeline.addLast("decoder", new ServiceMessageInDecoder());
                     pipeline.addLast("encoder", new ServiceMessageOutEncoder());

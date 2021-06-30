@@ -23,7 +23,6 @@ import cn.bithon.rpc.services.metrics.HttpClientMetricMessage;
 import cn.bithon.rpc.services.metrics.JdbcPoolMetricMessage;
 import cn.bithon.rpc.services.metrics.JvmGcMetricMessage;
 import cn.bithon.rpc.services.metrics.JvmMetricMessage;
-import cn.bithon.rpc.services.metrics.MessageHeader;
 import cn.bithon.rpc.services.metrics.MongoDbMetricMessage;
 import cn.bithon.rpc.services.metrics.RedisMetricMessage;
 import cn.bithon.rpc.services.metrics.SqlMetricMessage;

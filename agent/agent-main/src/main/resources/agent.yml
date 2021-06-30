@@ -50,3 +50,5 @@ dispatchers:
       # in milliseconds
       timeout: 3000
     servers: 127.0.0.1:9896
+    messageDebug:
+      EventMessage: true
