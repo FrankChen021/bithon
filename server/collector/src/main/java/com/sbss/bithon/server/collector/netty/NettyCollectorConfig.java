@@ -42,6 +42,7 @@ import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
 import com.sbss.bithon.server.tracing.handler.TraceMessageHandler;
 import lombok.Data;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,6 +58,7 @@ import java.util.Map;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "collector-netty")
+@ConditionalOnProperty(value = "collector-netty.enabled", havingValue = "true", matchIfMissing = false)
 public class NettyCollectorConfig {
     private Map<String, Integer> port;
     private SinkConfig sink;
