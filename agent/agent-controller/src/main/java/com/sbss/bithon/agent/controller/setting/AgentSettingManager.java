@@ -17,6 +17,8 @@
 package com.sbss.bithon.agent.controller.setting;
 
 
+import com.sbss.bithon.agent.controller.IAgentControllerFactory;
+import com.sbss.bithon.agent.controller.IAgentSettingFetcher;
 import com.sbss.bithon.agent.core.config.FetcherConfig;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
@@ -57,6 +59,18 @@ public class AgentSettingManager {
         this.listeners = new HashMap<>();
     }
 
+    /**
+     * TODO：
+     * 1）将createInstance移植到Initializer中
+     * 2）增加一个接口允许其他lib/插件绑定Service
+     *      或者使用SPI机制注册？？？
+     * 3）允许不继承IService
+     *      如果使用SPI，可以不需要修改IService继承约束
+     *
+     * @param appInstance
+     * @param fetcherConfig
+     * @throws Exception
+     */
     public static synchronized void createInstance(AppInstance appInstance,
                                                    FetcherConfig fetcherConfig) throws Exception {
         if (INSTANCE != null) {
@@ -65,8 +79,8 @@ public class AgentSettingManager {
         IAgentSettingFetcher fetcher = null;
         if (fetcherConfig != null && !StringUtils.isEmpty(fetcherConfig.getClient())) {
             try {
-                IAgentSettingFetcherFactory factory = (IAgentSettingFetcherFactory) Class.forName(fetcherConfig.getClient())
-                                                                                         .newInstance();
+                IAgentControllerFactory factory = (IAgentControllerFactory) Class.forName(fetcherConfig.getClient())
+                                                                                 .newInstance();
                 fetcher = factory.createFetcher(fetcherConfig);
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 log.error("Can't create instanceof fetcher {}", fetcherConfig.getClient());

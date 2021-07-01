@@ -29,5 +29,11 @@
       <artifactId>agent-core</artifactId>
       <scope>provided</scope>
     </dependency>
+
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 </project>

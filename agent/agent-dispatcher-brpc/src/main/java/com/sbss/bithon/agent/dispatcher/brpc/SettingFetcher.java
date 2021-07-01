@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.dispatcher.brpc;
 
-import com.sbss.bithon.agent.controller.setting.IAgentSettingFetcher;
+import com.sbss.bithon.agent.controller.IAgentSettingFetcher;
 import com.sbss.bithon.agent.core.config.FetcherConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;

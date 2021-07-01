@@ -14,14 +14,20 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.controller.setting;
-
-import com.sbss.bithon.agent.core.config.FetcherConfig;
+package com.sbss.bithon.agent.controller.cmd;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/16 4:40 下午
+ * @date 2021/7/1 2:35 下午
  */
-public interface IAgentSettingFetcherFactory {
-    IAgentSettingFetcher createFetcher(FetcherConfig config);
+public interface IAgentCommand<REQUEST_TYPE> {
+
+    default AgentCommandResponse<?> execute(Object request) throws AgentCommandException {
+        //noinspection unchecked
+        return process((REQUEST_TYPE) request);
+    }
+
+    AgentCommandResponse<?> process(REQUEST_TYPE request) throws AgentCommandException;
+
+    Class<REQUEST_TYPE> getRequestType();
 }

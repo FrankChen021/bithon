@@ -18,10 +18,16 @@ package com.sbss.bithon.agent.dispatcher.brpc;
 
 import com.sbss.bithon.agent.rpc.brpc.IAgentCommandExecutor;
 
+import java.util.Map;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/7/1 2:41 下午
  */
 public class AgentCommandExecutor implements IAgentCommandExecutor {
 
+    @Override
+    public Map<String, Object> execute(String command, Map<String, Object> inputArgument) {
+        return null;
+    }
 }

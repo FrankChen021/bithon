@@ -14,16 +14,10 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.controller.setting;
+package com.sbss.bithon.agent.controller.cmd;
 
-import java.util.Map;
-
-/**
- * @author frank.chen021@outlook.com
- * @date 2021/1/16 2:45 下午
- */
-public interface IAgentSettingFetcher {
-    Map<String, String> fetch(String appName,
-                              String env,
-                              long lastModifiedSince);
+class NoSuchCommandException extends AgentCommandException {
+    public NoSuchCommandException(String command) {
+        super(AgentCommandResponse.fail(404, String.format("[%s] not found", command)));
+    }
 }
