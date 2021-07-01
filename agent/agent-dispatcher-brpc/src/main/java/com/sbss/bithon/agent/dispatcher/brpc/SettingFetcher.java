@@ -26,6 +26,9 @@ import com.sbss.bithon.agent.rpc.brpc.ISettingFetcher;
 import com.sbss.bithon.component.brpc.channel.ClientChannel;
 import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 import com.sbss.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
+import com.sbss.bithon.component.brpc.exception.ServiceClientException;
+import shaded.org.slf4j.Logger;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.List;
@@ -38,6 +41,8 @@ import java.util.stream.Stream;
  * @date 2021/6/28 10:41 上午
  */
 public class SettingFetcher implements IAgentSettingFetcher {
+    private static final Logger log = LoggerFactory.getLogger(SettingFetcher.class);
+
     private final ISettingFetcher fetcher;
 
     public SettingFetcher(FetcherConfig config) {
@@ -56,11 +61,19 @@ public class SettingFetcher implements IAgentSettingFetcher {
         BrpcMessageHeader header = BrpcMessageHeader.newBuilder()
                                                     .setAppName(appInstance.getRawAppName())
                                                     .setEnv(appInstance.getEnv())
-                                                    .setInstanceName(appInstance.getHostIp() + ":" + appInstance.getPort())
+                                                    .setInstanceName(appInstance.getHostIp()
+                                                                     + ":"
+                                                                     + appInstance.getPort())
                                                     .setHostIp(appInstance.getHostIp())
                                                     .setPort(appInstance.getPort())
                                                     .setAppType(ApplicationType.JAVA)
                                                     .build();
-        return fetcher.fetch(header, lastModifiedSince);
+        try {
+            return fetcher.fetch(header, lastModifiedSince);
+        } catch (ServiceClientException e) {
+            //suppress client exception
+            log.error("Failed to fetch settings: {}", e.getMessage());
+            return null;
+        }
     }
 }

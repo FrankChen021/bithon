@@ -26,6 +26,7 @@ import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import com.sbss.bithon.component.brpc.channel.ClientChannel;
 import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 import com.sbss.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
+import com.sbss.bithon.component.brpc.exception.ServiceClientException;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -84,23 +85,23 @@ public class MetricMessageChannel implements IMessageChannel {
 
         AppInstance appInstance = AgentContext.getInstance().getAppInstance();
         this.header = BrpcMessageHeader.newBuilder()
-                                   .setAppName(appInstance.getAppName())
-                                   .setEnv(appInstance.getEnv())
-                                   .setInstanceName(appInstance.getHostIp() + ":" + appInstance.getPort())
-                                   .setHostIp(appInstance.getHostIp())
-                                   .setPort(appInstance.getPort())
-                                   .setAppType(ApplicationType.JAVA)
-                                   .build();
+                                       .setAppName(appInstance.getAppName())
+                                       .setEnv(appInstance.getEnv())
+                                       .setInstanceName(appInstance.getHostIp() + ":" + appInstance.getPort())
+                                       .setHostIp(appInstance.getHostIp())
+                                       .setPort(appInstance.getPort())
+                                       .setAppType(ApplicationType.JAVA)
+                                       .build();
         appInstance.addListener(port -> this.header = BrpcMessageHeader.newBuilder()
-                                                                   .setAppName(appInstance.getAppName())
-                                                                   .setEnv(appInstance.getEnv())
-                                                                   .setInstanceName(appInstance.getHostIp()
-                                                                                    + ":"
-                                                                                    + appInstance.getPort())
-                                                                   .setHostIp(appInstance.getHostIp())
-                                                                   .setPort(appInstance.getPort())
-                                                                   .setAppType(ApplicationType.JAVA)
-                                                                   .build());
+                                                                       .setAppName(appInstance.getAppName())
+                                                                       .setEnv(appInstance.getEnv())
+                                                                       .setInstanceName(appInstance.getHostIp()
+                                                                                        + ":"
+                                                                                        + appInstance.getPort())
+                                                                       .setHostIp(appInstance.getHostIp())
+                                                                       .setPort(appInstance.getPort())
+                                                                       .setAppType(ApplicationType.JAVA)
+                                                                       .build());
     }
 
     @Override
@@ -128,7 +129,12 @@ public class MetricMessageChannel implements IMessageChannel {
         } catch (IllegalAccessException e) {
             log.warn("Failed to send metrics: []-[]", messageClass, method);
         } catch (InvocationTargetException e) {
-            throw new RuntimeException(e.getTargetException());
+            if (e.getTargetException() instanceof ServiceClientException) {
+                //suppress client exception
+                log.error("Failed to send metric: {}", e.getMessage());
+            } else {
+                throw new RuntimeException(e.getTargetException());
+            }
         }
     }
 }

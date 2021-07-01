@@ -29,6 +29,10 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
     private String serviceName;
     private String methodName;
 
+    public boolean isOneway() {
+        return isOneway;
+    }
+
     public String getServiceName() {
         return serviceName;
     }

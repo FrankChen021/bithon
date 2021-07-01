@@ -96,8 +96,7 @@ public class AgentSettingManager {
                 public void run() {
                     try {
                         fetchSettings();
-                        lastModifiedAt = System.currentTimeMillis();
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         log.error("Failed to fetch plugin settings", e);
                     }
                 }
@@ -135,9 +134,10 @@ public class AgentSettingManager {
                 try {
                     listener.onRefresh(om, configNode);
                 } catch (Exception e) {
-                    log.warn(String.format("Exception when refresh setting {}.\n{}", sectionName, settingString), e);
+                    log.warn(String.format("Exception when refresh setting %s.\n%s", sectionName, settingString), e);
                 }
             }
         });
+        lastModifiedAt = System.currentTimeMillis();
     }
 }

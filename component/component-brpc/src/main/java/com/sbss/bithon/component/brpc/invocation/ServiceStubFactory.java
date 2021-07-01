@@ -65,7 +65,7 @@ public class ServiceStubFactory {
         }
 
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) {
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             if (toStringMethod.equals(method)) {
                 return "ServiceInvocationHandler";
             }

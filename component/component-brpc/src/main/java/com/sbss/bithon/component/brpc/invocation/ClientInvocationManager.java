@@ -18,14 +18,13 @@ package com.sbss.bithon.component.brpc.invocation;
 
 import com.sbss.bithon.component.brpc.Oneway;
 import com.sbss.bithon.component.brpc.channel.IChannelWriter;
+import com.sbss.bithon.component.brpc.exception.ServiceClientException;
 import com.sbss.bithon.component.brpc.exception.ServiceInvocationException;
 import com.sbss.bithon.component.brpc.exception.TimeoutException;
 import com.sbss.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import com.sbss.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import io.netty.channel.Channel;
 import io.netty.util.internal.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -42,7 +41,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * it could also be a RPC server which calls service provided by a network client
  */
 public class ClientInvocationManager {
-    private static final Logger log = LoggerFactory.getLogger(ClientInvocationManager.class);
 
     private static final ClientInvocationManager INSTANCE = new ClientInvocationManager();
     private final AtomicLong transactionId = new AtomicLong(21515);
@@ -52,7 +50,8 @@ public class ClientInvocationManager {
         return INSTANCE;
     }
 
-    public Object invoke(IChannelWriter channelWriter, boolean debug, long timeout, Method method, Object[] args) {
+    public Object invoke(IChannelWriter channelWriter, boolean debug, long timeout, Method method, Object[] args)
+        throws Throwable {
         //
         // make sure channel has been established
         //
@@ -63,19 +62,19 @@ public class ClientInvocationManager {
         //
         Channel ch = channelWriter.getChannel();
         if (ch == null) {
-            throw new ServiceInvocationException("Failed to invoke %s#%s due to channel is empty",
-                                                 method.getDeclaringClass().getSimpleName(),
-                                                 method.getName());
+            throw new ServiceClientException("Failed to invoke %s#%s due to channel is empty",
+                                             method.getDeclaringClass().getSimpleName(),
+                                             method.getName());
         }
         if (!ch.isActive()) {
-            throw new ServiceInvocationException("Failed to invoke %s#%s due to channel is not active",
-                                                 method.getDeclaringClass().getSimpleName(),
-                                                 method.getName());
+            throw new ServiceClientException("Failed to invoke %s#%s due to channel is not active",
+                                             method.getDeclaringClass().getSimpleName(),
+                                             method.getName());
         }
         if (!ch.isWritable()) {
-            throw new ServiceInvocationException("Failed to invoke %s#%s due to channel is not writable",
-                                                 method.getDeclaringClass().getSimpleName(),
-                                                 method.getName());
+            throw new ServiceClientException("Failed to invoke %s#%s due to channel is not writable",
+                                             method.getDeclaringClass().getSimpleName(),
+                                             method.getName());
         }
 
         // TODO: cache method.toString()
@@ -85,11 +84,12 @@ public class ClientInvocationManager {
                                                                           .methodName(method.toString())
                                                                           .transactionId(transactionId.incrementAndGet())
                                                                           .args(args)
+                                                                          .isOneway(method.getAnnotation(Oneway.class)
+                                                                                    != null)
                                                                           .build();
 
-        boolean isOneway = method.getAnnotation(Oneway.class) != null;
         InflightRequest inflightRequest = null;
-        if (!isOneway) {
+        if (!serviceRequest.isOneway()) {
             inflightRequest = new InflightRequest();
             inflightRequest.requestAt = System.currentTimeMillis();
             inflightRequest.methodName = serviceRequest.getMethodName();
@@ -110,14 +110,14 @@ public class ClientInvocationManager {
                 }
             } catch (InterruptedException e) {
                 inflightRequests.remove(serviceRequest.getTransactionId());
-                throw new ServiceInvocationException("interrupted");
+                throw new ServiceClientException("interrupted");
             }
 
             //make sure it has been cleared when timeout
             inflightRequests.remove(serviceRequest.getTransactionId());
 
-            if (!StringUtil.isNullOrEmpty(inflightRequest.exception)) {
-                throw new ServiceInvocationException(inflightRequest.exception);
+            if (inflightRequest.exception != null) {
+                throw inflightRequest.exception;
             }
 
             if (!inflightRequest.returned) {
@@ -144,7 +144,9 @@ public class ClientInvocationManager {
             e.printStackTrace();
         }
 
-        inflightRequest.exception = response.getException();
+        if (!StringUtil.isNullOrEmpty(response.getException())) {
+            inflightRequest.exception = new ServiceInvocationException(response.getException());
+        }
 
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (inflightRequest) {
@@ -159,7 +161,7 @@ public class ClientInvocationManager {
             return;
         }
 
-        inflightRequest.exception = e.toString();
+        inflightRequest.exception = e;
 
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (inflightRequest) {
@@ -178,7 +180,7 @@ public class ClientInvocationManager {
          * This is required so that {@link #response} might be null
          */
         boolean returned;
-        String exception;
+        Throwable exception;
         private String serviceName;
         private String methodName;
     }
