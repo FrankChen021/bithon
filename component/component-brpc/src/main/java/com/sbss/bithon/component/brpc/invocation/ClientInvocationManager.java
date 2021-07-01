@@ -16,13 +16,14 @@
 
 package com.sbss.bithon.component.brpc.invocation;
 
-import com.sbss.bithon.component.brpc.Oneway;
+import com.sbss.bithon.component.brpc.ServiceConfig;
 import com.sbss.bithon.component.brpc.channel.IChannelWriter;
 import com.sbss.bithon.component.brpc.exception.ServiceClientException;
 import com.sbss.bithon.component.brpc.exception.ServiceInvocationException;
 import com.sbss.bithon.component.brpc.exception.TimeoutException;
 import com.sbss.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import com.sbss.bithon.component.brpc.message.out.ServiceRequestMessageOut;
+import com.sbss.bithon.component.brpc.message.serializer.Serializer;
 import io.netty.channel.Channel;
 import io.netty.util.internal.StringUtil;
 
@@ -78,14 +79,18 @@ public class ClientInvocationManager {
         }
 
         // TODO: cache method.toString()
+        ServiceConfig serviceConfig = method.getAnnotation(ServiceConfig.class);
+        boolean isOneway = serviceConfig != null && serviceConfig.isOneway();
+        Serializer serializer = serviceConfig == null ? Serializer.BINARY : serviceConfig.serializer();
+        String name = serviceConfig != null && !StringUtil.isNullOrEmpty(serviceConfig.name()) ? serviceConfig.name() : method.toString();
         ServiceRequestMessageOut serviceRequest = ServiceRequestMessageOut.builder()
                                                                           .serviceName(method.getDeclaringClass()
                                                                                              .getSimpleName())
-                                                                          .methodName(method.toString())
+                                                                          .methodName(name)
                                                                           .transactionId(transactionId.incrementAndGet())
                                                                           .args(args)
-                                                                          .isOneway(method.getAnnotation(Oneway.class)
-                                                                                    != null)
+                                                                          .serializer(serializer)
+                                                                          .isOneway(isOneway)
                                                                           .build();
 
         InflightRequest inflightRequest = null;

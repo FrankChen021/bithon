@@ -16,9 +16,12 @@
 
 package com.sbss.bithon.agent.rpc.brpc;
 
+import com.sbss.bithon.component.brpc.IService;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 19:58
  */
-public interface ICommandDispatcher {
+public interface ICommandDispatcher extends IService {
+    void execute(String command, String token, String jsonArgument);
 }

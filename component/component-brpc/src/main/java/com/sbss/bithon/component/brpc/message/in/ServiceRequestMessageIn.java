@@ -20,21 +20,25 @@ import com.google.protobuf.CodedInputStream;
 import com.sbss.bithon.component.brpc.exception.BadRequestException;
 import com.sbss.bithon.component.brpc.message.ServiceMessage;
 import com.sbss.bithon.component.brpc.message.ServiceMessageType;
-import com.sbss.bithon.component.brpc.message.serializer.ISerializer;
-import com.sbss.bithon.component.brpc.message.serializer.SerializerFactory;
+import com.sbss.bithon.component.brpc.message.serializer.Serializer;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
 
 public class ServiceRequestMessageIn extends ServiceMessageIn {
 
-    private CharSequence serviceName;
-    private CharSequence methodName;
+    private String serviceName;
+    private String methodName;
 
     /**
      * args
      */
     private CodedInputStream args;
+    private Serializer serializer;
+
+    public Serializer getSerializer() {
+        return serializer;
+    }
 
     @Override
     public int getMessageType() {
@@ -46,21 +50,20 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
         this.transactionId = in.readInt64();
         this.serviceName = in.readString();
         this.methodName = in.readString();
+        this.serializer = Serializer.getSerializer(in.readInt32());
         this.args = in;
         return this;
     }
 
-    public CharSequence getServiceName() {
+    public String getServiceName() {
         return serviceName;
     }
 
-    public CharSequence getMethodName() {
+    public String getMethodName() {
         return methodName;
     }
 
     public Object[] getArgs(Type[] parameterTypes) throws BadRequestException, IOException {
-        int serializerType = this.args.readInt32();
-
         int argLength = this.args.readInt32();
         if (argLength != parameterTypes.length) {
             throw new BadRequestException(String.format("Argument size not match. Expected %d, but given %d",
@@ -68,7 +71,6 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
                                                         argLength));
         }
 
-        ISerializer serializer = SerializerFactory.getSerializer(serializerType);
         Object[] inputArgs = new Object[argLength];
         for (int i = 0; i < argLength; i++) {
             try {

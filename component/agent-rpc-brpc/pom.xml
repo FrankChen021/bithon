@@ -43,6 +43,10 @@
                   <shadedPattern>shaded.org.slf4j</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>com.fasterxml.jackson</pattern>
+                  <shadedPattern>shaded.com.fasterxml.jackson</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>com.google.protobuf</pattern>
                   <shadedPattern>shaded.com.google.protobuf</shadedPattern>
                 </relocation>

@@ -55,9 +55,9 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
 
     @Getter
     @AllArgsConstructor
-    static class ServiceImpl {
+    static class ServiceImpl<T extends IService> {
         private final Class<? extends IService> clazz;
-        private final IService impl;
+        private final T impl;
     }
 
     @Getter

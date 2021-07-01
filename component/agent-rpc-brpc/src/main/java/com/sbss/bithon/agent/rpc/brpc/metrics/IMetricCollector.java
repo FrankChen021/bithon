@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.rpc.brpc.metrics;
 
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.component.brpc.IService;
-import com.sbss.bithon.component.brpc.Oneway;
+import com.sbss.bithon.component.brpc.ServiceConfig;
 
 import java.util.List;
 
@@ -28,35 +28,36 @@ import java.util.List;
  */
 public interface IMetricCollector extends IService {
 
-    @Oneway
+    @ServiceConfig(isOneway = true)
     void sendWebRequest(BrpcMessageHeader header, List<BrpcWebRequestMetricMessage> messages);
 
+    @ServiceConfig(isOneway = true)
     void sendJvm(BrpcMessageHeader header, List<BrpcJvmMetricMessage> messages);
 
-    @Oneway
+    @ServiceConfig(isOneway = true)
     void sendJvmGc(BrpcMessageHeader header, List<BrpcJvmGcMetricMessage> messages);
 
-    @Oneway
+    @ServiceConfig(isOneway = true)
     void sendWebServer(BrpcMessageHeader header, List<BrpcWebServerMetricMessage> messages);
 
-    @Oneway
+    @ServiceConfig(isOneway = true)
     void sendException(BrpcMessageHeader header, List<BrpcExceptionMetricMessage> messages);
 
-    @Oneway
+    @ServiceConfig(isOneway = true)
     void sendHttpClient(BrpcMessageHeader header, List<BrpcHttpClientMetricMessage> messages);
 
-    @Oneway
+    @ServiceConfig(isOneway = true)
     void sendThreadPool(BrpcMessageHeader header, List<BrpcThreadPoolMetricMessage> messages);
 
-    @Oneway
+    @ServiceConfig(isOneway = true)
     void sendJdbc(BrpcMessageHeader header, List<BrpcJdbcPoolMetricMessage> messages);
 
-    @Oneway
+    @ServiceConfig(isOneway = true)
     void sendRedis(BrpcMessageHeader header, List<BrpcRedisMetricMessage> messages);
 
-    @Oneway
+    @ServiceConfig(isOneway = true)
     void sendSql(BrpcMessageHeader header, List<BrpcSqlMetricMessage> messages);
 
-    @Oneway
+    @ServiceConfig(isOneway = true)
     void sendMongoDb(BrpcMessageHeader header, List<BrpcMongoDbMetricMessage> messages);
 }

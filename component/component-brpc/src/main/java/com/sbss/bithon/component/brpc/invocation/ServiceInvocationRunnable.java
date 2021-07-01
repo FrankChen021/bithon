@@ -60,7 +60,6 @@ public class ServiceInvocationRunnable implements Runnable {
             }
 
             ServiceRegistry.RegistryItem serviceProvider = serviceRegistry.findServiceProvider(
-                serviceRequest.getServiceName(),
                 serviceRequest.getMethodName());
             if (serviceProvider == null) {
                 throw new BadRequestException("Can't find service provider %s#%s",
@@ -111,6 +110,7 @@ public class ServiceInvocationRunnable implements Runnable {
     }
 
     private void sendResponse(ServiceResponseMessageOut serviceResponse) {
+        serviceResponse.setSerializer(serviceRequest.getSerializer());
         channel.writeAndFlush(serviceResponse);
     }
 
