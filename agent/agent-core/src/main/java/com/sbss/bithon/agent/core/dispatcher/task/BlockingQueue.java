@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2021/5/14 10:46 上午
  */
 public class BlockingQueue implements IMessageQueue {
-    private java.util.concurrent.LinkedBlockingQueue queue = new LinkedBlockingQueue(4096);
+    private final LinkedBlockingQueue<Object> queue = new LinkedBlockingQueue<>(4096);
 
     @Override
     public void enqueue(Object item) {
@@ -33,8 +33,11 @@ public class BlockingQueue implements IMessageQueue {
 
     @Override
     public Object dequeue(int timeout, TimeUnit unit) {
-        //ignore timeout
-        return queue.poll();
+        try {
+            return queue.poll(timeout, unit);
+        } catch (InterruptedException ignored) {
+            return null;
+        }
     }
 
     @Override
