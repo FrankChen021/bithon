@@ -297,10 +297,10 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setTimestamp(timestamp);
         message.setInterval(interval);
         message.setTimestamp(timestamp);
-        message.setGcName(metrics.gcName);
-        message.setGeneration(metrics.generation);
-        message.setGcCount(metrics.gcCount);
-        message.setGcTime(metrics.gcTime);
+        message.setGcName(metrics.getGcName());
+        message.setGeneration(metrics.getGeneration());
+        message.setGcCount(metrics.getGcCount());
+        message.setGcTime(metrics.getGcTime());
         return message;
     }
 

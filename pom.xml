@@ -18,13 +18,16 @@
     </properties>
 
     <modules>
+        <module>component/component-brpc</module>
         <module>component/agent-rpc-thrift</module>
+        <module>component/agent-rpc-brpc</module>
         <module>component/component-commons</module>
         <module>component/component-db</module>
         <module>agent</module>
         <module>server/collector</module>
         <module>server/web-app</module>
         <module>server/server-starter</module>
+
     </modules>
 
     <licenses>
@@ -44,6 +47,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.sbss.bithon</groupId>
+                <artifactId>component-brpc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.sbss.bithon</groupId>
                 <artifactId>agent-rpc-thrift</artifactId>
@@ -130,6 +138,7 @@
                                 <exclude>**/README</exclude>
                                 <exclude>src/main/java/com/sbss/bithon/component/db/jooq/**</exclude>
                                 <exclude>src/main/java/com/sbss/bithon/agent/rpc/thrift/**</exclude>
+                                <exclude>src/main/java/cn/bithon/rpc/services/metrics/**</exclude>
                                 <exclude>src/main/resources/static/**</exclude>
                                 <exclude>**/*.properties</exclude>
                                 <exclude>**/*.sh</exclude>

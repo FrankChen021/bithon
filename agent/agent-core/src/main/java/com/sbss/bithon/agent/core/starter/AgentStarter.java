@@ -20,6 +20,7 @@ import com.sbss.bithon.agent.bootstrap.aop.BootstrapHelper;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.loader.PluginClassLoaderManager;
 import com.sbss.bithon.agent.core.plugin.loader.PluginInstaller;
+import com.sbss.bithon.agent.core.setting.AgentSettingManager;
 import shaded.org.apache.log4j.xml.DOMConfigurator;
 
 import java.io.File;
@@ -42,10 +43,9 @@ public class AgentStarter {
         ensureApplicationTempDirectory(agentContext);
 
         // init setting
-        /*
         AgentSettingManager.createInstance(agentContext.getAppInstance(),
                                            agentContext.getConfig().getFetcher());
-*/
+
         PluginInstaller.install(agentContext, inst);
     }
 

@@ -106,11 +106,8 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
                 }
             } catch (Exception ignored) {
             }
-            try {
-                if (traceContext != null) {
-                    traceContext.finish();
-                }
-            } catch (Exception ignored) {
+            if (traceContext != null) {
+                traceContext.finish();
             }
             try {
                 TraceContextHolder.remove();

@@ -75,7 +75,7 @@ public class AgentSettingManager {
         } else {
             log.warn("Fetcher Impl has not configured.");
         }
-        INSTANCE = new AgentSettingManager(appInstance.getAppName(),
+        INSTANCE = new AgentSettingManager(appInstance.getRawAppName(),
                                            appInstance.getEnv(),
                                            fetcher);
         INSTANCE.start();
@@ -96,8 +96,7 @@ public class AgentSettingManager {
                 public void run() {
                     try {
                         fetchSettings();
-                        lastModifiedAt = System.currentTimeMillis();
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         log.error("Failed to fetch plugin settings", e);
                     }
                 }
@@ -106,6 +105,8 @@ public class AgentSettingManager {
     }
 
     private void fetchSettings() {
+        log.info("Fetch setting for {}-{}", appName, env);
+
         Map<String, String> settings = settingFetcher.fetch(appName, env, lastModifiedAt);
         if (CollectionUtils.isEmpty(settings)) {
             return;
@@ -133,9 +134,10 @@ public class AgentSettingManager {
                 try {
                     listener.onRefresh(om, configNode);
                 } catch (Exception e) {
-                    log.warn(String.format("Exception when refresh setting {}.\n{}", sectionName, settingString), e);
+                    log.warn(String.format("Exception when refresh setting %s.\n%s", sectionName, settingString), e);
                 }
             }
         });
+        lastModifiedAt = System.currentTimeMillis();
     }
 }

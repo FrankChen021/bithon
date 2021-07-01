@@ -49,6 +49,12 @@
       <version>1.0-SNAPSHOT</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.sbss.bithon</groupId>
+      <artifactId>agent-rpc-brpc</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
     <!-- Bithon Commons -->
     <dependency>
       <groupId>com.sbss.bithon</groupId>

@@ -30,6 +30,7 @@ import com.sbss.bithon.agent.core.tracing.sampling.RatioSamplingDecisionMaker;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -67,6 +68,7 @@ public class Tracer {
                                 List<Object> traceMessages = spans.stream()
                                                                   .map(span -> traceDispatcher.getMessageConverter()
                                                                                               .from(span))
+                                                                  .filter(Objects::nonNull)
                                                                   .collect(Collectors.toList());
                                 traceDispatcher.sendMessage(traceMessages);
                             })
