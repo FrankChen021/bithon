@@ -16,8 +16,8 @@
 
 package com.sbss.bithon.agent.dispatcher.thrift;
 
+import com.sbss.bithon.agent.controller.setting.IAgentSettingFetcher;
 import com.sbss.bithon.agent.core.config.FetcherConfig;
-import com.sbss.bithon.agent.core.setting.IAgentSettingFetcher;
 import com.sbss.bithon.agent.rpc.thrift.service.setting.FetchRequest;
 import com.sbss.bithon.agent.rpc.thrift.service.setting.FetchResponse;
 import com.sbss.bithon.agent.rpc.thrift.service.setting.SettingService;

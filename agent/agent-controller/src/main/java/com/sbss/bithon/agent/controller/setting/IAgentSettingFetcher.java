@@ -14,19 +14,16 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.dispatcher.thrift;
+package com.sbss.bithon.agent.controller.setting;
 
-import com.sbss.bithon.agent.controller.setting.IAgentSettingFetcher;
-import com.sbss.bithon.agent.controller.setting.IAgentSettingFetcherFactory;
-import com.sbss.bithon.agent.core.config.FetcherConfig;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/16 4:40 下午
+ * @date 2021/1/16 2:45 下午
  */
-public class SettingFetcherFactory implements IAgentSettingFetcherFactory {
-    @Override
-    public IAgentSettingFetcher createFetcher(FetcherConfig config) {
-        return new ThriftSettingFetcher(config);
-    }
+public interface IAgentSettingFetcher {
+    Map<String, String> fetch(String appName,
+                              String env,
+                              long lastModifiedSince);
 }

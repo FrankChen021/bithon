@@ -27,7 +27,6 @@
         <module>server/collector</module>
         <module>server/web-app</module>
         <module>server/server-starter</module>
-
     </modules>
 
     <licenses>

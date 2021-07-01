@@ -31,6 +31,10 @@
       <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-controller</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

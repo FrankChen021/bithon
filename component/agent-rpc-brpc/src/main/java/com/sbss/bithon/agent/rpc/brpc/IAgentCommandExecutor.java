@@ -14,16 +14,15 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.setting;
+package com.sbss.bithon.agent.rpc.brpc;
 
-import java.util.Map;
+import com.sbss.bithon.component.brpc.IService;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/16 2:45 下午
+ * @date 2021/6/27 19:58
  */
-public interface IAgentSettingFetcher {
-    Map<String, String> fetch(String appName,
-                              String env,
-                              long lastModifiedSince);
+public interface IAgentCommandExecutor extends IService {
+
+
 }

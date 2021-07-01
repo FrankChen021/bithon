@@ -14,14 +14,19 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.setting;
+package com.sbss.bithon.agent.controller.setting;
 
-import com.sbss.bithon.agent.core.config.FetcherConfig;
+import shaded.com.fasterxml.jackson.databind.JsonNode;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/16 4:40 下午
+ * @author frankchen
+ * @date 2020-05-27 14:41:22
  */
-public interface IAgentSettingFetcherFactory {
-    IAgentSettingFetcher createFetcher(FetcherConfig config);
+public interface IAgentSettingRefreshListener {
+    /**
+     * om.treeToValue(configNode, YourPojo.class)
+     * om.readValue(configNode, YourPojo.class)
+     */
+    void onRefresh(ObjectMapper om, JsonNode configNode);
 }

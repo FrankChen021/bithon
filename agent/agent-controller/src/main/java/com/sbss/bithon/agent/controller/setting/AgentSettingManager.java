@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.setting;
+package com.sbss.bithon.agent.controller.setting;
 
 
 import com.sbss.bithon.agent.core.config.FetcherConfig;
