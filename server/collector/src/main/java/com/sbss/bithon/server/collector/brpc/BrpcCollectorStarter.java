@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.server.collector.brpc;
 
-import com.sbss.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import com.sbss.bithon.agent.rpc.brpc.event.IEventCollector;
 import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
+import com.sbss.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import com.sbss.bithon.component.brpc.IService;
 import com.sbss.bithon.component.brpc.channel.ServerChannel;
