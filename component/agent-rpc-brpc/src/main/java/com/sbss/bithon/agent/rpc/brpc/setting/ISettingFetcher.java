@@ -14,8 +14,9 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
+package com.sbss.bithon.agent.rpc.brpc.setting;
 
+import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.component.brpc.IService;
 
 import java.util.Map;

@@ -22,7 +22,7 @@ import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.setting.IAgentSettingFetcher;
 import com.sbss.bithon.agent.rpc.brpc.ApplicationType;
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import com.sbss.bithon.agent.rpc.brpc.ISettingFetcher;
+import com.sbss.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import com.sbss.bithon.component.brpc.channel.ClientChannel;
 import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 import com.sbss.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
