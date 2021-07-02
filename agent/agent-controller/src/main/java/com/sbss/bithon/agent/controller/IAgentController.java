@@ -28,5 +28,5 @@ public interface IAgentController {
                               String env,
                               long lastModifiedSince);
 
-    void attachCommands(Object[] commands);
+    void attachCommands(Object... commands);
 }

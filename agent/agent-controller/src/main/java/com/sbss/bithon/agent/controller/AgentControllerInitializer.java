@@ -16,11 +16,11 @@
 
 package com.sbss.bithon.agent.controller;
 
-import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
-import com.sbss.bithon.agent.controller.cmd.IAgentCommandProvider;
+import com.sbss.bithon.agent.controller.cmd.IAgentCommand;
 import com.sbss.bithon.agent.controller.setting.AgentSettingManager;
 import com.sbss.bithon.agent.core.config.AgentConfigManager;
 import com.sbss.bithon.agent.core.context.AgentContext;
+import com.sbss.bithon.agent.core.plugin.loader.PluginClassLoaderManager;
 import com.sbss.bithon.agent.core.starter.IAgentInitializer;
 import com.sbss.bithon.agent.core.utils.StringUtils;
 import shaded.org.slf4j.Logger;
@@ -73,17 +73,14 @@ public class AgentControllerInitializer implements IAgentInitializer {
         }
 
         //
-        // Load agent commands
+        // Load agent commands by PluginClassLoader to allow SPI in plugins
         //
-        for (IAgentCommandProvider commandProvider : ServiceLoader.load(IAgentCommandProvider.class,
-                                                                        AgentClassLoader.getClassLoader())) {
+        for (IAgentCommand agentCommand : ServiceLoader.load(IAgentCommand.class,
+                                                             PluginClassLoaderManager.getDefaultLoader())) {
 
-            log.info("Binding agent commands provided by {}", commandProvider.getClass().getSimpleName());
+            log.info("Binding agent commands provided by {}", agentCommand.getClass().getSimpleName());
 
-            Object[] commands = commandProvider.getCommands();
-            if (commands != null && commands.length > 0) {
-                controller.attachCommands(commands);
-            }
+            controller.attachCommands(agentCommand);
         }
 
         //

@@ -69,7 +69,7 @@ public class ThriftAgentController implements IAgentController {
     }
 
     @Override
-    public void attachCommands(Object[] commands) {
+    public void attachCommands(Object... commands) {
         LoggerFactory.getLogger(ThriftAgentController.class).error("Agent Controller on Thrift does not support commands from server");
     }
 }

@@ -43,13 +43,13 @@ public class AgentStarter {
 
         ensureApplicationTempDirectory(agentContext);
 
+        PluginInstaller.install(agentContext, inst);
+
         // initialize other agent libs
         for (IAgentInitializer initializer : ServiceLoader.load(IAgentInitializer.class,
                                                                 AgentClassLoader.getClassLoader())) {
             initializer.initialize(agentContext);
         }
-
-        PluginInstaller.install(agentContext, inst);
     }
 
     private void initAgentLogger(String agentPath) {

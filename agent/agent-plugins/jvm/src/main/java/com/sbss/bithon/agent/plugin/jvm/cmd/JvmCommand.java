@@ -14,12 +14,21 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.controller.cmd;
+package com.sbss.bithon.agent.plugin.jvm.cmd;
+
+import com.sbss.bithon.agent.controller.cmd.IAgentCommand;
+import com.sbss.bithon.agent.rpc.brpc.cmd.IJvmCommand;
+
+import java.util.List;
 
 /**
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/7/1 6:29 下午
+ * @date 2021/7/2 4:38 下午
  */
-public interface IAgentCommandProvider {
-    Object[] getCommands();
+public class JvmCommand implements IJvmCommand, IAgentCommand {
+    @Override
+    public List<Thread> dumpThreads() {
+        return null;
+    }
 }

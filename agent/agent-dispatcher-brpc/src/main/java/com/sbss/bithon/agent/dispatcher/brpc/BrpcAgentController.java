@@ -81,7 +81,7 @@ public class BrpcAgentController implements IAgentController {
     }
 
     @Override
-    public void attachCommands(Object[] commands) {
+    public void attachCommands(Object... commands) {
         for (Object cmd : commands) {
             channel.bindService(cmd);
         }

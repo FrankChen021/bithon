@@ -14,19 +14,37 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
+package com.sbss.bithon.agent.rpc.brpc.cmd;
 
 import com.sbss.bithon.component.brpc.ServiceConfig;
 import com.sbss.bithon.component.brpc.message.serializer.Serializer;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/6/27 19:58
+ * @date 2021/7/2 3:50 下午
  */
-public interface IAgentCommandExecutor {
+public interface IJvmCommand {
+
+    class StackFrame {
+        private String declaringClass;
+        private String methodName;
+        private String fileName;
+        private int lineNumber;
+    }
+
+    class Thread {
+        private String name;
+        private long threadId;
+        private boolean isDaemon;
+        private int priority;
+        private String state;
+        private long cpuTime;
+        private long userTime;
+        private List<StackFrame> stacks;
+    }
 
     @ServiceConfig(serializer = Serializer.JSON)
-    Map<String, Object> execute(Map<String, Object> inputArgument);
+    List<Thread> dumpThreads();
 }

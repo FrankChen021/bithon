@@ -14,12 +14,15 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
+package com.sbss.bithon.agent.controller.cmd;
 
 /**
+ * A tagged interface from which every command should inherit
+ *
+ * so that those commands could be found via SPI
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/6/27 19:58
+ * @date 2021/7/1 6:29 下午
  */
-public interface ICommandDispatcher {
-    void execute(String command, String token, String jsonArgument);
+public interface IAgentCommand {
 }
