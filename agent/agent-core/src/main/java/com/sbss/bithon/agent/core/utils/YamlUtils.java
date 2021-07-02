@@ -17,6 +17,8 @@
 package com.sbss.bithon.agent.core.utils;
 
 import shaded.org.yaml.snakeyaml.Yaml;
+import shaded.org.yaml.snakeyaml.constructor.Constructor;
+import shaded.org.yaml.snakeyaml.representer.Representer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,7 +45,9 @@ public class YamlUtils {
     public static <T> T load(File yml,
                              Class<T> clazz) throws IOException {
         try (InputStream is = new FileInputStream(yml)) {
-            return new Yaml().loadAs(is, clazz);
+            Representer representer = new Representer();
+            representer.getPropertyUtils().setSkipMissingProperties(true);
+            return new Yaml(new Constructor(clazz), representer).loadAs(is, clazz);
         }
     }
 

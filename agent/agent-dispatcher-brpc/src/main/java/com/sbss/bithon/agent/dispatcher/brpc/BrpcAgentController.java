@@ -16,8 +16,8 @@
 
 package com.sbss.bithon.agent.dispatcher.brpc;
 
+import com.sbss.bithon.agent.controller.AgentControllerConfig;
 import com.sbss.bithon.agent.controller.IAgentController;
-import com.sbss.bithon.agent.core.config.FetcherConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.rpc.brpc.ApplicationType;
@@ -46,7 +46,7 @@ public class BrpcAgentController implements IAgentController {
     private final ClientChannel channel;
     private final ISettingFetcher fetcher;
 
-    public BrpcAgentController(FetcherConfig config) {
+    public BrpcAgentController(AgentControllerConfig config) {
         List<EndPoint> endpoints = Stream.of(config.getServers().split(",")).map(hostAndPort -> {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));

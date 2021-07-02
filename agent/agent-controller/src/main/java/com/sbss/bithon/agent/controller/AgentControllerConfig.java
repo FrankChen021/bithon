@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.config;
+package com.sbss.bithon.agent.controller;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 2:48 下午
  */
-public class FetcherConfig {
+public class AgentControllerConfig {
     private String client;
     private String servers;
 

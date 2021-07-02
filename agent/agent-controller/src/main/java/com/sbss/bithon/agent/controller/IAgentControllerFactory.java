@@ -16,12 +16,10 @@
 
 package com.sbss.bithon.agent.controller;
 
-import com.sbss.bithon.agent.core.config.FetcherConfig;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 4:40 下午
  */
 public interface IAgentControllerFactory {
-    IAgentController createController(FetcherConfig config);
+    IAgentController createController(AgentControllerConfig config);
 }

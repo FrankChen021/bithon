@@ -19,7 +19,7 @@ package com.sbss.bithon.agent.controller;
 import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.controller.cmd.IAgentCommandProvider;
 import com.sbss.bithon.agent.controller.setting.AgentSettingManager;
-import com.sbss.bithon.agent.core.config.FetcherConfig;
+import com.sbss.bithon.agent.core.config.AgentConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.starter.IAgentInitializer;
 import com.sbss.bithon.agent.core.utils.StringUtils;
@@ -35,26 +35,39 @@ import java.util.ServiceLoader;
 public class AgentControllerInitializer implements IAgentInitializer {
     private static final Logger log = LoggerFactory.getLogger(AgentControllerInitializer.class);
 
+    public static class Config {
+        AgentControllerConfig controller;
+
+        public AgentControllerConfig getController() {
+            return controller;
+        }
+
+        public void setController(AgentControllerConfig controller) {
+            this.controller = controller;
+        }
+    }
+
     @Override
     public void initialize(AgentContext context) throws Exception {
         log.info("Initializing agent controller");
 
-        FetcherConfig fetcherConfig = context.getConfig().getFetcher();
-        if (fetcherConfig == null || StringUtils.isEmpty(fetcherConfig.getClient())) {
+        Config config = AgentConfig.getConfig(Config.class);
+        if (config == null || config.getController() == null || StringUtils.isEmpty(config.getController().getClient())) {
             log.warn("Agent Controller has not configured.");
             return;
         }
+        AgentControllerConfig ctrlConfig = config.getController();
 
         //
         // create controller
         //
         IAgentController controller = null;
         try {
-            IAgentControllerFactory factory = (IAgentControllerFactory) Class.forName(fetcherConfig.getClient())
+            IAgentControllerFactory factory = (IAgentControllerFactory) Class.forName(ctrlConfig.getClient())
                                                                              .newInstance();
-            controller = factory.createController(fetcherConfig);
+            controller = factory.createController(ctrlConfig);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            log.error("Can't create instanceof fetcher {}", fetcherConfig.getClient());
+            log.error("Can't create instanceof fetcher {}", ctrlConfig.getClient());
             throw e;
         }
 

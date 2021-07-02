@@ -10,7 +10,7 @@ bootstrap:
     - logback.groovy
     - logback.xml
 
-fetcher:
+controller:
   servers: 127.0.0.1:9899
   client: com.sbss.bithon.agent.dispatcher.brpc.BrpcAgentControllerFactory
 

@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.agent.dispatcher.thrift;
 
+import com.sbss.bithon.agent.controller.AgentControllerConfig;
 import com.sbss.bithon.agent.controller.IAgentController;
 import com.sbss.bithon.agent.controller.IAgentControllerFactory;
-import com.sbss.bithon.agent.core.config.FetcherConfig;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,7 +26,7 @@ import com.sbss.bithon.agent.core.config.FetcherConfig;
  */
 public class ThriftAgentControllerFactory implements IAgentControllerFactory {
     @Override
-    public IAgentController createController(FetcherConfig config) {
+    public IAgentController createController(AgentControllerConfig config) {
         return new ThriftAgentController(config);
     }
 }

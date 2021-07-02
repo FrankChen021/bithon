@@ -31,17 +31,22 @@ import java.util.Map;
 public class AgentConfig {
     public static final String BITHON_APPLICATION_ENV = "bithon.application.env";
     public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
+    private static File configFile;
+
     private boolean traceEnabled = true;
     private BootstrapConfig bootstrap;
     private Map<String, DispatcherConfig> dispatchers;
-    private FetcherConfig fetcher;
+
+    public static <T> T getConfig(Class<T> clazz) throws IOException {
+        return YamlUtils.load(configFile, clazz);
+    }
 
     public static AgentConfig loadFromYmlFile(String defaultFilePath) throws IOException {
-        String conf = System.getProperty("conf");
+        String conf = System.getProperty("bithon.conf");
 
-        String configFile = !StringUtils.isEmpty(conf) ? conf : defaultFilePath;
+        configFile = new File(StringUtils.isEmpty(conf) ? defaultFilePath : conf);
 
-        AgentConfig config = YamlUtils.load(new File(configFile), AgentConfig.class);
+        AgentConfig config = YamlUtils.load(configFile, AgentConfig.class);
 
         String appName = getApplicationName(config.getBootstrap().getAppName());
         if (StringUtils.isEmpty(appName)) {
@@ -93,14 +98,6 @@ public class AgentConfig {
 
     public void setTraceEnabled(boolean traceEnabled) {
         this.traceEnabled = traceEnabled;
-    }
-
-    public FetcherConfig getFetcher() {
-        return fetcher;
-    }
-
-    public void setFetcher(FetcherConfig fetcher) {
-        this.fetcher = fetcher;
     }
 
     public BootstrapConfig getBootstrap() {
