@@ -18,7 +18,6 @@ package com.sbss.bithon.component.brpc.message.serializer;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.smile.SmileFactory;
@@ -34,13 +33,8 @@ public class DefaultObjectMapper extends ObjectMapper {
         super(factory);
 
         configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        configure(MapperFeature.AUTO_DETECT_GETTERS, false);
         // See https://github.com/FasterXML/jackson-databind/issues/170
         // configure(MapperFeature.AUTO_DETECT_CREATORS, false);
-        configure(MapperFeature.AUTO_DETECT_FIELDS, false);
-        configure(MapperFeature.AUTO_DETECT_IS_GETTERS, false);
-        configure(MapperFeature.AUTO_DETECT_SETTERS, false);
-        configure(MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS, false);
         configure(SerializationFeature.INDENT_OUTPUT, false);
         configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, false);
     }
@@ -51,7 +45,12 @@ public class DefaultObjectMapper extends ObjectMapper {
     }
 
     public static ObjectMapper createInstance() {
-        return new DefaultObjectMapper((JsonFactory) null);
+        final SmileFactory smileFactory = new SmileFactory();
+        smileFactory.configure(SmileGenerator.Feature.ENCODE_BINARY_AS_7BIT, false);
+        smileFactory.delegateToTextual(true);
+        DefaultObjectMapper mapper = new DefaultObjectMapper(smileFactory);
+        mapper.getFactory().setCodec(mapper);
+        return mapper;
     }
 }
 
