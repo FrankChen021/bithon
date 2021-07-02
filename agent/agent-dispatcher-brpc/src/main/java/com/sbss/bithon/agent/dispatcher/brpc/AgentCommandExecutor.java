@@ -27,7 +27,7 @@ import java.util.Map;
 public class AgentCommandExecutor implements IAgentCommandExecutor {
 
     @Override
-    public Map<String, Object> execute(String command, Map<String, Object> inputArgument) {
+    public Map<String, Object> execute(Map<String, Object> inputArgument) {
         return null;
     }
 }

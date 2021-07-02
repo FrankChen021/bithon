@@ -16,7 +16,6 @@
 
 package com.sbss.bithon.component.brpc.channel;
 
-import com.sbss.bithon.component.brpc.IService;
 import com.sbss.bithon.component.brpc.ServiceRegistry;
 import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 import com.sbss.bithon.component.brpc.invocation.ServiceStubFactory;
@@ -54,7 +53,7 @@ public class ServerChannel implements Closeable {
     private final ServiceMessageChannelHandler channelReader = new ServiceMessageChannelHandler(serviceRegistry);
     private final Map<EndPoint, ClientService> clientServices = new ConcurrentHashMap<>();
 
-    public <T extends IService> ServerChannel bindService(Class<T> interfaceClass, T impl) {
+    public ServerChannel bindService(Class<?> interfaceClass, Object impl) {
         serviceRegistry.addService(interfaceClass, impl);
         return this;
     }
@@ -119,7 +118,7 @@ public class ServerChannel implements Closeable {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends IService> T getRemoteService(EndPoint clientEndpoint, Class<T> serviceClass) {
+    public <T> T getRemoteService(EndPoint clientEndpoint, Class<T> serviceClass) {
         ClientService clientService = clientServices.get(clientEndpoint);
         if (clientService == null) {
             return null;
@@ -147,7 +146,7 @@ public class ServerChannel implements Closeable {
 
     static class ClientService {
         private final Channel channel;
-        private final Map<Class<? extends IService>, IService> services = new ConcurrentHashMap<>();
+        private final Map<Class<?>, Object> services = new ConcurrentHashMap<>();
 
         public ClientService(Channel channel) {
             this.channel = channel;

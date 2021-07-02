@@ -20,7 +20,6 @@ import com.sbss.bithon.agent.rpc.brpc.event.IEventCollector;
 import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import com.sbss.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
-import com.sbss.bithon.component.brpc.IService;
 import com.sbss.bithon.component.brpc.channel.ServerChannel;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.setting.AgentSettingService;
@@ -55,9 +54,9 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
 
     @Getter
     @AllArgsConstructor
-    static class ServiceImpl<T extends IService> {
-        private final Class<? extends IService> clazz;
-        private final T impl;
+    static class ServiceImpl {
+        private final Class<?> clazz;
+        private final Object impl;
     }
 
     @Getter
@@ -78,35 +77,35 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
             String service = entry.getKey();
             Integer port = entry.getValue();
 
-            Class<? extends IService> clazz = null;
-            IService processor = null;
+            Class<?> clazz = null;
+            Object serviceProvider = null;
             switch (service) {
                 case "metric":
                     clazz = IMetricCollector.class;
-                    processor = new BrpcMetricCollector(applicationContext.getBean("metricSink", IMessageSink.class));
+                    serviceProvider = new BrpcMetricCollector(applicationContext.getBean("metricSink", IMessageSink.class));
                     break;
 
                 case "event":
                     clazz = IEventCollector.class;
-                    processor = new BrpcEventCollector(applicationContext.getBean("eventSink", IMessageSink.class));
+                    serviceProvider = new BrpcEventCollector(applicationContext.getBean("eventSink", IMessageSink.class));
                     break;
 
                 case "tracing":
                     clazz = ITraceCollector.class;
-                    processor = new BrpcTraceCollector(applicationContext.getBean("traceSink", IMessageSink.class));
+                    serviceProvider = new BrpcTraceCollector(applicationContext.getBean("traceSink", IMessageSink.class));
                     break;
 
                 case "setting":
                     clazz = ISettingFetcher.class;
-                    processor = new BrpcSettingFetcher(applicationContext.getBean(AgentSettingService.class));
+                    serviceProvider = new BrpcSettingFetcher(applicationContext.getBean(AgentSettingService.class));
                     break;
 
                 default:
                     break;
             }
-            if (processor != null) {
+            if (serviceProvider != null) {
                 ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, key -> new ServiceGroup());
-                serviceGroup.getServices().add(new ServiceImpl(clazz, processor));
+                serviceGroup.getServices().add(new ServiceImpl(clazz, serviceProvider));
             }
         }
 

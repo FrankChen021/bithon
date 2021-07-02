@@ -17,7 +17,6 @@
 package com.sbss.bithon.agent.rpc.brpc.setting;
 
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import com.sbss.bithon.component.brpc.IService;
 
 import java.util.Map;
 
@@ -25,6 +24,6 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/6/30 3:25 下午
  */
-public interface ISettingFetcher extends IService {
+public interface ISettingFetcher {
     Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
 }

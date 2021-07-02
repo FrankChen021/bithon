@@ -16,8 +16,8 @@
 
 package com.sbss.bithon.agent.dispatcher.thrift;
 
-import com.sbss.bithon.agent.controller.IAgentSettingFetcher;
 import com.sbss.bithon.agent.controller.IAgentControllerFactory;
+import com.sbss.bithon.agent.controller.IAgentSettingFetcher;
 import com.sbss.bithon.agent.core.config.FetcherConfig;
 
 /**

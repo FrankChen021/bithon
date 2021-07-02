@@ -16,7 +16,6 @@
 
 package com.sbss.bithon.agent.rpc.brpc;
 
-import com.sbss.bithon.component.brpc.IService;
 import com.sbss.bithon.component.brpc.ServiceConfig;
 import com.sbss.bithon.component.brpc.message.serializer.Serializer;
 
@@ -26,7 +25,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 19:58
  */
-public interface IAgentCommandExecutor extends IService {
+public interface IAgentCommandExecutor {
 
     @ServiceConfig(serializer = Serializer.JSON)
     Map<String, Object> execute(Map<String, Object> inputArgument);
