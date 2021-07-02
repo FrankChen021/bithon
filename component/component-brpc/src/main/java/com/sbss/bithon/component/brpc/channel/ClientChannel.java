@@ -159,8 +159,8 @@ public class ClientChannel implements IChannelWriter, Closeable {
         throw new ServiceClientException("Unable to connect to server(%s:%s)", endpoint.getHost(), endpoint.getPort());
     }
 
-    public ClientChannel bindService(Class<?> serviceType, Object serviceImpl) {
-        serviceRegistry.addService(serviceType, serviceImpl);
+    public ClientChannel bindService(Object serviceImpl) {
+        serviceRegistry.addService(serviceImpl);
         return this;
     }
 

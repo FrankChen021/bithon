@@ -23,7 +23,9 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ServiceRegistry {
@@ -32,9 +34,28 @@ public class ServiceRegistry {
 
     private final Map<String, RegistryItem> registry = new ConcurrentHashMap<>();
 
-    public void addService(Class<?> serviceType, Object serviceImpl) {
-        // override methods are not supported
-        for (Method method : serviceType.getDeclaredMethods()) {
+    public void addService(Object serviceImpl) {
+        // prevent duplicated registry for interfaces declared on multiple super classes
+        Set<Class<?>> interfaces = new HashSet<>();
+
+        for (Class<?> interfaceType : serviceImpl.getClass().getInterfaces()) {
+            if (interfaces.add(interfaceType)) {
+                addService(interfaceType, serviceImpl);
+            }
+        }
+        Class<?> superClass = serviceImpl.getClass().getSuperclass();
+        while (superClass != null) {
+            for (Class<?> interfaceType : superClass.getInterfaces()) {
+                if (interfaces.add(interfaceType)) {
+                    addService(interfaceType, serviceImpl);
+                }
+            }
+            superClass = superClass.getSuperclass();
+        }
+    }
+
+    private void addService(Class<?> interfaceType, Object serviceImpl) {
+        for (Method method : interfaceType.getDeclaredMethods()) {
 
             ServiceConfig config = method.getAnnotation(ServiceConfig.class);
             String name = null;

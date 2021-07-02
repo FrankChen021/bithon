@@ -111,7 +111,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
 
         serviceGroups.forEach((port, serviceGroup) -> {
             ServerChannel channel = new ServerChannel();
-            serviceGroup.getServices().forEach((service) -> channel.bindService(service.getClazz(), service.getImpl()));
+            serviceGroup.getServices().forEach((service) -> channel.bindService(service.getImpl()));
             channel.start(port);
         });
 
