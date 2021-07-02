@@ -16,12 +16,6 @@
 
 package com.sbss.bithon.agent.core.config;
 
-import com.sbss.bithon.agent.bootstrap.expt.AgentException;
-import com.sbss.bithon.agent.core.utils.StringUtils;
-import com.sbss.bithon.agent.core.utils.YamlUtils;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -29,68 +23,9 @@ import java.util.Map;
  * @date 2020-12-31 22:18:18
  */
 public class AgentConfig {
-    public static final String BITHON_APPLICATION_ENV = "bithon.application.env";
-    public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
-    private static File configFile;
-
     private boolean traceEnabled = true;
     private BootstrapConfig bootstrap;
     private Map<String, DispatcherConfig> dispatchers;
-
-    public static <T> T getConfig(Class<T> clazz) throws IOException {
-        return YamlUtils.load(configFile, clazz);
-    }
-
-    public static AgentConfig loadFromYmlFile(String defaultFilePath) throws IOException {
-        String conf = System.getProperty("bithon.conf");
-
-        configFile = new File(StringUtils.isEmpty(conf) ? defaultFilePath : conf);
-
-        AgentConfig config = YamlUtils.load(configFile, AgentConfig.class);
-
-        String appName = getApplicationName(config.getBootstrap().getAppName());
-        if (StringUtils.isEmpty(appName)) {
-            throw new AgentException("Failed to get JVM property or environment variable `%s`",
-                                     BITHON_APPLICATION_NAME);
-        }
-        config.getBootstrap().setAppName(appName);
-
-        String env = getApplicationEnvironment();
-        if (StringUtils.isEmpty(env)) {
-            throw new AgentException("Failed to get JVM property or environment variable `%s`", BITHON_APPLICATION_ENV);
-        }
-        config.getBootstrap().setEnv(env);
-
-        return config;
-    }
-
-    private static String getApplicationName(String defaultName) {
-        String appName = System.getProperty(BITHON_APPLICATION_NAME);
-        if (!StringUtils.isEmpty(appName)) {
-            return appName;
-        }
-
-        appName = System.getenv().get(BITHON_APPLICATION_NAME);
-        if (!StringUtils.isEmpty(appName)) {
-            return appName;
-        }
-
-        return defaultName;
-    }
-
-    private static String getApplicationEnvironment() {
-        String envName = System.getProperty(BITHON_APPLICATION_ENV);
-        if (!StringUtils.isEmpty(envName)) {
-            return envName;
-        }
-
-        envName = System.getenv().get(BITHON_APPLICATION_ENV);
-        if (!StringUtils.isEmpty(envName)) {
-            return envName;
-        }
-
-        return null;
-    }
 
     public boolean isTraceEnabled() {
         return traceEnabled;
