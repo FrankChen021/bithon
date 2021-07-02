@@ -28,13 +28,45 @@ import java.util.List;
 public interface IJvmCommand {
 
     class StackFrame {
-        private String declaringClass;
+        private String className;
         private String methodName;
         private String fileName;
         private int lineNumber;
+
+        public String getClassName() {
+            return className;
+        }
+
+        public void setClassName(String className) {
+            this.className = className;
+        }
+
+        public String getMethodName() {
+            return methodName;
+        }
+
+        public void setMethodName(String methodName) {
+            this.methodName = methodName;
+        }
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        public void setFileName(String fileName) {
+            this.fileName = fileName;
+        }
+
+        public int getLineNumber() {
+            return lineNumber;
+        }
+
+        public void setLineNumber(int lineNumber) {
+            this.lineNumber = lineNumber;
+        }
     }
 
-    class Thread {
+    class ThreadInfo {
         private String name;
         private long threadId;
         private boolean isDaemon;
@@ -43,8 +75,72 @@ public interface IJvmCommand {
         private long cpuTime;
         private long userTime;
         private List<StackFrame> stacks;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public long getThreadId() {
+            return threadId;
+        }
+
+        public void setThreadId(long threadId) {
+            this.threadId = threadId;
+        }
+
+        public boolean isDaemon() {
+            return isDaemon;
+        }
+
+        public void setDaemon(boolean daemon) {
+            isDaemon = daemon;
+        }
+
+        public int getPriority() {
+            return priority;
+        }
+
+        public void setPriority(int priority) {
+            this.priority = priority;
+        }
+
+        public String getState() {
+            return state;
+        }
+
+        public void setState(String state) {
+            this.state = state;
+        }
+
+        public long getCpuTime() {
+            return cpuTime;
+        }
+
+        public void setCpuTime(long cpuTime) {
+            this.cpuTime = cpuTime;
+        }
+
+        public long getUserTime() {
+            return userTime;
+        }
+
+        public void setUserTime(long userTime) {
+            this.userTime = userTime;
+        }
+
+        public List<StackFrame> getStacks() {
+            return stacks;
+        }
+
+        public void setStacks(List<StackFrame> stacks) {
+            this.stacks = stacks;
+        }
     }
 
     @ServiceConfig(serializer = Serializer.JSON)
-    List<Thread> dumpThreads();
+    List<ThreadInfo> dumpThreads();
 }

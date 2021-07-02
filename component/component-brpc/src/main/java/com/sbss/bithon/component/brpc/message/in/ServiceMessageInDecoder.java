@@ -30,10 +30,15 @@ import java.util.List;
 public class ServiceMessageInDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws IOException {
-        CodedInputStream is = CodedInputStream.newInstance(new ByteBufInputStream(in));
+        if (in.readableBytes() < 4) {
+            // this might be a fragment packet
+            return;
+        }
 
+        CodedInputStream is = CodedInputStream.newInstance(new ByteBufInputStream(in));
         int messageType = is.readInt32();
-        if (messageType == ServiceMessageType.CLIENT_REQUEST || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY) {
+        if (messageType == ServiceMessageType.CLIENT_REQUEST
+            || messageType == ServiceMessageType.CLIENT_REQUEST_ONEWAY) {
             out.add(new ServiceRequestMessageIn().decode(is));
         } else if (messageType == ServiceMessageType.SERVER_RESPONSE) {
             out.add(new ServiceResponseMessageIn().decode(is));

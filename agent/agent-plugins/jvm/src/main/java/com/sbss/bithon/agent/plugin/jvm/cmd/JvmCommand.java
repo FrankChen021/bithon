@@ -19,16 +19,50 @@ package com.sbss.bithon.agent.plugin.jvm.cmd;
 import com.sbss.bithon.agent.controller.cmd.IAgentCommand;
 import com.sbss.bithon.agent.rpc.brpc.cmd.IJvmCommand;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- *
  * @author frank.chen021@outlook.com
  * @date 2021/7/2 4:38 下午
  */
 public class JvmCommand implements IJvmCommand, IAgentCommand {
     @Override
-    public List<Thread> dumpThreads() {
-        return null;
+    public List<ThreadInfo> dumpThreads() {
+
+        List<ThreadInfo> threads = new ArrayList<>();
+
+        Map<Thread, StackTraceElement[]> stackTraces = java.lang.Thread.getAllStackTraces();
+        stackTraces.forEach((thread, stacks) -> {
+            ThreadMXBean threadMxBean = ManagementFactory.getThreadMXBean();
+            boolean cpuTimeEnabled = threadMxBean.isThreadCpuTimeSupported() && threadMxBean.isThreadCpuTimeEnabled();
+
+            ThreadInfo threadInfo = new ThreadInfo();
+            threadInfo.setName(thread.getName());
+            threadInfo.setThreadId(thread.getId());
+            threadInfo.setDaemon(thread.isDaemon());
+            threadInfo.setPriority(thread.getPriority());
+            threadInfo.setState(thread.getState().toString());
+            threadInfo.setCpuTime(cpuTimeEnabled ? threadMxBean.getThreadCpuTime(thread.getId()) : -1);
+            threadInfo.setUserTime(cpuTimeEnabled ? threadMxBean.getThreadUserTime(thread.getId()) : -1);
+            threadInfo.setStacks(
+                Arrays.stream(stacks).map(stack -> {
+                    StackFrame frame = new StackFrame();
+                    frame.setClassName(stack.getClassName());
+                    frame.setMethodName(stack.getMethodName());
+                    frame.setFileName(stack.getFileName());
+                    frame.setLineNumber(stack.getLineNumber());
+                    return frame;
+                }).collect(Collectors.toList()));
+
+            threads.add(threadInfo);
+        });
+
+        return threads;
     }
 }

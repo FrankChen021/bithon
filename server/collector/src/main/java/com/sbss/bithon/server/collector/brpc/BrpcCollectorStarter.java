@@ -21,6 +21,7 @@ import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import com.sbss.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import com.sbss.bithon.component.brpc.channel.ServerChannel;
+import com.sbss.bithon.server.cmd.CommandService;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.setting.AgentSettingService;
 import com.sbss.bithon.server.setting.BrpcSettingFetcher;
@@ -62,6 +63,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
     @Getter
     static class ServiceGroup {
         private final List<ServiceImpl> services = new ArrayList<>();
+        private boolean isCtrl;
     }
 
     @SuppressWarnings("unchecked")
@@ -77,25 +79,30 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
             String service = entry.getKey();
             Integer port = entry.getValue();
 
+            boolean isCtrl = false;
             Class<?> clazz = null;
             Object serviceProvider = null;
             switch (service) {
                 case "metric":
                     clazz = IMetricCollector.class;
-                    serviceProvider = new BrpcMetricCollector(applicationContext.getBean("metricSink", IMessageSink.class));
+                    serviceProvider = new BrpcMetricCollector(applicationContext.getBean("metricSink",
+                                                                                         IMessageSink.class));
                     break;
 
                 case "event":
                     clazz = IEventCollector.class;
-                    serviceProvider = new BrpcEventCollector(applicationContext.getBean("eventSink", IMessageSink.class));
+                    serviceProvider = new BrpcEventCollector(applicationContext.getBean("eventSink",
+                                                                                        IMessageSink.class));
                     break;
 
                 case "tracing":
                     clazz = ITraceCollector.class;
-                    serviceProvider = new BrpcTraceCollector(applicationContext.getBean("traceSink", IMessageSink.class));
+                    serviceProvider = new BrpcTraceCollector(applicationContext.getBean("traceSink",
+                                                                                        IMessageSink.class));
                     break;
 
-                case "setting":
+                case "ctrl":
+                    isCtrl = true;
                     clazz = ISettingFetcher.class;
                     serviceProvider = new BrpcSettingFetcher(applicationContext.getBean(AgentSettingService.class));
                     break;
@@ -105,12 +112,16 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
             }
             if (serviceProvider != null) {
                 ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, key -> new ServiceGroup());
+                serviceGroup.isCtrl = isCtrl;
                 serviceGroup.getServices().add(new ServiceImpl(clazz, serviceProvider));
             }
         }
 
         serviceGroups.forEach((port, serviceGroup) -> {
             ServerChannel channel = new ServerChannel();
+            if (serviceGroup.isCtrl) {
+                applicationContext.getBean(CommandService.class).setServerChannel(channel);
+            }
             serviceGroup.getServices().forEach((service) -> channel.bindService(service.getImpl()));
             channel.start(port);
         });

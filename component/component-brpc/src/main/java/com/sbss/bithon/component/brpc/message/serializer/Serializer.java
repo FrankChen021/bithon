@@ -55,7 +55,7 @@ public enum Serializer {
         }
     },
     JSON {
-        private final ObjectMapper om = new ObjectMapper();
+        private final ObjectMapper om = DefaultObjectMapper.createInstance();
 
         @Override
         public int getType() {
