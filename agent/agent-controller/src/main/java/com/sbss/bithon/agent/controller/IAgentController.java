@@ -27,4 +27,6 @@ public interface IAgentController {
     Map<String, String> fetch(String appName,
                               String env,
                               long lastModifiedSince);
+
+    void attachCommands(Object[] commands);
 }

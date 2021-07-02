@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,19 +39,17 @@ public class ServiceRegistry {
         // prevent duplicated registry for interfaces declared on multiple super classes
         Set<Class<?>> interfaces = new HashSet<>();
 
-        for (Class<?> interfaceType : serviceImpl.getClass().getInterfaces()) {
-            if (interfaces.add(interfaceType)) {
-                addService(interfaceType, serviceImpl);
-            }
-        }
+        interfaces.addAll(Arrays.asList(serviceImpl.getClass().getInterfaces()));
+
         Class<?> superClass = serviceImpl.getClass().getSuperclass();
         while (superClass != null) {
-            for (Class<?> interfaceType : superClass.getInterfaces()) {
-                if (interfaces.add(interfaceType)) {
-                    addService(interfaceType, serviceImpl);
-                }
-            }
+            interfaces.addAll(Arrays.asList(superClass.getInterfaces()));
+
             superClass = superClass.getSuperclass();
+        }
+
+        for (Class<?> interfaceType : interfaces) {
+            addService(interfaceType, serviceImpl);
         }
     }
 

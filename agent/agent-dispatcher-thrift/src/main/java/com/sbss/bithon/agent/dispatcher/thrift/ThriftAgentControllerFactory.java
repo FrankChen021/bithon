@@ -26,7 +26,7 @@ import com.sbss.bithon.agent.core.config.FetcherConfig;
  */
 public class ThriftAgentControllerFactory implements IAgentControllerFactory {
     @Override
-    public IAgentController createFetcher(FetcherConfig config) {
+    public IAgentController createController(FetcherConfig config) {
         return new ThriftAgentController(config);
     }
 }

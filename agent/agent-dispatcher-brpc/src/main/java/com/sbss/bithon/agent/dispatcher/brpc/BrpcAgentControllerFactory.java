@@ -26,7 +26,7 @@ import com.sbss.bithon.agent.core.config.FetcherConfig;
  */
 public class BrpcAgentControllerFactory implements IAgentControllerFactory {
     @Override
-    public IAgentController createFetcher(FetcherConfig config) {
+    public IAgentController createController(FetcherConfig config) {
         return new BrpcAgentController(config);
     }
 }

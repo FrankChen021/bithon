@@ -24,6 +24,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.setting.SettingService;
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -65,5 +66,10 @@ public class ThriftAgentController implements IAgentController {
             }
         }, 3);
         return null;
+    }
+
+    @Override
+    public void attachCommands(Object[] commands) {
+        LoggerFactory.getLogger(ThriftAgentController.class).error("Agent Controller on Thrift does not support commands from server");
     }
 }

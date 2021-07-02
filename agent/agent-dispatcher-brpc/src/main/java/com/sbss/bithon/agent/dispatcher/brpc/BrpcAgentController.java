@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 public class BrpcAgentController implements IAgentController {
     private static final Logger log = LoggerFactory.getLogger(BrpcAgentController.class);
 
+    private final ClientChannel channel;
     private final ISettingFetcher fetcher;
 
     public BrpcAgentController(FetcherConfig config) {
@@ -50,9 +51,11 @@ public class BrpcAgentController implements IAgentController {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        fetcher = new ClientChannel(new RoundRobinEndPointProvider(endpoints))
-            .configureRetry(3, Duration.ofMillis(100))
-            .getRemoteService(ISettingFetcher.class);
+
+        channel = new ClientChannel(new RoundRobinEndPointProvider(endpoints))
+            .configureRetry(30, Duration.ofSeconds(2));
+
+        fetcher = channel.getRemoteService(ISettingFetcher.class);
     }
 
     @Override
@@ -74,6 +77,13 @@ public class BrpcAgentController implements IAgentController {
             //suppress client exception
             log.error("Failed to fetch settings: {}", e.getMessage());
             return null;
+        }
+    }
+
+    @Override
+    public void attachCommands(Object[] commands) {
+        for (Object cmd : commands) {
+            channel.bindService(cmd);
         }
     }
 }
