@@ -14,20 +14,19 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.dispatcher.brpc;
+package com.sbss.bithon.agent.dispatcher.thrift;
 
-import com.sbss.bithon.agent.rpc.brpc.IAgentCommandExecutor;
-
-import java.util.Map;
+import com.sbss.bithon.agent.controller.IAgentController;
+import com.sbss.bithon.agent.controller.IAgentControllerFactory;
+import com.sbss.bithon.agent.core.config.FetcherConfig;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/1 2:41 下午
+ * @date 2021/1/16 4:40 下午
  */
-public class AgentCommandExecutor implements IAgentCommandExecutor {
-
+public class ThriftAgentControllerFactory implements IAgentControllerFactory {
     @Override
-    public Map<String, Object> execute(Map<String, Object> inputArgument) {
-        return null;
+    public IAgentController createFetcher(FetcherConfig config) {
+        return new ThriftAgentController(config);
     }
 }

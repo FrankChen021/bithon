@@ -16,17 +16,17 @@
 
 package com.sbss.bithon.agent.dispatcher.brpc;
 
+import com.sbss.bithon.agent.controller.IAgentController;
 import com.sbss.bithon.agent.controller.IAgentControllerFactory;
-import com.sbss.bithon.agent.controller.IAgentSettingFetcher;
 import com.sbss.bithon.agent.core.config.FetcherConfig;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 4:40 下午
  */
-public class SettingFetcherFactory implements IAgentControllerFactory {
+public class BrpcAgentControllerFactory implements IAgentControllerFactory {
     @Override
-    public IAgentSettingFetcher createFetcher(FetcherConfig config) {
-        return new SettingFetcher(config);
+    public IAgentController createFetcher(FetcherConfig config) {
+        return new BrpcAgentController(config);
     }
 }

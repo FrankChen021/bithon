@@ -40,18 +40,6 @@
   <build>
     <finalName>${project.artifactId}</finalName>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <DispatcherFactory>com.sbss.bithon.agent.dispatcher.brpc.BrpcChannelFactory
-              </DispatcherFactory>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
 
       <!--            <plugin>-->
       <!--                <groupId>org.apache.thrift.tools</groupId>-->

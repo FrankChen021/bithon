@@ -40,14 +40,14 @@ import java.util.stream.Stream;
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 20:14
  */
-public class EventMessageChannel implements IMessageChannel {
-    private static final Logger log = LoggerFactory.getLogger(EventMessageChannel.class);
+public class BrpcEventMessageChannel implements IMessageChannel {
+    private static final Logger log = LoggerFactory.getLogger(BrpcEventMessageChannel.class);
 
     private final DispatcherConfig dispatcherConfig;
     private final IEventCollector eventCollector;
     private BrpcMessageHeader header;
 
-    public EventMessageChannel(DispatcherConfig dispatcherConfig) {
+    public BrpcEventMessageChannel(DispatcherConfig dispatcherConfig) {
         List<EndPoint> endpoints = Stream.of(dispatcherConfig.getServers().split(",")).map(hostAndPort -> {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));

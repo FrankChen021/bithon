@@ -23,5 +23,5 @@ import com.sbss.bithon.agent.core.config.FetcherConfig;
  * @date 2021/1/16 4:40 下午
  */
 public interface IAgentControllerFactory {
-    IAgentSettingFetcher createFetcher(FetcherConfig config);
+    IAgentController createFetcher(FetcherConfig config);
 }

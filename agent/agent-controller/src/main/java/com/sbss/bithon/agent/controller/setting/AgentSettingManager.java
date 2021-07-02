@@ -17,8 +17,8 @@
 package com.sbss.bithon.agent.controller.setting;
 
 
+import com.sbss.bithon.agent.controller.IAgentController;
 import com.sbss.bithon.agent.controller.IAgentControllerFactory;
-import com.sbss.bithon.agent.controller.IAgentSettingFetcher;
 import com.sbss.bithon.agent.core.config.FetcherConfig;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
@@ -48,11 +48,11 @@ public class AgentSettingManager {
 
     private final String appName;
     private final String env;
-    private final IAgentSettingFetcher settingFetcher;
+    private final IAgentController settingFetcher;
     private final Map<String, List<IAgentSettingRefreshListener>> listeners;
     private Long lastModifiedAt = 0L;
 
-    public AgentSettingManager(String appName, String env, IAgentSettingFetcher settingFetcher) {
+    public AgentSettingManager(String appName, String env, IAgentController settingFetcher) {
         this.appName = appName;
         this.env = env;
         this.settingFetcher = settingFetcher;
@@ -76,7 +76,7 @@ public class AgentSettingManager {
         if (INSTANCE != null) {
             return;
         }
-        IAgentSettingFetcher fetcher = null;
+        IAgentController fetcher = null;
         if (fetcherConfig != null && !StringUtils.isEmpty(fetcherConfig.getClient())) {
             try {
                 IAgentControllerFactory factory = (IAgentControllerFactory) Class.forName(fetcherConfig.getClient())
