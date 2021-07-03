@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE log4j:configuration PUBLIC "-//log4j/log4j Configuration//EN" "log4j.dtd">
-<log4j:configuration debug="true">
+<log4j:configuration>
 
   <appender name="console" class="shaded.org.apache.log4j.ConsoleAppender">
     <layout class="shaded.org.apache.log4j.PatternLayout">
