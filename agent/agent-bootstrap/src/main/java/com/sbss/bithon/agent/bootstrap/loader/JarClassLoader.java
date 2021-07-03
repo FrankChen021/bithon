@@ -101,7 +101,11 @@ public class JarClassLoader extends ClassLoader {
 
         for (IClassLoaderProvider parent : parents) {
             try {
-                return parent.getClassLoader().loadClass(name);
+                ClassLoader parentLoader = parent.getClassLoader();
+                if (parentLoader != this) {
+                    // parent is a provider, it could be set dynamically to be instance of current class
+                    return parentLoader.loadClass(name);
+                }
             } catch (ClassNotFoundException ignored) {
             }
         }
@@ -129,9 +133,12 @@ public class JarClassLoader extends ClassLoader {
 
         // delegate to parent to get resource
         for (IClassLoaderProvider parent : parents) {
-            URL url = parent.getClassLoader().getResource(name);
-            if (url != null) {
-                return url;
+            ClassLoader parentLoader = parent.getClassLoader();
+            if (parentLoader != this) {
+                URL url = parentLoader.getResource(name);
+                if (url != null) {
+                    return url;
+                }
             }
         }
         return null;
