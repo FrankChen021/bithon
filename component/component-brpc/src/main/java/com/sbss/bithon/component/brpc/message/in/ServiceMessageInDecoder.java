@@ -16,13 +16,13 @@
 
 package com.sbss.bithon.component.brpc.message.in;
 
-import com.google.protobuf.CodedInputStream;
 import com.sbss.bithon.component.brpc.message.ServiceMessageType;
 import com.sbss.bithon.component.brpc.message.UnknownMessageException;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
+import shaded.com.google.protobuf.CodedInputStream;
+import shaded.io.netty.buffer.ByteBuf;
+import shaded.io.netty.buffer.ByteBufInputStream;
+import shaded.io.netty.channel.ChannelHandlerContext;
+import shaded.io.netty.handler.codec.ByteToMessageDecoder;
 
 import java.io.IOException;
 import java.util.List;

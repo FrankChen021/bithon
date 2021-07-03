@@ -10,17 +10,19 @@ A preview demo is hosted [here](https://www.bithon.cn:9897/ui/home).
 
 # Build
 
-## 1. install dependencies
+## 1. clone source code
 
-Enter `agent/agent-dependencies` directory, and execute the following command to install agent-dependencies on local.
+## 2. build & install dependencies
+
+Enter `shaded` directory, and execute the following command to build and install dependencies on your local.
 
 ```
-mvn install 
+mvn clean install 
 ```
 
-## 2. build project
+## 3. build project
 
-After step 1, to build the project, run the following command on root directory of project.
+After step 2, to build the project, run the following command on root directory of project.
 
 ```
 mvn clean package
@@ -45,7 +47,7 @@ By default, the application opens and listens on following ports at local
 | tracing | 9895 |
 | event  | 9896 |
 | metric | 9898 |
-| setting | 9899 |
+| ctrl | 9899 |
 | web | 9897 |
 
 Once the application has started, visit [http://localhost:9897/ui/home](http://localhost:9897/ui/home) to view the monitor.

@@ -61,7 +61,13 @@ public class AgentStarter {
         System.setProperty(logConfigName, logConfigFile);
 
         // log config
-        DOMConfigurator.configure(logConfigFile);
+        ClassLoader ctxLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(AgentClassLoader.getClassLoader());
+            DOMConfigurator.configure(logConfigFile);
+        } finally {
+            Thread.currentThread().setContextClassLoader(ctxLoader);
+        }
 
         // restore original property
         if (oldLogConfig != null) {

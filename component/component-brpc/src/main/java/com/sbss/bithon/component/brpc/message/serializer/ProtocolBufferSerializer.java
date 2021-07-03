@@ -16,12 +16,11 @@
 
 package com.sbss.bithon.component.brpc.message.serializer;
 
-
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-import com.google.protobuf.ExtensionRegistryLite;
-import com.google.protobuf.GeneratedMessageV3;
-import com.google.protobuf.MessageLite;
+import shaded.com.google.protobuf.CodedInputStream;
+import shaded.com.google.protobuf.CodedOutputStream;
+import shaded.com.google.protobuf.ExtensionRegistryLite;
+import shaded.com.google.protobuf.GeneratedMessageV3;
+import shaded.com.google.protobuf.MessageLite;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
