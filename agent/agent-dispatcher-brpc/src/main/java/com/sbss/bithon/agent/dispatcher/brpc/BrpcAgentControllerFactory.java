@@ -14,14 +14,19 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.rpc.brpc;
+package com.sbss.bithon.agent.dispatcher.brpc;
 
-import com.sbss.bithon.component.brpc.IService;
+import com.sbss.bithon.agent.controller.AgentControllerConfig;
+import com.sbss.bithon.agent.controller.IAgentController;
+import com.sbss.bithon.agent.controller.IAgentControllerFactory;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/6/27 19:58
+ * @date 2021/1/16 4:40 下午
  */
-public interface ICommandDispatcher extends IService {
-    void execute(String command, String token, String jsonArgument);
+public class BrpcAgentControllerFactory implements IAgentControllerFactory {
+    @Override
+    public IAgentController createController(AgentControllerConfig config) {
+        return new BrpcAgentController(config);
+    }
 }

@@ -16,15 +16,14 @@
 
 package com.sbss.bithon.agent.dispatcher.thrift;
 
-import com.sbss.bithon.agent.core.config.FetcherConfig;
-import com.sbss.bithon.agent.core.setting.IAgentSettingFetcher;
+import com.sbss.bithon.agent.controller.AgentControllerConfig;
+import com.sbss.bithon.agent.controller.IAgentController;
 import com.sbss.bithon.agent.rpc.thrift.service.setting.FetchRequest;
 import com.sbss.bithon.agent.rpc.thrift.service.setting.FetchResponse;
 import com.sbss.bithon.agent.rpc.thrift.service.setting.SettingService;
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
-import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.util.Map;
@@ -33,12 +32,11 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 4:01 下午
  */
-public class ThriftSettingFetcher implements IAgentSettingFetcher {
-    static Logger log = LoggerFactory.getLogger(ThriftSettingFetcher.class);
+public class ThriftAgentController implements IAgentController {
 
     private final AbstractThriftClient<SettingService.Client> client;
 
-    public ThriftSettingFetcher(FetcherConfig config) {
+    public ThriftAgentController(AgentControllerConfig config) {
         client = new AbstractThriftClient<SettingService.Client>("setting", config.getServers(), 3000) {
             @Override
             protected SettingService.Client createClient(TProtocol protocol) {
@@ -68,5 +66,10 @@ public class ThriftSettingFetcher implements IAgentSettingFetcher {
             }
         }, 3);
         return null;
+    }
+
+    @Override
+    public void attachCommands(Object... commands) {
+        LoggerFactory.getLogger(ThriftAgentController.class).error("Agent Controller on Thrift does not support commands from server");
     }
 }

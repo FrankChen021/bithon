@@ -14,19 +14,29 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.setting;
-
-import shaded.com.fasterxml.jackson.databind.JsonNode;
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
+package com.sbss.bithon.agent.controller;
 
 /**
- * @author frankchen
- * @date 2020-05-27 14:41:22
+ * @author frank.chen021@outlook.com
+ * @date 2021/1/16 2:48 下午
  */
-public interface IAgentSettingRefreshListener {
-    /**
-     * om.treeToValue(configNode, YourPojo.class)
-     * om.readValue(configNode, YourPojo.class)
-     */
-    void onRefresh(ObjectMapper om, JsonNode configNode);
+public class AgentControllerConfig {
+    private String client;
+    private String servers;
+
+    public String getClient() {
+        return client;
+    }
+
+    public void setClient(String client) {
+        this.client = client;
+    }
+
+    public String getServers() {
+        return servers;
+    }
+
+    public void setServers(String servers) {
+        this.servers = servers;
+    }
 }

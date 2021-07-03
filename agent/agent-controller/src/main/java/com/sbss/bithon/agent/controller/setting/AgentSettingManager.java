@@ -14,13 +14,11 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.setting;
+package com.sbss.bithon.agent.controller.setting;
 
 
-import com.sbss.bithon.agent.core.config.FetcherConfig;
-import com.sbss.bithon.agent.core.context.AppInstance;
+import com.sbss.bithon.agent.controller.IAgentController;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
-import com.sbss.bithon.agent.core.utils.StringUtils;
 import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import shaded.com.fasterxml.jackson.databind.JsonNode;
 import shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,11 +26,11 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Dynamic Setting Manager for Plugins
@@ -46,38 +44,12 @@ public class AgentSettingManager {
 
     private final String appName;
     private final String env;
-    private final IAgentSettingFetcher settingFetcher;
+    private final IAgentController controller;
     private final Map<String, List<IAgentSettingRefreshListener>> listeners;
     private Long lastModifiedAt = 0L;
 
-    public AgentSettingManager(String appName, String env, IAgentSettingFetcher settingFetcher) {
-        this.appName = appName;
-        this.env = env;
-        this.settingFetcher = settingFetcher;
-        this.listeners = new HashMap<>();
-    }
-
-    public static synchronized void createInstance(AppInstance appInstance,
-                                                   FetcherConfig fetcherConfig) throws Exception {
-        if (INSTANCE != null) {
-            return;
-        }
-        IAgentSettingFetcher fetcher = null;
-        if (fetcherConfig != null && !StringUtils.isEmpty(fetcherConfig.getClient())) {
-            try {
-                IAgentSettingFetcherFactory factory = (IAgentSettingFetcherFactory) Class.forName(fetcherConfig.getClient())
-                                                                                         .newInstance();
-                fetcher = factory.createFetcher(fetcherConfig);
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-                log.error("Can't create instanceof fetcher {}", fetcherConfig.getClient());
-                throw e;
-            }
-        } else {
-            log.warn("Fetcher Impl has not configured.");
-        }
-        INSTANCE = new AgentSettingManager(appInstance.getRawAppName(),
-                                           appInstance.getEnv(),
-                                           fetcher);
+    public static void createInstance(String appName, String env, IAgentController controller) {
+        INSTANCE = new AgentSettingManager(appName, env, controller);
         INSTANCE.start();
     }
 
@@ -85,12 +57,19 @@ public class AgentSettingManager {
         return INSTANCE;
     }
 
+    private AgentSettingManager(String appName, String env, IAgentController controller) {
+        this.appName = appName;
+        this.env = env;
+        this.controller = controller;
+        this.listeners = new ConcurrentHashMap<>();
+    }
+
     public void register(SettingRootNames name, IAgentSettingRefreshListener listener) {
         listeners.computeIfAbsent(name.getName(), key -> new ArrayList<>()).add(listener);
     }
 
     private void start() {
-        if (settingFetcher != null) {
+        if (controller != null) {
             new Timer("setting-fetcher").schedule(new TimerTask() {
                 @Override
                 public void run() {
@@ -107,7 +86,7 @@ public class AgentSettingManager {
     private void fetchSettings() {
         log.info("Fetch setting for {}-{}", appName, env);
 
-        Map<String, String> settings = settingFetcher.fetch(appName, env, lastModifiedAt);
+        Map<String, String> settings = controller.fetch(appName, env, lastModifiedAt);
         if (CollectionUtils.isEmpty(settings)) {
             return;
         }

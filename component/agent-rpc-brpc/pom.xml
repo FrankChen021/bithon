@@ -21,6 +21,30 @@
     <dependency>
       <groupId>com.sbss.bithon</groupId>
       <artifactId>component-brpc</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>jackson-databind</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jackson-dataformat-smile</artifactId>
+          <groupId>com.fasterxml.jackson.dataformat</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>netty-all</artifactId>
+          <groupId>io.netty</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>protobuf-java</artifactId>
+          <groupId>com.google.protobuf</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <artifactId>protobuf-java</artifactId>
+      <groupId>com.google.protobuf</groupId>
+      <version>3.17.3</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 

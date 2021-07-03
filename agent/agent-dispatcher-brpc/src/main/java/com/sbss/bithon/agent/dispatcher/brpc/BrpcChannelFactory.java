@@ -29,17 +29,17 @@ import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
 public class BrpcChannelFactory implements IMessageChannelFactory {
     @Override
     public IMessageChannel createMetricChannel(DispatcherConfig dispatcherConfig) {
-        return new MetricMessageChannel(dispatcherConfig);
+        return new BrpcMetricMessageChannel(dispatcherConfig);
     }
 
     @Override
     public IMessageChannel createTracingChannel(DispatcherConfig dispatcherConfig) {
-        return new TraceMessageChannel(dispatcherConfig);
+        return new BrpcTraceMessageChannel(dispatcherConfig);
     }
 
     @Override
     public IMessageChannel createEventChannel(DispatcherConfig dispatcherConfig) {
-        return new EventMessageChannel(dispatcherConfig);
+        return new BrpcEventMessageChannel(dispatcherConfig);
     }
 
     @Override

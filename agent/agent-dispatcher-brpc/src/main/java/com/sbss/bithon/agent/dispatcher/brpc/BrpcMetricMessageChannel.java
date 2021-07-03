@@ -44,15 +44,15 @@ import java.util.stream.Stream;
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 20:14
  */
-public class MetricMessageChannel implements IMessageChannel {
-    private static final Logger log = LoggerFactory.getLogger(MetricMessageChannel.class);
+public class BrpcMetricMessageChannel implements IMessageChannel {
+    private static final Logger log = LoggerFactory.getLogger(BrpcMetricMessageChannel.class);
 
     private final Map<String, Method> sendMethods = new HashMap<>();
     private final DispatcherConfig dispatcherConfig;
     private BrpcMessageHeader header;
     private final IMetricCollector metricCollector;
 
-    public MetricMessageChannel(DispatcherConfig dispatcherConfig) {
+    public BrpcMetricMessageChannel(DispatcherConfig dispatcherConfig) {
         Method[] methods = IMetricCollector.class.getDeclaredMethods();
         for (Method method : methods) {
             if (method.getParameterCount() != 2) {

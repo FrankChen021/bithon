@@ -17,14 +17,14 @@
 package com.sbss.bithon.agent.plugin.mysql.metrics;
 
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
+import com.sbss.bithon.agent.controller.setting.AgentSettingManager;
+import com.sbss.bithon.agent.controller.setting.IAgentSettingRefreshListener;
+import com.sbss.bithon.agent.controller.setting.SettingRootNames;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
-import com.sbss.bithon.agent.core.setting.AgentSettingManager;
-import com.sbss.bithon.agent.core.setting.IAgentSettingRefreshListener;
-import com.sbss.bithon.agent.core.setting.SettingRootNames;
 import shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
 import shaded.com.alibaba.druid.util.JdbcConstants;
 import shaded.com.fasterxml.jackson.databind.JsonNode;

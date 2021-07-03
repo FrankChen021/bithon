@@ -39,14 +39,14 @@ import java.util.stream.Stream;
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 20:14
  */
-public class TraceMessageChannel implements IMessageChannel {
-    private static final Logger log = LoggerFactory.getLogger(TraceMessageChannel.class);
+public class BrpcTraceMessageChannel implements IMessageChannel {
+    private static final Logger log = LoggerFactory.getLogger(BrpcTraceMessageChannel.class);
 
     private final ITraceCollector traceCollector;
     private final DispatcherConfig dispatcherConfig;
     private BrpcMessageHeader header;
 
-    public TraceMessageChannel(DispatcherConfig dispatcherConfig) {
+    public BrpcTraceMessageChannel(DispatcherConfig dispatcherConfig) {
 
         List<EndPoint> endpoints = Stream.of(dispatcherConfig.getServers().split(",")).map(hostAndPort -> {
             String[] parts = hostAndPort.split(":");

@@ -60,9 +60,13 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
 
         Serializer serializer = getSerializer();
         out.writeInt32NoTag(serializer.getType());
-        out.writeInt32NoTag(this.args.length);
-        for (Object arg : this.args) {
-            serializer.serialize(out, arg);
+        if (this.args == null) {
+            out.writeInt32NoTag(0);
+        } else {
+            out.writeInt32NoTag(this.args.length);
+            for (Object arg : this.args) {
+                serializer.serialize(out, arg);
+            }
         }
     }
 

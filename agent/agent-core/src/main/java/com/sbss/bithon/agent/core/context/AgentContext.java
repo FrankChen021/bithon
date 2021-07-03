@@ -17,10 +17,9 @@
 package com.sbss.bithon.agent.core.context;
 
 import com.sbss.bithon.agent.core.config.AgentConfig;
+import com.sbss.bithon.agent.core.config.AgentConfigManager;
 
 import java.io.IOException;
-
-import static java.io.File.separator;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,7 +36,7 @@ public class AgentContext {
     private AgentConfig agentConfig;
 
     public static AgentContext createInstance(String agentPath) throws IOException {
-        AgentConfig config = AgentConfig.loadFromYmlFile(agentPath + separator + CONF_DIR + separator + "agent.yml");
+        AgentConfig config = AgentConfigManager.createInstance(agentPath).getAgentConfig();
 
         INSTANCE = new AgentContext();
         INSTANCE.agentDirectory = agentPath;

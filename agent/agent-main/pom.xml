@@ -18,6 +18,10 @@
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-controller</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-dispatcher-thrift</artifactId>
       <exclusions>
         <exclusion>

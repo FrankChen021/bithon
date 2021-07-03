@@ -16,7 +16,6 @@
 
 package com.sbss.bithon.component.brpc.channel;
 
-import com.sbss.bithon.component.brpc.IService;
 import com.sbss.bithon.component.brpc.ServiceRegistry;
 import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 import com.sbss.bithon.component.brpc.endpoint.IEndPointProvider;
@@ -157,15 +156,15 @@ public class ClientChannel implements IChannelWriter, Closeable {
                 throw new ServiceClientException("Unable to connect to server, interrupted");
             }
         }
-        throw new ServiceClientException("Unable to connect to server({}:{})", endpoint.getHost(), endpoint.getPort());
+        throw new ServiceClientException("Unable to connect to server(%s:%s)", endpoint.getHost(), endpoint.getPort());
     }
 
-    public <T extends IService> ClientChannel bindService(Class<T> serviceType, T serviceImpl) {
-        serviceRegistry.addService(serviceType, serviceImpl);
+    public ClientChannel bindService(Object serviceImpl) {
+        serviceRegistry.addService(serviceImpl);
         return this;
     }
 
-    public <T extends IService> T getRemoteService(Class<T> serviceType) {
+    public <T> T getRemoteService(Class<T> serviceType) {
         return ServiceStubFactory.create(this, serviceType);
     }
 

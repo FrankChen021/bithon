@@ -4,7 +4,7 @@ collector-thrift:
     tracing: 9895
     event: 9896
     metric: 9898
-    setting: 9899
+    ctrl: 9899
   sink:
     type: local
     props:
@@ -22,7 +22,7 @@ collector-brpc:
     tracing: 9895
     event: 9896
     metric: 9898
-    setting: 9899
+    ctrl: 9899
   sink:
     type: local
     props:

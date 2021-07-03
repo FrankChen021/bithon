@@ -16,7 +16,6 @@
 
 package com.sbss.bithon.component.brpc.invocation;
 
-import com.sbss.bithon.component.brpc.IService;
 import com.sbss.bithon.component.brpc.IServiceController;
 import com.sbss.bithon.component.brpc.channel.IChannelWriter;
 
@@ -29,13 +28,11 @@ public class ServiceStubFactory {
     private static Method setDebugMethod;
     private static Method toStringMethod;
     private static Method setTimeoutMethod;
-    private static Method toControllerMethod;
     private static Method rstTimeoutMethod;
 
     static {
         try {
             toStringMethod = Object.class.getMethod("toString");
-            toControllerMethod = IService.class.getMethod("toController");
             setDebugMethod = IServiceController.class.getMethod("debug", boolean.class);
             setTimeoutMethod = IServiceController.class.getMethod("setTimeout", long.class);
             rstTimeoutMethod = IServiceController.class.getMethod("rstTimeout");
@@ -45,7 +42,7 @@ public class ServiceStubFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends IService> T create(IChannelWriter channelWriter, Class<T> serviceInterface) {
+    public static <T> T create(IChannelWriter channelWriter, Class<T> serviceInterface) {
         return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(),
                                           new Class[]{serviceInterface, IServiceController.class},
                                           new ServiceInvocationHandler(channelWriter,
@@ -76,9 +73,6 @@ public class ServiceStubFactory {
             if (setTimeoutMethod.equals(method)) {
                 this.timeout = (long) args[0];
                 return null;
-            }
-            if (toControllerMethod.equals(method)) {
-                return proxy;
             }
             if (rstTimeoutMethod.equals(method)) {
                 this.timeout = 5000;

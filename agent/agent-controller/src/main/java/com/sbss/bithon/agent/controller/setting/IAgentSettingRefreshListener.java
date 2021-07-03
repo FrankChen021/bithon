@@ -14,11 +14,19 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.component.brpc;
+package com.sbss.bithon.agent.controller.setting;
 
-public interface IService {
+import shaded.com.fasterxml.jackson.databind.JsonNode;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
-    default IServiceController toController() {
-        return (IServiceController) this;
-    }
+/**
+ * @author frankchen
+ * @date 2020-05-27 14:41:22
+ */
+public interface IAgentSettingRefreshListener {
+    /**
+     * om.treeToValue(configNode, YourPojo.class)
+     * om.readValue(configNode, YourPojo.class)
+     */
+    void onRefresh(ObjectMapper om, JsonNode configNode);
 }

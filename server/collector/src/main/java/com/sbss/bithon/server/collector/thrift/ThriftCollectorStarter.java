@@ -97,7 +97,7 @@ public class ThriftCollectorStarter implements SmartLifecycle, ApplicationContex
                         IMessageSink.class)));
                     break;
 
-                case "setting":
+                case "ctrl":
                     processor = new SettingService.Processor<>(new SettingServiceThriftImpl(applicationContext.getBean(
                         AgentSettingService.class)));
                     break;

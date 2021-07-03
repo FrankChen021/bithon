@@ -18,6 +18,11 @@
       <artifactId>agent-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>${project.parent.groupId}</groupId>
+      <artifactId>agent-controller</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
       <version>8.0.16</version>

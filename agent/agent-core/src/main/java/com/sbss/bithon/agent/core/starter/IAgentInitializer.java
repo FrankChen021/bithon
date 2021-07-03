@@ -14,14 +14,16 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.setting;
+package com.sbss.bithon.agent.core.starter;
 
-import com.sbss.bithon.agent.core.config.FetcherConfig;
+import com.sbss.bithon.agent.core.context.AgentContext;
 
 /**
+ * This initializer should not be used in plugins
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/1/16 4:40 下午
+ * @date 2021/7/1 5:56 下午
  */
-public interface IAgentSettingFetcherFactory {
-    IAgentSettingFetcher createFetcher(FetcherConfig config);
+public interface IAgentInitializer {
+    void initialize(AgentContext context) throws Exception;
 }

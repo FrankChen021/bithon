@@ -14,29 +14,19 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.config;
+package com.sbss.bithon.agent.controller;
+
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/16 2:48 下午
+ * @date 2021/1/16 2:45 下午
  */
-public class FetcherConfig {
-    private String client;
-    private String servers;
+public interface IAgentController {
 
-    public String getClient() {
-        return client;
-    }
+    Map<String, String> fetch(String appName,
+                              String env,
+                              long lastModifiedSince);
 
-    public void setClient(String client) {
-        this.client = client;
-    }
-
-    public String getServers() {
-        return servers;
-    }
-
-    public void setServers(String servers) {
-        this.servers = servers;
-    }
+    void attachCommands(Object... commands);
 }

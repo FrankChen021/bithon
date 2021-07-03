@@ -14,19 +14,12 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.dispatcher.brpc;
-
-import com.sbss.bithon.agent.core.config.FetcherConfig;
-import com.sbss.bithon.agent.core.setting.IAgentSettingFetcher;
-import com.sbss.bithon.agent.core.setting.IAgentSettingFetcherFactory;
+package com.sbss.bithon.agent.controller;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 4:40 下午
  */
-public class SettingFetcherFactory implements IAgentSettingFetcherFactory {
-    @Override
-    public IAgentSettingFetcher createFetcher(FetcherConfig config) {
-        return new SettingFetcher(config);
-    }
+public interface IAgentControllerFactory {
+    IAgentController createController(AgentControllerConfig config);
 }

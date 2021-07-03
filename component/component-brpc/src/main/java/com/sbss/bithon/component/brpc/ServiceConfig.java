@@ -14,22 +14,27 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.setting;
+package com.sbss.bithon.component.brpc;
+
+import com.sbss.bithon.component.brpc.message.serializer.Serializer;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/16 3:39 下午
+ * @author frankchen
  */
-public enum SettingRootNames {
-    SQL("sql");
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ServiceConfig {
+    /**
+     * service name
+     */
+    String name() default "";
 
-    private final String name;
+    boolean isOneway() default false;
 
-    SettingRootNames(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
+    Serializer serializer() default Serializer.BINARY;
 }

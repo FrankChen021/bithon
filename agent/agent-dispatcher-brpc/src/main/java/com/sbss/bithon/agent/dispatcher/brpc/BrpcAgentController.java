@@ -16,10 +16,10 @@
 
 package com.sbss.bithon.agent.dispatcher.brpc;
 
-import com.sbss.bithon.agent.core.config.FetcherConfig;
+import com.sbss.bithon.agent.controller.AgentControllerConfig;
+import com.sbss.bithon.agent.controller.IAgentController;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
-import com.sbss.bithon.agent.core.setting.IAgentSettingFetcher;
 import com.sbss.bithon.agent.rpc.brpc.ApplicationType;
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.agent.rpc.brpc.setting.ISettingFetcher;
@@ -40,19 +40,22 @@ import java.util.stream.Stream;
  * @author frank.chen021@outlook.com
  * @date 2021/6/28 10:41 上午
  */
-public class SettingFetcher implements IAgentSettingFetcher {
-    private static final Logger log = LoggerFactory.getLogger(SettingFetcher.class);
+public class BrpcAgentController implements IAgentController {
+    private static final Logger log = LoggerFactory.getLogger(BrpcAgentController.class);
 
+    private final ClientChannel channel;
     private final ISettingFetcher fetcher;
 
-    public SettingFetcher(FetcherConfig config) {
+    public BrpcAgentController(AgentControllerConfig config) {
         List<EndPoint> endpoints = Stream.of(config.getServers().split(",")).map(hostAndPort -> {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        fetcher = new ClientChannel(new RoundRobinEndPointProvider(endpoints))
-            .configureRetry(3, Duration.ofMillis(100))
-            .getRemoteService(ISettingFetcher.class);
+
+        channel = new ClientChannel(new RoundRobinEndPointProvider(endpoints))
+            .configureRetry(30, Duration.ofSeconds(2));
+
+        fetcher = channel.getRemoteService(ISettingFetcher.class);
     }
 
     @Override
@@ -74,6 +77,13 @@ public class SettingFetcher implements IAgentSettingFetcher {
             //suppress client exception
             log.error("Failed to fetch settings: {}", e.getMessage());
             return null;
+        }
+    }
+
+    @Override
+    public void attachCommands(Object... commands) {
+        for (Object cmd : commands) {
+            channel.bindService(cmd);
         }
     }
 }
