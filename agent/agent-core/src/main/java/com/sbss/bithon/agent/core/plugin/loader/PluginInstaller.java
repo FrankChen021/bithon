@@ -74,10 +74,10 @@ public class PluginInstaller {
                                                               .newInstance();
                 plugins.add(plugin);
 
-                LoggerFactory.getLogger(PluginClassLoaderManager.class)
+                LoggerFactory.getLogger(PluginInstaller.class)
                              .info("Found {}", new File(jar.getName()).getName());
             } catch (Throwable e) {
-                LoggerFactory.getLogger(PluginClassLoaderManager.class)
+                LoggerFactory.getLogger(PluginInstaller.class)
                              .error(String.format("Failed to add plugin from jar %s",
                                                   new File(jar.getName()).getName()),
                                     e);
