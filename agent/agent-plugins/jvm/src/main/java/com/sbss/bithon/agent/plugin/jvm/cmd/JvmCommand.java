@@ -37,10 +37,11 @@ public class JvmCommand implements IJvmCommand, IAgentCommand {
 
         List<ThreadInfo> threads = new ArrayList<>();
 
+        ThreadMXBean threadMxBean = ManagementFactory.getThreadMXBean();
+        boolean cpuTimeEnabled = threadMxBean.isThreadCpuTimeSupported() && threadMxBean.isThreadCpuTimeEnabled();
+
         Map<Thread, StackTraceElement[]> stackTraces = java.lang.Thread.getAllStackTraces();
         stackTraces.forEach((thread, stacks) -> {
-            ThreadMXBean threadMxBean = ManagementFactory.getThreadMXBean();
-            boolean cpuTimeEnabled = threadMxBean.isThreadCpuTimeSupported() && threadMxBean.isThreadCpuTimeEnabled();
 
             ThreadInfo threadInfo = new ThreadInfo();
             threadInfo.setName(thread.getName());
