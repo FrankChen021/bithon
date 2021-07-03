@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.component.brpc;
 
-import io.netty.util.internal.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import shaded.io.netty.util.internal.StringUtil;
+import shaded.org.slf4j.Logger;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

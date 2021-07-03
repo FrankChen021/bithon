@@ -24,12 +24,12 @@ import com.sbss.bithon.component.brpc.message.ServiceMessage;
 import com.sbss.bithon.component.brpc.message.ServiceMessageType;
 import com.sbss.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import com.sbss.bithon.component.brpc.message.in.ServiceResponseMessageIn;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.DecoderException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import shaded.io.netty.channel.ChannelHandler;
+import shaded.io.netty.channel.ChannelHandlerContext;
+import shaded.io.netty.channel.ChannelInboundHandlerAdapter;
+import shaded.io.netty.handler.codec.DecoderException;
+import shaded.org.slf4j.Logger;
+import shaded.org.slf4j.LoggerFactory;
 
 @ChannelHandler.Sharable
 public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {

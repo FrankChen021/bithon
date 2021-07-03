@@ -16,18 +16,18 @@
 
 package com.sbss.bithon.component.brpc.message.out;
 
-import com.google.protobuf.CodedOutputStream;
 import com.sbss.bithon.component.brpc.invocation.ClientInvocationManager;
 import com.sbss.bithon.component.brpc.message.ServiceMessageType;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufOutputStream;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
-import io.netty.handler.codec.EncoderException;
-import io.netty.handler.codec.MessageToByteEncoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import shaded.com.google.protobuf.CodedOutputStream;
+import shaded.io.netty.buffer.ByteBuf;
+import shaded.io.netty.buffer.ByteBufOutputStream;
+import shaded.io.netty.channel.ChannelFutureListener;
+import shaded.io.netty.channel.ChannelHandlerContext;
+import shaded.io.netty.channel.ChannelPromise;
+import shaded.io.netty.handler.codec.EncoderException;
+import shaded.io.netty.handler.codec.MessageToByteEncoder;
+import shaded.org.slf4j.Logger;
+import shaded.org.slf4j.LoggerFactory;
 
 public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessageOut> {
     private static final Logger log = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);

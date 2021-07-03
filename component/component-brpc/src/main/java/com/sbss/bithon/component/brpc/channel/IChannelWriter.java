@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.component.brpc.channel;
 
-import io.netty.channel.Channel;
+import shaded.io.netty.channel.Channel;
 
 public interface IChannelWriter {
 

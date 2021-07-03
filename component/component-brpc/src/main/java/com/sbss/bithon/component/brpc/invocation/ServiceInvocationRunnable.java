@@ -21,7 +21,7 @@ import com.sbss.bithon.component.brpc.exception.BadRequestException;
 import com.sbss.bithon.component.brpc.exception.ServiceInvocationException;
 import com.sbss.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import com.sbss.bithon.component.brpc.message.out.ServiceResponseMessageOut;
-import io.netty.channel.Channel;
+import shaded.io.netty.channel.Channel;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;

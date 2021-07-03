@@ -24,8 +24,8 @@ import com.sbss.bithon.component.brpc.exception.TimeoutException;
 import com.sbss.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import com.sbss.bithon.component.brpc.message.out.ServiceRequestMessageOut;
 import com.sbss.bithon.component.brpc.message.serializer.Serializer;
-import io.netty.channel.Channel;
-import io.netty.util.internal.StringUtil;
+import shaded.io.netty.channel.Channel;
+import shaded.io.netty.util.internal.StringUtil;
 
 import java.io.IOException;
 import java.lang.reflect.Method;

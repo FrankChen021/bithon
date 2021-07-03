@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.component.brpc.message.in;
 
-import com.google.protobuf.CodedInputStream;
 import com.sbss.bithon.component.brpc.message.ServiceMessage;
-import io.netty.buffer.ByteBuf;
+import shaded.com.google.protobuf.CodedInputStream;
+import shaded.io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

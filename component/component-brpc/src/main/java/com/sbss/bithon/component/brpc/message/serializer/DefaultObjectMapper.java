@@ -16,12 +16,12 @@
 
 package com.sbss.bithon.component.brpc.message.serializer;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.smile.SmileFactory;
-import com.fasterxml.jackson.dataformat.smile.SmileGenerator;
+import shaded.com.fasterxml.jackson.core.JsonFactory;
+import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import shaded.com.fasterxml.jackson.databind.SerializationFeature;
+import shaded.com.fasterxml.jackson.dataformat.smile.SmileFactory;
+import shaded.com.fasterxml.jackson.dataformat.smile.SmileGenerator;
 
 public class DefaultObjectMapper extends ObjectMapper {
 

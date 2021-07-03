@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.component.brpc.message.serializer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import shaded.com.google.protobuf.CodedInputStream;
+import shaded.com.google.protobuf.CodedOutputStream;
 
 import java.io.IOException;
 import java.lang.reflect.Type;

@@ -16,11 +16,11 @@
 
 package com.sbss.bithon.component.brpc.message.in;
 
-import com.google.protobuf.CodedInputStream;
 import com.sbss.bithon.component.brpc.exception.BadRequestException;
 import com.sbss.bithon.component.brpc.message.ServiceMessage;
 import com.sbss.bithon.component.brpc.message.ServiceMessageType;
 import com.sbss.bithon.component.brpc.message.serializer.Serializer;
+import shaded.com.google.protobuf.CodedInputStream;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
