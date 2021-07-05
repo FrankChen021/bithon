@@ -1,0 +1,2 @@
+com.sbss.bithon.agent.sentinel.flow.FlowRuleManagerImpl
+com.sbss.bithon.agent.sentinel.degrade.DegradingRuleManagerImpl

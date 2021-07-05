@@ -41,7 +41,11 @@
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-bootstrap</artifactId>
-      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-sentinel</artifactId>
     </dependency>
 
     <!-- a lib used by plugins -->

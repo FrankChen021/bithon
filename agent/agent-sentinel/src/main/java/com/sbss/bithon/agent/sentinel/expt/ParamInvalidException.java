@@ -14,22 +14,17 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.controller.setting;
+package com.sbss.bithon.agent.sentinel.expt;
 
-/**
- * @author frank.chen021@outlook.com
- * @date 2021/1/16 3:39 下午
- */
-public enum SettingRootNames {
-    SQL("sql");
 
-    private final String name;
-
-    SettingRootNames(String name) {
-        this.name = name;
+public class ParamInvalidException extends SentinelCommandException {
+    public ParamInvalidException(String param, Object value) {
+        super(String.format("invalid value [%s] for %s", value.toString(), param));
     }
 
-    public String getName() {
-        return name;
+    public static void throwIf(boolean expr, String objName, Object value) {
+        if (expr) {
+            throw new ParamInvalidException(objName, value);
+        }
     }
 }

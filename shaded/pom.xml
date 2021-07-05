@@ -19,6 +19,7 @@
         <module>shaded-log4j2</module>
         <module>shaded-netty</module>
         <module>shaded-protobuf</module>
+        <module>shaded-sentinel</module>
         <module>shaded-slf4j</module>
         <module>shaded-snakeyaml</module>
     </modules>
