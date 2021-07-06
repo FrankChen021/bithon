@@ -48,7 +48,7 @@ public class CommandApi {
     }
 
     @PostMapping("/api/cmd/dumpThread")
-    public List<IJvmCommand.ThreadInfo> dumpThread(@RequestBody CommandRequest req) {
+    public List<IJvmCommand.ThreadInfo> dumpThread(@RequestBody InstanceCommandRequest req) {
         IJvmCommand jvmCommand = commandService.getServerChannel()
                                                .getRemoteService(new EndPoint(req.getInstanceIp(),
                                                                               req.getInstancePort()),

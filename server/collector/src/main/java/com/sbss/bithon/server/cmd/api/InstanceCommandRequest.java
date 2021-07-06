@@ -23,7 +23,7 @@ import lombok.Data;
  * @date 2021/7/2 5:23 下午
  */
 @Data
-public class CommandRequest {
+public class InstanceCommandRequest {
     private String appName;
     private String instanceIp;
     private int instancePort;
