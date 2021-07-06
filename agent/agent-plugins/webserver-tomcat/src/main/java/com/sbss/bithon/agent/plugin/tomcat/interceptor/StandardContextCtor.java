@@ -55,6 +55,7 @@ public class StandardContextCtor extends AbstractInterceptor {
                 SentinelListener listener = new SentinelListener();
                 ctx.addFilter("com.sbss.bithon.agent.sentinel", new SentinelFilter(listener))
                    .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
+                log.info("Sentinel for tomcat installed");
             } catch (Exception e) {
                 log.error("Exception occurred when initialize servlet context. sentinel may not be installed", e);
             }
