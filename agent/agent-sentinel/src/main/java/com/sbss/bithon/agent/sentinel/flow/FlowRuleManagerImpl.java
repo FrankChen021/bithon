@@ -28,13 +28,13 @@ import java.util.Set;
  */
 public class FlowRuleManagerImpl implements IFlowRuleManager, IAgentCommand {
     @Override
-    public void create(CreateFlowRuleRequest request) {
+    public void create(FlowRuleDto request) {
         request.valid();
         SentinelRuleManager.getInstance().addFlowControlRule("Command", request, true);
     }
 
     @Override
-    public void update(CreateFlowRuleRequest request) {
+    public void update(FlowRuleDto request) {
         request.valid();
         SentinelRuleManager.getInstance().updateFlowControlRule("Command", request, true);
     }

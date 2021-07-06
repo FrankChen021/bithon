@@ -14,28 +14,21 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sentinel.flow;
+package com.sbss.bithon.server.sentinel.api;
 
-import com.sbss.bithon.component.brpc.ServiceConfig;
-import com.sbss.bithon.component.brpc.message.serializer.Serializer;
+import lombok.Data;
 
-import java.util.Set;
+import javax.validation.constraints.NotEmpty;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/5 7:50 下午
+ * @date 2021/7/6 6:48 下午
  */
-public interface IFlowRuleManager {
+@Data
+public class DeleteFlowRuleRequest {
+    @NotEmpty
+    private String appName;
 
-    @ServiceConfig(serializer = Serializer.JSON)
-    void create(FlowRuleDto request);
-
-    @ServiceConfig(serializer = Serializer.JSON)
-    void update(FlowRuleDto request);
-
-    void delete(String ruleId);
-
-    void deleteAll();
-
-    Set<String> getRules();
+    @NotEmpty
+    private String ruleId;
 }

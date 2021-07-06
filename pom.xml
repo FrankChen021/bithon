@@ -137,7 +137,7 @@
                                 <exclude>**/README</exclude>
                                 <exclude>src/main/java/com/sbss/bithon/component/db/jooq/**</exclude>
                                 <exclude>src/main/java/com/sbss/bithon/agent/rpc/thrift/**</exclude>
-                                <exclude>src/main/java/cn/bithon/rpc/services/metrics/**</exclude>
+                                <exclude>src/test/java/com/sbss/bithon/component/brpc/example/protobuf</exclude>
                                 <exclude>src/main/resources/static/**</exclude>
                                 <exclude>**/*.properties</exclude>
                                 <exclude>**/*.sh</exclude>
