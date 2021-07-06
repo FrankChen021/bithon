@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration PUBLIC "-//log4j/log4j Configuration//EN" "log4j.dtd">
+<log4j:configuration debug="true">
+
+  <appender name="console" class="shaded.org.apache.log4j.ConsoleAppender">
+    <layout class="shaded.org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%-d{yyyy-MM-dd HH:mm:ss.SSS} [Agent %p] - [%t:%C{1}] %m%n"/>
+    </layout>
+  </appender>
+
+  <root>
+    <priority value="INFO"/>
+    <appender-ref ref="console"/>
+  </root>
+
+</log4j:configuration>

@@ -19,11 +19,15 @@ package com.sbss.bithon.component.brpc.channel;
 import com.sbss.bithon.component.brpc.ServiceRegistry;
 import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 import com.sbss.bithon.component.brpc.invocation.ServiceStubFactory;
+import com.sbss.bithon.component.brpc.message.ServiceMessage;
+import com.sbss.bithon.component.brpc.message.ServiceMessageType;
 import com.sbss.bithon.component.brpc.message.in.ServiceMessageInDecoder;
+import com.sbss.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import com.sbss.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
 import shaded.io.netty.bootstrap.ServerBootstrap;
 import shaded.io.netty.buffer.PooledByteBufAllocator;
 import shaded.io.netty.channel.Channel;
+import shaded.io.netty.channel.ChannelHandler;
 import shaded.io.netty.channel.ChannelHandlerContext;
 import shaded.io.netty.channel.ChannelInboundHandlerAdapter;
 import shaded.io.netty.channel.ChannelInitializer;
@@ -34,14 +38,23 @@ import shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import shaded.io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import shaded.io.netty.handler.codec.LengthFieldPrepender;
+import shaded.io.netty.util.Attribute;
+import shaded.io.netty.util.AttributeKey;
+import shaded.io.netty.util.internal.StringUtil;
 
 import java.io.Closeable;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ServerChannel implements Closeable {
+
+    private static final AttributeKey<String> ATTR_CLIENT_NAME = AttributeKey.valueOf("client.name");
 
     private final NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
     private final NioEventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -50,8 +63,7 @@ public class ServerChannel implements Closeable {
     /**
      * 服务端的请求直接在worker线程中处理，无需单独定义线程池
      */
-    private final ServiceMessageChannelHandler channelReader = new ServiceMessageChannelHandler(serviceRegistry);
-    private final Map<EndPoint, ClientService> clientServices = new ConcurrentHashMap<>();
+    private final ClientChannelManager clientChannelManager = new ClientChannelManager();
 
     public ServerChannel bindService(Object impl) {
         serviceRegistry.addService(impl);
@@ -81,8 +93,8 @@ public class ServerChannel implements Closeable {
                     pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));
                     pipeline.addLast("decoder", new ServiceMessageInDecoder());
                     pipeline.addLast("encoder", new ServiceMessageOutEncoder());
-                    pipeline.addLast(channelReader);
-                    pipeline.addLast(new ClientServiceManager());
+                    pipeline.addLast(clientChannelManager);
+                    pipeline.addLast(new ServiceMessageChannelHandler(serviceRegistry));
                 }
             });
         try {
@@ -90,14 +102,11 @@ public class ServerChannel implements Closeable {
         } catch (InterruptedException e) {
             System.exit(-1);
         }
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            close();
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
         return this;
     }
 
     public ServerChannel debug(boolean on) {
-        channelReader.setChannelDebugEnabled(on);
         return this;
     }
 
@@ -114,59 +123,125 @@ public class ServerChannel implements Closeable {
     }
 
     public Set<EndPoint> getClientEndpoints() {
-        return clientServices.keySet();
+        return clientChannelManager.getEndpoints();
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getRemoteService(EndPoint clientEndpoint, Class<T> serviceClass) {
-        ClientService clientService = clientServices.get(clientEndpoint);
-        if (clientService == null) {
+        Channel channel = clientChannelManager.getChannel(clientEndpoint);
+        if (channel == null) {
             return null;
         }
 
-        return (T) clientService.services.computeIfAbsent(serviceClass,
-                                                          key -> ServiceStubFactory.create(new IChannelWriter() {
-                                                                                               @Override
-                                                                                               public void connect() {
-                                                                                                   //do nothing for a server channel
-                                                                                               }
-
-                                                                                               @Override
-                                                                                               public Channel getChannel() {
-                                                                                                   return clientService.channel;
-                                                                                               }
-
-                                                                                               @Override
-                                                                                               public void writeAndFlush(Object obj) {
-                                                                                                   clientService.channel.writeAndFlush(obj);
-                                                                                               }
-                                                                                           },
-                                                                                           serviceClass));
+        return ServiceStubFactory.create(null,
+                                         new Server2ClientChannelWriter(channel),
+                                         serviceClass);
     }
 
-    static class ClientService {
-        private final Channel channel;
-        private final Map<Class<?>, Object> services = new ConcurrentHashMap<>();
+    public <T> List<T> getRemoteService(String client, Class<T> serviceClass) {
 
-        public ClientService(Channel channel) {
-            this.channel = channel;
+        List<T> services = new ArrayList<>();
+        this.clientChannelManager.getApp2Channels().getOrDefault(client, Collections.emptySet()).forEach(channel -> {
+            T service = ServiceStubFactory.create(null,
+                                                  new Server2ClientChannelWriter(channel),
+                                                  serviceClass);
+            services.add(service);
+        });
+        return services;
+    }
+
+    @ChannelHandler.Sharable
+    private static class ClientChannelManager extends ChannelInboundHandlerAdapter {
+
+        private final Map<EndPoint, Channel> endpoint2Channels = new ConcurrentHashMap<>();
+        private final Map<String, Set<Channel>> app2Channels = new ConcurrentHashMap<>();
+
+        public Set<EndPoint> getEndpoints() {
+            return endpoint2Channels.keySet();
         }
-    }
 
-    class ClientServiceManager extends ChannelInboundHandlerAdapter {
+        public Channel getChannel(EndPoint endpoint) {
+            return endpoint2Channels.get(endpoint);
+        }
+
+        public Map<String, Set<Channel>> getApp2Channels() {
+            return app2Channels;
+        }
+
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             InetSocketAddress socketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-            clientServices.computeIfAbsent(EndPoint.of(socketAddress),
-                                           key -> new ClientService(ctx.channel()));
+            endpoint2Channels.computeIfAbsent(EndPoint.of(socketAddress), key -> ctx.channel());
             super.channelActive(ctx);
+        }
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            if (!(msg instanceof ServiceMessage)) {
+                // NO Need to handle messages
+                return;
+            }
+
+            ServiceMessage message = (ServiceMessage) msg;
+            if (message.getMessageType() != ServiceMessageType.CLIENT_REQUEST) {
+                super.channelRead(ctx, msg);
+                return;
+            }
+
+            ServiceRequestMessageIn request = (ServiceRequestMessageIn) message;
+            if (StringUtil.isNullOrEmpty(request.getAppName())) {
+                super.channelRead(ctx, msg);
+                return;
+            }
+
+            Attribute<String> clientName = ctx.channel().attr(ATTR_CLIENT_NAME);
+            if (clientName.get() == null && clientName.setIfAbsent(request.getAppName()) == null) {
+                app2Channels.computeIfAbsent(request.getAppName(), client -> new HashSet<>()).add(ctx.channel());
+            }
+
+            super.channelRead(ctx, msg);
         }
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             InetSocketAddress socketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-            clientServices.remove(EndPoint.of(socketAddress));
+            endpoint2Channels.remove(EndPoint.of(socketAddress));
+
+            Attribute<String> clientNameKey = ctx.channel().attr(ATTR_CLIENT_NAME);
+            String clientName = clientNameKey.get();
+            if (clientName != null) {
+                Set<Channel> chs = app2Channels.get(clientName);
+                chs.remove(ctx.channel());
+
+                if (chs.isEmpty()) {
+                    app2Channels.remove(clientName);
+                }
+            }
+
             super.channelInactive(ctx);
+        }
+    }
+
+    private static class Server2ClientChannelWriter implements IChannelWriter {
+        private final Channel channel;
+
+        public Server2ClientChannelWriter(Channel channel) {
+            this.channel = channel;
+        }
+
+        @Override
+        public void connect() {
+            //do nothing for a server channel
+        }
+
+        @Override
+        public Channel getChannel() {
+            return channel;
+        }
+
+        @Override
+        public void writeAndFlush(Object obj) {
+            channel.writeAndFlush(obj);
         }
     }
 }

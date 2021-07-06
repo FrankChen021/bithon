@@ -67,7 +67,6 @@ public class ServiceInvocationRunnable implements Runnable {
                                               serviceRequest.getMethodName());
             }
 
-
             Object ret;
             try {
                 Object[] inputArgs = serviceRequest.getArgs(serviceProvider.getParameterTypes());
