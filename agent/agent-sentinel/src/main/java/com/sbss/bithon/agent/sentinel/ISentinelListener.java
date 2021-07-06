@@ -19,6 +19,7 @@ package com.sbss.bithon.agent.sentinel;
 import com.sbss.bithon.agent.sentinel.degrade.DegradeRuleDto;
 import com.sbss.bithon.agent.sentinel.flow.FlowRuleDto;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
 
 /**
@@ -26,13 +27,13 @@ import java.util.Collection;
  */
 public interface ISentinelListener {
 
-    void onFlowControlled(String requestURI);
+    void onFlowControlled(HttpServletRequest request);
 
     void onFlowRuleLoaded(String source, Collection<FlowRuleDto> rule);
 
     void onFlowRuleUnloaded(String source, Collection<FlowRuleDto> rule);
 
-    void onDegraded(String requestURI);
+    void onDegraded(HttpServletRequest request);
 
     void onDegradeRuleLoaded(String source, Collection<DegradeRuleDto> rule);
 

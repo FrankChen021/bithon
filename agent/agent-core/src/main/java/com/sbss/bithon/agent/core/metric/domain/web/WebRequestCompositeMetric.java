@@ -33,6 +33,8 @@ public class WebRequestCompositeMetric implements ICompositeMetric {
     private final Sum count5xx = new Sum();
     private final Sum requestBytes = new Sum();
     private final Sum responseBytes = new Sum();
+    private final Sum flowedCount = new Sum();
+    private final Sum degradingCount = new Sum();
 
     public void updateRequest(long responseTime, int errorCount) {
         this.responseTime.update(responseTime);
@@ -81,5 +83,13 @@ public class WebRequestCompositeMetric implements ICompositeMetric {
 
     public Sum getResponseBytes() {
         return responseBytes;
+    }
+
+    public Sum getFlowedCount() {
+        return flowedCount;
+    }
+
+    public Sum getDegradingCount() {
+        return degradingCount;
     }
 }

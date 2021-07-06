@@ -71,6 +71,13 @@ public class TomcatPlugin extends AbstractPlugin {
                                                    .onArgs("org.apache.catalina.connector.Request",
                                                            "org.apache.catalina.connector.Response")
                                                    .to("com.sbss.bithon.agent.plugin.tomcat.interceptor.StandardHostValveInvoke")
+                ),
+
+            forClass("org.apache.catalina.core.StandardContext")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onDefaultConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.tomcat.interceptor.StandardContextCtor")
                 )
         );
     }

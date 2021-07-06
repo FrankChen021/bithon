@@ -13,10 +13,16 @@
 
   <dependencies>
     <dependency>
-      <groupId>${project.parent.groupId}</groupId>
+      <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-core</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-sentinel</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.tomcat.embed</groupId>
       <artifactId>tomcat-embed-core</artifactId>

@@ -75,7 +75,7 @@ public class SentinelFilter implements Filter {
             );
             if (this.listener != null) {
                 try {
-                    this.listener.onFlowControlled(httpServletRequest.getRequestURI());
+                    this.listener.onFlowControlled(httpServletRequest);
                 } catch (Throwable ignored) {
                 }
             }
@@ -86,7 +86,7 @@ public class SentinelFilter implements Filter {
             );
             if (this.listener != null) {
                 try {
-                    this.listener.onDegraded(httpServletRequest.getRequestURI());
+                    this.listener.onDegraded(httpServletRequest);
                 } catch (Throwable ignored) {
                 }
             }
