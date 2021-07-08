@@ -16,7 +16,6 @@
 
 package com.sbss.bithon.agent.sentinel.degrade;
 
-import com.sbss.bithon.agent.core.utils.StringUtils;
 import com.sbss.bithon.agent.sentinel.expt.ParamInvalidException;
 import com.sbss.bithon.agent.sentinel.expt.ParamNullException;
 import shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
@@ -153,8 +152,8 @@ public class DegradeRuleDto {
     }
 
     public void valid() {
-        ParamNullException.throwIf(StringUtils.isEmpty(ruleId), "ruleId");
-        ParamNullException.throwIf(StringUtils.isEmpty(uri), "uri");
+        ParamNullException.throwIf(ruleId == null, "ruleId");
+        ParamNullException.throwIf(uri == null, "uri");
 
         ParamNullException.throwIf(timeWindow == null, "timeWindow");
         ParamInvalidException.throwIf(timeWindow < 0, "timeWindow", timeWindow);

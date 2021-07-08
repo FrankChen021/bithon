@@ -18,6 +18,8 @@ package com.sbss.bithon.agent.sentinel.flow;
 
 import com.sbss.bithon.agent.controller.cmd.IAgentCommand;
 import com.sbss.bithon.agent.sentinel.SentinelRuleManager;
+import shaded.org.slf4j.Logger;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
@@ -27,20 +29,25 @@ import java.util.Set;
  * @date 2021/7/5 7:54 下午
  */
 public class FlowRuleManagerImpl implements IFlowRuleManager, IAgentCommand {
+    private static final Logger log = LoggerFactory.getLogger(FlowRuleManagerImpl.class);
+
     @Override
     public void create(FlowRuleDto request) {
         request.valid();
+        log.info("Add flow rule: {}", request);
         SentinelRuleManager.getInstance().addFlowControlRule("Command", request, true);
     }
 
     @Override
     public void update(FlowRuleDto request) {
         request.valid();
+        log.info("Update flow rule: {}", request);
         SentinelRuleManager.getInstance().updateFlowControlRule("Command", request, true);
     }
 
     @Override
     public void delete(String ruleId) {
+        log.info("Delete flow rule: {}", ruleId);
         SentinelRuleManager.getInstance().deleteFlowControlRule("Command", Collections.singletonList(ruleId), true);
     }
 

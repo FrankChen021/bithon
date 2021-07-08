@@ -28,10 +28,10 @@ import java.util.Set;
 public interface IDegradingRuleManager {
 
     @ServiceConfig(serializer = Serializer.JSON)
-    void create(CreateDegradeRuleRequest request);
+    void create(DegradeRuleDto request);
 
     @ServiceConfig(serializer = Serializer.JSON)
-    void update(CreateDegradeRuleRequest request);
+    void update(DegradeRuleDto request);
 
     void delete(String ruleId);
 

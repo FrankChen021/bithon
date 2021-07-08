@@ -18,6 +18,8 @@ package com.sbss.bithon.agent.sentinel.degrade;
 
 import com.sbss.bithon.agent.controller.cmd.IAgentCommand;
 import com.sbss.bithon.agent.sentinel.SentinelRuleManager;
+import shaded.org.slf4j.Logger;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
@@ -27,20 +29,25 @@ import java.util.Set;
  * @date 2021/7/5 7:56 下午
  */
 public class DegradingRuleManagerImpl implements IDegradingRuleManager, IAgentCommand {
+    private static final Logger log = LoggerFactory.getLogger(DegradingRuleManagerImpl.class);
+
     @Override
-    public void create(CreateDegradeRuleRequest request) {
+    public void create(DegradeRuleDto request) {
         request.valid();
+        log.info("Add degrading rule: {}", request);
         SentinelRuleManager.getInstance().addDegradeRule("Command", request, true);
     }
 
     @Override
-    public void update(CreateDegradeRuleRequest request) {
+    public void update(DegradeRuleDto request) {
         request.valid();
+        log.info("Update degrading rule: {}", request);
         SentinelRuleManager.getInstance().updateDegradeRule("Command", request, true);
     }
 
     @Override
     public void delete(String ruleId) {
+        log.info("Delete degrading rule: {}", ruleId);
         SentinelRuleManager.getInstance().deleteDegradeRule("Command", Collections.singletonList(ruleId), true);
     }
 

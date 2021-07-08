@@ -36,7 +36,11 @@ import javax.validation.Valid;
 @RestController
 public class SentinelFlowApi {
 
-    private CommandService commandService;
+    private final CommandService commandService;
+
+    public SentinelFlowApi(CommandService commandService) {
+        this.commandService = commandService;
+    }
 
     @PostMapping("/api/sentinel/flow/create")
     public void createFlowRule(@Valid @RequestBody CreateFlowRuleRequest flowRule) {
