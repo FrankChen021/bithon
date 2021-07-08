@@ -75,7 +75,7 @@ public class StandardContextCtor extends AbstractInterceptor {
 
         @Override
         public void onDegraded(HttpServletRequest request) {
-            counter.getOrCreate(request).getDegradingCount().incr();
+            counter.getOrCreate(request).getDegradedCount().incr();
         }
 
         @Override

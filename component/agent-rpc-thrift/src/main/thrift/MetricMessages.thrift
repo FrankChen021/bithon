@@ -16,6 +16,8 @@ struct WebRequestMetricMessage {
     11:i64 count5xx;
     12:i64 requestBytes;
     13:i64 responseBytes;
+    14:i64 flowedCount;
+    15:i64 degradedCount;
 }
 
 /***************************************************************************/

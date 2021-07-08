@@ -74,6 +74,18 @@
     },
     {
       "type": "longSum",
+      "name": "flowedCount",
+      "displayText": "Flowed Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "degradedCount",
+      "displayText": "Degraded Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
       "name": "requestBytes",
       "displayText": "Bytes of Requests",
       "unit": "byte"

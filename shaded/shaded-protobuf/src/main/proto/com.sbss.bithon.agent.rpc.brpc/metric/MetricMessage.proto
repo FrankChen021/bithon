@@ -19,6 +19,8 @@ message BrpcWebRequestMetricMessage {
     int64 count5xx          = 12;
     int64 requestBytes      = 13;
     int64 responseBytes     = 14;
+    int64 flowedCount       = 15;
+    int64 degradedCount     = 16;
 }
 
 /***************************************************************************/

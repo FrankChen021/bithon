@@ -119,6 +119,8 @@ public class BrpcMessageConverter implements IMessageConverter {
                                           .setCount5Xx(metric.getCount5xx().get())
                                           .setRequestBytes(metric.getRequestBytes().get())
                                           .setResponseBytes(metric.getResponseBytes().get())
+                                          .setFlowedCount(metric.getFlowedCount().get())
+                                          .setDegradedCount(metric.getDegradedCount().get())
                                           .build();
     }
 

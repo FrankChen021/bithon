@@ -28,5 +28,18 @@ var web_request_metrics_dashboard = {
         },{
             "name": "maxResponseTime"
         }]
+    }, {
+        "dataSource": "web-request-metrics",
+        "title": "Errors",
+        "width": 4, //1,2,3,4
+        "metrics":[{
+            "name": "count4xx"
+        },{
+            "name": "count5xx"
+        },{
+            "name": "flowedCount"
+        },{
+            "name": "degradedCount"
+        }]
     }]
 }
