@@ -14,11 +14,15 @@
   <dependencies>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-controller</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.shaded</groupId>
-      <artifactId>shaded-sentinel</artifactId>
+      <artifactId>shaded-alibaba-sentinel</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
