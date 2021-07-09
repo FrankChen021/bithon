@@ -16,19 +16,20 @@
 
 package com.sbss.bithon.server.sentinel.api;
 
+import com.sbss.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/6 6:48 下午
+ * @date 2021/7/6 7:19 下午
  */
 @Data
-public class DeleteFlowRuleRequest {
-    @NotEmpty
+public class CreateDegradingRuleRequest extends DegradingRuleDto {
+    /**
+     * application name with profile
+     */
+    @NotNull
     private String appName;
-
-    @NotEmpty
-    private String ruleId;
 }

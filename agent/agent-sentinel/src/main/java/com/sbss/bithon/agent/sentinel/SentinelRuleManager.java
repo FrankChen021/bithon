@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.sentinel;
 
 import com.sbss.bithon.agent.controller.setting.AgentSettingManager;
 import com.sbss.bithon.agent.controller.setting.IAgentSettingRefreshListener;
-import com.sbss.bithon.agent.sentinel.degrade.DegradeRuleDto;
+import com.sbss.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import com.sbss.bithon.agent.sentinel.expt.SentinelCommandException;
 import com.sbss.bithon.agent.sentinel.flow.FlowRuleDto;
 import shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
@@ -62,7 +62,7 @@ public class SentinelRuleManager {
      * inverted index, used to find FlowRule by id
      */
     final Map<String, FlowRuleDto> flowId2Rules = new ConcurrentHashMap<>();
-    final Map<String, DegradeRuleDto> degradeId2Rules = new ConcurrentHashMap<>();
+    final Map<String, DegradingRuleDto> degradeId2Rules = new ConcurrentHashMap<>();
     ISentinelListener listener;
 
     /**
@@ -77,15 +77,15 @@ public class SentinelRuleManager {
         FlowRuleRefreshListener flowRuleListener = new FlowRuleRefreshListener();
         manager.register("flowRules", flowRuleListener);
 
-        DegradeRuleRefreshListener degradeRuleListener = new DegradeRuleRefreshListener();
-        manager.register("degradeRules", degradeRuleListener);
+        DegradingRuleRefreshListener degradeRuleListener = new DegradingRuleRefreshListener();
+        manager.register("degradingRules", degradeRuleListener);
 
         Map<String, JsonNode> latestSettings = AgentSettingManager.getInstance().getLatestSettings();
         JsonNode flowRuleNodes = latestSettings.get("flowRules");
         if (flowRuleNodes != null) {
             flowRuleListener.onRefresh(manager.getObjectMapper(), flowRuleNodes);
         }
-        JsonNode degradingRuleNodes = latestSettings.get("degradeRules");
+        JsonNode degradingRuleNodes = latestSettings.get("degradingRules");
         if (degradingRuleNodes != null) {
             degradeRuleListener.onRefresh(manager.getObjectMapper(), degradingRuleNodes);
         }
@@ -117,10 +117,10 @@ public class SentinelRuleManager {
                                  .collect(Collectors.toSet());
     }
 
-    public Set<String> getDegradeRules() {
+    public Set<String> getDegradingRules() {
         return this.sentinelRules.values()
                                  .stream()
-                                 .flatMap(composite -> composite.degradeRules.stream())
+                                 .flatMap(composite -> composite.degradingRules.stream())
                                  .collect(Collectors.toSet());
     }
 
@@ -145,7 +145,7 @@ public class SentinelRuleManager {
 
         // delete rules
         if (!deleteRules.isEmpty()) {
-            SentinelRuleManager.this.deleteFlowControlRule("Config", deleteRules, false);
+            SentinelRuleManager.this.deleteFlowRule("Config", deleteRules, false);
         }
 
         List<FlowRuleDto> changed = new ArrayList<>();
@@ -160,7 +160,7 @@ public class SentinelRuleManager {
                          e.getMessage());
                 continue;
             }
-            SentinelRuleManager.this.updateFlowControlRule("Config", rule, false);
+            SentinelRuleManager.this.updateFlowRule("Config", rule, false);
             changed.add(rule);
         }
 
@@ -193,15 +193,15 @@ public class SentinelRuleManager {
         }
     }
 
-    public void checkDegradeRule(Map<String, DegradeRuleDto> configRules) {
+    public void checkDegradingRule(Map<String, DegradingRuleDto> configRules) {
         List<String> deleted = new ArrayList<>();
-        List<DegradeRuleDto> updated = new ArrayList<>();
+        List<DegradingRuleDto> updated = new ArrayList<>();
 
-        for (Map.Entry<String, DegradeRuleDto> entry : degradeId2Rules.entrySet()) {
+        for (Map.Entry<String, DegradingRuleDto> entry : degradeId2Rules.entrySet()) {
             String key = entry.getKey();
-            DegradeRuleDto inMemoryRule = entry.getValue();
+            DegradingRuleDto inMemoryRule = entry.getValue();
 
-            DegradeRuleDto configRule = configRules.remove(key);
+            DegradingRuleDto configRule = configRules.remove(key);
             if (configRule == null) {
                 // this rule in memory does not exist in current configuration
                 deleted.add(key);
@@ -214,12 +214,12 @@ public class SentinelRuleManager {
 
         // delete rules
         if (!deleted.isEmpty()) {
-            SentinelRuleManager.this.deleteDegradeRule("Config", deleted, false);
+            SentinelRuleManager.this.deleteDegradingRule("Config", deleted, false);
         }
 
-        List<DegradeRuleDto> changed = new ArrayList<>();
+        List<DegradingRuleDto> changed = new ArrayList<>();
 
-        for (DegradeRuleDto rule : updated) {
+        for (DegradingRuleDto rule : updated) {
             try {
                 rule.valid();
             } catch (SentinelCommandException e) {
@@ -228,12 +228,12 @@ public class SentinelRuleManager {
                          e.getMessage());
                 continue;
             }
-            SentinelRuleManager.this.updateDegradeRule("Config", rule, false);
+            SentinelRuleManager.this.updateDegradingRule("Config", rule, false);
             changed.add(rule);
         }
 
         // add rules which are left in configurations
-        for (DegradeRuleDto rule : configRules.values()) {
+        for (DegradingRuleDto rule : configRules.values()) {
             try {
                 rule.valid();
             } catch (SentinelCommandException e) {
@@ -242,7 +242,7 @@ public class SentinelRuleManager {
                          e.getMessage());
                 continue;
             }
-            SentinelRuleManager.this.addDegradeRule("Config", rule, false);
+            SentinelRuleManager.this.addDegradingRule("Config", rule, false);
             changed.add(rule);
         }
 
@@ -253,7 +253,7 @@ public class SentinelRuleManager {
             DegradeRuleManager.loadRules(
                 degradeId2Rules.values()
                                .stream()
-                               .map(DegradeRuleDto::toDegradeRule)
+                               .map(DegradingRuleDto::toDegradeRule)
                                .collect(Collectors.toList()));
 
             SentinelRuleManager.this.listener.onDegradeRuleLoaded("Config", changed);
@@ -290,15 +290,15 @@ public class SentinelRuleManager {
         }
     }
 
-    public void updateFlowControlRule(String source, FlowRuleDto newRule, boolean loadRules) {
+    public void updateFlowRule(String source, FlowRuleDto newRule, boolean loadRules) {
         if (!flowId2Rules.containsKey(newRule.getRuleId())) {
             throw new SentinelCommandException(String.format("flow rule[%s] not exist", newRule.getRuleId()));
         }
-        deleteFlowControlRule(source, Collections.singletonList(newRule.getRuleId()), loadRules);
+        deleteFlowRule(source, Collections.singletonList(newRule.getRuleId()), loadRules);
         addFlowControlRule(source, newRule, loadRules);
     }
 
-    public void deleteFlowControlRule(String source, List<String> idList, boolean loadRules) {
+    public void deleteFlowRule(String source, List<String> idList, boolean loadRules) {
         List<FlowRuleDto> deleteRules = new ArrayList<>();
         for (String id : idList) {
             FlowRuleDto rule = flowId2Rules.remove(id);
@@ -349,7 +349,7 @@ public class SentinelRuleManager {
         this.listener.onFlowRuleUnloaded(source, deleteRules);
     }
 
-    public void addDegradeRule(String source, DegradeRuleDto rule, boolean loadRules) {
+    public void addDegradingRule(String source, DegradingRuleDto rule, boolean loadRules) {
         if (degradeId2Rules.putIfAbsent(rule.getRuleId(), rule) != null) {
             log.warn("degrade rule [{}] exists", rule.getRuleId());
             return;
@@ -357,31 +357,31 @@ public class SentinelRuleManager {
 
         sentinelRules.computeIfAbsent(rule.getUri(),
                                       key -> new CompositeRule(IUrlMatcher.createMatcher(rule.getUri())))
-                     .addDegradeRule(rule);
+                     .addDegradingRule(rule);
 
         if (loadRules) {
             DegradeRuleManager.loadRules(
                 degradeId2Rules.values()
                                .stream()
-                               .map(DegradeRuleDto::toDegradeRule)
+                               .map(DegradingRuleDto::toDegradeRule)
                                .collect(Collectors.toList()));
 
             this.listener.onDegradeRuleLoaded(source, Collections.singletonList(rule));
         }
     }
 
-    public void updateDegradeRule(String source, DegradeRuleDto newRule, boolean loadRules) {
+    public void updateDegradingRule(String source, DegradingRuleDto newRule, boolean loadRules) {
         if (!degradeId2Rules.containsKey(newRule.getRuleId())) {
             throw new SentinelCommandException(String.format("degrade rule [%s] not exist", newRule.getRuleId()));
         }
-        deleteDegradeRule(source, Collections.singletonList(newRule.getRuleId()), loadRules);
-        addDegradeRule(source, newRule, loadRules);
+        deleteDegradingRule(source, Collections.singletonList(newRule.getRuleId()), loadRules);
+        addDegradingRule(source, newRule, loadRules);
     }
 
-    public void deleteDegradeRule(String source, List<String> idList, boolean loadRules) {
-        List<DegradeRuleDto> deleteRules = new ArrayList<>();
+    public void deleteDegradingRule(String source, List<String> idList, boolean loadRules) {
+        List<DegradingRuleDto> deleteRules = new ArrayList<>();
         for (String id : idList) {
-            DegradeRuleDto rule = degradeId2Rules.remove(id);
+            DegradingRuleDto rule = degradeId2Rules.remove(id);
             if (rule != null) {
                 deleteRules.add(rule);
             }
@@ -391,7 +391,7 @@ public class SentinelRuleManager {
         while (i.hasNext()) {
             Map.Entry<String, CompositeRule> entry = i.next();
             CompositeRule rule = entry.getValue();
-            rule.removeDegradeRule(idList);
+            rule.removeDegradingRule(idList);
             if (rule.isEmpty()) {
                 i.remove();
             }
@@ -402,7 +402,7 @@ public class SentinelRuleManager {
             DegradeRuleManager.loadRules(
                 degradeId2Rules.values()
                                .stream()
-                               .map(DegradeRuleDto::toDegradeRule)
+                               .map(DegradingRuleDto::toDegradeRule)
                                .collect(Collectors.toList()));
         }
         if (!deleteRules.isEmpty()) {
@@ -410,14 +410,14 @@ public class SentinelRuleManager {
         }
     }
 
-    public void clearDegradeRules(String source) {
-        Collection<DegradeRuleDto> deleteRules = new ArrayList<>(degradeId2Rules.values());
+    public void clearDegradingRules(String source) {
+        Collection<DegradingRuleDto> deleteRules = new ArrayList<>(degradeId2Rules.values());
 
         Iterator<Map.Entry<String, CompositeRule>> i = this.sentinelRules.entrySet().iterator();
         while (i.hasNext()) {
             Map.Entry<String, CompositeRule> entry = i.next();
             CompositeRule rule = entry.getValue();
-            rule.clearDegradeRule();
+            rule.clearDegradingRule();
             if (rule.isEmpty()) {
                 i.remove();
             }
@@ -435,7 +435,7 @@ public class SentinelRuleManager {
      */
     public static class CompositeRule {
         private final Set<String> flowRules = new ConcurrentSkipListSet<>();
-        private final Set<String> degradeRules = new ConcurrentSkipListSet<>();
+        private final Set<String> degradingRules = new ConcurrentSkipListSet<>();
         private final IUrlMatcher urlMatcher;
 
         CompositeRule(IUrlMatcher urlMatcher) {
@@ -450,8 +450,8 @@ public class SentinelRuleManager {
             flowRules.add(flowRule.getRuleId());
         }
 
-        public void addDegradeRule(DegradeRuleDto degradeRule) {
-            degradeRules.add(degradeRule.getRuleId());
+        public void addDegradingRule(DegradingRuleDto degradeRule) {
+            degradingRules.add(degradeRule.getRuleId());
         }
 
         public void removeFlowRule(List<String> idList) {
@@ -462,24 +462,24 @@ public class SentinelRuleManager {
             flowRules.clear();
         }
 
-        public void removeDegradeRule(List<String> idList) {
-            idList.forEach(degradeRules::remove);
+        public void removeDegradingRule(List<String> idList) {
+            idList.forEach(degradingRules::remove);
         }
 
         public boolean isEmpty() {
-            return flowRules.isEmpty() && degradeRules.isEmpty();
+            return flowRules.isEmpty() && degradingRules.isEmpty();
         }
 
-        public void clearDegradeRule() {
-            degradeRules.clear();
+        public void clearDegradingRule() {
+            degradingRules.clear();
         }
 
         public Set<String> getFlowRules() {
             return flowRules;
         }
 
-        public Set<String> getDegradeRules() {
-            return degradeRules;
+        public Set<String> getDegradingRules() {
+            return degradingRules;
         }
     }
 
@@ -494,14 +494,14 @@ public class SentinelRuleManager {
         }
     }
 
-    class DegradeRuleRefreshListener implements IAgentSettingRefreshListener {
+    class DegradingRuleRefreshListener implements IAgentSettingRefreshListener {
         @Override
         public void onRefresh(ObjectMapper om, JsonNode configNode) {
             // check degrade rules
-            DegradeRuleDto[] degradeRules = om.convertValue(configNode, DegradeRuleDto[].class);
-            if (degradeRules != null) {
-                checkDegradeRule(Arrays.stream(degradeRules)
-                                       .collect(Collectors.toMap(DegradeRuleDto::getRuleId, val -> val)));
+            DegradingRuleDto[] degradingRules = om.convertValue(configNode, DegradingRuleDto[].class);
+            if (degradingRules != null) {
+                checkDegradingRule(Arrays.stream(degradingRules)
+                                         .collect(Collectors.toMap(DegradingRuleDto::getRuleId, val -> val)));
             }
         }
     }

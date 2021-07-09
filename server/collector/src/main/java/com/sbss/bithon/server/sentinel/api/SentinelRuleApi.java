@@ -16,6 +16,7 @@
 
 package com.sbss.bithon.server.sentinel.api;
 
+import com.sbss.bithon.agent.sentinel.degrade.IDegradingRuleManager;
 import com.sbss.bithon.agent.sentinel.flow.IFlowRuleManager;
 import com.sbss.bithon.component.brpc.IServiceController;
 import com.sbss.bithon.server.cmd.CommandService;
@@ -34,17 +35,17 @@ import javax.validation.Valid;
 @Slf4j
 @CrossOrigin
 @RestController
-public class SentinelFlowApi {
+public class SentinelRuleApi {
 
     private final CommandService commandService;
 
-    public SentinelFlowApi(CommandService commandService) {
+    public SentinelRuleApi(CommandService commandService) {
         this.commandService = commandService;
     }
 
     @PostMapping("/api/sentinel/flow/create")
-    public void createFlowRule(@Valid @RequestBody CreateFlowRuleRequest flowRule) {
-        flowRule.valid();
+    public void createFlowRule(@Valid @RequestBody CreateFlowRuleRequest rule) {
+        rule.valid();
 
         //
         // persistent rules
@@ -54,19 +55,19 @@ public class SentinelFlowApi {
         // dispatch to instances
         //
         commandService.getServerChannel()
-                      .getRemoteService(flowRule.getAppName(),
+                      .getRemoteService(rule.getAppName(),
                                         IFlowRuleManager.class)
                       .parallelStream()
                       .forEach(flowRuleManager -> {
                           IServiceController ctrl = (IServiceController) flowRuleManager;
                           log.info("create flow rule on [{}]", ctrl.getPeer());
 
-                          flowRuleManager.create(flowRule);
+                          flowRuleManager.create(rule);
                       });
     }
 
     @PostMapping("/api/sentinel/flow/delete")
-    public void delete(@Valid @RequestBody DeleteFlowRuleRequest flowRule) {
+    public void deleteFlowRule(@Valid @RequestBody DeleteRuleRequest flowRule) {
         //
         // dispatch to instances
         //
@@ -79,6 +80,46 @@ public class SentinelFlowApi {
                           log.info("delete flow rule[{}] on [{}]", flowRule.getRuleId(), ctrl.getPeer());
 
                           flowRuleManager.delete(flowRule.getRuleId());
+                      });
+    }
+
+    @PostMapping("/api/sentinel/degrading/create")
+    public void createDegradingRule(@Valid @RequestBody CreateDegradingRuleRequest rule) {
+        rule.valid();
+
+        //
+        // persistent rules
+        //
+
+        //
+        // dispatch to instances
+        //
+        commandService.getServerChannel()
+                      .getRemoteService(rule.getAppName(),
+                                        IDegradingRuleManager.class)
+                      .parallelStream()
+                      .forEach(ruleManager -> {
+                          IServiceController ctrl = (IServiceController) ruleManager;
+                          log.info("create degrading rule on [{}]", ctrl.getPeer());
+
+                          ruleManager.create(rule);
+                      });
+    }
+
+    @PostMapping("/api/sentinel/degrading/delete")
+    public void deleteDegradingRule(@Valid @RequestBody DeleteRuleRequest flowRule) {
+        //
+        // dispatch to instances
+        //
+        commandService.getServerChannel()
+                      .getRemoteService(flowRule.getAppName(),
+                                        IDegradingRuleManager.class)
+                      .parallelStream()
+                      .forEach(ruleManager -> {
+                          IServiceController ctrl = (IServiceController) ruleManager;
+                          log.info("delete degrading rule[{}] on [{}]", flowRule.getRuleId(), ctrl.getPeer());
+
+                          ruleManager.delete(flowRule.getRuleId());
                       });
     }
 }

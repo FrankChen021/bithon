@@ -21,7 +21,7 @@ import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.plugin.tomcat.metric.WebRequestMetricCollector;
 import com.sbss.bithon.agent.sentinel.ISentinelListener;
-import com.sbss.bithon.agent.sentinel.degrade.DegradeRuleDto;
+import com.sbss.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import com.sbss.bithon.agent.sentinel.flow.FlowRuleDto;
 import com.sbss.bithon.agent.sentinel.servlet.SentinelFilter;
 import org.apache.catalina.core.StandardContext;
@@ -88,7 +88,7 @@ public class StandardContextCtor extends AbstractInterceptor {
         }
 
         @Override
-        public void onDegradeRuleLoaded(String source, Collection<DegradeRuleDto> rules) {
+        public void onDegradeRuleLoaded(String source, Collection<DegradingRuleDto> rules) {
         }
 
         @Override
@@ -96,7 +96,7 @@ public class StandardContextCtor extends AbstractInterceptor {
         }
 
         @Override
-        public void onDegradeRuleUnloaded(String source, Collection<DegradeRuleDto> rules) {
+        public void onDegradeRuleUnloaded(String source, Collection<DegradingRuleDto> rules) {
         }
     }
 }

@@ -14,22 +14,21 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sentinel.flow;
+package com.sbss.bithon.server.sentinel.api;
 
-import com.sbss.bithon.agent.sentinel.expt.ParamNullException;
+import lombok.Data;
 
-import java.util.List;
+import javax.validation.constraints.NotEmpty;
 
-class DeleteFlowRuleRequest {
-    private List<String> ids;
+/**
+ * @author frank.chen021@outlook.com
+ * @date 2021/7/6 6:48 下午
+ */
+@Data
+public class DeleteRuleRequest {
+    @NotEmpty
+    private String appName;
 
-    public List<String> getIds() {
-        return ids;
-    }
-
-    public void valid() {
-        if (ids == null) {
-            throw new ParamNullException("ids");
-        }
-    }
+    @NotEmpty
+    private String ruleId;
 }

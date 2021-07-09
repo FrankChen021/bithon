@@ -25,7 +25,7 @@ import java.util.Objects;
 /**
  * @author frankchen
  */
-public class DegradeRuleDto {
+public class DegradingRuleDto {
     private String ruleId;
     private String uri;
     private int minRequestAmount = 5;
@@ -181,7 +181,7 @@ public class DegradeRuleDto {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DegradeRuleDto that = (DegradeRuleDto) o;
+        DegradingRuleDto that = (DegradingRuleDto) o;
         return minRequestAmount == that.minRequestAmount
                && Objects.equals(ruleId, that.ruleId)
                && Objects.equals(uri, that.uri)

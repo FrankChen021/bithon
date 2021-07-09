@@ -32,32 +32,32 @@ public class DegradingRuleManagerImpl implements IDegradingRuleManager, IAgentCo
     private static final Logger log = LoggerFactory.getLogger(DegradingRuleManagerImpl.class);
 
     @Override
-    public void create(DegradeRuleDto request) {
+    public void create(DegradingRuleDto request) {
         request.valid();
         log.info("Add degrading rule: {}", request);
-        SentinelRuleManager.getInstance().addDegradeRule("Command", request, true);
+        SentinelRuleManager.getInstance().addDegradingRule("Command", request, true);
     }
 
     @Override
-    public void update(DegradeRuleDto request) {
+    public void update(DegradingRuleDto request) {
         request.valid();
         log.info("Update degrading rule: {}", request);
-        SentinelRuleManager.getInstance().updateDegradeRule("Command", request, true);
+        SentinelRuleManager.getInstance().updateDegradingRule("Command", request, true);
     }
 
     @Override
     public void delete(String ruleId) {
         log.info("Delete degrading rule: {}", ruleId);
-        SentinelRuleManager.getInstance().deleteDegradeRule("Command", Collections.singletonList(ruleId), true);
+        SentinelRuleManager.getInstance().deleteDegradingRule("Command", Collections.singletonList(ruleId), true);
     }
 
     @Override
     public void deleteAll() {
-        SentinelRuleManager.getInstance().clearDegradeRules("Command");
+        SentinelRuleManager.getInstance().clearDegradingRules("Command");
     }
 
     @Override
     public Set<String> getRules() {
-        return SentinelRuleManager.getInstance().getDegradeRules();
+        return SentinelRuleManager.getInstance().getDegradingRules();
     }
 }

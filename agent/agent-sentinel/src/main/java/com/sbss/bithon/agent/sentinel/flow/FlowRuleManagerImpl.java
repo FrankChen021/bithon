@@ -42,13 +42,13 @@ public class FlowRuleManagerImpl implements IFlowRuleManager, IAgentCommand {
     public void update(FlowRuleDto request) {
         request.valid();
         log.info("Update flow rule: {}", request);
-        SentinelRuleManager.getInstance().updateFlowControlRule("Command", request, true);
+        SentinelRuleManager.getInstance().updateFlowRule("Command", request, true);
     }
 
     @Override
     public void delete(String ruleId) {
         log.info("Delete flow rule: {}", ruleId);
-        SentinelRuleManager.getInstance().deleteFlowControlRule("Command", Collections.singletonList(ruleId), true);
+        SentinelRuleManager.getInstance().deleteFlowRule("Command", Collections.singletonList(ruleId), true);
     }
 
     @Override
