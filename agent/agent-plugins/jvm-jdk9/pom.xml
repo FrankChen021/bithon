@@ -8,6 +8,21 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <artifactId>agent-plugin-jvm-jdk9</artifactId>
+
+  <properties>
+    <maven.compiler.source>1.9</maven.compiler.source>
+    <maven.compiler.target>1.9</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-plugin-jvm</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
   <profiles>
     <profile>
       <id>jdk9+</id>
@@ -33,6 +48,18 @@
                   </sources>
                 </configuration>
               </execution>
+              <execution>
+                <id>add-resource</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>add-resource</goal>
+                </goals>
+                <configuration>
+                  <resources>
+                    <resource><directory>src9/main/resources</directory></resource>
+                  </resources>
+                </configuration>
+              </execution>
             </executions>
           </plugin>
           <plugin>
@@ -43,9 +70,12 @@
               <encoding>UTF-8</encoding>
               <showWarnings>true</showWarnings>
               <showDeprecation>true</showDeprecation>
+              <compilerVersion>1.9</compilerVersion>
               <compilerArgs>
-                <arg>--add-exports=java.base/jdk.internal.misc=cn.piumnl.learning.java.interrupt</arg>
-                <arg>--add-exports=java.base/sun.nio.ch=cn.piumnl.learning.java.interrupt</arg>
+                <arg>--add-exports</arg>
+                <arg>java.base/jdk.internal.misc=ALL-UNNAMED</arg>
+                <arg>--add-exports</arg>
+                <arg>java.base/jdk.internal.access=ALL-UNNAMED</arg>
               </compilerArgs>
             </configuration>
           </plugin>
