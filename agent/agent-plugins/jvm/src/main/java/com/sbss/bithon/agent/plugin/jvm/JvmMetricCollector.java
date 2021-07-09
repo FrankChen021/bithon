@@ -25,6 +25,9 @@ import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
 import com.sbss.bithon.agent.core.utils.time.DateTime;
+import com.sbss.bithon.agent.plugin.jvm.gc.GcMetricCollector;
+import com.sbss.bithon.agent.plugin.jvm.mem.ClassMetricCollector;
+import com.sbss.bithon.agent.plugin.jvm.mem.MemoryMetricCollector;
 import com.sun.management.UnixOperatingSystemMXBean;
 import shaded.com.fasterxml.jackson.databind.ObjectMapper;
 

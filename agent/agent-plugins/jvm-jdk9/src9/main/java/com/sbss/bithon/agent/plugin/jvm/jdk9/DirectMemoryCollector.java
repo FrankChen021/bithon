@@ -1,7 +1,7 @@
 package com.sbss.bithon.agent.plugin.jvm.jdk9;
 
 import com.sbss.bithon.agent.core.metric.domain.jvm.MemoryRegionCompositeMetric;
-import com.sbss.bithon.agent.plugin.jvm.IDirectMemoryCollector;
+import com.sbss.bithon.agent.plugin.jvm.mem.IDirectMemoryCollector;
 
 import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;

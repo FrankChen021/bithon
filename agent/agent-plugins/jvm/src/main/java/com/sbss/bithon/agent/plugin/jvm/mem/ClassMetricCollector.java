@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.jvm;
+package com.sbss.bithon.agent.plugin.jvm.mem;
 
 import com.sbss.bithon.agent.core.metric.domain.jvm.ClassCompositeMetric;
 
