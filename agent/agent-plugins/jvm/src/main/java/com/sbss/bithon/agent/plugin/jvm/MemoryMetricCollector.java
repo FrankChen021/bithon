@@ -39,9 +39,9 @@ public class MemoryMetricCollector {
                                                                              .findFirst()
                                                                              .get();
 
-    static IDirectMemoryCollector directMemoryCollector;
+    private static IDirectMemoryCollector directMemoryCollector;
 
-    static {
+    public static void initDirectMemoryCollector() {
         ServiceLoader<IDirectMemoryCollector> spi = ServiceLoader.load(IDirectMemoryCollector.class,
                                                                        PluginClassLoaderManager.getDefaultLoader());
         Iterator<IDirectMemoryCollector> i = spi.iterator();
