@@ -51,7 +51,7 @@
                 </goals>
                 <configuration>
                   <resources>
-                    <resource>src8/main/resources</resource>
+                    <resource><directory>src8/main/resources</directory></resource>
                   </resources>
                 </configuration>
               </execution>
