@@ -21,6 +21,7 @@
     <module>webserver-jetty</module>
     <module>jvm</module>
     <module>jvm-jdk8</module>
+    <module>jvm-jdk9</module>
     <module>mysql-5.x-6.x</module>
     <module>mysql-8.x</module>
     <module>quartz2</module>
