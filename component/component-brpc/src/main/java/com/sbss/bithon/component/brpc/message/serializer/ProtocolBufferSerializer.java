@@ -21,7 +21,6 @@ import shaded.com.google.protobuf.CodedOutputStream;
 import shaded.com.google.protobuf.ExtensionRegistryLite;
 import shaded.com.google.protobuf.GeneratedMessageV3;
 import shaded.com.google.protobuf.MessageLite;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -595,7 +594,7 @@ public class ProtocolBufferSerializer {
                 GenericArrayType clazz = (GenericArrayType) type;
                 componentType = clazz.getGenericComponentType();
                 if (componentType instanceof TypeVariable) {
-                    throw new NotImplementedException();
+                    throw new RuntimeException("Not Supported");
                 } else {
                     componentClass = TypeReference.getClass(componentType);
                 }
