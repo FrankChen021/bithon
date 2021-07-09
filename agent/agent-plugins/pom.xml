@@ -67,11 +67,6 @@
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-plugin-jvm-jdk8</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-plugin-jdk-thread</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -164,8 +159,6 @@
 
 
     <!-- end-->
-
-
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
@@ -173,6 +166,36 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <!-- Include JDK-related modules -->
+  <profiles>
+    <profile>
+      <id>jdk8</id>
+      <activation>
+        <jdk>1.8</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sbss.bithon.agent</groupId>
+          <artifactId>agent-plugin-jvm-jdk8</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>jdk9+</id>
+      <activation>
+        <jdk>[1.9,)</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sbss.bithon.agent</groupId>
+          <artifactId>agent-plugin-jvm-jdk9</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
   <build>
     <finalName>agent-plugin</finalName>
@@ -209,8 +232,9 @@
             </goals>
             <configuration>
               <tasks>
-                <echo message="****** Clear Agent Plugin Output Directory: ../${project.distribution.dir}/plugins *****" />
-                <delete dir="../${project.distribution.dir}/plugins" />
+                <echo
+                    message="****** Clear Agent Plugin Output Directory: ../${project.distribution.dir}/plugins *****"/>
+                <delete dir="../${project.distribution.dir}/plugins"/>
               </tasks>
             </configuration>
           </execution>
