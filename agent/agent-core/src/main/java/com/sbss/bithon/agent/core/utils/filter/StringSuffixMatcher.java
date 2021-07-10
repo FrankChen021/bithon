@@ -24,6 +24,10 @@ public class StringSuffixMatcher implements IMatcher {
 
     private String suffix;
 
+    public StringSuffixMatcher(String suffix) {
+        this.suffix = suffix;
+    }
+
     @Override
     public boolean matches(Object input) {
         return ((String) input).endsWith(suffix);

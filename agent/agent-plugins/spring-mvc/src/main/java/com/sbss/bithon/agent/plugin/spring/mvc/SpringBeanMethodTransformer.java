@@ -18,13 +18,21 @@ package com.sbss.bithon.agent.plugin.spring.mvc;
 
 import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
 import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
+import com.sbss.bithon.agent.core.utils.filter.IMatcher;
+import com.sbss.bithon.agent.core.utils.filter.StringContainsMatcher;
+import com.sbss.bithon.agent.core.utils.filter.StringPrefixMatcher;
+import com.sbss.bithon.agent.core.utils.filter.StringSuffixMatcher;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
+import shaded.org.slf4j.Logger;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
@@ -37,8 +45,20 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.none;
  * @date 2021/7/10 13:05
  */
 public class SpringBeanMethodTransformer {
+    private static final Logger log = LoggerFactory.getLogger(SpringBeanMethodTransformer.class);
 
     private static final Set<String> INSTRUMENTED = new ConcurrentSkipListSet<>();
+
+    private static final List<IMatcher> EXCLUDE_MATCHERS = Arrays.asList(
+        new StringSuffixMatcher("Properties"),
+        new StringSuffixMatcher("Configuration"),
+        new StringSuffixMatcher("BeanPostProcessor"),
+        new StringPrefixMatcher("org.springframework.boot.context.properties."),
+        new StringPrefixMatcher("org.springframework.boot.autoconfigure."),
+        new StringPrefixMatcher("org.springframework.context.annotation."),
+        new StringPrefixMatcher("org.springframework.cloud.bootstrap"),
+        new StringContainsMatcher(".autoconfigure.")
+    );
 
     public static void transform(String beanName, Object bean) {
         if (beanName == null || bean == null) {
@@ -57,6 +77,11 @@ public class SpringBeanMethodTransformer {
             return;
         }
 
+        boolean excluded = EXCLUDE_MATCHERS.stream().anyMatch(matcher -> matcher.matches(clazz.getName()));
+        if (excluded) {
+            return;
+        }
+
         AgentBuilder agentBuilder = InstrumentationHelper.getBuilder();
         agentBuilder.ignore(none())
                     .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
@@ -68,6 +93,8 @@ public class SpringBeanMethodTransformer {
                                                        .on(BeanMethodMatcher.INSTANCE)))
                     .with(new TransformationDebugger())
                     .installOn(InstrumentationHelper.getInstance());
+
+        log.info("Setup AOP for Spring Bean class [{}]", clazz.getName());
     }
 
     static class BeanMethodMatcher implements ElementMatcher<MethodDescription> {

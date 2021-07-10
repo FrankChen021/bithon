@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.core.metric.domain.web;
 
-import com.sbss.bithon.agent.core.utils.filter.StringContainerMatcher;
+import com.sbss.bithon.agent.core.utils.filter.StringContainsMatcher;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,14 +28,14 @@ import java.util.List;
  */
 public class UserAgentFilter {
 
-    private List<StringContainerMatcher> matchers = Collections.emptyList();
+    private List<StringContainsMatcher> matchers = Collections.emptyList();
 
     public boolean isFiltered(String userAgent) {
         if (userAgent == null) {
             return false;
         }
 
-        for (StringContainerMatcher matcher : matchers) {
+        for (StringContainsMatcher matcher : matchers) {
             if (matcher.matches(userAgent)) {
                 return true;
             }
