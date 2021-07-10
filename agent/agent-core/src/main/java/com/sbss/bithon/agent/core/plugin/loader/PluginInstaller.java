@@ -63,6 +63,9 @@ public class PluginInstaller {
         final List<AbstractPlugin> plugins = new ArrayList<>();
         for (JarFile jar : pluginJars) {
             try {
+                LoggerFactory.getLogger(PluginInstaller.class)
+                             .info("Found {}", new File(jar.getName()).getName());
+
                 String pluginClassName = jar.getManifest().getMainAttributes().getValue("Plugin-Class");
                 if (pluginClassName == null) {
                     continue;
@@ -73,9 +76,6 @@ public class PluginInstaller {
                                                                        pluginClassLoader)
                                                               .newInstance();
                 plugins.add(plugin);
-
-                LoggerFactory.getLogger(PluginInstaller.class)
-                             .info("Found {}", new File(jar.getName()).getName());
             } catch (Throwable e) {
                 LoggerFactory.getLogger(PluginInstaller.class)
                              .error(String.format("Failed to add plugin from jar %s",

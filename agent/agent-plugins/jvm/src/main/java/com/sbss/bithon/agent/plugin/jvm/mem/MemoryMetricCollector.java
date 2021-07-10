@@ -14,15 +14,18 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.jvm;
+package com.sbss.bithon.agent.plugin.jvm.mem;
 
 import com.sbss.bithon.agent.core.metric.domain.jvm.MemoryCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jvm.MemoryRegionCompositeMetric;
-import sun.misc.VM;
+import com.sbss.bithon.agent.core.plugin.loader.PluginClassLoaderManager;
+import com.sbss.bithon.agent.plugin.jvm.JmxBeans;
+import shaded.org.slf4j.LoggerFactory;
 
-import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 
 /**
  * @author frank.chen021@outlook.com
@@ -32,15 +35,25 @@ public class MemoryMetricCollector {
 
     private static final MemoryPoolMXBean META_SPACE_BEAN = ManagementFactory.getMemoryPoolMXBeans()
                                                                              .stream()
-                                                                             .filter(bean -> "Metaspace".equalsIgnoreCase(bean.getName()))
+                                                                             .filter(bean -> "Metaspace".equalsIgnoreCase(
+                                                                                 bean.getName()))
                                                                              .findFirst()
                                                                              .get();
 
-    private static final BufferPoolMXBean DIRECT_MEMORY_BEAN = ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)
-                                                                                .stream()
-                                                                                .filter(bean -> "direct".equalsIgnoreCase(bean.getName()))
-                                                                                .findFirst()
-                                                                                .get();
+    private static IDirectMemoryCollector directMemoryCollector;
+
+    public static void initDirectMemoryCollector() {
+        ServiceLoader<IDirectMemoryCollector> spi = ServiceLoader.load(IDirectMemoryCollector.class,
+                                                                       PluginClassLoaderManager.getDefaultLoader());
+        Iterator<IDirectMemoryCollector> i = spi.iterator();
+        if (!i.hasNext()) {
+            LoggerFactory.getLogger(MemoryMetricCollector.class)
+                         .error(
+                             "unable to find instance of IDirectMemoryCollector. Check if agent-plugin-jvm-jdkXXXX.jar exists.");
+            System.exit(-1);
+        }
+        directMemoryCollector = i.next();
+    }
 
     public static MemoryCompositeMetric collectTotal() {
         return new MemoryCompositeMetric(Runtime.getRuntime().totalMemory(),
@@ -62,8 +75,6 @@ public class MemoryMetricCollector {
     }
 
     public static MemoryRegionCompositeMetric collectDirectMemory() {
-        long max = VM.maxDirectMemory();
-        long used = DIRECT_MEMORY_BEAN.getMemoryUsed();
-        return new MemoryRegionCompositeMetric(max, 0, used, max - used);
+        return directMemoryCollector.collect();
     }
 }
