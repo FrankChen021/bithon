@@ -16,6 +16,10 @@
 
 package com.sbss.bithon.agent.plugin.spring.mvc;
 
+import com.sbss.bithon.agent.core.tracing.context.SpanKind;
+import com.sbss.bithon.agent.core.tracing.context.TraceContext;
+import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -30,24 +34,39 @@ import java.lang.reflect.Method;
  */
 public class SpringBeanMethodAop {
     @Advice.OnMethodEnter
-    public static boolean enter(
+    public static void enter(
         final @Advice.Origin Class<?> clazz,
         final @Advice.Origin Method method,
         final @Advice.This(optional = true) Object target,
         final @Advice.AllArguments Object[] args,
         @Advice.Local("context") Object context
     ) {
-        System.out.println(clazz.getName() + "#" + method.getName());
-        return true;
+        TraceContext traceContext = TraceContextHolder.get();
+        if (traceContext == null) {
+            return;
+        }
+        TraceSpan span = traceContext.currentSpan();
+        if (span == null) {
+            return;
+        }
+
+        context = span.newChildSpan("springBean")
+                      .kind(SpanKind.CLIENT)
+                      .method(method)
+                      .start();
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void exit(final @Advice.Enter boolean skip,
-                            final @Advice.Origin Method method,
+    public static void exit(final @Advice.Origin Method method,
                             final @Advice.This Object target,
                             final @Advice.Return(typing = Assigner.Typing.DYNAMIC) Object returning,
                             final @Advice.AllArguments Object[] args,
                             final @Advice.Thrown Throwable exception,
                             final @Advice.Local("context") Object context) {
+        TraceSpan span = (TraceSpan) context;
+        if (span == null) {
+            return;
+        }
+        span.tag(exception).finish();
     }
 }
