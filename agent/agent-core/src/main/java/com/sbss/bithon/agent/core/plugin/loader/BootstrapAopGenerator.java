@@ -22,7 +22,7 @@ import com.sbss.bithon.agent.bootstrap.aop.BootstrapMethodAop;
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
+import com.sbss.bithon.agent.core.plugin.debug.AopDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import shaded.net.bytebuddy.ByteBuddy;
@@ -136,7 +136,7 @@ public class BootstrapAopGenerator {
                                       .make();
 
         if (methodPointCutDescriptor.isDebug()) {
-            new TransformationDebugger().saveClassToFile(aopClassType);
+            AopDebugger.INSTANCE.saveClassToFile(aopClassType);
         }
 
         classesTypeMap.put(targetAopClassName, aopClassType.getBytes());

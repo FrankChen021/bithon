@@ -25,7 +25,7 @@ import com.sbss.bithon.agent.bootstrap.aop.ISuperMethod;
 import com.sbss.bithon.agent.bootstrap.aop.MethodAop;
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
+import com.sbss.bithon.agent.core.plugin.debug.AopDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
@@ -107,7 +107,7 @@ class PluginInterceptorInstaller {
                                    });
 
         if (descriptor.isDebug()) {
-            agentBuilder = agentBuilder.with(new TransformationDebugger());
+            agentBuilder = agentBuilder.with(AopDebugger.INSTANCE);
         }
         agentBuilder.installOn(inst);
     }
@@ -167,7 +167,7 @@ class PluginInterceptorInstaller {
                 return builder;
             });
         if (interceptor.isDebug()) {
-            agentBuilder = agentBuilder.with(new TransformationDebugger());
+            agentBuilder = agentBuilder.with(AopDebugger.INSTANCE);
         }
 
         agentBuilder.installOn(inst);

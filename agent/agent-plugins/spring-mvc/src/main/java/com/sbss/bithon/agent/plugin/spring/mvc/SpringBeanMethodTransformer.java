@@ -17,7 +17,7 @@
 package com.sbss.bithon.agent.plugin.spring.mvc;
 
 import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
-import com.sbss.bithon.agent.core.plugin.debug.TransformationDebugger;
+import com.sbss.bithon.agent.core.plugin.debug.AopDebugger;
 import com.sbss.bithon.agent.core.utils.filter.IMatcher;
 import com.sbss.bithon.agent.core.utils.filter.StringContainsMatcher;
 import com.sbss.bithon.agent.core.utils.filter.StringPrefixMatcher;
@@ -91,7 +91,7 @@ public class SpringBeanMethodTransformer {
                     .transform((builder, typeDescription, classLoader, javaModule) ->
                                    builder.visit(Advice.to(SpringBeanMethodAop.class)
                                                        .on(BeanMethodMatcher.INSTANCE)))
-                    .with(new TransformationDebugger())
+                    .with(AopDebugger.INSTANCE)
                     .installOn(InstrumentationHelper.getInstance());
 
         log.info("Setup AOP for Spring Bean class [{}]", clazz.getName());
