@@ -19,6 +19,7 @@ package com.sbss.bithon.agent.core.plugin.loader;
 import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
+import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -52,6 +53,8 @@ public class PluginInstaller {
 
         // install shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> plugins.forEach((plugin) -> plugin.stop())));
+
+        InstrumentationHelper.setInstance(inst, agentBuilder);
     }
 
     public static List<AbstractPlugin> resolvePlugins() {

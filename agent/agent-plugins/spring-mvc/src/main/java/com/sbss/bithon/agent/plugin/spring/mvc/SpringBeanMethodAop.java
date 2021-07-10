@@ -1,0 +1,53 @@
+/*
+ *    Copyright 2020 bithon.cn
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package com.sbss.bithon.agent.plugin.spring.mvc;
+
+import shaded.net.bytebuddy.asm.Advice;
+import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
+
+import java.lang.reflect.Method;
+
+/**
+ * Classes of spring beans are re-transformed after these classes are loaded,
+ * so we have to use {@link Advice} to intercept methods
+ *
+ * @author frank.chen021@outlook.com
+ * @date 2021/7/10 16:45
+ */
+public class SpringBeanMethodAop {
+    @Advice.OnMethodEnter
+    public static boolean enter(
+        final @Advice.Origin Class<?> clazz,
+        final @Advice.Origin Method method,
+        final @Advice.This(optional = true) Object target,
+        final @Advice.AllArguments Object[] args,
+        @Advice.Local("context") Object context
+    ) {
+        System.out.println(clazz.getName() + "#" + method.getName());
+        return true;
+    }
+
+    @Advice.OnMethodExit(onThrowable = Throwable.class)
+    public static void exit(final @Advice.Enter boolean skip,
+                            final @Advice.Origin Method method,
+                            final @Advice.This Object target,
+                            final @Advice.Return(typing = Assigner.Typing.DYNAMIC) Object returning,
+                            final @Advice.AllArguments Object[] args,
+                            final @Advice.Thrown Throwable exception,
+                            final @Advice.Local("context") Object context) {
+    }
+}
