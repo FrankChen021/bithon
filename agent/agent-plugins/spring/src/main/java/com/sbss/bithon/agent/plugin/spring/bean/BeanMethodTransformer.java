@@ -22,6 +22,8 @@ import com.sbss.bithon.agent.core.plugin.debug.AopDebugger;
 import com.sbss.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import com.sbss.bithon.agent.core.utils.filter.IMatcher;
 import com.sbss.bithon.agent.core.utils.filter.InCollectionMatcher;
+import com.sbss.bithon.agent.core.utils.filter.StringPrefixMatcher;
+import com.sbss.bithon.agent.core.utils.filter.StringSuffixMatcher;
 import com.sbss.bithon.agent.plugin.spring.SpringPlugin;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
@@ -34,7 +36,9 @@ import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
@@ -84,6 +88,34 @@ public class BeanMethodTransformer {
                                                               .collect(Collectors.toList())));
 
         //
+        // process user specified matchers, eg: -Dspring.bean.including.classes=startwith:XXX,endwith:YYYY
+        //
+        Collection<IMatcher> userMatchers = Stream.of(System.getProperty("bithon.spring.bean.including.classes", "")
+                                                            .split(","))
+                                                  .map(String::trim)
+                                                  .filter((v) -> !v.isEmpty())
+                                                  .map(v -> {
+                                                      String[] parts = v.split(":");
+                                                      if (parts.length != 2) {
+                                                          return null;
+                                                      }
+
+                                                      String matcher = parts[0].trim();
+                                                      String pattern = parts[1].trim();
+                                                      switch (matcher) {
+                                                          case "startwith":
+                                                              return new StringPrefixMatcher(pattern);
+                                                          case "endwith":
+                                                              return new StringSuffixMatcher(pattern);
+                                                          default:
+                                                              return null;
+                                                      }
+                                                  })
+                                                  .filter(Objects::nonNull)
+                                                  .collect(Collectors.toList());
+        includingClasses.addAll(userMatchers);
+
+        //
         // inject interceptor classes into bootstrap class loader to ensure this interceptor classes could be found by Adviced code which would be loaded by application class loader
         // because for any class loader, it would back to bootstrap class loader to find class first
         //
@@ -117,11 +149,14 @@ public class BeanMethodTransformer {
             return;
         }
 
-        if (excludingClasses.matches(clazz.getName())) {
-            return;
-        }
-        if (!includingClasses.isEmpty() && !includingClasses.matches(clazz.getName())) {
-            return;
+        if (includingClasses.isEmpty()) {
+            if (excludingClasses.matches(clazz.getName())) {
+                return;
+            }
+        } else {
+            if (!includingClasses.matches(clazz.getName())) {
+                return;
+            }
         }
 
         log.info("Setup AOP for Spring Bean class [{}]", clazz.getName());
@@ -135,11 +170,11 @@ public class BeanMethodTransformer {
                                    builder.visit(
                                        Advice.to(BeanMethodAdvice.class)
                                              .on(new BeanMethodModifierMatcher().and((method -> {
-                                                 if (excludingMethods.matches(method.getName())) {
-                                                     return false;
+                                                 if (includingMethods.isEmpty()) {
+                                                     return !excludingMethods.matches(method.getName());
+                                                 } else {
+                                                     return includingMethods.matches(clazz.getName());
                                                  }
-                                                 return includingMethods.isEmpty()
-                                                        || includingMethods.matches(clazz.getName());
                                              })))))
                     .with(AopDebugger.INSTANCE)
                     .installOn(InstrumentationHelper.getInstance());
