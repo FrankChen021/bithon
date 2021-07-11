@@ -47,7 +47,6 @@ public class PreparedStatementTraceInterceptor extends AbstractInterceptor {
 
         // create a span and save it in user-context
         aopContext.setUserContext(parentSpan.newChildSpan("mysql")
-                                            .clazz(aopContext.getTargetClass())
                                             .method(aopContext.getMethod())
                                             .kind(SpanKind.CLIENT)
                                             .start());

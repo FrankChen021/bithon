@@ -51,7 +51,6 @@ public class RestTemplateExecuteInterceptor extends AbstractInterceptor {
         }
 
         aopContext.setUserContext(span.newChildSpan("restTemplate")
-                                      .clazz(aopContext.getTargetClass())
                                       .method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       .tag("uri", uri)

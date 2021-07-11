@@ -68,7 +68,6 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
         String hostAndPort = redisClient.getHost() + ":" + redisClient.getPort();
 
         TraceSpan thisSpan = parentSpan.newChildSpan("jedis")
-                                       .clazz(aopContext.getTargetClass())
                                        .method(command)
                                        .kind(SpanKind.CLIENT)
                                        .tag("uri", hostAndPort)

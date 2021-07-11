@@ -50,7 +50,6 @@ public class StatementTraceInterceptor extends AbstractInterceptor {
 
         aopContext.setUserContext(parentSpan
                                       .newChildSpan("mysql")
-                                      .clazz(aopContext.getTargetClass())
                                       .method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       .start());

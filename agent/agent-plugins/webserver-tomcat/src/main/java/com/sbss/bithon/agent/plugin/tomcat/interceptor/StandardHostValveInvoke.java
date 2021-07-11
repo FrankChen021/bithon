@@ -68,7 +68,6 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
             traceContext.currentSpan()
                         .component("tomcat")
                         .tag("uri", request.getRequestURI())
-                        .clazz(aopContext.getTargetClass())
                         .method(aopContext.getMethod())
                         .kind(SpanKind.SERVER)
                         .start();
