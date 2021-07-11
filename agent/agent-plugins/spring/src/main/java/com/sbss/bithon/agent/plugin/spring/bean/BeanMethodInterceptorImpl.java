@@ -39,7 +39,6 @@ public class BeanMethodInterceptorImpl implements BeanMethodInterceptorIntf {
         final Object target,
         final Object[] args
     ) {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>");
         TraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
             return null;
@@ -61,10 +60,6 @@ public class BeanMethodInterceptorImpl implements BeanMethodInterceptorIntf {
                              final Object[] args,
                              final Throwable exception,
                              final Object context) {
-        System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<");
-        if (context == null) {
-            return;
-        }
         ((TraceSpan) context).tag(exception).finish();
     }
 }

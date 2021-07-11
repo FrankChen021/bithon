@@ -121,56 +121,6 @@ public class BeanMethodTransformer {
                     .installOn(InstrumentationHelper.getInstance());
     }
 
-    static class SpringBeanMethodAopClassLocator implements ClassFileLocator {
-        private final String className;
-        private final byte[] byteCode;
-        private Class<?> aopClass;
-
-        public SpringBeanMethodAopClassLocator() {
-            className = BeanMethodAdvice.class.getName() + "InBootstrap";
-
-            final DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(BeanMethodAdvice.class)
-                                                                        .name(className)
-                                                                        .field(ElementMatchers.named(
-                                                                            "interceptorClassName"))
-                                                                        .value(BeanMethodInterceptorImpl.class.getName())
-                                                                        .make();
-
-            AopDebugger.INSTANCE.saveClassToFile(aopClassType);
-
-            byteCode = aopClassType.getBytes();
-        }
-
-        public String getClassName() {
-            return className;
-        }
-
-        public byte[] getAopByteCode() {
-            return byteCode;
-        }
-
-        public Class<?> getAopClass() {
-            return aopClass;
-        }
-
-        public void setAopClass(Class<?> aopClass) {
-            this.aopClass = aopClass;
-        }
-
-        @Override
-        public Resolution locate(String name) {
-            if (name.equals(className)) {
-                return new Resolution.Explicit(byteCode);
-            } else {
-                return new Resolution.Illegal(name);
-            }
-        }
-
-        @Override
-        public void close() {
-        }
-    }
-
     static class BeanMethodMatcher implements ElementMatcher<MethodDescription> {
         static BeanMethodMatcher INSTANCE = new BeanMethodMatcher();
 
