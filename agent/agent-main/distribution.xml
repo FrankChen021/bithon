@@ -42,10 +42,18 @@
       <outputDirectory>/boot</outputDirectory>
       <outputFileNameMapping>agent-bootstrap.jar</outputFileNameMapping>
     </dependencySet>
+    <dependencySet>
+      <includes>
+        <include>com.sbss.bithon.shaded:shaded-bytebuddy</include>
+      </includes>
+      <outputDirectory>/boot</outputDirectory>
+      <outputFileNameMapping>shaded-bytebuddy.jar</outputFileNameMapping>
+    </dependencySet>
 
     <!-- lib -->
     <dependencySet>
       <excludes>
+        <exclude>com.sbss.bithon.shaded:shaded-bytebuddy</exclude>
         <exclude>${project.parent.groupId}:agent-bootstrap</exclude>
         <exclude>${project.parent.groupId}:agent-main</exclude>
         <exclude>org.slf4j:slf4j-api</exclude>

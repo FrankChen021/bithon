@@ -73,7 +73,7 @@
               <Premain-Class>com.sbss.bithon.agen.main.Main</Premain-Class>
               <Can-Retransform-Classes>true</Can-Retransform-Classes>
               <Can-Redefine-Classes>true</Can-Redefine-Classes>
-              <Boot-Class-Path>./boot/agent-bootstrap.jar</Boot-Class-Path>
+              <Boot-Class-Path>./boot/agent-bootstrap.jar ./boot/shaded-bytebuddy.jar</Boot-Class-Path>
             </manifestEntries>
           </archive>
         </configuration>
@@ -113,6 +113,7 @@
               <tasks>
                 <echo message="****** Clear Agent Output Directory: ../${project.distribution.dir}/lib *****" />
                 <delete dir="../${project.distribution.dir}/lib" />
+                <delete dir="../${project.distribution.dir}/boot" />
               </tasks>
             </configuration>
           </execution>
