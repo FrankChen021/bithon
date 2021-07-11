@@ -33,9 +33,8 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
@@ -52,31 +51,15 @@ public class BeanMethodTransformer {
 
     private static final Set<String> INSTRUMENTED = new ConcurrentSkipListSet<>();
 
-    private static ExcludeConfig excludeConfig;
+    private static MatcherList excludingClasses;
+    private static MatcherList excludingMethods;
+    private static MatcherList includingClasses;
+    private static MatcherList includingMethods;
 
-    public static class ExcludeConfig {
-        private List<IMatcher> classes;
-        private List<IMatcher> methods;
-
-        public List<IMatcher> getClasses() {
-            return classes;
-        }
-
-        public void setClasses(List<IMatcher> classes) {
-            this.classes = classes;
-        }
-
-        public List<IMatcher> getMethods() {
-            return methods;
-        }
-
-        public void setMethods(List<IMatcher> methods) {
-            this.methods = methods;
-        }
-
-        public boolean excludeClass(String className) {
-            for (IMatcher matcher : classes) {
-                if (matcher.matches(className)) {
+    public static class MatcherList extends ArrayList<IMatcher> {
+        public boolean matches(String name) {
+            for (IMatcher matcher : this) {
+                if (matcher.matches(name)) {
                     return true;
                 }
             }
@@ -86,14 +69,19 @@ public class BeanMethodTransformer {
 
     public static void initialize() {
         StaticConfig config = StaticConfig.load(SpringPlugin.class);
-        config.getConfig("springBean.exclude", ExcludeConfig.class)
-              .ifPresent((cfg) -> {
-                  excludeConfig = cfg;
-                  excludeConfig.getMethods().add(0, new InCollectionMatcher(Stream.of(Object.class.getMethods())
-                                                                                  .map(Method::getName)
-                                                                                  .collect(Collectors.toList())));
-                  BeanMethodMatcher.INSTANCE.setExcludeMatchers(excludeConfig.getMethods());
-              });
+        excludingClasses = config.getConfig("spring.bean.excluding.classes", MatcherList.class)
+                                 .orElse(new MatcherList());
+        excludingMethods = config.getConfig("spring.bean.excluding.methods", MatcherList.class)
+                                 .orElse(new MatcherList());
+        includingClasses = config.getConfig("spring.bean.including.classes", MatcherList.class)
+                                 .orElse(new MatcherList());
+        includingMethods = config.getConfig("spring.bean.including.methods", MatcherList.class)
+                                 .orElse(new MatcherList());
+
+        //exclude all methods declared in Object.class
+        excludingMethods.add(0, new InCollectionMatcher(Stream.of(Object.class.getMethods())
+                                                              .map(Method::getName)
+                                                              .collect(Collectors.toList())));
 
         //
         // inject interceptor classes into bootstrap class loader to ensure this interceptor classes could be found by Adviced code which would be loaded by application class loader
@@ -129,7 +117,10 @@ public class BeanMethodTransformer {
             return;
         }
 
-        if (excludeConfig.excludeClass(clazz.getName())) {
+        if (excludingClasses.matches(clazz.getName())) {
+            return;
+        }
+        if (!includingClasses.isEmpty() && !includingClasses.matches(clazz.getName())) {
             return;
         }
 
@@ -143,20 +134,18 @@ public class BeanMethodTransformer {
                     .transform((builder, typeDescription, classLoader, javaModule) ->
                                    builder.visit(
                                        Advice.to(BeanMethodAdvice.class)
-                                             .on(BeanMethodMatcher.INSTANCE)))
+                                             .on(new BeanMethodModifierMatcher().and((method -> {
+                                                 if (excludingMethods.matches(method.getName())) {
+                                                     return false;
+                                                 }
+                                                 return includingMethods.isEmpty()
+                                                        || includingMethods.matches(clazz.getName());
+                                             })))))
                     .with(AopDebugger.INSTANCE)
                     .installOn(InstrumentationHelper.getInstance());
     }
 
-    static class BeanMethodMatcher implements ElementMatcher<MethodDescription> {
-        static BeanMethodMatcher INSTANCE = new BeanMethodMatcher();
-
-        private List<IMatcher> excludeMatchers = Collections.emptyList();
-
-        public void setExcludeMatchers(List<IMatcher> excludeMatchers) {
-            this.excludeMatchers = excludeMatchers;
-        }
-
+    static class BeanMethodModifierMatcher extends ElementMatcher.Junction.AbstractBase<MethodDescription> {
         @Override
         public boolean matches(MethodDescription target) {
             if (!target.isPublic()
@@ -165,13 +154,6 @@ public class BeanMethodTransformer {
                 || target.isAbstract()
                 || target.isNative()) {
                 return false;
-            }
-
-            String methodName = target.getName();
-            for (IMatcher matcher : excludeMatchers) {
-                if (matcher.matches(methodName)) {
-                    return false;
-                }
             }
             return true;
         }

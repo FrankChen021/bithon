@@ -1,70 +1,76 @@
 {
-  "springBean": {
-    "exclude": {
-      "classes": [
-        {
-          "type": "endwith",
-          "suffix": "Properties"
-        },
-        {
-          "type": "endwith",
-          "suffix": "Configuration"
-        },
-        {
-          "type": "endwith",
-          "suffix": "Configurer"
-        },
-        {
-          "type": "endwith",
-          "suffix": "BeanPostProcessor"
-        },
-        {
-          "type": "startwith",
-          "prefix": "org.springframework.boot.context.properties."
-        },
-        {
-          "type": "startwith",
-          "prefix": "org.springframework.boot.autoconfigure."
-        },
-        {
-          "type": "startwith",
-          "prefix": "org.springframework.boot.annotation."
-        },
-        {
-          "type": "startwith",
-          "prefix": "org.springframework.context.annotation."
-        },
-        {
-          "type": "startwith",
-          "prefix": "org.springframework.cloud.bootstrap."
-        },
-        {
-          "type": "startwith",
-          "prefix": "org.springframework.cloud.context.properties."
-        },
-        {
-          "type": "startwith",
-          "prefix": "io.micrometer."
-        },
-        {
-          "type": "contains",
-          "pattern": ".autoconfigure."
-        }
-      ],
-      "methods": [
-        {
-          "type": "startwith",
-          "prefix": "get"
-        },
-        {
-          "type": "startwith",
-          "prefix": "set"
-        },
-        {
-          "type": "startwith",
-          "prefix": "is"
-        }
-      ]
+  "spring": {
+    "bean": {
+      "including": {
+        "classes": [],
+        "methods": []
+      },
+      "excluding": {
+        "classes": [
+          {
+            "type": "endwith",
+            "suffix": "Properties"
+          },
+          {
+            "type": "endwith",
+            "suffix": "Configuration"
+          },
+          {
+            "type": "endwith",
+            "suffix": "Configurer"
+          },
+          {
+            "type": "endwith",
+            "suffix": "BeanPostProcessor"
+          },
+          {
+            "type": "startwith",
+            "prefix": "org.springframework.boot.context.properties."
+          },
+          {
+            "type": "startwith",
+            "prefix": "org.springframework.boot.autoconfigure."
+          },
+          {
+            "type": "startwith",
+            "prefix": "org.springframework.boot.annotation."
+          },
+          {
+            "type": "startwith",
+            "prefix": "org.springframework.context.annotation."
+          },
+          {
+            "type": "startwith",
+            "prefix": "org.springframework.cloud.bootstrap."
+          },
+          {
+            "type": "startwith",
+            "prefix": "org.springframework.cloud.context.properties."
+          },
+          {
+            "type": "startwith",
+            "prefix": "io.micrometer."
+          },
+          {
+            "type": "contains",
+            "pattern": ".autoconfigure."
+          }
+        ],
+        "methods": [
+          {
+            "type": "startwith",
+            "prefix": "get"
+          },
+          {
+            "type": "startwith",
+            "prefix": "set"
+          },
+          {
+            "type": "startwith",
+            "prefix": "is"
+          }
+        ]
+      }
     }
   }
 }
