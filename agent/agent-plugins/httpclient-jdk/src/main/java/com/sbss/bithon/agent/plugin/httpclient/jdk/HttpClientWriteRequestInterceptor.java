@@ -64,7 +64,6 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
          * starts a span which will be finished after HttpClient.parseHttp
          */
         aopContext.setUserContext(span.newChildSpan("httpClient")
-                                      .clazz(aopContext.getTargetClass())
                                       .method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       .tag("uri", connection.getURL().toString())

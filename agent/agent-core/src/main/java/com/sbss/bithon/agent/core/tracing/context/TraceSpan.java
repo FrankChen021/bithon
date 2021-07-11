@@ -125,11 +125,6 @@ public class TraceSpan {
         return clazz;
     }
 
-    public TraceSpan clazz(Class<?> clazz) {
-        this.clazz = clazz.getName();
-        return this;
-    }
-
     public String method() {
         return method;
     }

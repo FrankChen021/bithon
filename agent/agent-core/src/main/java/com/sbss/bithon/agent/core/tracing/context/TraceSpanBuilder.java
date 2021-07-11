@@ -53,11 +53,6 @@ public class TraceSpanBuilder {
         }
 
         @Override
-        public TraceSpan clazz(Class<?> clazz) {
-            return this;
-        }
-
-        @Override
         public TraceSpan method(Executable method) {
             return this;
         }

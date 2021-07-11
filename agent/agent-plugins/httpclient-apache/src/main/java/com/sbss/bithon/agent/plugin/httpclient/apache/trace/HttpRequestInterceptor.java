@@ -66,7 +66,6 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
 
         // create a span and save it in user-context
         TraceSpan thisSpan = parentSpan.newChildSpan("httpClient")
-                                       .clazz(aopContext.getTargetClass())
                                        .method(aopContext.getMethod())
                                        .kind(SpanKind.CLIENT)
                                        .tag("uri", httpRequest.getRequestLine().getUri())

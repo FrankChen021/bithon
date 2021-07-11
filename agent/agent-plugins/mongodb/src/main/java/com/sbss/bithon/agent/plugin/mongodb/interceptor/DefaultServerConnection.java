@@ -69,7 +69,6 @@ public class DefaultServerConnection {
 
             // create a span and save it in user-context
             aopContext.setUserContext(TraceSpanBuilder.build("mongodb")
-                                                      .clazz(aopContext.getTargetClass())
                                                       .method(aopContext.getMethod())
                                                       .kind(SpanKind.CLIENT)
                                                       .start());
