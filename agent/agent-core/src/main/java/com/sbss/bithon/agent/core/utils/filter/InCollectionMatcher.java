@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public class InCollectionMatcher implements IMatcher {
 
-    private Set<String> collection;
+    private final Set<String> collection;
 
     @JsonCreator
     public InCollectionMatcher(@JsonProperty("collection") Collection<String> collection) {

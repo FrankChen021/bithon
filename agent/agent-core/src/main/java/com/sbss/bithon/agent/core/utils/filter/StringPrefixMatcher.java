@@ -25,7 +25,7 @@ import shaded.com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class StringPrefixMatcher implements IMatcher {
 
-    private String prefix;
+    private final String prefix;
 
     @JsonCreator
     public StringPrefixMatcher(@JsonProperty("prefix") String prefix) {

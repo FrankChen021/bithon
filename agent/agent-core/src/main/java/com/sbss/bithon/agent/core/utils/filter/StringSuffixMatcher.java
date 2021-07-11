@@ -25,7 +25,7 @@ import shaded.com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class StringSuffixMatcher implements IMatcher {
 
-    private String suffix;
+    private final String suffix;
 
     @JsonCreator
     public StringSuffixMatcher(@JsonProperty("suffix") String suffix) {
