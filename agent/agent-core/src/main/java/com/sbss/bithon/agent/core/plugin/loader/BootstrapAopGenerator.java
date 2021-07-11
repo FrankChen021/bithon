@@ -76,14 +76,6 @@ public class BootstrapAopGenerator {
         }
     }
 
-    /**
-     * ALWAYS inject the classes below into bootstrap class loader even if there's no instrumentation for JDK classes
-     * Some classes, which will be injected into bootstrap class loader, requires these annotations in bootstrap class loader,
-     * but Byte Buddy is loaded by agent class loader. So we have to inject these annotation into bootstrap class loader.
-     * <p>
-     * In future, Byte Buddy could be placed on the boot-class-path to make sure they're loaded by boostrap class loader,
-     * so that these injections are not needed any more
-     */
     private AgentBuilder injectClassToClassLoader() {
         if (!classesTypeMap.isEmpty()) {
             ClassInjector.UsingUnsafe.Factory factory = ClassInjector.UsingUnsafe.Factory.resolve(instrumentation);
