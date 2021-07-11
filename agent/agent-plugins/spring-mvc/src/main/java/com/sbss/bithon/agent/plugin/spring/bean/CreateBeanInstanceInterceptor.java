@@ -18,7 +18,6 @@ package com.sbss.bithon.agent.plugin.spring.bean;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
-import com.sbss.bithon.agent.plugin.spring.bean.BeanMethodTransformer;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 
