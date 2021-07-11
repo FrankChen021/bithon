@@ -16,10 +16,7 @@
 
 package com.sbss.bithon.agent.plugin.spring.mvc;
 
-import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.bootstrap.aop.BootstrapHelper;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -28,32 +25,34 @@ import java.lang.reflect.Method;
 /**
  * Classes of spring beans are re-transformed after these classes are loaded,
  * so we have to use {@link Advice} to intercept methods
+ * <p>
+ * NOTE:
+ * This class will be injected into bootstrap class loader as 'SpringBeanMethodAopInBootstrap',
+ * ALL its dependencies must be in bootstrap class loader too
  *
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 16:45
  */
 public class SpringBeanMethodAop {
+
+    /**
+     * use a static variable to make sure referenced classes of this object could be found via correct class loader
+     */
+    public static String interceptorClassName;
+
+    private static SpringBeanMethodInterceptorIntf interceptorInstance;
+
     @Advice.OnMethodEnter
     public static void enter(
-        final @Advice.Origin Class<?> clazz,
         final @Advice.Origin Method method,
         final @Advice.This(optional = true) Object target,
         final @Advice.AllArguments Object[] args,
         @Advice.Local("context") Object context
     ) {
-        TraceContext traceContext = TraceContextHolder.get();
-        if (traceContext == null) {
-            return;
+        SpringBeanMethodInterceptorIntf interceptor = ensureInterceptor();
+        if (interceptor != null) {
+            context = interceptor.onMethodEnter(method, target, args);
         }
-        TraceSpan span = traceContext.currentSpan();
-        if (span == null) {
-            return;
-        }
-
-        context = span.newChildSpan("springBean")
-                      .kind(SpanKind.CLIENT)
-                      .method(method)
-                      .start();
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class)
@@ -63,10 +62,38 @@ public class SpringBeanMethodAop {
                             final @Advice.AllArguments Object[] args,
                             final @Advice.Thrown Throwable exception,
                             final @Advice.Local("context") Object context) {
-        TraceSpan span = (TraceSpan) context;
-        if (span == null) {
-            return;
+        if (context != null) {
+            SpringBeanMethodInterceptorIntf interceptor = ensureInterceptor();
+            if (interceptor != null) {
+                interceptor.onMethodExit(method, target, args, exception, context);
+            }
         }
-        span.tag(exception).finish();
+    }
+
+    private static SpringBeanMethodInterceptorIntf ensureInterceptor() {
+        if (interceptorInstance != null) {
+            return interceptorInstance;
+        }
+
+
+        try {
+            // load class out of sync to eliminate potential dead lock
+            Class<?> interceptorClass = Class.forName(interceptorClassName,
+                                                      true,
+                                                      BootstrapHelper.getPluginClassLoader());
+            synchronized (interceptorClassName) {
+                //double check
+                if (interceptorInstance != null) {
+                    return interceptorInstance;
+                }
+
+                interceptorInstance = (SpringBeanMethodInterceptorImpl) interceptorClass.newInstance();
+            }
+
+        } catch (Exception e) {
+            BootstrapHelper.createAopLogger(SpringBeanMethodAop.class)
+                           .error(String.format("Failed to create interceptor [%s]", interceptorClassName), e);
+        }
+        return interceptorInstance;
     }
 }

@@ -19,21 +19,20 @@ package com.sbss.bithon.agent.core.plugin.loader;
 
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapMethodAop;
-import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.debug.AopDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
+import com.sbss.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import shaded.net.bytebuddy.ByteBuddy;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
+import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.dynamic.loading.ClassInjector;
+import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
 import java.util.HashMap;
 import java.util.List;
@@ -83,7 +82,11 @@ public class BootstrapAopGenerator {
 
     /**
      * ALWAYS inject the classes below into bootstrap class loader even if there's no instrumentation for JDK classes
-     * This would help prevent potential bugs from plugins which cause these classes be loaded by system class loader
+     * Some classes, which will be injected into bootstrap class loader, requires these annotations in bootstrap class loader,
+     * but Byte Buddy is loaded by agent class loader. So we have to inject these annotation into bootstrap class loader.
+     * <p>
+     * In future, Byte Buddy could be placed on the boot-class-path to make sure they're loaded by boostrap class loader,
+     * so that these injections are not needed any more
      */
     private AgentBuilder injectClassToClassLoader() {
         // inject byte buddy annotation classes into bootstrap class loader
@@ -94,6 +97,16 @@ public class BootstrapAopGenerator {
         this.inject("shaded.net.bytebuddy.implementation.bind.annotation.SuperCall");
         this.inject("shaded.net.bytebuddy.implementation.bind.annotation.Origin");
         this.inject("shaded.net.bytebuddy.implementation.bind.annotation.Morph");
+        this.inject(Advice.OnMethodEnter.class.getName());
+        this.inject(Advice.OnMethodExit.class.getName());
+        this.inject(Advice.This.class.getName());
+        this.inject(Advice.Local.class.getName());
+        this.inject(Advice.Origin.class.getName());
+        this.inject(Advice.AllArguments.class.getName());
+        this.inject(Advice.Argument.class.getName());
+        this.inject(Advice.Return.class.getName());
+        this.inject(Advice.Thrown.class.getName());
+        this.inject(Assigner.Typing.class.getName());
 
         ClassInjector.UsingUnsafe.Factory factory = ClassInjector.UsingUnsafe.Factory.resolve(instrumentation);
         factory.make(null, null).injectRaw(classesTypeMap);
@@ -146,27 +159,8 @@ public class BootstrapAopGenerator {
      * load class bytes from resource to avoid loading of target class by system class loader
      */
     private void inject(String className) {
-        String classResourceName = className.replaceAll("\\.", "/") + ".class";
-        try {
-            try (InputStream resourceAsStream = AgentClassLoader.getClassLoader()
-                                                                .getResourceAsStream(classResourceName)) {
-                if (resourceAsStream == null) {
-                    throw new AgentException("Class [%s] for bootstrap injection not found", className);
-                }
+        this.classesTypeMap.put(className,
+                                ByteCodeUtils.getClassByteCode(className, AgentClassLoader.getClassLoader()));
 
-                try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-                    byte[] buffer = new byte[2048];
-                    int len;
-
-                    while ((len = resourceAsStream.read(buffer)) != -1) {
-                        os.write(buffer, 0, len);
-                    }
-
-                    this.classesTypeMap.put(className, os.toByteArray());
-                }
-            }
-        } catch (IOException e) {
-            throw new AgentException("Failed to load class [%s]: %s", className, e.getMessage());
-        }
     }
 }

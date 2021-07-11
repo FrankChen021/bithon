@@ -29,6 +29,12 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
  */
 public class CreateBeanInstanceInterceptor extends AbstractInterceptor {
 
+    @Override
+    public boolean initialize() {
+        SpringBeanMethodTransformer.initialize();
+        return true;
+    }
+
     /**
      * Re-transform the class of the bean
      */

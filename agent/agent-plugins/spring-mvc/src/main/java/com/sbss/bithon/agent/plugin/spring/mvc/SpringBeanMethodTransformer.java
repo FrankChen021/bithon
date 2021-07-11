@@ -18,13 +18,17 @@ package com.sbss.bithon.agent.plugin.spring.mvc;
 
 import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
 import com.sbss.bithon.agent.core.plugin.debug.AopDebugger;
+import com.sbss.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import com.sbss.bithon.agent.core.utils.filter.IMatcher;
 import com.sbss.bithon.agent.core.utils.filter.StringContainsMatcher;
 import com.sbss.bithon.agent.core.utils.filter.StringPrefixMatcher;
 import com.sbss.bithon.agent.core.utils.filter.StringSuffixMatcher;
+import shaded.net.bytebuddy.ByteBuddy;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.description.method.MethodDescription;
+import shaded.net.bytebuddy.dynamic.DynamicType;
+import shaded.net.bytebuddy.dynamic.loading.ClassInjector;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
 import shaded.org.slf4j.Logger;
@@ -32,6 +36,7 @@ import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -60,6 +65,40 @@ public class SpringBeanMethodTransformer {
         new StringContainsMatcher(".autoconfigure.")
     );
 
+    private static Class<?> aopClass;
+
+    /**
+     * initialize transformer:
+     * 1. inject AOP class into correct class loader to ensure this Aop class could be found by Adviced code which would be loaded by application class loader
+     */
+    public static void initialize() {
+        final String bootstrapAopClassName = SpringBeanMethodAop.class.getName() + "InBootstrap";
+        final DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(SpringBeanMethodAop.class)
+                                                                    .name(bootstrapAopClassName)
+                                                                    .field(ElementMatchers.named("interceptorClassName"))
+                                                                    .value(SpringBeanMethodInterceptorImpl.class.getName())
+                                                                    .make();
+
+        AopDebugger.INSTANCE.saveClassToFile(aopClassType);
+
+        ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance())
+                                         .make(null, null).injectRaw(new HashMap() {
+            {
+                put(bootstrapAopClassName, aopClassType.getBytes());
+                put(SpringBeanMethodInterceptorIntf.class.getName(),
+                    ByteCodeUtils.getClassByteCode(SpringBeanMethodInterceptorIntf.class.getName(),
+                                                   SpringBeanMethodInterceptorIntf.class.getClassLoader()));
+            }
+        });
+
+        // check if class injected successfully
+        try {
+            aopClass = Class.forName(bootstrapAopClassName);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Injected class could not found. This is unexpected.", e);
+        }
+    }
+
     public static void transform(String beanName, Object bean) {
         if (beanName == null || bean == null) {
             return;
@@ -82,19 +121,19 @@ public class SpringBeanMethodTransformer {
             return;
         }
 
+        log.info("Setup AOP for Spring Bean class [{}]", clazz.getName());
+
         AgentBuilder agentBuilder = InstrumentationHelper.getBuilder();
         agentBuilder.ignore(none())
                     .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
                     .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                    .type(ElementMatchers.is(clazz),
-                          ElementMatchers.is(clazz.getClassLoader()))
+                    .type(ElementMatchers.is(clazz), ElementMatchers.is(clazz.getClassLoader()))
                     .transform((builder, typeDescription, classLoader, javaModule) ->
-                                   builder.visit(Advice.to(SpringBeanMethodAop.class)
-                                                       .on(BeanMethodMatcher.INSTANCE)))
+                                   builder.visit(
+                                       Advice.to(aopClass)
+                                             .on(BeanMethodMatcher.INSTANCE)))
                     .with(AopDebugger.INSTANCE)
                     .installOn(InstrumentationHelper.getInstance());
-
-        log.info("Setup AOP for Spring Bean class [{}]", clazz.getName());
     }
 
     static class BeanMethodMatcher implements ElementMatcher<MethodDescription> {
