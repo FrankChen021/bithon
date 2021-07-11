@@ -17,12 +17,12 @@
 package com.sbss.bithon.agent.plugin.spring.bean;
 
 import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
+import com.sbss.bithon.agent.core.plugin.config.StaticConfig;
 import com.sbss.bithon.agent.core.plugin.debug.AopDebugger;
 import com.sbss.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import com.sbss.bithon.agent.core.utils.filter.IMatcher;
-import com.sbss.bithon.agent.core.utils.filter.StringContainsMatcher;
-import com.sbss.bithon.agent.core.utils.filter.StringPrefixMatcher;
-import com.sbss.bithon.agent.core.utils.filter.StringSuffixMatcher;
+import com.sbss.bithon.agent.core.utils.filter.InCollectionMatcher;
+import com.sbss.bithon.agent.plugin.spring.SpringPlugin;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.description.method.MethodDescription;
@@ -33,7 +33,7 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -52,18 +52,49 @@ public class BeanMethodTransformer {
 
     private static final Set<String> INSTRUMENTED = new ConcurrentSkipListSet<>();
 
-    private static final List<IMatcher> EXCLUDE_MATCHERS = Arrays.asList(
-        new StringSuffixMatcher("Properties"),
-        new StringSuffixMatcher("Configuration"),
-        new StringSuffixMatcher("BeanPostProcessor"),
-        new StringPrefixMatcher("org.springframework.boot.context.properties."),
-        new StringPrefixMatcher("org.springframework.boot.autoconfigure."),
-        new StringPrefixMatcher("org.springframework.context.annotation."),
-        new StringPrefixMatcher("org.springframework.cloud.bootstrap"),
-        new StringContainsMatcher(".autoconfigure.")
-    );
+    private static ExcludeConfig excludeConfig;
+
+    public static class ExcludeConfig {
+        private List<IMatcher> classes;
+        private List<IMatcher> methods;
+
+        public List<IMatcher> getClasses() {
+            return classes;
+        }
+
+        public void setClasses(List<IMatcher> classes) {
+            this.classes = classes;
+        }
+
+        public List<IMatcher> getMethods() {
+            return methods;
+        }
+
+        public void setMethods(List<IMatcher> methods) {
+            this.methods = methods;
+        }
+
+        public boolean excludeClass(String className) {
+            for (IMatcher matcher : classes) {
+                if (matcher.matches(className)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 
     public static void initialize() {
+        StaticConfig config = StaticConfig.load(SpringPlugin.class);
+        config.getConfig("springBean.exclude", ExcludeConfig.class)
+              .ifPresent((cfg) -> {
+                  excludeConfig = cfg;
+                  excludeConfig.getMethods().add(0, new InCollectionMatcher(Stream.of(Object.class.getMethods())
+                                                                                  .map(Method::getName)
+                                                                                  .collect(Collectors.toList())));
+                  BeanMethodMatcher.INSTANCE.setExcludeMatchers(excludeConfig.getMethods());
+              });
+
         //
         // inject interceptor classes into bootstrap class loader to ensure this interceptor classes could be found by Adviced code which would be loaded by application class loader
         // because for any class loader, it would back to bootstrap class loader to find class first
@@ -98,8 +129,7 @@ public class BeanMethodTransformer {
             return;
         }
 
-        boolean excluded = EXCLUDE_MATCHERS.stream().anyMatch(matcher -> matcher.matches(clazz.getName()));
-        if (excluded) {
+        if (excludeConfig.excludeClass(clazz.getName())) {
             return;
         }
 
@@ -121,9 +151,11 @@ public class BeanMethodTransformer {
     static class BeanMethodMatcher implements ElementMatcher<MethodDescription> {
         static BeanMethodMatcher INSTANCE = new BeanMethodMatcher();
 
-        private final Set<String> objectMethods = Stream.of(Object.class.getMethods())
-                                                        .map(Method::getName)
-                                                        .collect(Collectors.toSet());
+        private List<IMatcher> excludeMatchers = Collections.emptyList();
+
+        public void setExcludeMatchers(List<IMatcher> excludeMatchers) {
+            this.excludeMatchers = excludeMatchers;
+        }
 
         @Override
         public boolean matches(MethodDescription target) {
@@ -135,7 +167,13 @@ public class BeanMethodTransformer {
                 return false;
             }
 
-            return !objectMethods.contains(target.getName());
+            String methodName = target.getName();
+            for (IMatcher matcher : excludeMatchers) {
+                if (matcher.matches(methodName)) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
