@@ -27,6 +27,7 @@ import com.sbss.bithon.agent.core.utils.filter.StringSuffixMatcher;
 import com.sbss.bithon.agent.plugin.spring.SpringPlugin;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
+import shaded.net.bytebuddy.description.field.FieldDescription;
 import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.dynamic.loading.ClassInjector;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
@@ -38,6 +39,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -166,16 +168,30 @@ public class BeanMethodTransformer {
                     .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
                     .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                     .type(ElementMatchers.is(clazz), ElementMatchers.is(clazz.getClassLoader()))
-                    .transform((builder, typeDescription, classLoader, javaModule) ->
-                                   builder.visit(
-                                       Advice.to(BeanMethodAdvice.class)
-                                             .on(new BeanMethodModifierMatcher().and((method -> {
-                                                 if (includingMethods.isEmpty()) {
-                                                     return !excludingMethods.matches(method.getName());
-                                                 } else {
-                                                     return includingMethods.matches(clazz.getName());
-                                                 }
-                                             })))))
+                    .transform((builder, typeDescription, classLoader, javaModule) -> {
+
+                        Set<String> propertyMethods = new HashSet<>();
+                        for (FieldDescription field : typeDescription.getDeclaredFields()) {
+                            String name = field.getName();
+                            char[] chr = name.toCharArray();
+                            chr[0] = Character.toUpperCase(chr[0]);
+                            name = new String(chr);
+                            propertyMethods.add("get" + name);
+                            propertyMethods.add("set" + name);
+                        }
+
+                        return builder.visit(
+                            Advice.to(BeanMethodAdvice.class)
+                                  .on(new BeanMethodModifierMatcher().and((method -> {
+                                      if (includingMethods.isEmpty()) {
+                                          return !excludingMethods.matches(method.getName())
+                                                 && !propertyMethods.contains(method.getName());
+                                      } else {
+                                          return includingMethods.matches(clazz.getName());
+                                      }
+                                  }
+                                                                          ))));
+                    })
                     .with(AopDebugger.INSTANCE)
                     .installOn(InstrumentationHelper.getInstance());
     }
