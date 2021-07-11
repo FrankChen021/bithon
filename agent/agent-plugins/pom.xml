@@ -36,7 +36,7 @@
     <module>mongodb-3.8</module>
     <module>logging-log4j2</module>
     <module>logging-logback</module>
-    <module>springweb</module>
+    <module>spring</module>
   </modules>
 
   <dependencies>
@@ -142,7 +142,7 @@
 
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-plugin-springweb</artifactId>
+      <artifactId>agent-plugin-spring</artifactId>
       <version>${project.version}</version>
     </dependency>
 

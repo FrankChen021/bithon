@@ -36,33 +36,46 @@ import static java.io.File.separator;
 /**
  * @author frankchen
  */
-public class TransformationDebugger extends AgentBuilder.Listener.Adapter {
-    private static final Logger log = LoggerFactory.getLogger(TransformationDebugger.class);
+public class AopDebugger extends AgentBuilder.Listener.Adapter {
+    public static final AopDebugger INSTANCE;
+    private static final Logger log = LoggerFactory.getLogger(AopDebugger.class);
 
-    private boolean cleaned = false;
-    private final File classRootPath;
+    static {
+        String enabled = System.getProperty("bithon.aop.debug", "false");
+        boolean isDebugEnabled = "".equals(enabled) || "true".compareToIgnoreCase(enabled) == 0;
+        INSTANCE = new AopDebugger(isDebugEnabled);
+    }
 
-    public TransformationDebugger() {
-        this.classRootPath = new File(AgentContext.getInstance().getAgentDirectory()
-                                      + separator
-                                      + AgentContext.TMP_DIR
-                                      + separator
-                                      + "classes");
+    private final boolean isDebugEnabled;
+    private File classRootPath;
 
-        // clean up directory before startup
-        // this is convenient for debugging
-        cleanup();
-
-        try {
-            if (!classRootPath.exists()) {
-                classRootPath.mkdir();
-            }
-        } catch (Exception e) {
-            log.error("log error", e);
-        }
+    private AopDebugger(boolean isDebugEnabled) {
+        this.isDebugEnabled = isDebugEnabled;
     }
 
     public synchronized void saveClassToFile(DynamicType dynamicType) {
+        if (!isDebugEnabled) {
+            return;
+        }
+        if (classRootPath == null) {
+            this.classRootPath = new File(AgentContext.getInstance().getAgentDirectory()
+                                          + separator
+                                          + AgentContext.TMP_DIR
+                                          + separator
+                                          + "classes");
+
+            // clean up directories before startup
+            // this is convenient for debugging
+            cleanup();
+
+            try {
+                if (!classRootPath.exists()) {
+                    classRootPath.mkdir();
+                }
+            } catch (Exception e) {
+                log.error("log error", e);
+            }
+        }
         try {
             log.info("[{}] Saved to [{}]", dynamicType.getTypeDescription().getTypeName(), classRootPath);
             dynamicType.saveIn(classRootPath);
@@ -76,6 +89,9 @@ public class TransformationDebugger extends AgentBuilder.Listener.Adapter {
                                  ClassLoader classLoader,
                                  JavaModule javaModule,
                                  boolean loaded, DynamicType dynamicType) {
+        if (!isDebugEnabled) {
+            return;
+        }
         log.info("{} Transformed", typeDescription.getTypeName());
         saveClassToFile(dynamicType);
     }
@@ -89,11 +105,7 @@ public class TransformationDebugger extends AgentBuilder.Listener.Adapter {
         log.error(String.format("Failed to transform %s", s), throwable);
     }
 
-    private synchronized void cleanup() {
-        if (cleaned) {
-            return;
-        }
-
+    private void cleanup() {
         try {
             Files.walk(classRootPath.toPath())
                  .sorted(Comparator.reverseOrder())
@@ -101,6 +113,5 @@ public class TransformationDebugger extends AgentBuilder.Listener.Adapter {
                  .forEach(File::delete);
         } catch (IOException ignored) {
         }
-        cleaned = true;
     }
 }

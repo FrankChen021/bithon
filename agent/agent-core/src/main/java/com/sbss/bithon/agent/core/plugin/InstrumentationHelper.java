@@ -14,32 +14,30 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.metric.domain.web;
+package com.sbss.bithon.agent.core.plugin;
 
-import com.sbss.bithon.agent.core.utils.filter.StringContainsMatcher;
+import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 
-import java.util.Collections;
-import java.util.List;
+import java.lang.instrument.Instrumentation;
 
 /**
- * TODO: move out of this package
- *
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2021/7/10 13:40
  */
-public class UserAgentFilter {
+public class InstrumentationHelper {
+    private static Instrumentation inst;
+    private static AgentBuilder builder;
 
-    private List<StringContainsMatcher> matchers = Collections.emptyList();
+    public static Instrumentation getInstance() {
+        return inst;
+    }
 
-    public boolean isFiltered(String userAgent) {
-        if (userAgent == null) {
-            return false;
-        }
+    public static AgentBuilder getBuilder() {
+        return builder;
+    }
 
-        for (StringContainsMatcher matcher : matchers) {
-            if (matcher.matches(userAgent)) {
-                return true;
-            }
-        }
-        return false;
+    public static void setInstance(Instrumentation inst, AgentBuilder agentBuilder) {
+        InstrumentationHelper.inst = inst;
+        builder = agentBuilder;
     }
 }

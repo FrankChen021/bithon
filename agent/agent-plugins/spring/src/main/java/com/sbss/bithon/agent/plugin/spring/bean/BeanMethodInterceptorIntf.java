@@ -14,18 +14,30 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.utils.filter;
+package com.sbss.bithon.agent.plugin.spring.bean;
+
+import java.lang.reflect.Method;
 
 /**
+ * NOTE: this class is injected into bootstrap class loader, so all its dependencies must be in the bootstrap class loader
+ *
  * @author frank.chen021@outlook.com
- * @date 2021/1/17 9:17 下午
+ * @date 2021/7/11 11:27
  */
-public class StringStartWithMatcher implements IMatcher {
+public interface BeanMethodInterceptorIntf {
 
-    private String prefix;
+    /**
+     * @return context
+     */
+    Object onMethodEnter(
+        Method method,
+        Object target,
+        Object[] args
+    );
 
-    @Override
-    public boolean matches(Object input) {
-        return ((String) input).startsWith(prefix);
-    }
+    void onMethodExit(Method method,
+                      Object target,
+                      Object[] args,
+                      Throwable exception,
+                      Object context);
 }
