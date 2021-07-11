@@ -70,7 +70,10 @@ public class SpringBeanMethodAop {
         }
     }
 
-    private static SpringBeanMethodInterceptorIntf ensureInterceptor() {
+    /**
+     * this must be public
+     */
+    public static SpringBeanMethodInterceptorIntf ensureInterceptor() {
         if (interceptorInstance != null) {
             return interceptorInstance;
         }
@@ -87,7 +90,7 @@ public class SpringBeanMethodAop {
                     return interceptorInstance;
                 }
 
-                interceptorInstance = (SpringBeanMethodInterceptorImpl) interceptorClass.newInstance();
+                interceptorInstance = (SpringBeanMethodInterceptorIntf) interceptorClass.newInstance();
             }
 
         } catch (Exception e) {

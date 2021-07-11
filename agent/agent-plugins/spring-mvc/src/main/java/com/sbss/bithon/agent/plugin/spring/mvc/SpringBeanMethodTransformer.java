@@ -27,6 +27,7 @@ import shaded.net.bytebuddy.ByteBuddy;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.description.method.MethodDescription;
+import shaded.net.bytebuddy.dynamic.ClassFileLocator;
 import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.dynamic.loading.ClassInjector;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
@@ -65,26 +66,70 @@ public class SpringBeanMethodTransformer {
         new StringContainsMatcher(".autoconfigure.")
     );
 
-    private static Class<?> aopClass;
+    static class SpringBeanMethodAopClassLocator implements ClassFileLocator {
+        private final String className;
+        private final byte[] byteCode;
+        private Class<?> aopClass;
 
-    /**
-     * initialize transformer:
-     * 1. inject AOP class into correct class loader to ensure this Aop class could be found by Adviced code which would be loaded by application class loader
-     */
+        public String getClassName() {
+            return className;
+        }
+
+        public byte[] getAopByteCode() {
+            return byteCode;
+        }
+
+        public Class<?> getAopClass() {
+            return aopClass;
+        }
+
+        public void setAopClass(Class<?> aopClass) {
+            this.aopClass = aopClass;
+        }
+
+        public SpringBeanMethodAopClassLocator() {
+            className = SpringBeanMethodAop.class.getName() + "InBootstrap";
+
+            final DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(SpringBeanMethodAop.class)
+                                                                        .name(className)
+                                                                        .field(ElementMatchers.named(
+                                                                            "interceptorClassName"))
+                                                                        .value(SpringBeanMethodInterceptorImpl.class.getName())
+                                                                        .make();
+
+            AopDebugger.INSTANCE.saveClassToFile(aopClassType);
+
+            byteCode = aopClassType.getBytes();
+        }
+
+        @Override
+        public Resolution locate(String name) {
+            if (name.equals(className)) {
+                return new Resolution.Explicit(byteCode);
+            } else {
+                return new Resolution.Illegal(name);
+            }
+        }
+
+        @Override
+        public void close() {
+        }
+    }
+
+    static SpringBeanMethodAopClassLocator aopClassLocator;
+
     public static void initialize() {
-        final String bootstrapAopClassName = SpringBeanMethodAop.class.getName() + "InBootstrap";
-        final DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(SpringBeanMethodAop.class)
-                                                                    .name(bootstrapAopClassName)
-                                                                    .field(ElementMatchers.named("interceptorClassName"))
-                                                                    .value(SpringBeanMethodInterceptorImpl.class.getName())
-                                                                    .make();
 
-        AopDebugger.INSTANCE.saveClassToFile(aopClassType);
+        aopClassLocator = new SpringBeanMethodAopClassLocator();
 
+        //
+        // inject AOP class into bootstrap class loader to ensure this Aop class could be found by Adviced code which would be loaded by application class loader
+        // because for any class loader, it would back to bootstrap class loader to find class first
+        //
         ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance())
                                          .make(null, null).injectRaw(new HashMap() {
             {
-                put(bootstrapAopClassName, aopClassType.getBytes());
+                put(aopClassLocator.getClassName(), aopClassLocator.getAopByteCode());
                 put(SpringBeanMethodInterceptorIntf.class.getName(),
                     ByteCodeUtils.getClassByteCode(SpringBeanMethodInterceptorIntf.class.getName(),
                                                    SpringBeanMethodInterceptorIntf.class.getClassLoader()));
@@ -93,7 +138,7 @@ public class SpringBeanMethodTransformer {
 
         // check if class injected successfully
         try {
-            aopClass = Class.forName(bootstrapAopClassName);
+            aopClassLocator.setAopClass(Class.forName(aopClassLocator.getClassName()));
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Injected class could not found. This is unexpected.", e);
         }
@@ -123,6 +168,15 @@ public class SpringBeanMethodTransformer {
 
         log.info("Setup AOP for Spring Bean class [{}]", clazz.getName());
 
+        //
+        // For Advice class, it's not neccessary to put this class in bootstrap class loader.
+        // Byte Buddy reads the byte code of this class(from a class loader) and weaves its OnEnter and OnExit into target method
+        //
+        // But because the implementation of this Advice class accesses a static member of this class, we have to make sure this
+        // class in bootstrap class loader so that it could be found by any class loaders
+        //
+        // We could also extract that static member into another class and inject this new class into bootstrap class loader
+        //
         AgentBuilder agentBuilder = InstrumentationHelper.getBuilder();
         agentBuilder.ignore(none())
                     .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
@@ -130,7 +184,7 @@ public class SpringBeanMethodTransformer {
                     .type(ElementMatchers.is(clazz), ElementMatchers.is(clazz.getClassLoader()))
                     .transform((builder, typeDescription, classLoader, javaModule) ->
                                    builder.visit(
-                                       Advice.to(aopClass)
+                                       Advice.to(aopClassLocator.getAopClass(), aopClassLocator)
                                              .on(BeanMethodMatcher.INSTANCE)))
                     .with(AopDebugger.INSTANCE)
                     .installOn(InstrumentationHelper.getInstance());
