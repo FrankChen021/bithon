@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.spring.mvc;
+package com.sbss.bithon.agent.plugin.spring.bean;
 
 import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
 import com.sbss.bithon.agent.core.plugin.debug.AopDebugger;
@@ -50,8 +50,8 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.none;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 13:05
  */
-public class SpringBeanMethodTransformer {
-    private static final Logger log = LoggerFactory.getLogger(SpringBeanMethodTransformer.class);
+public class BeanMethodTransformer {
+    private static final Logger log = LoggerFactory.getLogger(BeanMethodTransformer.class);
 
     private static final Set<String> INSTRUMENTED = new ConcurrentSkipListSet<>();
 
@@ -66,82 +66,22 @@ public class SpringBeanMethodTransformer {
         new StringContainsMatcher(".autoconfigure.")
     );
 
-    static class SpringBeanMethodAopClassLocator implements ClassFileLocator {
-        private final String className;
-        private final byte[] byteCode;
-        private Class<?> aopClass;
-
-        public String getClassName() {
-            return className;
-        }
-
-        public byte[] getAopByteCode() {
-            return byteCode;
-        }
-
-        public Class<?> getAopClass() {
-            return aopClass;
-        }
-
-        public void setAopClass(Class<?> aopClass) {
-            this.aopClass = aopClass;
-        }
-
-        public SpringBeanMethodAopClassLocator() {
-            className = SpringBeanMethodAop.class.getName() + "InBootstrap";
-
-            final DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(SpringBeanMethodAop.class)
-                                                                        .name(className)
-                                                                        .field(ElementMatchers.named(
-                                                                            "interceptorClassName"))
-                                                                        .value(SpringBeanMethodInterceptorImpl.class.getName())
-                                                                        .make();
-
-            AopDebugger.INSTANCE.saveClassToFile(aopClassType);
-
-            byteCode = aopClassType.getBytes();
-        }
-
-        @Override
-        public Resolution locate(String name) {
-            if (name.equals(className)) {
-                return new Resolution.Explicit(byteCode);
-            } else {
-                return new Resolution.Illegal(name);
-            }
-        }
-
-        @Override
-        public void close() {
-        }
-    }
-
-    static SpringBeanMethodAopClassLocator aopClassLocator;
-
     public static void initialize() {
-
-        aopClassLocator = new SpringBeanMethodAopClassLocator();
-
         //
-        // inject AOP class into bootstrap class loader to ensure this Aop class could be found by Adviced code which would be loaded by application class loader
+        // inject interceptor classes into bootstrap class loader to ensure this interceptor classes could be found by Adviced code which would be loaded by application class loader
         // because for any class loader, it would back to bootstrap class loader to find class first
         //
         ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance())
                                          .make(null, null).injectRaw(new HashMap() {
             {
-                put(aopClassLocator.getClassName(), aopClassLocator.getAopByteCode());
-                put(SpringBeanMethodInterceptorIntf.class.getName(),
-                    ByteCodeUtils.getClassByteCode(SpringBeanMethodInterceptorIntf.class.getName(),
-                                                   SpringBeanMethodInterceptorIntf.class.getClassLoader()));
+                put(BeanMethodInterceptorIntf.class.getName(),
+                    ByteCodeUtils.getClassByteCode(BeanMethodInterceptorIntf.class.getName(),
+                                                   BeanMethodInterceptorIntf.class.getClassLoader()));
+                put(BeanMethodInterceptorFactory.class.getName(),
+                    ByteCodeUtils.getClassByteCode(BeanMethodInterceptorFactory.class.getName(),
+                                                   BeanMethodInterceptorFactory.class.getClassLoader()));
             }
         });
-
-        // check if class injected successfully
-        try {
-            aopClassLocator.setAopClass(Class.forName(aopClassLocator.getClassName()));
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Injected class could not found. This is unexpected.", e);
-        }
     }
 
     public static void transform(String beanName, Object bean) {
@@ -168,15 +108,6 @@ public class SpringBeanMethodTransformer {
 
         log.info("Setup AOP for Spring Bean class [{}]", clazz.getName());
 
-        //
-        // For Advice class, it's not neccessary to put this class in bootstrap class loader.
-        // Byte Buddy reads the byte code of this class(from a class loader) and weaves its OnEnter and OnExit into target method
-        //
-        // But because the implementation of this Advice class accesses a static member of this class, we have to make sure this
-        // class in bootstrap class loader so that it could be found by any class loaders
-        //
-        // We could also extract that static member into another class and inject this new class into bootstrap class loader
-        //
         AgentBuilder agentBuilder = InstrumentationHelper.getBuilder();
         agentBuilder.ignore(none())
                     .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
@@ -184,10 +115,60 @@ public class SpringBeanMethodTransformer {
                     .type(ElementMatchers.is(clazz), ElementMatchers.is(clazz.getClassLoader()))
                     .transform((builder, typeDescription, classLoader, javaModule) ->
                                    builder.visit(
-                                       Advice.to(aopClassLocator.getAopClass(), aopClassLocator)
+                                       Advice.to(BeanMethodAdvice.class)
                                              .on(BeanMethodMatcher.INSTANCE)))
                     .with(AopDebugger.INSTANCE)
                     .installOn(InstrumentationHelper.getInstance());
+    }
+
+    static class SpringBeanMethodAopClassLocator implements ClassFileLocator {
+        private final String className;
+        private final byte[] byteCode;
+        private Class<?> aopClass;
+
+        public SpringBeanMethodAopClassLocator() {
+            className = BeanMethodAdvice.class.getName() + "InBootstrap";
+
+            final DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(BeanMethodAdvice.class)
+                                                                        .name(className)
+                                                                        .field(ElementMatchers.named(
+                                                                            "interceptorClassName"))
+                                                                        .value(BeanMethodInterceptorImpl.class.getName())
+                                                                        .make();
+
+            AopDebugger.INSTANCE.saveClassToFile(aopClassType);
+
+            byteCode = aopClassType.getBytes();
+        }
+
+        public String getClassName() {
+            return className;
+        }
+
+        public byte[] getAopByteCode() {
+            return byteCode;
+        }
+
+        public Class<?> getAopClass() {
+            return aopClass;
+        }
+
+        public void setAopClass(Class<?> aopClass) {
+            this.aopClass = aopClass;
+        }
+
+        @Override
+        public Resolution locate(String name) {
+            if (name.equals(className)) {
+                return new Resolution.Explicit(byteCode);
+            } else {
+                return new Resolution.Illegal(name);
+            }
+        }
+
+        @Override
+        public void close() {
+        }
     }
 
     static class BeanMethodMatcher implements ElementMatcher<MethodDescription> {

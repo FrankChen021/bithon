@@ -40,11 +40,11 @@ public class SpringMvcPlugin extends AbstractPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("createBeanInstance")
-                                                   .to("com.sbss.bithon.agent.plugin.spring.mvc.CreateBeanInstanceInterceptor"),
+                                                   .to("com.sbss.bithon.agent.plugin.spring.bean.CreateBeanInstanceInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("applyBeanPostProcessorsBeforeInstantiation")
-                                                   .to("com.sbss.bithon.agent.plugin.spring.mvc.ApplyBeanPostProcessorInterceptor")
+                                                   .to("com.sbss.bithon.agent.plugin.spring.bean.ApplyBeanPostProcessorInterceptor")
                 ),
 
             forClass(

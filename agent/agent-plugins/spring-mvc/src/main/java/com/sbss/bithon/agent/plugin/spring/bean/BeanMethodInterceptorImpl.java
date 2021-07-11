@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.spring.mvc;
+package com.sbss.bithon.agent.plugin.spring.bean;
 
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
@@ -24,10 +24,14 @@ import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import java.lang.reflect.Method;
 
 /**
+ * NOTE:
+ * Any update of class/package name of this class must be manually reflected to {@link BeanMethodInterceptorFactory#INTERCEPTOR_CLASS_NAME},
+ * or the Bean interception WON'T WORK
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class SpringBeanMethodInterceptorImpl implements SpringBeanMethodInterceptorIntf {
+public class BeanMethodInterceptorImpl implements BeanMethodInterceptorIntf {
 
     @Override
     public Object onMethodEnter(

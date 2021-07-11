@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.spring.mvc;
+package com.sbss.bithon.agent.plugin.spring.bean;
 
-import com.sbss.bithon.agent.bootstrap.aop.BootstrapHelper;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -24,23 +23,15 @@ import java.lang.reflect.Method;
 
 /**
  * Classes of spring beans are re-transformed after these classes are loaded,
- * so we have to use {@link Advice} to intercept methods
+ * so we HAVE to use {@link Advice} instead of {@link shaded.net.bytebuddy.implementation.MethodDelegation}to intercept methods
  * <p>
- * NOTE:
- * This class will be injected into bootstrap class loader as 'SpringBeanMethodAopInBootstrap',
- * ALL its dependencies must be in bootstrap class loader too
+ * And because the byte code of the methods are weaved into target classes which are loaded by many different class loaders,
+ * we also HAVE to inject any dependencies to the bootstrap class loader so that they could be found via any class loader
  *
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 16:45
  */
-public class SpringBeanMethodAop {
-
-    /**
-     * use a static variable to make sure referenced classes of this object could be found via correct class loader
-     */
-    public static String interceptorClassName;
-
-    private static SpringBeanMethodInterceptorIntf interceptorInstance;
+public class BeanMethodAdvice {
 
     @Advice.OnMethodEnter
     public static void enter(
@@ -49,7 +40,7 @@ public class SpringBeanMethodAop {
         final @Advice.AllArguments Object[] args,
         @Advice.Local("context") Object context
     ) {
-        SpringBeanMethodInterceptorIntf interceptor = ensureInterceptor();
+        BeanMethodInterceptorIntf interceptor = BeanMethodInterceptorFactory.getOrCreate();
         if (interceptor != null) {
             context = interceptor.onMethodEnter(method, target, args);
         }
@@ -63,40 +54,10 @@ public class SpringBeanMethodAop {
                             final @Advice.Thrown Throwable exception,
                             final @Advice.Local("context") Object context) {
         if (context != null) {
-            SpringBeanMethodInterceptorIntf interceptor = ensureInterceptor();
+            BeanMethodInterceptorIntf interceptor = BeanMethodInterceptorFactory.getOrCreate();
             if (interceptor != null) {
                 interceptor.onMethodExit(method, target, args, exception, context);
             }
         }
-    }
-
-    /**
-     * this must be public
-     */
-    public static SpringBeanMethodInterceptorIntf ensureInterceptor() {
-        if (interceptorInstance != null) {
-            return interceptorInstance;
-        }
-
-
-        try {
-            // load class out of sync to eliminate potential dead lock
-            Class<?> interceptorClass = Class.forName(interceptorClassName,
-                                                      true,
-                                                      BootstrapHelper.getPluginClassLoader());
-            synchronized (interceptorClassName) {
-                //double check
-                if (interceptorInstance != null) {
-                    return interceptorInstance;
-                }
-
-                interceptorInstance = (SpringBeanMethodInterceptorIntf) interceptorClass.newInstance();
-            }
-
-        } catch (Exception e) {
-            BootstrapHelper.createAopLogger(SpringBeanMethodAop.class)
-                           .error(String.format("Failed to create interceptor [%s]", interceptorClassName), e);
-        }
-        return interceptorInstance;
     }
 }

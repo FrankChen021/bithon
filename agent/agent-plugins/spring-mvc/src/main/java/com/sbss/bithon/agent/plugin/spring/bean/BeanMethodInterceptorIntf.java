@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.spring.mvc;
+package com.sbss.bithon.agent.plugin.spring.bean;
 
 import java.lang.reflect.Method;
 
@@ -24,7 +24,7 @@ import java.lang.reflect.Method;
  * @author frank.chen021@outlook.com
  * @date 2021/7/11 11:27
  */
-public interface SpringBeanMethodInterceptorIntf {
+public interface BeanMethodInterceptorIntf {
 
     /**
      * @return context

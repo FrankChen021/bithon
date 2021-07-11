@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.spring.mvc;
+package com.sbss.bithon.agent.plugin.spring.bean;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
+import com.sbss.bithon.agent.plugin.spring.bean.BeanMethodTransformer;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 
@@ -31,7 +32,7 @@ public class CreateBeanInstanceInterceptor extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        SpringBeanMethodTransformer.initialize();
+        BeanMethodTransformer.initialize();
         return true;
     }
 
@@ -51,6 +52,6 @@ public class CreateBeanInstanceInterceptor extends AbstractInterceptor {
         BeanWrapper result = aopContext.castReturningAs();
         Object bean = result.getWrappedInstance();
 
-        SpringBeanMethodTransformer.transform(beanName, bean);
+        BeanMethodTransformer.transform(beanName, bean);
     }
 }

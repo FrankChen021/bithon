@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.spring.mvc;
+package com.sbss.bithon.agent.plugin.spring.bean;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
+import com.sbss.bithon.agent.plugin.spring.bean.BeanMethodTransformer;
 
 /**
  * {@link org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#applyBeanPostProcessorsBeforeInstantiation}
@@ -38,6 +39,6 @@ public class ApplyBeanPostProcessorInterceptor extends AbstractInterceptor {
 
         final Class<?> beanClass = aopContext.getArgAs(0);
         final String beanName = aopContext.getArgAs(1);
-        SpringBeanMethodTransformer.transform(beanName, aopContext.getReturning());
+        BeanMethodTransformer.transform(beanName, aopContext.getReturning());
     }
 }
