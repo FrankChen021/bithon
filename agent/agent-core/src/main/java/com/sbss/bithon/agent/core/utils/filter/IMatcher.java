@@ -16,10 +16,21 @@
 
 package com.sbss.bithon.agent.core.utils.filter;
 
+import shaded.com.fasterxml.jackson.annotation.JsonSubTypes;
+import shaded.com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import shaded.com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/17 9:16 下午
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(value = {
+    @Type(name = "in", value = InCollectionMatcher.class),
+    @Type(name = "contains", value = StringContainsMatcher.class),
+    @Type(name = "startwith", value = StringPrefixMatcher.class),
+    @Type(name = "endwith", value = StringSuffixMatcher.class)
+})
 public interface IMatcher {
     boolean matches(Object input);
 }

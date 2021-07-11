@@ -16,6 +16,9 @@
 
 package com.sbss.bithon.agent.core.utils.filter;
 
+import shaded.com.fasterxml.jackson.annotation.JsonCreator;
+import shaded.com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/17 9:18 下午
@@ -24,7 +27,8 @@ public class StringContainsMatcher implements IMatcher {
 
     private String pattern;
 
-    public StringContainsMatcher(String pattern) {
+    @JsonCreator
+    public StringContainsMatcher(@JsonProperty("pattern") String pattern) {
         this.pattern = pattern;
     }
 
