@@ -7,7 +7,7 @@
     <version>1.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-  <artifactId>agent-plugin-spring-mvc</artifactId>
+  <artifactId>agent-plugin-spring</artifactId>
 
   <dependencies>
     <dependency>
@@ -36,7 +36,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.spring.mvc.SpringMvcPlugin
+              <Plugin-Class>com.sbss.bithon.agent.plugin.spring.SpringPlugin
               </Plugin-Class>
             </manifestEntries>
           </archive>

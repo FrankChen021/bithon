@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.spring.mvc;
+package com.sbss.bithon.agent.plugin.spring;
 
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
@@ -28,7 +28,7 @@ import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor
 /**
  * @author frankchen
  */
-public class SpringMvcPlugin extends AbstractPlugin {
+public class SpringPlugin extends AbstractPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
