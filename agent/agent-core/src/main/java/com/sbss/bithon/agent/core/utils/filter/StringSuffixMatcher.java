@@ -25,11 +25,20 @@ import shaded.com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class StringSuffixMatcher implements IMatcher {
 
+    public final static String TYPE = "endwith";
+
     private final String suffix;
 
     @JsonCreator
     public StringSuffixMatcher(@JsonProperty("suffix") String suffix) {
         this.suffix = suffix;
+    }
+
+    @Override
+    public String toString() {
+        return "StringSuffixMatcher{" +
+               "suffix='" + suffix + '\'' +
+               '}';
     }
 
     @Override

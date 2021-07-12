@@ -26,18 +26,12 @@ import java.lang.instrument.Instrumentation;
  */
 public class InstrumentationHelper {
     private static Instrumentation inst;
-    private static AgentBuilder builder;
 
     public static Instrumentation getInstance() {
         return inst;
     }
 
-    public static AgentBuilder getBuilder() {
-        return builder;
-    }
-
-    public static void setInstance(Instrumentation inst, AgentBuilder agentBuilder) {
+    public static void setInstance(Instrumentation inst) {
         InstrumentationHelper.inst = inst;
-        builder = agentBuilder;
     }
 }

@@ -54,7 +54,7 @@ public class PluginInstaller {
         // install shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> plugins.forEach((plugin) -> plugin.stop())));
 
-        InstrumentationHelper.setInstance(inst, agentBuilder);
+        InstrumentationHelper.setInstance(inst);
     }
 
     public static List<AbstractPlugin> resolvePlugins() {

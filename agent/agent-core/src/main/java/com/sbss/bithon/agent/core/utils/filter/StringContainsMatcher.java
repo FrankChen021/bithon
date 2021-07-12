@@ -25,11 +25,20 @@ import shaded.com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class StringContainsMatcher implements IMatcher {
 
+    public final static String TYPE = "contains";
+
     private final String pattern;
 
     @JsonCreator
     public StringContainsMatcher(@JsonProperty("pattern") String pattern) {
         this.pattern = pattern;
+    }
+
+    @Override
+    public String toString() {
+        return "StringContainsMatcher{" +
+               "pattern='" + pattern + '\'' +
+               '}';
     }
 
     @Override

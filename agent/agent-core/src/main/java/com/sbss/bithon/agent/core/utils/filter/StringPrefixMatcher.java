@@ -25,11 +25,20 @@ import shaded.com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class StringPrefixMatcher implements IMatcher {
 
+    public final static String TYPE = "startwith";
+
     private final String prefix;
 
     @JsonCreator
     public StringPrefixMatcher(@JsonProperty("prefix") String prefix) {
         this.prefix = prefix;
+    }
+
+    @Override
+    public String toString() {
+        return "StringPrefixMatcher{" +
+               "prefix='" + prefix + '\'' +
+               '}';
     }
 
     @Override

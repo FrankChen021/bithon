@@ -29,11 +29,20 @@ import java.util.Set;
  */
 public class InCollectionMatcher implements IMatcher {
 
+    public final static String TYPE = "in";
+
     private final Set<String> collection;
 
     @JsonCreator
     public InCollectionMatcher(@JsonProperty("collection") Collection<String> collection) {
         this.collection = new HashSet<>(collection);
+    }
+
+    @Override
+    public String toString() {
+        return "InCollectionMatcher{" +
+               "collection=" + collection +
+               '}';
     }
 
     @Override
