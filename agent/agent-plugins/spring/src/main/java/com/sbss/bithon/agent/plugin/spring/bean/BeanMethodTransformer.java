@@ -22,8 +22,7 @@ import com.sbss.bithon.agent.core.plugin.debug.AopDebugger;
 import com.sbss.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import com.sbss.bithon.agent.core.utils.filter.IMatcher;
 import com.sbss.bithon.agent.core.utils.filter.InCollectionMatcher;
-import com.sbss.bithon.agent.core.utils.filter.StringPrefixMatcher;
-import com.sbss.bithon.agent.core.utils.filter.StringSuffixMatcher;
+import com.sbss.bithon.agent.core.utils.filter.MatcherFactory;
 import com.sbss.bithon.agent.plugin.spring.SpringPlugin;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
@@ -45,8 +44,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static shaded.net.bytebuddy.matcher.ElementMatchers.none;
 
 /**
  * @author frank.chen021@outlook.com
@@ -104,14 +101,7 @@ public class BeanMethodTransformer {
 
                                                       String matcher = parts[0].trim();
                                                       String pattern = parts[1].trim();
-                                                      switch (matcher) {
-                                                          case "startwith":
-                                                              return new StringPrefixMatcher(pattern);
-                                                          case "endwith":
-                                                              return new StringSuffixMatcher(pattern);
-                                                          default:
-                                                              return null;
-                                                      }
+                                                      return MatcherFactory.create(matcher, pattern);
                                                   })
                                                   .filter(Objects::nonNull)
                                                   .collect(Collectors.toList());
@@ -163,50 +153,54 @@ public class BeanMethodTransformer {
 
         log.info("Setup AOP for Spring Bean class [{}]", clazz.getName());
 
-        AgentBuilder agentBuilder = InstrumentationHelper.getBuilder();
-        agentBuilder.ignore(none())
-                    .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
-                    .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                    .type(ElementMatchers.is(clazz), ElementMatchers.is(clazz.getClassLoader()))
-                    .transform((builder, typeDescription, classLoader, javaModule) -> {
+        new AgentBuilder.Default()
+            .ignore(ElementMatchers.none())
+            .disableClassFormatChanges()
+            .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
+            .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+            .type(ElementMatchers.is(clazz))
+            .transform((builder, typeDescription, classLoader, javaModule) -> {
 
-                        Set<String> propertyMethods = new HashSet<>();
-                        for (FieldDescription field : typeDescription.getDeclaredFields()) {
-                            String name = field.getName();
-                            char[] chr = name.toCharArray();
-                            chr[0] = Character.toUpperCase(chr[0]);
-                            name = new String(chr);
-                            propertyMethods.add("get" + name);
-                            propertyMethods.add("set" + name);
-                        }
+                //
+                // infer property methods
+                //
+                Set<String> propertyMethods = new HashSet<>();
+                for (FieldDescription field : typeDescription.getDeclaredFields()) {
+                    String name = field.getName();
+                    char[] chr = name.toCharArray();
+                    chr[0] = Character.toUpperCase(chr[0]);
+                    name = new String(chr);
+                    propertyMethods.add("get" + name);
+                    propertyMethods.add("set" + name);
+                    propertyMethods.add("is" + name);
+                }
 
-                        return builder.visit(
-                            Advice.to(BeanMethodAdvice.class)
-                                  .on(new BeanMethodModifierMatcher().and((method -> {
-                                      if (includingMethods.isEmpty()) {
-                                          return !excludingMethods.matches(method.getName())
-                                                 && !propertyMethods.contains(method.getName());
-                                      } else {
-                                          return includingMethods.matches(clazz.getName());
-                                      }
-                                  }
-                                                                          ))));
-                    })
-                    .with(AopDebugger.INSTANCE)
-                    .installOn(InstrumentationHelper.getInstance());
+                //
+                // inject on corresponding methods
+                //
+                return builder.visit(
+                    Advice.to(BeanMethodAdvice.class)
+                          .on(new BeanMethodModifierMatcher().and((method -> {
+                              if (includingMethods.isEmpty()) {
+                                  return !excludingMethods.matches(method.getName())
+                                         && !propertyMethods.contains(method.getName());
+                              } else {
+                                  return includingMethods.matches(clazz.getName());
+                              }
+                          }))));
+            })
+            .with(AopDebugger.INSTANCE)
+            .installOn(InstrumentationHelper.getInstance());
     }
 
     static class BeanMethodModifierMatcher extends ElementMatcher.Junction.AbstractBase<MethodDescription> {
         @Override
         public boolean matches(MethodDescription target) {
-            if (!target.isPublic()
-                || target.isConstructor()
-                || target.isStatic()
-                || target.isAbstract()
-                || target.isNative()) {
-                return false;
-            }
-            return true;
+            return target.isPublic()
+                   && !target.isConstructor()
+                   && !target.isStatic()
+                   && !target.isAbstract()
+                   && !target.isNative();
         }
     }
 }

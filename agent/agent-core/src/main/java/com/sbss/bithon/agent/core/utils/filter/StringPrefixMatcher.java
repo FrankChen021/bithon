@@ -25,7 +25,7 @@ import shaded.com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class StringPrefixMatcher implements IMatcher {
 
-    public final static String TYPE = "startwith";
+    public static final String TYPE = "startwith";
 
     private final String prefix;
 

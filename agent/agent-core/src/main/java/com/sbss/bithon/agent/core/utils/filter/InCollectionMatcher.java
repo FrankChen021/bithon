@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public class InCollectionMatcher implements IMatcher {
 
-    public final static String TYPE = "in";
+    public static final String TYPE = "in";
 
     private final Set<String> collection;
 

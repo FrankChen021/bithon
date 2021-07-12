@@ -16,8 +16,6 @@
 
 package com.sbss.bithon.agent.core.plugin;
 
-import shaded.net.bytebuddy.agent.builder.AgentBuilder;
-
 import java.lang.instrument.Instrumentation;
 
 /**

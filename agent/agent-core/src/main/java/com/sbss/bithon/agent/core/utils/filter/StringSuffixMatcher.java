@@ -25,7 +25,7 @@ import shaded.com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class StringSuffixMatcher implements IMatcher {
 
-    public final static String TYPE = "endwith";
+    public static final String TYPE = "endwith";
 
     private final String suffix;
 
