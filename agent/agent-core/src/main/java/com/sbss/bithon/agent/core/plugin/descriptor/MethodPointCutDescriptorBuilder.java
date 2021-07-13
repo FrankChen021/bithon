@@ -41,14 +41,12 @@ public class MethodPointCutDescriptorBuilder {
 
     public MethodPointCutDescriptor to(String interceptorQualifiedClassName) {
 
-        ElementMatcher.Junction<? super MethodDescription> m = MatcherUtils.debuggableMatcher(debug, method);
+        ElementMatcher.Junction<? super MethodDescription> methodMatcher = MatcherUtils.debuggableMatcher(debug, method);
         if (argsMatcher != null) {
-            m = m.and(argsMatcher);
+            methodMatcher = methodMatcher.and(argsMatcher);
         }
         return new MethodPointCutDescriptor(debug,
-                                            true,
-                                            null,
-                                            m,
+                                            methodMatcher,
                                             targetMethodType,
                                             interceptorQualifiedClassName);
     }

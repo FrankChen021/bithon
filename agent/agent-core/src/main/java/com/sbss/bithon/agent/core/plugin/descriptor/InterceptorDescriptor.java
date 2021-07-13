@@ -30,7 +30,6 @@ public class InterceptorDescriptor {
     private final boolean debug;
     private final boolean isBootstrapClass;
     private final ElementMatcher.Junction<? super TypeDescription> classMatcher;
-
     private final MethodPointCutDescriptor[] methodPointCutDescriptors;
 
     public InterceptorDescriptor(boolean debug,
