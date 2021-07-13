@@ -27,16 +27,16 @@ public class MethodPointCutDescriptor {
 
     private boolean debug;
     private final ElementMatcher.Junction<? super MethodDescription> methodMatcher;
-    private final TargetMethodType targetMethodType;
+    private final MethodType methodType;
     private final String interceptor;
 
     public MethodPointCutDescriptor(boolean debug,
                                     ElementMatcher.Junction<? super MethodDescription> methodMatcher,
-                                    TargetMethodType targetMethodType,
+                                    MethodType methodType,
                                     String interceptor) {
         this.debug = debug;
         this.methodMatcher = methodMatcher;
-        this.targetMethodType = targetMethodType;
+        this.methodType = methodType;
         this.interceptor = interceptor;
     }
 
@@ -44,8 +44,8 @@ public class MethodPointCutDescriptor {
         return methodMatcher;
     }
 
-    public TargetMethodType getTargetMethodType() {
-        return targetMethodType;
+    public MethodType getTargetMethodType() {
+        return methodType;
     }
 
     public boolean isDebug() {

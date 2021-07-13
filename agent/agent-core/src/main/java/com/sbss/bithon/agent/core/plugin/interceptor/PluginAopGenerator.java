@@ -89,7 +89,7 @@ public class PluginAopGenerator {
     private void generateAopClass(String interceptorClass,
                                   MethodPointCutDescriptor methodPointCutDescriptor) {
         switch (methodPointCutDescriptor.getTargetMethodType()) {
-            case INSTANCE_METHOD:
+            case NON_CONSTRUCTOR:
                 generateAopClass(classesTypeMap,
                                  BootstrapMethodAop.class,
                                  interceptorClass,

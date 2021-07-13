@@ -184,7 +184,7 @@ class PluginInterceptorInstaller {
                                                                MethodPointCutDescriptor pointCutDescriptor) {
         try {
             switch (pointCutDescriptor.getTargetMethodType()) {
-                case INSTANCE_METHOD:
+                case NON_CONSTRUCTOR:
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
                                      .intercept(MethodDelegation.withDefaultConfiguration()
                                                                 .withBinders(Morph.Binder.install(ISuperMethod.class))
@@ -256,7 +256,7 @@ class PluginInterceptorInstaller {
 
         try {
             switch (pointCutDescriptor.getTargetMethodType()) {
-                case INSTANCE_METHOD:
+                case NON_CONSTRUCTOR:
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
                                      .intercept(MethodDelegation.withDefaultConfiguration()
                                                                 .withBinders(Morph.Binder.install(ISuperMethod.class))

@@ -17,10 +17,16 @@
 package com.sbss.bithon.agent.core.plugin.descriptor;
 
 /**
+ * An enum describe the type of intercepted methods
  * @author frank.chen021@outlook.com
  * @date 2021/2/20 9:42 下午
  */
-public enum TargetMethodType {
+public enum MethodType {
+
     CONSTRUCTOR,
-    INSTANCE_METHOD;
+
+    /**
+     * for those which are not constructors
+     */
+    NON_CONSTRUCTOR;
 }

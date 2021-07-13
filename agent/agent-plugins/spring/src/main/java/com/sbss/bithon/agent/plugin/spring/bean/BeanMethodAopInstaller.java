@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.agent.plugin.spring.bean;
 
+import com.sbss.bithon.agent.core.plugin.AopDebugger;
 import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
 import com.sbss.bithon.agent.core.plugin.config.StaticConfig;
-import com.sbss.bithon.agent.core.plugin.AopDebugger;
 import com.sbss.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import com.sbss.bithon.agent.core.utils.filter.IMatcher;
 import com.sbss.bithon.agent.core.utils.filter.InCollectionMatcher;
