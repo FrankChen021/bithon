@@ -35,7 +35,7 @@ import static java.io.File.separator;
 public class AgentStarter {
 
     public void start(String agentPath, Instrumentation inst) throws Exception {
-        BootstrapHelper.setPluginClassLoader(PluginClassLoaderManager.createDefault(agentPath));
+        PluginClassLoaderManager.createDefault(agentPath);
 
         initAgentLogger(agentPath);
 
