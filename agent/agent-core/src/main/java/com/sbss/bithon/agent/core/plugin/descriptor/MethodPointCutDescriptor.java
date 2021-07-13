@@ -17,7 +17,6 @@
 package com.sbss.bithon.agent.core.plugin.descriptor;
 
 import shaded.net.bytebuddy.description.method.MethodDescription;
-import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 
 /**
@@ -27,53 +26,26 @@ import shaded.net.bytebuddy.matcher.ElementMatcher;
 public class MethodPointCutDescriptor {
 
     private boolean debug;
-    private final boolean isBootstrapClass;
-    private final ElementMatcher.Junction<? super TypeDescription> classMatcher;
     private final ElementMatcher.Junction<? super MethodDescription> methodMatcher;
-    private final TargetMethodType targetMethodType;
+    private final MethodType methodType;
     private final String interceptor;
 
     public MethodPointCutDescriptor(boolean debug,
-                                    boolean isBootstrapClass,
-                                    ElementMatcher.Junction<? super TypeDescription> classMatcher,
                                     ElementMatcher.Junction<? super MethodDescription> methodMatcher,
-                                    TargetMethodType targetMethodType) {
-        this.debug = debug;
-        this.isBootstrapClass = isBootstrapClass;
-        this.classMatcher = classMatcher;
-        this.methodMatcher = methodMatcher;
-        this.targetMethodType = targetMethodType;
-        this.interceptor = null;
-    }
-
-    public MethodPointCutDescriptor(boolean debug,
-                                    boolean isBootstrapClass,
-                                    ElementMatcher.Junction<? super TypeDescription> classMatcher,
-                                    ElementMatcher.Junction<? super MethodDescription> methodMatcher,
-                                    TargetMethodType targetMethodType,
+                                    MethodType methodType,
                                     String interceptor) {
         this.debug = debug;
-        this.isBootstrapClass = isBootstrapClass;
-        this.classMatcher = classMatcher;
         this.methodMatcher = methodMatcher;
-        this.targetMethodType = targetMethodType;
+        this.methodType = methodType;
         this.interceptor = interceptor;
-    }
-
-    public boolean isBootstrapClass() {
-        return isBootstrapClass;
-    }
-
-    public ElementMatcher.Junction<? super TypeDescription> getClassMatcher() {
-        return classMatcher;
     }
 
     public ElementMatcher.Junction<? super MethodDescription> getMethodMatcher() {
         return methodMatcher;
     }
 
-    public TargetMethodType getTargetMethodType() {
-        return targetMethodType;
+    public MethodType getTargetMethodType() {
+        return methodType;
     }
 
     public boolean isDebug() {

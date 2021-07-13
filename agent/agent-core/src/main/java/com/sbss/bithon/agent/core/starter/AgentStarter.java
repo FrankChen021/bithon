@@ -16,12 +16,11 @@
 
 package com.sbss.bithon.agent.core.starter;
 
-import com.sbss.bithon.agent.bootstrap.aop.BootstrapHelper;
 import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.plugin.loader.PluginClassLoaderManager;
-import com.sbss.bithon.agent.core.plugin.loader.PluginInstaller;
+import com.sbss.bithon.agent.core.plugin.interceptor.PluginInstaller;
 import shaded.org.apache.log4j.xml.DOMConfigurator;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -35,9 +34,19 @@ import static java.io.File.separator;
 public class AgentStarter {
 
     public void start(String agentPath, Instrumentation inst) throws Exception {
-        BootstrapHelper.setPluginClassLoader(PluginClassLoaderManager.createDefault(agentPath));
-
         initAgentLogger(agentPath);
+
+        //
+        // show loaded libs
+        //
+        AgentClassLoader.getClassLoader()
+                        .getJars()
+                        .stream()
+                        .map(jar -> new File(jar.getName()).getName())
+                        .sorted()
+                        .forEach(name -> {
+                            LoggerFactory.getLogger("AgentClassLoader").info("Found lib {}", name);
+                        });
 
         AgentContext agentContext = AgentContext.createInstance(agentPath);
 

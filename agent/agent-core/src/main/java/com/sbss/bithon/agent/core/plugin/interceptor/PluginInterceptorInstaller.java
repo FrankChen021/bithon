@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.loader;
+package com.sbss.bithon.agent.core.plugin.interceptor;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
@@ -25,7 +25,7 @@ import com.sbss.bithon.agent.bootstrap.aop.ISuperMethod;
 import com.sbss.bithon.agent.bootstrap.aop.MethodAop;
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.debug.AopDebugger;
+import com.sbss.bithon.agent.core.plugin.AopDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
@@ -184,7 +184,7 @@ class PluginInterceptorInstaller {
                                                                MethodPointCutDescriptor pointCutDescriptor) {
         try {
             switch (pointCutDescriptor.getTargetMethodType()) {
-                case INSTANCE_METHOD:
+                case NON_CONSTRUCTOR:
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
                                      .intercept(MethodDelegation.withDefaultConfiguration()
                                                                 .withBinders(Morph.Binder.install(ISuperMethod.class))
@@ -227,7 +227,7 @@ class PluginInterceptorInstaller {
      */
     private Class<?> getBootstrapAopClass(String methodsInterceptor) {
         try {
-            return Class.forName(BootstrapAopGenerator.bootstrapAopClass(methodsInterceptor));
+            return Class.forName(PluginAopGenerator.bootstrapAopClass(methodsInterceptor));
         } catch (ClassNotFoundException e) {
             throw new AgentException(e.getMessage(), e);
         }
@@ -256,7 +256,7 @@ class PluginInterceptorInstaller {
 
         try {
             switch (pointCutDescriptor.getTargetMethodType()) {
-                case INSTANCE_METHOD:
+                case NON_CONSTRUCTOR:
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
                                      .intercept(MethodDelegation.withDefaultConfiguration()
                                                                 .withBinders(Morph.Binder.install(ISuperMethod.class))

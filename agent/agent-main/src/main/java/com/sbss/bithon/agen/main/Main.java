@@ -34,12 +34,13 @@ public class Main {
         // check whether to start agent
         //
         String disabled = System.getProperty("bithon.disabled", "false");
-        if ("".equals(disabled) || "true".equals(disabled)) {
+        if ("".equals(disabled) || "true".equalsIgnoreCase(disabled)) {
             System.out.println("bithon is disabled for the sake of -Dbithon.disabled");
             return;
         }
 
         //
+        // agent-boostrap.jar should be on the boot-class-path
         // check if agent is deployed correctly
         //
         boolean hasBootstrapJar = Arrays.stream(ManagementFactory.getRuntimeMXBean()

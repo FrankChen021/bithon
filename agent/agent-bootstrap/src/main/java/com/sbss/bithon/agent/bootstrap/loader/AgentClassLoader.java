@@ -26,7 +26,7 @@ public class AgentClassLoader {
 
     private static JarClassLoader instance;
 
-    public static ClassLoader getClassLoader() {
+    public static JarClassLoader getClassLoader() {
         return instance;
     }
 

@@ -31,7 +31,7 @@ import java.lang.reflect.Method;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 16:45
  */
-public class BeanMethodAdvice {
+public class BeanMethodAop {
 
     @Advice.OnMethodEnter
     public static void enter(

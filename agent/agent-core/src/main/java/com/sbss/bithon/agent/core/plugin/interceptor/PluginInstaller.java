@@ -14,12 +14,13 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.loader;
+package com.sbss.bithon.agent.core.plugin.interceptor;
 
 import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
+import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -38,12 +39,15 @@ import java.util.zip.ZipFile;
 public class PluginInstaller {
 
     public static void install(AgentContext agentContext, Instrumentation inst) {
+        // create plugin class loader first
+        PluginClassLoaderManager.createDefault(agentContext.getAgentDirectory());
+
         // find all plugins first
-        List<AbstractPlugin> plugins = resolvePlugins();
+        List<AbstractPlugin> plugins = loadPlugins();
 
         // install interceptors for bootstrap classes
-        AgentBuilder agentBuilder = new BootstrapAopGenerator(inst,
-                                                              new AgentBuilder.Default()).generate(plugins);
+        AgentBuilder agentBuilder = new PluginAopGenerator(inst,
+                                                           new AgentBuilder.Default()).generate(plugins);
 
         // install interceptors
         new PluginInterceptorInstaller(agentBuilder, inst).install(plugins);
@@ -57,7 +61,7 @@ public class PluginInstaller {
         InstrumentationHelper.setInstance(inst);
     }
 
-    public static List<AbstractPlugin> resolvePlugins() {
+    public static List<AbstractPlugin> loadPlugins() {
 
         JarClassLoader pluginClassLoader = PluginClassLoaderManager.getDefaultLoader();
         List<JarFile> pluginJars = new ArrayList<>(pluginClassLoader.getJars());
@@ -66,9 +70,6 @@ public class PluginInstaller {
         final List<AbstractPlugin> plugins = new ArrayList<>();
         for (JarFile jar : pluginJars) {
             try {
-                LoggerFactory.getLogger(PluginInstaller.class)
-                             .info("Found {}", new File(jar.getName()).getName());
-
                 String pluginClassName = jar.getManifest().getMainAttributes().getValue("Plugin-Class");
                 if (pluginClassName == null) {
                     continue;

@@ -30,7 +30,7 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
  */
 public class MethodPointCutDescriptorBuilder {
 
-    private TargetMethodType targetMethodType;
+    private MethodType methodType;
     private ElementMatcher.Junction<MethodDescription> method;
     private ElementMatcher<MethodDescription> argsMatcher;
     private boolean debug;
@@ -41,53 +41,51 @@ public class MethodPointCutDescriptorBuilder {
 
     public MethodPointCutDescriptor to(String interceptorQualifiedClassName) {
 
-        ElementMatcher.Junction<? super MethodDescription> m = MatcherUtils.debuggableMatcher(debug, method);
+        ElementMatcher.Junction<? super MethodDescription> methodMatcher = MatcherUtils.debuggableMatcher(debug, method);
         if (argsMatcher != null) {
-            m = m.and(argsMatcher);
+            methodMatcher = methodMatcher.and(argsMatcher);
         }
         return new MethodPointCutDescriptor(debug,
-                                            true,
-                                            null,
-                                            m,
-                                            targetMethodType,
+                                            methodMatcher,
+                                            methodType,
                                             interceptorQualifiedClassName);
     }
 
     public MethodPointCutDescriptorBuilder onAllMethods(String method) {
         this.method = named(method);
-        this.targetMethodType = TargetMethodType.INSTANCE_METHOD;
+        this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndArgs(String method, String... args) {
         this.method = named(method);
         this.argsMatcher = MatcherUtils.createArgumentsMatcher(debug, args);
-        this.targetMethodType = TargetMethodType.INSTANCE_METHOD;
+        this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndNoArgs(String method) {
         this.method = named(method);
         this.argsMatcher = takesNoArguments();
-        this.targetMethodType = TargetMethodType.INSTANCE_METHOD;
+        this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethod(ElementMatcher.Junction<MethodDescription> method) {
         this.method = method;
-        this.targetMethodType = TargetMethodType.INSTANCE_METHOD;
+        this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onAllConstructor() {
         this.method = ElementMatchers.isConstructor();
-        this.targetMethodType = TargetMethodType.CONSTRUCTOR;
+        this.methodType = MethodType.CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onConstructor(ElementMatcher.Junction<MethodDescription> matcher) {
         this.method = isConstructor().and(matcher);
-        this.targetMethodType = TargetMethodType.CONSTRUCTOR;
+        this.methodType = MethodType.CONSTRUCTOR;
         return this;
     }
 
@@ -97,13 +95,13 @@ public class MethodPointCutDescriptorBuilder {
         }
         this.method = ElementMatchers.isConstructor();
         this.argsMatcher = MatcherUtils.createArgumentsMatcher(debug, args);
-        this.targetMethodType = TargetMethodType.CONSTRUCTOR;
+        this.methodType = MethodType.CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onDefaultConstructor() {
         this.method = ElementMatchers.isDefaultConstructor();
-        this.targetMethodType = TargetMethodType.CONSTRUCTOR;
+        this.methodType = MethodType.CONSTRUCTOR;
         return this;
     }
 

@@ -14,10 +14,11 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.loader;
+package com.sbss.bithon.agent.core.plugin.interceptor;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
+import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author frankchen
  */
-public class PluginInterceptorManager {
+class PluginInterceptorManager {
     private static final Logger log = LoggerFactory.getLogger(PluginInterceptorManager.class);
 
     private static final Map<String, AbstractInterceptor> INTERCEPTORS = new ConcurrentHashMap<>();

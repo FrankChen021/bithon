@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.agent.plugin.spring.bean;
 
+import com.sbss.bithon.agent.core.plugin.AopDebugger;
 import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
 import com.sbss.bithon.agent.core.plugin.config.StaticConfig;
-import com.sbss.bithon.agent.core.plugin.debug.AopDebugger;
 import com.sbss.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import com.sbss.bithon.agent.core.utils.filter.IMatcher;
 import com.sbss.bithon.agent.core.utils.filter.InCollectionMatcher;
@@ -49,8 +49,8 @@ import java.util.stream.Stream;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 13:05
  */
-public class BeanMethodTransformer {
-    private static final Logger log = LoggerFactory.getLogger(BeanMethodTransformer.class);
+public class BeanMethodAopInstaller {
+    private static final Logger log = LoggerFactory.getLogger(BeanMethodAopInstaller.class);
 
     private static final Set<String> INSTRUMENTED = new ConcurrentSkipListSet<>();
 
@@ -124,7 +124,7 @@ public class BeanMethodTransformer {
         });
     }
 
-    public static void transform(String beanName, Object bean) {
+    public static void install(String beanName, Object bean) {
         if (beanName == null || bean == null) {
             return;
         }
@@ -179,7 +179,7 @@ public class BeanMethodTransformer {
                 // inject on corresponding methods
                 //
                 return builder.visit(
-                    Advice.to(BeanMethodAdvice.class)
+                    Advice.to(BeanMethodAop.class)
                           .on(new BeanMethodModifierMatcher().and((method -> {
                               if (includingMethods.isEmpty()) {
                                   return !excludingMethods.matches(method.getName())

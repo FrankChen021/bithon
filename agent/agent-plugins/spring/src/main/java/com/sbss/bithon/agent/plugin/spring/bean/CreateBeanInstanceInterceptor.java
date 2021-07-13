@@ -31,7 +31,7 @@ public class CreateBeanInstanceInterceptor extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        BeanMethodTransformer.initialize();
+        BeanMethodAopInstaller.initialize();
         return true;
     }
 
@@ -51,6 +51,6 @@ public class CreateBeanInstanceInterceptor extends AbstractInterceptor {
         BeanWrapper result = aopContext.castReturningAs();
         Object bean = result.getWrappedInstance();
 
-        BeanMethodTransformer.transform(beanName, bean);
+        BeanMethodAopInstaller.install(beanName, bean);
     }
 }

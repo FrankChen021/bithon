@@ -14,12 +14,14 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.loader;
+package com.sbss.bithon.agent.core.plugin;
 
+import com.sbss.bithon.agent.bootstrap.aop.BootstrapHelper;
 import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
 import com.sbss.bithon.agent.bootstrap.loader.JarResolver;
 import com.sbss.bithon.agent.core.context.AgentContext;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
@@ -55,10 +57,20 @@ public final class PluginClassLoaderManager {
         return defaultLoader;
     }
 
-    public static ClassLoader createDefault(String agentPath) {
+    public static void createDefault(String agentPath) {
         List<JarFile> pluginJars = JarResolver.resolve(new File(agentPath + "/" + AgentContext.PLUGIN_DIR));
 
+        // show plugins
+        pluginJars.stream().map(jar -> new File(jar.getName()).getName()).sorted().forEach((name) -> {
+            LoggerFactory.getLogger(PluginClassLoaderManager.class)
+                         .info("Found plugin {}", name);
+        });
+
         defaultLoader = new JarClassLoader("plugin", pluginJars, AgentClassLoader.getClassLoader());
-        return defaultLoader;
+
+        //
+        // set the default plugin class loader to a class which could be access from classes loaded by bootstrap class loader
+        //
+        BootstrapHelper.setPluginClassLoader(defaultLoader);
     }
 }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.loader;
+package com.sbss.bithon.agent.core.plugin;
 
 import com.sbss.bithon.agent.bootstrap.aop.IAopLogger;
 import shaded.org.slf4j.Logger;
@@ -22,6 +22,7 @@ import shaded.org.slf4j.LoggerFactory;
 
 /**
  * created via reflection from bootstrap aop instances which are loaded by bootstrap class loader
+ * see {@link com.sbss.bithon.agent.bootstrap.aop.BootstrapHelper}
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/19 10:49 下午

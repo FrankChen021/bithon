@@ -38,6 +38,6 @@ public class ApplyBeanPostProcessorInterceptor extends AbstractInterceptor {
 
         final Class<?> beanClass = aopContext.getArgAs(0);
         final String beanName = aopContext.getArgAs(1);
-        BeanMethodTransformer.transform(beanName, aopContext.getReturning());
+        BeanMethodAopInstaller.install(beanName, aopContext.getReturning());
     }
 }
