@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.plugin.jvm.mem;
 
 import com.sbss.bithon.agent.core.metric.domain.jvm.MemoryCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jvm.MemoryRegionCompositeMetric;
-import com.sbss.bithon.agent.core.plugin.loader.PluginClassLoaderManager;
+import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
 import com.sbss.bithon.agent.plugin.jvm.JmxBeans;
 import shaded.org.slf4j.LoggerFactory;
 

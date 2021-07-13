@@ -14,12 +14,13 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.loader;
+package com.sbss.bithon.agent.core.plugin.interceptor;
 
 import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
+import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -42,8 +43,8 @@ public class PluginInstaller {
         List<AbstractPlugin> plugins = resolvePlugins();
 
         // install interceptors for bootstrap classes
-        AgentBuilder agentBuilder = new BootstrapAopGenerator(inst,
-                                                              new AgentBuilder.Default()).generate(plugins);
+        AgentBuilder agentBuilder = new PluginAopGenerator(inst,
+                                                           new AgentBuilder.Default()).generate(plugins);
 
         // install interceptors
         new PluginInterceptorInstaller(agentBuilder, inst).install(plugins);
