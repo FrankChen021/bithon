@@ -22,7 +22,6 @@ import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
-import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
@@ -65,17 +64,13 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
         }
 
         // create a span and save it in user-context
-        ITraceSpan thisSpan = parentSpan.newChildSpan("httpClient")
-                                        .method(aopContext.getMethod())
-                                        .kind(SpanKind.CLIENT)
-                                        .tag("uri", httpRequest.getRequestLine().getUri())
-                                        .start();
-        aopContext.setUserContext(thisSpan);
-
-        // propagate tracing
-        Tracer.get()
-              .propagator()
-              .inject(tracer, httpRequest, (request, key, value) -> request.setHeader(key, value));
+        aopContext.setUserContext(parentSpan.newChildSpan("httpClient")
+                                            .method(aopContext.getMethod())
+                                            .kind(SpanKind.CLIENT)
+                                            .tag("uri", httpRequest.getRequestLine().getUri())
+                                            .propagate(httpRequest,
+                                                       (request, key, value) -> request.setHeader(key, value))
+                                            .start());
 
         return InterceptionDecision.CONTINUE;
     }
