@@ -23,9 +23,9 @@ import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import sun.net.www.MessageHeader;
 
 import java.net.HttpURLConnection;
@@ -52,7 +52,7 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
         if (traceContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
-        TraceSpan span = traceContext.currentSpan();
+        ITraceSpan span = traceContext.currentSpan();
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

@@ -21,9 +21,9 @@ import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -43,23 +43,22 @@ public class StatementTraceInterceptor extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        TraceSpan parentSpan = traceContext.currentSpan();
+        ITraceSpan parentSpan = traceContext.currentSpan();
         if (parentSpan == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(parentSpan
-                                      .newChildSpan("mysql")
-                                      .method(aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      .start());
+        aopContext.setUserContext(parentSpan.newChildSpan("mysql")
+                                            .method(aopContext.getMethod())
+                                            .kind(SpanKind.CLIENT)
+                                            .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        TraceSpan mysqlSpan = aopContext.castUserContextAs();
+        ITraceSpan mysqlSpan = aopContext.castUserContextAs();
         if (mysqlSpan == null) {
             return;
         }

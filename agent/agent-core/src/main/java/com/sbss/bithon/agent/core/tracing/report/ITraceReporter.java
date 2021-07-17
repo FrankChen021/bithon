@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.core.tracing.report;
 
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 
 import java.util.List;
 
@@ -25,5 +25,5 @@ import java.util.List;
  * @date 2021/2/5 9:45 下午
  */
 public interface ITraceReporter {
-    void report(List<TraceSpan> spans);
+    void report(List<ITraceSpan> spans);
 }

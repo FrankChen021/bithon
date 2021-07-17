@@ -58,13 +58,13 @@ public class TraceSpanBuilder {
         }
     }
 
-    public static TraceSpan build(String name) {
+    public static ITraceSpan build(String name) {
         ITraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
             return NoopTraceSpan.INSTANCE;
         }
 
-        TraceSpan parentSpan = traceContext.currentSpan();
+        ITraceSpan parentSpan = traceContext.currentSpan();
         if (parentSpan == null) {
             return NoopTraceSpan.INSTANCE;
         }
@@ -73,13 +73,13 @@ public class TraceSpanBuilder {
         return parentSpan.newChildSpan(name);
     }
 
-    public static TraceSpan buildAsyncSpan(String name) {
+    public static ITraceSpan buildAsyncSpan(String name) {
         ITraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
             return NoopTraceSpan.INSTANCE;
         }
 
-        TraceSpan parentSpan = traceContext.currentSpan();
+        ITraceSpan parentSpan = traceContext.currentSpan();
         if (parentSpan == null) {
             return NoopTraceSpan.INSTANCE;
         }

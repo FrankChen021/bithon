@@ -20,9 +20,9 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import redis.clients.jedis.Client;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -59,7 +59,7 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        TraceSpan parentSpan = tracer.currentSpan();
+        ITraceSpan parentSpan = tracer.currentSpan();
         if (parentSpan == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -67,11 +67,11 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
         Client redisClient = aopContext.castTargetAs();
         String hostAndPort = redisClient.getHost() + ":" + redisClient.getPort();
 
-        TraceSpan thisSpan = parentSpan.newChildSpan("jedis")
-                                       .method(command)
-                                       .kind(SpanKind.CLIENT)
-                                       .tag("uri", hostAndPort)
-                                       .start();
+        ITraceSpan thisSpan = parentSpan.newChildSpan("jedis")
+                                        .method(command)
+                                        .kind(SpanKind.CLIENT)
+                                        .tag("uri", hostAndPort)
+                                        .start();
         aopContext.setUserContext(thisSpan);
 
         return InterceptionDecision.CONTINUE;
@@ -79,7 +79,7 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) throws Exception {
-        TraceSpan span = aopContext.castUserContextAs();
+        ITraceSpan span = aopContext.castUserContextAs();
         if (span == null) {
             return;
         }

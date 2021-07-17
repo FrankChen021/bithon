@@ -24,9 +24,9 @@ import com.sbss.bithon.agent.core.metric.domain.web.RequestUriFilter;
 import com.sbss.bithon.agent.core.metric.domain.web.UserAgentFilter;
 import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 
@@ -81,7 +81,7 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
 
         ITraceContext traceContext = null;
-        TraceSpan span = null;
+        ITraceSpan span = null;
         try {
             traceContext = TraceContextHolder.get();
             if (traceContext == null) {

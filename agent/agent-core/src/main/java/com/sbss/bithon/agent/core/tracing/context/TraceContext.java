@@ -36,8 +36,8 @@ public class TraceContext implements ITraceContext {
 
     private final ITraceReporter reporter;
     private final ITraceIdGenerator idGenerator;
-    private final Stack<TraceSpan> spanStack = new Stack<>();
-    private final List<TraceSpan> spans = new ArrayList<>();
+    private final Stack<ITraceSpan> spanStack = new Stack<>();
+    private final List<ITraceSpan> spans = new ArrayList<>();
     private final Clock clock = new Clock();
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
@@ -87,7 +87,7 @@ public class TraceContext implements ITraceContext {
     }
 
     @Override
-    public TraceSpan currentSpan() {
+    public ITraceSpan currentSpan() {
         return spanStack.peek();
     }
 

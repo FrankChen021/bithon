@@ -22,8 +22,8 @@ import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import com.sbss.bithon.agent.core.utils.StringUtils;
 import sun.net.www.MessageHeader;
 import sun.net.www.protocol.http.HttpURLConnection;
@@ -64,7 +64,7 @@ public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
         if (traceContext == null) {
             return;
         }
-        TraceSpan span = traceContext.currentSpan();
+        ITraceSpan span = traceContext.currentSpan();
         if (span == null) {
             return;
         }

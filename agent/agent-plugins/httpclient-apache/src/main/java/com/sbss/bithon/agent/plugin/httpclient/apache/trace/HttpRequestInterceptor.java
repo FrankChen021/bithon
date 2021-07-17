@@ -24,9 +24,9 @@ import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import shaded.org.slf4j.Logger;
@@ -59,17 +59,17 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        TraceSpan parentSpan = tracer.currentSpan();
+        ITraceSpan parentSpan = tracer.currentSpan();
         if (parentSpan == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         // create a span and save it in user-context
-        TraceSpan thisSpan = parentSpan.newChildSpan("httpClient")
-                                       .method(aopContext.getMethod())
-                                       .kind(SpanKind.CLIENT)
-                                       .tag("uri", httpRequest.getRequestLine().getUri())
-                                       .start();
+        ITraceSpan thisSpan = parentSpan.newChildSpan("httpClient")
+                                        .method(aopContext.getMethod())
+                                        .kind(SpanKind.CLIENT)
+                                        .tag("uri", httpRequest.getRequestLine().getUri())
+                                        .start();
         aopContext.setUserContext(thisSpan);
 
         // propagate tracing
@@ -82,7 +82,7 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext context) {
-        TraceSpan thisSpan = (TraceSpan) context.getUserContext();
+        ITraceSpan thisSpan = context.castUserContextAs();
         if (thisSpan == null) {
             return;
         }

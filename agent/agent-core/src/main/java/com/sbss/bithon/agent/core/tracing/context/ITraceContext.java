@@ -29,7 +29,7 @@ public interface ITraceContext {
 
     String traceId();
 
-    TraceSpan currentSpan();
+    ITraceSpan currentSpan();
 
     Clock clock();
 
