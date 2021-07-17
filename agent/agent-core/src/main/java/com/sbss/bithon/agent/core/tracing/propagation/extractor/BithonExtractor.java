@@ -18,6 +18,7 @@ package com.sbss.bithon.agent.core.tracing.propagation.extractor;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.NoopTraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 
@@ -48,13 +49,21 @@ public class BithonExtractor implements ITraceContextExtractor {
             return null;
         }
 
-        TraceContext context = new TraceContext(traceId,
-                                                ids[0],
-                                                ids[1],
-                                                Tracer.get().reporter(),
-                                                Tracer.get().traceIdGenerator());
+        ITraceContext context;
+        if (traceId.startsWith("P-")) {
+            // propagation mode
+            context = new NoopTraceContext(traceId, ids[0], ids[1], Tracer.get().traceIdGenerator());
+        } else {
+            // default to trace mode
+            context = new TraceContext(traceId,
+                                       ids[0],
+                                       ids[1],
+                                       Tracer.get().reporter(),
+                                       Tracer.get().traceIdGenerator());
+        }
+
         context.currentSpan()
-               .parentApplication(getter.get(request, ITracePropagator.BITHON_SOURCE_APPLICATION));
+               .parentApplication(getter.get(request, ITracePropagator.BITHON_SRC_APPLICATION));
         return context;
     }
 }

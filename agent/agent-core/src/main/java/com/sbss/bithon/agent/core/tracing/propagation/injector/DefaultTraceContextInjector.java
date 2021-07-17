@@ -40,7 +40,7 @@ public class DefaultTraceContextInjector implements ITraceContextInjector {
                        + context.currentSpan().spanId());
 
             setter.put(request,
-                       ITracePropagator.BITHON_SOURCE_APPLICATION,
+                       ITracePropagator.BITHON_SRC_APPLICATION,
                        Tracer.get().appName());
         } catch (Exception e) {
             LoggerFactory.getLogger(DefaultTraceContextInjector.class).error("Exception when propagating trace", e);

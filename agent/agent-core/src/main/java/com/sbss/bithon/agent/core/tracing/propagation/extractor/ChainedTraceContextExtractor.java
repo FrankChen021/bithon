@@ -18,6 +18,7 @@ package com.sbss.bithon.agent.core.tracing.propagation.extractor;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.NoopTraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 import com.sbss.bithon.agent.core.tracing.sampling.SamplingMode;
@@ -36,26 +37,34 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
     @Override
     public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
         //
-        // TODO: sampling decision making first
+        // extract trace context based on upstream service request
         //
-        SamplingMode mode = Tracer.get().samplingDecisionMaker().decideSamplingMode(request);
-        if (mode == SamplingMode.NONE) {
-            return null;
-        }
-
         for (ITraceContextExtractor extractor : extractors) {
             ITraceContext context = extractor.extract(request, getter);
             if (context != null) {
-                return context.samplingMode(mode);
+                return context;
             }
         }
 
-        // context decide by SamplingMode
-        TraceContext context = new TraceContext(Tracer.get().traceIdGenerator().newTraceId(),
-                                                Tracer.get().reporter(),
-                                                Tracer.get().traceIdGenerator());
+        //
+        // no trace context,
+        // then handle to sampling decision maker to decide whether or not this request should be sampled
+        //
+        ITraceContext context;
+        SamplingMode mode = Tracer.get().samplingDecisionMaker().decideSamplingMode(request);
+        if (mode == SamplingMode.NONE) {
+            // create a propagation trace context to propagation trace context along the service call without reporting trace data
+            context = new NoopTraceContext(Tracer.get().traceIdGenerator().newTraceId(),
+                                           Tracer.get().traceIdGenerator());
+        } else {
+            // create a traceable context
+            context = new TraceContext(Tracer.get().traceIdGenerator().newTraceId(),
+                                       Tracer.get().reporter(),
+                                       Tracer.get().traceIdGenerator());
+        }
+
         context.currentSpan()
-               .parentApplication(getter.get(request, ITracePropagator.BITHON_SOURCE_APPLICATION));
+               .parentApplication(getter.get(request, ITracePropagator.BITHON_SRC_APPLICATION));
         return context;
     }
 

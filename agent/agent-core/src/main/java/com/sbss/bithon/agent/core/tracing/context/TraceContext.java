@@ -18,6 +18,7 @@ package com.sbss.bithon.agent.core.tracing.context;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.impl.DefaultSpanIdGenerator;
+import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
 import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import com.sbss.bithon.agent.core.tracing.report.ITraceReporter;
 import com.sbss.bithon.agent.core.tracing.sampling.SamplingMode;
@@ -42,6 +43,7 @@ public class TraceContext implements ITraceContext {
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
     private SamplingMode samplingMode;
+    private TraceMode traceMode;
 
     public TraceContext(String traceId,
                         ITraceReporter reporter,
@@ -79,6 +81,11 @@ public class TraceContext implements ITraceContext {
         this.idGenerator = idGenerator;
         this.spanIdGenerator = spanIdGenerator;
         this.onSpanCreated(new TraceSpan(spanIdGenerator.newSpanId(), null, this).start());
+    }
+
+    @Override
+    public TraceMode traceMode() {
+        return TraceMode.TRACE;
     }
 
     @Override

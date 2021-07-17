@@ -16,6 +16,7 @@
 
 package com.sbss.bithon.agent.core.tracing.context;
 
+import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
 import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import com.sbss.bithon.agent.core.tracing.report.ITraceReporter;
 import com.sbss.bithon.agent.core.tracing.sampling.SamplingMode;
@@ -26,6 +27,8 @@ import com.sbss.bithon.agent.core.utils.time.Clock;
  * @date 2021/7/17 3:01 下午
  */
 public interface ITraceContext {
+
+    TraceMode traceMode();
 
     String traceId();
 

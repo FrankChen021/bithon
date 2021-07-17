@@ -26,9 +26,10 @@ import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter
  */
 public interface ITracePropagator {
 
-    String BITHON_SOURCE_APPLICATION = "BITHON-SOURCE-APP";
-    String BITHON_TRACE_ID = "BITHON-TRACE-ID";
-    String BITHON_SPAN_IDS = "BITHON-SPAN-IDS";
+    String BITHON_SRC_APPLICATION = "X-BITHON-SRC-APP";
+    String BITHON_TRACE_ID = "X-BITHON-TRACE-ID";
+    String BITHON_SPAN_IDS = "X-BITHON-SPAN-IDS";
+    String BITHON_TRACE_MODE = "X-BITHON-TRACE-MODE";
     String BITHON_ID_SEPARATOR = ";";
 
     <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter);
