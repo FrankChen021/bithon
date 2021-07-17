@@ -18,10 +18,12 @@ package com.sbss.bithon.component.brpc.invocation;
 
 import com.sbss.bithon.component.brpc.IServiceController;
 import com.sbss.bithon.component.brpc.channel.IChannelWriter;
+import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.InetSocketAddress;
 
 public class ServiceStubFactory {
 
@@ -29,6 +31,7 @@ public class ServiceStubFactory {
     private static Method toStringMethod;
     private static Method setTimeoutMethod;
     private static Method rstTimeoutMethod;
+    private static Method getPeerMethod;
 
     static {
         try {
@@ -36,16 +39,18 @@ public class ServiceStubFactory {
             setDebugMethod = IServiceController.class.getMethod("debug", boolean.class);
             setTimeoutMethod = IServiceController.class.getMethod("setTimeout", long.class);
             rstTimeoutMethod = IServiceController.class.getMethod("rstTimeout");
+            getPeerMethod = IServiceController.class.getMethod("getPeer");
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T create(IChannelWriter channelWriter, Class<T> serviceInterface) {
+    public static <T> T create(String appName, IChannelWriter channelWriter, Class<T> serviceInterface) {
         return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(),
                                           new Class[]{serviceInterface, IServiceController.class},
-                                          new ServiceInvocationHandler(channelWriter,
+                                          new ServiceInvocationHandler(appName,
+                                                                       channelWriter,
                                                                        ClientInvocationManager.getInstance()));
     }
 
@@ -54,9 +59,12 @@ public class ServiceStubFactory {
         private final ClientInvocationManager clientInvocationManager;
         private boolean debugEnabled;
         private long timeout = 5000;
+        private final String appName;
 
-        public ServiceInvocationHandler(IChannelWriter channelWriter,
+        public ServiceInvocationHandler(String appName,
+                                        IChannelWriter channelWriter,
                                         ClientInvocationManager clientInvocationManager) {
+            this.appName = appName;
             this.channelWriter = channelWriter;
             this.clientInvocationManager = clientInvocationManager;
         }
@@ -78,7 +86,11 @@ public class ServiceStubFactory {
                 this.timeout = 5000;
                 return null;
             }
-            return clientInvocationManager.invoke(channelWriter, debugEnabled, timeout, method, args);
+            if (getPeerMethod.equals(method)) {
+                InetSocketAddress socketAddress = (InetSocketAddress) channelWriter.getChannel().remoteAddress();
+                return EndPoint.of(socketAddress);
+            }
+            return clientInvocationManager.invoke(appName, channelWriter, debugEnabled, timeout, method, args);
         }
     }
 }

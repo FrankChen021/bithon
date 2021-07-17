@@ -11,6 +11,7 @@
 
     <modules>
         <module>shaded-alibaba-druid</module>
+        <module>shaded-alibaba-sentinel</module>
         <module>shaded-bigqueue</module>
         <module>shaded-bytebuddy</module>
         <module>shaded-jackson</module>

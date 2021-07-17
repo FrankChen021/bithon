@@ -14,17 +14,28 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.server.cmd.api;
+package com.sbss.bithon.agent.sentinel.degrade;
 
-import lombok.Data;
+import com.sbss.bithon.component.brpc.ServiceConfig;
+import com.sbss.bithon.component.brpc.message.serializer.Serializer;
+
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/2 5:23 下午
+ * @date 2021/7/5 7:22 下午
  */
-@Data
-public class CommandRequest {
-    private String appName;
-    private String instanceIp;
-    private int instancePort;
+public interface IDegradingRuleManager {
+
+    @ServiceConfig(serializer = Serializer.JSON)
+    void create(DegradingRuleDto request);
+
+    @ServiceConfig(serializer = Serializer.JSON)
+    void update(DegradingRuleDto request);
+
+    void delete(String ruleId);
+
+    void deleteAll();
+
+    Set<String> getRules();
 }

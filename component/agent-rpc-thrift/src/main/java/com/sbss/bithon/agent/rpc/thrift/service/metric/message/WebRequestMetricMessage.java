@@ -23,6 +23,8 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
   private static final org.apache.thrift.protocol.TField COUNT5XX_FIELD_DESC = new org.apache.thrift.protocol.TField("count5xx", org.apache.thrift.protocol.TType.I64, (short)11);
   private static final org.apache.thrift.protocol.TField REQUEST_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("requestBytes", org.apache.thrift.protocol.TType.I64, (short)12);
   private static final org.apache.thrift.protocol.TField RESPONSE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("responseBytes", org.apache.thrift.protocol.TType.I64, (short)13);
+  private static final org.apache.thrift.protocol.TField FLOWED_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("flowedCount", org.apache.thrift.protocol.TType.I64, (short)14);
+  private static final org.apache.thrift.protocol.TField DEGRADED_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("degradedCount", org.apache.thrift.protocol.TType.I64, (short)15);
 
   private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new WebRequestMetricMessageStandardSchemeFactory();
   private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new WebRequestMetricMessageTupleSchemeFactory();
@@ -40,6 +42,8 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
   public long count5xx; // required
   public long requestBytes; // required
   public long responseBytes; // required
+  public long flowedCount; // required
+  public long degradedCount; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -55,7 +59,9 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     COUNT4XX((short)10, "count4xx"),
     COUNT5XX((short)11, "count5xx"),
     REQUEST_BYTES((short)12, "requestBytes"),
-    RESPONSE_BYTES((short)13, "responseBytes");
+    RESPONSE_BYTES((short)13, "responseBytes"),
+    FLOWED_COUNT((short)14, "flowedCount"),
+    DEGRADED_COUNT((short)15, "degradedCount");
 
     private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -97,6 +103,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
           return REQUEST_BYTES;
         case 13: // RESPONSE_BYTES
           return RESPONSE_BYTES;
+        case 14: // FLOWED_COUNT
+          return FLOWED_COUNT;
+        case 15: // DEGRADED_COUNT
+          return DEGRADED_COUNT;
         default:
           return null;
       }
@@ -149,6 +159,8 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
   private static final int __COUNT5XX_ISSET_ID = 8;
   private static final int __REQUESTBYTES_ISSET_ID = 9;
   private static final int __RESPONSEBYTES_ISSET_ID = 10;
+  private static final int __FLOWEDCOUNT_ISSET_ID = 11;
+  private static final int __DEGRADEDCOUNT_ISSET_ID = 12;
   private short __isset_bitfield = 0;
   private static final _Fields optionals[] = {_Fields.SRC_APPLICATION};
   public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
@@ -180,6 +192,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.RESPONSE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("responseBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.FLOWED_COUNT, new org.apache.thrift.meta_data.FieldMetaData("flowedCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.DEGRADED_COUNT, new org.apache.thrift.meta_data.FieldMetaData("degradedCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(WebRequestMetricMessage.class, metaDataMap);
   }
@@ -199,7 +215,9 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     long count4xx,
     long count5xx,
     long requestBytes,
-    long responseBytes)
+    long responseBytes,
+    long flowedCount,
+    long degradedCount)
   {
     this();
     this.timestamp = timestamp;
@@ -225,6 +243,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     setRequestBytesIsSet(true);
     this.responseBytes = responseBytes;
     setResponseBytesIsSet(true);
+    this.flowedCount = flowedCount;
+    setFlowedCountIsSet(true);
+    this.degradedCount = degradedCount;
+    setDegradedCountIsSet(true);
   }
 
   /**
@@ -249,6 +271,8 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     this.count5xx = other.count5xx;
     this.requestBytes = other.requestBytes;
     this.responseBytes = other.responseBytes;
+    this.flowedCount = other.flowedCount;
+    this.degradedCount = other.degradedCount;
   }
 
   public WebRequestMetricMessage deepCopy() {
@@ -281,6 +305,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     this.requestBytes = 0;
     setResponseBytesIsSet(false);
     this.responseBytes = 0;
+    setFlowedCountIsSet(false);
+    this.flowedCount = 0;
+    setDegradedCountIsSet(false);
+    this.degradedCount = 0;
   }
 
   public long getTimestamp() {
@@ -586,6 +614,52 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __RESPONSEBYTES_ISSET_ID, value);
   }
 
+  public long getFlowedCount() {
+    return this.flowedCount;
+  }
+
+  public WebRequestMetricMessage setFlowedCount(long flowedCount) {
+    this.flowedCount = flowedCount;
+    setFlowedCountIsSet(true);
+    return this;
+  }
+
+  public void unsetFlowedCount() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __FLOWEDCOUNT_ISSET_ID);
+  }
+
+  /** Returns true if field flowedCount is set (has been assigned a value) and false otherwise */
+  public boolean isSetFlowedCount() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __FLOWEDCOUNT_ISSET_ID);
+  }
+
+  public void setFlowedCountIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __FLOWEDCOUNT_ISSET_ID, value);
+  }
+
+  public long getDegradedCount() {
+    return this.degradedCount;
+  }
+
+  public WebRequestMetricMessage setDegradedCount(long degradedCount) {
+    this.degradedCount = degradedCount;
+    setDegradedCountIsSet(true);
+    return this;
+  }
+
+  public void unsetDegradedCount() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __DEGRADEDCOUNT_ISSET_ID);
+  }
+
+  /** Returns true if field degradedCount is set (has been assigned a value) and false otherwise */
+  public boolean isSetDegradedCount() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __DEGRADEDCOUNT_ISSET_ID);
+  }
+
+  public void setDegradedCountIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __DEGRADEDCOUNT_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
     switch (field) {
     case TIMESTAMP:
@@ -692,6 +766,22 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       }
       break;
 
+    case FLOWED_COUNT:
+      if (value == null) {
+        unsetFlowedCount();
+      } else {
+        setFlowedCount((java.lang.Long)value);
+      }
+      break;
+
+    case DEGRADED_COUNT:
+      if (value == null) {
+        unsetDegradedCount();
+      } else {
+        setDegradedCount((java.lang.Long)value);
+      }
+      break;
+
     }
   }
 
@@ -737,6 +827,12 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     case RESPONSE_BYTES:
       return getResponseBytes();
 
+    case FLOWED_COUNT:
+      return getFlowedCount();
+
+    case DEGRADED_COUNT:
+      return getDegradedCount();
+
     }
     throw new java.lang.IllegalStateException();
   }
@@ -774,6 +870,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       return isSetRequestBytes();
     case RESPONSE_BYTES:
       return isSetResponseBytes();
+    case FLOWED_COUNT:
+      return isSetFlowedCount();
+    case DEGRADED_COUNT:
+      return isSetDegradedCount();
     }
     throw new java.lang.IllegalStateException();
   }
@@ -908,6 +1008,24 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
         return false;
     }
 
+    boolean this_present_flowedCount = true;
+    boolean that_present_flowedCount = true;
+    if (this_present_flowedCount || that_present_flowedCount) {
+      if (!(this_present_flowedCount && that_present_flowedCount))
+        return false;
+      if (this.flowedCount != that.flowedCount)
+        return false;
+    }
+
+    boolean this_present_degradedCount = true;
+    boolean that_present_degradedCount = true;
+    if (this_present_degradedCount || that_present_degradedCount) {
+      if (!(this_present_degradedCount && that_present_degradedCount))
+        return false;
+      if (this.degradedCount != that.degradedCount)
+        return false;
+    }
+
     return true;
   }
 
@@ -944,6 +1062,10 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(requestBytes);
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(responseBytes);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(flowedCount);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(degradedCount);
 
     return hashCode;
   }
@@ -1086,6 +1208,26 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
         return lastComparison;
       }
     }
+    lastComparison = java.lang.Boolean.compare(isSetFlowedCount(), other.isSetFlowedCount());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetFlowedCount()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.flowedCount, other.flowedCount);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetDegradedCount(), other.isSetDegradedCount());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetDegradedCount()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.degradedCount, other.degradedCount);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -1167,6 +1309,14 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     if (!first) sb.append(", ");
     sb.append("responseBytes:");
     sb.append(this.responseBytes);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("flowedCount:");
+    sb.append(this.flowedCount);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("degradedCount:");
+    sb.append(this.degradedCount);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -1317,6 +1467,22 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 14: // FLOWED_COUNT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.flowedCount = iprot.readI64();
+              struct.setFlowedCountIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 15: // DEGRADED_COUNT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.degradedCount = iprot.readI64();
+              struct.setDegradedCountIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -1377,6 +1543,12 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       oprot.writeFieldBegin(RESPONSE_BYTES_FIELD_DESC);
       oprot.writeI64(struct.responseBytes);
       oprot.writeFieldEnd();
+      oprot.writeFieldBegin(FLOWED_COUNT_FIELD_DESC);
+      oprot.writeI64(struct.flowedCount);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(DEGRADED_COUNT_FIELD_DESC);
+      oprot.writeI64(struct.degradedCount);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1434,7 +1606,13 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       if (struct.isSetResponseBytes()) {
         optionals.set(12);
       }
-      oprot.writeBitSet(optionals, 13);
+      if (struct.isSetFlowedCount()) {
+        optionals.set(13);
+      }
+      if (struct.isSetDegradedCount()) {
+        optionals.set(14);
+      }
+      oprot.writeBitSet(optionals, 15);
       if (struct.isSetTimestamp()) {
         oprot.writeI64(struct.timestamp);
       }
@@ -1474,12 +1652,18 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       if (struct.isSetResponseBytes()) {
         oprot.writeI64(struct.responseBytes);
       }
+      if (struct.isSetFlowedCount()) {
+        oprot.writeI64(struct.flowedCount);
+      }
+      if (struct.isSetDegradedCount()) {
+        oprot.writeI64(struct.degradedCount);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, WebRequestMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-      java.util.BitSet incoming = iprot.readBitSet(13);
+      java.util.BitSet incoming = iprot.readBitSet(15);
       if (incoming.get(0)) {
         struct.timestamp = iprot.readI64();
         struct.setTimestampIsSet(true);
@@ -1531,6 +1715,14 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       if (incoming.get(12)) {
         struct.responseBytes = iprot.readI64();
         struct.setResponseBytesIsSet(true);
+      }
+      if (incoming.get(13)) {
+        struct.flowedCount = iprot.readI64();
+        struct.setFlowedCountIsSet(true);
+      }
+      if (incoming.get(14)) {
+        struct.degradedCount = iprot.readI64();
+        struct.setDegradedCountIsSet(true);
       }
     }
   }

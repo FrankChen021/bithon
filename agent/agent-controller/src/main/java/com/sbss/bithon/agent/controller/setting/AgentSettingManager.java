@@ -26,6 +26,8 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -47,6 +49,12 @@ public class AgentSettingManager {
     private final IAgentController controller;
     private final Map<String, List<IAgentSettingRefreshListener>> listeners;
     private Long lastModifiedAt = 0L;
+    private Map<String, JsonNode> latestSettings = Collections.emptyMap();
+    private ObjectMapper om;
+
+    public Map<String, JsonNode> getLatestSettings() {
+        return latestSettings;
+    }
 
     public static void createInstance(String appName, String env, IAgentController controller) {
         INSTANCE = new AgentSettingManager(appName, env, controller);
@@ -62,10 +70,13 @@ public class AgentSettingManager {
         this.env = env;
         this.controller = controller;
         this.listeners = new ConcurrentHashMap<>();
+        this.om = new ObjectMapper();
+        om.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    public void register(SettingRootNames name, IAgentSettingRefreshListener listener) {
-        listeners.computeIfAbsent(name.getName(), key -> new ArrayList<>()).add(listener);
+    public void register(String name, IAgentSettingRefreshListener listener) {
+        listeners.computeIfAbsent(name, key -> new ArrayList<>()).add(listener);
     }
 
     private void start() {
@@ -91,10 +102,7 @@ public class AgentSettingManager {
             return;
         }
 
-        ObjectMapper om = new ObjectMapper();
-        om.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
+        Map<String, JsonNode> latestSettings = new HashMap<>();
         settings.forEach((sectionName, settingString) -> {
             List<IAgentSettingRefreshListener> listeners = this.listeners.get(sectionName);
             if (CollectionUtils.isEmpty(listeners)) {
@@ -109,6 +117,8 @@ public class AgentSettingManager {
                 return;
             }
 
+            latestSettings.put(sectionName, configNode);
+
             for (IAgentSettingRefreshListener listener : listeners) {
                 try {
                     listener.onRefresh(om, configNode);
@@ -117,6 +127,11 @@ public class AgentSettingManager {
                 }
             }
         });
-        lastModifiedAt = System.currentTimeMillis();
+        this.latestSettings = latestSettings;
+        this.lastModifiedAt = System.currentTimeMillis();
+    }
+
+    public ObjectMapper getObjectMapper() {
+        return om;
     }
 }

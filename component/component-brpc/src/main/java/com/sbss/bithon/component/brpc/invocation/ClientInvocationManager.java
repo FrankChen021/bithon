@@ -51,7 +51,12 @@ public class ClientInvocationManager {
         return INSTANCE;
     }
 
-    public Object invoke(IChannelWriter channelWriter, boolean debug, long timeout, Method method, Object[] args)
+    public Object invoke(String appName,
+                         IChannelWriter channelWriter,
+                         boolean debug,
+                         long timeout,
+                         Method method,
+                         Object[] args)
         throws Throwable {
         //
         // make sure channel has been established
@@ -91,6 +96,7 @@ public class ClientInvocationManager {
                                                                           .args(args)
                                                                           .serializer(serializer)
                                                                           .isOneway(isOneway)
+                                                                          .applicationName(appName)
                                                                           .build();
 
         InflightRequest inflightRequest = null;

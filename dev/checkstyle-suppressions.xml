@@ -26,7 +26,7 @@
 <suppressions>
   <!-- See http://checkstyle.sourceforge.net/config_filters.html#SuppressionFilter for examples -->
 
-  <suppress files="[\\/]rpc[\\/]services[\\/]metrics[\\/]" checks=".*"/>
+  <suppress files="[\\/]brpc[\\/]example[\\/]protobuf[\\/]" checks=".*"/>
   <suppress files="[/\\]agent-rpc-thrift[/\\]" checks=".*"/>
   <suppress files="[/\\]jooq[/\\]" checks=".*"/>
   <suppress files="[/\\]generated-sources[/\\]" checks=".*"/>

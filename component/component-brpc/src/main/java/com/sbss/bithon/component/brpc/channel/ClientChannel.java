@@ -64,6 +64,11 @@ public class ClientChannel implements IChannelWriter, Closeable {
     private Duration retryInterval;
     private int maxRetry;
 
+    /**
+     * a logic name of the client, which could be used for the servers to find client instances
+     */
+    private String appName;
+
     public ClientChannel(String host, int port) {
         this(new SingleEndPointProvider(host, port));
     }
@@ -117,6 +122,14 @@ public class ClientChannel implements IChannelWriter, Closeable {
         }
     }
 
+    /**
+     * must be called before {@link #getRemoteService(Class)}
+     */
+    public ClientChannel applicationName(String appName) {
+        this.appName = appName;
+        return this;
+    }
+
     public ClientChannel configureRetry(int maxRetry, Duration interval) {
         this.maxRetry = maxRetry;
         this.retryInterval = interval;
@@ -125,9 +138,11 @@ public class ClientChannel implements IChannelWriter, Closeable {
 
     @Override
     public void close() {
-        try {
-            this.bossGroup.shutdownGracefully().sync();
-        } catch (InterruptedException ignored) {
+        if (this.bossGroup != null) {
+            try {
+                this.bossGroup.shutdownGracefully().sync();
+            } catch (InterruptedException ignored) {
+            }
         }
         this.bossGroup = null;
         this.channel.getAndSet(null);
@@ -165,7 +180,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
     }
 
     public <T> T getRemoteService(Class<T> serviceType) {
-        return ServiceStubFactory.create(this, serviceType);
+        return ServiceStubFactory.create(this.appName, this, serviceType);
     }
 
     class ClientChannelManager extends ChannelInboundHandlerAdapter {

@@ -25,6 +25,7 @@
         <module>agent-dispatcher-brpc</module>
         <module>agent-dispatcher-thrift</module>
         <module>agent-plugins</module>
+        <module>agent-sentinel</module>
         <module>agent-main</module>
     </modules>
 
@@ -66,6 +67,12 @@
             <dependency>
                 <groupId>com.sbss.bithon.agent</groupId>
                 <artifactId>agent-controller</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sbss.bithon.agent</groupId>
+                <artifactId>agent-sentinel</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

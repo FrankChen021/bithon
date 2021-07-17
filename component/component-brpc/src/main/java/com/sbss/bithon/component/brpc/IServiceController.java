@@ -16,6 +16,8 @@
 
 package com.sbss.bithon.component.brpc;
 
+import com.sbss.bithon.component.brpc.endpoint.EndPoint;
+
 public interface IServiceController {
     void debug(boolean on);
 
@@ -25,4 +27,6 @@ public interface IServiceController {
     void setTimeout(long timeout);
 
     void rstTimeout();
+
+    EndPoint getPeer();
 }

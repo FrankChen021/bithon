@@ -29,6 +29,7 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
 
     private String serviceName;
     private String methodName;
+    private String appName;
 
     /**
      * args
@@ -50,6 +51,12 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
         this.transactionId = in.readInt64();
         this.serviceName = in.readString();
         this.methodName = in.readString();
+
+        boolean hasAppName = in.readRawByte() == 1;
+        if (hasAppName) {
+            appName = in.readString();
+        }
+
         this.serializer = Serializer.getSerializer(in.readInt32());
         this.args = in;
         return this;
@@ -61,6 +68,10 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
 
     public String getMethodName() {
         return methodName;
+    }
+
+    public String getAppName() {
+        return appName;
     }
 
     public Object[] getArgs(Type[] parameterTypes) throws BadRequestException, IOException {

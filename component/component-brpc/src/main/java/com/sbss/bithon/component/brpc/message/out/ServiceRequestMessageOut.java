@@ -24,9 +24,16 @@ import java.io.IOException;
 
 public class ServiceRequestMessageOut extends ServiceMessageOut {
 
-    private boolean isOneway;
     private String serviceName;
     private String methodName;
+
+    /**
+     * client application name
+     */
+    private String appName;
+
+    // will NOT serialized into message
+    private boolean isOneway;
 
     public String getServiceName() {
         return serviceName;
@@ -57,6 +64,13 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
 
         out.writeStringNoTag(this.serviceName);
         out.writeStringNoTag(this.methodName);
+
+        if (this.appName == null) {
+            out.write((byte) 0);
+        } else {
+            out.write((byte) 1);
+            out.writeStringNoTag(this.appName);
+        }
 
         Serializer serializer = getSerializer();
         out.writeInt32NoTag(serializer.getType());
@@ -99,6 +113,11 @@ public class ServiceRequestMessageOut extends ServiceMessageOut {
 
         public Builder isOneway(boolean isOneway) {
             request.isOneway = isOneway;
+            return this;
+        }
+
+        public Builder applicationName(String appName) {
+            request.appName = appName;
             return this;
         }
 

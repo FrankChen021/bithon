@@ -11,6 +11,13 @@
   </parent>
   <artifactId>shaded-protobuf</artifactId>
 
+  <properties>
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+    <java.version>8</java.version>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.google.protobuf</groupId>

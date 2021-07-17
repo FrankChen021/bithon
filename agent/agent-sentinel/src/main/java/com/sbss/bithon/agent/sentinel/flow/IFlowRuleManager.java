@@ -14,22 +14,28 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.controller.setting;
+package com.sbss.bithon.agent.sentinel.flow;
+
+import com.sbss.bithon.component.brpc.ServiceConfig;
+import com.sbss.bithon.component.brpc.message.serializer.Serializer;
+
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/16 3:39 下午
+ * @date 2021/7/5 7:50 下午
  */
-public enum SettingRootNames {
-    SQL("sql");
+public interface IFlowRuleManager {
 
-    private final String name;
+    @ServiceConfig(serializer = Serializer.JSON)
+    void create(FlowRuleDto request);
 
-    SettingRootNames(String name) {
-        this.name = name;
-    }
+    @ServiceConfig(serializer = Serializer.JSON)
+    void update(FlowRuleDto request);
 
-    public String getName() {
-        return name;
-    }
+    void delete(String ruleId);
+
+    void deleteAll();
+
+    Set<String> getRules();
 }

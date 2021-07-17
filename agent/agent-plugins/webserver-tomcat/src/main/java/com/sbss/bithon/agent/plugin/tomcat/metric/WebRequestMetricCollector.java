@@ -23,6 +23,7 @@ import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
 import org.apache.coyote.Request;
 import org.apache.coyote.Response;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -62,5 +63,11 @@ public class WebRequestMetricCollector extends IntervalMetricCollector<WebReques
                                List<String> dimensions,
                                WebRequestCompositeMetric metric) {
         return messageConverter.from(timestamp, interval, dimensions, metric);
+    }
+
+    public WebRequestCompositeMetric getOrCreate(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String srcApplication = request.getHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME);
+        return getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
     }
 }
