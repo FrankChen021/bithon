@@ -21,7 +21,7 @@ import com.sbss.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapMethodAop;
 import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 import shaded.net.bytebuddy.ByteBuddy;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.dynamic.DynamicType;
@@ -56,14 +56,14 @@ public class AopClassGenerator {
         return methodsInterceptor + "Aop";
     }
 
-    public AgentBuilder generate(List<AbstractPlugin> plugins) {
-        for (AbstractPlugin plugin : plugins) {
+    public AgentBuilder generate(List<IPlugin> plugins) {
+        for (IPlugin plugin : plugins) {
             generateAop4Plugin(plugin);
         }
         return injectClassToClassLoader();
     }
 
-    private void generateAop4Plugin(AbstractPlugin plugin) {
+    private void generateAop4Plugin(IPlugin plugin) {
         for (InterceptorDescriptor interceptor : plugin.getInterceptors()) {
             if (!interceptor.isBootstrapClass()) {
                 continue;

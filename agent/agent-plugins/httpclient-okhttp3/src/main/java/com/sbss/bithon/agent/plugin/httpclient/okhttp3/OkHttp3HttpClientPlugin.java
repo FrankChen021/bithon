@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.plugin.httpclient.okhttp3;
 
 import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +30,7 @@ import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBui
  *
  * @author frankchen
  */
-public class OkHttp3HttpClientPlugin extends AbstractPlugin {
+public class OkHttp3HttpClientPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {

@@ -19,7 +19,7 @@ package com.sbss.bithon.agent.plugin.lettuce;
 import com.sbss.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
 import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 import com.sbss.bithon.agent.plugin.lettuce.interceptor.RedisClientConnect;
 
 import java.util.Arrays;
@@ -32,7 +32,7 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.namedOneOf;
  * @author frankchen
  * @date 2021-02-27 16:58:01
  */
-public class LettucePlugin extends AbstractPlugin {
+public class LettucePlugin implements IPlugin {
 
     /**
      * Since no Connection objects are intercepted,

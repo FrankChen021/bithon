@@ -19,7 +19,7 @@ package com.sbss.bithon.agent.plugin.mongodb38;
 import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import com.sbss.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,7 +31,7 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.takesArguments;
 /**
  * @author frankchen
  */
-public class MongoDb38Plugin extends AbstractPlugin {
+public class MongoDb38Plugin implements IPlugin {
 
     @Override
     public List<IInterceptorPrecondition> getPreconditions() {

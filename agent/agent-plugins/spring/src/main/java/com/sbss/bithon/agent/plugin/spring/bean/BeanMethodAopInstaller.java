@@ -17,8 +17,8 @@
 package com.sbss.bithon.agent.plugin.spring.bean;
 
 import com.sbss.bithon.agent.core.aop.AopDebugger;
-import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
-import com.sbss.bithon.agent.core.plugin.config.StaticConfig;
+import com.sbss.bithon.agent.core.aop.InstrumentationHelper;
+import com.sbss.bithon.agent.core.plugin.PluginStaticConfig;
 import com.sbss.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import com.sbss.bithon.agent.core.utils.filter.IMatcher;
 import com.sbss.bithon.agent.core.utils.filter.InCollectionMatcher;
@@ -71,7 +71,7 @@ public class BeanMethodAopInstaller {
     }
 
     public static void initialize() {
-        StaticConfig config = StaticConfig.load(SpringPlugin.class);
+        PluginStaticConfig config = PluginStaticConfig.load(SpringPlugin.class);
         excludingClasses = config.getConfig("spring.bean.excluding.classes", MatcherList.class)
                                  .orElse(new MatcherList());
         excludingMethods = config.getConfig("spring.bean.excluding.methods", MatcherList.class)

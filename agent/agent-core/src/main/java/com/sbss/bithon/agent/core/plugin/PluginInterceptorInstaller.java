@@ -36,14 +36,14 @@ import java.util.zip.ZipFile;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18-20:36
  */
-public class Installer {
+public class PluginInterceptorInstaller {
 
     public static void install(AgentContext agentContext, Instrumentation inst) {
         // create plugin class loader first
         PluginClassLoaderManager.createDefault(agentContext.getAgentDirectory());
 
         // find all plugins first
-        List<AbstractPlugin> plugins = loadPlugins();
+        List<IPlugin> plugins = loadPlugins();
 
         // install interceptors for bootstrap classes
         AgentBuilder agentBuilder = new AopClassGenerator(inst,
@@ -57,12 +57,10 @@ public class Installer {
 
         // install shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> plugins.forEach((plugin) -> plugin.stop())));
-
-        InstrumentationHelper.setInstance(inst);
     }
 
-    private static void install(AgentBuilder agentBuilder, Instrumentation inst, List<AbstractPlugin> plugins) {
-        for (AbstractPlugin plugin : plugins) {
+    private static void install(AgentBuilder agentBuilder, Instrumentation inst, List<IPlugin> plugins) {
+        for (IPlugin plugin : plugins) {
             // this installer must be instantiated for each plugin
             InterceptorInstaller installer = new InterceptorInstaller(agentBuilder, inst);
             installer.transformToBithonClass(plugin.getBithonClassDescriptor());
@@ -73,13 +71,13 @@ public class Installer {
         }
     }
 
-    private static List<AbstractPlugin> loadPlugins() {
+    private static List<IPlugin> loadPlugins() {
 
         JarClassLoader pluginClassLoader = PluginClassLoaderManager.getDefaultLoader();
         List<JarFile> pluginJars = new ArrayList<>(pluginClassLoader.getJars());
         pluginJars.sort(Comparator.comparing(ZipFile::getName));
 
-        final List<AbstractPlugin> plugins = new ArrayList<>();
+        final List<IPlugin> plugins = new ArrayList<>();
         for (JarFile jar : pluginJars) {
             try {
                 String pluginClassName = jar.getManifest().getMainAttributes().getValue("Plugin-Class");
@@ -87,13 +85,13 @@ public class Installer {
                     continue;
                 }
 
-                AbstractPlugin plugin = (AbstractPlugin) Class.forName(pluginClassName,
-                                                                       true,
-                                                                       pluginClassLoader)
-                                                              .newInstance();
+                IPlugin plugin = (IPlugin) Class.forName(pluginClassName,
+                                                         true,
+                                                         pluginClassLoader)
+                                                .newInstance();
                 plugins.add(plugin);
             } catch (Throwable e) {
-                LoggerFactory.getLogger(Installer.class)
+                LoggerFactory.getLogger(PluginInterceptorInstaller.class)
                              .error(String.format("Failed to add plugin from jar %s",
                                                   new File(jar.getName()).getName()),
                                     e);

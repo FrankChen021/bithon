@@ -19,7 +19,7 @@ package com.sbss.bithon.agent.plugin.mysql8;
 import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import com.sbss.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,7 +30,7 @@ import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBui
 /**
  * @author frankchen
  */
-public class MySql8Plugin extends AbstractPlugin {
+public class MySql8Plugin implements IPlugin {
     static final String METHOD_EXECUTE = "execute";
     static final String METHOD_EXECUTE_UPDATE = "executeUpdate";
     static final String METHOD_EXECUTE_INTERNAL = "executeInternal";

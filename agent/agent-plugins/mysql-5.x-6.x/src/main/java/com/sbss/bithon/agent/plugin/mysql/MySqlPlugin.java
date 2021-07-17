@@ -19,7 +19,7 @@ package com.sbss.bithon.agent.plugin.mysql;
 import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import com.sbss.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,7 +32,7 @@ import static com.sbss.bithon.agent.core.aop.precondition.IInterceptorPreconditi
 /**
  * @author frankchen
  */
-public class MySqlPlugin extends AbstractPlugin {
+public class MySqlPlugin implements IPlugin {
     public static final String METHOD_EXECUTE = "execute";
     public static final String METHOD_EXECUTE_QUERY = "executeQuery";
     public static final String METHOD_EXECUTE_UPDATE = "executeUpdate";
