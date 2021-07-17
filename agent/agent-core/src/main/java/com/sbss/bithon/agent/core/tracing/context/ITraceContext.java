@@ -38,8 +38,6 @@ public interface ITraceContext {
 
     ITraceReporter reporter();
 
-    ITraceIdGenerator traceIdGenerator();
-
     ISpanIdGenerator spanIdGenerator();
 
     void finish();

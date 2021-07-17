@@ -52,14 +52,13 @@ public class BithonExtractor implements ITraceContextExtractor {
         ITraceContext context;
         if (traceId.startsWith("P-")) {
             // propagation mode
-            context = new NoopTraceContext(traceId, ids[0], ids[1], Tracer.get().traceIdGenerator());
+            context = new NoopTraceContext(traceId, ids[0], ids[1]);
         } else {
             // default to trace mode
             context = new TraceContext(traceId,
                                        ids[0],
                                        ids[1],
-                                       Tracer.get().reporter(),
-                                       Tracer.get().traceIdGenerator());
+                                       Tracer.get().reporter());
         }
 
         context.currentSpan()

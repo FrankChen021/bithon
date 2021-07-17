@@ -65,7 +65,6 @@ class B3Extractor implements ITraceContextExtractor {
         return new TraceContext(traceId,
                                 spanId,
                                 parentSpanId,
-                                Tracer.get().reporter(),
-                                Tracer.get().traceIdGenerator());
+                                Tracer.get().reporter());
     }
 }

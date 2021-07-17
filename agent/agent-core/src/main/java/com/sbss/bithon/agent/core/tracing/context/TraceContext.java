@@ -36,7 +36,6 @@ import java.util.Stack;
 public class TraceContext implements ITraceContext {
 
     private final ITraceReporter reporter;
-    private final ITraceIdGenerator idGenerator;
     private final Stack<ITraceSpan> spanStack = new Stack<>();
     private final List<ITraceSpan> spans = new ArrayList<>();
     private final Clock clock = new Clock();
@@ -46,39 +45,33 @@ public class TraceContext implements ITraceContext {
     private TraceMode traceMode;
 
     public TraceContext(String traceId,
-                        ITraceReporter reporter,
-                        ITraceIdGenerator idGenerator) {
-        this(traceId, reporter, idGenerator, new DefaultSpanIdGenerator());
+                        ITraceReporter reporter) {
+        this(traceId, reporter, new DefaultSpanIdGenerator());
+    }
+
+    public TraceContext(String traceId,
+                        String spanId,
+                        String parentSpanId,
+                        ITraceReporter reporter) {
+        this(traceId, spanId, parentSpanId, reporter, new DefaultSpanIdGenerator());
     }
 
     public TraceContext(String traceId,
                         String spanId,
                         String parentSpanId,
                         ITraceReporter reporter,
-                        ITraceIdGenerator idGenerator) {
-        this(traceId, spanId, parentSpanId, reporter, idGenerator, new DefaultSpanIdGenerator());
-    }
-
-    public TraceContext(String traceId,
-                        String spanId,
-                        String parentSpanId,
-                        ITraceReporter reporter,
-                        ITraceIdGenerator idGenerator,
                         ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
         this.reporter = reporter;
-        this.idGenerator = idGenerator;
         this.spanIdGenerator = spanIdGenerator;
         this.onSpanCreated(new TraceSpan(spanId, parentSpanId, this).start());
     }
 
     public TraceContext(String traceId,
                         ITraceReporter reporter,
-                        ITraceIdGenerator idGenerator,
                         ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
         this.reporter = reporter;
-        this.idGenerator = idGenerator;
         this.spanIdGenerator = spanIdGenerator;
         this.onSpanCreated(new TraceSpan(spanIdGenerator.newSpanId(), null, this).start());
     }
@@ -106,11 +99,6 @@ public class TraceContext implements ITraceContext {
     @Override
     public ITraceReporter reporter() {
         return reporter;
-    }
-
-    @Override
-    public ITraceIdGenerator traceIdGenerator() {
-        return idGenerator;
     }
 
     @Override

@@ -54,13 +54,11 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
         SamplingMode mode = Tracer.get().samplingDecisionMaker().decideSamplingMode(request);
         if (mode == SamplingMode.NONE) {
             // create a propagation trace context to propagation trace context along the service call without reporting trace data
-            context = new NoopTraceContext(Tracer.get().traceIdGenerator().newTraceId(),
-                                           Tracer.get().traceIdGenerator());
+            context = new NoopTraceContext("P-" + Tracer.get().traceIdGenerator().newTraceId());
         } else {
             // create a traceable context
             context = new TraceContext(Tracer.get().traceIdGenerator().newTraceId(),
-                                       Tracer.get().reporter(),
-                                       Tracer.get().traceIdGenerator());
+                                       Tracer.get().reporter());
         }
 
         context.currentSpan()

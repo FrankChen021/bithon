@@ -52,7 +52,6 @@ public class TraceSpanBuilder {
                                 traceContext.spanIdGenerator().newSpanId(),
                                 parentSpan.spanId(),
                                 traceContext.reporter(),
-                                traceContext.traceIdGenerator(),
                                 traceContext.spanIdGenerator())
             .currentSpan()
             .component(name);

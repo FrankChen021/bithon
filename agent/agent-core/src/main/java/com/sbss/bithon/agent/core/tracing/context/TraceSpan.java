@@ -16,7 +16,6 @@
 
 package com.sbss.bithon.agent.core.tracing.context;
 
-import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Executable;

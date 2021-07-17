@@ -36,25 +36,20 @@ public class NoopTraceContext implements ITraceContext {
     };
     private final Clock clock = new Clock();
 
-    private final ITraceIdGenerator traceIdGenerator;
     private final ISpanIdGenerator spanIdGenerator;
     private final Stack<ITraceSpan> spanStack = new Stack<>();
     private final String traceId;
 
     public NoopTraceContext(String traceId,
                             String spanId,
-                            String parentSpanId,
-                            ITraceIdGenerator traceIdGenerator) {
+                            String parentSpanId) {
         this.traceId = traceId;
-        this.traceIdGenerator = traceIdGenerator;
         this.spanIdGenerator = new DefaultSpanIdGenerator();
         this.onSpanCreated(new NoopTraceSpan(this, spanId, parentSpanId).start());
     }
 
-    public NoopTraceContext(String traceId,
-                            ITraceIdGenerator idGenerator) {
+    public NoopTraceContext(String traceId) {
         this.traceId = traceId;
-        this.traceIdGenerator = idGenerator;
         this.spanIdGenerator = new DefaultSpanIdGenerator();
         this.onSpanCreated(new NoopTraceSpan(this, spanIdGenerator.newSpanId(), null).start());
     }
@@ -82,11 +77,6 @@ public class NoopTraceContext implements ITraceContext {
     @Override
     public ITraceReporter reporter() {
         return noopTraceReporter;
-    }
-
-    @Override
-    public ITraceIdGenerator traceIdGenerator() {
-        return traceIdGenerator;
     }
 
     @Override
