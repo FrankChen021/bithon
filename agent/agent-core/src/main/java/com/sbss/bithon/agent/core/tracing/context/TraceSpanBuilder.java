@@ -16,6 +16,8 @@
 
 package com.sbss.bithon.agent.core.tracing.context;
 
+import com.sbss.bithon.agent.core.tracing.Tracer;
+
 import java.lang.reflect.Executable;
 
 /**
@@ -24,14 +26,14 @@ import java.lang.reflect.Executable;
  */
 public class TraceSpanBuilder {
 
-    static class NoopSpan extends TraceSpan {
-        public NoopSpan(String spanId,
-                        String parentSpanId,
-                        TraceContext traceContext) {
+    static class NoopTraceSpan extends TraceSpan {
+        public NoopTraceSpan(String spanId,
+                             String parentSpanId,
+                             TraceContext traceContext) {
             super(spanId, parentSpanId, traceContext);
         }
 
-        static NoopSpan INSTANCE = new NoopSpan(null, null, null);
+        static NoopTraceSpan INSTANCE = new NoopTraceSpan(null, null, null);
 
         @Override
         public TraceSpan start() {
@@ -61,12 +63,12 @@ public class TraceSpanBuilder {
     public static TraceSpan build(String name) {
         TraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
-            return NoopSpan.INSTANCE;
+            return NoopTraceSpan.INSTANCE;
         }
 
         TraceSpan parentSpan = traceContext.currentSpan();
         if (parentSpan == null) {
-            return NoopSpan.INSTANCE;
+            return NoopTraceSpan.INSTANCE;
         }
 
         // create a span and save it in user-context
@@ -76,12 +78,12 @@ public class TraceSpanBuilder {
     public static TraceSpan buildAsyncSpan(String name) {
         TraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
-            return NoopSpan.INSTANCE;
+            return NoopTraceSpan.INSTANCE;
         }
 
         TraceSpan parentSpan = traceContext.currentSpan();
         if (parentSpan == null) {
-            return NoopSpan.INSTANCE;
+            return NoopTraceSpan.INSTANCE;
         }
 
         return new TraceContext(traceContext.traceId(),

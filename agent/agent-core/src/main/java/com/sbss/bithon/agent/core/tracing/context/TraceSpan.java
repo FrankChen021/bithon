@@ -16,6 +16,7 @@
 
 package com.sbss.bithon.agent.core.tracing.context;
 
+import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Executable;
@@ -167,6 +168,11 @@ public class TraceSpan {
         } catch (Throwable t) {
             LoggerFactory.getLogger(TraceSpan.class).error("Exception occurred when finish a span", t);
         }
+    }
+
+    public <T> TraceSpan propagate(T injectedTo, PropagationSetter<T> setter) {
+        this.traceContext.propagate(injectedTo, setter);
+        return this;
     }
 
     @Override

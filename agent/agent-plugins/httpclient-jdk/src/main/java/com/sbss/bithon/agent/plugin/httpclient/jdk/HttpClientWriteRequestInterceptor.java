@@ -67,14 +67,9 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
                                       .method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       .tag("uri", connection.getURL().toString())
-                                      .start());
-
-        //
-        // propagate tracing after span creation
-        //
-        traceContext.propagate(headers, (headersArgs, key, value) -> {
-            headersArgs.set(key, value);
-        });
+                                      .propagate(headers, (headersArgs, key, value) -> {
+                                          headersArgs.set(key, value);
+                                      }).start());
 
         return InterceptionDecision.CONTINUE;
     }
