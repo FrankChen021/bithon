@@ -16,6 +16,7 @@
 
 package com.sbss.bithon.agent.plugin.jvm.mem;
 
+import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import com.sbss.bithon.agent.core.metric.domain.jvm.MemoryCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jvm.MemoryRegionCompositeMetric;
 import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
@@ -26,6 +27,8 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.util.Iterator;
 import java.util.ServiceLoader;
+
+import static com.sbss.bithon.agent.plugin.jvm.JmxBeans.RUNTIME_BEAN;
 
 /**
  * @author frank.chen021@outlook.com
@@ -52,18 +55,21 @@ public class MemoryMetricCollector {
                              "unable to find instance of IDirectMemoryCollector. Check if agent-plugin-jvm-jdkXXXX.jar exists.");
             System.exit(-1);
         }
-        directMemoryCollector = i.next();
+        try {
+            directMemoryCollector = i.next();
+        } catch (UnsupportedClassVersionError e) {
+            throw new AgentException("Current JRE[%s] is mismatched with the JDK that is used to compile Bithon. Make sure to use a matched JRE, or compile Bithon with a right JDK.",
+                                     RUNTIME_BEAN.getSpecVersion());
+        }
     }
 
     public static MemoryCompositeMetric collectTotal() {
         return new MemoryCompositeMetric(Runtime.getRuntime().totalMemory(),
                                          Runtime.getRuntime().freeMemory());
-
     }
 
     public static MemoryRegionCompositeMetric collectHeap() {
         return new MemoryRegionCompositeMetric(JmxBeans.MEM_BEAN.getHeapMemoryUsage());
-
     }
 
     public static MemoryRegionCompositeMetric collectNonHeap() {
