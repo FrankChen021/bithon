@@ -19,7 +19,7 @@ package com.sbss.bithon.agent.plugin.mysql8;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
-import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
+import com.sbss.bithon.agent.core.plugin.precondition.IInterceptorPrecondition;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,9 +38,9 @@ public class MySql8Plugin extends AbstractPlugin {
     static final String METHOD_SEND_COMMAND = "sendCommand";
 
     @Override
-    public List<IPluginInstallationChecker> getCheckers() {
+    public List<IInterceptorPrecondition> getPreconditions() {
         return Collections.singletonList(
-            IPluginInstallationChecker.hasClass("com.mysql.cj.interceptors.QueryInterceptor", true)
+            IInterceptorPrecondition.hasClass("com.mysql.cj.interceptors.QueryInterceptor", true)
         );
     }
 

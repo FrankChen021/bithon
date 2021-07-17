@@ -31,8 +31,8 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author frankchen
  */
-class PluginInterceptorManager {
-    private static final Logger log = LoggerFactory.getLogger(PluginInterceptorManager.class);
+class InterceptorManager {
+    private static final Logger log = LoggerFactory.getLogger(InterceptorManager.class);
 
     private static final Map<String, AbstractInterceptor> INTERCEPTORS = new ConcurrentHashMap<>();
 

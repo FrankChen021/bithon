@@ -24,12 +24,12 @@ import shaded.org.slf4j.LoggerFactory;
  * @author frank.chen021@outlook.com
  * @date 2021/1/17 8:14 下午
  */
-class HasClassChecker implements IPluginInstallationChecker {
+class HasClassPrecondition implements IInterceptorPrecondition {
 
     private final String className;
     private final boolean debugging;
 
-    public HasClassChecker(String className, boolean debugging) {
+    public HasClassPrecondition(String className, boolean debugging) {
         this.className = className;
         this.debugging = debugging;
     }
@@ -40,7 +40,7 @@ class HasClassChecker implements IPluginInstallationChecker {
                               TypeDescription typeDescription) {
         boolean resolved = TypeResolver.getInstance().isResolved(classLoader, this.className);
         if (!resolved && this.debugging) {
-            LoggerFactory.getLogger(HasClassChecker.class)
+            LoggerFactory.getLogger(HasClassPrecondition.class)
                          .info("Required class [{}] not found to install interceptor for [{}] in plugin [{}]",
                                this.className,
                                typeDescription.getName(),

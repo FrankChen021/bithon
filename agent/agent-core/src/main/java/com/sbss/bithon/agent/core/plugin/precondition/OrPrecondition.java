@@ -23,16 +23,16 @@ import shaded.net.bytebuddy.description.type.TypeDescription;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class OrChecker implements IPluginInstallationChecker {
-    private final IPluginInstallationChecker[] checkers;
+public class OrPrecondition implements IInterceptorPrecondition {
+    private final IInterceptorPrecondition[] checkers;
 
-    public OrChecker(IPluginInstallationChecker[] checkers) {
+    public OrPrecondition(IInterceptorPrecondition[] checkers) {
         this.checkers = checkers;
     }
 
     @Override
     public boolean canInstall(AbstractPlugin plugin, ClassLoader classLoader, TypeDescription typeDescription) {
-        for (IPluginInstallationChecker checker : checkers) {
+        for (IInterceptorPrecondition checker : checkers) {
             if (checker.canInstall(plugin, classLoader, typeDescription)) {
                 return true;
             }

@@ -19,7 +19,7 @@ package com.sbss.bithon.agent.core.plugin;
 import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
+import com.sbss.bithon.agent.core.plugin.precondition.IInterceptorPrecondition;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.List;
  */
 public abstract class AbstractPlugin {
 
-    public List<IPluginInstallationChecker> getCheckers() {
+    public List<IInterceptorPrecondition> getPreconditions() {
         return Collections.emptyList();
     }
 

@@ -14,13 +14,12 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.interceptor;
+package com.sbss.bithon.agent.core.plugin.aop;
 
 
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapMethodAop;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.AopDebugger;
 import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
 import shaded.net.bytebuddy.ByteBuddy;
@@ -41,14 +40,14 @@ import java.util.Map;
  * @author frankchen
  * @date 2021-02-18 19:23
  */
-public class PluginAopGenerator {
+public class AopClassGenerator {
 
     private final Map<String, byte[]> classesTypeMap = new HashMap<>();
     private final Instrumentation instrumentation;
     private final AgentBuilder agentBuilder;
 
-    public PluginAopGenerator(Instrumentation instrumentation,
-                              AgentBuilder agentBuilder) {
+    public AopClassGenerator(Instrumentation instrumentation,
+                             AgentBuilder agentBuilder) {
         this.instrumentation = instrumentation;
         this.agentBuilder = agentBuilder;
     }

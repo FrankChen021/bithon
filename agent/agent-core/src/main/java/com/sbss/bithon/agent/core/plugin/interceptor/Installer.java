@@ -21,6 +21,7 @@ import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
 import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
+import com.sbss.bithon.agent.core.plugin.aop.AopClassGenerator;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ import java.util.zip.ZipFile;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18-20:36
  */
-public class PluginInstaller {
+public class Installer {
 
     public static void install(AgentContext agentContext, Instrumentation inst) {
         // create plugin class loader first
@@ -46,11 +47,11 @@ public class PluginInstaller {
         List<AbstractPlugin> plugins = loadPlugins();
 
         // install interceptors for bootstrap classes
-        AgentBuilder agentBuilder = new PluginAopGenerator(inst,
-                                                           new AgentBuilder.Default()).generate(plugins);
+        AgentBuilder agentBuilder = new AopClassGenerator(inst,
+                                                          new AgentBuilder.Default()).generate(plugins);
 
         // install interceptors
-        new PluginInterceptorInstaller(agentBuilder, inst).install(plugins);
+        new InterceptorInstaller(agentBuilder, inst).install(plugins);
 
         // start plugins
         plugins.forEach((plugin) -> plugin.start());
@@ -61,7 +62,7 @@ public class PluginInstaller {
         InstrumentationHelper.setInstance(inst);
     }
 
-    public static List<AbstractPlugin> loadPlugins() {
+    private static List<AbstractPlugin> loadPlugins() {
 
         JarClassLoader pluginClassLoader = PluginClassLoaderManager.getDefaultLoader();
         List<JarFile> pluginJars = new ArrayList<>(pluginClassLoader.getJars());
@@ -81,7 +82,7 @@ public class PluginInstaller {
                                                               .newInstance();
                 plugins.add(plugin);
             } catch (Throwable e) {
-                LoggerFactory.getLogger(PluginInstaller.class)
+                LoggerFactory.getLogger(Installer.class)
                              .error(String.format("Failed to add plugin from jar %s",
                                                   new File(jar.getName()).getName()),
                                     e);

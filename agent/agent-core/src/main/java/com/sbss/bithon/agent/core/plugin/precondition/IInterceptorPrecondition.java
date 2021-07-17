@@ -23,24 +23,24 @@ import shaded.net.bytebuddy.description.type.TypeDescription;
  * @author frank.chen021@outlook.com
  * @date 2021/1/17 8:13 下午
  */
-public interface IPluginInstallationChecker {
+public interface IInterceptorPrecondition {
 
     /**
      * Helper method
      */
-    static IPluginInstallationChecker hasClass(String className) {
-        return new HasClassChecker(className, false);
+    static IInterceptorPrecondition hasClass(String className) {
+        return new HasClassPrecondition(className, false);
     }
 
     /**
      * Helper method
      */
-    static IPluginInstallationChecker hasClass(String className, boolean debugging) {
-        return new HasClassChecker(className, debugging);
+    static IInterceptorPrecondition hasClass(String className, boolean debugging) {
+        return new HasClassPrecondition(className, debugging);
     }
 
-    static IPluginInstallationChecker or(IPluginInstallationChecker... checkers) {
-        return new OrChecker(checkers);
+    static IInterceptorPrecondition or(IInterceptorPrecondition... conditions) {
+        return new OrPrecondition(conditions);
     }
 
     /**

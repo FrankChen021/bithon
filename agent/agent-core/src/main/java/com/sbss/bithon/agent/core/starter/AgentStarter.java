@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.core.starter;
 
 import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.plugin.interceptor.PluginInstaller;
+import com.sbss.bithon.agent.core.plugin.interceptor.Installer;
 import shaded.org.apache.log4j.xml.DOMConfigurator;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -52,7 +52,7 @@ public class AgentStarter {
 
         ensureApplicationTempDirectory(agentContext);
 
-        PluginInstaller.install(agentContext, inst);
+        Installer.install(agentContext, inst);
 
         // initialize other agent libs
         for (IAgentInitializer initializer : ServiceLoader.load(IAgentInitializer.class,
