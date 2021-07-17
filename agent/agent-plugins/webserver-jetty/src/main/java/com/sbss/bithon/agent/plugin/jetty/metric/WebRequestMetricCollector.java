@@ -16,10 +16,10 @@
 
 package com.sbss.bithon.agent.plugin.jetty.metric;
 
-import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IntervalMetricCollector;
 import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
+import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -39,7 +39,7 @@ public class WebRequestMetricCollector extends IntervalMetricCollector<WebReques
         HttpServletResponse response,
         long costTime
     ) {
-        String srcApplication = request.getHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME);
+        String srcApplication = request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION);
         String uri = httpServletRequest.getRequestURI();
         int httpStatus = response.getStatus();
         int errorCount = response.getStatus() >= 400 ? 1 : 0;

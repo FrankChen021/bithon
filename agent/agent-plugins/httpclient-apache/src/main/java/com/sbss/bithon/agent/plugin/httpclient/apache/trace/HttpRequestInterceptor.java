@@ -21,7 +21,6 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
@@ -48,7 +47,6 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[0];
-        httpRequest.setHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME, srcApplication);
 
         //
         // Trace
