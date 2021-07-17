@@ -14,19 +14,22 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.descriptor;
+package com.sbss.bithon.agent.core.aop;
+
+import java.lang.instrument.Instrumentation;
 
 /**
- * An enum describe the type of intercepted methods
  * @author frank.chen021@outlook.com
- * @date 2021/2/20 9:42 下午
+ * @date 2021/7/10 13:40
  */
-public enum MethodType {
+public class InstrumentationHelper {
+    private static Instrumentation inst;
 
-    CONSTRUCTOR,
+    public static Instrumentation getInstance() {
+        return inst;
+    }
 
-    /**
-     * for those which are not constructors
-     */
-    NON_CONSTRUCTOR;
+    public static void setInstance(Instrumentation inst) {
+        InstrumentationHelper.inst = inst;
+    }
 }

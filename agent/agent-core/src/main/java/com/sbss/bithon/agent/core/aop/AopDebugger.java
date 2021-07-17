@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin;
+package com.sbss.bithon.agent.core.aop;
 
 
 import com.sbss.bithon.agent.core.context.AgentContext;

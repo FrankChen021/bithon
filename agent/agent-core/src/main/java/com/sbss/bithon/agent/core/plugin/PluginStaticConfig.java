@@ -14,10 +14,9 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.config;
+package com.sbss.bithon.agent.core.plugin;
 
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import shaded.com.fasterxml.jackson.databind.JsonNode;
 import shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,24 +29,24 @@ import java.util.Optional;
  * @author frank.chen021@outlook.com
  * @date 2021/7/11 16:28
  */
-public class StaticConfig {
+public class PluginStaticConfig {
 
     private final ObjectMapper mapper;
     private final JsonNode rootConfiguration;
 
-    public StaticConfig(ObjectMapper mapper, JsonNode rootConfiguration) {
+    public PluginStaticConfig(ObjectMapper mapper, JsonNode rootConfiguration) {
         this.mapper = mapper;
         this.rootConfiguration = rootConfiguration;
     }
 
-    public static StaticConfig load(Class<? extends AbstractPlugin> pluginClass) {
+    public static PluginStaticConfig load(Class<? extends IPlugin> pluginClass) {
         String pkgName = pluginClass.getPackage().getName().replace('.', '/');
         String name = pkgName + "/configuration.json";
         try (InputStream is = pluginClass.getClassLoader().getResourceAsStream(name)) {
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            return new StaticConfig(mapper, mapper.readTree(is));
+            return new PluginStaticConfig(mapper, mapper.readTree(is));
         } catch (IOException e) {
             throw new AgentException("Could not read configuration[%s]:%s", name, e.getMessage());
         }

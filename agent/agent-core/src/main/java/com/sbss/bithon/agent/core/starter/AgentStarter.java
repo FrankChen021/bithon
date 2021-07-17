@@ -17,8 +17,9 @@
 package com.sbss.bithon.agent.core.starter;
 
 import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
+import com.sbss.bithon.agent.core.aop.InstrumentationHelper;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.plugin.interceptor.PluginInstaller;
+import com.sbss.bithon.agent.core.plugin.PluginInterceptorInstaller;
 import shaded.org.apache.log4j.xml.DOMConfigurator;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -34,6 +35,8 @@ import static java.io.File.separator;
 public class AgentStarter {
 
     public void start(String agentPath, Instrumentation inst) throws Exception {
+        InstrumentationHelper.setInstance(inst);
+
         initAgentLogger(agentPath);
 
         //
@@ -52,7 +55,7 @@ public class AgentStarter {
 
         ensureApplicationTempDirectory(agentContext);
 
-        PluginInstaller.install(agentContext, inst);
+        PluginInterceptorInstaller.install(agentContext, inst);
 
         // initialize other agent libs
         for (IAgentInitializer initializer : ServiceLoader.load(IAgentInitializer.class,

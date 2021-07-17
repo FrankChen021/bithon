@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.precondition;
+package com.sbss.bithon.agent.core.aop.precondition;
 
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -24,27 +23,27 @@ import shaded.org.slf4j.LoggerFactory;
  * @author frank.chen021@outlook.com
  * @date 2021/1/17 8:14 下午
  */
-class HasClassChecker implements IPluginInstallationChecker {
+class HasClassPrecondition implements IInterceptorPrecondition {
 
     private final String className;
     private final boolean debugging;
 
-    public HasClassChecker(String className, boolean debugging) {
+    public HasClassPrecondition(String className, boolean debugging) {
         this.className = className;
         this.debugging = debugging;
     }
 
     @Override
-    public boolean canInstall(AbstractPlugin plugin,
+    public boolean canInstall(String providerName,
                               ClassLoader classLoader,
                               TypeDescription typeDescription) {
         boolean resolved = TypeResolver.getInstance().isResolved(classLoader, this.className);
         if (!resolved && this.debugging) {
-            LoggerFactory.getLogger(HasClassChecker.class)
-                         .info("Required class [{}] not found to install interceptor for [{}] in plugin [{}]",
+            LoggerFactory.getLogger(HasClassPrecondition.class)
+                         .info("Required class [{}] not found to install interceptor for [{}] in [{}]",
                                this.className,
                                typeDescription.getName(),
-                               plugin.getClass().getSimpleName());
+                               providerName);
         }
         return resolved;
     }

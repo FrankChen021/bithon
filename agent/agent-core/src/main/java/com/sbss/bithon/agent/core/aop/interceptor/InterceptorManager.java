@@ -14,10 +14,9 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.interceptor;
+package com.sbss.bithon.agent.core.aop.interceptor;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -31,14 +30,14 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author frankchen
  */
-class PluginInterceptorManager {
-    private static final Logger log = LoggerFactory.getLogger(PluginInterceptorManager.class);
+class InterceptorManager {
+    private static final Logger log = LoggerFactory.getLogger(InterceptorManager.class);
 
     private static final Map<String, AbstractInterceptor> INTERCEPTORS = new ConcurrentHashMap<>();
 
     private static final ReentrantLock INTERCEPTOR_INSTANTIATION_LOCK = new ReentrantLock();
 
-    static AbstractInterceptor loadInterceptor(AbstractPlugin plugin,
+    static AbstractInterceptor loadInterceptor(String interceptorProvider,
                                                String interceptorClassName,
                                                ClassLoader classLoader) throws Exception {
         // get interceptor from cache first
@@ -64,13 +63,13 @@ class PluginInterceptorManager {
             interceptor = (AbstractInterceptor) interceptorClass.newInstance();
             if (!interceptor.initialize()) {
                 log.warn("Interceptor not loaded for failure of initialization: [{}.{}]",
-                         plugin.getClass().getSimpleName(),
+                         interceptorProvider,
                          interceptorName);
                 return null;
             }
 
             log.info("Loaded interceptor [{}.{}]",
-                     plugin.getClass().getSimpleName(),
+                     interceptorProvider,
                      interceptorName);
             INTERCEPTORS.put(interceptorId, interceptor);
             return interceptor;

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.precondition;
+package com.sbss.bithon.agent.core.aop.precondition;
 
 import shaded.net.bytebuddy.pool.TypePool;
 

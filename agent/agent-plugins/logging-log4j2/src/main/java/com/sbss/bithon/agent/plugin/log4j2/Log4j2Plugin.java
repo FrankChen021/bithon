@@ -16,21 +16,21 @@
 
 package com.sbss.bithon.agent.plugin.log4j2;
 
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.MatcherUtils;
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.MatcherUtils;
+import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 
 import java.util.Collections;
 import java.util.List;
 
-import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptorBuilder.forClass;
+import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
 
 /**
  * @author frankchen
  */
-public class Log4j2Plugin extends AbstractPlugin {
+public class Log4j2Plugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {

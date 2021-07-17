@@ -14,26 +14,25 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.precondition;
+package com.sbss.bithon.agent.core.aop.precondition;
 
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class OrChecker implements IPluginInstallationChecker {
-    private final IPluginInstallationChecker[] checkers;
+public class OrPrecondition implements IInterceptorPrecondition {
+    private final IInterceptorPrecondition[] conditions;
 
-    public OrChecker(IPluginInstallationChecker[] checkers) {
-        this.checkers = checkers;
+    public OrPrecondition(IInterceptorPrecondition... conditions) {
+        this.conditions = conditions;
     }
 
     @Override
-    public boolean canInstall(AbstractPlugin plugin, ClassLoader classLoader, TypeDescription typeDescription) {
-        for (IPluginInstallationChecker checker : checkers) {
-            if (checker.canInstall(plugin, classLoader, typeDescription)) {
+    public boolean canInstall(String providerName, ClassLoader classLoader, TypeDescription typeDescription) {
+        for (IInterceptorPrecondition checker : conditions) {
+            if (checker.canInstall(providerName, classLoader, typeDescription)) {
                 return true;
             }
         }

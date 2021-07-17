@@ -17,9 +17,9 @@
 package com.sbss.bithon.agent.core.plugin;
 
 import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
-import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.precondition.IPluginInstallationChecker;
+import com.sbss.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,9 +28,9 @@ import java.util.List;
  * @author frankchen
  * @date 2020-12-31 22:29:55
  */
-public abstract class AbstractPlugin {
+public interface IPlugin {
 
-    public List<IPluginInstallationChecker> getCheckers() {
+    default List<IInterceptorPrecondition> getPreconditions() {
         return Collections.emptyList();
     }
 
@@ -38,7 +38,7 @@ public abstract class AbstractPlugin {
      * ALL classes in {@link #getInterceptors()} will be transformed as {@link IBithonObject} automatically.
      * But some classes needs to be transformed too to support passing objects especially those which provide ASYNC ability
      */
-    public BithonClassDescriptor getBithonClassDescriptor() {
+    default BithonClassDescriptor getBithonClassDescriptor() {
         return null;
     }
 
@@ -46,13 +46,13 @@ public abstract class AbstractPlugin {
      * A list, each element of which is an interceptor for a specific method of class
      * NOTE, the target class will be instrumented as {@link IBithonObject}
      */
-    public List<InterceptorDescriptor> getInterceptors() {
+    default List<InterceptorDescriptor> getInterceptors() {
         return Collections.emptyList();
     }
 
-    public void start() {
+    default void start() {
     }
 
-    public void stop() {
+    default void stop() {
     }
 }

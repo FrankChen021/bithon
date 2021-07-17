@@ -14,15 +14,14 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.interceptor;
+package com.sbss.bithon.agent.core.aop;
 
 
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapMethodAop;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.AopDebugger;
-import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 import shaded.net.bytebuddy.ByteBuddy;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.dynamic.DynamicType;
@@ -41,14 +40,14 @@ import java.util.Map;
  * @author frankchen
  * @date 2021-02-18 19:23
  */
-public class PluginAopGenerator {
+public class AopClassGenerator {
 
     private final Map<String, byte[]> classesTypeMap = new HashMap<>();
     private final Instrumentation instrumentation;
     private final AgentBuilder agentBuilder;
 
-    public PluginAopGenerator(Instrumentation instrumentation,
-                              AgentBuilder agentBuilder) {
+    public AopClassGenerator(Instrumentation instrumentation,
+                             AgentBuilder agentBuilder) {
         this.instrumentation = instrumentation;
         this.agentBuilder = agentBuilder;
     }
@@ -57,14 +56,14 @@ public class PluginAopGenerator {
         return methodsInterceptor + "Aop";
     }
 
-    public AgentBuilder generate(List<AbstractPlugin> plugins) {
-        for (AbstractPlugin plugin : plugins) {
+    public AgentBuilder generate(List<IPlugin> plugins) {
+        for (IPlugin plugin : plugins) {
             generateAop4Plugin(plugin);
         }
         return injectClassToClassLoader();
     }
 
-    private void generateAop4Plugin(AbstractPlugin plugin) {
+    private void generateAop4Plugin(IPlugin plugin) {
         for (InterceptorDescriptor interceptor : plugin.getInterceptors()) {
             if (!interceptor.isBootstrapClass()) {
                 continue;
