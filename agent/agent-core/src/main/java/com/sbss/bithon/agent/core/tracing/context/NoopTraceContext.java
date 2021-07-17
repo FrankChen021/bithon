@@ -22,6 +22,8 @@ import com.sbss.bithon.agent.core.tracing.report.ITraceReporter;
 import com.sbss.bithon.agent.core.tracing.sampling.SamplingMode;
 import com.sbss.bithon.agent.core.utils.time.Clock;
 
+import java.util.Stack;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/7/17 15:38
@@ -34,6 +36,7 @@ public class NoopTraceContext implements ITraceContext {
 
     private final ITraceIdGenerator traceIdGenerator;
     private final ISpanIdGenerator spanIdGenerator;
+    private final Stack<ITraceSpan> spanStack = new Stack<>();
 
     public NoopTraceContext(ITraceIdGenerator traceIdGenerator,
                             ISpanIdGenerator spanIdGenerator) {
@@ -48,7 +51,7 @@ public class NoopTraceContext implements ITraceContext {
 
     @Override
     public ITraceSpan currentSpan() {
-        return null;
+        return spanStack.peek();
     }
 
     @Override
@@ -83,5 +86,28 @@ public class NoopTraceContext implements ITraceContext {
     @Override
     public <T> void propagate(T injectedTo, PropagationSetter<T> setter) {
         Tracer.get().propagator().inject(this, injectedTo, setter);
+    }
+
+    ITraceSpan onSpanCreated(ITraceSpan span) {
+        spanStack.push(span);
+        return span;
+    }
+
+    void onSpanFinished(ITraceSpan traceSpan) {
+        if (spanStack.isEmpty()) {
+            // TODO: internal error
+            return;
+        }
+
+        if (!spanStack.peek().equals(traceSpan)) {
+            // TODO: internal error
+
+            return;
+        }
+
+        spanStack.pop();
+        if (spanStack.isEmpty()) {
+            // TODO: report span
+        }
     }
 }

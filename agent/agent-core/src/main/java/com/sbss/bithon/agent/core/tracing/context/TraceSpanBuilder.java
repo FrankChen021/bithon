@@ -16,47 +16,11 @@
 
 package com.sbss.bithon.agent.core.tracing.context;
 
-import java.lang.reflect.Executable;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/4/7 8:44 下午
  */
 public class TraceSpanBuilder {
-
-    static class NoopTraceSpan extends TraceSpan {
-        public NoopTraceSpan(String spanId,
-                             String parentSpanId,
-                             TraceContext traceContext) {
-            super(spanId, parentSpanId, traceContext);
-        }
-
-        static NoopTraceSpan INSTANCE = new NoopTraceSpan(null, null, null);
-
-        @Override
-        public TraceSpan start() {
-            return this;
-        }
-
-        @Override
-        public void finish() {
-        }
-
-        @Override
-        public TraceSpan tag(String name, String value) {
-            return this;
-        }
-
-        @Override
-        public TraceSpan tag(Throwable exception) {
-            return this;
-        }
-
-        @Override
-        public TraceSpan method(Executable method) {
-            return this;
-        }
-    }
 
     public static ITraceSpan build(String name) {
         ITraceContext traceContext = TraceContextHolder.get();

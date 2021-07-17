@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public interface ITraceSpan {
 
-    TraceContext context();
+    ITraceContext context();
 
     default String traceId() {
         return context().traceId();
@@ -77,5 +77,8 @@ public interface ITraceSpan {
 
     void finish();
 
-    <T> ITraceSpan propagate(T injectedTo, PropagationSetter<T> setter);
+    default <T> ITraceSpan propagate(T injectedTo, PropagationSetter<T> setter) {
+        context().propagate(injectedTo, setter);
+        return this;
+    }
 }

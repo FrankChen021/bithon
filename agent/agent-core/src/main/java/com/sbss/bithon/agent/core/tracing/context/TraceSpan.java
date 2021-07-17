@@ -53,7 +53,7 @@ class TraceSpan implements ITraceSpan {
     }
 
     @Override
-    public TraceContext context() {
+    public ITraceContext context() {
         return traceContext;
     }
 
@@ -192,12 +192,6 @@ class TraceSpan implements ITraceSpan {
         } catch (Throwable t) {
             LoggerFactory.getLogger(TraceSpan.class).error("Exception occurred when finish a span", t);
         }
-    }
-
-    @Override
-    public <T> TraceSpan propagate(T injectedTo, PropagationSetter<T> setter) {
-        this.traceContext.propagate(injectedTo, setter);
-        return this;
     }
 
     @Override
