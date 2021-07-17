@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.precondition;
+package com.sbss.bithon.agent.core.aop.precondition;
 
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -35,16 +34,16 @@ class HasClassPrecondition implements IInterceptorPrecondition {
     }
 
     @Override
-    public boolean canInstall(AbstractPlugin plugin,
+    public boolean canInstall(String providerName,
                               ClassLoader classLoader,
                               TypeDescription typeDescription) {
         boolean resolved = TypeResolver.getInstance().isResolved(classLoader, this.className);
         if (!resolved && this.debugging) {
             LoggerFactory.getLogger(HasClassPrecondition.class)
-                         .info("Required class [{}] not found to install interceptor for [{}] in plugin [{}]",
+                         .info("Required class [{}] not found to install interceptor for [{}] in [{}]",
                                this.className,
                                typeDescription.getName(),
-                               plugin.getClass().getSimpleName());
+                               providerName);
         }
         return resolved;
     }

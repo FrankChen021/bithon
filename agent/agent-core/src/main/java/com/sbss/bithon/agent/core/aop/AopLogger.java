@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.aop;
+package com.sbss.bithon.agent.core.aop;
 
 import com.sbss.bithon.agent.bootstrap.aop.IAopLogger;
 import shaded.org.slf4j.Logger;

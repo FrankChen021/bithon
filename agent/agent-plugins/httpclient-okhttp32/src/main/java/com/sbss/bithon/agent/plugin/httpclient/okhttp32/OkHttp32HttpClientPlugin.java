@@ -16,14 +16,14 @@
 
 package com.sbss.bithon.agent.plugin.httpclient.okhttp32;
 
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
 
 import java.util.Collections;
 import java.util.List;
 
-import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptorBuilder.forClass;
+import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
  * OkHttp3, for version < 3.2

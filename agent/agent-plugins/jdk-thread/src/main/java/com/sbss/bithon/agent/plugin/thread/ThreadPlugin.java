@@ -16,14 +16,14 @@
 
 package com.sbss.bithon.agent.plugin.thread;
 
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptorBuilder.forBootstrapClass;
+import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forBootstrapClass;
 
 /**
  * @author frankchen

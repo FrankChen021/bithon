@@ -16,15 +16,15 @@
 
 package com.sbss.bithon.agent.plugin.httpclient.jdk;
 
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.MatcherUtils;
+import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.MatcherUtils;
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptorBuilder.forBootstrapClass;
+import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forBootstrapClass;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.isStatic;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.takesArguments;

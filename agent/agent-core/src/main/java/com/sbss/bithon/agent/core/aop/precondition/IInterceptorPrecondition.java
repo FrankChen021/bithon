@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.precondition;
+package com.sbss.bithon.agent.core.aop.precondition;
 
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 
 /**
@@ -46,8 +45,6 @@ public interface IInterceptorPrecondition {
     /**
      * returns true if interceptors in this plugin can be installed
      *
-     * @param plugin          plugin of which interceptors are being installed
-     * @param typeDescription
      */
-    boolean canInstall(AbstractPlugin plugin, ClassLoader classLoader, TypeDescription typeDescription);
+    boolean canInstall(String providerName, ClassLoader classLoader, TypeDescription typeDescription);
 }

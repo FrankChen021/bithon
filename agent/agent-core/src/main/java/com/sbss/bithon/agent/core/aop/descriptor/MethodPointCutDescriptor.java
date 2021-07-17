@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.descriptor;
+package com.sbss.bithon.agent.core.aop.descriptor;
 
 import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.matcher.ElementMatcher;

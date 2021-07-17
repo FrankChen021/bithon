@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.interceptor;
+package com.sbss.bithon.agent.core.aop.interceptor;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
@@ -24,13 +24,12 @@ import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.bootstrap.aop.ISuperMethod;
 import com.sbss.bithon.agent.bootstrap.aop.MethodAop;
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.aop.AopClassGenerator;
-import com.sbss.bithon.agent.core.plugin.aop.AopDebugger;
-import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor;
-import com.sbss.bithon.agent.core.plugin.precondition.IInterceptorPrecondition;
+import com.sbss.bithon.agent.core.aop.AopClassGenerator;
+import com.sbss.bithon.agent.core.aop.AopDebugger;
+import com.sbss.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
+import com.sbss.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import com.sbss.bithon.agent.core.utils.CollectionUtils;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.description.type.TypeDescription;
@@ -56,8 +55,8 @@ import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
  * @author frank.chen021@outlook.com
  * @date 2021/1/24 9:24 下午
  */
-class InterceptorInstaller {
-    private static final Logger log = LoggerFactory.getLogger(AbstractPlugin.class);
+public class InterceptorInstaller {
+    private static final Logger log = LoggerFactory.getLogger(InterceptorInstaller.class);
 
     AgentBuilder agentBuilder;
     Instrumentation inst;
@@ -68,23 +67,7 @@ class InterceptorInstaller {
         this.inst = inst;
     }
 
-    public void install(List<AbstractPlugin> plugins) {
-        for (AbstractPlugin plugin : plugins) {
-
-            transformToBithonClass(agentBuilder, inst, plugin.getBithonClassDescriptor());
-
-            for (InterceptorDescriptor interceptor : plugin.getInterceptors()) {
-                installInterceptor(agentBuilder,
-                                   inst,
-                                   plugin,
-                                   interceptor);
-            }
-        }
-    }
-
-    private void transformToBithonClass(AgentBuilder agentBuilder,
-                                        Instrumentation inst,
-                                        BithonClassDescriptor descriptor) {
+    public void transformToBithonClass(BithonClassDescriptor descriptor) {
         if (descriptor == null) {
             return;
         }
@@ -113,10 +96,9 @@ class InterceptorInstaller {
         agentBuilder.installOn(inst);
     }
 
-    private void installInterceptor(AgentBuilder agentBuilder,
-                                    Instrumentation inst,
-                                    AbstractPlugin plugin,
-                                    InterceptorDescriptor interceptor) {
+    public void installInterceptor(String providerName,
+                                   InterceptorDescriptor interceptor,
+                                   List<IInterceptorPrecondition> preconditions) {
 
         agentBuilder = agentBuilder
             // make sure the target class is not ignored by Bytebuddy's default ignore rule
@@ -130,9 +112,9 @@ class InterceptorInstaller {
                 //
                 // Run checkers first to see if a plugin can be installed
                 //
-                if (CollectionUtils.isNotEmpty(plugin.getPreconditions())) {
-                    for (IInterceptorPrecondition checker : plugin.getPreconditions()) {
-                        if (!checker.canInstall(plugin, classLoader, typeDescription)) {
+                if (CollectionUtils.isNotEmpty(preconditions)) {
+                    for (IInterceptorPrecondition condition : preconditions) {
+                        if (!condition.canInstall(providerName, classLoader, typeDescription)) {
                             return null;
                         }
                     }
@@ -159,7 +141,7 @@ class InterceptorInstaller {
                                                               pointCut);
                     } else {
                         builder = installInterceptor(builder,
-                                                     plugin,
+                                                     providerName,
                                                      pointCut.getInterceptor(),
                                                      classLoader,
                                                      pointCut);
@@ -235,14 +217,14 @@ class InterceptorInstaller {
     }
 
     private DynamicType.Builder<?> installInterceptor(DynamicType.Builder<?> builder,
-                                                      AbstractPlugin plugin,
+                                                      String interceptorProvider,
                                                       String interceptorName,
                                                       ClassLoader classLoader,
                                                       MethodPointCutDescriptor pointCutDescriptor) {
 
         AbstractInterceptor interceptor;
         try {
-            interceptor = InterceptorManager.loadInterceptor(plugin,
+            interceptor = InterceptorManager.loadInterceptor(interceptorProvider,
                                                              interceptorName,
                                                              classLoader);
 

@@ -17,9 +17,9 @@
 package com.sbss.bithon.agent.core.plugin;
 
 import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
-import com.sbss.bithon.agent.core.plugin.descriptor.BithonClassDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.precondition.IInterceptorPrecondition;
+import com.sbss.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 
 import java.util.Collections;
 import java.util.List;

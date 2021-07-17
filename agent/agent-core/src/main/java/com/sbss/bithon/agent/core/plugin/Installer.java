@@ -14,14 +14,13 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.plugin.interceptor;
+package com.sbss.bithon.agent.core.plugin;
 
 import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
+import com.sbss.bithon.agent.core.aop.AopClassGenerator;
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.interceptor.InterceptorInstaller;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.InstrumentationHelper;
-import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
-import com.sbss.bithon.agent.core.plugin.aop.AopClassGenerator;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -51,7 +50,7 @@ public class Installer {
                                                           new AgentBuilder.Default()).generate(plugins);
 
         // install interceptors
-        new InterceptorInstaller(agentBuilder, inst).install(plugins);
+        install(agentBuilder, inst, plugins);
 
         // start plugins
         plugins.forEach((plugin) -> plugin.start());
@@ -60,6 +59,18 @@ public class Installer {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> plugins.forEach((plugin) -> plugin.stop())));
 
         InstrumentationHelper.setInstance(inst);
+    }
+
+    private static void install(AgentBuilder agentBuilder, Instrumentation inst, List<AbstractPlugin> plugins) {
+        for (AbstractPlugin plugin : plugins) {
+            // this installer must be instantiated for each plugin
+            InterceptorInstaller installer = new InterceptorInstaller(agentBuilder, inst);
+            installer.transformToBithonClass(plugin.getBithonClassDescriptor());
+
+            for (InterceptorDescriptor interceptor : plugin.getInterceptors()) {
+                installer.installInterceptor(plugin.getClass().getSimpleName(), interceptor, plugin.getPreconditions());
+            }
+        }
     }
 
     private static List<AbstractPlugin> loadPlugins() {
