@@ -20,8 +20,8 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import shaded.org.slf4j.Logger;
@@ -35,7 +35,7 @@ public class PreparedStatementTraceInterceptor extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        TraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

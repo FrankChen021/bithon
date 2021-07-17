@@ -19,8 +19,8 @@ package com.sbss.bithon.agent.plugin.jedis.interceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import redis.clients.jedis.Client;
@@ -54,7 +54,7 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        TraceContext tracer = TraceContextHolder.get();
+        ITraceContext tracer = TraceContextHolder.get();
         if (tracer == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

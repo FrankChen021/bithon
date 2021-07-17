@@ -21,7 +21,7 @@ import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import com.sbss.bithon.agent.core.utils.StringUtils;
@@ -60,7 +60,7 @@ public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
             metricCollector.addRequest(requestUri, httpMethod, statusCode, aopContext.getCostTime());
         }
 
-        TraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
             return;
         }

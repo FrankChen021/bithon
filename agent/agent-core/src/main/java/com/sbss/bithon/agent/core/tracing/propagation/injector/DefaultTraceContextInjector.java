@@ -17,7 +17,7 @@
 package com.sbss.bithon.agent.core.tracing.propagation.injector;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -28,14 +28,17 @@ import shaded.org.slf4j.LoggerFactory;
 public class DefaultTraceContextInjector implements ITraceContextInjector {
 
     @Override
-    public <R> void inject(TraceContext context, R request, PropagationSetter<R> setter) {
+    public <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter) {
         try {
             setter.put(request, ITracePropagator.BITHON_TRACE_ID, context.traceId());
+
+            // propagate nextSpanId;currentSpanId
             setter.put(request,
                        ITracePropagator.BITHON_SPAN_IDS,
                        context.spanIdGenerator().newSpanId()
                        + ITracePropagator.BITHON_ID_SEPARATOR
                        + context.currentSpan().spanId());
+
             setter.put(request,
                        ITracePropagator.BITHON_SOURCE_APPLICATION,
                        Tracer.get().appName());

@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.core.tracing.propagation;
 
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.propagation.extractor.ChainedTraceContextExtractor;
 import com.sbss.bithon.agent.core.tracing.propagation.extractor.PropagationGetter;
 import com.sbss.bithon.agent.core.tracing.propagation.injector.DefaultTraceContextInjector;
@@ -29,12 +29,12 @@ import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter
 public class DefaultPropagator implements ITracePropagator {
 
     @Override
-    public <R> void inject(TraceContext context, R request, PropagationSetter<R> setter) {
+    public <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter) {
         new DefaultTraceContextInjector().inject(context, request, setter);
     }
 
     @Override
-    public <R> TraceContext extract(R request, PropagationGetter<R> getter) {
+    public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
         return new ChainedTraceContextExtractor().extract(request, getter);
     }
 }

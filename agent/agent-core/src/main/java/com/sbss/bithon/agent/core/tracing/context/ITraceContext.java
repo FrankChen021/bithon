@@ -14,24 +14,34 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.propagation;
+package com.sbss.bithon.agent.core.tracing.context;
 
-import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
-import com.sbss.bithon.agent.core.tracing.propagation.extractor.PropagationGetter;
 import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
+import com.sbss.bithon.agent.core.tracing.report.ITraceReporter;
+import com.sbss.bithon.agent.core.tracing.sampling.SamplingMode;
+import com.sbss.bithon.agent.core.utils.time.Clock;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/5 9:36 下午
+ * @date 2021/7/17 3:01 下午
  */
-public interface ITracePropagator {
+public interface ITraceContext {
 
-    String BITHON_SOURCE_APPLICATION = "BITHON-SOURCE-APP";
-    String BITHON_TRACE_ID = "BITHON-TRACE-ID";
-    String BITHON_SPAN_IDS = "BITHON-SPAN-IDS";
-    String BITHON_ID_SEPARATOR = ";";
+    String traceId();
 
-    <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter);
+    TraceSpan currentSpan();
 
-    <R> ITraceContext extract(R request, PropagationGetter<R> getter);
+    Clock clock();
+
+    ITraceReporter reporter();
+
+    ITraceIdGenerator traceIdGenerator();
+
+    ISpanIdGenerator spanIdGenerator();
+
+    void finish();
+
+    ITraceContext samplingMode(SamplingMode mode);
+
+    <T> void propagate(T injectedTo, PropagationSetter<T> setter);
 }

@@ -17,6 +17,7 @@
 package com.sbss.bithon.agent.core.tracing.propagation.extractor;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 import com.sbss.bithon.agent.core.tracing.sampling.SamplingMode;
@@ -33,7 +34,7 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
         };
 
     @Override
-    public <R> TraceContext extract(R request, PropagationGetter<R> getter) {
+    public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
         //
         // TODO: sampling decision making first
         //
@@ -43,7 +44,7 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
         }
 
         for (ITraceContextExtractor extractor : extractors) {
-            TraceContext context = extractor.extract(request, getter);
+            ITraceContext context = extractor.extract(request, getter);
             if (context != null) {
                 return context.samplingMode(mode);
             }

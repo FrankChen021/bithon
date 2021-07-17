@@ -32,7 +32,7 @@ import java.util.Stack;
  * @author frank.chen021@outlook.com
  * @date 2021/2/5 8:48 下午
  */
-public class TraceContext {
+public class TraceContext implements ITraceContext {
 
     private final ITraceReporter reporter;
     private final ITraceIdGenerator idGenerator;
@@ -77,35 +77,41 @@ public class TraceContext {
         this.traceId = traceId;
         this.reporter = reporter;
         this.idGenerator = idGenerator;
-        this.samplingMode = samplingMode;
         this.spanIdGenerator = spanIdGenerator;
         this.onSpanCreated(new TraceSpan(spanIdGenerator.newSpanId(), null, this).start());
     }
 
+    @Override
     public String traceId() {
         return traceId;
     }
 
+    @Override
     public TraceSpan currentSpan() {
         return spanStack.peek();
     }
 
+    @Override
     public Clock clock() {
         return clock;
     }
 
+    @Override
     public ITraceReporter reporter() {
         return reporter;
     }
 
+    @Override
     public ITraceIdGenerator traceIdGenerator() {
         return idGenerator;
     }
 
+    @Override
     public ISpanIdGenerator spanIdGenerator() {
         return spanIdGenerator;
     }
 
+    @Override
     public void finish() {
         if (!spanStack.isEmpty()) {
             // TODO: ERROR
@@ -144,11 +150,13 @@ public class TraceContext {
         }
     }
 
+    @Override
     public TraceContext samplingMode(SamplingMode mode) {
         this.samplingMode = mode;
         return this;
     }
 
+    @Override
     public <T> void propagate(T injectedTo, PropagationSetter<T> setter) {
         Tracer.get()
               .propagator()

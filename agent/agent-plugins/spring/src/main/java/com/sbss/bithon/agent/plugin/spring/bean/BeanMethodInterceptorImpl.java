@@ -16,8 +16,8 @@
 
 package com.sbss.bithon.agent.plugin.spring.bean;
 
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import org.springframework.stereotype.Component;
@@ -48,7 +48,7 @@ public class BeanMethodInterceptorImpl implements BeanMethodInterceptorIntf {
         final Object target,
         final Object[] args
     ) {
-        TraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
             return null;
         }

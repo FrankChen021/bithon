@@ -16,8 +16,6 @@
 
 package com.sbss.bithon.agent.core.tracing.context;
 
-import com.sbss.bithon.agent.core.tracing.Tracer;
-
 import java.lang.reflect.Executable;
 
 /**
@@ -61,7 +59,7 @@ public class TraceSpanBuilder {
     }
 
     public static TraceSpan build(String name) {
-        TraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
             return NoopTraceSpan.INSTANCE;
         }
@@ -76,7 +74,7 @@ public class TraceSpanBuilder {
     }
 
     public static TraceSpan buildAsyncSpan(String name) {
-        TraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.get();
         if (traceContext == null) {
             return NoopTraceSpan.INSTANCE;
         }

@@ -17,6 +17,7 @@
 package com.sbss.bithon.agent.core.tracing.propagation.extractor;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 
 /**
@@ -41,7 +42,7 @@ class B3Extractor implements ITraceContextExtractor {
     static final String PARENT_SPAN_ID = "X-B3-ParentSpanId";
 
     @Override
-    public <R> TraceContext extract(R request, PropagationGetter<R> getter) {
+    public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
         if (request == null) {
             return null;
         }

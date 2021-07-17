@@ -23,8 +23,8 @@ import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.tracing.Tracer;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import org.apache.http.HttpRequest;
@@ -54,7 +54,7 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
         //
         // Trace
         //
-        TraceContext tracer = TraceContextHolder.get();
+        ITraceContext tracer = TraceContextHolder.get();
         if (tracer == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

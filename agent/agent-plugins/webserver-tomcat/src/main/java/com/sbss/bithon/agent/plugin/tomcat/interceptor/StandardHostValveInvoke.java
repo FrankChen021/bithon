@@ -23,8 +23,8 @@ import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.domain.web.RequestUriFilter;
 import com.sbss.bithon.agent.core.metric.domain.web.UserAgentFilter;
 import com.sbss.bithon.agent.core.tracing.Tracer;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import org.apache.catalina.connector.Request;
@@ -58,9 +58,9 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
 
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
 
-        TraceContext traceContext = Tracer.get()
-                                          .propagator()
-                                          .extract(request, (carrier, key) -> carrier.getHeader(key));
+        ITraceContext traceContext = Tracer.get()
+                                           .propagator()
+                                           .extract(request, (carrier, key) -> carrier.getHeader(key));
         if (traceContext != null) {
             TraceContextHolder.set(traceContext);
             InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
@@ -80,7 +80,7 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
 
-        TraceContext traceContext = null;
+        ITraceContext traceContext = null;
         TraceSpan span = null;
         try {
             traceContext = TraceContextHolder.get();

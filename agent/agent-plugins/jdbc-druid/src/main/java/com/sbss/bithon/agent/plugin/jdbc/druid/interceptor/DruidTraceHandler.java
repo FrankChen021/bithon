@@ -19,8 +19,8 @@ package com.sbss.bithon.agent.plugin.jdbc.druid.interceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
 import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import shaded.org.slf4j.Logger;
@@ -34,7 +34,7 @@ public class DruidTraceHandler extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        TraceContext tracer = TraceContextHolder.get();
+        ITraceContext tracer = TraceContextHolder.get();
         if (tracer == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

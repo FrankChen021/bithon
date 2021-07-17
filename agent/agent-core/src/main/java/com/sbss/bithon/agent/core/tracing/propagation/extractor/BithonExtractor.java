@@ -17,6 +17,7 @@
 package com.sbss.bithon.agent.core.tracing.propagation.extractor;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 
@@ -27,7 +28,7 @@ import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 public class BithonExtractor implements ITraceContextExtractor {
 
     @Override
-    public <R> TraceContext extract(R request, PropagationGetter<R> getter) {
+    public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
         if (request == null) {
             return null;
         }
