@@ -51,7 +51,6 @@ class InterceptorManager {
         ClassLoader interceptorClassLoader = PluginClassLoaderManager.getClassLoader(classLoader);
         Class<?> interceptorClass = Class.forName(interceptorClassName, true, interceptorClassLoader);
 
-        String interceptorName = getInterceptorName(interceptorClass);
         INTERCEPTOR_INSTANTIATION_LOCK.lock();
         try {
             interceptor = INTERCEPTORS.get(interceptorId);
@@ -64,24 +63,15 @@ class InterceptorManager {
             if (!interceptor.initialize()) {
                 log.warn("Interceptor not loaded for failure of initialization: [{}.{}]",
                          interceptorProvider,
-                         interceptorName);
+                         interceptorClass);
                 return null;
             }
 
-            log.info("Loaded interceptor [{}.{}]",
-                     interceptorProvider,
-                     interceptorName);
             INTERCEPTORS.put(interceptorId, interceptor);
             return interceptor;
         } finally {
             INTERCEPTOR_INSTANTIATION_LOCK.unlock();
         }
-    }
-
-    private static String getInterceptorName(Class<?> interceptorClass) {
-        String name = interceptorClass.getName();
-        int dot = name.lastIndexOf('.');
-        return dot == -1 ? name : name.substring(dot + 1);
     }
 
     private static String generateInterceptorId(String interceptorClass,

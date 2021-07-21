@@ -47,7 +47,7 @@ public class BrpcTraceCollector implements ITraceCollector {
             return;
         }
 
-        log.info("Receiving trace message:{}", spans);
+        log.debug("Receiving trace message:{}", spans);
         traceSink.process("trace", TraceSpan.of(header, spans));
     }
 }
