@@ -135,6 +135,7 @@ public class InterceptorInstaller {
                 // Install interceptor
                 //
                 for (MethodPointCutDescriptor pointCut : interceptor.getMethodPointCutDescriptors()) {
+                    log.info("Install interceptor [{}.{}]", providerName, getInterceptorName(pointCut.getInterceptor()));
                     if (interceptor.isBootstrapClass()) {
                         builder = installBootstrapInterceptor(builder,
                                                               pointCut.getInterceptor(),
@@ -270,6 +271,11 @@ public class InterceptorInstaller {
         }
 
         return builder;
+    }
+
+    private String getInterceptorName(String interceptorClassName) {
+        int dot = interceptorClassName.lastIndexOf('.');
+        return dot == -1 ? interceptorClassName : interceptorClassName.substring(dot + 1);
     }
 
     static class IgnoreExclusionMatcher implements AgentBuilder.RawMatcher {
