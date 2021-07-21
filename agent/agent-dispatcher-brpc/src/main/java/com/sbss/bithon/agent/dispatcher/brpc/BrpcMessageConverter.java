@@ -57,6 +57,8 @@ public class BrpcMessageConverter implements IMessageConverter {
         return BrpcHttpClientMetricMessage.newBuilder()
                                           .setTimestamp(timestamp)
                                           .setInterval(interval)
+                                          .setUri(dimensions.get(0))
+                                          .setMethod(dimensions.get(1))
                                           .setMaxResponseTime(metric.getResponseTime().getMax().get())
                                           .setMinResponseTime(metric.getResponseTime().getMin().get())
                                           .setResponseTime(metric.getResponseTime().getSum().get())
