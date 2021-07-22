@@ -59,4 +59,9 @@ public class MethodPointCutDescriptor {
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
+
+    @Override
+    public String toString() {
+        return methodMatcher.toString();
+    }
 }

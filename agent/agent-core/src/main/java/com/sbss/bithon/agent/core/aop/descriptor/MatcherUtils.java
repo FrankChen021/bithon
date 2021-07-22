@@ -26,7 +26,6 @@ import shaded.net.bytebuddy.matcher.MethodParametersMatcher;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
-import static shaded.net.bytebuddy.matcher.ElementMatchers.isAnnotatedWith;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
 
 /**
@@ -36,17 +35,25 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
 public class MatcherUtils {
     private static final Logger log = LoggerFactory.getLogger(MatcherUtils.class);
 
-    public static MethodParametersMatcher takesArgument(int index, String typeName) {
-        return new MethodParametersMatcher((ElementMatcher<ParameterList<? extends ParameterDescription>>) parameters -> {
-            if (index < parameters.size()) {
-                return typeName.equals(parameters.get(index).getType().asErasure().getName());
+    public static <T extends MethodDescription> MethodParametersMatcher<T> takesArgument(int index, String typeName) {
+        return new MethodParametersMatcher<>(new ElementMatcher<ParameterList<? extends ParameterDescription>>() {
+            @Override
+            public boolean matches(ParameterList<? extends ParameterDescription> parameters) {
+                if (index < parameters.size()) {
+                    return typeName.equals(parameters.get(index).getType().asErasure().getName());
+                }
+                return false;
             }
-            return false;
+
+            @Override
+            public String toString() {
+                return "[arg" + index + "] is " + typeName;
+            }
         });
     }
 
-    public static MethodParametersMatcher takesFirstArgument(String typeName) {
-        return new MethodParametersMatcher((ElementMatcher<ParameterList<? extends ParameterDescription>>) parameters -> {
+    public static <T extends MethodDescription> MethodParametersMatcher<T> takesFirstArgument(String typeName) {
+        return new MethodParametersMatcher<>(parameters -> {
             int lastIndex = parameters.size() - 1;
             if (lastIndex < 0) {
                 return false;
@@ -56,8 +63,8 @@ public class MatcherUtils {
         });
     }
 
-    public static MethodParametersMatcher takesLastArgument(String typeName) {
-        return new MethodParametersMatcher((ElementMatcher<ParameterList<? extends ParameterDescription>>) parameters -> {
+    public static <T extends MethodDescription> MethodParametersMatcher<T> takesLastArgument(String typeName) {
+        return new MethodParametersMatcher<>(parameters -> {
             int lastIndex = parameters.size() - 1;
             if (lastIndex < 0) {
                 return false;
@@ -67,10 +74,10 @@ public class MatcherUtils {
         });
     }
 
-    public static <T extends AnnotationSource> ElementMatcher.Junction<T> createAnnotationMatchers(String... annotations) {
+    public static <T extends AnnotationSource> ElementMatcher.Junction<T> isAnnotatedWith(String... annotations) {
         ElementMatcher.Junction<T> junction = ElementMatchers.isAnnotatedWith(named(annotations[0]));
         for (int i = 1; i < annotations.length; i++) {
-            junction = junction.and(isAnnotatedWith(named(annotations[i])));
+            junction = junction.and(ElementMatchers.isAnnotatedWith(named(annotations[i])));
         }
         return junction;
     }
@@ -97,6 +104,11 @@ public class MatcherUtils {
                 boolean matched = matcher.matches(methodDescription);
                 log.info("[{}] matched to [{}]: {}", methodDescription, matcher, matched);
                 return matched;
+            }
+
+            @Override
+            public String toString() {
+                return matcher.toString();
             }
         };
     }
@@ -140,6 +152,18 @@ public class MatcherUtils {
                     }
                     return true;
                 }
+            }
+
+            @Override
+            public String toString() {
+                StringBuilder sb = new StringBuilder("args=[");
+                for (String arg : args) {
+                    sb.append(arg);
+                    sb.append(',');
+                }
+                sb.delete(sb.length() - 1, sb.length());
+                sb.append("]");
+                return sb.toString();
             }
         };
     }
