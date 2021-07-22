@@ -34,7 +34,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 9:13 下午
  */
-class ThreadPoolMetricsCollector implements IMetricCollector {
+public class ThreadPoolMetricsCollector implements IMetricCollector {
     static ThreadPoolMetricsCollector INSTANCE;
     private final Map<AbstractExecutorService, ThreadPoolCompositeMetric> executorMetrics = new ConcurrentHashMap<>();
     private Map<List<String>, ThreadPoolCompositeMetric> shutdownThreadMetrics = new ConcurrentHashMap<>();
@@ -53,15 +53,9 @@ class ThreadPoolMetricsCollector implements IMetricCollector {
         if (INSTANCE != null) {
             return INSTANCE;
         }
-        synchronized (ThreadPoolMetricsCollector.class) {
-            //double check
-            if (INSTANCE != null) {
-                return INSTANCE;
-            }
-
-            INSTANCE = MetricCollectorManager.getInstance().register("thread-pool", new ThreadPoolMetricsCollector());
-            return INSTANCE;
-        }
+        
+        INSTANCE = MetricCollectorManager.getInstance().getOrRegister("thread-pool", ThreadPoolMetricsCollector.class);
+        return INSTANCE;
     }
 
     public void addThreadPool(AbstractExecutorService pool, ThreadPoolCompositeMetric metrics) {

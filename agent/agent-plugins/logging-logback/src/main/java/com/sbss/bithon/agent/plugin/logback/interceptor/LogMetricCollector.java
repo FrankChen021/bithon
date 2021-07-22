@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 /**
  * @author frankchen
  */
-class LogMetricCollector implements IMetricCollector {
+public class LogMetricCollector implements IMetricCollector {
 
     private final Queue<AppException> exceptionList = new ConcurrentLinkedDeque<>();
 

@@ -42,12 +42,7 @@ public class LoggerCallAppenders extends AbstractInterceptor {
         }
 
         if (counter == null) {
-            synchronized (this) {
-                //double check
-                if (counter == null) {
-                    counter = MetricCollectorManager.getInstance().register("logback", new LogMetricCollector());
-                }
-            }
+            counter = MetricCollectorManager.getInstance().getOrRegister("logback", LogMetricCollector.class);
         }
 
         counter.addException((String) InterceptorContext.get("uri"),
