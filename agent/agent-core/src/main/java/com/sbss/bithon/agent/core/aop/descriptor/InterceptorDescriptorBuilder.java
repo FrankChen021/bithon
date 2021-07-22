@@ -19,8 +19,6 @@ package com.sbss.bithon.agent.core.aop.descriptor;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 
-import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
-
 /**
  * @author frankchen
  * @date Jan 13, 2020 1:07:41 PM
@@ -32,7 +30,7 @@ public class InterceptorDescriptorBuilder {
     private boolean isBootstrapClass;
 
     public static InterceptorDescriptorBuilder forClass(String targetClass) {
-        return forClass(named(targetClass));
+        return forClass(MatcherUtils.named(targetClass));
     }
 
     public static InterceptorDescriptorBuilder forClass(ElementMatcher.Junction<? super TypeDescription> targetClassMatcher) {
@@ -62,7 +60,7 @@ public class InterceptorDescriptorBuilder {
     }
 
     public InterceptorDescriptorBuilder targetClass(String targetClass) {
-        this.targetClass = named(targetClass);
+        this.targetClass = MatcherUtils.named(targetClass);
         return this;
     }
 

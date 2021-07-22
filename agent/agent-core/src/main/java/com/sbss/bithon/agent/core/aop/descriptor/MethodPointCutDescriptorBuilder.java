@@ -21,7 +21,6 @@ import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import static shaded.net.bytebuddy.matcher.ElementMatchers.isConstructor;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
 
 /**
@@ -52,20 +51,20 @@ public class MethodPointCutDescriptorBuilder {
     }
 
     public MethodPointCutDescriptorBuilder onAllMethods(String method) {
-        this.method = named(method);
+        this.method = MatcherUtils.named(method);
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndArgs(String method, String... args) {
-        this.method = named(method);
+        this.method = MatcherUtils.named(method);
         this.argsMatcher = MatcherUtils.createArgumentsMatcher(debug, args);
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndNoArgs(String method) {
-        this.method = named(method);
+        this.method = MatcherUtils.named(method);
         this.argsMatcher = takesNoArguments();
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;

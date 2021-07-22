@@ -16,6 +16,7 @@
 
 package com.sbss.bithon.agent.core.aop.descriptor;
 
+import shaded.net.bytebuddy.description.NamedElement;
 import shaded.net.bytebuddy.description.annotation.AnnotationSource;
 import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.description.method.ParameterDescription;
@@ -26,14 +27,26 @@ import shaded.net.bytebuddy.matcher.MethodParametersMatcher;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
-import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/20 9:30 下午
  */
 public class MatcherUtils {
     private static final Logger log = LoggerFactory.getLogger(MatcherUtils.class);
+
+    public static <T extends NamedElement> ElementMatcher.Junction<T> named(String typeName) {
+        return new ElementMatcher.Junction.AbstractBase<T>() {
+            @Override
+            public boolean matches(T target) {
+                return target.getActualName().equals(typeName);
+            }
+
+            @Override
+            public String toString() {
+                return typeName;
+            }
+        };
+    }
 
     public static <T extends MethodDescription> MethodParametersMatcher<T> takesArgument(int index, String typeName) {
         return new MethodParametersMatcher<>(new ElementMatcher<ParameterList<? extends ParameterDescription>>() {
