@@ -59,18 +59,6 @@ public class SpringPlugin implements IPlugin {
                                                    .to("com.sbss.bithon.agent.plugin.spring.mvc.MethodMatchingInterceptor")
                 ),
 
-            forClass(
-                "org.springframework.web.servlet.handler.AbstractHandlerMethodMapping")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs(
-                                                       "registerHandlerMethod",
-                                                       "java.lang.Object",
-                                                       "java.lang.reflect.Method",
-                                                       "T")
-                                                   .to("com.sbss.bithon.agent.plugin.spring.mvc.MethodMatchingInterceptor")
-                ),
-
             forClass("org.springframework.web.client.RestTemplate")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
