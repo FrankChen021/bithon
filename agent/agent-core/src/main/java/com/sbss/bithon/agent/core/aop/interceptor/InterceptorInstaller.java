@@ -58,8 +58,8 @@ import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
 public class InterceptorInstaller {
     private static final Logger log = LoggerFactory.getLogger(InterceptorInstaller.class);
 
-    AgentBuilder agentBuilder;
-    Instrumentation inst;
+    private final AgentBuilder agentBuilder;
+    private final Instrumentation inst;
 
     public InterceptorInstaller(AgentBuilder agentBuilder,
                                 Instrumentation inst) {
@@ -72,23 +72,24 @@ public class InterceptorInstaller {
             return;
         }
 
-        agentBuilder = agentBuilder.type(descriptor.getClassMatcher())
-                                   .transform((DynamicType.Builder<?> builder,
-                                               TypeDescription typeDescription,
-                                               ClassLoader classLoader,
-                                               JavaModule javaModule) -> {
-                                       if (typeDescription.isAssignableTo(IBithonObject.class)) {
-                                           return builder;
-                                       }
+        AgentBuilder agentBuilder =
+            this.agentBuilder.type(descriptor.getClassMatcher())
+                             .transform((DynamicType.Builder<?> builder,
+                                         TypeDescription typeDescription,
+                                         ClassLoader classLoader,
+                                         JavaModule javaModule) -> {
+                                 if (typeDescription.isAssignableTo(IBithonObject.class)) {
+                                     return builder;
+                                 }
 
-                                       builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
-                                                                     Object.class,
-                                                                     ACC_PRIVATE | ACC_VOLATILE)
-                                                        .implement(IBithonObject.class)
-                                                        .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
+                                 builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
+                                                               Object.class,
+                                                               ACC_PRIVATE | ACC_VOLATILE)
+                                                  .implement(IBithonObject.class)
+                                                  .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
 
-                                       return builder;
-                                   });
+                                 return builder;
+                             });
 
         if (descriptor.isDebug()) {
             agentBuilder = agentBuilder.with(AopDebugger.INSTANCE);
@@ -99,8 +100,8 @@ public class InterceptorInstaller {
     public void installInterceptor(String providerName,
                                    InterceptorDescriptor interceptor,
                                    List<IInterceptorPrecondition> preconditions) {
-
-        agentBuilder = agentBuilder
+        AgentBuilder
+            agentBuilder = this.agentBuilder
             // make sure the target class is not ignored by Bytebuddy's default ignore rule
             .ignore(new IgnoreExclusionMatcher(interceptor.getClassMatcher()))
             .type(interceptor.getClassMatcher())
@@ -135,7 +136,11 @@ public class InterceptorInstaller {
                 // Install interceptor
                 //
                 for (MethodPointCutDescriptor pointCut : interceptor.getMethodPointCutDescriptors()) {
-                    log.info("Install interceptor [{}.{}]", providerName, getInterceptorName(pointCut.getInterceptor()));
+                    log.info("Install interceptor [{}#{}] to [{}#{}]",
+                             providerName,
+                             getSimpleClassName(pointCut.getInterceptor()),
+                             getSimpleClassName(typeDescription.getName()),
+                             pointCut);
                     if (interceptor.isBootstrapClass()) {
                         builder = installBootstrapInterceptor(builder,
                                                               pointCut.getInterceptor(),
@@ -273,9 +278,9 @@ public class InterceptorInstaller {
         return builder;
     }
 
-    private String getInterceptorName(String interceptorClassName) {
-        int dot = interceptorClassName.lastIndexOf('.');
-        return dot == -1 ? interceptorClassName : interceptorClassName.substring(dot + 1);
+    private String getSimpleClassName(String className) {
+        int dot = className.lastIndexOf('.');
+        return dot == -1 ? className : className.substring(dot + 1);
     }
 
     static class IgnoreExclusionMatcher implements AgentBuilder.RawMatcher {
