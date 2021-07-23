@@ -21,11 +21,12 @@ import com.sbss.bithon.agent.core.aop.descriptor.MatcherUtils;
 import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import com.sbss.bithon.agent.core.plugin.IPlugin;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 /**
  * @author frankchen
@@ -34,16 +35,14 @@ public class Log4j2Plugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        return Collections.singletonList(
+        return Arrays.asList(
+            /**
+             * {@link org.apache.logging.log4j.core.Logger#logMessage(String, org.apache.logging.log4j.Level, org.apache.logging.log4j.Marker, String, Throwable)}
+             * {@link org.apache.logging.log4j.core.Logger#logMessage(String, org.apache.logging.log4j.Level, org.apache.logging.log4j.Marker, Object, Throwable)}
+             * {@link org.apache.logging.log4j.core.Logger#logMessage(String, org.apache.logging.log4j.Level, org.apache.logging.log4j.Marker, CharSequence, Throwable)}
+             */
             forClass("org.apache.logging.log4j.core.Logger")
                 .methods(
-                    /**
-                     * java.lang.String
-                     * org.apache.logging.log4j.Level
-                     * org.apache.logging.log4j.Marker
-                     * org.apache.logging.log4j.message.Message
-                     * java.lang.Throwable"
-                     */
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(named("logMessage")
                                                                  .and(MatcherUtils.takesArgument(1,
@@ -51,6 +50,17 @@ public class Log4j2Plugin implements IPlugin {
                                                                  .and(MatcherUtils.takesArgument(4,
                                                                                                  "java.lang.Throwable")))
                                                    .to("com.sbss.bithon.agent.plugin.log4j2.interceptor.LoggerLogMessage")
+                ),
+
+            //org.apache.logging.log4j.core.pattern.PatternParser#parse(String, List, List, boolean, boolean, boolean)
+            forClass("org.apache.logging.log4j.core.pattern.PatternParser")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(named("parse")
+                                                                 .and(MatcherUtils.takesArgument(0,
+                                                                                                 "java.lang.String"))
+                                                                 .and(takesArguments(6)))
+                                                   .to("com.sbss.bithon.agent.plugin.log4j2.interceptor.PatternParserParse")
                 )
         );
     }

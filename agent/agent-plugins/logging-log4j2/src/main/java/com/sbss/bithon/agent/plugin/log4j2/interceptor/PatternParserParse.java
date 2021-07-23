@@ -14,27 +14,27 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.plugin.logback.interceptor;
+package com.sbss.bithon.agent.plugin.log4j2.interceptor;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.logging.LogPatternInjector;
 
+import java.util.List;
+
 /**
- * {@link ch.qos.logback.core.pattern.PatternLayoutBase#setPattern(String)}
+ * {@link org.apache.logging.log4j.core.pattern.PatternParser#parse(String, List, List, boolean, boolean, boolean)}
  * <p>
- * add txId:spanId pattern to the user's pattern
- * <p>
- * [bTxId:xxx, bSpanId:xxx]
+ * automatically inject trace id into user's log pattern
  *
  * @author frank.chen021@outlook.com
- * @date 2021/7/23 3:25 下午
+ * @date 2021/7/23 5:00 下午
  */
-public class PatternLayoutSetPattern extends AbstractInterceptor {
+public class PatternParserParse extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
 
         aopContext.getArgs()[0] = LogPatternInjector.injectTracePattern(aopContext.getArgAs(0));
 
