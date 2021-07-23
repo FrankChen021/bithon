@@ -17,15 +17,18 @@
 package com.sbss.bithon.agent.core.aop.descriptor;
 
 import shaded.net.bytebuddy.description.NamedElement;
+import shaded.net.bytebuddy.description.annotation.AnnotationDescription;
+import shaded.net.bytebuddy.description.annotation.AnnotationList;
 import shaded.net.bytebuddy.description.annotation.AnnotationSource;
 import shaded.net.bytebuddy.description.method.MethodDescription;
-import shaded.net.bytebuddy.description.method.ParameterDescription;
 import shaded.net.bytebuddy.description.method.ParameterList;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
-import shaded.net.bytebuddy.matcher.ElementMatchers;
-import shaded.net.bytebuddy.matcher.MethodParametersMatcher;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
@@ -48,10 +51,26 @@ public class MatcherUtils {
         };
     }
 
-    public static <T extends MethodDescription> MethodParametersMatcher<T> takesArgument(int index, String typeName) {
-        return new MethodParametersMatcher<>(new ElementMatcher<ParameterList<? extends ParameterDescription>>() {
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> takesArguments(int size) {
+        return new ElementMatcher.Junction.AbstractBase<T>() {
+
             @Override
-            public boolean matches(ParameterList<? extends ParameterDescription> parameters) {
+            public boolean matches(T target) {
+                return target.getParameters().size() == size;
+            }
+
+            @Override
+            public String toString() {
+                return "argSize=" + size;
+            }
+        };
+    }
+
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> takesArgument(int index, String typeName) {
+        return new ElementMatcher.Junction.AbstractBase<T>() {
+            @Override
+            public boolean matches(T target) {
+                ParameterList<?> parameters = target.getParameters();
                 if (index < parameters.size()) {
                     return typeName.equals(parameters.get(index).getType().asErasure().getName());
                 }
@@ -60,39 +79,54 @@ public class MatcherUtils {
 
             @Override
             public String toString() {
-                return "[arg" + index + "] is " + typeName;
+                return String.format("(arg%d is %s)", index, typeName);
             }
-        });
+        };
     }
 
-    public static <T extends MethodDescription> MethodParametersMatcher<T> takesFirstArgument(String typeName) {
-        return new MethodParametersMatcher<>(parameters -> {
-            int lastIndex = parameters.size() - 1;
-            if (lastIndex < 0) {
-                return false;
-            } else {
-                return typeName.equals(parameters.get(lastIndex).getType().asErasure().getName());
-            }
-        });
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> takesFirstArgument(String typeName) {
+        return takesArgument(0, typeName);
     }
 
-    public static <T extends MethodDescription> MethodParametersMatcher<T> takesLastArgument(String typeName) {
-        return new MethodParametersMatcher<>(parameters -> {
-            int lastIndex = parameters.size() - 1;
-            if (lastIndex < 0) {
-                return false;
-            } else {
-                return typeName.equals(parameters.get(lastIndex).getType().asErasure().getName());
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> takesLastArgument(String typeName) {
+        return new ElementMatcher.Junction.AbstractBase<T>() {
+            @Override
+            public boolean matches(T target) {
+                ParameterList<?> parameters = target.getParameters();
+                int lastIndex = parameters.size() - 1;
+                if (lastIndex < 0) {
+                    return false;
+                } else {
+                    return typeName.equals(parameters.get(lastIndex).getType().asErasure().getName());
+                }
             }
-        });
+
+            @Override
+            public String toString() {
+                return String.format("(lastArg is %s)", typeName);
+            }
+        };
     }
 
     public static <T extends AnnotationSource> ElementMatcher.Junction<T> isAnnotatedWith(String... annotations) {
-        ElementMatcher.Junction<T> junction = ElementMatchers.isAnnotatedWith(named(annotations[0]));
-        for (int i = 1; i < annotations.length; i++) {
-            junction = junction.and(ElementMatchers.isAnnotatedWith(named(annotations[i])));
-        }
-        return junction;
+        final Set<String> annotationSet = new HashSet<>(Arrays.asList(annotations));
+        return new ElementMatcher.Junction.AbstractBase<T>() {
+            @Override
+            public boolean matches(T target) {
+                AnnotationList annotationList = target.getDeclaredAnnotations();
+                for (AnnotationDescription annotationDescription : annotationList) {
+                    if (!annotationSet.contains(annotationDescription.getAnnotationType().asErasure().getName())) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            @Override
+            public String toString() {
+                return String.format("(annotations: %s)", annotationSet);
+            }
+        };
     }
 
     public static ElementMatcher.Junction<MethodDescription> debuggableMatcher(boolean debug,

@@ -25,8 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 /**
  * @author frankchen
@@ -44,7 +42,7 @@ public class Log4j2Plugin implements IPlugin {
             forClass("org.apache.logging.log4j.core.Logger")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(named("logMessage")
+                                                   .onMethod(MatcherUtils.named("logMessage")
                                                                  .and(MatcherUtils.takesArgument(1,
                                                                                                  "org.apache.logging.log4j.Level"))
                                                                  .and(MatcherUtils.takesArgument(4,
@@ -56,10 +54,10 @@ public class Log4j2Plugin implements IPlugin {
             forClass("org.apache.logging.log4j.core.pattern.PatternParser")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(named("parse")
+                                                   .onMethod(MatcherUtils.named("parse")
                                                                  .and(MatcherUtils.takesArgument(0,
                                                                                                  "java.lang.String"))
-                                                                 .and(takesArguments(6)))
+                                                                 .and(MatcherUtils.takesArguments(6)))
                                                    .to("com.sbss.bithon.agent.plugin.log4j2.interceptor.PatternParserParse")
                 )
         );
