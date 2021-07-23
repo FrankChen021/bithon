@@ -16,6 +16,28 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <version>4.1.65.Final</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-transport-memcache</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-transport-mqtt</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-xml</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-transport-sctp</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-transport-udt</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -37,6 +59,14 @@
                                     <pattern>io.netty</pattern>
                                     <shadedPattern>shaded.io.netty</shadedPattern>
                                 </relocation>
+<!--                                <relocation>-->
+<!--                                    <pattern>org.apache.log4j</pattern>-->
+<!--                                    <shadedPattern>shaded.org.apache.log4j</shadedPattern>-->
+<!--                                </relocation>-->
+<!--                                <relocation>-->
+<!--                                    <pattern>org.slf4j</pattern>-->
+<!--                                    <shadedPattern>shaded.org.slf4j</shadedPattern>-->
+<!--                                </relocation>-->
                             </relocations>
                         </configuration>
                     </execution>

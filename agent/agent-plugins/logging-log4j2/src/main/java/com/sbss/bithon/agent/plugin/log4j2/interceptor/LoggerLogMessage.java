@@ -32,12 +32,6 @@ public class LoggerLogMessage extends AbstractInterceptor {
     private LogMetricCollector metricCollector;
 
     @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance().getOrRegister("log4j2", LogMetricCollector.class);
-        return true;
-    }
-
-    @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         Level logLevel = (Level) aopContext.getArgs()[1];
         Throwable e = (Throwable) aopContext.getArgs()[4];
@@ -47,8 +41,10 @@ public class LoggerLogMessage extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
+        if (metricCollector == null) {
+            metricCollector = MetricCollectorManager.getInstance().getOrRegister("log4j2", LogMetricCollector.class);
+        }
         Throwable e = (Throwable) aopContext.getArgs()[4];
-        metricCollector.addException((String) InterceptorContext.get("uri"),
-                                     e);
+        metricCollector.addException((String) InterceptorContext.get("uri"), e);
     }
 }
