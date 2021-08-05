@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 
 import static com.sbss.bithon.agent.core.context.AgentContext.CONF_DIR;
 import static java.io.File.separator;
@@ -58,6 +59,23 @@ public class AgentConfigManager {
         } else {
             configFile = new File(conf);
         }
+
+        //
+        // read properties from environment variables
+        //
+
+        //
+        // read properties from java application arguments
+        //
+        for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
+            if (arg.startsWith("-Dbithon.")) {
+                String nameAndValue = arg.substring(2);
+
+                // process default value
+            }
+        }
+
+        // override properties in file
     }
 
     public <T> T getConfig(Class<T> clazz) throws IOException {
