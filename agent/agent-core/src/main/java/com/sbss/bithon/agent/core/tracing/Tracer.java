@@ -16,10 +16,12 @@
 
 package com.sbss.bithon.agent.core.tracing;
 
+import com.sbss.bithon.agent.core.config.AgentConfigManager;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
 import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
+import com.sbss.bithon.agent.core.tracing.config.TraceConfig;
 import com.sbss.bithon.agent.core.tracing.context.ITraceIdGenerator;
 import com.sbss.bithon.agent.core.tracing.context.impl.UUIDGenerator;
 import com.sbss.bithon.agent.core.tracing.propagation.DefaultPropagator;
@@ -29,6 +31,7 @@ import com.sbss.bithon.agent.core.tracing.sampling.ISamplingDecisionMaker;
 import com.sbss.bithon.agent.core.tracing.sampling.RatioSamplingDecisionMaker;
 import shaded.org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -38,7 +41,7 @@ import java.util.stream.Collectors;
  * @date 2021/2/5 9:42 下午
  */
 public class Tracer {
-    private static Tracer INSTANCE;
+    private static volatile Tracer INSTANCE;
 
     private final String appName;
     private final String instanceName;
@@ -56,6 +59,14 @@ public class Tracer {
         if (INSTANCE == null) {
             synchronized (Tracer.class) {
                 if (INSTANCE == null) {
+
+                    TraceConfig traceConfig = null;
+                    try {
+                        traceConfig = AgentConfigManager.getInstance().getConfig(TraceConfig.class);
+                    } catch (IOException e) {
+                        LoggerFactory.getLogger(Tracer.class).info("Failed to load trace config", e);
+                    }
+
                     AppInstance appInstance = AgentContext.getInstance().getAppInstance();
                     try {
                         final Dispatcher traceDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_TRACING);
@@ -72,7 +83,7 @@ public class Tracer {
                                                                   .collect(Collectors.toList());
                                 traceDispatcher.sendMessage(traceMessages);
                             })
-                            .samplingDecisionMaker(new RatioSamplingDecisionMaker(100));
+                            .samplingDecisionMaker(new RatioSamplingDecisionMaker(traceConfig == null ? 0 : traceConfig.getSamplingRate()));
                     } catch (Exception e) {
                         LoggerFactory.getLogger(Tracer.class).info("Failed to create Tracer", e);
                     }
