@@ -17,7 +17,6 @@
 package com.sbss.bithon.agent.core.tracing.context;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
-import com.sbss.bithon.agent.core.tracing.context.impl.DefaultSpanIdGenerator;
 import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
 import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import com.sbss.bithon.agent.core.tracing.report.ITraceReporter;
@@ -40,18 +39,9 @@ public class NoopTraceContext implements ITraceContext {
     private final Stack<ITraceSpan> spanStack = new Stack<>();
     private final String traceId;
 
-    public NoopTraceContext(String traceId,
-                            String spanId,
-                            String parentSpanId) {
+    public NoopTraceContext(String traceId, ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
-        this.spanIdGenerator = new DefaultSpanIdGenerator();
-        this.onSpanCreated(new NoopTraceSpan(this, spanId, parentSpanId).start());
-    }
-
-    public NoopTraceContext(String traceId) {
-        this.traceId = traceId;
-        this.spanIdGenerator = new DefaultSpanIdGenerator();
-        this.onSpanCreated(new NoopTraceSpan(this, spanIdGenerator.newSpanId(), null).start());
+        this.spanIdGenerator = spanIdGenerator;
     }
 
     @Override
@@ -80,8 +70,20 @@ public class NoopTraceContext implements ITraceContext {
     }
 
     @Override
+    public ITraceContext reporter(ITraceReporter reporter) {
+        return this;
+    }
+
+    @Override
     public ISpanIdGenerator spanIdGenerator() {
         return spanIdGenerator;
+    }
+
+    @Override
+    public ITraceSpan newSpan(String parentSpanId, String spanId) {
+        NoopTraceSpan span = new NoopTraceSpan(this, parentSpanId, spanId);
+        this.onSpanCreated(span);
+        return span;
     }
 
     @Override
@@ -102,26 +104,31 @@ public class NoopTraceContext implements ITraceContext {
         Tracer.get().propagator().inject(this, injectedTo, setter);
     }
 
-    ITraceSpan onSpanCreated(ITraceSpan span) {
+    private void onSpanCreated(ITraceSpan span) {
         spanStack.push(span);
-        return span;
+        TraceContextListener.getInstance().onSpanStarted(span);
     }
 
-    void onSpanFinished(ITraceSpan traceSpan) {
+    void onSpanFinished(ITraceSpan span) {
         if (spanStack.isEmpty()) {
             // TODO: internal error
+            TraceContextListener.getInstance().onSpanFinished(span);
             return;
         }
 
-        if (!spanStack.peek().equals(traceSpan)) {
+        if (!spanStack.peek().equals(span)) {
             // TODO: internal error
-
+            TraceContextListener.getInstance().onSpanFinished(span);
             return;
         }
 
         spanStack.pop();
         if (spanStack.isEmpty()) {
             // TODO: report span
+            TraceContextListener.getInstance().onSpanFinished(span);
+            return;
         }
+
+        TraceContextListener.getInstance().onSpanFinished(span);
     }
 }

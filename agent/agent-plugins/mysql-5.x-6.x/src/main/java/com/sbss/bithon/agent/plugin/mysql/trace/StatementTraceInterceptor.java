@@ -38,7 +38,7 @@ public class StatementTraceInterceptor extends AbstractInterceptor {
 
         // TODO: filter "select @@session.tx_read_only"
 
-        ITraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

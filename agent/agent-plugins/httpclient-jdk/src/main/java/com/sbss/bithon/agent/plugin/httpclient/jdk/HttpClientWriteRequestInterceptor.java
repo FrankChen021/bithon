@@ -46,7 +46,7 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
 
-        ITraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -65,9 +65,7 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
                                       .method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       .tag("uri", connection.getURL().toString())
-                                      .propagate(headers, (headersArgs, key, value) -> {
-                                          headersArgs.set(key, value);
-                                      }).start());
+                                      .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value)).start());
 
         return InterceptionDecision.CONTINUE;
     }

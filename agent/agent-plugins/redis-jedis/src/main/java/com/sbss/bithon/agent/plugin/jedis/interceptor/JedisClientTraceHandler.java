@@ -36,7 +36,7 @@ import java.util.Set;
  */
 public class JedisClientTraceHandler extends AbstractInterceptor {
     private static final Logger log = LoggerFactory.getLogger(JedisClientTraceHandler.class);
-    private Set<String> ignoreCommands = new HashSet<String>();
+    private Set<String> ignoreCommands = new HashSet<>();
 
     @Override
     public boolean initialize() {
@@ -48,13 +48,13 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
         String command = aopContext.getArgs()[0].toString();
         if (ignoreCommand(command)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceContext tracer = TraceContextHolder.get();
+        ITraceContext tracer = TraceContextHolder.current();
         if (tracer == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -78,7 +78,7 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
+    public void onMethodLeave(AopContext aopContext) {
         ITraceSpan span = aopContext.castUserContextAs();
         if (span == null) {
             return;

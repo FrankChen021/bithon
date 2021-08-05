@@ -35,7 +35,7 @@ public class FeignClientInterceptor extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -60,7 +60,7 @@ public class FeignClientInterceptor extends AbstractInterceptor {
             return;
         }
 
-        Response response = (Response) aopContext.castReturningAs();
+        Response response = aopContext.castReturningAs();
         span.tag("status", String.valueOf(response.status()));
         span.finish();
     }

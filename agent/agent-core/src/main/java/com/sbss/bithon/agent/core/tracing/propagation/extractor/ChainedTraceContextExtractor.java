@@ -18,9 +18,9 @@ package com.sbss.bithon.agent.core.tracing.propagation.extractor;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
-import com.sbss.bithon.agent.core.tracing.context.NoopTraceContext;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
+import com.sbss.bithon.agent.core.tracing.context.TraceContextFactory;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
+import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
 import com.sbss.bithon.agent.core.tracing.sampling.SamplingMode;
 
 /**
@@ -54,11 +54,13 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
         SamplingMode mode = Tracer.get().samplingDecisionMaker().decideSamplingMode(request);
         if (mode == SamplingMode.NONE) {
             // create a propagation trace context to propagation trace context along the service call without reporting trace data
-            context = new NoopTraceContext("P-" + Tracer.get().traceIdGenerator().newTraceId());
+            context = TraceContextFactory.create(TraceMode.PROPAGATION,
+                                                 "P-" + Tracer.get().traceIdGenerator().newTraceId());
         } else {
             // create a traceable context
-            context = new TraceContext(Tracer.get().traceIdGenerator().newTraceId(),
-                                       Tracer.get().reporter());
+            context = TraceContextFactory.create(TraceMode.TRACE,
+                                                 Tracer.get().traceIdGenerator().newTraceId())
+                                         .reporter(Tracer.get().reporter());
         }
 
         context.currentSpan()

@@ -33,7 +33,7 @@ import java.net.URI;
 public class RestTemplateExecuteInterceptor extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

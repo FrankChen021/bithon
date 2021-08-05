@@ -23,7 +23,7 @@ package com.sbss.bithon.agent.core.tracing.context;
 public class TraceSpanBuilder {
 
     public static ITraceSpan build(String name) {
-        ITraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return NoopTraceSpan.INSTANCE;
         }
@@ -38,7 +38,7 @@ public class TraceSpanBuilder {
     }
 
     public static ITraceSpan buildAsyncSpan(String name) {
-        ITraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return NoopTraceSpan.INSTANCE;
         }
@@ -49,10 +49,8 @@ public class TraceSpanBuilder {
         }
 
         return new TraceContext(traceContext.traceId(),
-                                traceContext.spanIdGenerator().newSpanId(),
-                                parentSpan.spanId(),
-                                traceContext.reporter(),
                                 traceContext.spanIdGenerator())
+            .reporter(traceContext.reporter())
             .currentSpan()
             .component(name);
     }

@@ -18,7 +18,8 @@ package com.sbss.bithon.agent.core.tracing.propagation.extractor;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
+import com.sbss.bithon.agent.core.tracing.context.TraceContextFactory;
+import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
 
 /**
  * Transplanted from brave to support trace propagation from systems such as zipkin
@@ -62,9 +63,9 @@ class B3Extractor implements ITraceContextExtractor {
             return null;
         }
 
-        return new TraceContext(traceId,
-                                spanId,
-                                parentSpanId,
-                                Tracer.get().reporter());
+        return TraceContextFactory.create(TraceMode.TRACE,
+                                          traceId,
+                                          spanId,
+                                          parentSpanId).reporter(Tracer.get().reporter());
     }
 }

@@ -48,7 +48,7 @@ public class BeanMethodInterceptorImpl implements BeanMethodInterceptorIntf {
         final Object target,
         final Object[] args
     ) {
-        ITraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return null;
         }

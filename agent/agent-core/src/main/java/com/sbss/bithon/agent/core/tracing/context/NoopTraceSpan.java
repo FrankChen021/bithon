@@ -32,7 +32,7 @@ class NoopTraceSpan implements ITraceSpan {
     private final String spanId;
     private final String parentSpanId;
 
-    public NoopTraceSpan(NoopTraceContext traceContext, String spanId, String parentSpanId) {
+    public NoopTraceSpan(NoopTraceContext traceContext, String parentSpanId, String spanId) {
         this.traceContext = traceContext;
         this.spanId = spanId;
         this.parentSpanId = parentSpanId;
@@ -70,7 +70,7 @@ class NoopTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan kind(SpanKind kind) {
-        return null;
+        return this;
     }
 
     @Override
@@ -80,7 +80,7 @@ class NoopTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan component(String component) {
-        return null;
+        return this;
     }
 
     @Override
@@ -100,7 +100,7 @@ class NoopTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan arg(String name, String value) {
-        return null;
+        return this;
     }
 
     @Override
@@ -115,7 +115,7 @@ class NoopTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan parentApplication(String sourceApp) {
-        return null;
+        return this;
     }
 
     @Override
@@ -150,9 +150,7 @@ class NoopTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan newChildSpan(String name) {
-        return traceContext.onSpanCreated(new NoopTraceSpan(this.traceContext,
-                                                            traceContext.spanIdGenerator().newSpanId(),
-                                                            this.spanId)
-                                              .component(name));
+        return traceContext.newSpan(this.spanId, traceContext.spanIdGenerator().newSpanId())
+                           .component(name);
     }
 }

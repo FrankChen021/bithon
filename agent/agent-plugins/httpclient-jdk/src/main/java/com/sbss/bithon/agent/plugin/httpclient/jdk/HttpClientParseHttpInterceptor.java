@@ -37,7 +37,7 @@ public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
     HttpClientMetricCollector metricCollector;
 
     @Override
-    public boolean initialize() throws Exception {
+    public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
                                                 .getOrRegister("jdk-httpclient", HttpClientMetricCollector.class);
         return true;
@@ -60,7 +60,7 @@ public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
             metricCollector.addRequest(requestUri, httpMethod, statusCode, aopContext.getCostTime());
         }
 
-        ITraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return;
         }

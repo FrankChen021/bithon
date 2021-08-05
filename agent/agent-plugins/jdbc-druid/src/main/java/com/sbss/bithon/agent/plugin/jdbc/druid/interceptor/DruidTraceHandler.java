@@ -34,7 +34,7 @@ public class DruidTraceHandler extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceContext tracer = TraceContextHolder.get();
+        ITraceContext tracer = TraceContextHolder.current();
         if (tracer == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

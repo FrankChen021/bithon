@@ -51,7 +51,7 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
         //
         // Trace
         //
-        ITraceContext tracer = TraceContextHolder.get();
+        ITraceContext tracer = TraceContextHolder.current();
         if (tracer == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

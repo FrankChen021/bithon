@@ -170,11 +170,10 @@ class TraceSpan implements ITraceSpan {
     }
 
     @Override
-    public TraceSpan newChildSpan(String name) {
-        return traceContext.onSpanCreated(new TraceSpan(traceContext.spanIdGenerator().newSpanId(),
-                                                        this.spanId,
-                                                        this.traceContext)
-                                              .component(name));
+    public ITraceSpan newChildSpan(String name) {
+        return traceContext.newSpan(this.spanId,
+                                    traceContext.spanIdGenerator().newSpanId())
+                           .component(name);
     }
 
     @Override

@@ -38,7 +38,15 @@ public interface ITraceContext {
 
     ITraceReporter reporter();
 
+    ITraceContext reporter(ITraceReporter reporter);
+
     ISpanIdGenerator spanIdGenerator();
+
+    default ITraceSpan newSpan() {
+        return newSpan(null, spanIdGenerator().newSpanId());
+    }
+
+    ITraceSpan newSpan(String parentSpanId, String spanId);
 
     void finish();
 

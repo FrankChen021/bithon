@@ -18,9 +18,9 @@ package com.sbss.bithon.agent.core.tracing.propagation.extractor;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
-import com.sbss.bithon.agent.core.tracing.context.NoopTraceContext;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
+import com.sbss.bithon.agent.core.tracing.context.TraceContextFactory;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
+import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
 
 /**
  * @author frank.chen021@outlook.com
@@ -52,13 +52,13 @@ public class BithonExtractor implements ITraceContextExtractor {
         ITraceContext context;
         if (traceId.startsWith("P-")) {
             // propagation mode
-            context = new NoopTraceContext(traceId, ids[0], ids[1]);
+            context = TraceContextFactory.create(TraceMode.PROPAGATION, traceId, ids[0], ids[1]);
         } else {
             // default to trace mode
-            context = new TraceContext(traceId,
-                                       ids[0],
-                                       ids[1],
-                                       Tracer.get().reporter());
+            context = TraceContextFactory.create(TraceMode.TRACE,
+                                                 traceId,
+                                                 ids[0],
+                                                 ids[1]).reporter(Tracer.get().reporter());
         }
 
         context.currentSpan()

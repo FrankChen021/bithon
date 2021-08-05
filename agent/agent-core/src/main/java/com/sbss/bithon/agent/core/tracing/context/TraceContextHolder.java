@@ -31,7 +31,7 @@ public class TraceContextHolder {
         HOLDER.remove();
     }
 
-    public static ITraceContext get() {
+    public static ITraceContext current() {
         return HOLDER.get();
     }
 }
