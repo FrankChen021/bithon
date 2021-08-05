@@ -16,9 +16,10 @@
 
 package com.sbss.bithon.agent.core.utils;
 
+import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import shaded.org.yaml.snakeyaml.Yaml;
-import shaded.org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
-import shaded.org.yaml.snakeyaml.representer.Representer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,20 +46,10 @@ public class YamlUtils {
     public static <T> T load(File yml,
                              Class<T> clazz) throws IOException {
         try (InputStream inputStream = new FileInputStream(yml)) {
-            Representer representer = new Representer();
-            representer.getPropertyUtils().setSkipMissingProperties(true);
-
-            /**
-             * when debugging or running from IDE such as intellij,
-             * the agent jar file which contains the clazz will be added to classpath of running process
-             *
-             * This would cause two different clazz object loaded by different class loader,
-             *
-             * To resolve this problem, a CustomClassLoaderConstructor is used, and its class loader is passed to the custom class loader,
-             * which looks a little bit counterintuitive
-             */
-            return new Yaml(new CustomClassLoaderConstructor(clazz, clazz.getClassLoader()),
-                            representer).loadAs(inputStream, clazz);
+            ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+            return mapper.readValue(inputStream, clazz);
         }
     }
 
