@@ -18,10 +18,14 @@ package com.sbss.bithon.agent.core.config;
 
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import com.sbss.bithon.agent.core.utils.StringUtils;
-import com.sbss.bithon.agent.core.utils.YamlUtils;
+import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import static com.sbss.bithon.agent.core.context.AgentContext.CONF_DIR;
 import static java.io.File.separator;
@@ -57,11 +61,11 @@ public class AgentConfigManager {
     }
 
     public <T> T getConfig(Class<T> clazz) throws IOException {
-        return YamlUtils.load(configFile, clazz);
+        return load(configFile, clazz);
     }
 
     public AgentConfig getAgentConfig() throws IOException {
-        AgentConfig config = YamlUtils.load(configFile, AgentConfig.class);
+        AgentConfig config = load(configFile, AgentConfig.class);
 
         String appName = getApplicationName(config.getBootstrap().getAppName());
         if (StringUtils.isEmpty(appName)) {
@@ -107,4 +111,13 @@ public class AgentConfigManager {
         return null;
     }
 
+    private static <T> T load(File yml,
+                              Class<T> clazz) throws IOException {
+        try (InputStream inputStream = new FileInputStream(yml)) {
+            ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+            return mapper.readValue(inputStream, clazz);
+        }
+    }
 }
