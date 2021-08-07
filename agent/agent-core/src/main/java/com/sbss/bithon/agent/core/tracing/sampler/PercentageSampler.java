@@ -37,6 +37,7 @@ public class PercentageSampler implements ISampler {
         if (samplingRate < 1 || samplingRate >= 100) {
             throw new IllegalArgumentException("samplingRate must be in the range of (0,100)");
         }
+
         this.samplingRate = samplingRate;
     }
 

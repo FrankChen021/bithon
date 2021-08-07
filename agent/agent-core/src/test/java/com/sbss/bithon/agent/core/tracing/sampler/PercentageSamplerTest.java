@@ -54,7 +54,7 @@ public class PercentageSamplerTest {
     public void test_Percentage33() {
         ISampler sampler = new PercentageSampler(33);
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 5; i++) {
             Assert.assertEquals(SamplingMode.FULL, sampler.decideSamplingMode(null));
             Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
             Assert.assertEquals(SamplingMode.NONE, sampler.decideSamplingMode(null));
