@@ -62,7 +62,7 @@ class TraceContext implements ITraceContext {
 
     @Override
     public ITraceSpan currentSpan() {
-        return spanStack.peek();
+        return spanStack.isEmpty() ? null : spanStack.peek();
     }
 
     @Override

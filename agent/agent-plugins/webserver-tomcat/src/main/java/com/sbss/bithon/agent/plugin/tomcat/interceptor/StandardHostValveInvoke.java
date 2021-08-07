@@ -82,6 +82,10 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
         ITraceContext traceContext = aopContext.castUserContextAs();
         ITraceSpan span = null;
         try {
+            if (traceContext == null) {
+                //exception occurs in 'Enter'
+                return;
+            }
             span = traceContext.currentSpan();
             if (span == null) {
                 // TODO: ERROR
