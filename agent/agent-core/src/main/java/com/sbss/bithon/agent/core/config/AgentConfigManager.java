@@ -29,6 +29,7 @@ import shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -44,7 +45,9 @@ public class AgentConfigManager {
 
     public static final String BITHON_APPLICATION_ENV = "bithon.application.env";
     public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
-    private final JsonNode configuration;
+
+    private final JsonNode configurationNode;
+    private final Map<Class<?>, Object> configurations = new HashMap<>();
     private static AgentConfigManager INSTANCE = null;
 
     public static AgentConfigManager createInstance(String agentDirectory) {
@@ -61,7 +64,7 @@ public class AgentConfigManager {
 
         JsonNode staticConfiguration = readStaticConfiguration(configFile);
         JsonNode dynamicConfiguration = readDynamicConfiguration();
-        configuration = mergeConfiguration(staticConfiguration, dynamicConfiguration);
+        configurationNode = mergeConfiguration(staticConfiguration, dynamicConfiguration);
     }
 
     private JsonNode mergeConfiguration(JsonNode target, JsonNode source) {
@@ -164,17 +167,39 @@ public class AgentConfigManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T getConfig(Class<T> clazz) {
-        JsonNode node = configuration;
-
-        Configuration cfg = clazz.getAnnotation(Configuration.class);
-        if (cfg != null && !StringUtils.isEmpty(cfg.prefix())) {
-            for (String prefix : cfg.prefix().split("\\.")) {
-                node = node.get(prefix);
-            }
+        Object value = configurations.get(clazz);
+        if (value != null) {
+            return (T) value;
         }
 
-        return getConfig(node, clazz);
+        synchronized (this) {
+            // double check
+            value = configurations.get(clazz);
+            if (value != null) {
+                return (T) value;
+            }
+
+            JsonNode node = configurationNode;
+
+            // find correct node by prefixes
+            Configuration cfg = clazz.getAnnotation(Configuration.class);
+            if (cfg != null && !StringUtils.isEmpty(cfg.prefix())) {
+                for (String prefix : cfg.prefix().split("\\.")) {
+                    node = node.get(prefix);
+                }
+            }
+
+            value = getConfig(node, clazz);
+
+            // cache the configuration object
+            if (value != null) {
+                configurations.put(clazz, value);
+            }
+
+            return (T) value;
+        }
     }
 
     private <T> T getConfig(JsonNode root, Class<T> clazz) {
@@ -186,14 +211,14 @@ public class AgentConfigManager {
 
             String violation = Validator.validate(value);
             if (violation != null) {
-                throw new AgentException("Invalid configuration for type of [%s]:%s",
+                throw new AgentException("Invalid configuration for type of [%s]: %s",
                                          clazz.getSimpleName(),
                                          violation);
             }
 
             return value;
         } catch (IllegalArgumentException e) {
-            throw new AgentException("Unable to read type of [%s] from configuration:%s",
+            throw new AgentException("Unable to read type of [%s] from configuration: %s",
                                      clazz.getSimpleName(),
                                      e.getMessage());
         }
