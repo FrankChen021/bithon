@@ -202,6 +202,9 @@ public class AgentConfigManager {
             // find correct node by prefixes
             for (String prefix : prefixes.split("\\.")) {
                 node = node.get(prefix);
+                if (node == null) {
+                    break;
+                }
             }
 
             value = getConfig(node, clazz);
@@ -215,25 +218,37 @@ public class AgentConfigManager {
         }
     }
 
-    private <T> T getConfig(JsonNode root, Class<T> clazz) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-        try {
-            T value = mapper.convertValue(root, clazz);
+    private <T> T getConfig(JsonNode configurationNode, Class<T> clazz) {
+        T value;
 
-            String violation = Validator.validate(value);
-            if (violation != null) {
-                throw new AgentException("Invalid configuration for type of [%s]: %s",
-                                         clazz.getSimpleName(),
-                                         violation);
+        if (configurationNode == null) {
+            try {
+                value = clazz.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new AgentException("Unable create instance for [%s]: %s", clazz.getName(), e.getMessage());
             }
+        } else {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
 
-            return value;
-        } catch (IllegalArgumentException e) {
-            throw new AgentException("Unable to read type of [%s] from configuration: %s",
-                                     clazz.getSimpleName(),
-                                     e.getMessage());
+            try {
+                value = mapper.convertValue(configurationNode, clazz);
+            } catch (
+                IllegalArgumentException e) {
+                throw new AgentException("Unable to read type of [%s] from configuration: %s",
+                                         clazz.getSimpleName(),
+                                         e.getMessage());
+            }
         }
+
+        String violation = Validator.validate(value);
+        if (violation != null) {
+            throw new AgentException("Invalid configuration for type of [%s]: %s",
+                                     clazz.getSimpleName(),
+                                     violation);
+        }
+
+        return value;
     }
 }
