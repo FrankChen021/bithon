@@ -41,10 +41,14 @@ public class InterceptorContext {
     }
 
     public static <T> T getAs(String key) {
+        //noinspection unchecked
         return (T) HOLDER.get().get(key);
     }
 
     public static void remove(String key) {
-        HOLDER.get().remove(key);
+        try {
+            HOLDER.get().remove(key);
+        } catch (Exception ignored) {
+        }
     }
 }

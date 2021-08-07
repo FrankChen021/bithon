@@ -26,8 +26,6 @@ import java.util.Map;
  */
 class NoopTraceSpan implements ITraceSpan {
 
-    static NoopTraceSpan INSTANCE = new NoopTraceSpan(null, null, null);
-
     private final NoopTraceContext traceContext;
     private final String spanId;
     private final String parentSpanId;

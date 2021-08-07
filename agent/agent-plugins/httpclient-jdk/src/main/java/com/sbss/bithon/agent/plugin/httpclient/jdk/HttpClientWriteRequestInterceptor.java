@@ -20,11 +20,9 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
-import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
 import sun.net.www.MessageHeader;
 
 import java.net.HttpURLConnection;
@@ -34,23 +32,11 @@ import java.net.HttpURLConnection;
  */
 public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
 
-    private String srcApplication;
-
-    @Override
-    public boolean initialize() throws Exception {
-        srcApplication = AgentContext.getInstance().getAppInstance().getAppName();
-        return super.initialize();
-    }
-
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
 
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-        ITraceSpan span = traceContext.currentSpan();
+        ITraceSpan span = TraceSpanBuilder.build("httpClient-jdk");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -61,11 +47,11 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
         /*
          * starts a span which will be finished after HttpClient.parseHttp
          */
-        aopContext.setUserContext(span.newChildSpan("httpClient")
-                                      .method(aopContext.getMethod())
+        aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       .tag("uri", connection.getURL().toString())
-                                      .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value)).start());
+                                      .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))
+                                      .start());
 
         return InterceptionDecision.CONTINUE;
     }

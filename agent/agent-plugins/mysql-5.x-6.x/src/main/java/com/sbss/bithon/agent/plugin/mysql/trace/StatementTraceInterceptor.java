@@ -20,10 +20,9 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
-import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -38,30 +37,21 @@ public class StatementTraceInterceptor extends AbstractInterceptor {
 
         // TODO: filter "select @@session.tx_read_only"
 
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext == null) {
+        ITraceSpan span = TraceSpanBuilder.build("mysql");
+        if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceSpan parentSpan = traceContext.currentSpan();
-        if (parentSpan == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        aopContext.setUserContext(parentSpan.newChildSpan("mysql")
-                                            .method(aopContext.getMethod())
-                                            .kind(SpanKind.CLIENT)
-                                            .start());
+        aopContext.setUserContext(span.method(aopContext.getMethod())
+                                      .kind(SpanKind.CLIENT)
+                                      .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan mysqlSpan = aopContext.castUserContextAs();
-        if (mysqlSpan == null) {
-            return;
-        }
+        ITraceSpan span = aopContext.castUserContextAs();
         try {
             /*
             if (context.getArgs() != null && context.getArgs().length > 0 && needIgnore(context.getArgs()[0].toString())) {
@@ -70,14 +60,16 @@ public class StatementTraceInterceptor extends AbstractInterceptor {
 
             String sql;
             if ((sql = (String) InterceptorContext.get(ConnectionTraceInterceptor.KEY)) != null) {
-                mysqlSpan.tag("sql", sql);
+                span.tag("sql", sql);
             }
         } finally {
             try {
-                mysqlSpan.finish();
+                span.finish();
             } catch (Exception e) {
                 log.warn(e.getMessage(), e);
             }
+
+            InterceptorContext.remove(ConnectionTraceInterceptor.KEY);
         }
     }
 }

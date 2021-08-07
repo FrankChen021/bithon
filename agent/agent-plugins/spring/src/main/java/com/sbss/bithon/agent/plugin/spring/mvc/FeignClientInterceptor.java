@@ -20,10 +20,9 @@ package com.sbss.bithon.agent.plugin.spring.mvc;
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
-import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
 import feign.Request;
 import feign.Response;
 
@@ -35,18 +34,13 @@ public class FeignClientInterceptor extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-        ITraceSpan span = traceContext.currentSpan();
+        ITraceSpan span = TraceSpanBuilder.build("feignClient");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         Request request = (Request) aopContext.getArgs()[0];
-        aopContext.setUserContext(span.newChildSpan("feignClient")
-                                      .kind(SpanKind.CLIENT)
+        aopContext.setUserContext(span.kind(SpanKind.CLIENT)
                                       .tag("uri", request.url())
                                       .start());
 
@@ -56,9 +50,6 @@ public class FeignClientInterceptor extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         ITraceSpan span = aopContext.castUserContextAs();
-        if (span == null) {
-            return;
-        }
 
         Response response = aopContext.castReturningAs();
         span.tag("status", String.valueOf(response.status()));

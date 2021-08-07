@@ -19,10 +19,9 @@ package com.sbss.bithon.agent.plugin.jedis.interceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
-import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
 import redis.clients.jedis.Client;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -54,25 +53,18 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceContext tracer = TraceContextHolder.current();
-        if (tracer == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        ITraceSpan parentSpan = tracer.currentSpan();
-        if (parentSpan == null) {
+        ITraceSpan span = TraceSpanBuilder.build("jedis");
+        if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         Client redisClient = aopContext.castTargetAs();
         String hostAndPort = redisClient.getHost() + ":" + redisClient.getPort();
 
-        ITraceSpan thisSpan = parentSpan.newChildSpan("jedis")
-                                        .method(command)
-                                        .kind(SpanKind.CLIENT)
-                                        .tag("uri", hostAndPort)
-                                        .start();
-        aopContext.setUserContext(thisSpan);
+        aopContext.setUserContext(span.method(command)
+                                      .kind(SpanKind.CLIENT)
+                                      .tag("uri", hostAndPort)
+                                      .start());
 
         return InterceptionDecision.CONTINUE;
     }
@@ -80,9 +72,6 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         ITraceSpan span = aopContext.castUserContextAs();
-        if (span == null) {
-            return;
-        }
 
         String[] params = this.parseParams(aopContext.getArgs());
         for (int i = 0; params != null && i < params.length; i++) {

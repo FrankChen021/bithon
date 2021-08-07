@@ -25,12 +25,12 @@ public class TraceSpanBuilder {
     public static ITraceSpan build(String name) {
         ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
-            return NoopTraceSpan.INSTANCE;
+            return null;
         }
 
         ITraceSpan parentSpan = traceContext.currentSpan();
         if (parentSpan == null) {
-            return NoopTraceSpan.INSTANCE;
+            return null;
         }
 
         // create a span and save it in user-context
@@ -40,12 +40,12 @@ public class TraceSpanBuilder {
     public static ITraceSpan buildAsyncSpan(String name) {
         ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
-            return NoopTraceSpan.INSTANCE;
+            return null;
         }
 
         ITraceSpan parentSpan = traceContext.currentSpan();
         if (parentSpan == null) {
-            return NoopTraceSpan.INSTANCE;
+            return null;
         }
 
         return new TraceContext(traceContext.traceId(),

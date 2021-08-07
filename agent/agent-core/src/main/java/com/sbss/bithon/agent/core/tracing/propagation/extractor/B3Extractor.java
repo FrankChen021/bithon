@@ -16,7 +16,6 @@
 
 package com.sbss.bithon.agent.core.tracing.propagation.extractor;
 
-import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextFactory;
 import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;

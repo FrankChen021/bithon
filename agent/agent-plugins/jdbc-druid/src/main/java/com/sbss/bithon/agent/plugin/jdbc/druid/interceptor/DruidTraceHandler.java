@@ -19,10 +19,9 @@ package com.sbss.bithon.agent.plugin.jdbc.druid.interceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
-import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -34,24 +33,17 @@ public class DruidTraceHandler extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceContext tracer = TraceContextHolder.current();
-        if (tracer == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        ITraceSpan parentSpan = tracer.currentSpan();
-        if (parentSpan == null) {
+        ITraceSpan span = TraceSpanBuilder.build("alibaba-druid");
+        if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         // create a span and save it in user-context
-        ITraceSpan thisSpan = parentSpan.newChildSpan("alibaba.druid")
-                                       .method(aopContext.getMethod())
-                                       .kind(SpanKind.CLIENT)
-                                       //TODO:
-                                       //.tag("db", )
-                                       .start();
-        aopContext.setUserContext(thisSpan);
+        aopContext.setUserContext(span.method(aopContext.getMethod())
+                                      .kind(SpanKind.CLIENT)
+                                      //TODO:
+                                      //.tag("db", )
+                                      .start());
 
         return InterceptionDecision.CONTINUE;
     }

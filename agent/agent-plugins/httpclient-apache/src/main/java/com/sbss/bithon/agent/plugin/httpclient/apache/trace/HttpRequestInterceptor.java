@@ -21,10 +21,9 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import shaded.org.slf4j.Logger;
@@ -51,24 +50,18 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
         //
         // Trace
         //
-        ITraceContext tracer = TraceContextHolder.current();
-        if (tracer == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        ITraceSpan parentSpan = tracer.currentSpan();
-        if (parentSpan == null) {
+        ITraceSpan span = TraceSpanBuilder.build("httpClient");
+        if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         // create a span and save it in user-context
-        aopContext.setUserContext(parentSpan.newChildSpan("httpClient")
-                                            .method(aopContext.getMethod())
-                                            .kind(SpanKind.CLIENT)
-                                            .tag("uri", httpRequest.getRequestLine().getUri())
-                                            .propagate(httpRequest,
-                                                       (request, key, value) -> request.setHeader(key, value))
-                                            .start());
+        aopContext.setUserContext(span.method(aopContext.getMethod())
+                                      .kind(SpanKind.CLIENT)
+                                      .tag("uri", httpRequest.getRequestLine().getUri())
+                                      .propagate(httpRequest,
+                                                 (request, key, value) -> request.setHeader(key, value))
+                                      .start());
 
         return InterceptionDecision.CONTINUE;
     }
