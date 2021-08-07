@@ -14,33 +14,12 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.config;
-
-import com.sbss.bithon.agent.core.config.Configuration;
-import com.sbss.bithon.agent.core.config.validation.Range;
+package com.sbss.bithon.agent.core.tracing.sampler;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/8/5 21:33
+ * @date 2021/2/9 10:33 下午
  */
-@Configuration(prefix = "tracing")
-public class TraceConfig {
-
-    /**
-     * in range of [0, 100]
-     */
-    @Range(min = 0, max = 100)
-    private int samplingRate = 0;
-
-    public boolean isDisabled() {
-        return samplingRate == 0;
-    }
-
-    public int getSamplingRate() {
-        return samplingRate;
-    }
-
-    public void setSamplingRate(int samplingRate) {
-        this.samplingRate = samplingRate;
-    }
+public interface ISampler {
+    SamplingMode decideSamplingMode(Object request);
 }

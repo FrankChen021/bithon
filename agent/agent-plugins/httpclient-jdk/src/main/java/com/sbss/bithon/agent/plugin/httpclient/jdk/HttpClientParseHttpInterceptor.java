@@ -24,7 +24,7 @@ import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.utils.StringUtils;
+import com.sbss.bithon.agent.core.utils.lang.StringUtils;
 import sun.net.www.MessageHeader;
 import sun.net.www.protocol.http.HttpURLConnection;
 

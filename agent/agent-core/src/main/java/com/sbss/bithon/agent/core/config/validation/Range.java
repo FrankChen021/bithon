@@ -14,33 +14,21 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.config;
+package com.sbss.bithon.agent.core.config.validation;
 
-import com.sbss.bithon.agent.core.config.Configuration;
-import com.sbss.bithon.agent.core.config.validation.Range;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/8/5 21:33
+ * @date 2021/8/7 17:55
  */
-@Configuration(prefix = "tracing")
-public class TraceConfig {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Range {
+    long min();
 
-    /**
-     * in range of [0, 100]
-     */
-    @Range(min = 0, max = 100)
-    private int samplingRate = 0;
-
-    public boolean isDisabled() {
-        return samplingRate == 0;
-    }
-
-    public int getSamplingRate() {
-        return samplingRate;
-    }
-
-    public void setSamplingRate(int samplingRate) {
-        this.samplingRate = samplingRate;
-    }
+    long max();
 }

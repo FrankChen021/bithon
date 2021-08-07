@@ -14,12 +14,22 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.sampling;
+package com.sbss.bithon.agent.core.tracing.sampler;
+
+import com.sbss.bithon.agent.core.tracing.config.TraceConfig;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/9 10:33 下午
+ * @date 2021/8/7 18:04
  */
-public interface ISamplingDecisionMaker {
-    SamplingMode decideSamplingMode(Object request);
+public class SamplerFactory {
+    public static ISampler createSampler(TraceConfig traceConfig) {
+        if (traceConfig.getSamplingRate() == 0) {
+            return (request) -> SamplingMode.NONE;
+        }
+        if (traceConfig.getSamplingRate() == 100) {
+            return (request) -> SamplingMode.FULL;
+        }
+        return new PercentageSampler(traceConfig.getSamplingRate());
+    }
 }

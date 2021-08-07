@@ -21,7 +21,7 @@ import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextFactory;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
-import com.sbss.bithon.agent.core.tracing.sampling.SamplingMode;
+import com.sbss.bithon.agent.core.tracing.sampler.SamplingMode;
 
 /**
  * @author frank.chen021@outlook.com
@@ -51,7 +51,7 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
         // then handle to sampling decision maker to decide whether or not this request should be sampled
         //
         ITraceContext context;
-        SamplingMode mode = Tracer.get().samplingDecisionMaker().decideSamplingMode(request);
+        SamplingMode mode = Tracer.get().sampler().decideSamplingMode(request);
         if (mode == SamplingMode.NONE) {
             // create a propagation trace context to propagation trace context along the service call without reporting trace data
             context = TraceContextFactory.create(TraceMode.PROPAGATION,

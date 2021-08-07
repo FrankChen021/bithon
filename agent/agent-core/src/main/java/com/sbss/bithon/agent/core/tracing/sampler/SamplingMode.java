@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.sampling;
+package com.sbss.bithon.agent.core.tracing.sampler;
 
 /**
  * @author frank.chen021@outlook.com

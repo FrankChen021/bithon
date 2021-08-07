@@ -14,9 +14,11 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.sampling;
+package com.sbss.bithon.agent.core.tracing.sampler;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import com.sbss.bithon.agent.core.utils.lang.MathUtils;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A global sampling decision maker based on requests
@@ -24,30 +26,23 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author frank.chen021@outlook.com
  * @date 2021/2/9 10:55 下午
  */
-public class RatioSamplingDecisionMaker implements ISamplingDecisionMaker {
-    /**
-     * [1 - 100]
-     */
-    private final int samplingRatio;
-    private final AtomicInteger counter = new AtomicInteger();
+public class PercentageSampler implements ISampler {
+    private final int samplingRate;
+    private final AtomicLong counter = new AtomicLong();
 
     /**
-     * @param samplingRatio [0, 100] 0 means NO-SAMPLING
+     * @param samplingRate (0, 100)
      */
-    public RatioSamplingDecisionMaker(int samplingRatio) {
-        this.samplingRatio = 100 - samplingRatio;
+    public PercentageSampler(int samplingRate) {
+        if (samplingRate < 1 || samplingRate >= 100) {
+            throw new IllegalArgumentException("samplingRate must be in the range of (0,100)");
+        }
+        this.samplingRate = samplingRate;
     }
 
     @Override
     public SamplingMode decideSamplingMode(Object request) {
-        if (this.samplingRatio >= 100) {
-            return SamplingMode.NONE;
-        }
-        if (this.samplingRatio <= 0) {
-            return SamplingMode.FULL;
-        }
-
-        int samplingCount = Math.abs(counter.getAndIncrement());
-        return (samplingCount % samplingRatio == 0) ? SamplingMode.FULL : SamplingMode.NONE;
+        long reminder = MathUtils.floorMod(counter.addAndGet(this.samplingRate), 100);
+        return reminder > 0 && reminder <= this.samplingRate ? SamplingMode.FULL : SamplingMode.NONE;
     }
 }

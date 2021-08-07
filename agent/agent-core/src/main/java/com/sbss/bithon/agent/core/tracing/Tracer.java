@@ -23,15 +23,15 @@ import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
 import com.sbss.bithon.agent.core.dispatcher.Dispatchers;
 import com.sbss.bithon.agent.core.tracing.config.TraceConfig;
 import com.sbss.bithon.agent.core.tracing.context.ITraceIdGenerator;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.impl.UUIDGenerator;
 import com.sbss.bithon.agent.core.tracing.propagation.DefaultPropagator;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
-import com.sbss.bithon.agent.core.tracing.report.ITraceReporter;
-import com.sbss.bithon.agent.core.tracing.sampling.ISamplingDecisionMaker;
-import com.sbss.bithon.agent.core.tracing.sampling.RatioSamplingDecisionMaker;
+import com.sbss.bithon.agent.core.tracing.reporter.ITraceReporter;
+import com.sbss.bithon.agent.core.tracing.sampler.ISampler;
+import com.sbss.bithon.agent.core.tracing.sampler.SamplerFactory;
 import shaded.org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -48,11 +48,34 @@ public class Tracer {
     private ITraceIdGenerator traceIdGenerator;
     private ITraceReporter reporter;
     private ITracePropagator propagator;
-    private ISamplingDecisionMaker samplingDecisionMaker;
+    private ISampler sampler;
 
     public Tracer(String appName, String instanceName) {
         this.appName = appName;
         this.instanceName = instanceName;
+    }
+
+    static class NoopReporter implements ITraceReporter {
+        @Override
+        public void report(List<ITraceSpan> spans) {
+        }
+    }
+
+    static class DefaultReporter implements ITraceReporter {
+        private final Dispatcher traceDispatcher;
+
+        public DefaultReporter() {
+            traceDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_TRACING);
+        }
+
+        @Override
+        public void report(List<ITraceSpan> spans) {
+            List<Object> traceMessages = spans.stream()
+                                              .map(span -> traceDispatcher.getMessageConverter().from(span))
+                                              .filter(Objects::nonNull)
+                                              .collect(Collectors.toList());
+            traceDispatcher.sendMessage(traceMessages);
+        }
     }
 
     public static Tracer get() {
@@ -60,30 +83,16 @@ public class Tracer {
             synchronized (Tracer.class) {
                 if (INSTANCE == null) {
 
-                    TraceConfig traceConfig = null;
-                    try {
-                        traceConfig = AgentConfigManager.getInstance().getConfig(TraceConfig.class);
-                    } catch (IOException e) {
-                        LoggerFactory.getLogger(Tracer.class).info("Failed to load trace config", e);
-                    }
+                    TraceConfig traceConfig = AgentConfigManager.getInstance().getConfig(TraceConfig.class);
 
                     AppInstance appInstance = AgentContext.getInstance().getAppInstance();
                     try {
-                        final Dispatcher traceDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_TRACING);
-
                         INSTANCE = new Tracer(appInstance.getAppName(),
                                               appInstance.getHostIp() + ":" + appInstance.getPort())
                             .propagator(new DefaultPropagator())
                             .traceIdGenerator(new UUIDGenerator())
-                            .reporter((spans) -> {
-                                List<Object> traceMessages = spans.stream()
-                                                                  .map(span -> traceDispatcher.getMessageConverter()
-                                                                                              .from(span))
-                                                                  .filter(Objects::nonNull)
-                                                                  .collect(Collectors.toList());
-                                traceDispatcher.sendMessage(traceMessages);
-                            })
-                            .samplingDecisionMaker(new RatioSamplingDecisionMaker(traceConfig == null ? 0 : traceConfig.getSamplingRate()));
+                            .reporter(traceConfig.isDisabled() ? new NoopReporter() : new DefaultReporter())
+                            .sampler(SamplerFactory.createSampler(traceConfig));
                     } catch (Exception e) {
                         LoggerFactory.getLogger(Tracer.class).info("Failed to create Tracer", e);
                     }
@@ -128,12 +137,12 @@ public class Tracer {
         return instanceName;
     }
 
-    public ISamplingDecisionMaker samplingDecisionMaker() {
-        return this.samplingDecisionMaker;
+    public ISampler sampler() {
+        return this.sampler;
     }
 
-    public Tracer samplingDecisionMaker(ISamplingDecisionMaker decisionMaker) {
-        this.samplingDecisionMaker = decisionMaker;
+    public Tracer sampler(ISampler sampler) {
+        this.sampler = sampler;
         return this;
     }
 }

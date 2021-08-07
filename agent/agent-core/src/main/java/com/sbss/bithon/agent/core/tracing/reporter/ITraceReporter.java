@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.report;
+package com.sbss.bithon.agent.core.tracing.reporter;
 
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 

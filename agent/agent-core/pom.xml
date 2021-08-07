@@ -50,6 +50,12 @@
       <artifactId>agent-bootstrap</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <!--    <scm>&lt;!&ndash; buildnumber插件需要先设置为空 &ndash;&gt;-->

@@ -17,7 +17,7 @@
 package com.sbss.bithon.agent.core.config.validation;
 
 import com.sbss.bithon.agent.core.config.Configuration;
-import com.sbss.bithon.agent.core.utils.StringUtils;
+import com.sbss.bithon.agent.core.utils.lang.StringUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -33,6 +33,7 @@ public class Validator {
 
         Map<Class<? extends Annotation>, IValueValidator> validators = new HashMap<Class<? extends Annotation>, IValueValidator>() {{
             put(NotBlank.class, new NotBlankValidator());
+            put(Range.class, new RangeValidator());
         }};
 
         for (Field field : obj.getClass().getDeclaredFields()) {
@@ -103,6 +104,22 @@ public class Validator {
                 }
             }
             return null;
+        }
+    }
+
+    static class RangeValidator implements IValueValidator {
+        @Override
+        public String validate(Annotation annotation, Class<?> objectType, Object value) {
+            if (value instanceof Number) {
+                long v = ((Number) value).longValue();
+                long min = ((Range) annotation).min();
+                long max = ((Range) annotation).max();
+                if (v >= min && v <= max) {
+                    return null;
+                }
+                return "%s " + String.format("should be in the range of [%d, %d], but is %d", min, max, v);
+            }
+            return "Type of [%s] is not Number, but " + objectType.getSimpleName();
         }
     }
 }
