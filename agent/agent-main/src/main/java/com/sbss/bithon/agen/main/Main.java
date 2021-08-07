@@ -21,6 +21,7 @@ import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -28,7 +29,7 @@ import java.util.Arrays;
  * @author frankchen
  */
 public class Main {
-    public static void premain(String agentArgs, Instrumentation inst) throws Exception {
+    public static void premain(String agentArgs, Instrumentation inst) throws Throwable {
         //
         // check whether to start agent
         //
@@ -60,7 +61,11 @@ public class Main {
         Method startMethod = starterClass.getDeclaredMethod("start",
                                                             String.class,
                                                             Instrumentation.class);
-        startMethod.invoke(starterObject, agentDirectory.getAbsolutePath(), inst);
+        try {
+            startMethod.invoke(starterObject, agentDirectory.getAbsolutePath(), inst);
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
     }
 
     /**
