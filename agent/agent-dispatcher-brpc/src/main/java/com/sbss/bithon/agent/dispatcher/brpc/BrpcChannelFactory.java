@@ -17,10 +17,10 @@
 package com.sbss.bithon.agent.dispatcher.brpc;
 
 
-import com.sbss.bithon.agent.core.config.DispatcherConfig;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannel;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
+import com.sbss.bithon.agent.core.dispatcher.config.DispatcherConfig;
 
 /**
  * @author frank.chen021@outlook.com

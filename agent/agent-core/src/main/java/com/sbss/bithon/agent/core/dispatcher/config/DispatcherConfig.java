@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.config;
+package com.sbss.bithon.agent.core.dispatcher.config;
 
 import java.util.HashMap;
 import java.util.Map;

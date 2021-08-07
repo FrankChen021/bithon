@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.core.dispatcher.task;
 
-import com.sbss.bithon.agent.core.config.DispatcherConfig;
+import com.sbss.bithon.agent.core.dispatcher.config.DispatcherConfig;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -76,7 +76,7 @@ public class DispatchTask {
         if (log.isDebugEnabled()) {
             String className = message.getClass().getSimpleName();
             className = className.replace("Entity", "");
-            log.debug("Entity : " + className + ", Got and Send : " + message.toString());
+            log.debug("Entity : " + className + ", Got and Send : " + message);
         }
         queue.enqueue(message);
     }

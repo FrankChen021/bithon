@@ -17,10 +17,10 @@
 package com.sbss.bithon.agent.core.dispatcher;
 
 
-import com.sbss.bithon.agent.core.config.DispatcherConfig;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannel;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
+import com.sbss.bithon.agent.core.dispatcher.config.DispatcherConfig;
 import com.sbss.bithon.agent.core.dispatcher.task.BlockingQueue;
 import com.sbss.bithon.agent.core.dispatcher.task.DispatchTask;
 import com.sbss.bithon.agent.core.dispatcher.task.IMessageQueue;

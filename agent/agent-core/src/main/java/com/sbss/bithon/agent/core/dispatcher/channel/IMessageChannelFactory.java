@@ -16,8 +16,8 @@
 
 package com.sbss.bithon.agent.core.dispatcher.channel;
 
-import com.sbss.bithon.agent.core.config.DispatcherConfig;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
+import com.sbss.bithon.agent.core.dispatcher.config.DispatcherConfig;
 
 /**
  * @author frank.chen021@outlook.com
