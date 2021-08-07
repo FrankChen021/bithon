@@ -14,19 +14,12 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.context.impl;
-
-import com.sbss.bithon.agent.core.tracing.context.ITraceIdGenerator;
-
-import java.util.UUID;
+package com.sbss.bithon.agent.core.tracing.id;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/6 12:20 上午
+ * @date 2021/2/7 10:36 下午
  */
-public class UUIDGenerator implements ITraceIdGenerator {
-    @Override
-    public String newTraceId() {
-        return UUID.randomUUID().toString();
-    }
+public interface ISpanIdGenerator {
+    String newSpanId();
 }

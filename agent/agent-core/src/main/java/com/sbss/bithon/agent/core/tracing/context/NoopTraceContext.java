@@ -17,6 +17,7 @@
 package com.sbss.bithon.agent.core.tracing.context;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
+import com.sbss.bithon.agent.core.tracing.id.ISpanIdGenerator;
 import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
 import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import com.sbss.bithon.agent.core.tracing.reporter.ITraceReporter;

@@ -17,7 +17,7 @@
 package com.sbss.bithon.agent.core.tracing.context;
 
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
-import com.sbss.bithon.agent.core.tracing.context.impl.DefaultSpanIdGenerator;
+import com.sbss.bithon.agent.core.tracing.id.impl.DefaultSpanIdGenerator;
 import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
 
 /**
