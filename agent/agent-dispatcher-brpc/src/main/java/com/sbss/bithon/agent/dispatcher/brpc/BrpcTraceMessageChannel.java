@@ -16,10 +16,10 @@
 
 package com.sbss.bithon.agent.dispatcher.brpc;
 
-import com.sbss.bithon.agent.core.config.DispatcherConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannel;
+import com.sbss.bithon.agent.core.dispatcher.config.DispatcherConfig;
 import com.sbss.bithon.agent.rpc.brpc.ApplicationType;
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;

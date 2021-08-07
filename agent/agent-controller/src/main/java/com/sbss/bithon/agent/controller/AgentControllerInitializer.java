@@ -36,29 +36,15 @@ import java.util.ServiceLoader;
 public class AgentControllerInitializer implements IAgentInitializer {
     private static final Logger log = LoggerFactory.getLogger(AgentControllerInitializer.class);
 
-    public static class Config {
-        AgentControllerConfig controller;
-
-        public AgentControllerConfig getController() {
-            return controller;
-        }
-
-        public void setController(AgentControllerConfig controller) {
-            this.controller = controller;
-        }
-    }
-
     @Override
     public void initialize(AgentContext context) throws Exception {
         log.info("Initializing agent controller");
 
-        Config config = AgentConfigManager.getInstance().getConfig(Config.class);
-        if (config == null || config.getController() == null || StringUtils.isEmpty(config.getController()
-                                                                                          .getClient())) {
+        AgentControllerConfig ctrlConfig = AgentConfigManager.getInstance().getConfig(AgentControllerConfig.class);
+        if (ctrlConfig == null || StringUtils.isEmpty(ctrlConfig.getClient())) {
             log.warn("Agent Controller has not configured.");
             return;
         }
-        AgentControllerConfig ctrlConfig = config.getController();
 
         //
         // create controller

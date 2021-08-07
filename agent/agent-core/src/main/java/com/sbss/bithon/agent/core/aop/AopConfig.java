@@ -14,31 +14,23 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.utils;
+package com.sbss.bithon.agent.core.aop;
+
+import com.sbss.bithon.agent.core.config.Configuration;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/10 10:55 上午
+ * @date 2021/8/7 13:53
  */
-public class StringUtils {
-    public static boolean isEmpty(String v) {
-        return v == null || v.trim().isEmpty();
+@Configuration(prefix = "aop")
+public class AopConfig {
+    private boolean debug = false;
+
+    public boolean isDebug() {
+        return debug;
     }
 
-    public static boolean isBlank(String str) {
-        int length;
-        if (str == null || (length = str.length()) == 0) {
-            return true;
-        }
-        for (int i = 0; i < length; i++) {
-            if ((!Character.isWhitespace(str.charAt(i)))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static boolean isNotBlank(String str) {
-        return !isBlank(str);
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }

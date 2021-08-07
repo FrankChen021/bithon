@@ -17,6 +17,7 @@
 package com.sbss.bithon.agent.core.aop;
 
 
+import com.sbss.bithon.agent.core.config.AgentConfigManager;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.description.type.TypeDescription;
@@ -41,9 +42,7 @@ public class AopDebugger extends AgentBuilder.Listener.Adapter {
     private static final Logger log = LoggerFactory.getLogger(AopDebugger.class);
 
     static {
-        String enabled = System.getProperty("bithon.aop.debug", "false");
-        boolean isDebugEnabled = "".equals(enabled) || "true".compareToIgnoreCase(enabled) == 0;
-        INSTANCE = new AopDebugger(isDebugEnabled);
+        INSTANCE = new AopDebugger(AgentConfigManager.getInstance().getConfig(AopConfig.class).isDebug());
     }
 
     private final boolean isDebugEnabled;
