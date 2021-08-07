@@ -47,7 +47,11 @@ public class AgentConfigManager {
     public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
 
     private final JsonNode configurationNode;
-    private final Map<Class<?>, Object> configurations = new HashMap<>();
+
+    /**
+     * key: configuration prefix + class name
+     */
+    private final Map<String, Object> configurations = new HashMap<>();
     private static AgentConfigManager INSTANCE = null;
 
     public static AgentConfigManager createInstance(String agentDirectory) {
@@ -169,14 +173,26 @@ public class AgentConfigManager {
 
     @SuppressWarnings("unchecked")
     public <T> T getConfig(Class<T> clazz) {
-        Object value = configurations.get(clazz);
+        Configuration cfg = clazz.getAnnotation(Configuration.class);
+        if (cfg != null && !StringUtils.isEmpty(cfg.prefix())) {
+            return getConfig(cfg.prefix(), clazz);
+        } else {
+            return getConfig("[root]", clazz);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getConfig(String prefixes, Class<T> clazz) {
+        String cacheKey = prefixes + "@" + clazz.getName();
+
+        Object value = configurations.get(cacheKey);
         if (value != null) {
             return (T) value;
         }
 
         synchronized (this) {
             // double check
-            value = configurations.get(clazz);
+            value = configurations.get(cacheKey);
             if (value != null) {
                 return (T) value;
             }
@@ -184,18 +200,15 @@ public class AgentConfigManager {
             JsonNode node = configurationNode;
 
             // find correct node by prefixes
-            Configuration cfg = clazz.getAnnotation(Configuration.class);
-            if (cfg != null && !StringUtils.isEmpty(cfg.prefix())) {
-                for (String prefix : cfg.prefix().split("\\.")) {
-                    node = node.get(prefix);
-                }
+            for (String prefix : prefixes.split("\\.")) {
+                node = node.get(prefix);
             }
 
             value = getConfig(node, clazz);
 
             // cache the configuration object
             if (value != null) {
-                configurations.put(clazz, value);
+                configurations.put(cacheKey, value);
             }
 
             return (T) value;

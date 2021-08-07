@@ -16,6 +16,7 @@
 
 package com.sbss.bithon.agent.core.dispatcher;
 
+import com.sbss.bithon.agent.core.config.AgentConfigManager;
 import com.sbss.bithon.agent.core.config.DispatcherConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
@@ -45,7 +46,7 @@ public class Dispatchers {
     }
 
     public static Dispatcher getOrCreate(String dispatcherName) {
-        DispatcherConfig config = AgentContext.getInstance().getConfig().getDispatchers().get(dispatcherName);
+        DispatcherConfig config = AgentConfigManager.getInstance().getConfig("dispatchers." + dispatcherName, DispatcherConfig.class);
         if (config == null) {
             return null;
         }

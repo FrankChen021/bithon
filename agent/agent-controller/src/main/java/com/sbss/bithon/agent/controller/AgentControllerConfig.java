@@ -16,10 +16,13 @@
 
 package com.sbss.bithon.agent.controller;
 
+import com.sbss.bithon.agent.core.config.Configuration;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 2:48 下午
  */
+@Configuration(prefix = "controller")
 public class AgentControllerConfig {
     private String client;
     private String servers;
