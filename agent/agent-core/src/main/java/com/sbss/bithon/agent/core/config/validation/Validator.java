@@ -63,12 +63,17 @@ public class Validator {
 
         String violationMessagePattern;
         try {
-            Object value = field.get(object);
-            violationMessagePattern = valueValidator.validate(validatorAnnotation, field.getType(), value);
+            violationMessagePattern = valueValidator.validate(validatorAnnotation,
+                                                              field.getType(),
+                                                              field.get(object));
+            if (violationMessagePattern == null) {
+                return null;
+            }
         } catch (IllegalAccessException ignored) {
             return null;
         }
 
+        // get field name or configuration property name
         String name;
         Configuration cfgAnnotation = object.getClass().getAnnotation(Configuration.class);
         if (cfgAnnotation != null) {
@@ -76,6 +81,7 @@ public class Validator {
         } else {
             name = field.getName();
         }
+
         return String.format(violationMessagePattern, name);
     }
 
