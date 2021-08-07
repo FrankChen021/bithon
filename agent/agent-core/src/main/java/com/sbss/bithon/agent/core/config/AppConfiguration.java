@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.core.config;
 
-import javax.validation.constraints.NotEmpty;
+import com.sbss.bithon.agent.core.config.validation.NotBlank;
 
 /**
  * @author frankchen
@@ -24,10 +24,10 @@ import javax.validation.constraints.NotEmpty;
 @Configuration(prefix = "application")
 public class AppConfiguration {
 
-    @NotEmpty(message = "'env' is empty")
+    @NotBlank(message = "[%s] is blank")
     private String env;
 
-    @NotEmpty(message = "'name' is empty")
+    @NotBlank(message = "[%s] is blank")
     private String name;
 
     public String getName() {

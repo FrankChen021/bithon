@@ -17,6 +17,7 @@
 package com.sbss.bithon.agent.core.config;
 
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
+import com.sbss.bithon.agent.core.config.validation.Validator;
 import com.sbss.bithon.agent.core.utils.StringUtils;
 import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import shaded.com.fasterxml.jackson.databind.JsonNode;
@@ -25,17 +26,12 @@ import shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 import shaded.com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 import static com.sbss.bithon.agent.core.context.AgentContext.CONF_DIR;
 import static java.io.File.separator;
@@ -188,13 +184,14 @@ public class AgentConfigManager {
         try {
             T value = mapper.convertValue(root, clazz);
 
-            ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-            Validator validator = validatorFactory.getValidator();
-            Set<ConstraintViolation<T>> violations = validator.validate(value);
-            ConstraintViolation<T> violation = violations.stream().findFirst().orElse(null);
-            throw new AgentException("Invalid configuration for type of [%s]:%s",
-                                     clazz.getSimpleName(),
-                                     violation.getMessage());
+            String violation = Validator.validate(value);
+            if (violation != null) {
+                throw new AgentException("Invalid configuration for type of [%s]:%s",
+                                         clazz.getSimpleName(),
+                                         violation);
+            }
+
+            return value;
         } catch (IllegalArgumentException e) {
             throw new AgentException("Unable to read type of [%s] from configuration:%s",
                                      clazz.getSimpleName(),
