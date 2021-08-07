@@ -16,40 +16,17 @@
 
 package com.sbss.bithon.agent.core.config;
 
-import java.util.List;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2021/8/7 09:57
  */
-public class BootstrapConfig {
-
-    private String env;
-
-    private String appName;
-
-    private List<String> appLogs;
-
-    public String getAppName() {
-        return appName;
-    }
-
-    public void setAppName(String appName) {
-        this.appName = appName;
-    }
-
-    public List<String> getAppLogs() {
-        return appLogs;
-    }
-
-    public void setAppLogs(List<String> appLogs) {
-        this.appLogs = appLogs;
-    }
-
-    public String getEnv() {
-        return env;
-    }
-
-    public void setEnv(String env) {
-        this.env = env;
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Configuration {
+    String prefix();
 }

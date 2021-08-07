@@ -18,6 +18,8 @@ package com.sbss.bithon.agent.core.starter;
 
 import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.core.aop.InstrumentationHelper;
+import com.sbss.bithon.agent.core.config.AgentConfigManager;
+import com.sbss.bithon.agent.core.config.AppConfiguration;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.PluginInterceptorInstaller;
 import shaded.org.apache.log4j.xml.DOMConfigurator;
@@ -47,9 +49,7 @@ public class AgentStarter {
                         .stream()
                         .map(jar -> new File(jar.getName()).getName())
                         .sorted()
-                        .forEach(name -> {
-                            LoggerFactory.getLogger("AgentClassLoader").info("Found lib {}", name);
-                        });
+                        .forEach(name -> LoggerFactory.getLogger("AgentClassLoader").info("Found lib {}", name));
 
         AgentContext agentContext = AgentContext.createInstance(agentPath);
 
@@ -90,8 +90,10 @@ public class AgentStarter {
     }
 
     private void ensureApplicationTempDirectory(AgentContext context) {
+        AppConfiguration appConfiguration = AgentConfigManager.getInstance().getConfig(AppConfiguration.class);
+
         File tmpDir = new File(context.getAgentDirectory() + separator + AgentContext.TMP_DIR + separator +
-                               context.getConfig().getBootstrap().getAppName());
+                               appConfiguration.getName());
 
         if (!tmpDir.exists()) {
             tmpDir.mkdirs();

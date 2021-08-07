@@ -18,8 +18,7 @@ package com.sbss.bithon.agent.core.context;
 
 import com.sbss.bithon.agent.core.config.AgentConfig;
 import com.sbss.bithon.agent.core.config.AgentConfigManager;
-
-import java.io.IOException;
+import com.sbss.bithon.agent.core.config.AppConfiguration;
 
 /**
  * @author frank.chen021@outlook.com
@@ -35,13 +34,14 @@ public class AgentContext {
     private AppInstance appInstance;
     private AgentConfig agentConfig;
 
-    public static AgentContext createInstance(String agentPath) throws IOException {
-        AgentConfig config = AgentConfigManager.createInstance(agentPath).getAgentConfig();
+    public static AgentContext createInstance(String agentPath) {
+        AgentConfigManager cfgManager = AgentConfigManager.createInstance(agentPath);
 
+        AppConfiguration appConfiguration = cfgManager.getConfig(AppConfiguration.class);
         INSTANCE = new AgentContext();
         INSTANCE.agentDirectory = agentPath;
-        INSTANCE.agentConfig = config;
-        INSTANCE.appInstance = new AppInstance(config.getBootstrap().getAppName(), config.getBootstrap().getEnv());
+        INSTANCE.agentConfig = cfgManager.getConfig(AgentConfig.class);
+        INSTANCE.appInstance = new AppInstance(appConfiguration.getName(), appConfiguration.getEnv());
         return INSTANCE;
     }
 

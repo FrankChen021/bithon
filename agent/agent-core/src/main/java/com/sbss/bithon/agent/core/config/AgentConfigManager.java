@@ -25,12 +25,17 @@ import shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 import shaded.com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static com.sbss.bithon.agent.core.context.AgentContext.CONF_DIR;
 import static java.io.File.separator;
@@ -163,57 +168,37 @@ public class AgentConfigManager {
         }
     }
 
-    public <T> T getConfig(Class<T> clazz) throws IOException {
+    public <T> T getConfig(Class<T> clazz) {
+        JsonNode node = configuration;
+
+        Configuration cfg = clazz.getAnnotation(Configuration.class);
+        if (cfg != null && !StringUtils.isEmpty(cfg.prefix())) {
+            for (String prefix : cfg.prefix().split("\\.")) {
+                node = node.get(prefix);
+            }
+        }
+
+        return getConfig(node, clazz);
+    }
+
+    private <T> T getConfig(JsonNode root, Class<T> clazz) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-        return mapper.convertValue(configuration, clazz);
-    }
+        try {
+            T value = mapper.convertValue(root, clazz);
 
-    public AgentConfig getAgentConfig() throws IOException {
-        AgentConfig config = getConfig(AgentConfig.class);
-
-        String appName = getApplicationName(config.getBootstrap().getAppName());
-        if (StringUtils.isEmpty(appName)) {
-            throw new AgentException("Failed to get JVM property or environment variable `%s`",
-                                     BITHON_APPLICATION_NAME);
+            ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
+            Validator validator = validatorFactory.getValidator();
+            Set<ConstraintViolation<T>> violations = validator.validate(value);
+            ConstraintViolation<T> violation = violations.stream().findFirst().orElse(null);
+            throw new AgentException("Invalid configuration for type of [%s]:%s",
+                                     clazz.getSimpleName(),
+                                     violation.getMessage());
+        } catch (IllegalArgumentException e) {
+            throw new AgentException("Unable to read type of [%s] from configuration:%s",
+                                     clazz.getSimpleName(),
+                                     e.getMessage());
         }
-        config.getBootstrap().setAppName(appName);
-
-        String env = getApplicationEnvironment();
-        if (StringUtils.isEmpty(env)) {
-            throw new AgentException("Failed to get JVM property or environment variable `%s`", BITHON_APPLICATION_ENV);
-        }
-        config.getBootstrap().setEnv(env);
-
-        return config;
-    }
-
-    private static String getApplicationName(String defaultName) {
-        String appName = System.getProperty(BITHON_APPLICATION_NAME);
-        if (!StringUtils.isEmpty(appName)) {
-            return appName;
-        }
-
-        appName = System.getenv().get(BITHON_APPLICATION_NAME);
-        if (!StringUtils.isEmpty(appName)) {
-            return appName;
-        }
-
-        return defaultName;
-    }
-
-    private static String getApplicationEnvironment() {
-        String envName = System.getProperty(BITHON_APPLICATION_ENV);
-        if (!StringUtils.isEmpty(envName)) {
-            return envName;
-        }
-
-        envName = System.getenv().get(BITHON_APPLICATION_ENV);
-        if (!StringUtils.isEmpty(envName)) {
-            return envName;
-        }
-
-        return null;
     }
 }

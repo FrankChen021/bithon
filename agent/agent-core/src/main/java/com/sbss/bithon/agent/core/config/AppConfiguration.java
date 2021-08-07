@@ -16,21 +16,33 @@
 
 package com.sbss.bithon.agent.core.config;
 
-import java.util.Map;
+import javax.validation.constraints.NotEmpty;
 
 /**
- * TODO: separate this class into different classes in respective modules
  * @author frankchen
- * @date 2020-12-31 22:18:18
  */
-public class AgentConfig {
-    private Map<String, DispatcherConfig> dispatchers;
+@Configuration(prefix = "application")
+public class AppConfiguration {
 
-    public Map<String, DispatcherConfig> getDispatchers() {
-        return dispatchers;
+    @NotEmpty(message = "'env' is empty")
+    private String env;
+
+    @NotEmpty(message = "'name' is empty")
+    private String name;
+
+    public String getName() {
+        return name;
     }
 
-    public void setDispatchers(Map<String, DispatcherConfig> dispatchers) {
-        this.dispatchers = dispatchers;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEnv() {
+        return env;
+    }
+
+    public void setEnv(String env) {
+        this.env = env;
     }
 }
