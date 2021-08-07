@@ -14,12 +14,19 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.sampling;
+package com.sbss.bithon.agent.core.tracing.id.impl;
+
+import com.sbss.bithon.agent.core.tracing.id.ITraceIdGenerator;
+
+import java.util.UUID;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/9 10:33 下午
+ * @date 2021/2/6 12:20 上午
  */
-public interface ISamplingDecisionMaker {
-    SamplingMode decideSamplingMode(Object request);
+public class UUIDGenerator implements ITraceIdGenerator {
+    @Override
+    public String newTraceId() {
+        return UUID.randomUUID().toString();
+    }
 }

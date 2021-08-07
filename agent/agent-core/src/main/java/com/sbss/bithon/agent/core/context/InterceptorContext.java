@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InterceptorContext {
     public static final String KEY_URI = "uri";
     public static final String KEY_TRACEID = "traceId";
-    public static final String HEADER_SRC_APPLICATION_NAME = "X-Bithon-Application";
 
     private static final ThreadLocal<Map<String, Object>> HOLDER = ThreadLocal.withInitial(() -> new ConcurrentHashMap<>(
         17));
@@ -42,10 +41,14 @@ public class InterceptorContext {
     }
 
     public static <T> T getAs(String key) {
+        //noinspection unchecked
         return (T) HOLDER.get().get(key);
     }
 
     public static void remove(String key) {
-        HOLDER.get().remove(key);
+        try {
+            HOLDER.get().remove(key);
+        } catch (Exception ignored) {
+        }
     }
 }

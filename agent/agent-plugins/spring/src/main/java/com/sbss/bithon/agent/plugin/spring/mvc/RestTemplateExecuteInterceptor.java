@@ -19,10 +19,9 @@ package com.sbss.bithon.agent.plugin.spring.mvc;
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 
 import java.net.URI;
 
@@ -33,11 +32,7 @@ import java.net.URI;
 public class RestTemplateExecuteInterceptor extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        TraceContext traceContext = TraceContextHolder.get();
-        if (traceContext == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-        TraceSpan span = traceContext.currentSpan();
+        ITraceSpan span = TraceSpanFactory.newSpan("restTemplate");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -50,8 +45,7 @@ public class RestTemplateExecuteInterceptor extends AbstractInterceptor {
             uri = obj.toString();
         }
 
-        aopContext.setUserContext(span.newChildSpan("restTemplate")
-                                      .method(aopContext.getMethod())
+        aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       .tag("uri", uri)
                                       .start());
@@ -62,10 +56,7 @@ public class RestTemplateExecuteInterceptor extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        TraceSpan span = (TraceSpan) aopContext.getUserContext();
-        if (span == null) {
-            return;
-        }
+        ITraceSpan span = aopContext.castUserContextAs();
         span.finish();
     }
 }

@@ -16,10 +16,10 @@
 
 package com.sbss.bithon.agent.plugin.tomcat.metric;
 
-import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IntervalMetricCollector;
 import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
+import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.apache.coyote.Request;
 import org.apache.coyote.Response;
 
@@ -37,7 +37,7 @@ public class WebRequestMetricCollector extends IntervalMetricCollector<WebReques
             return;
         }
 
-        String srcApplication = request.getHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME);
+        String srcApplication = request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION);
 
         int httpStatus = response.getStatus();
         int errorCount = response.getStatus() >= 400 ? 1 : 0;
@@ -67,7 +67,7 @@ public class WebRequestMetricCollector extends IntervalMetricCollector<WebReques
 
     public WebRequestCompositeMetric getOrCreate(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        String srcApplication = request.getHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME);
+        String srcApplication = request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION);
         return getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
     }
 }

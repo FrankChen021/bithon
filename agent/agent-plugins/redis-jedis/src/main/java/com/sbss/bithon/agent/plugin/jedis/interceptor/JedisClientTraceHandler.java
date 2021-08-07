@@ -19,10 +19,9 @@ package com.sbss.bithon.agent.plugin.jedis.interceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import redis.clients.jedis.Client;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -36,7 +35,7 @@ import java.util.Set;
  */
 public class JedisClientTraceHandler extends AbstractInterceptor {
     private static final Logger log = LoggerFactory.getLogger(JedisClientTraceHandler.class);
-    private Set<String> ignoreCommands = new HashSet<String>();
+    private Set<String> ignoreCommands = new HashSet<>();
 
     @Override
     public boolean initialize() {
@@ -48,41 +47,31 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
         String command = aopContext.getArgs()[0].toString();
         if (ignoreCommand(command)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        TraceContext tracer = TraceContextHolder.get();
-        if (tracer == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        TraceSpan parentSpan = tracer.currentSpan();
-        if (parentSpan == null) {
+        ITraceSpan span = TraceSpanFactory.newSpan("jedis");
+        if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         Client redisClient = aopContext.castTargetAs();
         String hostAndPort = redisClient.getHost() + ":" + redisClient.getPort();
 
-        TraceSpan thisSpan = parentSpan.newChildSpan("jedis")
-                                       .method(command)
-                                       .kind(SpanKind.CLIENT)
-                                       .tag("uri", hostAndPort)
-                                       .start();
-        aopContext.setUserContext(thisSpan);
+        aopContext.setUserContext(span.method(command)
+                                      .kind(SpanKind.CLIENT)
+                                      .tag("uri", hostAndPort)
+                                      .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
-        TraceSpan span = aopContext.castUserContextAs();
-        if (span == null) {
-            return;
-        }
+    public void onMethodLeave(AopContext aopContext) {
+        ITraceSpan span = aopContext.castUserContextAs();
 
         String[] params = this.parseParams(aopContext.getArgs());
         for (int i = 0; params != null && i < params.length; i++) {

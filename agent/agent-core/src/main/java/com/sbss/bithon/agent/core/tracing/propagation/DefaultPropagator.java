@@ -16,10 +16,12 @@
 
 package com.sbss.bithon.agent.core.tracing.propagation;
 
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.propagation.extractor.ChainedTraceContextExtractor;
+import com.sbss.bithon.agent.core.tracing.propagation.extractor.ITraceContextExtractor;
 import com.sbss.bithon.agent.core.tracing.propagation.extractor.PropagationGetter;
 import com.sbss.bithon.agent.core.tracing.propagation.injector.DefaultTraceContextInjector;
+import com.sbss.bithon.agent.core.tracing.propagation.injector.ITraceContextInjector;
 import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 
 /**
@@ -28,13 +30,16 @@ import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter
  */
 public class DefaultPropagator implements ITracePropagator {
 
+    private final ITraceContextInjector injector = new DefaultTraceContextInjector();
+    private final ITraceContextExtractor extractor = new ChainedTraceContextExtractor();
+
     @Override
-    public <R> void inject(TraceContext context, R request, PropagationSetter<R> setter) {
-        new DefaultTraceContextInjector().inject(context, request, setter);
+    public <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter) {
+        injector.inject(context, request, setter);
     }
 
     @Override
-    public <R> TraceContext extract(R request, PropagationGetter<R> getter) {
-        return new ChainedTraceContextExtractor().extract(request, getter);
+    public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
+        return extractor.extract(request, getter);
     }
 }

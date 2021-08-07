@@ -30,7 +30,7 @@ import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
@@ -262,7 +262,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(TraceSpan span) {
+    public Object from(ITraceSpan span) {
         TraceSpanMessage spanMessage = new TraceSpanMessage();
         spanMessage.setTraceId(span.traceId());
         spanMessage.setSpanId(span.spanId());

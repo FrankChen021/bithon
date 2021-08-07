@@ -21,12 +21,9 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.context.InterceptorContext;
-import com.sbss.bithon.agent.core.tracing.Tracer;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import shaded.org.slf4j.Logger;
@@ -49,40 +46,29 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[0];
-        httpRequest.setHeader(InterceptorContext.HEADER_SRC_APPLICATION_NAME, srcApplication);
 
         //
         // Trace
         //
-        TraceContext tracer = TraceContextHolder.get();
-        if (tracer == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        TraceSpan parentSpan = tracer.currentSpan();
-        if (parentSpan == null) {
+        ITraceSpan span = TraceSpanFactory.newSpan("httpClient");
+        if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         // create a span and save it in user-context
-        TraceSpan thisSpan = parentSpan.newChildSpan("httpClient")
-                                       .method(aopContext.getMethod())
-                                       .kind(SpanKind.CLIENT)
-                                       .tag("uri", httpRequest.getRequestLine().getUri())
-                                       .start();
-        aopContext.setUserContext(thisSpan);
-
-        // propagate tracing
-        Tracer.get()
-              .propagator()
-              .inject(tracer, httpRequest, (request, key, value) -> request.setHeader(key, value));
+        aopContext.setUserContext(span.method(aopContext.getMethod())
+                                      .kind(SpanKind.CLIENT)
+                                      .tag("uri", httpRequest.getRequestLine().getUri())
+                                      .propagate(httpRequest,
+                                                 (request, key, value) -> request.setHeader(key, value))
+                                      .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void onMethodLeave(AopContext context) {
-        TraceSpan thisSpan = (TraceSpan) context.getUserContext();
+        ITraceSpan thisSpan = context.castUserContextAs();
         if (thisSpan == null) {
             return;
         }

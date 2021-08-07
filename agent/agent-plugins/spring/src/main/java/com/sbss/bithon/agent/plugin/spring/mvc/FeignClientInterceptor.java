@@ -20,10 +20,9 @@ package com.sbss.bithon.agent.plugin.spring.mvc;
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import feign.Request;
 import feign.Response;
 
@@ -35,18 +34,13 @@ public class FeignClientInterceptor extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        TraceContext traceContext = TraceContextHolder.get();
-        if (traceContext == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-        TraceSpan span = traceContext.currentSpan();
+        ITraceSpan span = TraceSpanFactory.newSpan("feignClient");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         Request request = (Request) aopContext.getArgs()[0];
-        aopContext.setUserContext(span.newChildSpan("feignClient")
-                                      .kind(SpanKind.CLIENT)
+        aopContext.setUserContext(span.kind(SpanKind.CLIENT)
                                       .tag("uri", request.url())
                                       .start());
 
@@ -55,12 +49,9 @@ public class FeignClientInterceptor extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        TraceSpan span = (TraceSpan) aopContext.getUserContext();
-        if (span == null) {
-            return;
-        }
+        ITraceSpan span = aopContext.castUserContextAs();
 
-        Response response = (Response) aopContext.castReturningAs();
+        Response response = aopContext.castReturningAs();
         span.tag("status", String.valueOf(response.status()));
         span.finish();
     }

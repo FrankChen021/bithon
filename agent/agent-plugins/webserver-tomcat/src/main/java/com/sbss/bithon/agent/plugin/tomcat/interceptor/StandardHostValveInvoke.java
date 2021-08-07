@@ -23,15 +23,15 @@ import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.domain.web.RequestUriFilter;
 import com.sbss.bithon.agent.core.metric.domain.web.UserAgentFilter;
 import com.sbss.bithon.agent.core.tracing.Tracer;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 
 /**
- * implement Tracing
+ * {@link org.apache.catalina.core.StandardHostValve#invoke(Request, Response)}
  *
  * @author frankchen
  */
@@ -58,20 +58,19 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
 
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
 
-        TraceContext traceContext = Tracer.get()
-                                          .propagator()
-                                          .extract(request, (carrier, key) -> carrier.getHeader(key));
-        if (traceContext != null) {
-            TraceContextHolder.set(traceContext);
-            InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
+        ITraceContext traceContext = Tracer.get()
+                                           .propagator()
+                                           .extract(request, (carrier, key) -> carrier.getHeader(key));
 
-            traceContext.currentSpan()
-                        .component("tomcat")
-                        .tag("uri", request.getRequestURI())
-                        .method(aopContext.getMethod())
-                        .kind(SpanKind.SERVER)
-                        .start();
-        }
+        TraceContextHolder.set(traceContext);
+        traceContext.currentSpan()
+                    .component("tomcat")
+                    .tag("uri", request.getRequestURI())
+                    .method(aopContext.getMethod())
+                    .kind(SpanKind.SERVER)
+                    .start();
+
+        aopContext.setUserContext(traceContext);
 
         return InterceptionDecision.CONTINUE;
     }
@@ -80,11 +79,11 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
 
-        TraceContext traceContext = null;
-        TraceSpan span = null;
+        ITraceContext traceContext = aopContext.castUserContextAs();
+        ITraceSpan span = null;
         try {
-            traceContext = TraceContextHolder.get();
             if (traceContext == null) {
+                //exception occurs in 'Enter'
                 return;
             }
             span = traceContext.currentSpan();
@@ -105,8 +104,9 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
                 }
             } catch (Exception ignored) {
             }
-            if (traceContext != null) {
+            try {
                 traceContext.finish();
+            } catch (Exception ignored) {
             }
             try {
                 TraceContextHolder.remove();

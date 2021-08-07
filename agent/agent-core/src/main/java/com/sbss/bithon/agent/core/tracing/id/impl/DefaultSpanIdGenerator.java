@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.context.impl;
+package com.sbss.bithon.agent.core.tracing.id.impl;
 
-import com.sbss.bithon.agent.core.tracing.context.ISpanIdGenerator;
+import com.sbss.bithon.agent.core.tracing.id.ISpanIdGenerator;
 
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.atomic.AtomicInteger;

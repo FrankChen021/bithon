@@ -17,10 +17,11 @@
 package com.sbss.bithon.agent.core.tracing.context;
 
 import com.sbss.bithon.agent.core.tracing.Tracer;
-import com.sbss.bithon.agent.core.tracing.context.impl.DefaultSpanIdGenerator;
+import com.sbss.bithon.agent.core.tracing.id.ISpanIdGenerator;
+import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
 import com.sbss.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
-import com.sbss.bithon.agent.core.tracing.report.ITraceReporter;
-import com.sbss.bithon.agent.core.tracing.sampling.SamplingMode;
+import com.sbss.bithon.agent.core.tracing.reporter.ITraceReporter;
+import com.sbss.bithon.agent.core.tracing.sampler.SamplingMode;
 import com.sbss.bithon.agent.core.utils.time.Clock;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -32,80 +33,67 @@ import java.util.Stack;
  * @author frank.chen021@outlook.com
  * @date 2021/2/5 8:48 下午
  */
-public class TraceContext {
+class TraceContext implements ITraceContext {
 
-    private final ITraceReporter reporter;
-    private final ITraceIdGenerator idGenerator;
-    private final Stack<TraceSpan> spanStack = new Stack<>();
-    private final List<TraceSpan> spans = new ArrayList<>();
+    private final Stack<ITraceSpan> spanStack = new Stack<>();
+    private final List<ITraceSpan> spans = new ArrayList<>();
     private final Clock clock = new Clock();
     private final String traceId;
     private final ISpanIdGenerator spanIdGenerator;
+    private ITraceReporter reporter;
     private SamplingMode samplingMode;
+    private TraceMode traceMode;
 
     public TraceContext(String traceId,
-                        ITraceReporter reporter,
-                        ITraceIdGenerator idGenerator) {
-        this(traceId, reporter, idGenerator, new DefaultSpanIdGenerator());
-    }
-
-    public TraceContext(String traceId,
-                        String spanId,
-                        String parentSpanId,
-                        ITraceReporter reporter,
-                        ITraceIdGenerator idGenerator) {
-        this(traceId, spanId, parentSpanId, reporter, idGenerator, new DefaultSpanIdGenerator());
-    }
-
-    public TraceContext(String traceId,
-                        String spanId,
-                        String parentSpanId,
-                        ITraceReporter reporter,
-                        ITraceIdGenerator idGenerator,
                         ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
-        this.reporter = reporter;
-        this.idGenerator = idGenerator;
         this.spanIdGenerator = spanIdGenerator;
-        this.onSpanCreated(new TraceSpan(spanId, parentSpanId, this).start());
     }
 
-    public TraceContext(String traceId,
-                        ITraceReporter reporter,
-                        ITraceIdGenerator idGenerator,
-                        ISpanIdGenerator spanIdGenerator) {
-        this.traceId = traceId;
-        this.reporter = reporter;
-        this.idGenerator = idGenerator;
-        this.samplingMode = samplingMode;
-        this.spanIdGenerator = spanIdGenerator;
-        this.onSpanCreated(new TraceSpan(spanIdGenerator.newSpanId(), null, this).start());
+    @Override
+    public TraceMode traceMode() {
+        return TraceMode.TRACE;
     }
 
+    @Override
     public String traceId() {
         return traceId;
     }
 
-    public TraceSpan currentSpan() {
-        return spanStack.peek();
+    @Override
+    public ITraceSpan currentSpan() {
+        return spanStack.isEmpty() ? null : spanStack.peek();
     }
 
+    @Override
     public Clock clock() {
         return clock;
     }
 
+    @Override
     public ITraceReporter reporter() {
         return reporter;
     }
 
-    public ITraceIdGenerator traceIdGenerator() {
-        return idGenerator;
+    @Override
+    public ITraceContext reporter(ITraceReporter reporter) {
+        this.reporter = reporter;
+        return this;
     }
 
+    @Override
     public ISpanIdGenerator spanIdGenerator() {
         return spanIdGenerator;
     }
 
+    @Override
+    public ITraceSpan newSpan(String parentSpanId, String spanId) {
+        ITraceSpan span = new TraceSpan(spanId, parentSpanId, this);
+        this.onSpanCreated(span);
+        return span;
+    }
+
+    @Override
     public void finish() {
         if (!spanStack.isEmpty()) {
             // TODO: ERROR
@@ -119,36 +107,44 @@ public class TraceContext {
         }
     }
 
-    TraceSpan onSpanCreated(TraceSpan span) {
+    private void onSpanCreated(ITraceSpan span) {
         spanStack.push(span);
         spans.add(span);
 
-        return span;
+        TraceContextListener.getInstance().onSpanStarted(span);
     }
 
-    void onSpanFinished(TraceSpan traceSpan) {
+    void onSpanFinished(TraceSpan span) {
+
         if (spanStack.isEmpty()) {
             // TODO: internal error
+            TraceContextListener.getInstance().onSpanFinished(span);
             return;
         }
 
-        if (!spanStack.peek().equals(traceSpan)) {
+        if (!spanStack.peek().equals(span)) {
             // TODO: internal error
-
+            TraceContextListener.getInstance().onSpanFinished(span);
             return;
         }
 
         spanStack.pop();
         if (spanStack.isEmpty()) {
             // TODO: report span
+            TraceContextListener.getInstance().onSpanFinished(span);
+            return;
         }
+
+        TraceContextListener.getInstance().onSpanFinished(span);
     }
 
+    @Override
     public TraceContext samplingMode(SamplingMode mode) {
         this.samplingMode = mode;
         return this;
     }
 
+    @Override
     public <T> void propagate(T injectedTo, PropagationSetter<T> setter) {
         Tracer.get()
               .propagator()

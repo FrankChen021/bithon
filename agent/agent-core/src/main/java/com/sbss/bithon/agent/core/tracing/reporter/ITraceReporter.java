@@ -14,12 +14,16 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.context;
+package com.sbss.bithon.agent.core.tracing.reporter;
+
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
+
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/7 10:36 下午
+ * @date 2021/2/5 9:45 下午
  */
-public interface ISpanIdGenerator {
-    String newSpanId();
+public interface ITraceReporter {
+    void report(List<ITraceSpan> spans);
 }

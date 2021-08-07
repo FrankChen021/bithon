@@ -14,16 +14,22 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.report;
+package com.sbss.bithon.agent.core.tracing.sampler;
 
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
-
-import java.util.List;
+import com.sbss.bithon.agent.core.tracing.config.TraceConfig;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/5 9:45 下午
+ * @date 2021/8/7 18:04
  */
-public interface ITraceReporter {
-    void report(List<TraceSpan> spans);
+public class SamplerFactory {
+    public static ISampler createSampler(TraceConfig traceConfig) {
+        if (traceConfig.getSamplingRate() == 0) {
+            return (request) -> SamplingMode.NONE;
+        }
+        if (traceConfig.getSamplingRate() == 100) {
+            return (request) -> SamplingMode.FULL;
+        }
+        return new PercentageSampler(traceConfig.getSamplingRate());
+    }
 }

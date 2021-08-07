@@ -23,7 +23,7 @@ import com.sbss.bithon.agent.core.config.AgentConfigManager;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
 import com.sbss.bithon.agent.core.starter.IAgentInitializer;
-import com.sbss.bithon.agent.core.utils.StringUtils;
+import com.sbss.bithon.agent.core.utils.lang.StringUtils;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 

@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.core.config;
 
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import com.sbss.bithon.agent.core.config.validation.Validator;
-import com.sbss.bithon.agent.core.utils.StringUtils;
+import com.sbss.bithon.agent.core.utils.lang.StringUtils;
 import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import shaded.com.fasterxml.jackson.databind.JsonNode;
 import shaded.com.fasterxml.jackson.databind.ObjectMapper;

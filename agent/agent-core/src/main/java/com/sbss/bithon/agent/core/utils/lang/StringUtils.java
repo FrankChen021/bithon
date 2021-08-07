@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.utils;
+package com.sbss.bithon.agent.core.utils.lang;
 
 /**
  * @author frank.chen021@outlook.com

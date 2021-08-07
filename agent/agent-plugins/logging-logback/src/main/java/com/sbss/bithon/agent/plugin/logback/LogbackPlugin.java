@@ -44,9 +44,14 @@ public class LogbackPlugin implements IPlugin {
                 ),
 
             forClass("ch.qos.logback.core.pattern.PatternLayoutBase")
-                .methods(MethodPointCutDescriptorBuilder.build()
-                                                        .onMethodAndArgs("setPattern", "java.lang.String")
-                                                        .to("com.sbss.bithon.agent.plugin.logback.interceptor.PatternLayoutSetPattern")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                        .onDefaultConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.logback.interceptor.PatternLayoutCtor"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndArgs("setPattern", "java.lang.String")
+                                                   .to("com.sbss.bithon.agent.plugin.logback.interceptor.PatternLayoutSetPattern")
                 )
         );
     }

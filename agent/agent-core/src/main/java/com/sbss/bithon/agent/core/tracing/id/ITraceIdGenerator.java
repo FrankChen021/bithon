@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.context;
+package com.sbss.bithon.agent.core.tracing.id;
 
 /**
  * @author frank.chen021@outlook.com

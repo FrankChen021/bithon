@@ -30,7 +30,7 @@ import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpClientMetricMessage;
@@ -224,7 +224,7 @@ public class BrpcMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(TraceSpan span) {
+    public Object from(ITraceSpan span) {
         BrpcTraceSpanMessage.Builder builder = BrpcTraceSpanMessage.newBuilder()
                                                                    .setTraceId(span.traceId())
                                                                    .setSpanId(span.spanId())

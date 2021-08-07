@@ -29,7 +29,7 @@ import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 
 import java.util.List;
 import java.util.Map;
@@ -66,7 +66,7 @@ public interface IMessageConverter {
     Object from(long timestamp, int interval, ThreadPoolCompositeMetric metric);
 
     // tracing span message
-    Object from(TraceSpan span);
+    Object from(ITraceSpan span);
 
     Object from(EventMessage event);
 

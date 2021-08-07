@@ -19,10 +19,9 @@ package com.sbss.bithon.agent.plugin.jdbc.druid.interceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -34,31 +33,24 @@ public class DruidTraceHandler extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        TraceContext tracer = TraceContextHolder.get();
-        if (tracer == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        TraceSpan parentSpan = tracer.currentSpan();
-        if (parentSpan == null) {
+        ITraceSpan span = TraceSpanFactory.newSpan("alibaba-druid");
+        if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         // create a span and save it in user-context
-        TraceSpan thisSpan = parentSpan.newChildSpan("alibaba.druid")
-                                       .method(aopContext.getMethod())
-                                       .kind(SpanKind.CLIENT)
-                                       //TODO:
-                                       //.tag("db", )
-                                       .start();
-        aopContext.setUserContext(thisSpan);
+        aopContext.setUserContext(span.method(aopContext.getMethod())
+                                      .kind(SpanKind.CLIENT)
+                                      //TODO:
+                                      //.tag("db", )
+                                      .start());
 
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        TraceSpan thisSpan = (TraceSpan) aopContext.getUserContext();
+        ITraceSpan thisSpan = aopContext.castUserContextAs();
         if (thisSpan == null) {
             return;
         }
