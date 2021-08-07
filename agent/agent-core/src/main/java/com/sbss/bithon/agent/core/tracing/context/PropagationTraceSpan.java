@@ -24,13 +24,13 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/7/17 16:34
  */
-class NoopTraceSpan implements ITraceSpan {
+class PropagationTraceSpan implements ITraceSpan {
 
-    private final NoopTraceContext traceContext;
+    private final PropagationTraceContext traceContext;
     private final String spanId;
     private final String parentSpanId;
 
-    public NoopTraceSpan(NoopTraceContext traceContext, String parentSpanId, String spanId) {
+    public PropagationTraceSpan(PropagationTraceContext traceContext, String parentSpanId, String spanId) {
         this.traceContext = traceContext;
         this.spanId = spanId;
         this.parentSpanId = parentSpanId;

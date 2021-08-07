@@ -20,9 +20,9 @@ package com.sbss.bithon.agent.core.tracing.context;
  * @author frank.chen021@outlook.com
  * @date 2021/4/7 8:44 下午
  */
-public class TraceSpanBuilder {
+public class TraceSpanFactory {
 
-    public static ITraceSpan build(String name) {
+    public static ITraceSpan newSpan(String name) {
         ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return null;
@@ -37,7 +37,7 @@ public class TraceSpanBuilder {
         return parentSpan.newChildSpan(name);
     }
 
-    public static ITraceSpan buildAsyncSpan(String name) {
+    public static ITraceSpan newAsyncSpan(String name) {
         ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return null;
@@ -48,6 +48,7 @@ public class TraceSpanBuilder {
             return null;
         }
 
+        //TODO: provide a 'clone' on TraceContext
         return new TraceContext(traceContext.traceId(),
                                 traceContext.spanIdGenerator())
             .reporter(traceContext.reporter())

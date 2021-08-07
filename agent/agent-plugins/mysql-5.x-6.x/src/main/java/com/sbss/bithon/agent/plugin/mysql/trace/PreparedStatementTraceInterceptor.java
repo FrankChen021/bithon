@@ -22,7 +22,7 @@ import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class PreparedStatementTraceInterceptor extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceSpan span = TraceSpanBuilder.build("mysql");
+        ITraceSpan span = TraceSpanFactory.newSpan("mysql");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

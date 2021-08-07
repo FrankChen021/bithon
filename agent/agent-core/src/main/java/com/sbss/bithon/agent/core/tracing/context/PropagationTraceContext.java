@@ -27,10 +27,13 @@ import com.sbss.bithon.agent.core.utils.time.Clock;
 import java.util.Stack;
 
 /**
+ *
+ * trace context for logging and propagation
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/7/17 15:38
  */
-class NoopTraceContext implements ITraceContext {
+class PropagationTraceContext implements ITraceContext {
 
     private final ITraceReporter noopTraceReporter = spans -> {
     };
@@ -40,7 +43,7 @@ class NoopTraceContext implements ITraceContext {
     private final Stack<ITraceSpan> spanStack = new Stack<>();
     private final String traceId;
 
-    public NoopTraceContext(String traceId, ISpanIdGenerator spanIdGenerator) {
+    public PropagationTraceContext(String traceId, ISpanIdGenerator spanIdGenerator) {
         this.traceId = traceId;
         this.spanIdGenerator = spanIdGenerator;
     }
@@ -82,7 +85,7 @@ class NoopTraceContext implements ITraceContext {
 
     @Override
     public ITraceSpan newSpan(String parentSpanId, String spanId) {
-        NoopTraceSpan span = new NoopTraceSpan(this, parentSpanId, spanId);
+        PropagationTraceSpan span = new PropagationTraceSpan(this, parentSpanId, spanId);
         this.onSpanCreated(span);
         return span;
     }

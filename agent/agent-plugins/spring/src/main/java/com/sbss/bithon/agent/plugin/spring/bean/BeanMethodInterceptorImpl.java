@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.plugin.spring.bean;
 
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
@@ -47,7 +47,7 @@ public class BeanMethodInterceptorImpl implements BeanMethodInterceptorIntf {
         final Object target,
         final Object[] args
     ) {
-        ITraceSpan span = TraceSpanBuilder.build("");
+        ITraceSpan span = TraceSpanFactory.newSpan("");
         if (span == null) {
             return null;
         }

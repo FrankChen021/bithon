@@ -22,7 +22,7 @@ import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import feign.Request;
 import feign.Response;
 
@@ -34,7 +34,7 @@ public class FeignClientInterceptor extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceSpan span = TraceSpanBuilder.build("feignClient");
+        ITraceSpan span = TraceSpanFactory.newSpan("feignClient");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

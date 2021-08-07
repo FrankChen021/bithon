@@ -44,8 +44,8 @@ public class TraceContextFactory {
             case TRACE:
                 return new TraceContext(traceId, new DefaultSpanIdGenerator()).reporter(Tracer.get().reporter());
             case PROPAGATION:
-                return new NoopTraceContext(traceId,
-                                            new DefaultSpanIdGenerator());
+                return new PropagationTraceContext(traceId,
+                                                   new DefaultSpanIdGenerator());
             default:
                 throw new AgentException("Unknown trace mode:%s", traceMode);
         }

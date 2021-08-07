@@ -21,7 +21,7 @@ import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 
 import java.net.URI;
 
@@ -32,7 +32,7 @@ import java.net.URI;
 public class RestTemplateExecuteInterceptor extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceSpan span = TraceSpanBuilder.build("restTemplate");
+        ITraceSpan span = TraceSpanFactory.newSpan("restTemplate");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

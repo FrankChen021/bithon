@@ -29,7 +29,7 @@ import com.sbss.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public class DefaultServerConnectionExecuteProtocol extends AbstractInterceptor 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         // create a span and save it in user-context
-        aopContext.setUserContext(TraceSpanBuilder.build("mongodb")
+        aopContext.setUserContext(TraceSpanFactory.newSpan("mongodb")
                                                   .method(aopContext.getMethod())
                                                   .kind(SpanKind.CLIENT)
                                                   .start());

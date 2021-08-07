@@ -21,7 +21,7 @@ import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import redis.clients.jedis.Client;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -53,7 +53,7 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        ITraceSpan span = TraceSpanBuilder.build("jedis");
+        ITraceSpan span = TraceSpanFactory.newSpan("jedis");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }

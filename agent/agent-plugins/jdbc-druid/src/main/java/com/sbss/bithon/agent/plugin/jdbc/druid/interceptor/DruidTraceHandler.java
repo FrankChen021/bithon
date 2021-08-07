@@ -21,7 +21,7 @@ import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -33,7 +33,7 @@ public class DruidTraceHandler extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceSpan span = TraceSpanBuilder.build("alibaba-druid");
+        ITraceSpan span = TraceSpanFactory.newSpan("alibaba-druid");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
