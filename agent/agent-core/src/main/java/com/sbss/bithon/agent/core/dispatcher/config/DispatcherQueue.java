@@ -14,31 +14,30 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.utils;
+package com.sbss.bithon.agent.core.dispatcher.config;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/10 10:55 上午
+ * @author frankchen
  */
-public class StringUtils {
-    public static boolean isEmpty(String v) {
-        return v == null || v.trim().isEmpty();
+public class DispatcherQueue {
+
+    private int validityPeriod;
+
+    private int gcPeriod;
+
+    public int getValidityPeriod() {
+        return validityPeriod;
     }
 
-    public static boolean isBlank(String str) {
-        int length;
-        if (str == null || (length = str.length()) == 0) {
-            return true;
-        }
-        for (int i = 0; i < length; i++) {
-            if ((!Character.isWhitespace(str.charAt(i)))) {
-                return false;
-            }
-        }
-        return true;
+    public void setValidityPeriod(int validityPeriod) {
+        this.validityPeriod = validityPeriod;
     }
 
-    public static boolean isNotBlank(String str) {
-        return !isBlank(str);
+    public int getGcPeriod() {
+        return gcPeriod;
+    }
+
+    public void setGcPeriod(int gcPeriod) {
+        this.gcPeriod = gcPeriod;
     }
 }

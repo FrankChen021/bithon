@@ -16,27 +16,33 @@
 
 package com.sbss.bithon.agent.core.config;
 
+import com.sbss.bithon.agent.core.config.validation.NotBlank;
+
 /**
  * @author frankchen
  */
-public class DispatcherClient {
+@Configuration(prefix = "application")
+public class AppConfiguration {
 
-    private String factory;
-    private int timeout;
+    @NotBlank(message = "[%s] is blank")
+    private String env;
 
-    public int getTimeout() {
-        return timeout;
+    @NotBlank(message = "[%s] is blank")
+    private String name;
+
+    public String getName() {
+        return name;
     }
 
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getFactory() {
-        return factory;
+    public String getEnv() {
+        return env;
     }
 
-    public void setFactory(String factory) {
-        this.factory = factory;
+    public void setEnv(String env) {
+        this.env = env;
     }
 }

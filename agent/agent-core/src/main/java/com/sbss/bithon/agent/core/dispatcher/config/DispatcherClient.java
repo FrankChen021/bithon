@@ -14,42 +14,29 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.config;
-
-import java.util.List;
+package com.sbss.bithon.agent.core.dispatcher.config;
 
 /**
  * @author frankchen
  */
-public class BootstrapConfig {
+public class DispatcherClient {
 
-    private String env;
+    private String factory;
+    private int timeout;
 
-    private String appName;
-
-    private List<String> appLogs;
-
-    public String getAppName() {
-        return appName;
+    public int getTimeout() {
+        return timeout;
     }
 
-    public void setAppName(String appName) {
-        this.appName = appName;
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
     }
 
-    public List<String> getAppLogs() {
-        return appLogs;
+    public String getFactory() {
+        return factory;
     }
 
-    public void setAppLogs(List<String> appLogs) {
-        this.appLogs = appLogs;
-    }
-
-    public String getEnv() {
-        return env;
-    }
-
-    public void setEnv(String env) {
-        this.env = env;
+    public void setFactory(String factory) {
+        this.factory = factory;
     }
 }

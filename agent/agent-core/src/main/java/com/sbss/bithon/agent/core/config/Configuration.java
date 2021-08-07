@@ -16,28 +16,17 @@
 
 package com.sbss.bithon.agent.core.config;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2021/8/7 09:57
  */
-public class DispatcherQueue {
-
-    private int validityPeriod;
-
-    private int gcPeriod;
-
-    public int getValidityPeriod() {
-        return validityPeriod;
-    }
-
-    public void setValidityPeriod(int validityPeriod) {
-        this.validityPeriod = validityPeriod;
-    }
-
-    public int getGcPeriod() {
-        return gcPeriod;
-    }
-
-    public void setGcPeriod(int gcPeriod) {
-        this.gcPeriod = gcPeriod;
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Configuration {
+    String prefix();
 }

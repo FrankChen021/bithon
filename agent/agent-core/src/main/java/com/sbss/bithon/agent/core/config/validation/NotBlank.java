@@ -14,31 +14,19 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.utils;
+package com.sbss.bithon.agent.core.config.validation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/10 10:55 上午
+ * @date 2021/8/7 10:35
  */
-public class StringUtils {
-    public static boolean isEmpty(String v) {
-        return v == null || v.trim().isEmpty();
-    }
-
-    public static boolean isBlank(String str) {
-        int length;
-        if (str == null || (length = str.length()) == 0) {
-            return true;
-        }
-        for (int i = 0; i < length; i++) {
-            if ((!Character.isWhitespace(str.charAt(i)))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static boolean isNotBlank(String str) {
-        return !isBlank(str);
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface NotBlank {
+    String message();
 }
