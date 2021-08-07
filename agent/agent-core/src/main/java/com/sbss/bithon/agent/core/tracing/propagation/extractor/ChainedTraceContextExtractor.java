@@ -59,8 +59,7 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
         } else {
             // create a traceable context
             context = TraceContextFactory.create(TraceMode.TRACE,
-                                                 Tracer.get().traceIdGenerator().newTraceId())
-                                         .reporter(Tracer.get().reporter());
+                                                 Tracer.get().traceIdGenerator().newTraceId());
         }
 
         context.currentSpan()

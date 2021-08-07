@@ -17,6 +17,7 @@
 package com.sbss.bithon.agent.core.tracing.context;
 
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
+import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.id.impl.DefaultSpanIdGenerator;
 import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
 
@@ -26,37 +27,27 @@ import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
  */
 public class TraceContextFactory {
     public static ITraceContext create(TraceMode traceMode, String traceId, String parentSpanId, String spanId) {
-        ITraceContext ctx;
-        switch (traceMode) {
-            case TRACE:
-                ctx = new TraceContext(traceId, new DefaultSpanIdGenerator());
-                break;
-            case PROPAGATION:
-                ctx = new NoopTraceContext(traceId, new DefaultSpanIdGenerator());
-                break;
-            default:
-                throw new AgentException("Unknown trace mode:%s", traceMode);
-        }
+        ITraceContext ctx = createTraceContext(traceMode, traceId);
         ctx.newSpan(parentSpanId, spanId);
         return ctx;
     }
 
     public static ITraceContext create(TraceMode traceMode, String traceId) {
+        ITraceContext ctx = createTraceContext(traceMode, traceId);
+        ctx.newSpan();
+        return ctx;
+    }
+
+    private static ITraceContext createTraceContext(TraceMode traceMode, String traceId) {
         ITraceContext ctx;
         switch (traceMode) {
             case TRACE:
-                ctx = new TraceContext(traceId, new DefaultSpanIdGenerator());
-                ctx.newSpan();
-                break;
+                return new TraceContext(traceId, new DefaultSpanIdGenerator()).reporter(Tracer.get().reporter());
             case PROPAGATION:
-                ctx = new NoopTraceContext(traceId,
-                                           new DefaultSpanIdGenerator());
-                ctx.newSpan();
-                break;
+                return new NoopTraceContext(traceId,
+                                            new DefaultSpanIdGenerator());
             default:
                 throw new AgentException("Unknown trace mode:%s", traceMode);
         }
-        ctx.newSpan();
-        return ctx;
     }
 }

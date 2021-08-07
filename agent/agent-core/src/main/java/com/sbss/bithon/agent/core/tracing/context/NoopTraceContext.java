@@ -30,7 +30,7 @@ import java.util.Stack;
  * @author frank.chen021@outlook.com
  * @date 2021/7/17 15:38
  */
-public class NoopTraceContext implements ITraceContext {
+class NoopTraceContext implements ITraceContext {
 
     private final ITraceReporter noopTraceReporter = spans -> {
     };

@@ -33,7 +33,7 @@ import java.util.Stack;
  * @author frank.chen021@outlook.com
  * @date 2021/2/5 8:48 下午
  */
-public class TraceContext implements ITraceContext {
+class TraceContext implements ITraceContext {
 
     private final Stack<ITraceSpan> spanStack = new Stack<>();
     private final List<ITraceSpan> spans = new ArrayList<>();

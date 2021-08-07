@@ -58,7 +58,7 @@ public class BithonExtractor implements ITraceContextExtractor {
             context = TraceContextFactory.create(TraceMode.TRACE,
                                                  traceId,
                                                  ids[0],
-                                                 ids[1]).reporter(Tracer.get().reporter());
+                                                 ids[1]);
         }
 
         context.currentSpan()
