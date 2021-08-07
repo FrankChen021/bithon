@@ -49,7 +49,7 @@ public class TraceContextListener {
         }
     }
 
-    interface IListener extends EventListener {
+    public interface IListener extends EventListener {
         void onSpanStarted(ITraceSpan span);
 
         void onSpanFinished(ITraceSpan span);

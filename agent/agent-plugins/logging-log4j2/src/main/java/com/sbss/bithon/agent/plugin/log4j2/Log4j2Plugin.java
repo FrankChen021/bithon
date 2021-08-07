@@ -43,21 +43,30 @@ public class Log4j2Plugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(MatcherUtils.named("logMessage")
-                                                                 .and(MatcherUtils.takesArgument(1,
-                                                                                                 "org.apache.logging.log4j.Level"))
-                                                                 .and(MatcherUtils.takesArgument(4,
-                                                                                                 "java.lang.Throwable")))
+                                                                         .and(MatcherUtils.takesArgument(1,
+                                                                                                         "org.apache.logging.log4j.Level"))
+                                                                         .and(MatcherUtils.takesArgument(4,
+                                                                                                         "java.lang.Throwable")))
                                                    .to("com.sbss.bithon.agent.plugin.log4j2.interceptor.LoggerLogMessage")
                 ),
 
-            //org.apache.logging.log4j.core.pattern.PatternParser#parse(String, List, List, boolean, boolean, boolean)
             forClass("org.apache.logging.log4j.core.pattern.PatternParser")
                 .methods(
+                    /**
+                     * {@link org.apache.logging.log4j.core.pattern.PatternParser#PatternParser(org.apache.logging.log4j.core.config.Configuration, String, Class, Class)}
+                     */
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onConstructor(MatcherUtils.takesArguments(4))
+                                                   .to("com.sbss.bithon.agent.plugin.log4j2.interceptor.PatternParserCtor"),
+
+                    /**
+                     * {@link org.apache.logging.log4j.core.pattern.PatternParser#parse(String, List, List, boolean, boolean, boolean)}
+                     */
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(MatcherUtils.named("parse")
-                                                                 .and(MatcherUtils.takesArgument(0,
-                                                                                                 "java.lang.String"))
-                                                                 .and(MatcherUtils.takesArguments(6)))
+                                                                         .and(MatcherUtils.takesArgument(0,
+                                                                                                         "java.lang.String"))
+                                                                         .and(MatcherUtils.takesArguments(6)))
                                                    .to("com.sbss.bithon.agent.plugin.log4j2.interceptor.PatternParserParse")
                 )
         );
