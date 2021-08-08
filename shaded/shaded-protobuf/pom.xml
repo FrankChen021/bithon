@@ -16,25 +16,33 @@
     <java.version>8</java.version>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
+    <proto.version>3.17.3</proto.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-      <version>3.17.3</version>
+      <version>${proto.version}</version>
     </dependency>
   </dependencies>
 
   <build>
     <finalName>${project.artifactId}-${project.version}</finalName>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.7.0</version>
+      </extension>
+    </extensions>
     <plugins>
       <plugin>
         <groupId>org.xolstice.maven.plugins</groupId>
         <artifactId>protobuf-maven-plugin</artifactId>
         <version>0.6.1</version>
         <configuration>
-          <protocExecutable>protoc</protocExecutable>
+          <protocArtifact>com.google.protobuf:protoc:${proto.version}:exe:${os.detected.classifier}</protocArtifact>
         </configuration>
         <executions>
           <execution>
