@@ -22,6 +22,7 @@ import com.sbss.bithon.agent.core.utils.lang.StringUtils;
 import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import shaded.com.fasterxml.jackson.databind.JsonNode;
 import shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import shaded.com.fasterxml.jackson.databind.node.ArrayNode;
 import shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 import shaded.com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -67,21 +68,34 @@ public class ConfigManager {
 
             String fieldName = names.next();
             JsonNode targetNode = target.get(fieldName);
+            JsonNode sourceNode = source.get(fieldName);
 
-            if (targetNode != null && targetNode.isObject()) {
-                // target json node exists, and it's an object, recursively merge
-                mergeConfiguration(targetNode, source.get(fieldName));
-            } else {
-                // target node does not exist or target node is not an object
-                //
-                // check if target is an object so that we could do a safe conversion
-                if (target instanceof ObjectNode) {
-                    // Overwrite field
-                    JsonNode value = source.get(fieldName);
-                    ((ObjectNode) target).set(fieldName, value);
-                }
+            if (targetNode == null) {
+                ((ObjectNode) target).set(fieldName, sourceNode);
+                continue;
             }
 
+            if (targetNode.isObject()) {
+                // target json node exists, and it's an object, recursively merge
+                mergeConfiguration(targetNode, sourceNode);
+            } else if (targetNode.isArray()) {
+                if (sourceNode.isArray()) {
+                    // merge arrays
+                    ArrayNode sourceArray = (ArrayNode) sourceNode;
+
+                    // insert source nodes at the beginning of the target node
+                    // this makes the source nodes higher priority
+                    for (int i = 0; i < sourceArray.size(); i++) {
+                        ((ArrayNode) targetNode).insert(i, sourceArray.get(i));
+                    }
+                } else {
+                    // use the source node to replace the target node
+                    ((ObjectNode) target).set(fieldName, sourceNode);
+                }
+            } else {
+                // use the source node to replace the target node
+                ((ObjectNode) target).set(fieldName, sourceNode);
+            }
         }
 
         return target;
@@ -133,11 +147,11 @@ public class ConfigManager {
         //
         String applicationArg = "-D" + dynamicPropertyPrefix;
         for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
-            if (!arg.startsWith(applicationArg)) {
+            if (!arg.startsWith(applicationArg) || !arg.startsWith("-Dbithon.")) {
                 continue;
             }
 
-            String nameAndValue = arg.substring(applicationArg.length());
+            String nameAndValue = arg.substring("-Dbithon.".length());
             if (StringUtils.isEmpty(nameAndValue)) {
                 continue;
             }
