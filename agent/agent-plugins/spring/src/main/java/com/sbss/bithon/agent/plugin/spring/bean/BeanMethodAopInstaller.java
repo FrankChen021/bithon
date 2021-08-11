@@ -18,7 +18,8 @@ package com.sbss.bithon.agent.plugin.spring.bean;
 
 import com.sbss.bithon.agent.core.aop.AopDebugger;
 import com.sbss.bithon.agent.core.aop.InstrumentationHelper;
-import com.sbss.bithon.agent.core.plugin.PluginStaticConfig;
+import com.sbss.bithon.agent.core.config.ConfigManager;
+import com.sbss.bithon.agent.core.plugin.PluginConfigurationFactory;
 import com.sbss.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import com.sbss.bithon.agent.core.utils.filter.IMatcher;
 import com.sbss.bithon.agent.core.utils.filter.InCollectionMatcher;
@@ -71,15 +72,11 @@ public class BeanMethodAopInstaller {
     }
 
     public static void initialize() {
-        PluginStaticConfig config = PluginStaticConfig.load(SpringPlugin.class);
-        excludingClasses = config.getConfig("spring.bean.excluding.classes", MatcherList.class)
-                                 .orElse(new MatcherList());
-        excludingMethods = config.getConfig("spring.bean.excluding.methods", MatcherList.class)
-                                 .orElse(new MatcherList());
-        includingClasses = config.getConfig("spring.bean.including.classes", MatcherList.class)
-                                 .orElse(new MatcherList());
-        includingMethods = config.getConfig("spring.bean.including.methods", MatcherList.class)
-                                 .orElse(new MatcherList());
+        ConfigManager config = PluginConfigurationFactory.create(SpringPlugin.class);
+        excludingClasses = config.getConfig("agent.plugin.spring.bean.excluding.classes", MatcherList.class, MatcherList::new);
+        excludingMethods = config.getConfig("agent.plugin.spring.bean.excluding.methods", MatcherList.class, MatcherList::new);
+        includingClasses = config.getConfig("agent.plugin.spring.bean.including.classes", MatcherList.class, MatcherList::new);
+        includingMethods = config.getConfig("agent.plugin.spring.bean.including.methods", MatcherList.class, MatcherList::new);
 
         //exclude all methods declared in Object.class
         excludingMethods.add(0, new InCollectionMatcher(Stream.of(Object.class.getMethods())
@@ -112,7 +109,7 @@ public class BeanMethodAopInstaller {
         // because for any class loader, it would back to bootstrap class loader to find class first
         //
         ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance())
-                                         .make(null, null).injectRaw(new HashMap() {
+                                         .make(null, null).injectRaw(new HashMap<String, byte[]>() {
             {
                 put(BeanMethodInterceptorIntf.class.getName(),
                     ByteCodeUtils.getClassByteCode(BeanMethodInterceptorIntf.class.getName(),

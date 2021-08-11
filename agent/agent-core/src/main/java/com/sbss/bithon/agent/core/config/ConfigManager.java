@@ -40,6 +40,8 @@ import java.util.function.Supplier;
  */
 public class ConfigManager {
 
+    public static ConfigManager EMPTY = new ConfigManager(null);
+
     private final JsonNode configurationNode;
 
     public ConfigManager(JsonNode configurationNode) {
@@ -86,8 +88,19 @@ public class ConfigManager {
     }
 
     private static JsonNode readStaticConfiguration(String location, InputStream configFile) {
+
+        ObjectMapper mapper;
+        if (location.endsWith(".yaml") || location.endsWith(".yml")) {
+            mapper = new ObjectMapper(new YAMLFactory());
+        } else if (location.endsWith(".properties")) {
+            mapper = new JavaPropsMapper();
+        } else if (location.endsWith(".json")) {
+            mapper = new ObjectMapper();
+        } else {
+            throw new AgentException("Unknown property file type: %s", location);
+        }
+
         try {
-            ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
             return mapper.readTree(configFile);
