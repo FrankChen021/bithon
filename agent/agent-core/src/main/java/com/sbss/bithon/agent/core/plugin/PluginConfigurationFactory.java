@@ -29,12 +29,16 @@ public class PluginConfigurationFactory {
 
     public static ConfigManager create(Class<? extends IPlugin> pluginClass) {
         String pkgName = pluginClass.getPackage().getName().replace('.', '/');
+
+        String[] packages = pkgName.split("/");
+        String pluginName = packages[packages.length - 1];
+
         String name = pkgName + "/plugin.yml";
         try (InputStream is = pluginClass.getClassLoader().getResourceAsStream(name)) {
             if (is == null) {
                 return ConfigManager.EMPTY;
             }
-            return ConfigManager.create(name, is, "bithon.agent.plugin.");
+            return ConfigManager.create(name, is, "bithon.agent.plugin." + pluginName + ".");
         } catch (IOException ignored) {
             // ignore this exception thrown from InputStream.close
             return ConfigManager.EMPTY;
