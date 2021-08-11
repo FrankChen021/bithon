@@ -21,7 +21,6 @@ import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
 import com.sbss.bithon.agent.bootstrap.loader.JarResolver;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
@@ -59,12 +58,6 @@ public final class PluginClassLoaderManager {
 
     public static void createDefault(String agentPath) {
         List<JarFile> pluginJars = JarResolver.resolve(new File(agentPath + "/" + AgentContext.PLUGIN_DIR));
-
-        // show plugins
-        pluginJars.stream().map(jar -> new File(jar.getName()).getName()).sorted().forEach((name) -> {
-            LoggerFactory.getLogger(PluginClassLoaderManager.class)
-                         .info("Found plugin {}", name);
-        });
 
         defaultLoader = new JarClassLoader("plugin", pluginJars, AgentClassLoader.getClassLoader());
 

@@ -20,8 +20,10 @@ import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
 import com.sbss.bithon.agent.core.aop.AopClassGenerator;
 import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.aop.interceptor.InterceptorInstaller;
+import com.sbss.bithon.agent.core.config.AgentConfigManager;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
+import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -30,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
 
 /**
@@ -37,6 +40,8 @@ import java.util.zip.ZipFile;
  * @date 2021/3/18-20:36
  */
 public class PluginInterceptorInstaller {
+
+    private static final Logger log = LoggerFactory.getLogger(PluginInterceptorInstaller.class);
 
     public static void install(AgentContext agentContext, Instrumentation inst) {
         // create plugin class loader first
@@ -53,10 +58,10 @@ public class PluginInterceptorInstaller {
         install(agentBuilder, inst, plugins);
 
         // start plugins
-        plugins.forEach((plugin) -> plugin.start());
+        plugins.forEach(IPlugin::start);
 
         // install shutdown hook
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> plugins.forEach((plugin) -> plugin.stop())));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> plugins.forEach(IPlugin::stop)));
     }
 
     private static void install(AgentBuilder agentBuilder, Instrumentation inst, List<IPlugin> plugins) {
@@ -74,16 +79,30 @@ public class PluginInterceptorInstaller {
     private static List<IPlugin> loadPlugins() {
 
         JarClassLoader pluginClassLoader = PluginClassLoaderManager.getDefaultLoader();
-        List<JarFile> pluginJars = new ArrayList<>(pluginClassLoader.getJars());
-        pluginJars.sort(Comparator.comparing(ZipFile::getName));
+        List<JarFile> pluginJars = pluginClassLoader.getJars()
+                                                    .stream()
+                                                    .sorted(Comparator.comparing(ZipFile::getName))
+                                                    .collect(Collectors.toList());
 
         final List<IPlugin> plugins = new ArrayList<>();
         for (JarFile jar : pluginJars) {
+            String jarFileName = new File(jar.getName()).getName();
             try {
                 String pluginClassName = jar.getManifest().getMainAttributes().getValue("Plugin-Class");
                 if (pluginClassName == null) {
+                    log.info("Found plugin {}", jarFileName);
                     continue;
                 }
+
+                String disabledConfigName = "agent.plugin." + getPluginPackageName(pluginClassName) + ".disabled";
+                Boolean pluginDisabled = AgentConfigManager.getInstance()
+                                                           .getConfig(disabledConfigName, Boolean.class);
+                if (pluginDisabled != null && pluginDisabled) {
+                    log.info("Found plugin {}, but it's DISABLED by configuration", jarFileName);
+                    continue;
+                }
+
+                log.info("Found plugin {}", jarFileName);
 
                 IPlugin plugin = (IPlugin) Class.forName(pluginClassName,
                                                          true,
@@ -98,5 +117,13 @@ public class PluginInterceptorInstaller {
             }
         }
         return plugins;
+    }
+
+    private static String getPluginPackageName(String pluginClassName) {
+        String[] parts = pluginClassName.split("\\.");
+        if (parts.length > 1) {
+            return parts[parts.length - 2];
+        }
+        return null;
     }
 }

@@ -171,7 +171,6 @@ public class AgentConfigManager {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T getConfig(Class<T> clazz) {
         Configuration cfg = clazz.getAnnotation(Configuration.class);
         if (cfg != null && !StringUtils.isEmpty(cfg.prefix())) {
@@ -223,9 +222,17 @@ public class AgentConfigManager {
 
         if (configurationNode == null) {
             try {
+                if (clazz == Boolean.class) {
+                    //noinspection unchecked
+                    return (T) Boolean.FALSE;
+                }
                 value = clazz.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
+            } catch (IllegalAccessException e) {
                 throw new AgentException("Unable create instance for [%s]: %s", clazz.getName(), e.getMessage());
+            } catch (InstantiationException e) {
+                throw new AgentException("Unable create instance for [%s]: %s",
+                                         clazz.getName(),
+                                         e.getCause().getMessage());
             }
         } else {
             ObjectMapper mapper = new ObjectMapper();
