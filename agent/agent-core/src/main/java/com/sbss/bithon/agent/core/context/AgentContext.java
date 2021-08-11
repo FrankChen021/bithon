@@ -18,6 +18,7 @@ package com.sbss.bithon.agent.core.context;
 
 import com.sbss.bithon.agent.core.config.AgentConfigManager;
 import com.sbss.bithon.agent.core.config.AppConfiguration;
+import com.sbss.bithon.agent.core.config.ConfigManager;
 
 /**
  * @author frank.chen021@outlook.com
@@ -33,7 +34,7 @@ public class AgentContext {
     private AppInstance appInstance;
 
     public static AgentContext createInstance(String agentPath) {
-        AgentConfigManager cfgManager = AgentConfigManager.createInstance(agentPath);
+        ConfigManager cfgManager = AgentConfigManager.createInstance(agentPath);
 
         AppConfiguration appConfiguration = cfgManager.getConfig(AppConfiguration.class);
         INSTANCE = new AgentContext();
