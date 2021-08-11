@@ -29,7 +29,9 @@ import shaded.com.fasterxml.jackson.annotation.JsonTypeInfo;
     @Type(name = InCollectionMatcher.TYPE, value = InCollectionMatcher.class),
     @Type(name = StringContainsMatcher.TYPE, value = StringContainsMatcher.class),
     @Type(name = StringPrefixMatcher.TYPE, value = StringPrefixMatcher.class),
-    @Type(name = StringSuffixMatcher.TYPE, value = StringSuffixMatcher.class)
+    @Type(name = StringSuffixMatcher.TYPE, value = StringSuffixMatcher.class),
+    @Type(name = StringAnyMatcher.TYPE, value = StringAnyMatcher.class),
+    @Type(name = StringEqualMatcher.TYPE, value = StringEqualMatcher.class),
 })
 public interface IMatcher {
     boolean matches(Object input);

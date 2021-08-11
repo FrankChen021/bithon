@@ -18,12 +18,12 @@ package com.sbss.bithon.agent.plugin.spring.bean;
 
 import com.sbss.bithon.agent.core.aop.AopDebugger;
 import com.sbss.bithon.agent.core.aop.InstrumentationHelper;
-import com.sbss.bithon.agent.core.config.ConfigManager;
+import com.sbss.bithon.agent.core.config.Configuration;
 import com.sbss.bithon.agent.core.plugin.PluginConfigurationFactory;
 import com.sbss.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import com.sbss.bithon.agent.core.utils.filter.IMatcher;
 import com.sbss.bithon.agent.core.utils.filter.InCollectionMatcher;
-import com.sbss.bithon.agent.core.utils.filter.MatcherFactory;
+import com.sbss.bithon.agent.core.utils.filter.StringEqualMatcher;
 import com.sbss.bithon.agent.plugin.spring.SpringPlugin;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
@@ -37,10 +37,9 @@ import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Objects;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
@@ -55,10 +54,79 @@ public class BeanMethodAopInstaller {
 
     private static final Set<String> INSTRUMENTED = new ConcurrentSkipListSet<>();
 
-    private static MatcherList excludingClasses;
-    private static MatcherList excludingMethods;
-    private static MatcherList includingClasses;
-    private static MatcherList includingMethods;
+    static BeanTransformationConfig transformationConfig;
+
+    @Configuration(prefix = "agent.plugin.spring.bean")
+    public static class BeanTransformationConfig {
+        private boolean debug = false;
+        private MatcherList excludedClasses = new MatcherList();
+        private final MatcherList excludedMethods;
+        private List<IncludedClassConfig> includedClasses = new ArrayList<>();
+
+        public BeanTransformationConfig() {
+            //exclude all methods declared in Object.class
+            excludedMethods = new MatcherList();
+            excludedMethods.add(new InCollectionMatcher(Stream.of(Object.class.getMethods())
+                                                              .map(Method::getName)
+                                                              .collect(Collectors.toList())));
+        }
+
+        public boolean isDebug() {
+            return debug;
+        }
+
+        public void setDebug(boolean debug) {
+            this.debug = debug;
+        }
+
+        public MatcherList getExcludedClasses() {
+            return excludedClasses;
+        }
+
+        public void setExcludedClasses(MatcherList excludedClasses) {
+            this.excludedClasses = excludedClasses;
+        }
+
+        public MatcherList getExcludedMethods() {
+            return excludedMethods;
+        }
+
+        public List<IncludedClassConfig> getIncludedClasses() {
+            return includedClasses;
+        }
+
+        public void setIncludedClasses(List<IncludedClassConfig> includedClasses) {
+            this.includedClasses = includedClasses;
+        }
+    }
+
+    static class IncludedClassConfig {
+        private IMatcher matcher;
+        private List<IMatcher> excludedMethods;
+
+        public IncludedClassConfig() {
+        }
+
+        public IncludedClassConfig(IMatcher matcher) {
+            this.matcher = matcher;
+        }
+
+        public IMatcher getMatcher() {
+            return matcher;
+        }
+
+        public void setMatcher(IMatcher matcher) {
+            this.matcher = matcher;
+        }
+
+        public List<IMatcher> getExcludedMethods() {
+            return excludedMethods;
+        }
+
+        public void setExcludedMethods(List<IMatcher> excludedMethods) {
+            this.excludedMethods = excludedMethods;
+        }
+    }
 
     public static class MatcherList extends ArrayList<IMatcher> {
         public boolean matches(String name) {
@@ -72,37 +140,8 @@ public class BeanMethodAopInstaller {
     }
 
     public static void initialize() {
-        ConfigManager config = PluginConfigurationFactory.create(SpringPlugin.class);
-        excludingClasses = config.getConfig("agent.plugin.spring.bean.excluding.classes", MatcherList.class, MatcherList::new);
-        excludingMethods = config.getConfig("agent.plugin.spring.bean.excluding.methods", MatcherList.class, MatcherList::new);
-        includingClasses = config.getConfig("agent.plugin.spring.bean.including.classes", MatcherList.class, MatcherList::new);
-        includingMethods = config.getConfig("agent.plugin.spring.bean.including.methods", MatcherList.class, MatcherList::new);
-
-        //exclude all methods declared in Object.class
-        excludingMethods.add(0, new InCollectionMatcher(Stream.of(Object.class.getMethods())
-                                                              .map(Method::getName)
-                                                              .collect(Collectors.toList())));
-
-        //
-        // process user specified matchers, eg: -Dspring.bean.including.classes=startwith:XXX,endwith:YYYY
-        //
-        Collection<IMatcher> userMatchers = Stream.of(System.getProperty("bithon.spring.bean.including.classes", "")
-                                                            .split(","))
-                                                  .map(String::trim)
-                                                  .filter((v) -> !v.isEmpty())
-                                                  .map(v -> {
-                                                      String[] parts = v.split(":");
-                                                      if (parts.length != 2) {
-                                                          return null;
-                                                      }
-
-                                                      String matcher = parts[0].trim();
-                                                      String pattern = parts[1].trim();
-                                                      return MatcherFactory.create(matcher, pattern);
-                                                  })
-                                                  .filter(Objects::nonNull)
-                                                  .collect(Collectors.toList());
-        includingClasses.addAll(userMatchers);
+        transformationConfig = PluginConfigurationFactory.create(SpringPlugin.class)
+                                                         .getConfig(BeanTransformationConfig.class);
 
         //
         // inject interceptor classes into bootstrap class loader to ensure this interceptor classes could be found by Adviced code which would be loaded by application class loader
@@ -110,15 +149,15 @@ public class BeanMethodAopInstaller {
         //
         ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance())
                                          .make(null, null).injectRaw(new HashMap<String, byte[]>() {
-            {
-                put(BeanMethodInterceptorIntf.class.getName(),
-                    ByteCodeUtils.getClassByteCode(BeanMethodInterceptorIntf.class.getName(),
-                                                   BeanMethodInterceptorIntf.class.getClassLoader()));
-                put(BeanMethodInterceptorFactory.class.getName(),
-                    ByteCodeUtils.getClassByteCode(BeanMethodInterceptorFactory.class.getName(),
-                                                   BeanMethodInterceptorFactory.class.getClassLoader()));
-            }
-        });
+                         {
+                             put(BeanMethodInterceptorIntf.class.getName(),
+                                 ByteCodeUtils.getClassByteCode(BeanMethodInterceptorIntf.class.getName(),
+                                                                BeanMethodInterceptorIntf.class.getClassLoader()));
+                             put(BeanMethodInterceptorFactory.class.getName(),
+                                 ByteCodeUtils.getClassByteCode(BeanMethodInterceptorFactory.class.getName(),
+                                                                BeanMethodInterceptorFactory.class.getClassLoader()));
+                         }
+                     });
     }
 
     public static void install(String beanName, Object bean) {
@@ -138,12 +177,27 @@ public class BeanMethodAopInstaller {
             return;
         }
 
-        if (includingClasses.isEmpty()) {
-            if (excludingClasses.matches(clazz.getName())) {
+        final MatcherList excludedMethods = new MatcherList();
+        excludedMethods.addAll(transformationConfig.excludedMethods);
+
+        IncludedClassConfig includedClassConfig = null;
+        if (!transformationConfig.includedClasses.isEmpty()) {
+            for (IncludedClassConfig includedClass : transformationConfig.includedClasses) {
+                if (includedClass.matcher.matches(clazz.getName())) {
+                    includedClassConfig = includedClass;
+                    if (includedClassConfig.excludedMethods != null) {
+                        excludedMethods.addAll(includedClassConfig.excludedMethods);
+                    }
+                    break;
+                }
+            }
+            if (includedClassConfig == null) {
                 return;
             }
-        } else {
-            if (!includingClasses.matches(clazz.getName())) {
+        }
+        if (includedClassConfig == null || !(includedClassConfig.matcher instanceof StringEqualMatcher)) {
+            //execute excluding rules for non-exact matcher
+            if (transformationConfig.excludedClasses.matches(clazz.getName())) {
                 return;
             }
         }
@@ -177,14 +231,9 @@ public class BeanMethodAopInstaller {
                 //
                 return builder.visit(
                     Advice.to(BeanMethodAop.class)
-                          .on(new BeanMethodModifierMatcher().and((method -> {
-                              if (includingMethods.isEmpty()) {
-                                  return !excludingMethods.matches(method.getName())
-                                         && !propertyMethods.contains(method.getName());
-                              } else {
-                                  return includingMethods.matches(clazz.getName());
-                              }
-                          }))));
+                          .on(new BeanMethodModifierMatcher()
+                                  .and((method -> !propertyMethods.contains(method.getName())
+                                                  && !excludedMethods.matches(method.getName())))));
             })
             .with(AopDebugger.INSTANCE)
             .installOn(InstrumentationHelper.getInstance());
