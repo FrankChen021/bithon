@@ -23,6 +23,7 @@ import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import shaded.com.fasterxml.jackson.databind.JsonNode;
 import shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import shaded.com.fasterxml.jackson.databind.node.ArrayNode;
+import shaded.com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 import shaded.com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -102,6 +103,9 @@ public class Configuration {
     }
 
     private static JsonNode readStaticConfiguration(String location, InputStream configFile) {
+        if (configFile == null) {
+            return new ObjectNode(new JsonNodeFactory(true));
+        }
 
         ObjectMapper mapper;
         if (location.endsWith(".yaml") || location.endsWith(".yml")) {
