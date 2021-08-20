@@ -16,9 +16,16 @@
 
 package com.sbss.bithon.agent.core.context;
 
-import com.sbss.bithon.agent.core.config.AgentConfigManager;
+import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import com.sbss.bithon.agent.core.config.AppConfiguration;
-import com.sbss.bithon.agent.core.config.ConfigManager;
+import com.sbss.bithon.agent.core.config.Configuration;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import static java.io.File.separator;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,19 +33,24 @@ import com.sbss.bithon.agent.core.config.ConfigManager;
  */
 public class AgentContext {
 
+    public static final String BITHON_APPLICATION_ENV = "bithon.application.env";
+    public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
+
     public static final String CONF_DIR = "conf";
     public static final String PLUGIN_DIR = "plugins";
     public static final String TMP_DIR = "tmp";
     private static AgentContext INSTANCE;
     private String agentDirectory;
     private AppInstance appInstance;
+    private Configuration agentConfiguration;
 
     public static AgentContext createInstance(String agentPath) {
-        ConfigManager cfgManager = AgentConfigManager.createInstance(agentPath);
+        Configuration configuration = load(agentPath);
+        AppConfiguration appConfiguration = configuration.getConfig(AppConfiguration.class);
 
-        AppConfiguration appConfiguration = cfgManager.getConfig(AppConfiguration.class);
         INSTANCE = new AgentContext();
         INSTANCE.agentDirectory = agentPath;
+        INSTANCE.agentConfiguration = configuration;
         INSTANCE.appInstance = new AppInstance(appConfiguration.getName(), appConfiguration.getEnv());
         return INSTANCE;
     }
@@ -53,5 +65,24 @@ public class AgentContext {
 
     public AppInstance getAppInstance() {
         return appInstance;
+    }
+
+    public Configuration getAgentConfiguration() {
+        return agentConfiguration;
+    }
+
+    private static Configuration load(String agentDirectory) {
+        File staticConfig = new File(agentDirectory + separator + CONF_DIR + separator + "agent.yml");
+        try (FileInputStream is = new FileInputStream(staticConfig)) {
+            return Configuration.create(staticConfig.getAbsolutePath(),
+                                        is,
+                                        "bithon.",
+                                        BITHON_APPLICATION_NAME,
+                                        BITHON_APPLICATION_ENV);
+        } catch (FileNotFoundException e) {
+            throw new AgentException("Unable to find static config at [%s]", staticConfig.getAbsolutePath());
+        } catch (IOException e) {
+            throw new AgentException("Unexpected IO exception occurred: %s", e.getMessage());
+        }
     }
 }

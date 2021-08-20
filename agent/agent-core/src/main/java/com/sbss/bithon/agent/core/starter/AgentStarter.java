@@ -18,7 +18,6 @@ package com.sbss.bithon.agent.core.starter;
 
 import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.core.aop.InstrumentationHelper;
-import com.sbss.bithon.agent.core.config.AgentConfigManager;
 import com.sbss.bithon.agent.core.config.AppConfiguration;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.PluginInterceptorInstaller;
@@ -90,7 +89,7 @@ public class AgentStarter {
     }
 
     private void ensureApplicationTempDirectory(AgentContext context) {
-        AppConfiguration appConfiguration = AgentConfigManager.getInstance().getConfig(AppConfiguration.class);
+        AppConfiguration appConfiguration = context.getAgentConfiguration().getConfig(AppConfiguration.class);
 
         File tmpDir = new File(context.getAgentDirectory() + separator + AgentContext.TMP_DIR + separator +
                                appConfiguration.getName());

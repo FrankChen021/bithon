@@ -16,33 +16,17 @@
 
 package com.sbss.bithon.agent.core.config;
 
-import com.sbss.bithon.agent.core.config.validation.NotBlank;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2021/8/7 09:57
  */
-@ConfigurationProperties(prefix = "application")
-public class AppConfiguration {
-
-    @NotBlank(message = "[%s] is blank")
-    private String env;
-
-    @NotBlank(message = "[%s] is blank")
-    private String name;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEnv() {
-        return env;
-    }
-
-    public void setEnv(String env) {
-        this.env = env;
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface ConfigurationProperties {
+    String prefix();
 }

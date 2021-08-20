@@ -16,14 +16,14 @@
 
 package com.sbss.bithon.agent.core.tracing.config;
 
-import com.sbss.bithon.agent.core.config.Configuration;
+import com.sbss.bithon.agent.core.config.ConfigurationProperties;
 import com.sbss.bithon.agent.core.config.validation.Range;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/8/5 21:33
  */
-@Configuration(prefix = "tracing")
+@ConfigurationProperties(prefix = "tracing")
 public class TraceConfig {
 
     /**

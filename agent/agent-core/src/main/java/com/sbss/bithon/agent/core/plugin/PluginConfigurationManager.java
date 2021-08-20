@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.core.plugin;
 
-import com.sbss.bithon.agent.core.config.ConfigManager;
+import com.sbss.bithon.agent.core.config.Configuration;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +27,7 @@ import java.io.InputStream;
  */
 public class PluginConfigurationManager {
 
-    public static ConfigManager load(Class<? extends IPlugin> pluginClass) {
+    public static Configuration load(Class<? extends IPlugin> pluginClass) {
         String pkgName = pluginClass.getPackage().getName().replace('.', '/');
 
         String[] packages = pkgName.split("/");
@@ -36,12 +36,12 @@ public class PluginConfigurationManager {
         String name = pkgName + "/plugin.yml";
         try (InputStream is = pluginClass.getClassLoader().getResourceAsStream(name)) {
             if (is == null) {
-                return ConfigManager.EMPTY;
+                return Configuration.EMPTY;
             }
-            return ConfigManager.create(name, is, "bithon.agent.plugin." + pluginName + ".");
+            return Configuration.create(name, is, "bithon.agent.plugin." + pluginName + ".");
         } catch (IOException ignored) {
             // ignore this exception thrown from InputStream.close
-            return ConfigManager.EMPTY;
+            return Configuration.EMPTY;
         }
     }
 }
