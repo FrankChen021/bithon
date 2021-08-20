@@ -14,33 +14,17 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.config;
-
-import com.sbss.bithon.agent.core.config.ConfigurationProperties;
-import com.sbss.bithon.agent.core.config.validation.Range;
+package com.sbss.bithon.agent.core.utils.filter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/8/5 21:33
+ * @date 2021/8/11 17:38
  */
-@ConfigurationProperties(prefix = "tracing")
-public class TraceConfig {
+public class StringAnyMatcher implements IMatcher {
+    public static final String TYPE = "any";
 
-    /**
-     * in range of [0, 100]
-     */
-    @Range(min = 0, max = 100)
-    private int samplingRate = 0;
-
-    public boolean isDisabled() {
-        return samplingRate == 0;
-    }
-
-    public int getSamplingRate() {
-        return samplingRate;
-    }
-
-    public void setSamplingRate(int samplingRate) {
-        this.samplingRate = samplingRate;
+    @Override
+    public boolean matches(Object input) {
+        return true;
     }
 }

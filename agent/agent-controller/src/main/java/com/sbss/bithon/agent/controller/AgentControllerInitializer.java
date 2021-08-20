@@ -19,7 +19,6 @@ package com.sbss.bithon.agent.controller;
 import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
 import com.sbss.bithon.agent.controller.cmd.IAgentCommand;
 import com.sbss.bithon.agent.controller.setting.AgentSettingManager;
-import com.sbss.bithon.agent.core.config.AgentConfigManager;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
 import com.sbss.bithon.agent.core.starter.IAgentInitializer;
@@ -40,7 +39,7 @@ public class AgentControllerInitializer implements IAgentInitializer {
     public void initialize(AgentContext context) throws Exception {
         log.info("Initializing agent controller");
 
-        AgentControllerConfig ctrlConfig = AgentConfigManager.getInstance().getConfig(AgentControllerConfig.class);
+        AgentControllerConfig ctrlConfig = context.getAgentConfiguration().getConfig(AgentControllerConfig.class);
         if (ctrlConfig == null || StringUtils.isEmpty(ctrlConfig.getClient())) {
             log.warn("Agent Controller has not configured.");
             return;
@@ -49,7 +48,7 @@ public class AgentControllerInitializer implements IAgentInitializer {
         //
         // create controller
         //
-        IAgentController controller = null;
+        IAgentController controller;
         try {
             IAgentControllerFactory factory = (IAgentControllerFactory) Class.forName(ctrlConfig.getClient())
                                                                              .newInstance();

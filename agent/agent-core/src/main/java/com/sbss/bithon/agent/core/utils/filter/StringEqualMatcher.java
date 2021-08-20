@@ -14,33 +14,27 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.tracing.config;
+package com.sbss.bithon.agent.core.utils.filter;
 
-import com.sbss.bithon.agent.core.config.ConfigurationProperties;
-import com.sbss.bithon.agent.core.config.validation.Range;
+import shaded.com.fasterxml.jackson.annotation.JsonCreator;
+import shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/8/5 21:33
+ * @date 2021/8/11 18:15
  */
-@ConfigurationProperties(prefix = "tracing")
-public class TraceConfig {
+public class StringEqualMatcher implements IMatcher {
 
-    /**
-     * in range of [0, 100]
-     */
-    @Range(min = 0, max = 100)
-    private int samplingRate = 0;
+    public static final String TYPE = "==";
+    private final String pattern;
 
-    public boolean isDisabled() {
-        return samplingRate == 0;
+    @JsonCreator
+    public StringEqualMatcher(@JsonProperty("pattern") String pattern) {
+        this.pattern = pattern;
     }
 
-    public int getSamplingRate() {
-        return samplingRate;
-    }
-
-    public void setSamplingRate(int samplingRate) {
-        this.samplingRate = samplingRate;
+    @Override
+    public boolean matches(Object input) {
+        return pattern.matches(input.toString());
     }
 }

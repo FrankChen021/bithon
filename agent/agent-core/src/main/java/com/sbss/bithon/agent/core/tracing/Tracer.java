@@ -16,7 +16,6 @@
 
 package com.sbss.bithon.agent.core.tracing;
 
-import com.sbss.bithon.agent.core.config.AgentConfigManager;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.Dispatcher;
@@ -83,7 +82,9 @@ public class Tracer {
             synchronized (Tracer.class) {
                 if (INSTANCE == null) {
 
-                    TraceConfig traceConfig = AgentConfigManager.getInstance().getConfig(TraceConfig.class);
+                    TraceConfig traceConfig = AgentContext.getInstance()
+                                                          .getAgentConfiguration()
+                                                          .getConfig(TraceConfig.class);
 
                     AppInstance appInstance = AgentContext.getInstance().getAppInstance();
                     try {

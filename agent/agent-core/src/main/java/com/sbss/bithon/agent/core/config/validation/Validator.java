@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.agent.core.config.validation;
 
-import com.sbss.bithon.agent.core.config.Configuration;
+import com.sbss.bithon.agent.core.config.ConfigurationProperties;
 import com.sbss.bithon.agent.core.utils.lang.StringUtils;
 
 import java.lang.annotation.Annotation;
@@ -76,7 +76,7 @@ public class Validator {
 
         // get field name or configuration property name
         String name;
-        Configuration cfgAnnotation = object.getClass().getAnnotation(Configuration.class);
+        ConfigurationProperties cfgAnnotation = object.getClass().getAnnotation(ConfigurationProperties.class);
         if (cfgAnnotation != null) {
             name = cfgAnnotation.prefix() + "." + field.getName();
         } else {

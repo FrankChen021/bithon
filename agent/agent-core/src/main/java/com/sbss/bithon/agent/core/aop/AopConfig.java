@@ -16,13 +16,13 @@
 
 package com.sbss.bithon.agent.core.aop;
 
-import com.sbss.bithon.agent.core.config.Configuration;
+import com.sbss.bithon.agent.core.config.ConfigurationProperties;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/8/7 13:53
  */
-@Configuration(prefix = "aop")
+@ConfigurationProperties(prefix = "aop")
 public class AopConfig {
     private boolean debug = false;
 
