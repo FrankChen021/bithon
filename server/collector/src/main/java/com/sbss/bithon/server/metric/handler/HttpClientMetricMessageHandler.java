@@ -77,6 +77,7 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
 
         metricObject.set("targetHost", uri.getHost());
         metricObject.set("targetHostPort", targetHostPort);
+        metricObject.set("uri", result.getUri());
 
         return true;
     }
@@ -90,6 +91,9 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
             String targetApplicationName = getMetaStorage().getApplicationByInstance(targetHostPort);
 
             if (targetApplicationName != null) {
+                metricObject.set("targetHostPort", targetApplicationName);
+                metricObject.set("targetType", EndPointType.APPLICATION.getType());
+
                 return EndPointMetricSetBuilder.builder()
                                                .timestamp(metricObject.getTimestamp())
                                                .srcEndpointType(EndPointType.APPLICATION)
@@ -104,6 +108,8 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
                                                .maxResponseTime(metricObject.getLong("maxResponseTime"))
                                                .build();
             } else {
+                metricObject.set("targetType", EndPointType.WEB_SERVICE.getType());
+
                 //
                 // if the target application has not been in service yet,
                 // it of course can't be found in the metadata storage
@@ -128,6 +134,8 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
         } else { // if uri.getHost is not IP address
             //TODO: targetHostPort may be an service name if it's a service call such as point to point via service auto discovery
             if (getMetaStorage().isApplicationExist(targetHostPort)) {
+                metricObject.set("targetType", EndPointType.APPLICATION.getType());
+
                 return EndPointMetricSetBuilder.builder()
                                                .timestamp(metricObject.getTimestamp())
                                                .srcEndpointType(EndPointType.APPLICATION)
@@ -142,6 +150,8 @@ public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler
                                                .maxResponseTime(metricObject.getLong("maxResponseTime"))
                                                .build();
             } else {
+                metricObject.set("targetType", EndPointType.WEB_SERVICE.getType());
+
                 return EndPointMetricSetBuilder.builder()
                                                .timestamp(metricObject.getTimestamp())
                                                .srcEndpointType(EndPointType.APPLICATION)

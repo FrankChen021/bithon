@@ -18,6 +18,17 @@
       "required": true
     },
     {
+      "name": "targetHostPort",
+      "displayText": "Target Host",
+      "required": true
+    },
+    {
+      "name": "targetType",
+      "displayText": "targetType",
+      "required": true,
+      "visible": false
+    },
+    {
       "name": "uri",
       "displayText": "URL",
       "required": true

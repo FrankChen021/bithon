@@ -29,7 +29,7 @@ public class NetworkUtils {
     private static final String DOUBLE_SLASH = "//";
     private static final String SINGLE_SLASH = "/";
 
-    private static Pattern IPV4_PATTERN = Pattern.compile(
+    private static final Pattern IPV4_PATTERN = Pattern.compile(
         "([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}");
 
     public static boolean isIpAddress(String hostPort) {
