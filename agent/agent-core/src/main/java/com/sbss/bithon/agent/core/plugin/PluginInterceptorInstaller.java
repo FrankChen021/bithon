@@ -20,7 +20,6 @@ import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
 import com.sbss.bithon.agent.core.aop.AopClassGenerator;
 import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.aop.interceptor.InterceptorInstaller;
-import com.sbss.bithon.agent.core.config.AgentConfigManager;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.org.slf4j.Logger;
@@ -94,21 +93,21 @@ public class PluginInterceptorInstaller {
                     continue;
                 }
 
-                String disabledConfigName = "agent.plugin." + getPluginPackageName(pluginClassName) + ".disabled";
-                Boolean pluginDisabled = AgentConfigManager.getInstance()
-                                                           .getConfig(disabledConfigName, Boolean.class);
-                if (pluginDisabled != null && pluginDisabled) {
+                log.info("Found plugin {}", jarFileName);
+
+                //noinspection unchecked
+                Class<? extends IPlugin> pluginClass = (Class<? extends IPlugin>) Class.forName(pluginClassName,
+                                                                                                true,
+                                                                                                pluginClassLoader);
+
+                Boolean isPluginDisabled = PluginConfigurationManager.load(pluginClass)
+                                                                     .getConfig("agent.plugin." + getPluginPackageName(pluginClassName) + ".disabled", Boolean.class);
+                if (isPluginDisabled != null && isPluginDisabled) {
                     log.info("Found plugin {}, but it's DISABLED by configuration", jarFileName);
                     continue;
                 }
 
-                log.info("Found plugin {}", jarFileName);
-
-                IPlugin plugin = (IPlugin) Class.forName(pluginClassName,
-                                                         true,
-                                                         pluginClassLoader)
-                                                .newInstance();
-                plugins.add(plugin);
+                plugins.add(pluginClass.newInstance());
             } catch (Throwable e) {
                 LoggerFactory.getLogger(PluginInterceptorInstaller.class)
                              .error(String.format("Failed to add plugin from jar %s",

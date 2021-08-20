@@ -19,7 +19,7 @@ package com.sbss.bithon.agent.plugin.spring.bean;
 import com.sbss.bithon.agent.core.aop.AopDebugger;
 import com.sbss.bithon.agent.core.aop.InstrumentationHelper;
 import com.sbss.bithon.agent.core.config.Configuration;
-import com.sbss.bithon.agent.core.plugin.PluginConfigurationFactory;
+import com.sbss.bithon.agent.core.plugin.PluginConfigurationManager;
 import com.sbss.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import com.sbss.bithon.agent.core.utils.filter.IMatcher;
 import com.sbss.bithon.agent.core.utils.filter.InCollectionMatcher;
@@ -140,7 +140,7 @@ public class BeanMethodAopInstaller {
     }
 
     public static void initialize() {
-        transformationConfig = PluginConfigurationFactory.create(SpringPlugin.class)
+        transformationConfig = PluginConfigurationManager.load(SpringPlugin.class)
                                                          .getConfig(BeanTransformationConfig.class);
 
         //

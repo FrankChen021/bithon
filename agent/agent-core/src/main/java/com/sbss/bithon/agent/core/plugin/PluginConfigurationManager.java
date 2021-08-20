@@ -25,9 +25,9 @@ import java.io.InputStream;
  * @author frank.chen021@outlook.com
  * @date 2021/8/11 16:31
  */
-public class PluginConfigurationFactory {
+public class PluginConfigurationManager {
 
-    public static ConfigManager create(Class<? extends IPlugin> pluginClass) {
+    public static ConfigManager load(Class<? extends IPlugin> pluginClass) {
         String pkgName = pluginClass.getPackage().getName().replace('.', '/');
 
         String[] packages = pkgName.split("/");
