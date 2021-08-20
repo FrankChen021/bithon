@@ -17,8 +17,9 @@
 package com.sbss.bithon.agent.core.context;
 
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
-import com.sbss.bithon.agent.core.config.AppConfiguration;
 import com.sbss.bithon.agent.core.config.Configuration;
+import com.sbss.bithon.agent.core.config.ConfigurationProperties;
+import com.sbss.bithon.agent.core.config.validation.NotBlank;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,6 +34,32 @@ import static java.io.File.separator;
  */
 public class AgentContext {
 
+    @ConfigurationProperties(prefix = "application")
+    public static class AppConfiguration {
+
+        @NotBlank(message = "[%s] is blank")
+        private String env;
+
+        @NotBlank(message = "[%s] is blank")
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getEnv() {
+            return env;
+        }
+
+        public void setEnv(String env) {
+            this.env = env;
+        }
+    }
+
     public static final String BITHON_APPLICATION_ENV = "bithon.application.env";
     public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
 
@@ -45,7 +72,7 @@ public class AgentContext {
     private Configuration agentConfiguration;
 
     public static AgentContext createInstance(String agentPath) {
-        Configuration configuration = load(agentPath);
+        Configuration configuration = loadAgentConfiguration(agentPath);
         AppConfiguration appConfiguration = configuration.getConfig(AppConfiguration.class);
 
         INSTANCE = new AgentContext();
@@ -71,7 +98,7 @@ public class AgentContext {
         return agentConfiguration;
     }
 
-    private static Configuration load(String agentDirectory) {
+    private static Configuration loadAgentConfiguration(String agentDirectory) {
         File staticConfig = new File(agentDirectory + separator + CONF_DIR + separator + "agent.yml");
         try (FileInputStream is = new FileInputStream(staticConfig)) {
             return Configuration.create(staticConfig.getAbsolutePath(),
