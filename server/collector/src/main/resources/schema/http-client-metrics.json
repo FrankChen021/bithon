@@ -19,7 +19,7 @@
     },
     {
       "name": "targetHostPort",
-      "displayText": "targetHostPort",
+      "displayText": "Target Host",
       "required": true
     },
     {
