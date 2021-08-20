@@ -35,9 +35,6 @@ public class PluginConfigurationManager {
 
         String name = pkgName + "/plugin.yml";
         try (InputStream is = pluginClass.getClassLoader().getResourceAsStream(name)) {
-            if (is == null) {
-                return Configuration.EMPTY;
-            }
             return Configuration.create(name, is, "bithon.agent.plugin." + pluginName + ".");
         } catch (IOException ignored) {
             // ignore this exception thrown from InputStream.close
