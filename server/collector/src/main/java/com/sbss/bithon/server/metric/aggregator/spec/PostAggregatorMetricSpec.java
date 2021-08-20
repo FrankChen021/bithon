@@ -123,6 +123,14 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                     }
                     return null;
                 }
+
+                /**
+                 * an empty implementation to skip the visit of inner ID by the above {@link #visitTerminal(TerminalNode)} method
+                 */
+                @Override
+                public Void visitVariable(PostAggregatorExpressionParser.VariableContext ctx) {
+                    return null;
+                }
             });
             return parser;
         });
@@ -206,15 +214,18 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                     case PostAggregatorExpressionParser.ID:
                         visitor.visitMetric(owner.getMetricSpecByName(node.getText()));
                         return null;
-                    case PostAggregatorExpressionParser.VARIABLE:
-                        visitor.visitVariable(node.getText());
-                        return null;
                     default:
                         throw new IllegalStateException("Terminal Node Type:"
                                                         + node.getSymbol().getType()
                                                         + ", Input Expression:"
                                                         + expression);
                 }
+            }
+
+            @Override
+            public Void visitVariable(PostAggregatorExpressionParser.VariableContext ctx) {
+                visitor.visitVariable(ctx.getChild(1).getText());
+                return null;
             }
         });
     }

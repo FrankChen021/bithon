@@ -107,7 +107,7 @@
     {
       "type": "post",
       "name": "qps",
-      "expression": "requestCount/interval",
+      "expression": "requestCount/{interval}",
       "displayText": "QPS",
       "unit": "",
       "valueType": "double"
