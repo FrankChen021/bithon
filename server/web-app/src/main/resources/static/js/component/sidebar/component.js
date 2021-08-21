@@ -19,8 +19,8 @@ class MetricSidebar {
             id: 'web-request-metrics',
             text: 'Web Request'
         },{
-            id: 'http-client-metrics',
-            text: 'Http Client'
+            id: 'http-outgoing-metrics',
+            text: 'Outgoing HTTP'
         },{
             id: 'jdbc-pool-metrics',
             text: 'JDBC Connection Pool'

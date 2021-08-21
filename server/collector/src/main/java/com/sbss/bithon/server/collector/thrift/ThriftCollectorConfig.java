@@ -29,7 +29,7 @@ import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.event.handler.EventsMessageHandler;
 import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
-import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.HttpOutgoingMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
@@ -77,7 +77,7 @@ public class ThriftCollectorConfig {
                                                                             WebRequestMetricMessageHandler webRequestMetricMessageHandler,
                                                                             WebServerMetricMessageHandler webServerMetricMessageHandler,
                                                                             ExceptionMetricMessageHandler exceptionMetricMessageHandler,
-                                                                            HttpClientMetricMessageHandler httpClientMetricMessageHandler,
+                                                                            HttpOutgoingMetricMessageHandler httpOutgoingMetricMessageHandler,
                                                                             ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
                                                                             JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
                                                                             RedisMetricMessageHandler redisMetricMessageHandler,
@@ -89,7 +89,7 @@ public class ThriftCollectorConfig {
                                        webRequestMetricMessageHandler,
                                        webServerMetricMessageHandler,
                                        exceptionMetricMessageHandler,
-                                       httpClientMetricMessageHandler,
+                                       httpOutgoingMetricMessageHandler,
                                        threadPoolMetricMessageHandler,
                                        jdbcPoolMetricMessageHandler,
                                        redisMetricMessageHandler,

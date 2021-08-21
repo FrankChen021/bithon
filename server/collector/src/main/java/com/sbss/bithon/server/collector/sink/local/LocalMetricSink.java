@@ -21,7 +21,7 @@ import com.sbss.bithon.server.common.handler.IMessageHandler;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
-import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.HttpOutgoingMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
@@ -55,7 +55,7 @@ public class LocalMetricSink implements IMessageSink<CloseableIterator<GenericMe
                            WebRequestMetricMessageHandler webRequestMetricMessageHandler,
                            WebServerMetricMessageHandler webServerMetricMessageHandler,
                            ExceptionMetricMessageHandler exceptionMetricMessageHandler,
-                           HttpClientMetricMessageHandler httpClientMetricMessageHandler,
+                           HttpOutgoingMetricMessageHandler httpOutgoingMetricMessageHandler,
                            ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
                            JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
                            RedisMetricMessageHandler redisMetricMessageHandler,
@@ -66,7 +66,7 @@ public class LocalMetricSink implements IMessageSink<CloseableIterator<GenericMe
         add(webRequestMetricMessageHandler);
         add(webServerMetricMessageHandler);
         add(exceptionMetricMessageHandler);
-        add(httpClientMetricMessageHandler);
+        add(httpOutgoingMetricMessageHandler);
         add(threadPoolMetricMessageHandler);
         add(jdbcPoolMetricMessageHandler);
         add(redisMetricMessageHandler);

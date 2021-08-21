@@ -37,15 +37,15 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class HttpClientMetricMessageHandler extends AbstractMetricMessageHandler {
+public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandler {
 
     private final UriNormalizer uriNormalizer;
 
-    public HttpClientMetricMessageHandler(UriNormalizer uriNormalizer,
-                                          IMetaStorage metaStorage,
-                                          IMetricStorage metricStorage,
-                                          DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
-        super("http-client-metrics",
+    public HttpOutgoingMetricMessageHandler(UriNormalizer uriNormalizer,
+                                            IMetaStorage metaStorage,
+                                            IMetricStorage metricStorage,
+                                            DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("http-outgoing-metrics",
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,
