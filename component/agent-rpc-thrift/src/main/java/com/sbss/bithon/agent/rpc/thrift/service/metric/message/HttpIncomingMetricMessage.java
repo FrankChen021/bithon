@@ -7,58 +7,64 @@
 package com.sbss.bithon.agent.rpc.thrift.service.metric.message;
 
 @SuppressWarnings({"cast", "rawtypes", "serial", "unchecked", "unused"})
-/**
- * ***************** Http Client ******************************************
- */
-public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClientMetricMessage, HttpClientMetricMessage._Fields>, java.io.Serializable, Cloneable, Comparable<HttpClientMetricMessage> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HttpClientMetricMessage");
+public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIncomingMetricMessage, HttpIncomingMetricMessage._Fields>, java.io.Serializable, Cloneable, Comparable<HttpIncomingMetricMessage> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HttpIncomingMetricMessage");
 
   private static final org.apache.thrift.protocol.TField TIMESTAMP_FIELD_DESC = new org.apache.thrift.protocol.TField("timestamp", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField INTERVAL_FIELD_DESC = new org.apache.thrift.protocol.TField("interval", org.apache.thrift.protocol.TType.I32, (short)2);
-  private static final org.apache.thrift.protocol.TField URI_FIELD_DESC = new org.apache.thrift.protocol.TField("uri", org.apache.thrift.protocol.TType.STRING, (short)3);
-  private static final org.apache.thrift.protocol.TField METHOD_FIELD_DESC = new org.apache.thrift.protocol.TField("method", org.apache.thrift.protocol.TType.STRING, (short)4);
-  private static final org.apache.thrift.protocol.TField RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("responseTime", org.apache.thrift.protocol.TType.I64, (short)5);
-  private static final org.apache.thrift.protocol.TField MIN_RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("minResponseTime", org.apache.thrift.protocol.TType.I64, (short)6);
+  private static final org.apache.thrift.protocol.TField SRC_APPLICATION_FIELD_DESC = new org.apache.thrift.protocol.TField("srcApplication", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField URI_FIELD_DESC = new org.apache.thrift.protocol.TField("uri", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField MIN_RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("minResponseTime", org.apache.thrift.protocol.TType.I64, (short)5);
+  private static final org.apache.thrift.protocol.TField RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("responseTime", org.apache.thrift.protocol.TType.I64, (short)6);
   private static final org.apache.thrift.protocol.TField MAX_RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("maxResponseTime", org.apache.thrift.protocol.TType.I64, (short)7);
-  private static final org.apache.thrift.protocol.TField COUNT4XX_FIELD_DESC = new org.apache.thrift.protocol.TField("count4xx", org.apache.thrift.protocol.TType.I64, (short)8);
-  private static final org.apache.thrift.protocol.TField COUNT5XX_FIELD_DESC = new org.apache.thrift.protocol.TField("count5xx", org.apache.thrift.protocol.TType.I64, (short)9);
-  private static final org.apache.thrift.protocol.TField REQUEST_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("requestCount", org.apache.thrift.protocol.TType.I64, (short)10);
-  private static final org.apache.thrift.protocol.TField EXCEPTION_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("exceptionCount", org.apache.thrift.protocol.TType.I64, (short)11);
-  private static final org.apache.thrift.protocol.TField REQUEST_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("requestBytes", org.apache.thrift.protocol.TType.I64, (short)12);
-  private static final org.apache.thrift.protocol.TField RESPONSE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("responseBytes", org.apache.thrift.protocol.TType.I64, (short)13);
+  private static final org.apache.thrift.protocol.TField CALL_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("callCount", org.apache.thrift.protocol.TType.I64, (short)8);
+  private static final org.apache.thrift.protocol.TField ERROR_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("errorCount", org.apache.thrift.protocol.TType.I64, (short)9);
+  private static final org.apache.thrift.protocol.TField OK_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("okCount", org.apache.thrift.protocol.TType.I64, (short)10);
+  private static final org.apache.thrift.protocol.TField COUNT4XX_FIELD_DESC = new org.apache.thrift.protocol.TField("count4xx", org.apache.thrift.protocol.TType.I64, (short)11);
+  private static final org.apache.thrift.protocol.TField COUNT5XX_FIELD_DESC = new org.apache.thrift.protocol.TField("count5xx", org.apache.thrift.protocol.TType.I64, (short)12);
+  private static final org.apache.thrift.protocol.TField REQUEST_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("requestBytes", org.apache.thrift.protocol.TType.I64, (short)13);
+  private static final org.apache.thrift.protocol.TField RESPONSE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("responseBytes", org.apache.thrift.protocol.TType.I64, (short)14);
+  private static final org.apache.thrift.protocol.TField FLOWED_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("flowedCount", org.apache.thrift.protocol.TType.I64, (short)15);
+  private static final org.apache.thrift.protocol.TField DEGRADED_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("degradedCount", org.apache.thrift.protocol.TType.I64, (short)16);
 
-  private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new HttpClientMetricMessageStandardSchemeFactory();
-  private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new HttpClientMetricMessageTupleSchemeFactory();
+  private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new HttpIncomingMetricMessageStandardSchemeFactory();
+  private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new HttpIncomingMetricMessageTupleSchemeFactory();
 
   public long timestamp; // required
   public int interval; // required
+  public @org.apache.thrift.annotation.Nullable java.lang.String srcApplication; // optional
   public @org.apache.thrift.annotation.Nullable java.lang.String uri; // required
-  public @org.apache.thrift.annotation.Nullable java.lang.String method; // required
-  public long responseTime; // required
   public long minResponseTime; // required
+  public long responseTime; // required
   public long maxResponseTime; // required
+  public long callCount; // required
+  public long errorCount; // required
+  public long okCount; // required
   public long count4xx; // required
   public long count5xx; // required
-  public long requestCount; // required
-  public long exceptionCount; // required
   public long requestBytes; // required
   public long responseBytes; // required
+  public long flowedCount; // required
+  public long degradedCount; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     TIMESTAMP((short)1, "timestamp"),
     INTERVAL((short)2, "interval"),
-    URI((short)3, "uri"),
-    METHOD((short)4, "method"),
-    RESPONSE_TIME((short)5, "responseTime"),
-    MIN_RESPONSE_TIME((short)6, "minResponseTime"),
+    SRC_APPLICATION((short)3, "srcApplication"),
+    URI((short)4, "uri"),
+    MIN_RESPONSE_TIME((short)5, "minResponseTime"),
+    RESPONSE_TIME((short)6, "responseTime"),
     MAX_RESPONSE_TIME((short)7, "maxResponseTime"),
-    COUNT4XX((short)8, "count4xx"),
-    COUNT5XX((short)9, "count5xx"),
-    REQUEST_COUNT((short)10, "requestCount"),
-    EXCEPTION_COUNT((short)11, "exceptionCount"),
-    REQUEST_BYTES((short)12, "requestBytes"),
-    RESPONSE_BYTES((short)13, "responseBytes");
+    CALL_COUNT((short)8, "callCount"),
+    ERROR_COUNT((short)9, "errorCount"),
+    OK_COUNT((short)10, "okCount"),
+    COUNT4XX((short)11, "count4xx"),
+    COUNT5XX((short)12, "count5xx"),
+    REQUEST_BYTES((short)13, "requestBytes"),
+    RESPONSE_BYTES((short)14, "responseBytes"),
+    FLOWED_COUNT((short)15, "flowedCount"),
+    DEGRADED_COUNT((short)16, "degradedCount");
 
     private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -78,28 +84,34 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
           return TIMESTAMP;
         case 2: // INTERVAL
           return INTERVAL;
-        case 3: // URI
+        case 3: // SRC_APPLICATION
+          return SRC_APPLICATION;
+        case 4: // URI
           return URI;
-        case 4: // METHOD
-          return METHOD;
-        case 5: // RESPONSE_TIME
-          return RESPONSE_TIME;
-        case 6: // MIN_RESPONSE_TIME
+        case 5: // MIN_RESPONSE_TIME
           return MIN_RESPONSE_TIME;
+        case 6: // RESPONSE_TIME
+          return RESPONSE_TIME;
         case 7: // MAX_RESPONSE_TIME
           return MAX_RESPONSE_TIME;
-        case 8: // COUNT4XX
+        case 8: // CALL_COUNT
+          return CALL_COUNT;
+        case 9: // ERROR_COUNT
+          return ERROR_COUNT;
+        case 10: // OK_COUNT
+          return OK_COUNT;
+        case 11: // COUNT4XX
           return COUNT4XX;
-        case 9: // COUNT5XX
+        case 12: // COUNT5XX
           return COUNT5XX;
-        case 10: // REQUEST_COUNT
-          return REQUEST_COUNT;
-        case 11: // EXCEPTION_COUNT
-          return EXCEPTION_COUNT;
-        case 12: // REQUEST_BYTES
+        case 13: // REQUEST_BYTES
           return REQUEST_BYTES;
-        case 13: // RESPONSE_BYTES
+        case 14: // RESPONSE_BYTES
           return RESPONSE_BYTES;
+        case 15: // FLOWED_COUNT
+          return FLOWED_COUNT;
+        case 16: // DEGRADED_COUNT
+          return DEGRADED_COUNT;
         default:
           return null;
       }
@@ -143,16 +155,20 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
   // isset id assignments
   private static final int __TIMESTAMP_ISSET_ID = 0;
   private static final int __INTERVAL_ISSET_ID = 1;
-  private static final int __RESPONSETIME_ISSET_ID = 2;
-  private static final int __MINRESPONSETIME_ISSET_ID = 3;
+  private static final int __MINRESPONSETIME_ISSET_ID = 2;
+  private static final int __RESPONSETIME_ISSET_ID = 3;
   private static final int __MAXRESPONSETIME_ISSET_ID = 4;
-  private static final int __COUNT4XX_ISSET_ID = 5;
-  private static final int __COUNT5XX_ISSET_ID = 6;
-  private static final int __REQUESTCOUNT_ISSET_ID = 7;
-  private static final int __EXCEPTIONCOUNT_ISSET_ID = 8;
-  private static final int __REQUESTBYTES_ISSET_ID = 9;
-  private static final int __RESPONSEBYTES_ISSET_ID = 10;
+  private static final int __CALLCOUNT_ISSET_ID = 5;
+  private static final int __ERRORCOUNT_ISSET_ID = 6;
+  private static final int __OKCOUNT_ISSET_ID = 7;
+  private static final int __COUNT4XX_ISSET_ID = 8;
+  private static final int __COUNT5XX_ISSET_ID = 9;
+  private static final int __REQUESTBYTES_ISSET_ID = 10;
+  private static final int __RESPONSEBYTES_ISSET_ID = 11;
+  private static final int __FLOWEDCOUNT_ISSET_ID = 12;
+  private static final int __DEGRADEDCOUNT_ISSET_ID = 13;
   private short __isset_bitfield = 0;
+  private static final _Fields optionals[] = {_Fields.SRC_APPLICATION};
   public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -160,49 +176,57 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.INTERVAL, new org.apache.thrift.meta_data.FieldMetaData("interval", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.SRC_APPLICATION, new org.apache.thrift.meta_data.FieldMetaData("srcApplication", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.URI, new org.apache.thrift.meta_data.FieldMetaData("uri", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.METHOD, new org.apache.thrift.meta_data.FieldMetaData("method", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.RESPONSE_TIME, new org.apache.thrift.meta_data.FieldMetaData("responseTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.MIN_RESPONSE_TIME, new org.apache.thrift.meta_data.FieldMetaData("minResponseTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.RESPONSE_TIME, new org.apache.thrift.meta_data.FieldMetaData("responseTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.MAX_RESPONSE_TIME, new org.apache.thrift.meta_data.FieldMetaData("maxResponseTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.CALL_COUNT, new org.apache.thrift.meta_data.FieldMetaData("callCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.ERROR_COUNT, new org.apache.thrift.meta_data.FieldMetaData("errorCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.OK_COUNT, new org.apache.thrift.meta_data.FieldMetaData("okCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.COUNT4XX, new org.apache.thrift.meta_data.FieldMetaData("count4xx", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.COUNT5XX, new org.apache.thrift.meta_data.FieldMetaData("count5xx", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.REQUEST_COUNT, new org.apache.thrift.meta_data.FieldMetaData("requestCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.EXCEPTION_COUNT, new org.apache.thrift.meta_data.FieldMetaData("exceptionCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.REQUEST_BYTES, new org.apache.thrift.meta_data.FieldMetaData("requestBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.RESPONSE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("responseBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.FLOWED_COUNT, new org.apache.thrift.meta_data.FieldMetaData("flowedCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.DEGRADED_COUNT, new org.apache.thrift.meta_data.FieldMetaData("degradedCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HttpClientMetricMessage.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HttpIncomingMetricMessage.class, metaDataMap);
   }
 
-  public HttpClientMetricMessage() {
+  public HttpIncomingMetricMessage() {
   }
 
-  public HttpClientMetricMessage(
+  public HttpIncomingMetricMessage(
     long timestamp,
     int interval,
     java.lang.String uri,
-    java.lang.String method,
-    long responseTime,
     long minResponseTime,
+    long responseTime,
     long maxResponseTime,
+    long callCount,
+    long errorCount,
+    long okCount,
     long count4xx,
     long count5xx,
-    long requestCount,
-    long exceptionCount,
     long requestBytes,
-    long responseBytes)
+    long responseBytes,
+    long flowedCount,
+    long degradedCount)
   {
     this();
     this.timestamp = timestamp;
@@ -210,53 +234,61 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     this.interval = interval;
     setIntervalIsSet(true);
     this.uri = uri;
-    this.method = method;
-    this.responseTime = responseTime;
-    setResponseTimeIsSet(true);
     this.minResponseTime = minResponseTime;
     setMinResponseTimeIsSet(true);
+    this.responseTime = responseTime;
+    setResponseTimeIsSet(true);
     this.maxResponseTime = maxResponseTime;
     setMaxResponseTimeIsSet(true);
+    this.callCount = callCount;
+    setCallCountIsSet(true);
+    this.errorCount = errorCount;
+    setErrorCountIsSet(true);
+    this.okCount = okCount;
+    setOkCountIsSet(true);
     this.count4xx = count4xx;
     setCount4xxIsSet(true);
     this.count5xx = count5xx;
     setCount5xxIsSet(true);
-    this.requestCount = requestCount;
-    setRequestCountIsSet(true);
-    this.exceptionCount = exceptionCount;
-    setExceptionCountIsSet(true);
     this.requestBytes = requestBytes;
     setRequestBytesIsSet(true);
     this.responseBytes = responseBytes;
     setResponseBytesIsSet(true);
+    this.flowedCount = flowedCount;
+    setFlowedCountIsSet(true);
+    this.degradedCount = degradedCount;
+    setDegradedCountIsSet(true);
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public HttpClientMetricMessage(HttpClientMetricMessage other) {
+  public HttpIncomingMetricMessage(HttpIncomingMetricMessage other) {
     __isset_bitfield = other.__isset_bitfield;
     this.timestamp = other.timestamp;
     this.interval = other.interval;
+    if (other.isSetSrcApplication()) {
+      this.srcApplication = other.srcApplication;
+    }
     if (other.isSetUri()) {
       this.uri = other.uri;
     }
-    if (other.isSetMethod()) {
-      this.method = other.method;
-    }
-    this.responseTime = other.responseTime;
     this.minResponseTime = other.minResponseTime;
+    this.responseTime = other.responseTime;
     this.maxResponseTime = other.maxResponseTime;
+    this.callCount = other.callCount;
+    this.errorCount = other.errorCount;
+    this.okCount = other.okCount;
     this.count4xx = other.count4xx;
     this.count5xx = other.count5xx;
-    this.requestCount = other.requestCount;
-    this.exceptionCount = other.exceptionCount;
     this.requestBytes = other.requestBytes;
     this.responseBytes = other.responseBytes;
+    this.flowedCount = other.flowedCount;
+    this.degradedCount = other.degradedCount;
   }
 
-  public HttpClientMetricMessage deepCopy() {
-    return new HttpClientMetricMessage(this);
+  public HttpIncomingMetricMessage deepCopy() {
+    return new HttpIncomingMetricMessage(this);
   }
 
   @Override
@@ -265,33 +297,39 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     this.timestamp = 0;
     setIntervalIsSet(false);
     this.interval = 0;
+    this.srcApplication = null;
     this.uri = null;
-    this.method = null;
-    setResponseTimeIsSet(false);
-    this.responseTime = 0;
     setMinResponseTimeIsSet(false);
     this.minResponseTime = 0;
+    setResponseTimeIsSet(false);
+    this.responseTime = 0;
     setMaxResponseTimeIsSet(false);
     this.maxResponseTime = 0;
+    setCallCountIsSet(false);
+    this.callCount = 0;
+    setErrorCountIsSet(false);
+    this.errorCount = 0;
+    setOkCountIsSet(false);
+    this.okCount = 0;
     setCount4xxIsSet(false);
     this.count4xx = 0;
     setCount5xxIsSet(false);
     this.count5xx = 0;
-    setRequestCountIsSet(false);
-    this.requestCount = 0;
-    setExceptionCountIsSet(false);
-    this.exceptionCount = 0;
     setRequestBytesIsSet(false);
     this.requestBytes = 0;
     setResponseBytesIsSet(false);
     this.responseBytes = 0;
+    setFlowedCountIsSet(false);
+    this.flowedCount = 0;
+    setDegradedCountIsSet(false);
+    this.degradedCount = 0;
   }
 
   public long getTimestamp() {
     return this.timestamp;
   }
 
-  public HttpClientMetricMessage setTimestamp(long timestamp) {
+  public HttpIncomingMetricMessage setTimestamp(long timestamp) {
     this.timestamp = timestamp;
     setTimestampIsSet(true);
     return this;
@@ -314,7 +352,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.interval;
   }
 
-  public HttpClientMetricMessage setInterval(int interval) {
+  public HttpIncomingMetricMessage setInterval(int interval) {
     this.interval = interval;
     setIntervalIsSet(true);
     return this;
@@ -334,11 +372,36 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
   }
 
   @org.apache.thrift.annotation.Nullable
+  public java.lang.String getSrcApplication() {
+    return this.srcApplication;
+  }
+
+  public HttpIncomingMetricMessage setSrcApplication(@org.apache.thrift.annotation.Nullable java.lang.String srcApplication) {
+    this.srcApplication = srcApplication;
+    return this;
+  }
+
+  public void unsetSrcApplication() {
+    this.srcApplication = null;
+  }
+
+  /** Returns true if field srcApplication is set (has been assigned a value) and false otherwise */
+  public boolean isSetSrcApplication() {
+    return this.srcApplication != null;
+  }
+
+  public void setSrcApplicationIsSet(boolean value) {
+    if (!value) {
+      this.srcApplication = null;
+    }
+  }
+
+  @org.apache.thrift.annotation.Nullable
   public java.lang.String getUri() {
     return this.uri;
   }
 
-  public HttpClientMetricMessage setUri(@org.apache.thrift.annotation.Nullable java.lang.String uri) {
+  public HttpIncomingMetricMessage setUri(@org.apache.thrift.annotation.Nullable java.lang.String uri) {
     this.uri = uri;
     return this;
   }
@@ -358,59 +421,11 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     }
   }
 
-  @org.apache.thrift.annotation.Nullable
-  public java.lang.String getMethod() {
-    return this.method;
-  }
-
-  public HttpClientMetricMessage setMethod(@org.apache.thrift.annotation.Nullable java.lang.String method) {
-    this.method = method;
-    return this;
-  }
-
-  public void unsetMethod() {
-    this.method = null;
-  }
-
-  /** Returns true if field method is set (has been assigned a value) and false otherwise */
-  public boolean isSetMethod() {
-    return this.method != null;
-  }
-
-  public void setMethodIsSet(boolean value) {
-    if (!value) {
-      this.method = null;
-    }
-  }
-
-  public long getResponseTime() {
-    return this.responseTime;
-  }
-
-  public HttpClientMetricMessage setResponseTime(long responseTime) {
-    this.responseTime = responseTime;
-    setResponseTimeIsSet(true);
-    return this;
-  }
-
-  public void unsetResponseTime() {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __RESPONSETIME_ISSET_ID);
-  }
-
-  /** Returns true if field responseTime is set (has been assigned a value) and false otherwise */
-  public boolean isSetResponseTime() {
-    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __RESPONSETIME_ISSET_ID);
-  }
-
-  public void setResponseTimeIsSet(boolean value) {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __RESPONSETIME_ISSET_ID, value);
-  }
-
   public long getMinResponseTime() {
     return this.minResponseTime;
   }
 
-  public HttpClientMetricMessage setMinResponseTime(long minResponseTime) {
+  public HttpIncomingMetricMessage setMinResponseTime(long minResponseTime) {
     this.minResponseTime = minResponseTime;
     setMinResponseTimeIsSet(true);
     return this;
@@ -429,11 +444,34 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __MINRESPONSETIME_ISSET_ID, value);
   }
 
+  public long getResponseTime() {
+    return this.responseTime;
+  }
+
+  public HttpIncomingMetricMessage setResponseTime(long responseTime) {
+    this.responseTime = responseTime;
+    setResponseTimeIsSet(true);
+    return this;
+  }
+
+  public void unsetResponseTime() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __RESPONSETIME_ISSET_ID);
+  }
+
+  /** Returns true if field responseTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetResponseTime() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __RESPONSETIME_ISSET_ID);
+  }
+
+  public void setResponseTimeIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __RESPONSETIME_ISSET_ID, value);
+  }
+
   public long getMaxResponseTime() {
     return this.maxResponseTime;
   }
 
-  public HttpClientMetricMessage setMaxResponseTime(long maxResponseTime) {
+  public HttpIncomingMetricMessage setMaxResponseTime(long maxResponseTime) {
     this.maxResponseTime = maxResponseTime;
     setMaxResponseTimeIsSet(true);
     return this;
@@ -452,11 +490,80 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __MAXRESPONSETIME_ISSET_ID, value);
   }
 
+  public long getCallCount() {
+    return this.callCount;
+  }
+
+  public HttpIncomingMetricMessage setCallCount(long callCount) {
+    this.callCount = callCount;
+    setCallCountIsSet(true);
+    return this;
+  }
+
+  public void unsetCallCount() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __CALLCOUNT_ISSET_ID);
+  }
+
+  /** Returns true if field callCount is set (has been assigned a value) and false otherwise */
+  public boolean isSetCallCount() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __CALLCOUNT_ISSET_ID);
+  }
+
+  public void setCallCountIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __CALLCOUNT_ISSET_ID, value);
+  }
+
+  public long getErrorCount() {
+    return this.errorCount;
+  }
+
+  public HttpIncomingMetricMessage setErrorCount(long errorCount) {
+    this.errorCount = errorCount;
+    setErrorCountIsSet(true);
+    return this;
+  }
+
+  public void unsetErrorCount() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __ERRORCOUNT_ISSET_ID);
+  }
+
+  /** Returns true if field errorCount is set (has been assigned a value) and false otherwise */
+  public boolean isSetErrorCount() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __ERRORCOUNT_ISSET_ID);
+  }
+
+  public void setErrorCountIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __ERRORCOUNT_ISSET_ID, value);
+  }
+
+  public long getOkCount() {
+    return this.okCount;
+  }
+
+  public HttpIncomingMetricMessage setOkCount(long okCount) {
+    this.okCount = okCount;
+    setOkCountIsSet(true);
+    return this;
+  }
+
+  public void unsetOkCount() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __OKCOUNT_ISSET_ID);
+  }
+
+  /** Returns true if field okCount is set (has been assigned a value) and false otherwise */
+  public boolean isSetOkCount() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __OKCOUNT_ISSET_ID);
+  }
+
+  public void setOkCountIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __OKCOUNT_ISSET_ID, value);
+  }
+
   public long getCount4xx() {
     return this.count4xx;
   }
 
-  public HttpClientMetricMessage setCount4xx(long count4xx) {
+  public HttpIncomingMetricMessage setCount4xx(long count4xx) {
     this.count4xx = count4xx;
     setCount4xxIsSet(true);
     return this;
@@ -479,7 +586,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.count5xx;
   }
 
-  public HttpClientMetricMessage setCount5xx(long count5xx) {
+  public HttpIncomingMetricMessage setCount5xx(long count5xx) {
     this.count5xx = count5xx;
     setCount5xxIsSet(true);
     return this;
@@ -498,57 +605,11 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __COUNT5XX_ISSET_ID, value);
   }
 
-  public long getRequestCount() {
-    return this.requestCount;
-  }
-
-  public HttpClientMetricMessage setRequestCount(long requestCount) {
-    this.requestCount = requestCount;
-    setRequestCountIsSet(true);
-    return this;
-  }
-
-  public void unsetRequestCount() {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __REQUESTCOUNT_ISSET_ID);
-  }
-
-  /** Returns true if field requestCount is set (has been assigned a value) and false otherwise */
-  public boolean isSetRequestCount() {
-    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __REQUESTCOUNT_ISSET_ID);
-  }
-
-  public void setRequestCountIsSet(boolean value) {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __REQUESTCOUNT_ISSET_ID, value);
-  }
-
-  public long getExceptionCount() {
-    return this.exceptionCount;
-  }
-
-  public HttpClientMetricMessage setExceptionCount(long exceptionCount) {
-    this.exceptionCount = exceptionCount;
-    setExceptionCountIsSet(true);
-    return this;
-  }
-
-  public void unsetExceptionCount() {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __EXCEPTIONCOUNT_ISSET_ID);
-  }
-
-  /** Returns true if field exceptionCount is set (has been assigned a value) and false otherwise */
-  public boolean isSetExceptionCount() {
-    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __EXCEPTIONCOUNT_ISSET_ID);
-  }
-
-  public void setExceptionCountIsSet(boolean value) {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __EXCEPTIONCOUNT_ISSET_ID, value);
-  }
-
   public long getRequestBytes() {
     return this.requestBytes;
   }
 
-  public HttpClientMetricMessage setRequestBytes(long requestBytes) {
+  public HttpIncomingMetricMessage setRequestBytes(long requestBytes) {
     this.requestBytes = requestBytes;
     setRequestBytesIsSet(true);
     return this;
@@ -571,7 +632,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.responseBytes;
   }
 
-  public HttpClientMetricMessage setResponseBytes(long responseBytes) {
+  public HttpIncomingMetricMessage setResponseBytes(long responseBytes) {
     this.responseBytes = responseBytes;
     setResponseBytesIsSet(true);
     return this;
@@ -588,6 +649,52 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
 
   public void setResponseBytesIsSet(boolean value) {
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __RESPONSEBYTES_ISSET_ID, value);
+  }
+
+  public long getFlowedCount() {
+    return this.flowedCount;
+  }
+
+  public HttpIncomingMetricMessage setFlowedCount(long flowedCount) {
+    this.flowedCount = flowedCount;
+    setFlowedCountIsSet(true);
+    return this;
+  }
+
+  public void unsetFlowedCount() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __FLOWEDCOUNT_ISSET_ID);
+  }
+
+  /** Returns true if field flowedCount is set (has been assigned a value) and false otherwise */
+  public boolean isSetFlowedCount() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __FLOWEDCOUNT_ISSET_ID);
+  }
+
+  public void setFlowedCountIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __FLOWEDCOUNT_ISSET_ID, value);
+  }
+
+  public long getDegradedCount() {
+    return this.degradedCount;
+  }
+
+  public HttpIncomingMetricMessage setDegradedCount(long degradedCount) {
+    this.degradedCount = degradedCount;
+    setDegradedCountIsSet(true);
+    return this;
+  }
+
+  public void unsetDegradedCount() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __DEGRADEDCOUNT_ISSET_ID);
+  }
+
+  /** Returns true if field degradedCount is set (has been assigned a value) and false otherwise */
+  public boolean isSetDegradedCount() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __DEGRADEDCOUNT_ISSET_ID);
+  }
+
+  public void setDegradedCountIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __DEGRADEDCOUNT_ISSET_ID, value);
   }
 
   public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
@@ -608,27 +715,19 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
       }
       break;
 
+    case SRC_APPLICATION:
+      if (value == null) {
+        unsetSrcApplication();
+      } else {
+        setSrcApplication((java.lang.String)value);
+      }
+      break;
+
     case URI:
       if (value == null) {
         unsetUri();
       } else {
         setUri((java.lang.String)value);
-      }
-      break;
-
-    case METHOD:
-      if (value == null) {
-        unsetMethod();
-      } else {
-        setMethod((java.lang.String)value);
-      }
-      break;
-
-    case RESPONSE_TIME:
-      if (value == null) {
-        unsetResponseTime();
-      } else {
-        setResponseTime((java.lang.Long)value);
       }
       break;
 
@@ -640,11 +739,43 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
       }
       break;
 
+    case RESPONSE_TIME:
+      if (value == null) {
+        unsetResponseTime();
+      } else {
+        setResponseTime((java.lang.Long)value);
+      }
+      break;
+
     case MAX_RESPONSE_TIME:
       if (value == null) {
         unsetMaxResponseTime();
       } else {
         setMaxResponseTime((java.lang.Long)value);
+      }
+      break;
+
+    case CALL_COUNT:
+      if (value == null) {
+        unsetCallCount();
+      } else {
+        setCallCount((java.lang.Long)value);
+      }
+      break;
+
+    case ERROR_COUNT:
+      if (value == null) {
+        unsetErrorCount();
+      } else {
+        setErrorCount((java.lang.Long)value);
+      }
+      break;
+
+    case OK_COUNT:
+      if (value == null) {
+        unsetOkCount();
+      } else {
+        setOkCount((java.lang.Long)value);
       }
       break;
 
@@ -664,22 +795,6 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
       }
       break;
 
-    case REQUEST_COUNT:
-      if (value == null) {
-        unsetRequestCount();
-      } else {
-        setRequestCount((java.lang.Long)value);
-      }
-      break;
-
-    case EXCEPTION_COUNT:
-      if (value == null) {
-        unsetExceptionCount();
-      } else {
-        setExceptionCount((java.lang.Long)value);
-      }
-      break;
-
     case REQUEST_BYTES:
       if (value == null) {
         unsetRequestBytes();
@@ -696,6 +811,22 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
       }
       break;
 
+    case FLOWED_COUNT:
+      if (value == null) {
+        unsetFlowedCount();
+      } else {
+        setFlowedCount((java.lang.Long)value);
+      }
+      break;
+
+    case DEGRADED_COUNT:
+      if (value == null) {
+        unsetDegradedCount();
+      } else {
+        setDegradedCount((java.lang.Long)value);
+      }
+      break;
+
     }
   }
 
@@ -708,20 +839,29 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     case INTERVAL:
       return getInterval();
 
+    case SRC_APPLICATION:
+      return getSrcApplication();
+
     case URI:
       return getUri();
-
-    case METHOD:
-      return getMethod();
-
-    case RESPONSE_TIME:
-      return getResponseTime();
 
     case MIN_RESPONSE_TIME:
       return getMinResponseTime();
 
+    case RESPONSE_TIME:
+      return getResponseTime();
+
     case MAX_RESPONSE_TIME:
       return getMaxResponseTime();
+
+    case CALL_COUNT:
+      return getCallCount();
+
+    case ERROR_COUNT:
+      return getErrorCount();
+
+    case OK_COUNT:
+      return getOkCount();
 
     case COUNT4XX:
       return getCount4xx();
@@ -729,17 +869,17 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     case COUNT5XX:
       return getCount5xx();
 
-    case REQUEST_COUNT:
-      return getRequestCount();
-
-    case EXCEPTION_COUNT:
-      return getExceptionCount();
-
     case REQUEST_BYTES:
       return getRequestBytes();
 
     case RESPONSE_BYTES:
       return getResponseBytes();
+
+    case FLOWED_COUNT:
+      return getFlowedCount();
+
+    case DEGRADED_COUNT:
+      return getDegradedCount();
 
     }
     throw new java.lang.IllegalStateException();
@@ -756,40 +896,46 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
       return isSetTimestamp();
     case INTERVAL:
       return isSetInterval();
+    case SRC_APPLICATION:
+      return isSetSrcApplication();
     case URI:
       return isSetUri();
-    case METHOD:
-      return isSetMethod();
-    case RESPONSE_TIME:
-      return isSetResponseTime();
     case MIN_RESPONSE_TIME:
       return isSetMinResponseTime();
+    case RESPONSE_TIME:
+      return isSetResponseTime();
     case MAX_RESPONSE_TIME:
       return isSetMaxResponseTime();
+    case CALL_COUNT:
+      return isSetCallCount();
+    case ERROR_COUNT:
+      return isSetErrorCount();
+    case OK_COUNT:
+      return isSetOkCount();
     case COUNT4XX:
       return isSetCount4xx();
     case COUNT5XX:
       return isSetCount5xx();
-    case REQUEST_COUNT:
-      return isSetRequestCount();
-    case EXCEPTION_COUNT:
-      return isSetExceptionCount();
     case REQUEST_BYTES:
       return isSetRequestBytes();
     case RESPONSE_BYTES:
       return isSetResponseBytes();
+    case FLOWED_COUNT:
+      return isSetFlowedCount();
+    case DEGRADED_COUNT:
+      return isSetDegradedCount();
     }
     throw new java.lang.IllegalStateException();
   }
 
   @Override
   public boolean equals(java.lang.Object that) {
-    if (that instanceof HttpClientMetricMessage)
-      return this.equals((HttpClientMetricMessage)that);
+    if (that instanceof HttpIncomingMetricMessage)
+      return this.equals((HttpIncomingMetricMessage)that);
     return false;
   }
 
-  public boolean equals(HttpClientMetricMessage that) {
+  public boolean equals(HttpIncomingMetricMessage that) {
     if (that == null)
       return false;
     if (this == that)
@@ -813,30 +959,21 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
         return false;
     }
 
+    boolean this_present_srcApplication = true && this.isSetSrcApplication();
+    boolean that_present_srcApplication = true && that.isSetSrcApplication();
+    if (this_present_srcApplication || that_present_srcApplication) {
+      if (!(this_present_srcApplication && that_present_srcApplication))
+        return false;
+      if (!this.srcApplication.equals(that.srcApplication))
+        return false;
+    }
+
     boolean this_present_uri = true && this.isSetUri();
     boolean that_present_uri = true && that.isSetUri();
     if (this_present_uri || that_present_uri) {
       if (!(this_present_uri && that_present_uri))
         return false;
       if (!this.uri.equals(that.uri))
-        return false;
-    }
-
-    boolean this_present_method = true && this.isSetMethod();
-    boolean that_present_method = true && that.isSetMethod();
-    if (this_present_method || that_present_method) {
-      if (!(this_present_method && that_present_method))
-        return false;
-      if (!this.method.equals(that.method))
-        return false;
-    }
-
-    boolean this_present_responseTime = true;
-    boolean that_present_responseTime = true;
-    if (this_present_responseTime || that_present_responseTime) {
-      if (!(this_present_responseTime && that_present_responseTime))
-        return false;
-      if (this.responseTime != that.responseTime)
         return false;
     }
 
@@ -849,12 +986,48 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
         return false;
     }
 
+    boolean this_present_responseTime = true;
+    boolean that_present_responseTime = true;
+    if (this_present_responseTime || that_present_responseTime) {
+      if (!(this_present_responseTime && that_present_responseTime))
+        return false;
+      if (this.responseTime != that.responseTime)
+        return false;
+    }
+
     boolean this_present_maxResponseTime = true;
     boolean that_present_maxResponseTime = true;
     if (this_present_maxResponseTime || that_present_maxResponseTime) {
       if (!(this_present_maxResponseTime && that_present_maxResponseTime))
         return false;
       if (this.maxResponseTime != that.maxResponseTime)
+        return false;
+    }
+
+    boolean this_present_callCount = true;
+    boolean that_present_callCount = true;
+    if (this_present_callCount || that_present_callCount) {
+      if (!(this_present_callCount && that_present_callCount))
+        return false;
+      if (this.callCount != that.callCount)
+        return false;
+    }
+
+    boolean this_present_errorCount = true;
+    boolean that_present_errorCount = true;
+    if (this_present_errorCount || that_present_errorCount) {
+      if (!(this_present_errorCount && that_present_errorCount))
+        return false;
+      if (this.errorCount != that.errorCount)
+        return false;
+    }
+
+    boolean this_present_okCount = true;
+    boolean that_present_okCount = true;
+    if (this_present_okCount || that_present_okCount) {
+      if (!(this_present_okCount && that_present_okCount))
+        return false;
+      if (this.okCount != that.okCount)
         return false;
     }
 
@@ -876,24 +1049,6 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
         return false;
     }
 
-    boolean this_present_requestCount = true;
-    boolean that_present_requestCount = true;
-    if (this_present_requestCount || that_present_requestCount) {
-      if (!(this_present_requestCount && that_present_requestCount))
-        return false;
-      if (this.requestCount != that.requestCount)
-        return false;
-    }
-
-    boolean this_present_exceptionCount = true;
-    boolean that_present_exceptionCount = true;
-    if (this_present_exceptionCount || that_present_exceptionCount) {
-      if (!(this_present_exceptionCount && that_present_exceptionCount))
-        return false;
-      if (this.exceptionCount != that.exceptionCount)
-        return false;
-    }
-
     boolean this_present_requestBytes = true;
     boolean that_present_requestBytes = true;
     if (this_present_requestBytes || that_present_requestBytes) {
@@ -912,6 +1067,24 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
         return false;
     }
 
+    boolean this_present_flowedCount = true;
+    boolean that_present_flowedCount = true;
+    if (this_present_flowedCount || that_present_flowedCount) {
+      if (!(this_present_flowedCount && that_present_flowedCount))
+        return false;
+      if (this.flowedCount != that.flowedCount)
+        return false;
+    }
+
+    boolean this_present_degradedCount = true;
+    boolean that_present_degradedCount = true;
+    if (this_present_degradedCount || that_present_degradedCount) {
+      if (!(this_present_degradedCount && that_present_degradedCount))
+        return false;
+      if (this.degradedCount != that.degradedCount)
+        return false;
+    }
+
     return true;
   }
 
@@ -923,37 +1096,43 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
 
     hashCode = hashCode * 8191 + interval;
 
+    hashCode = hashCode * 8191 + ((isSetSrcApplication()) ? 131071 : 524287);
+    if (isSetSrcApplication())
+      hashCode = hashCode * 8191 + srcApplication.hashCode();
+
     hashCode = hashCode * 8191 + ((isSetUri()) ? 131071 : 524287);
     if (isSetUri())
       hashCode = hashCode * 8191 + uri.hashCode();
 
-    hashCode = hashCode * 8191 + ((isSetMethod()) ? 131071 : 524287);
-    if (isSetMethod())
-      hashCode = hashCode * 8191 + method.hashCode();
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(minResponseTime);
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(responseTime);
 
-    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(minResponseTime);
-
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(maxResponseTime);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(callCount);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(errorCount);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(okCount);
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(count4xx);
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(count5xx);
 
-    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(requestCount);
-
-    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(exceptionCount);
-
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(requestBytes);
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(responseBytes);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(flowedCount);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(degradedCount);
 
     return hashCode;
   }
 
   @Override
-  public int compareTo(HttpClientMetricMessage other) {
+  public int compareTo(HttpIncomingMetricMessage other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
@@ -980,32 +1159,22 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
         return lastComparison;
       }
     }
+    lastComparison = java.lang.Boolean.compare(isSetSrcApplication(), other.isSetSrcApplication());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetSrcApplication()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.srcApplication, other.srcApplication);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = java.lang.Boolean.compare(isSetUri(), other.isSetUri());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetUri()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.uri, other.uri);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = java.lang.Boolean.compare(isSetMethod(), other.isSetMethod());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetMethod()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.method, other.method);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = java.lang.Boolean.compare(isSetResponseTime(), other.isSetResponseTime());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetResponseTime()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.responseTime, other.responseTime);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -1020,12 +1189,52 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
         return lastComparison;
       }
     }
+    lastComparison = java.lang.Boolean.compare(isSetResponseTime(), other.isSetResponseTime());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetResponseTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.responseTime, other.responseTime);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = java.lang.Boolean.compare(isSetMaxResponseTime(), other.isSetMaxResponseTime());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetMaxResponseTime()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.maxResponseTime, other.maxResponseTime);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetCallCount(), other.isSetCallCount());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCallCount()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.callCount, other.callCount);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetErrorCount(), other.isSetErrorCount());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetErrorCount()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.errorCount, other.errorCount);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetOkCount(), other.isSetOkCount());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetOkCount()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.okCount, other.okCount);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -1050,26 +1259,6 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetRequestCount(), other.isSetRequestCount());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetRequestCount()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.requestCount, other.requestCount);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = java.lang.Boolean.compare(isSetExceptionCount(), other.isSetExceptionCount());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetExceptionCount()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.exceptionCount, other.exceptionCount);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     lastComparison = java.lang.Boolean.compare(isSetRequestBytes(), other.isSetRequestBytes());
     if (lastComparison != 0) {
       return lastComparison;
@@ -1086,6 +1275,26 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     }
     if (isSetResponseBytes()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.responseBytes, other.responseBytes);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetFlowedCount(), other.isSetFlowedCount());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetFlowedCount()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.flowedCount, other.flowedCount);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetDegradedCount(), other.isSetDegradedCount());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetDegradedCount()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.degradedCount, other.degradedCount);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -1108,7 +1317,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
 
   @Override
   public java.lang.String toString() {
-    java.lang.StringBuilder sb = new java.lang.StringBuilder("HttpClientMetricMessage(");
+    java.lang.StringBuilder sb = new java.lang.StringBuilder("HttpIncomingMetricMessage(");
     boolean first = true;
 
     sb.append("timestamp:");
@@ -1118,6 +1327,16 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     sb.append("interval:");
     sb.append(this.interval);
     first = false;
+    if (isSetSrcApplication()) {
+      if (!first) sb.append(", ");
+      sb.append("srcApplication:");
+      if (this.srcApplication == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.srcApplication);
+      }
+      first = false;
+    }
     if (!first) sb.append(", ");
     sb.append("uri:");
     if (this.uri == null) {
@@ -1127,24 +1346,28 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("method:");
-    if (this.method == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.method);
-    }
+    sb.append("minResponseTime:");
+    sb.append(this.minResponseTime);
     first = false;
     if (!first) sb.append(", ");
     sb.append("responseTime:");
     sb.append(this.responseTime);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("minResponseTime:");
-    sb.append(this.minResponseTime);
-    first = false;
-    if (!first) sb.append(", ");
     sb.append("maxResponseTime:");
     sb.append(this.maxResponseTime);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("callCount:");
+    sb.append(this.callCount);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("errorCount:");
+    sb.append(this.errorCount);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("okCount:");
+    sb.append(this.okCount);
     first = false;
     if (!first) sb.append(", ");
     sb.append("count4xx:");
@@ -1155,20 +1378,20 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     sb.append(this.count5xx);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("requestCount:");
-    sb.append(this.requestCount);
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("exceptionCount:");
-    sb.append(this.exceptionCount);
-    first = false;
-    if (!first) sb.append(", ");
     sb.append("requestBytes:");
     sb.append(this.requestBytes);
     first = false;
     if (!first) sb.append(", ");
     sb.append("responseBytes:");
     sb.append(this.responseBytes);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("flowedCount:");
+    sb.append(this.flowedCount);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("degradedCount:");
+    sb.append(this.degradedCount);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -1197,15 +1420,15 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     }
   }
 
-  private static class HttpClientMetricMessageStandardSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
-    public HttpClientMetricMessageStandardScheme getScheme() {
-      return new HttpClientMetricMessageStandardScheme();
+  private static class HttpIncomingMetricMessageStandardSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
+    public HttpIncomingMetricMessageStandardScheme getScheme() {
+      return new HttpIncomingMetricMessageStandardScheme();
     }
   }
 
-  private static class HttpClientMetricMessageStandardScheme extends org.apache.thrift.scheme.StandardScheme<HttpClientMetricMessage> {
+  private static class HttpIncomingMetricMessageStandardScheme extends org.apache.thrift.scheme.StandardScheme<HttpIncomingMetricMessage> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, HttpClientMetricMessage struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, HttpIncomingMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
@@ -1231,7 +1454,15 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // URI
+          case 3: // SRC_APPLICATION
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.srcApplication = iprot.readString();
+              struct.setSrcApplicationIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 4: // URI
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.uri = iprot.readString();
               struct.setUriIsSet(true);
@@ -1239,26 +1470,18 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // METHOD
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.method = iprot.readString();
-              struct.setMethodIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 5: // RESPONSE_TIME
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.responseTime = iprot.readI64();
-              struct.setResponseTimeIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 6: // MIN_RESPONSE_TIME
+          case 5: // MIN_RESPONSE_TIME
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.minResponseTime = iprot.readI64();
               struct.setMinResponseTimeIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // RESPONSE_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.responseTime = iprot.readI64();
+              struct.setResponseTimeIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -1271,7 +1494,31 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 8: // COUNT4XX
+          case 8: // CALL_COUNT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.callCount = iprot.readI64();
+              struct.setCallCountIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 9: // ERROR_COUNT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.errorCount = iprot.readI64();
+              struct.setErrorCountIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 10: // OK_COUNT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.okCount = iprot.readI64();
+              struct.setOkCountIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 11: // COUNT4XX
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.count4xx = iprot.readI64();
               struct.setCount4xxIsSet(true);
@@ -1279,7 +1526,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 9: // COUNT5XX
+          case 12: // COUNT5XX
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.count5xx = iprot.readI64();
               struct.setCount5xxIsSet(true);
@@ -1287,23 +1534,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 10: // REQUEST_COUNT
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.requestCount = iprot.readI64();
-              struct.setRequestCountIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 11: // EXCEPTION_COUNT
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.exceptionCount = iprot.readI64();
-              struct.setExceptionCountIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 12: // REQUEST_BYTES
+          case 13: // REQUEST_BYTES
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.requestBytes = iprot.readI64();
               struct.setRequestBytesIsSet(true);
@@ -1311,10 +1542,26 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 13: // RESPONSE_BYTES
+          case 14: // RESPONSE_BYTES
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.responseBytes = iprot.readI64();
               struct.setResponseBytesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 15: // FLOWED_COUNT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.flowedCount = iprot.readI64();
+              struct.setFlowedCountIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 16: // DEGRADED_COUNT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.degradedCount = iprot.readI64();
+              struct.setDegradedCountIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -1330,7 +1577,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, HttpClientMetricMessage struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, HttpIncomingMetricMessage struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
@@ -1340,24 +1587,35 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
       oprot.writeFieldBegin(INTERVAL_FIELD_DESC);
       oprot.writeI32(struct.interval);
       oprot.writeFieldEnd();
+      if (struct.srcApplication != null) {
+        if (struct.isSetSrcApplication()) {
+          oprot.writeFieldBegin(SRC_APPLICATION_FIELD_DESC);
+          oprot.writeString(struct.srcApplication);
+          oprot.writeFieldEnd();
+        }
+      }
       if (struct.uri != null) {
         oprot.writeFieldBegin(URI_FIELD_DESC);
         oprot.writeString(struct.uri);
         oprot.writeFieldEnd();
       }
-      if (struct.method != null) {
-        oprot.writeFieldBegin(METHOD_FIELD_DESC);
-        oprot.writeString(struct.method);
-        oprot.writeFieldEnd();
-      }
-      oprot.writeFieldBegin(RESPONSE_TIME_FIELD_DESC);
-      oprot.writeI64(struct.responseTime);
-      oprot.writeFieldEnd();
       oprot.writeFieldBegin(MIN_RESPONSE_TIME_FIELD_DESC);
       oprot.writeI64(struct.minResponseTime);
       oprot.writeFieldEnd();
+      oprot.writeFieldBegin(RESPONSE_TIME_FIELD_DESC);
+      oprot.writeI64(struct.responseTime);
+      oprot.writeFieldEnd();
       oprot.writeFieldBegin(MAX_RESPONSE_TIME_FIELD_DESC);
       oprot.writeI64(struct.maxResponseTime);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(CALL_COUNT_FIELD_DESC);
+      oprot.writeI64(struct.callCount);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(ERROR_COUNT_FIELD_DESC);
+      oprot.writeI64(struct.errorCount);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(OK_COUNT_FIELD_DESC);
+      oprot.writeI64(struct.okCount);
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(COUNT4XX_FIELD_DESC);
       oprot.writeI64(struct.count4xx);
@@ -1365,17 +1623,17 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
       oprot.writeFieldBegin(COUNT5XX_FIELD_DESC);
       oprot.writeI64(struct.count5xx);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(REQUEST_COUNT_FIELD_DESC);
-      oprot.writeI64(struct.requestCount);
-      oprot.writeFieldEnd();
-      oprot.writeFieldBegin(EXCEPTION_COUNT_FIELD_DESC);
-      oprot.writeI64(struct.exceptionCount);
-      oprot.writeFieldEnd();
       oprot.writeFieldBegin(REQUEST_BYTES_FIELD_DESC);
       oprot.writeI64(struct.requestBytes);
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(RESPONSE_BYTES_FIELD_DESC);
       oprot.writeI64(struct.responseBytes);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(FLOWED_COUNT_FIELD_DESC);
+      oprot.writeI64(struct.flowedCount);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(DEGRADED_COUNT_FIELD_DESC);
+      oprot.writeI64(struct.degradedCount);
       oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -1383,16 +1641,16 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
 
   }
 
-  private static class HttpClientMetricMessageTupleSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
-    public HttpClientMetricMessageTupleScheme getScheme() {
-      return new HttpClientMetricMessageTupleScheme();
+  private static class HttpIncomingMetricMessageTupleSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
+    public HttpIncomingMetricMessageTupleScheme getScheme() {
+      return new HttpIncomingMetricMessageTupleScheme();
     }
   }
 
-  private static class HttpClientMetricMessageTupleScheme extends org.apache.thrift.scheme.TupleScheme<HttpClientMetricMessage> {
+  private static class HttpIncomingMetricMessageTupleScheme extends org.apache.thrift.scheme.TupleScheme<HttpIncomingMetricMessage> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, HttpClientMetricMessage struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, HttpIncomingMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
       java.util.BitSet optionals = new java.util.BitSet();
       if (struct.isSetTimestamp()) {
@@ -1401,60 +1659,78 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
       if (struct.isSetInterval()) {
         optionals.set(1);
       }
-      if (struct.isSetUri()) {
+      if (struct.isSetSrcApplication()) {
         optionals.set(2);
       }
-      if (struct.isSetMethod()) {
+      if (struct.isSetUri()) {
         optionals.set(3);
       }
-      if (struct.isSetResponseTime()) {
+      if (struct.isSetMinResponseTime()) {
         optionals.set(4);
       }
-      if (struct.isSetMinResponseTime()) {
+      if (struct.isSetResponseTime()) {
         optionals.set(5);
       }
       if (struct.isSetMaxResponseTime()) {
         optionals.set(6);
       }
-      if (struct.isSetCount4xx()) {
+      if (struct.isSetCallCount()) {
         optionals.set(7);
       }
-      if (struct.isSetCount5xx()) {
+      if (struct.isSetErrorCount()) {
         optionals.set(8);
       }
-      if (struct.isSetRequestCount()) {
+      if (struct.isSetOkCount()) {
         optionals.set(9);
       }
-      if (struct.isSetExceptionCount()) {
+      if (struct.isSetCount4xx()) {
         optionals.set(10);
       }
-      if (struct.isSetRequestBytes()) {
+      if (struct.isSetCount5xx()) {
         optionals.set(11);
       }
-      if (struct.isSetResponseBytes()) {
+      if (struct.isSetRequestBytes()) {
         optionals.set(12);
       }
-      oprot.writeBitSet(optionals, 13);
+      if (struct.isSetResponseBytes()) {
+        optionals.set(13);
+      }
+      if (struct.isSetFlowedCount()) {
+        optionals.set(14);
+      }
+      if (struct.isSetDegradedCount()) {
+        optionals.set(15);
+      }
+      oprot.writeBitSet(optionals, 16);
       if (struct.isSetTimestamp()) {
         oprot.writeI64(struct.timestamp);
       }
       if (struct.isSetInterval()) {
         oprot.writeI32(struct.interval);
       }
+      if (struct.isSetSrcApplication()) {
+        oprot.writeString(struct.srcApplication);
+      }
       if (struct.isSetUri()) {
         oprot.writeString(struct.uri);
-      }
-      if (struct.isSetMethod()) {
-        oprot.writeString(struct.method);
-      }
-      if (struct.isSetResponseTime()) {
-        oprot.writeI64(struct.responseTime);
       }
       if (struct.isSetMinResponseTime()) {
         oprot.writeI64(struct.minResponseTime);
       }
+      if (struct.isSetResponseTime()) {
+        oprot.writeI64(struct.responseTime);
+      }
       if (struct.isSetMaxResponseTime()) {
         oprot.writeI64(struct.maxResponseTime);
+      }
+      if (struct.isSetCallCount()) {
+        oprot.writeI64(struct.callCount);
+      }
+      if (struct.isSetErrorCount()) {
+        oprot.writeI64(struct.errorCount);
+      }
+      if (struct.isSetOkCount()) {
+        oprot.writeI64(struct.okCount);
       }
       if (struct.isSetCount4xx()) {
         oprot.writeI64(struct.count4xx);
@@ -1462,24 +1738,24 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
       if (struct.isSetCount5xx()) {
         oprot.writeI64(struct.count5xx);
       }
-      if (struct.isSetRequestCount()) {
-        oprot.writeI64(struct.requestCount);
-      }
-      if (struct.isSetExceptionCount()) {
-        oprot.writeI64(struct.exceptionCount);
-      }
       if (struct.isSetRequestBytes()) {
         oprot.writeI64(struct.requestBytes);
       }
       if (struct.isSetResponseBytes()) {
         oprot.writeI64(struct.responseBytes);
       }
+      if (struct.isSetFlowedCount()) {
+        oprot.writeI64(struct.flowedCount);
+      }
+      if (struct.isSetDegradedCount()) {
+        oprot.writeI64(struct.degradedCount);
+      }
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, HttpClientMetricMessage struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, HttpIncomingMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-      java.util.BitSet incoming = iprot.readBitSet(13);
+      java.util.BitSet incoming = iprot.readBitSet(16);
       if (incoming.get(0)) {
         struct.timestamp = iprot.readI64();
         struct.setTimestampIsSet(true);
@@ -1489,48 +1765,60 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
         struct.setIntervalIsSet(true);
       }
       if (incoming.get(2)) {
+        struct.srcApplication = iprot.readString();
+        struct.setSrcApplicationIsSet(true);
+      }
+      if (incoming.get(3)) {
         struct.uri = iprot.readString();
         struct.setUriIsSet(true);
       }
-      if (incoming.get(3)) {
-        struct.method = iprot.readString();
-        struct.setMethodIsSet(true);
-      }
       if (incoming.get(4)) {
-        struct.responseTime = iprot.readI64();
-        struct.setResponseTimeIsSet(true);
-      }
-      if (incoming.get(5)) {
         struct.minResponseTime = iprot.readI64();
         struct.setMinResponseTimeIsSet(true);
+      }
+      if (incoming.get(5)) {
+        struct.responseTime = iprot.readI64();
+        struct.setResponseTimeIsSet(true);
       }
       if (incoming.get(6)) {
         struct.maxResponseTime = iprot.readI64();
         struct.setMaxResponseTimeIsSet(true);
       }
       if (incoming.get(7)) {
+        struct.callCount = iprot.readI64();
+        struct.setCallCountIsSet(true);
+      }
+      if (incoming.get(8)) {
+        struct.errorCount = iprot.readI64();
+        struct.setErrorCountIsSet(true);
+      }
+      if (incoming.get(9)) {
+        struct.okCount = iprot.readI64();
+        struct.setOkCountIsSet(true);
+      }
+      if (incoming.get(10)) {
         struct.count4xx = iprot.readI64();
         struct.setCount4xxIsSet(true);
       }
-      if (incoming.get(8)) {
+      if (incoming.get(11)) {
         struct.count5xx = iprot.readI64();
         struct.setCount5xxIsSet(true);
       }
-      if (incoming.get(9)) {
-        struct.requestCount = iprot.readI64();
-        struct.setRequestCountIsSet(true);
-      }
-      if (incoming.get(10)) {
-        struct.exceptionCount = iprot.readI64();
-        struct.setExceptionCountIsSet(true);
-      }
-      if (incoming.get(11)) {
+      if (incoming.get(12)) {
         struct.requestBytes = iprot.readI64();
         struct.setRequestBytesIsSet(true);
       }
-      if (incoming.get(12)) {
+      if (incoming.get(13)) {
         struct.responseBytes = iprot.readI64();
         struct.setResponseBytesIsSet(true);
+      }
+      if (incoming.get(14)) {
+        struct.flowedCount = iprot.readI64();
+        struct.setFlowedCountIsSet(true);
+      }
+      if (incoming.get(15)) {
+        struct.degradedCount = iprot.readI64();
+        struct.setDegradedCountIsSet(true);
       }
     }
   }

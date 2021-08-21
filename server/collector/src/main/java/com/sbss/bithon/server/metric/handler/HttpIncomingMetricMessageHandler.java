@@ -35,15 +35,15 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class WebRequestMetricMessageHandler extends AbstractMetricMessageHandler {
+public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandler {
 
     private final UriNormalizer uriNormalizer;
 
-    public WebRequestMetricMessageHandler(UriNormalizer uriNormalizer,
-                                          IMetaStorage metaStorage,
-                                          IMetricStorage metricStorage,
-                                          DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
-        super("web-request-metrics",
+    public HttpIncomingMetricMessageHandler(UriNormalizer uriNormalizer,
+                                            IMetaStorage metaStorage,
+                                            IMetricStorage metricStorage,
+                                            DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("http-incoming-metrics",
               metaStorage,
               metricStorage,
               dataSourceSchemaManager,

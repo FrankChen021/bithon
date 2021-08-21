@@ -23,7 +23,7 @@ import com.sbss.bithon.agent.core.metric.model.Timer;
 /**
  * @author frankchen
  */
-public class HttpClientCompositeMetric implements ICompositeMetric {
+public class HttpOutgoingMetrics implements ICompositeMetric {
     /**
      * total cost time in NANO second
      */

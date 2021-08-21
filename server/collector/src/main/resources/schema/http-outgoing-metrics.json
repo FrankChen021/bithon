@@ -1,6 +1,6 @@
 {
-  "displayText": "HTTP Client",
-  "name": "http-client-metrics",
+  "displayText": "Outgoing HTTP",
+  "name": "http-outgoing-metrics",
   "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",

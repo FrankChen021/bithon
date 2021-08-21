@@ -16,11 +16,11 @@ class MetricSidebar {
             id: 'web-server-metrics',
             text: 'Web Server'
         },{
-            id: 'web-request-metrics',
-            text: 'Web Request'
+            id: 'http-incoming-metrics',
+            text: 'Incoming HTTP'
         },{
-            id: 'http-client-metrics',
-            text: 'Http Client'
+            id: 'http-outgoing-metrics',
+            text: 'Outgoing HTTP'
         },{
             id: 'jdbc-pool-metrics',
             text: 'JDBC Connection Pool'

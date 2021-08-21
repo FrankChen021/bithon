@@ -1,6 +1,6 @@
 {
-  "displayText": "Web Request",
-  "name": "web-request-metrics",
+  "displayText": "Incoming HTTP",
+  "name": "http-incoming-metrics",
   "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",

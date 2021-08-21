@@ -25,7 +25,7 @@ import com.sbss.bithon.agent.core.metric.model.Timer;
  *
  * @author frankchen
  */
-public class WebRequestCompositeMetric implements ICompositeMetric {
+public class HttpIncomingMetrics implements ICompositeMetric {
     private final Timer responseTime = new Timer();
     private final Sum requestCount = new Sum();
     private final Sum okCount = new Sum();

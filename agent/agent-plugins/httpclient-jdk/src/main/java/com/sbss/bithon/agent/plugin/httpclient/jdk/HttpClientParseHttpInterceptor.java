@@ -20,7 +20,7 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
@@ -34,12 +34,12 @@ import sun.net.www.protocol.http.HttpURLConnection;
 public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
 
     //TODO: jdk-http metrics
-    HttpClientMetricCollector metricCollector;
+    HttpOutgoingMetricsCollector metricCollector;
 
     @Override
     public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("jdk-httpclient", HttpClientMetricCollector.class);
+                                                .getOrRegister("jdk-httpclient", HttpOutgoingMetricsCollector.class);
         return true;
     }
 

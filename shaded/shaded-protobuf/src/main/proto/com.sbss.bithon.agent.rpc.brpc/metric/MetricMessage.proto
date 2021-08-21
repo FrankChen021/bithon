@@ -4,7 +4,7 @@ package com.sbss.bithon.agent.rpc.brpc.metrics;
 
 option java_multiple_files = true;
 
-message BrpcWebRequestMetricMessage {
+message BrpcHttpIncomingMetricMessage {
     int64 timestamp         = 1;
     int32 interval          = 2;
     optional string srcApplication = 3;
@@ -127,7 +127,7 @@ message BrpcExceptionMetricMessage {
 /***************************************************************************/
 /******************* Http Client *******************************************/
 /**************************************************************************/
-message BrpcHttpClientMetricMessage {
+message BrpcHttpOutgoingMetricMessage {
     int64 timestamp           =  1;
     int32 interval            =  2;
     string uri              =  3;

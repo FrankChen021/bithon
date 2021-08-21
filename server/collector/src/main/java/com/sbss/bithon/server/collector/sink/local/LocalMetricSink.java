@@ -21,7 +21,8 @@ import com.sbss.bithon.server.common.handler.IMessageHandler;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
-import com.sbss.bithon.server.metric.handler.HttpClientMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.HttpIncomingMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.HttpOutgoingMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
@@ -29,7 +30,6 @@ import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -52,10 +52,10 @@ public class LocalMetricSink implements IMessageSink<CloseableIterator<GenericMe
 
     public LocalMetricSink(JvmMetricMessageHandler jvmMetricMessageHandler,
                            JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
-                           WebRequestMetricMessageHandler webRequestMetricMessageHandler,
+                           HttpIncomingMetricMessageHandler httpIncomingMetricMessageHandler,
                            WebServerMetricMessageHandler webServerMetricMessageHandler,
                            ExceptionMetricMessageHandler exceptionMetricMessageHandler,
-                           HttpClientMetricMessageHandler httpClientMetricMessageHandler,
+                           HttpOutgoingMetricMessageHandler httpOutgoingMetricMessageHandler,
                            ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
                            JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
                            RedisMetricMessageHandler redisMetricMessageHandler,
@@ -63,10 +63,10 @@ public class LocalMetricSink implements IMessageSink<CloseableIterator<GenericMe
                            MongoDbMetricMessageHandler mongoDbMetricMessageHandler) {
         add(jvmMetricMessageHandler);
         add(jvmGcMetricMessageHandler);
-        add(webRequestMetricMessageHandler);
+        add(httpIncomingMetricMessageHandler);
         add(webServerMetricMessageHandler);
         add(exceptionMetricMessageHandler);
-        add(httpClientMetricMessageHandler);
+        add(httpOutgoingMetricMessageHandler);
         add(threadPoolMetricMessageHandler);
         add(jdbcPoolMetricMessageHandler);
         add(redisMetricMessageHandler);
