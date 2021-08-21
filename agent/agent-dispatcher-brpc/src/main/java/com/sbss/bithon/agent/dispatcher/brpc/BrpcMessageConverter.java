@@ -34,12 +34,12 @@ import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcWebRequestMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 
@@ -107,24 +107,24 @@ public class BrpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(long timestamp, int interval, List<String> dimensions, WebRequestCompositeMetric metric) {
-        return BrpcWebRequestMetricMessage.newBuilder()
-                                          .setTimestamp(timestamp)
-                                          .setInterval(interval)
-                                          .setSrcApplication(dimensions.get(0))
-                                          .setUri(dimensions.get(1))
-                                          .setResponseTime(metric.getResponseTime().getSum().get())
-                                          .setMaxResponseTime(metric.getResponseTime().getMax().get())
-                                          .setMinResponseTime(metric.getResponseTime().getMin().get())
-                                          .setCallCount(metric.getRequestCount().get())
-                                          .setErrorCount(metric.getErrorCount().get())
-                                          .setOkCount(metric.getOkCount().get())
-                                          .setCount4Xx(metric.getCount4xx().get())
-                                          .setCount5Xx(metric.getCount5xx().get())
-                                          .setRequestBytes(metric.getRequestBytes().get())
-                                          .setResponseBytes(metric.getResponseBytes().get())
-                                          .setFlowedCount(metric.getFlowedCount().get())
-                                          .setDegradedCount(metric.getDegradedCount().get())
-                                          .build();
+        return BrpcHttpIncomingMetricMessage.newBuilder()
+                                            .setTimestamp(timestamp)
+                                            .setInterval(interval)
+                                            .setSrcApplication(dimensions.get(0))
+                                            .setUri(dimensions.get(1))
+                                            .setResponseTime(metric.getResponseTime().getSum().get())
+                                            .setMaxResponseTime(metric.getResponseTime().getMax().get())
+                                            .setMinResponseTime(metric.getResponseTime().getMin().get())
+                                            .setCallCount(metric.getRequestCount().get())
+                                            .setErrorCount(metric.getErrorCount().get())
+                                            .setOkCount(metric.getOkCount().get())
+                                            .setCount4Xx(metric.getCount4xx().get())
+                                            .setCount5Xx(metric.getCount5xx().get())
+                                            .setRequestBytes(metric.getRequestBytes().get())
+                                            .setResponseBytes(metric.getResponseBytes().get())
+                                            .setFlowedCount(metric.getFlowedCount().get())
+                                            .setDegradedCount(metric.getDegradedCount().get())
+                                            .build();
     }
 
     @Override

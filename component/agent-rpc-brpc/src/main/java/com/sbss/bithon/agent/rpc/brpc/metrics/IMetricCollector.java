@@ -28,7 +28,7 @@ import java.util.List;
 public interface IMetricCollector {
 
     @ServiceConfig(isOneway = true)
-    void sendWebRequest(BrpcMessageHeader header, List<BrpcWebRequestMetricMessage> messages);
+    void sendIncomingHttp(BrpcMessageHeader header, List<BrpcHttpIncomingMetricMessage> messages);
 
     @ServiceConfig(isOneway = true)
     void sendJvm(BrpcMessageHeader header, List<BrpcJvmMetricMessage> messages);

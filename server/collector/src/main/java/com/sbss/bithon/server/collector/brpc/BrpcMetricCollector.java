@@ -20,6 +20,7 @@ package com.sbss.bithon.server.collector.brpc;
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
@@ -27,7 +28,6 @@ import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcMongoDbMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcWebRequestMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
@@ -53,7 +53,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendWebRequest(BrpcMessageHeader header, List<BrpcWebRequestMetricMessage> messages) {
+    public void sendIncomingHttp(BrpcMessageHeader header, List<BrpcHttpIncomingMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
