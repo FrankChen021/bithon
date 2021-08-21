@@ -19,8 +19,8 @@ package com.sbss.bithon.server.collector.thrift;
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.IMetricCollector;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpOutgoingMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmGcMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
@@ -97,7 +97,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
     }
 
     @Override
-    public void sendHttpClient(MessageHeader header, List<HttpClientMetricMessage> messages) {
+    public void sendOutgoingHttp(MessageHeader header, List<HttpOutgoingMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }

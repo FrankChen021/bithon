@@ -26,14 +26,14 @@ import java.util.List;
  *
  * @author frankchen
  */
-public class HttpClientMetricCollector extends IntervalMetricCollector<HttpClientCompositeMetric> {
+public class HttpOutgoingMetricsCollector extends IntervalMetricCollector<HttpOutgoingMetrics> {
 
     private static final int HTTP_CODE_400 = 400;
     private static final int HTTP_CODE_500 = 500;
 
     @Override
-    protected HttpClientCompositeMetric newMetrics() {
-        return new HttpClientCompositeMetric();
+    protected HttpOutgoingMetrics newMetrics() {
+        return new HttpOutgoingMetrics();
     }
 
     @Override
@@ -41,7 +41,7 @@ public class HttpClientMetricCollector extends IntervalMetricCollector<HttpClien
                                int interval,
                                long timestamp,
                                List<String> dimensions,
-                               HttpClientCompositeMetric metric) {
+                               HttpOutgoingMetrics metric) {
         return messageConverter.from(timestamp, interval, dimensions, metric);
     }
 

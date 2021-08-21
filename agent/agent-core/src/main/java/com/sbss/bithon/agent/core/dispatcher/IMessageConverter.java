@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.core.dispatcher;
 
 import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
-import com.sbss.bithon.agent.core.metric.domain.http.HttpClientCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
@@ -27,7 +27,7 @@ import com.sbss.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
-import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 
@@ -40,7 +40,7 @@ import java.util.Map;
  */
 public interface IMessageConverter {
 
-    Object from(long timestamp, int interval, List<String> dimensions, HttpClientCompositeMetric metric);
+    Object from(long timestamp, int interval, List<String> dimensions, HttpOutgoingMetrics metric);
 
     Object from(long timestamp, int interval, JdbcPoolMetricSet metric);
 
@@ -51,7 +51,7 @@ public interface IMessageConverter {
                 List<String> dimensions,
                 MongoDbCompositeMetric counter);
 
-    Object from(long timestamp, int interval, List<String> dimensions, WebRequestCompositeMetric metric);
+    Object from(long timestamp, int interval, List<String> dimensions, HttpIncomingMetrics metric);
 
     Object from(long timestamp, int interval, JvmMetricSet metric);
 

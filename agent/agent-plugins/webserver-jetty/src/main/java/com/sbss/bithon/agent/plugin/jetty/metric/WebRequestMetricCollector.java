@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.plugin.jetty.metric;
 
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IntervalMetricCollector;
-import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class WebRequestMetricCollector extends IntervalMetricCollector<WebRequestCompositeMetric> {
+public class WebRequestMetricCollector extends IntervalMetricCollector<HttpIncomingMetrics> {
 
     public void update(
         Request request,
@@ -51,15 +51,15 @@ public class WebRequestMetricCollector extends IntervalMetricCollector<WebReques
             responseByteSize = jettyResponse.getContentCount();
         }
 
-        WebRequestCompositeMetric webRequestMetricsSet = getOrCreateMetric(srcApplication == null ? "" : srcApplication,
-                                                                           uri);
+        HttpIncomingMetrics webRequestMetricsSet = getOrCreateMetric(srcApplication == null ? "" : srcApplication,
+                                                                     uri);
         webRequestMetricsSet.updateRequest(costTime, count4xx, count5xx);
         webRequestMetricsSet.updateBytes(requestByteSize, responseByteSize);
     }
 
     @Override
-    protected WebRequestCompositeMetric newMetrics() {
-        return new WebRequestCompositeMetric();
+    protected HttpIncomingMetrics newMetrics() {
+        return new HttpIncomingMetrics();
     }
 
     @Override
@@ -67,7 +67,7 @@ public class WebRequestMetricCollector extends IntervalMetricCollector<WebReques
                                int interval,
                                long timestamp,
                                List<String> dimensions,
-                               WebRequestCompositeMetric metric) {
+                               HttpIncomingMetrics metric) {
         return messageConverter.from(timestamp, interval, dimensions, metric);
     }
 }

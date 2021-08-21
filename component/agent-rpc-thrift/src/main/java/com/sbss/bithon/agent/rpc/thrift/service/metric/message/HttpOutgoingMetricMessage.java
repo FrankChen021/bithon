@@ -10,8 +10,8 @@ package com.sbss.bithon.agent.rpc.thrift.service.metric.message;
 /**
  * ***************** Http Client ******************************************
  */
-public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClientMetricMessage, HttpClientMetricMessage._Fields>, java.io.Serializable, Cloneable, Comparable<HttpClientMetricMessage> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HttpClientMetricMessage");
+public class HttpOutgoingMetricMessage implements org.apache.thrift.TBase<HttpOutgoingMetricMessage, HttpOutgoingMetricMessage._Fields>, java.io.Serializable, Cloneable, Comparable<HttpOutgoingMetricMessage> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HttpOutgoingMetricMessage");
 
   private static final org.apache.thrift.protocol.TField TIMESTAMP_FIELD_DESC = new org.apache.thrift.protocol.TField("timestamp", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField INTERVAL_FIELD_DESC = new org.apache.thrift.protocol.TField("interval", org.apache.thrift.protocol.TType.I32, (short)2);
@@ -27,8 +27,8 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
   private static final org.apache.thrift.protocol.TField REQUEST_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("requestBytes", org.apache.thrift.protocol.TType.I64, (short)12);
   private static final org.apache.thrift.protocol.TField RESPONSE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("responseBytes", org.apache.thrift.protocol.TType.I64, (short)13);
 
-  private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new HttpClientMetricMessageStandardSchemeFactory();
-  private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new HttpClientMetricMessageTupleSchemeFactory();
+  private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new HttpOutgoingMetricMessageStandardSchemeFactory();
+  private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new HttpOutgoingMetricMessageTupleSchemeFactory();
 
   public long timestamp; // required
   public int interval; // required
@@ -183,13 +183,13 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     tmpMap.put(_Fields.RESPONSE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("responseBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HttpClientMetricMessage.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HttpOutgoingMetricMessage.class, metaDataMap);
   }
 
-  public HttpClientMetricMessage() {
+  public HttpOutgoingMetricMessage() {
   }
 
-  public HttpClientMetricMessage(
+  public HttpOutgoingMetricMessage(
     long timestamp,
     int interval,
     java.lang.String uri,
@@ -234,7 +234,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public HttpClientMetricMessage(HttpClientMetricMessage other) {
+  public HttpOutgoingMetricMessage(HttpOutgoingMetricMessage other) {
     __isset_bitfield = other.__isset_bitfield;
     this.timestamp = other.timestamp;
     this.interval = other.interval;
@@ -255,8 +255,8 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     this.responseBytes = other.responseBytes;
   }
 
-  public HttpClientMetricMessage deepCopy() {
-    return new HttpClientMetricMessage(this);
+  public HttpOutgoingMetricMessage deepCopy() {
+    return new HttpOutgoingMetricMessage(this);
   }
 
   @Override
@@ -291,7 +291,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.timestamp;
   }
 
-  public HttpClientMetricMessage setTimestamp(long timestamp) {
+  public HttpOutgoingMetricMessage setTimestamp(long timestamp) {
     this.timestamp = timestamp;
     setTimestampIsSet(true);
     return this;
@@ -314,7 +314,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.interval;
   }
 
-  public HttpClientMetricMessage setInterval(int interval) {
+  public HttpOutgoingMetricMessage setInterval(int interval) {
     this.interval = interval;
     setIntervalIsSet(true);
     return this;
@@ -338,7 +338,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.uri;
   }
 
-  public HttpClientMetricMessage setUri(@org.apache.thrift.annotation.Nullable java.lang.String uri) {
+  public HttpOutgoingMetricMessage setUri(@org.apache.thrift.annotation.Nullable java.lang.String uri) {
     this.uri = uri;
     return this;
   }
@@ -363,7 +363,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.method;
   }
 
-  public HttpClientMetricMessage setMethod(@org.apache.thrift.annotation.Nullable java.lang.String method) {
+  public HttpOutgoingMetricMessage setMethod(@org.apache.thrift.annotation.Nullable java.lang.String method) {
     this.method = method;
     return this;
   }
@@ -387,7 +387,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.responseTime;
   }
 
-  public HttpClientMetricMessage setResponseTime(long responseTime) {
+  public HttpOutgoingMetricMessage setResponseTime(long responseTime) {
     this.responseTime = responseTime;
     setResponseTimeIsSet(true);
     return this;
@@ -410,7 +410,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.minResponseTime;
   }
 
-  public HttpClientMetricMessage setMinResponseTime(long minResponseTime) {
+  public HttpOutgoingMetricMessage setMinResponseTime(long minResponseTime) {
     this.minResponseTime = minResponseTime;
     setMinResponseTimeIsSet(true);
     return this;
@@ -433,7 +433,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.maxResponseTime;
   }
 
-  public HttpClientMetricMessage setMaxResponseTime(long maxResponseTime) {
+  public HttpOutgoingMetricMessage setMaxResponseTime(long maxResponseTime) {
     this.maxResponseTime = maxResponseTime;
     setMaxResponseTimeIsSet(true);
     return this;
@@ -456,7 +456,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.count4xx;
   }
 
-  public HttpClientMetricMessage setCount4xx(long count4xx) {
+  public HttpOutgoingMetricMessage setCount4xx(long count4xx) {
     this.count4xx = count4xx;
     setCount4xxIsSet(true);
     return this;
@@ -479,7 +479,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.count5xx;
   }
 
-  public HttpClientMetricMessage setCount5xx(long count5xx) {
+  public HttpOutgoingMetricMessage setCount5xx(long count5xx) {
     this.count5xx = count5xx;
     setCount5xxIsSet(true);
     return this;
@@ -502,7 +502,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.requestCount;
   }
 
-  public HttpClientMetricMessage setRequestCount(long requestCount) {
+  public HttpOutgoingMetricMessage setRequestCount(long requestCount) {
     this.requestCount = requestCount;
     setRequestCountIsSet(true);
     return this;
@@ -525,7 +525,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.exceptionCount;
   }
 
-  public HttpClientMetricMessage setExceptionCount(long exceptionCount) {
+  public HttpOutgoingMetricMessage setExceptionCount(long exceptionCount) {
     this.exceptionCount = exceptionCount;
     setExceptionCountIsSet(true);
     return this;
@@ -548,7 +548,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.requestBytes;
   }
 
-  public HttpClientMetricMessage setRequestBytes(long requestBytes) {
+  public HttpOutgoingMetricMessage setRequestBytes(long requestBytes) {
     this.requestBytes = requestBytes;
     setRequestBytesIsSet(true);
     return this;
@@ -571,7 +571,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     return this.responseBytes;
   }
 
-  public HttpClientMetricMessage setResponseBytes(long responseBytes) {
+  public HttpOutgoingMetricMessage setResponseBytes(long responseBytes) {
     this.responseBytes = responseBytes;
     setResponseBytesIsSet(true);
     return this;
@@ -784,12 +784,12 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
 
   @Override
   public boolean equals(java.lang.Object that) {
-    if (that instanceof HttpClientMetricMessage)
-      return this.equals((HttpClientMetricMessage)that);
+    if (that instanceof HttpOutgoingMetricMessage)
+      return this.equals((HttpOutgoingMetricMessage)that);
     return false;
   }
 
-  public boolean equals(HttpClientMetricMessage that) {
+  public boolean equals(HttpOutgoingMetricMessage that) {
     if (that == null)
       return false;
     if (this == that)
@@ -953,7 +953,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
   }
 
   @Override
-  public int compareTo(HttpClientMetricMessage other) {
+  public int compareTo(HttpOutgoingMetricMessage other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
@@ -1108,7 +1108,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
 
   @Override
   public java.lang.String toString() {
-    java.lang.StringBuilder sb = new java.lang.StringBuilder("HttpClientMetricMessage(");
+    java.lang.StringBuilder sb = new java.lang.StringBuilder("HttpOutgoingMetricMessage(");
     boolean first = true;
 
     sb.append("timestamp:");
@@ -1197,15 +1197,15 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     }
   }
 
-  private static class HttpClientMetricMessageStandardSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
-    public HttpClientMetricMessageStandardScheme getScheme() {
-      return new HttpClientMetricMessageStandardScheme();
+  private static class HttpOutgoingMetricMessageStandardSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
+    public HttpOutgoingMetricMessageStandardScheme getScheme() {
+      return new HttpOutgoingMetricMessageStandardScheme();
     }
   }
 
-  private static class HttpClientMetricMessageStandardScheme extends org.apache.thrift.scheme.StandardScheme<HttpClientMetricMessage> {
+  private static class HttpOutgoingMetricMessageStandardScheme extends org.apache.thrift.scheme.StandardScheme<HttpOutgoingMetricMessage> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, HttpClientMetricMessage struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, HttpOutgoingMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
@@ -1330,7 +1330,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, HttpClientMetricMessage struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, HttpOutgoingMetricMessage struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
@@ -1383,16 +1383,16 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
 
   }
 
-  private static class HttpClientMetricMessageTupleSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
-    public HttpClientMetricMessageTupleScheme getScheme() {
-      return new HttpClientMetricMessageTupleScheme();
+  private static class HttpOutgoingMetricMessageTupleSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
+    public HttpOutgoingMetricMessageTupleScheme getScheme() {
+      return new HttpOutgoingMetricMessageTupleScheme();
     }
   }
 
-  private static class HttpClientMetricMessageTupleScheme extends org.apache.thrift.scheme.TupleScheme<HttpClientMetricMessage> {
+  private static class HttpOutgoingMetricMessageTupleScheme extends org.apache.thrift.scheme.TupleScheme<HttpOutgoingMetricMessage> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, HttpClientMetricMessage struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, HttpOutgoingMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
       java.util.BitSet optionals = new java.util.BitSet();
       if (struct.isSetTimestamp()) {
@@ -1477,7 +1477,7 @@ public class HttpClientMetricMessage implements org.apache.thrift.TBase<HttpClie
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, HttpClientMetricMessage struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, HttpOutgoingMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
       java.util.BitSet incoming = iprot.readBitSet(13);
       if (incoming.get(0)) {

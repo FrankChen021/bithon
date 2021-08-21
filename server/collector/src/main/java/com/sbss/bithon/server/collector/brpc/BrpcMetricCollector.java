@@ -19,8 +19,8 @@ package com.sbss.bithon.server.collector.brpc;
 
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpClientMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpOutgoingMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
@@ -98,7 +98,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     }
 
     @Override
-    public void sendHttpClient(BrpcMessageHeader header, List<BrpcHttpClientMetricMessage> messages) {
+    public void sendOutgoingHttp(BrpcMessageHeader header, List<BrpcHttpOutgoingMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }

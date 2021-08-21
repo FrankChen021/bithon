@@ -19,8 +19,8 @@ service IMetricCollector {
     oneway void sendException(1:required HeaderMessages.MessageHeader header,
                               2:required list<MetricMessages.ExceptionMetricMessage> messages);
 
-    oneway void sendHttpClient(1:required HeaderMessages.MessageHeader header,
-                               2:required list<MetricMessages.HttpClientMetricMessage> messages);
+    oneway void sendOutgoingHttp(1:required HeaderMessages.MessageHeader header,
+                                2:required list<MetricMessages.HttpOutgoingMetricMessage> messages);
 
     oneway void sendThreadPool(1:required HeaderMessages.MessageHeader header,
                                2:required list<MetricMessages.ThreadPoolMetricMessage> messages);

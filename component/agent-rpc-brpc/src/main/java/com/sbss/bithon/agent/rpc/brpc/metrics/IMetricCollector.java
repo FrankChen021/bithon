@@ -43,7 +43,7 @@ public interface IMetricCollector {
     void sendException(BrpcMessageHeader header, List<BrpcExceptionMetricMessage> messages);
 
     @ServiceConfig(isOneway = true)
-    void sendHttpClient(BrpcMessageHeader header, List<BrpcHttpClientMetricMessage> messages);
+    void sendOutgoingHttp(BrpcMessageHeader header, List<BrpcHttpOutgoingMetricMessage> messages);
 
     @ServiceConfig(isOneway = true)
     void sendThreadPool(BrpcMessageHeader header, List<BrpcThreadPoolMetricMessage> messages);
