@@ -74,6 +74,10 @@ public class WebRequestCompositeMetric implements ICompositeMetric {
         return errorCount;
     }
 
+    public Sum getOkCount() {
+        return okCount;
+    }
+
     public Sum getCount4xx() {
         return count4xx;
     }

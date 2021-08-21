@@ -117,6 +117,7 @@ public class BrpcMessageConverter implements IMessageConverter {
                                           .setMinResponseTime(metric.getResponseTime().getMin().get())
                                           .setCallCount(metric.getRequestCount().get())
                                           .setErrorCount(metric.getErrorCount().get())
+                                          .setOkCount(metric.getOkCount().get())
                                           .setCount4Xx(metric.getCount4xx().get())
                                           .setCount5Xx(metric.getCount5xx().get())
                                           .setRequestBytes(metric.getRequestBytes().get())

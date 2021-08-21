@@ -12,12 +12,13 @@ struct WebRequestMetricMessage {
     7:i64 maxResponseTime;
     8:i64 callCount;
     9:i64 errorCount;
-    10:i64 count4xx;
-    11:i64 count5xx;
-    12:i64 requestBytes;
-    13:i64 responseBytes;
-    14:i64 flowedCount;
-    15:i64 degradedCount;
+    10:i64 okCount;
+    11:i64 count4xx;
+    12:i64 count5xx;
+    13:i64 requestBytes;
+    14:i64 responseBytes;
+    15:i64 flowedCount;
+    16:i64 degradedCount;
 }
 
 /***************************************************************************/
