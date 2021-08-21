@@ -103,7 +103,7 @@ public class BrpcMetricCollector implements IMetricCollector {
             return;
         }
 
-        metricSink.process("http-client-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("http-outgoing-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
