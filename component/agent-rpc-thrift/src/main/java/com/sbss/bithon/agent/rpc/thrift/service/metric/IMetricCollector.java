@@ -11,7 +11,7 @@ public class IMetricCollector {
 
   public interface Iface {
 
-    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> messages) throws org.apache.thrift.TException;
+    public void sendIncomingHttp(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> messages) throws org.apache.thrift.TException;
 
     public void sendJvm(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> messages) throws org.apache.thrift.TException;
 
@@ -37,7 +37,7 @@ public class IMetricCollector {
 
   public interface AsyncIface {
 
-    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> messages, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
+    public void sendIncomingHttp(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> messages, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
     public void sendJvm(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> messages, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
@@ -81,17 +81,17 @@ public class IMetricCollector {
       super(iprot, oprot);
     }
 
-    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> messages) throws org.apache.thrift.TException
+    public void sendIncomingHttp(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> messages) throws org.apache.thrift.TException
     {
-      send_sendWebRequest(header, messages);
+      send_sendIncomingHttp(header, messages);
     }
 
-    public void send_sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> messages) throws org.apache.thrift.TException
+    public void send_sendIncomingHttp(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> messages) throws org.apache.thrift.TException
     {
-      sendWebRequest_args args = new sendWebRequest_args();
+      sendIncomingHttp_args args = new sendIncomingHttp_args();
       args.setHeader(header);
       args.setMessages(messages);
-      sendBaseOneway("sendWebRequest", args);
+      sendBaseOneway("sendIncomingHttp", args);
     }
 
     public void sendJvm(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage> messages) throws org.apache.thrift.TException
@@ -242,25 +242,25 @@ public class IMetricCollector {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void sendWebRequest(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> messages, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+    public void sendIncomingHttp(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> messages, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sendWebRequest_call method_call = new sendWebRequest_call(header, messages, resultHandler, this, ___protocolFactory, ___transport);
+      sendIncomingHttp_call method_call = new sendIncomingHttp_call(header, messages, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class sendWebRequest_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
+    public static class sendIncomingHttp_call extends org.apache.thrift.async.TAsyncMethodCall<Void> {
       private com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header;
-      private java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> messages;
-      public sendWebRequest_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> messages, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> messages;
+      public sendIncomingHttp_call(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> messages, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
         this.header = header;
         this.messages = messages;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendWebRequest", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
-        sendWebRequest_args args = new sendWebRequest_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sendIncomingHttp", org.apache.thrift.protocol.TMessageType.ONEWAY, 0));
+        sendIncomingHttp_args args = new sendIncomingHttp_args();
         args.setHeader(header);
         args.setMessages(messages);
         args.write(prot);
@@ -640,7 +640,7 @@ public class IMetricCollector {
     }
 
     private static <I extends Iface> java.util.Map<java.lang.String,  org.apache.thrift.ProcessFunction<I, ? extends org.apache.thrift.TBase>> getProcessMap(java.util.Map<java.lang.String, org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
-      processMap.put("sendWebRequest", new sendWebRequest());
+      processMap.put("sendIncomingHttp", new sendIncomingHttp());
       processMap.put("sendJvm", new sendJvm());
       processMap.put("sendJvmGc", new sendJvmGc());
       processMap.put("sendWebServer", new sendWebServer());
@@ -654,13 +654,13 @@ public class IMetricCollector {
       return processMap;
     }
 
-    public static class sendWebRequest<I extends Iface> extends org.apache.thrift.ProcessFunction<I, sendWebRequest_args> {
-      public sendWebRequest() {
-        super("sendWebRequest");
+    public static class sendIncomingHttp<I extends Iface> extends org.apache.thrift.ProcessFunction<I, sendIncomingHttp_args> {
+      public sendIncomingHttp() {
+        super("sendIncomingHttp");
       }
 
-      public sendWebRequest_args getEmptyArgsInstance() {
-        return new sendWebRequest_args();
+      public sendIncomingHttp_args getEmptyArgsInstance() {
+        return new sendIncomingHttp_args();
       }
 
       protected boolean isOneway() {
@@ -672,8 +672,8 @@ public class IMetricCollector {
         return false;
       }
 
-      public org.apache.thrift.TBase getResult(I iface, sendWebRequest_args args) throws org.apache.thrift.TException {
-        iface.sendWebRequest(args.header, args.messages);
+      public org.apache.thrift.TBase getResult(I iface, sendIncomingHttp_args args) throws org.apache.thrift.TException {
+        iface.sendIncomingHttp(args.header, args.messages);
         return null;
       }
     }
@@ -931,7 +931,7 @@ public class IMetricCollector {
     }
 
     private static <I extends AsyncIface> java.util.Map<java.lang.String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(java.util.Map<java.lang.String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
-      processMap.put("sendWebRequest", new sendWebRequest());
+      processMap.put("sendIncomingHttp", new sendIncomingHttp());
       processMap.put("sendJvm", new sendJvm());
       processMap.put("sendJvmGc", new sendJvmGc());
       processMap.put("sendWebServer", new sendWebServer());
@@ -945,13 +945,13 @@ public class IMetricCollector {
       return processMap;
     }
 
-    public static class sendWebRequest<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, sendWebRequest_args, Void> {
-      public sendWebRequest() {
-        super("sendWebRequest");
+    public static class sendIncomingHttp<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, sendIncomingHttp_args, Void> {
+      public sendIncomingHttp() {
+        super("sendIncomingHttp");
       }
 
-      public sendWebRequest_args getEmptyArgsInstance() {
-        return new sendWebRequest_args();
+      public sendIncomingHttp_args getEmptyArgsInstance() {
+        return new sendIncomingHttp_args();
       }
 
       public org.apache.thrift.async.AsyncMethodCallback<Void> getResultHandler(final org.apache.thrift.server.AbstractNonblockingServer.AsyncFrameBuffer fb, final int seqid) {
@@ -974,8 +974,8 @@ public class IMetricCollector {
         return true;
       }
 
-      public void start(I iface, sendWebRequest_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
-        iface.sendWebRequest(args.header, args.messages,resultHandler);
+      public void start(I iface, sendIncomingHttp_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException {
+        iface.sendIncomingHttp(args.header, args.messages,resultHandler);
       }
     }
 
@@ -1321,17 +1321,17 @@ public class IMetricCollector {
 
   }
 
-  public static class sendWebRequest_args implements org.apache.thrift.TBase<sendWebRequest_args, sendWebRequest_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendWebRequest_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendWebRequest_args");
+  public static class sendIncomingHttp_args implements org.apache.thrift.TBase<sendIncomingHttp_args, sendIncomingHttp_args._Fields>, java.io.Serializable, Cloneable, Comparable<sendIncomingHttp_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sendIncomingHttp_args");
 
     private static final org.apache.thrift.protocol.TField HEADER_FIELD_DESC = new org.apache.thrift.protocol.TField("header", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField MESSAGES_FIELD_DESC = new org.apache.thrift.protocol.TField("messages", org.apache.thrift.protocol.TType.LIST, (short)2);
 
-    private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendWebRequest_argsStandardSchemeFactory();
-    private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendWebRequest_argsTupleSchemeFactory();
+    private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new sendIncomingHttp_argsStandardSchemeFactory();
+    private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new sendIncomingHttp_argsTupleSchemeFactory();
 
     public @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header; // required
-    public @org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> messages; // required
+    public @org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> messages; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -1404,17 +1404,17 @@ public class IMetricCollector {
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.MessageHeader.class)));
       tmpMap.put(_Fields.MESSAGES, new org.apache.thrift.meta_data.FieldMetaData("messages", org.apache.thrift.TFieldRequirementType.REQUIRED, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage.class))));
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage.class))));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendWebRequest_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sendIncomingHttp_args.class, metaDataMap);
     }
 
-    public sendWebRequest_args() {
+    public sendIncomingHttp_args() {
     }
 
-    public sendWebRequest_args(
+    public sendIncomingHttp_args(
       com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header,
-      java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> messages)
+      java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> messages)
     {
       this();
       this.header = header;
@@ -1424,21 +1424,21 @@ public class IMetricCollector {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public sendWebRequest_args(sendWebRequest_args other) {
+    public sendIncomingHttp_args(sendIncomingHttp_args other) {
       if (other.isSetHeader()) {
         this.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader(other.header);
       }
       if (other.isSetMessages()) {
-        java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> __this__messages = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage>(other.messages.size());
-        for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage other_element : other.messages) {
-          __this__messages.add(new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage(other_element));
+        java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> __this__messages = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage>(other.messages.size());
+        for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage other_element : other.messages) {
+          __this__messages.add(new com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage(other_element));
         }
         this.messages = __this__messages;
       }
     }
 
-    public sendWebRequest_args deepCopy() {
-      return new sendWebRequest_args(this);
+    public sendIncomingHttp_args deepCopy() {
+      return new sendIncomingHttp_args(this);
     }
 
     @Override
@@ -1452,7 +1452,7 @@ public class IMetricCollector {
       return this.header;
     }
 
-    public sendWebRequest_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
+    public sendIncomingHttp_args setHeader(@org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header) {
       this.header = header;
       return this;
     }
@@ -1477,23 +1477,23 @@ public class IMetricCollector {
     }
 
     @org.apache.thrift.annotation.Nullable
-    public java.util.Iterator<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> getMessagesIterator() {
+    public java.util.Iterator<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> getMessagesIterator() {
       return (this.messages == null) ? null : this.messages.iterator();
     }
 
-    public void addToMessages(com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage elem) {
+    public void addToMessages(com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage elem) {
       if (this.messages == null) {
-        this.messages = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage>();
+        this.messages = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage>();
       }
       this.messages.add(elem);
     }
 
     @org.apache.thrift.annotation.Nullable
-    public java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> getMessages() {
+    public java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> getMessages() {
       return this.messages;
     }
 
-    public sendWebRequest_args setMessages(@org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage> messages) {
+    public sendIncomingHttp_args setMessages(@org.apache.thrift.annotation.Nullable java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage> messages) {
       this.messages = messages;
       return this;
     }
@@ -1527,7 +1527,7 @@ public class IMetricCollector {
         if (value == null) {
           unsetMessages();
         } else {
-          setMessages((java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage>)value);
+          setMessages((java.util.List<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage>)value);
         }
         break;
 
@@ -1564,12 +1564,12 @@ public class IMetricCollector {
 
     @Override
     public boolean equals(java.lang.Object that) {
-      if (that instanceof sendWebRequest_args)
-        return this.equals((sendWebRequest_args)that);
+      if (that instanceof sendIncomingHttp_args)
+        return this.equals((sendIncomingHttp_args)that);
       return false;
     }
 
-    public boolean equals(sendWebRequest_args that) {
+    public boolean equals(sendIncomingHttp_args that) {
       if (that == null)
         return false;
       if (this == that)
@@ -1612,7 +1612,7 @@ public class IMetricCollector {
     }
 
     @Override
-    public int compareTo(sendWebRequest_args other) {
+    public int compareTo(sendIncomingHttp_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -1657,7 +1657,7 @@ public class IMetricCollector {
 
     @Override
     public java.lang.String toString() {
-      java.lang.StringBuilder sb = new java.lang.StringBuilder("sendWebRequest_args(");
+      java.lang.StringBuilder sb = new java.lang.StringBuilder("sendIncomingHttp_args(");
       boolean first = true;
 
       sb.append("header:");
@@ -1709,15 +1709,15 @@ public class IMetricCollector {
       }
     }
 
-    private static class sendWebRequest_argsStandardSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
-      public sendWebRequest_argsStandardScheme getScheme() {
-        return new sendWebRequest_argsStandardScheme();
+    private static class sendIncomingHttp_argsStandardSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
+      public sendIncomingHttp_argsStandardScheme getScheme() {
+        return new sendIncomingHttp_argsStandardScheme();
       }
     }
 
-    private static class sendWebRequest_argsStandardScheme extends org.apache.thrift.scheme.StandardScheme<sendWebRequest_args> {
+    private static class sendIncomingHttp_argsStandardScheme extends org.apache.thrift.scheme.StandardScheme<sendIncomingHttp_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, sendWebRequest_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, sendIncomingHttp_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -1740,11 +1740,11 @@ public class IMetricCollector {
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
                   org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                  struct.messages = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage>(_list0.size);
-                  @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage _elem1;
+                  struct.messages = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage>(_list0.size);
+                  @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage _elem1;
                   for (int _i2 = 0; _i2 < _list0.size; ++_i2)
                   {
-                    _elem1 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage();
+                    _elem1 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage();
                     _elem1.read(iprot);
                     struct.messages.add(_elem1);
                   }
@@ -1766,7 +1766,7 @@ public class IMetricCollector {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, sendWebRequest_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, sendIncomingHttp_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -1779,7 +1779,7 @@ public class IMetricCollector {
           oprot.writeFieldBegin(MESSAGES_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.messages.size()));
-            for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage _iter3 : struct.messages)
+            for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage _iter3 : struct.messages)
             {
               _iter3.write(oprot);
             }
@@ -1793,21 +1793,21 @@ public class IMetricCollector {
 
     }
 
-    private static class sendWebRequest_argsTupleSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
-      public sendWebRequest_argsTupleScheme getScheme() {
-        return new sendWebRequest_argsTupleScheme();
+    private static class sendIncomingHttp_argsTupleSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
+      public sendIncomingHttp_argsTupleScheme getScheme() {
+        return new sendIncomingHttp_argsTupleScheme();
       }
     }
 
-    private static class sendWebRequest_argsTupleScheme extends org.apache.thrift.scheme.TupleScheme<sendWebRequest_args> {
+    private static class sendIncomingHttp_argsTupleScheme extends org.apache.thrift.scheme.TupleScheme<sendIncomingHttp_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, sendWebRequest_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, sendIncomingHttp_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
         struct.header.write(oprot);
         {
           oprot.writeI32(struct.messages.size());
-          for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage _iter4 : struct.messages)
+          for (com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage _iter4 : struct.messages)
           {
             _iter4.write(oprot);
           }
@@ -1815,18 +1815,18 @@ public class IMetricCollector {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, sendWebRequest_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, sendIncomingHttp_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
         struct.header = new com.sbss.bithon.agent.rpc.thrift.service.MessageHeader();
         struct.header.read(iprot);
         struct.setHeaderIsSet(true);
         {
           org.apache.thrift.protocol.TList _list5 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
-          struct.messages = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage>(_list5.size);
-          @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage _elem6;
+          struct.messages = new java.util.ArrayList<com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage>(_list5.size);
+          @org.apache.thrift.annotation.Nullable com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage _elem6;
           for (int _i7 = 0; _i7 < _list5.size; ++_i7)
           {
-            _elem6 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage();
+            _elem6 = new com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage();
             _elem6.read(iprot);
             struct.messages.add(_elem6);
           }

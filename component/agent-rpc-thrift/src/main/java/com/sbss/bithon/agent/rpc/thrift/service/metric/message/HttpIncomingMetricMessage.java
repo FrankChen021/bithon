@@ -7,8 +7,8 @@
 package com.sbss.bithon.agent.rpc.thrift.service.metric.message;
 
 @SuppressWarnings({"cast", "rawtypes", "serial", "unchecked", "unused"})
-public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebRequestMetricMessage, WebRequestMetricMessage._Fields>, java.io.Serializable, Cloneable, Comparable<WebRequestMetricMessage> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("WebRequestMetricMessage");
+public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIncomingMetricMessage, HttpIncomingMetricMessage._Fields>, java.io.Serializable, Cloneable, Comparable<HttpIncomingMetricMessage> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HttpIncomingMetricMessage");
 
   private static final org.apache.thrift.protocol.TField TIMESTAMP_FIELD_DESC = new org.apache.thrift.protocol.TField("timestamp", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField INTERVAL_FIELD_DESC = new org.apache.thrift.protocol.TField("interval", org.apache.thrift.protocol.TType.I32, (short)2);
@@ -27,8 +27,8 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
   private static final org.apache.thrift.protocol.TField FLOWED_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("flowedCount", org.apache.thrift.protocol.TType.I64, (short)15);
   private static final org.apache.thrift.protocol.TField DEGRADED_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("degradedCount", org.apache.thrift.protocol.TType.I64, (short)16);
 
-  private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new WebRequestMetricMessageStandardSchemeFactory();
-  private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new WebRequestMetricMessageTupleSchemeFactory();
+  private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new HttpIncomingMetricMessageStandardSchemeFactory();
+  private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new HttpIncomingMetricMessageTupleSchemeFactory();
 
   public long timestamp; // required
   public int interval; // required
@@ -205,13 +205,13 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     tmpMap.put(_Fields.DEGRADED_COUNT, new org.apache.thrift.meta_data.FieldMetaData("degradedCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(WebRequestMetricMessage.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HttpIncomingMetricMessage.class, metaDataMap);
   }
 
-  public WebRequestMetricMessage() {
+  public HttpIncomingMetricMessage() {
   }
 
-  public WebRequestMetricMessage(
+  public HttpIncomingMetricMessage(
     long timestamp,
     int interval,
     java.lang.String uri,
@@ -263,7 +263,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public WebRequestMetricMessage(WebRequestMetricMessage other) {
+  public HttpIncomingMetricMessage(HttpIncomingMetricMessage other) {
     __isset_bitfield = other.__isset_bitfield;
     this.timestamp = other.timestamp;
     this.interval = other.interval;
@@ -287,8 +287,8 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     this.degradedCount = other.degradedCount;
   }
 
-  public WebRequestMetricMessage deepCopy() {
-    return new WebRequestMetricMessage(this);
+  public HttpIncomingMetricMessage deepCopy() {
+    return new HttpIncomingMetricMessage(this);
   }
 
   @Override
@@ -329,7 +329,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.timestamp;
   }
 
-  public WebRequestMetricMessage setTimestamp(long timestamp) {
+  public HttpIncomingMetricMessage setTimestamp(long timestamp) {
     this.timestamp = timestamp;
     setTimestampIsSet(true);
     return this;
@@ -352,7 +352,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.interval;
   }
 
-  public WebRequestMetricMessage setInterval(int interval) {
+  public HttpIncomingMetricMessage setInterval(int interval) {
     this.interval = interval;
     setIntervalIsSet(true);
     return this;
@@ -376,7 +376,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.srcApplication;
   }
 
-  public WebRequestMetricMessage setSrcApplication(@org.apache.thrift.annotation.Nullable java.lang.String srcApplication) {
+  public HttpIncomingMetricMessage setSrcApplication(@org.apache.thrift.annotation.Nullable java.lang.String srcApplication) {
     this.srcApplication = srcApplication;
     return this;
   }
@@ -401,7 +401,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.uri;
   }
 
-  public WebRequestMetricMessage setUri(@org.apache.thrift.annotation.Nullable java.lang.String uri) {
+  public HttpIncomingMetricMessage setUri(@org.apache.thrift.annotation.Nullable java.lang.String uri) {
     this.uri = uri;
     return this;
   }
@@ -425,7 +425,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.minResponseTime;
   }
 
-  public WebRequestMetricMessage setMinResponseTime(long minResponseTime) {
+  public HttpIncomingMetricMessage setMinResponseTime(long minResponseTime) {
     this.minResponseTime = minResponseTime;
     setMinResponseTimeIsSet(true);
     return this;
@@ -448,7 +448,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.responseTime;
   }
 
-  public WebRequestMetricMessage setResponseTime(long responseTime) {
+  public HttpIncomingMetricMessage setResponseTime(long responseTime) {
     this.responseTime = responseTime;
     setResponseTimeIsSet(true);
     return this;
@@ -471,7 +471,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.maxResponseTime;
   }
 
-  public WebRequestMetricMessage setMaxResponseTime(long maxResponseTime) {
+  public HttpIncomingMetricMessage setMaxResponseTime(long maxResponseTime) {
     this.maxResponseTime = maxResponseTime;
     setMaxResponseTimeIsSet(true);
     return this;
@@ -494,7 +494,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.callCount;
   }
 
-  public WebRequestMetricMessage setCallCount(long callCount) {
+  public HttpIncomingMetricMessage setCallCount(long callCount) {
     this.callCount = callCount;
     setCallCountIsSet(true);
     return this;
@@ -517,7 +517,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.errorCount;
   }
 
-  public WebRequestMetricMessage setErrorCount(long errorCount) {
+  public HttpIncomingMetricMessage setErrorCount(long errorCount) {
     this.errorCount = errorCount;
     setErrorCountIsSet(true);
     return this;
@@ -540,7 +540,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.okCount;
   }
 
-  public WebRequestMetricMessage setOkCount(long okCount) {
+  public HttpIncomingMetricMessage setOkCount(long okCount) {
     this.okCount = okCount;
     setOkCountIsSet(true);
     return this;
@@ -563,7 +563,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.count4xx;
   }
 
-  public WebRequestMetricMessage setCount4xx(long count4xx) {
+  public HttpIncomingMetricMessage setCount4xx(long count4xx) {
     this.count4xx = count4xx;
     setCount4xxIsSet(true);
     return this;
@@ -586,7 +586,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.count5xx;
   }
 
-  public WebRequestMetricMessage setCount5xx(long count5xx) {
+  public HttpIncomingMetricMessage setCount5xx(long count5xx) {
     this.count5xx = count5xx;
     setCount5xxIsSet(true);
     return this;
@@ -609,7 +609,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.requestBytes;
   }
 
-  public WebRequestMetricMessage setRequestBytes(long requestBytes) {
+  public HttpIncomingMetricMessage setRequestBytes(long requestBytes) {
     this.requestBytes = requestBytes;
     setRequestBytesIsSet(true);
     return this;
@@ -632,7 +632,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.responseBytes;
   }
 
-  public WebRequestMetricMessage setResponseBytes(long responseBytes) {
+  public HttpIncomingMetricMessage setResponseBytes(long responseBytes) {
     this.responseBytes = responseBytes;
     setResponseBytesIsSet(true);
     return this;
@@ -655,7 +655,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.flowedCount;
   }
 
-  public WebRequestMetricMessage setFlowedCount(long flowedCount) {
+  public HttpIncomingMetricMessage setFlowedCount(long flowedCount) {
     this.flowedCount = flowedCount;
     setFlowedCountIsSet(true);
     return this;
@@ -678,7 +678,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     return this.degradedCount;
   }
 
-  public WebRequestMetricMessage setDegradedCount(long degradedCount) {
+  public HttpIncomingMetricMessage setDegradedCount(long degradedCount) {
     this.degradedCount = degradedCount;
     setDegradedCountIsSet(true);
     return this;
@@ -930,12 +930,12 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
 
   @Override
   public boolean equals(java.lang.Object that) {
-    if (that instanceof WebRequestMetricMessage)
-      return this.equals((WebRequestMetricMessage)that);
+    if (that instanceof HttpIncomingMetricMessage)
+      return this.equals((HttpIncomingMetricMessage)that);
     return false;
   }
 
-  public boolean equals(WebRequestMetricMessage that) {
+  public boolean equals(HttpIncomingMetricMessage that) {
     if (that == null)
       return false;
     if (this == that)
@@ -1132,7 +1132,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
   }
 
   @Override
-  public int compareTo(WebRequestMetricMessage other) {
+  public int compareTo(HttpIncomingMetricMessage other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
@@ -1317,7 +1317,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
 
   @Override
   public java.lang.String toString() {
-    java.lang.StringBuilder sb = new java.lang.StringBuilder("WebRequestMetricMessage(");
+    java.lang.StringBuilder sb = new java.lang.StringBuilder("HttpIncomingMetricMessage(");
     boolean first = true;
 
     sb.append("timestamp:");
@@ -1420,15 +1420,15 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     }
   }
 
-  private static class WebRequestMetricMessageStandardSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
-    public WebRequestMetricMessageStandardScheme getScheme() {
-      return new WebRequestMetricMessageStandardScheme();
+  private static class HttpIncomingMetricMessageStandardSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
+    public HttpIncomingMetricMessageStandardScheme getScheme() {
+      return new HttpIncomingMetricMessageStandardScheme();
     }
   }
 
-  private static class WebRequestMetricMessageStandardScheme extends org.apache.thrift.scheme.StandardScheme<WebRequestMetricMessage> {
+  private static class HttpIncomingMetricMessageStandardScheme extends org.apache.thrift.scheme.StandardScheme<HttpIncomingMetricMessage> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, WebRequestMetricMessage struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, HttpIncomingMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
@@ -1577,7 +1577,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, WebRequestMetricMessage struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, HttpIncomingMetricMessage struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
@@ -1641,16 +1641,16 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
 
   }
 
-  private static class WebRequestMetricMessageTupleSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
-    public WebRequestMetricMessageTupleScheme getScheme() {
-      return new WebRequestMetricMessageTupleScheme();
+  private static class HttpIncomingMetricMessageTupleSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
+    public HttpIncomingMetricMessageTupleScheme getScheme() {
+      return new HttpIncomingMetricMessageTupleScheme();
     }
   }
 
-  private static class WebRequestMetricMessageTupleScheme extends org.apache.thrift.scheme.TupleScheme<WebRequestMetricMessage> {
+  private static class HttpIncomingMetricMessageTupleScheme extends org.apache.thrift.scheme.TupleScheme<HttpIncomingMetricMessage> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, WebRequestMetricMessage struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, HttpIncomingMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TTupleProtocol oprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
       java.util.BitSet optionals = new java.util.BitSet();
       if (struct.isSetTimestamp()) {
@@ -1753,7 +1753,7 @@ public class WebRequestMetricMessage implements org.apache.thrift.TBase<WebReque
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, WebRequestMetricMessage struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, HttpIncomingMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
       java.util.BitSet incoming = iprot.readBitSet(16);
       if (incoming.get(0)) {

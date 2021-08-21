@@ -1,7 +1,7 @@
 namespace java com.sbss.bithon.agent.rpc.thrift.service.metric.message
 
 
-struct WebRequestMetricMessage {
+struct HttpIncomingMetricMessage {
     1:i64 timestamp;
     2:i32 interval;
     3:optional string srcApplication;

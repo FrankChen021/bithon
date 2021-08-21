@@ -34,6 +34,7 @@ import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmGcMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
@@ -41,7 +42,6 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MongoDbMetricMess
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 
@@ -143,7 +143,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
                        int interval,
                        List<String> dimensions,
                        WebRequestCompositeMetric metric) {
-        WebRequestMetricMessage message = new WebRequestMetricMessage();
+        HttpIncomingMetricMessage message = new HttpIncomingMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
         message.setSrcApplication(dimensions.get(0));
