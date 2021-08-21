@@ -57,7 +57,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
             return;
         }
 
-        metricSink.process("web-request-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("http-incoming-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override

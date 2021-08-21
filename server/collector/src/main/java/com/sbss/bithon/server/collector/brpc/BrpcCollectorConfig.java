@@ -37,7 +37,7 @@ import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.HttpIncomingMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
 import com.sbss.bithon.server.tracing.handler.TraceMessageHandler;
 import lombok.Data;
@@ -74,7 +74,7 @@ public class BrpcCollectorConfig {
                                                                             ObjectMapper om,
                                                                             JvmMetricMessageHandler jvmMetricMessageHandler,
                                                                             JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
-                                                                            WebRequestMetricMessageHandler webRequestMetricMessageHandler,
+                                                                            HttpIncomingMetricMessageHandler httpIncomingMetricMessageHandler,
                                                                             WebServerMetricMessageHandler webServerMetricMessageHandler,
                                                                             ExceptionMetricMessageHandler exceptionMetricMessageHandler,
                                                                             HttpOutgoingMetricMessageHandler httpOutgoingMetricMessageHandler,
@@ -86,7 +86,7 @@ public class BrpcCollectorConfig {
         if ("local".equals(config.getSink().getType())) {
             return new LocalMetricSink(jvmMetricMessageHandler,
                                        jvmGcMetricMessageHandler,
-                                       webRequestMetricMessageHandler,
+                                       httpIncomingMetricMessageHandler,
                                        webServerMetricMessageHandler,
                                        exceptionMetricMessageHandler,
                                        httpOutgoingMetricMessageHandler,

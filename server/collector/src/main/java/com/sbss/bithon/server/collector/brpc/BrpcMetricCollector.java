@@ -58,7 +58,7 @@ public class BrpcMetricCollector implements IMetricCollector {
             return;
         }
 
-        metricSink.process("web-request-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("http-incoming-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override

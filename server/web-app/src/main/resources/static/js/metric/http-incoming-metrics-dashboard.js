@@ -1,7 +1,7 @@
-const web_request_metrics_dashboard = {
+const http_incoming_metrics_dashboard = {
     "title": "",
     "charts": [{
-        "dataSource": "web-request-metrics",
+        "dataSource": "http-incoming-metrics",
         "title": "QPS",
         "width": 4, //1,2,3,4
         "yAxis": [{}, {}
@@ -15,7 +15,7 @@ const web_request_metrics_dashboard = {
             "yAxis": 1
         }]
     }, {
-        "dataSource": "web-request-metrics",
+        "dataSource": "http-incoming-metrics",
         "title": "Response Time",
         "width": 4, //1,2,3,4
         "yAxis": [{
@@ -30,7 +30,7 @@ const web_request_metrics_dashboard = {
             "name": "maxResponseTime"
         }]
     }, {
-        "dataSource": "web-request-metrics",
+        "dataSource": "http-incoming-metrics",
         "title": "Errors",
         "width": 4, //1,2,3,4
         "metrics": [{

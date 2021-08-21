@@ -29,7 +29,7 @@ import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.WebRequestMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.HttpIncomingMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +52,7 @@ public class LocalMetricSink implements IMessageSink<CloseableIterator<GenericMe
 
     public LocalMetricSink(JvmMetricMessageHandler jvmMetricMessageHandler,
                            JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
-                           WebRequestMetricMessageHandler webRequestMetricMessageHandler,
+                           HttpIncomingMetricMessageHandler httpIncomingMetricMessageHandler,
                            WebServerMetricMessageHandler webServerMetricMessageHandler,
                            ExceptionMetricMessageHandler exceptionMetricMessageHandler,
                            HttpOutgoingMetricMessageHandler httpOutgoingMetricMessageHandler,
@@ -63,7 +63,7 @@ public class LocalMetricSink implements IMessageSink<CloseableIterator<GenericMe
                            MongoDbMetricMessageHandler mongoDbMetricMessageHandler) {
         add(jvmMetricMessageHandler);
         add(jvmGcMetricMessageHandler);
-        add(webRequestMetricMessageHandler);
+        add(httpIncomingMetricMessageHandler);
         add(webServerMetricMessageHandler);
         add(exceptionMetricMessageHandler);
         add(httpOutgoingMetricMessageHandler);
