@@ -27,7 +27,7 @@ import com.sbss.bithon.agent.core.metric.model.Timer;
  */
 public class HttpIncomingMetrics implements ICompositeMetric {
     private final Timer responseTime = new Timer();
-    private final Sum requestCount = new Sum();
+    private final Sum totalCount = new Sum();
     private final Sum okCount = new Sum();
     private final Sum errorCount = new Sum();
     private final Sum count4xx = new Sum();
@@ -44,7 +44,7 @@ public class HttpIncomingMetrics implements ICompositeMetric {
         } else {
             this.okCount.incr();
         }
-        this.requestCount.incr();
+        this.totalCount.incr();
     }
 
     public void updateRequest(long responseTime, int count4xx, int count5xx) {
@@ -66,8 +66,8 @@ public class HttpIncomingMetrics implements ICompositeMetric {
         return responseTime;
     }
 
-    public Sum getRequestCount() {
-        return requestCount;
+    public Sum getTotalCount() {
+        return totalCount;
     }
 
     public Sum getErrorCount() {

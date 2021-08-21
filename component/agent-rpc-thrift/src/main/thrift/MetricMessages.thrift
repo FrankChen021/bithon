@@ -10,7 +10,7 @@ struct HttpIncomingMetricMessage {
     5:i64 minResponseTime;
     6:i64 responseTime;
     7:i64 maxResponseTime;
-    8:i64 callCount;
+    8:i64 totalCount;
     9:i64 errorCount;
     10:i64 okCount;
     11:i64 count4xx;
