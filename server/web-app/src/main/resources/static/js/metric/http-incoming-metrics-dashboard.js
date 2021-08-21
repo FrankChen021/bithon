@@ -11,7 +11,7 @@ const http_incoming_metrics_dashboard = {
         }, {
             "name": "okQPS"
         }, {
-            "name": "callCount",
+            "name": "totalCount",
             "yAxis": 1
         }]
     }, {

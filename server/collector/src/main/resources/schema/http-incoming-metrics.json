@@ -50,7 +50,7 @@
     },
     {
       "type": "longSum",
-      "name": "callCount",
+      "name": "totalCount",
       "displayText": "count of requests",
       "unit": ""
     },
@@ -105,7 +105,7 @@
     {
       "type": "post",
       "name": "avgResponseTime",
-      "expression": "responseTime/1000.0/1000/callCount",
+      "expression": "responseTime/1000.0/1000/totalCount",
       "displayText": "Avg cost time",
       "unit": "millisecond",
       "valueType": "double"
@@ -113,7 +113,7 @@
     {
       "type": "post",
       "name": "qps",
-      "expression": "callCount/{interval}",
+      "expression": "totalCount/{interval}",
       "displayText": "QPS",
       "unit": "",
       "valueType": "double"
@@ -129,7 +129,7 @@
     {
       "type": "post",
       "name": "instanceQPS",
-      "expression": "callCount/{interval}/{instanceCount}",
+      "expression": "totalCount/{interval}/{instanceCount}",
       "displayText": "Avg QPS per instance",
       "unit": "",
       "valueType": "double"

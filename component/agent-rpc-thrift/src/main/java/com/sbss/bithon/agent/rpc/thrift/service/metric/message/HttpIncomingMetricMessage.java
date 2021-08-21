@@ -17,7 +17,7 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
   private static final org.apache.thrift.protocol.TField MIN_RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("minResponseTime", org.apache.thrift.protocol.TType.I64, (short)5);
   private static final org.apache.thrift.protocol.TField RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("responseTime", org.apache.thrift.protocol.TType.I64, (short)6);
   private static final org.apache.thrift.protocol.TField MAX_RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("maxResponseTime", org.apache.thrift.protocol.TType.I64, (short)7);
-  private static final org.apache.thrift.protocol.TField CALL_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("callCount", org.apache.thrift.protocol.TType.I64, (short)8);
+  private static final org.apache.thrift.protocol.TField TOTAL_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("totalCount", org.apache.thrift.protocol.TType.I64, (short)8);
   private static final org.apache.thrift.protocol.TField ERROR_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("errorCount", org.apache.thrift.protocol.TType.I64, (short)9);
   private static final org.apache.thrift.protocol.TField OK_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("okCount", org.apache.thrift.protocol.TType.I64, (short)10);
   private static final org.apache.thrift.protocol.TField COUNT4XX_FIELD_DESC = new org.apache.thrift.protocol.TField("count4xx", org.apache.thrift.protocol.TType.I64, (short)11);
@@ -37,7 +37,7 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
   public long minResponseTime; // required
   public long responseTime; // required
   public long maxResponseTime; // required
-  public long callCount; // required
+  public long totalCount; // required
   public long errorCount; // required
   public long okCount; // required
   public long count4xx; // required
@@ -56,7 +56,7 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
     MIN_RESPONSE_TIME((short)5, "minResponseTime"),
     RESPONSE_TIME((short)6, "responseTime"),
     MAX_RESPONSE_TIME((short)7, "maxResponseTime"),
-    CALL_COUNT((short)8, "callCount"),
+    TOTAL_COUNT((short)8, "totalCount"),
     ERROR_COUNT((short)9, "errorCount"),
     OK_COUNT((short)10, "okCount"),
     COUNT4XX((short)11, "count4xx"),
@@ -94,8 +94,8 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
           return RESPONSE_TIME;
         case 7: // MAX_RESPONSE_TIME
           return MAX_RESPONSE_TIME;
-        case 8: // CALL_COUNT
-          return CALL_COUNT;
+        case 8: // TOTAL_COUNT
+          return TOTAL_COUNT;
         case 9: // ERROR_COUNT
           return ERROR_COUNT;
         case 10: // OK_COUNT
@@ -158,7 +158,7 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
   private static final int __MINRESPONSETIME_ISSET_ID = 2;
   private static final int __RESPONSETIME_ISSET_ID = 3;
   private static final int __MAXRESPONSETIME_ISSET_ID = 4;
-  private static final int __CALLCOUNT_ISSET_ID = 5;
+  private static final int __TOTALCOUNT_ISSET_ID = 5;
   private static final int __ERRORCOUNT_ISSET_ID = 6;
   private static final int __OKCOUNT_ISSET_ID = 7;
   private static final int __COUNT4XX_ISSET_ID = 8;
@@ -186,7 +186,7 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.MAX_RESPONSE_TIME, new org.apache.thrift.meta_data.FieldMetaData("maxResponseTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.CALL_COUNT, new org.apache.thrift.meta_data.FieldMetaData("callCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.TOTAL_COUNT, new org.apache.thrift.meta_data.FieldMetaData("totalCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.ERROR_COUNT, new org.apache.thrift.meta_data.FieldMetaData("errorCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
@@ -218,7 +218,7 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
     long minResponseTime,
     long responseTime,
     long maxResponseTime,
-    long callCount,
+    long totalCount,
     long errorCount,
     long okCount,
     long count4xx,
@@ -240,8 +240,8 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
     setResponseTimeIsSet(true);
     this.maxResponseTime = maxResponseTime;
     setMaxResponseTimeIsSet(true);
-    this.callCount = callCount;
-    setCallCountIsSet(true);
+    this.totalCount = totalCount;
+    setTotalCountIsSet(true);
     this.errorCount = errorCount;
     setErrorCountIsSet(true);
     this.okCount = okCount;
@@ -276,7 +276,7 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
     this.minResponseTime = other.minResponseTime;
     this.responseTime = other.responseTime;
     this.maxResponseTime = other.maxResponseTime;
-    this.callCount = other.callCount;
+    this.totalCount = other.totalCount;
     this.errorCount = other.errorCount;
     this.okCount = other.okCount;
     this.count4xx = other.count4xx;
@@ -305,8 +305,8 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
     this.responseTime = 0;
     setMaxResponseTimeIsSet(false);
     this.maxResponseTime = 0;
-    setCallCountIsSet(false);
-    this.callCount = 0;
+    setTotalCountIsSet(false);
+    this.totalCount = 0;
     setErrorCountIsSet(false);
     this.errorCount = 0;
     setOkCountIsSet(false);
@@ -490,27 +490,27 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __MAXRESPONSETIME_ISSET_ID, value);
   }
 
-  public long getCallCount() {
-    return this.callCount;
+  public long getTotalCount() {
+    return this.totalCount;
   }
 
-  public HttpIncomingMetricMessage setCallCount(long callCount) {
-    this.callCount = callCount;
-    setCallCountIsSet(true);
+  public HttpIncomingMetricMessage setTotalCount(long totalCount) {
+    this.totalCount = totalCount;
+    setTotalCountIsSet(true);
     return this;
   }
 
-  public void unsetCallCount() {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __CALLCOUNT_ISSET_ID);
+  public void unsetTotalCount() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __TOTALCOUNT_ISSET_ID);
   }
 
-  /** Returns true if field callCount is set (has been assigned a value) and false otherwise */
-  public boolean isSetCallCount() {
-    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __CALLCOUNT_ISSET_ID);
+  /** Returns true if field totalCount is set (has been assigned a value) and false otherwise */
+  public boolean isSetTotalCount() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __TOTALCOUNT_ISSET_ID);
   }
 
-  public void setCallCountIsSet(boolean value) {
-    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __CALLCOUNT_ISSET_ID, value);
+  public void setTotalCountIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __TOTALCOUNT_ISSET_ID, value);
   }
 
   public long getErrorCount() {
@@ -755,11 +755,11 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
       }
       break;
 
-    case CALL_COUNT:
+    case TOTAL_COUNT:
       if (value == null) {
-        unsetCallCount();
+        unsetTotalCount();
       } else {
-        setCallCount((java.lang.Long)value);
+        setTotalCount((java.lang.Long)value);
       }
       break;
 
@@ -854,8 +854,8 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
     case MAX_RESPONSE_TIME:
       return getMaxResponseTime();
 
-    case CALL_COUNT:
-      return getCallCount();
+    case TOTAL_COUNT:
+      return getTotalCount();
 
     case ERROR_COUNT:
       return getErrorCount();
@@ -906,8 +906,8 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
       return isSetResponseTime();
     case MAX_RESPONSE_TIME:
       return isSetMaxResponseTime();
-    case CALL_COUNT:
-      return isSetCallCount();
+    case TOTAL_COUNT:
+      return isSetTotalCount();
     case ERROR_COUNT:
       return isSetErrorCount();
     case OK_COUNT:
@@ -1004,12 +1004,12 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
         return false;
     }
 
-    boolean this_present_callCount = true;
-    boolean that_present_callCount = true;
-    if (this_present_callCount || that_present_callCount) {
-      if (!(this_present_callCount && that_present_callCount))
+    boolean this_present_totalCount = true;
+    boolean that_present_totalCount = true;
+    if (this_present_totalCount || that_present_totalCount) {
+      if (!(this_present_totalCount && that_present_totalCount))
         return false;
-      if (this.callCount != that.callCount)
+      if (this.totalCount != that.totalCount)
         return false;
     }
 
@@ -1110,7 +1110,7 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(maxResponseTime);
 
-    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(callCount);
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(totalCount);
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(errorCount);
 
@@ -1209,12 +1209,12 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
         return lastComparison;
       }
     }
-    lastComparison = java.lang.Boolean.compare(isSetCallCount(), other.isSetCallCount());
+    lastComparison = java.lang.Boolean.compare(isSetTotalCount(), other.isSetTotalCount());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetCallCount()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.callCount, other.callCount);
+    if (isSetTotalCount()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.totalCount, other.totalCount);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -1358,8 +1358,8 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
     sb.append(this.maxResponseTime);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("callCount:");
-    sb.append(this.callCount);
+    sb.append("totalCount:");
+    sb.append(this.totalCount);
     first = false;
     if (!first) sb.append(", ");
     sb.append("errorCount:");
@@ -1494,10 +1494,10 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 8: // CALL_COUNT
+          case 8: // TOTAL_COUNT
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.callCount = iprot.readI64();
-              struct.setCallCountIsSet(true);
+              struct.totalCount = iprot.readI64();
+              struct.setTotalCountIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -1608,8 +1608,8 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
       oprot.writeFieldBegin(MAX_RESPONSE_TIME_FIELD_DESC);
       oprot.writeI64(struct.maxResponseTime);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(CALL_COUNT_FIELD_DESC);
-      oprot.writeI64(struct.callCount);
+      oprot.writeFieldBegin(TOTAL_COUNT_FIELD_DESC);
+      oprot.writeI64(struct.totalCount);
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(ERROR_COUNT_FIELD_DESC);
       oprot.writeI64(struct.errorCount);
@@ -1674,7 +1674,7 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
       if (struct.isSetMaxResponseTime()) {
         optionals.set(6);
       }
-      if (struct.isSetCallCount()) {
+      if (struct.isSetTotalCount()) {
         optionals.set(7);
       }
       if (struct.isSetErrorCount()) {
@@ -1723,8 +1723,8 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
       if (struct.isSetMaxResponseTime()) {
         oprot.writeI64(struct.maxResponseTime);
       }
-      if (struct.isSetCallCount()) {
-        oprot.writeI64(struct.callCount);
+      if (struct.isSetTotalCount()) {
+        oprot.writeI64(struct.totalCount);
       }
       if (struct.isSetErrorCount()) {
         oprot.writeI64(struct.errorCount);
@@ -1785,8 +1785,8 @@ public class HttpIncomingMetricMessage implements org.apache.thrift.TBase<HttpIn
         struct.setMaxResponseTimeIsSet(true);
       }
       if (incoming.get(7)) {
-        struct.callCount = iprot.readI64();
-        struct.setCallCountIsSet(true);
+        struct.totalCount = iprot.readI64();
+        struct.setTotalCountIsSet(true);
       }
       if (incoming.get(8)) {
         struct.errorCount = iprot.readI64();

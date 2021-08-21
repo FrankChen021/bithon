@@ -56,7 +56,7 @@ public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandl
 
     @Override
     protected boolean beforeProcess(GenericMetricMessage message) {
-        if (message.getLong("callCount") <= 0) {
+        if (message.getLong("totalCount") <= 0) {
             return false;
         }
 

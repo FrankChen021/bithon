@@ -13,7 +13,7 @@ message BrpcHttpIncomingMetricMessage {
     int64 minResponseTime   = 5;
     int64 responseTime      = 6;
     int64 maxResponseTime   = 7;
-    int64 callCount         = 8;
+    int64 totalCount        = 8;
     int64 errorCount        = 9;
     int64 okCount           = 10;
     int64 count4xx          = 11;
