@@ -40,14 +40,13 @@ public class WebRequestMetricCollector extends IntervalMetricCollector<WebReques
         String srcApplication = request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION);
 
         int httpStatus = response.getStatus();
-        int errorCount = response.getStatus() >= 400 ? 1 : 0;
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
-        int count5xx = httpStatus >= 500 && httpStatus < 600 ? 1 : 0;
+        int count5xx = httpStatus >= 500 ? 1 : 0;
         long requestByteSize = request.getBytesRead();
         long responseByteSize = response.getBytesWritten(false);
 
         WebRequestCompositeMetric metric = getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
-        metric.updateRequest(responseTime, errorCount, count4xx, count5xx);
+        metric.updateRequest(responseTime, count4xx, count5xx);
         metric.updateBytes(requestByteSize, responseByteSize);
     }
 

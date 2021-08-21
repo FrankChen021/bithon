@@ -32,17 +32,16 @@ public class WebRequestMetricCollector extends IntervalMetricCollector<WebReques
     public void update(HttpServerExchange exchange, long startNano) {
         String srcApplication = exchange.getRequestHeaders().getLast(ITracePropagator.BITHON_SRC_APPLICATION);
         String uri = exchange.getRequestPath();
-        int errorCount = exchange.getStatusCode() >= 400 ? 1 : 0;
         int httpStatus = exchange.getStatusCode();
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
-        int count5xx = httpStatus >= 500 && httpStatus < 600 ? 1 : 0;
+        int count5xx = httpStatus >= 500 ? 1 : 0;
         long requestByteSize = exchange.getRequestContentLength() < 0 ? 0 : exchange.getRequestContentLength();
         long responseByteSize = exchange.getResponseBytesSent();
         long costTime = System.nanoTime() - startNano;
 
-        WebRequestCompositeMetric counter = getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
-        counter.updateRequest(costTime, errorCount, count4xx, count5xx);
-        counter.updateBytes(requestByteSize, responseByteSize);
+        WebRequestCompositeMetric metric = getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
+        metric.updateRequest(costTime, count4xx, count5xx);
+        metric.updateBytes(requestByteSize, responseByteSize);
     }
 
     @Override

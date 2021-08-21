@@ -1,45 +1,46 @@
-var web_request_metrics_dashboard = {
+const web_request_metrics_dashboard = {
     "title": "",
-    "charts":[{
+    "charts": [{
         "dataSource": "web-request-metrics",
         "title": "QPS",
         "width": 4, //1,2,3,4
-        "yAxis": [ {
-          },{}
+        "yAxis": [{}, {}
         ],
-        "metrics":[{
+        "metrics": [{
             "name": "qps"
-        },{
+        }, {
+            "name": "okQPS"
+        }, {
             "name": "callCount",
             "yAxis": 1
         }]
-    },{
+    }, {
         "dataSource": "web-request-metrics",
         "title": "Response Time",
         "width": 4, //1,2,3,4
-        "yAxis": [ {
+        "yAxis": [{
             "unit": "millisecond"
-          }
+        }
         ],
-        "metrics":[{
-          "name": "avgResponseTime"
-        },{
+        "metrics": [{
+            "name": "avgResponseTime"
+        }, {
             "name": "minResponseTime"
-        },{
+        }, {
             "name": "maxResponseTime"
         }]
     }, {
         "dataSource": "web-request-metrics",
         "title": "Errors",
         "width": 4, //1,2,3,4
-        "metrics":[{
+        "metrics": [{
             "name": "count4xx"
-        },{
+        }, {
             "name": "count5xx"
-        },{
+        }, {
             "name": "flowedCount"
-        },{
+        }, {
             "name": "degradedCount"
         }]
     }]
-}
+};

@@ -28,6 +28,7 @@ import com.sbss.bithon.agent.core.metric.model.Timer;
 public class WebRequestCompositeMetric implements ICompositeMetric {
     private final Timer responseTime = new Timer();
     private final Sum requestCount = new Sum();
+    private final Sum okCount = new Sum();
     private final Sum errorCount = new Sum();
     private final Sum count4xx = new Sum();
     private final Sum count5xx = new Sum();
@@ -36,14 +37,18 @@ public class WebRequestCompositeMetric implements ICompositeMetric {
     private final Sum flowedCount = new Sum();
     private final Sum degradedCount = new Sum();
 
-    public void updateRequest(long responseTime, int errorCount) {
+    private void updateRequest(long responseTime, boolean isError) {
         this.responseTime.update(responseTime);
-        this.errorCount.update(errorCount);
+        if (isError) {
+            this.errorCount.incr();
+        } else {
+            this.okCount.incr();
+        }
         this.requestCount.incr();
     }
 
-    public void updateRequest(long responseTime, int errorCount, int count4xx, int count5xx) {
-        this.updateRequest(responseTime, errorCount);
+    public void updateRequest(long responseTime, int count4xx, int count5xx) {
+        this.updateRequest(responseTime, count4xx > 0 || count5xx > 0);
         this.count4xx.update(count4xx);
         this.count5xx.update(count5xx);
     }
@@ -67,6 +72,10 @@ public class WebRequestCompositeMetric implements ICompositeMetric {
 
     public Sum getErrorCount() {
         return errorCount;
+    }
+
+    public Sum getOkCount() {
+        return okCount;
     }
 
     public Sum getCount4xx() {

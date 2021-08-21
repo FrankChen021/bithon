@@ -494,17 +494,14 @@ class MetricJdbcReader implements IMetricReader {
         static class MetricClauseBuilder extends MetricSpecVisitor {
             private final List<String> postExpressions;
             private final Set<String> rawExpressions;
-            private final DataSourceSchema dataSource;
             private final boolean addAlias;
             private final Map<String, Object> variables;
             private boolean hasLast;
 
-            public MetricClauseBuilder(DataSourceSchema dataSource,
-                                       Map<String, Object> variables,
+            public MetricClauseBuilder(Map<String, Object> variables,
                                        boolean addAlias,
                                        List<String> postExpressions,
                                        Set<String> rawExpressions) {
-                this.dataSource = dataSource;
                 this.variables = variables;
                 this.addAlias = addAlias;
                 this.postExpressions = postExpressions;
@@ -615,11 +612,13 @@ class MetricJdbcReader implements IMetricReader {
         }
 
         SQLClauseBuilder metrics(Collection<String> metrics) {
-            MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(schema,
-                                                                              ImmutableMap.of("interval", interval),
-                                                                              true,
-                                                                              postExpressions,
-                                                                              rawExpressions);
+            MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(
+                ImmutableMap.of("interval", interval,
+                                //TODO: use the quote based on the SQL dialect
+                                "instanceCount", "count(distinct \"instanceName\")"),
+                true,
+                postExpressions,
+                rawExpressions);
             for (String metric : metrics) {
                 schema.getMetricSpecByName(metric).accept(metricFieldsBuilder);
             }

@@ -56,6 +56,12 @@
     },
     {
       "type": "longSum",
+      "name": "okCount",
+      "displayText": "OK Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
       "name": "errorCount",
       "displayText": "Error Count",
       "unit": ""
@@ -107,8 +113,24 @@
     {
       "type": "post",
       "name": "qps",
-      "expression": "callCount/interval",
+      "expression": "callCount/{interval}",
       "displayText": "QPS",
+      "unit": "",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "okQPS",
+      "expression": "okCount/{interval}",
+      "displayText": "QPS",
+      "unit": "",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "instanceQPS",
+      "expression": "callCount/{interval}/{instanceCount}",
+      "displayText": "Avg QPS per instance",
       "unit": "",
       "valueType": "double"
     }
