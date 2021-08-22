@@ -38,9 +38,9 @@ const http_outgoing_metrics_dashboard = {
         "title": "IO",
         "width": 4, //1,2,3,4
         "yAxis": [{
-            "minInterval": 1024 * 1024,
-            "interval": 1024 * 1024 * 1024,
-            "unit": "binary_byte"
+            //"minInterval": 1024 * 1024,
+            //"interval": 1024 * 1024 * 1024,
+            "unit": "compact_number"
         }],
         "metrics": [{
             "name": "requestBytes"
