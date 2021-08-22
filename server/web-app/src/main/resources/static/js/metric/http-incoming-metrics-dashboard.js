@@ -20,8 +20,7 @@ const http_incoming_metrics_dashboard = {
         "width": 4, //1,2,3,4
         "yAxis": [{
             "unit": "millisecond"
-        }
-        ],
+        }],
         "metrics": [{
             "name": "avgResponseTime"
         }, {
@@ -41,6 +40,20 @@ const http_incoming_metrics_dashboard = {
             "name": "flowedCount"
         }, {
             "name": "degradedCount"
+        }]
+    }, {
+        "dataSource": "http-incoming-metrics",
+        "title": "IO",
+        "width": 4, //1,2,3,4
+        "yAxis": [{
+            //"minInterval": 1000 * 1000,
+            //"interval": 1000 * 1000 * 1000,
+            "unit": "compact_number"
+        }],
+        "metrics": [{
+            "name": "requestBytes"
+        }, {
+            "name": "responseBytes"
         }]
     }]
 };
