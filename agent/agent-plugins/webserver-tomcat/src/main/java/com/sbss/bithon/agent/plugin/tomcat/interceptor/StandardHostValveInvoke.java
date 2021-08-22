@@ -20,8 +20,7 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
-import com.sbss.bithon.agent.core.metric.domain.web.RequestUriFilter;
-import com.sbss.bithon.agent.core.metric.domain.web.UserAgentFilter;
+import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import com.sbss.bithon.agent.core.tracing.Tracer;
 import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
@@ -37,13 +36,11 @@ import org.apache.catalina.connector.Response;
  */
 public class StandardHostValveInvoke extends AbstractInterceptor {
 
-    private UserAgentFilter userAgentFilter;
-    private RequestUriFilter uriFilter;
+    private HttpIncomingFilter requestFilter;
 
     @Override
     public boolean initialize() {
-        userAgentFilter = new UserAgentFilter();
-        uriFilter = new RequestUriFilter();
+        requestFilter = new HttpIncomingFilter();
         return true;
     }
 
@@ -51,8 +48,7 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         Request request = (Request) aopContext.getArgs()[0];
 
-        if (uriFilter.isFiltered(request.getRequestURI())
-            || userAgentFilter.isFiltered(request.getHeader("User-Agent"))) {
+        if (requestFilter.shouldBeExcluded(request.getRequestURI(), request.getHeader("User-Agent"))) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
