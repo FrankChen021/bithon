@@ -19,8 +19,7 @@ package com.sbss.bithon.agent.plugin.jetty.interceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.domain.web.RequestUriFilter;
-import com.sbss.bithon.agent.core.metric.domain.web.UserAgentFilter;
+import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import com.sbss.bithon.agent.plugin.jetty.metric.WebRequestMetricCollector;
 import org.eclipse.jetty.server.Request;
 
@@ -31,15 +30,13 @@ import javax.servlet.http.HttpServletResponse;
  * @author frankchen
  */
 public class ContextHandlerDoHandle extends AbstractInterceptor {
-    private RequestUriFilter uriFilter;
-    private UserAgentFilter userAgentFilter;
+    private HttpIncomingFilter requestFilter;
 
     private WebRequestMetricCollector requestMetricCollector;
 
     @Override
     public boolean initialize() {
-        uriFilter = new RequestUriFilter();
-        userAgentFilter = new UserAgentFilter();
+        requestFilter = new HttpIncomingFilter();
 
         requestMetricCollector = MetricCollectorManager.getInstance()
                                                        .getOrRegister("jetty-web-request-metrics",
@@ -51,8 +48,7 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext context) {
         Request request = (Request) context.getArgs()[1];
-        boolean filtered = this.userAgentFilter.isFiltered(request.getHeader("User-Agent"))
-                           || this.uriFilter.isFiltered(request.getRequestURI());
+        boolean filtered = this.requestFilter.shouldBeExcluded(request.getRequestURI(), request.getHeader("User-Agent"));
         if (filtered) {
             return;
         }

@@ -20,8 +20,7 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.domain.web.RequestUriFilter;
-import com.sbss.bithon.agent.core.metric.domain.web.UserAgentFilter;
+import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import com.sbss.bithon.agent.plugin.undertow.metric.WebRequestMetricCollector;
 import io.undertow.server.HttpServerExchange;
 
@@ -30,8 +29,7 @@ import io.undertow.server.HttpServerExchange;
  */
 public class HttpServerExchangeDispatch extends AbstractInterceptor {
 
-    private UserAgentFilter userAgentFilter;
-    private RequestUriFilter uriFilter;
+    private HttpIncomingFilter requestFilter;
     private WebRequestMetricCollector metricCollector;
 
     @Override
@@ -40,8 +38,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
                                                 .getOrRegister("undertow-web-request-metrics",
                                                                WebRequestMetricCollector.class);
 
-        userAgentFilter = new UserAgentFilter();
-        uriFilter = new RequestUriFilter();
+        requestFilter = new HttpIncomingFilter();
 
         return true;
     }
@@ -50,14 +47,12 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext context) {
         final HttpServerExchange exchange = context.castTargetAs();
 
-        if (this.userAgentFilter.isFiltered(exchange.getRequestHeaders().getFirst("User-Agent"))
-            || this.uriFilter.isFiltered(exchange.getRequestPath())) {
+        if (this.requestFilter.shouldBeExcluded(exchange.getRequestPath(), exchange.getRequestHeaders().getFirst("User-Agent"))) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         final long startTime = System.nanoTime();
-        exchange.addExchangeCompleteListener((listener,
-                                              next) -> {
+        exchange.addExchangeCompleteListener((listener, next) -> {
             metricCollector.update(exchange, startTime);
             next.proceed();
         });

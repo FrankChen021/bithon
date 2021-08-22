@@ -20,8 +20,7 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.domain.web.RequestUriFilter;
-import com.sbss.bithon.agent.core.metric.domain.web.UserAgentFilter;
+import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import com.sbss.bithon.agent.plugin.tomcat.metric.WebRequestMetricCollector;
 import org.apache.coyote.Request;
 import org.apache.coyote.Response;
@@ -31,8 +30,7 @@ import org.apache.coyote.Response;
  */
 public class CoyoteAdapterService extends AbstractInterceptor {
     private WebRequestMetricCollector metricCollector;
-    private RequestUriFilter uriFilter;
-    private UserAgentFilter userAgentFilter;
+    private HttpIncomingFilter requestFilter;
 
     @Override
     public boolean initialize() {
@@ -40,8 +38,7 @@ public class CoyoteAdapterService extends AbstractInterceptor {
                                                 .getOrRegister("tomcat-web-request-metrics",
                                                                WebRequestMetricCollector.class);
 
-        uriFilter = new RequestUriFilter();
-        userAgentFilter = new UserAgentFilter();
+        requestFilter = new HttpIncomingFilter();
 
         return true;
     }
@@ -49,8 +46,7 @@ public class CoyoteAdapterService extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
         Request request = (Request) aopContext.getArgs()[0];
-        if (userAgentFilter.isFiltered(request.getHeader("User-Agent"))
-            || uriFilter.isFiltered(request.requestURI().toString())) {
+        if (requestFilter.shouldBeExcluded(request.requestURI().toString(), request.getHeader("User-Agent"))) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
@@ -60,10 +56,6 @@ public class CoyoteAdapterService extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         Request request = (Request) aopContext.getArgs()[0];
-        if (userAgentFilter.isFiltered(request.getHeader("User-Agent"))
-            || uriFilter.isFiltered(request.requestURI().toString())) {
-            return;
-        }
 
         metricCollector.update(request,
                                (Response) aopContext.getArgs()[1],
