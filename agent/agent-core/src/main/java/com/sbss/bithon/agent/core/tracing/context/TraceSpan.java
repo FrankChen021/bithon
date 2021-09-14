@@ -26,7 +26,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/2/5 8:49 下午
  */
-public class TraceSpan {
+class TraceSpan implements ITraceSpan {
 
     private final TraceContext traceContext;
     private final String spanId;
@@ -51,44 +51,54 @@ public class TraceSpan {
         this.traceContext = traceContext;
     }
 
-    public TraceContext context() {
+    @Override
+    public ITraceContext context() {
         return traceContext;
     }
 
+    @Override
     public String traceId() {
         return traceContext.traceId();
     }
 
+    @Override
     public String spanId() {
         return spanId;
     }
 
+    @Override
     public String parentSpanId() {
         return parentSpanId;
     }
 
+    @Override
     public SpanKind kind() {
         return kind;
     }
 
+    @Override
     public TraceSpan kind(SpanKind kind) {
         this.kind = kind;
         return this;
     }
 
+    @Override
     public String component() {
         return component;
     }
 
+    @Override
     public TraceSpan component(String component) {
         this.component = component;
         return this;
     }
 
+    @Override
     public Map<String, String> tags() {
         return tags;
     }
 
+    @Override
     public TraceSpan tag(String name, String value) {
         if (value != null) {
             tags.put(name, value);
@@ -96,6 +106,7 @@ public class TraceSpan {
         return this;
     }
 
+    @Override
     public TraceSpan tag(Throwable exception) {
         if (exception != null) {
             tags.put("exception", exception.toString());
@@ -103,77 +114,82 @@ public class TraceSpan {
         return this;
     }
 
+    @Override
     public TraceSpan arg(String name, String value) {
         args.put(name, value);
         return this;
     }
 
+    @Override
     public Map<String, String> args() {
         return this.args;
     }
 
+    @Override
     public String parentApplication() {
         return parentApplication;
     }
 
+    @Override
     public TraceSpan parentApplication(String sourceApp) {
         this.parentApplication = sourceApp;
         return this;
     }
 
+    @Override
     public String clazz() {
         return clazz;
     }
 
-    public TraceSpan clazz(Class<?> clazz) {
-        this.clazz = clazz.getName();
-        return this;
-    }
-
+    @Override
     public String method() {
         return method;
     }
 
+    @Override
     public TraceSpan method(Executable method) {
-        return clazz(method.getDeclaringClass()).method(method.getName());
+        this.method = method.getName();
+        this.clazz = method.getDeclaringClass().getName();
+        return this;
     }
 
+    @Override
     public TraceSpan method(String method) {
         this.method = method;
         return this;
     }
 
+    @Override
     public long startTime() {
         return this.startTime;
     }
 
+    @Override
     public long endTime() {
         return this.endTime;
     }
 
-    public TraceSpan newChildSpan(String name) {
-        return traceContext.onSpanCreated(new TraceSpan(traceContext.spanIdGenerator().newSpanId(),
-                                                        this.spanId,
-                                                        this.traceContext)
-                                              .component(name));
+    @Override
+    public ITraceSpan newChildSpan(String name) {
+        return traceContext.newSpan(this.spanId,
+                                    traceContext.spanIdGenerator().newSpanId())
+                           .component(name);
     }
 
+    @Override
     public TraceSpan start() {
         this.startTime = traceContext.clock().currentMicroseconds();
         return this;
     }
 
+    @Override
     public void finish() {
         this.endTime = context().clock().currentMicroseconds();
         try {
             this.traceContext.onSpanFinished(this);
         } catch (Throwable t) {
-            LoggerFactory.getLogger(TraceSpan.class).error("Exception occured when finish a span", t);
+            LoggerFactory.getLogger(TraceSpan.class).error("Exception occurred when finish a span", t);
         }
-    }
-
-    public boolean isNull() {
-        return false;
     }
 
     @Override

@@ -20,10 +20,10 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.eclipse.jetty.client.HttpRequest;
 import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.client.api.Result;
@@ -38,12 +38,12 @@ import java.nio.ByteBuffer;
  */
 public class HttpRequestInterceptor extends AbstractInterceptor {
 
-    private HttpClientMetricCollector metricCollector;
+    private HttpOutgoingMetricsCollector metricCollector;
 
     @Override
     public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("httpClient-jetty", HttpClientMetricCollector.class);
+                                                .getOrRegister("httpClient-jetty", HttpOutgoingMetricsCollector.class);
         return true;
     }
 
@@ -54,20 +54,18 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
         HttpRequest httpRequest = aopContext.castTargetAs();
 
-        final TraceSpan span = TraceSpanBuilder.buildAsyncSpan("httpClient-jetty")
-                                               .method(aopContext.getMethod())
-                                               .kind(SpanKind.CLIENT)
-                                               .tag("uri", httpRequest.getURI().getPath())
-                                               .start();
+        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-jetty")
+                                                .method(aopContext.getMethod())
+                                                .kind(SpanKind.CLIENT)
+                                                .tag("uri", httpRequest.getURI().getPath())
+                                                .start();
 
         //
         // propagate tracing after span creation
         //
-        if (!span.isNull()) {
-            span.context().propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> {
-                headersArgs.put(key, value);
-            });
-        }
+        span.context().propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> {
+            headersArgs.put(key, value);
+        });
 
         final long startAt = aopContext.getStartTimestamp();
 

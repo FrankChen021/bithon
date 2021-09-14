@@ -21,6 +21,8 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.IMetricCollector;
 import com.sbss.bithon.agent.rpc.thrift.service.setting.SettingService;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.ITraceCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
+import com.sbss.bithon.server.setting.AgentSettingService;
+import com.sbss.bithon.server.setting.SettingServiceThriftImpl;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TBaseProcessor;
@@ -95,8 +97,9 @@ public class ThriftCollectorStarter implements SmartLifecycle, ApplicationContex
                         IMessageSink.class)));
                     break;
 
-                case "setting":
-                    processor = new SettingService.Processor<>(applicationContext.getBean(SettingService.Iface.class));
+                case "ctrl":
+                    processor = new SettingService.Processor<>(new SettingServiceThriftImpl(applicationContext.getBean(
+                        AgentSettingService.class)));
                     break;
 
                 default:

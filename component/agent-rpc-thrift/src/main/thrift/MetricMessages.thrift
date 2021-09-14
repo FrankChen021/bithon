@@ -1,7 +1,7 @@
 namespace java com.sbss.bithon.agent.rpc.thrift.service.metric.message
 
 
-struct WebRequestMetricMessage {
+struct HttpIncomingMetricMessage {
     1:i64 timestamp;
     2:i32 interval;
     3:optional string srcApplication;
@@ -10,12 +10,15 @@ struct WebRequestMetricMessage {
     5:i64 minResponseTime;
     6:i64 responseTime;
     7:i64 maxResponseTime;
-    8:i64 callCount;
+    8:i64 totalCount;
     9:i64 errorCount;
-    10:i64 count4xx;
-    11:i64 count5xx;
-    12:i64 requestBytes;
-    13:i64 responseBytes;
+    10:i64 okCount;
+    11:i64 count4xx;
+    12:i64 count5xx;
+    13:i64 requestBytes;
+    14:i64 responseBytes;
+    15:i64 flowedCount;
+    16:i64 degradedCount;
 }
 
 /***************************************************************************/
@@ -112,7 +115,7 @@ struct ExceptionMetricMessage {
 /***************************************************************************/
 /******************* Http Client *******************************************/
 /**************************************************************************/
-struct HttpClientMetricMessage {
+struct HttpOutgoingMetricMessage {
     1:i64 timestamp;
     2:i32 interval;
     3:string uri;

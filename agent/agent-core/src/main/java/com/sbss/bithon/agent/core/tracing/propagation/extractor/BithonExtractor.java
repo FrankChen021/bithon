@@ -16,9 +16,10 @@
 
 package com.sbss.bithon.agent.core.tracing.propagation.extractor;
 
-import com.sbss.bithon.agent.core.tracing.Tracer;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.TraceContextFactory;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
+import com.sbss.bithon.agent.core.tracing.propagation.TraceMode;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,7 +28,7 @@ import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 public class BithonExtractor implements ITraceContextExtractor {
 
     @Override
-    public <R> TraceContext extract(R request, PropagationGetter<R> getter) {
+    public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
         if (request == null) {
             return null;
         }
@@ -47,13 +48,20 @@ public class BithonExtractor implements ITraceContextExtractor {
             return null;
         }
 
-        TraceContext context = new TraceContext(traceId,
-                                                ids[0],
-                                                ids[1],
-                                                Tracer.get().reporter(),
-                                                Tracer.get().traceIdGenerator());
+        ITraceContext context;
+        if (traceId.startsWith("P-")) {
+            // propagation mode
+            context = TraceContextFactory.create(TraceMode.PROPAGATION, traceId, ids[0], ids[1]);
+        } else {
+            // default to trace mode
+            context = TraceContextFactory.create(TraceMode.TRACE,
+                                                 traceId,
+                                                 ids[0],
+                                                 ids[1]);
+        }
+
         context.currentSpan()
-               .parentApplication(getter.get(request, ITracePropagator.BITHON_SOURCE_APPLICATION));
+               .parentApplication(getter.get(request, ITracePropagator.BITHON_SRC_APPLICATION));
         return context;
     }
 }

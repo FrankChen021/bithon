@@ -17,17 +17,18 @@
 package com.sbss.bithon.agent.plugin.mysql8;
 
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
+import com.sbss.bithon.agent.controller.setting.AgentSettingManager;
+import com.sbss.bithon.agent.controller.setting.IAgentSettingRefreshListener;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
-import com.sbss.bithon.agent.core.setting.AgentSettingManager;
-import com.sbss.bithon.agent.core.setting.IAgentSettingRefreshListener;
-import com.sbss.bithon.agent.core.setting.SettingRootNames;
 import com.sbss.bithon.agent.core.utils.MiscUtils;
 import shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
 import shaded.com.alibaba.druid.util.JdbcConstants;
+import shaded.com.fasterxml.jackson.databind.JsonNode;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -57,7 +58,7 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
             log.error("druid counter init failed due to ", e);
         }
 
-        AgentSettingManager.getInstance().register(SettingRootNames.SQL, this);
+        AgentSettingManager.getInstance().register("sql", this);
     }
 
     static SqlStatementMetricCollector getInstance() {
@@ -126,10 +127,10 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
     }
 
     @Override
-    public void onRefresh(Map<String, Object> config) {
-        Object val = config.get("sqlTime");
-        if (val instanceof Number) {
-            this.sqlTimeThreshold = ((Number) val).intValue();
+    public void onRefresh(ObjectMapper om, JsonNode configNode) {
+        JsonNode val = configNode.get("sqlTime");
+        if (val.isNumber()) {
+            this.sqlTimeThreshold = val.asInt();
         }
     }
 }

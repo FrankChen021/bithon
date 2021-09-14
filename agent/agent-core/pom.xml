@@ -13,14 +13,57 @@
   <dependencies>
     <!-- 3rd Dependency -->
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-dependencies</artifactId>
+      <groupId>com.sbss.bithon.shaded</groupId>
+      <artifactId>shaded-slf4j</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.shaded</groupId>
+      <artifactId>shaded-log4j</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.shaded</groupId>
+      <artifactId>shaded-bytebuddy</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.shaded</groupId>
+      <artifactId>shaded-jackson</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <!-- provided by target application -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+
+    <!-- BigQueue -->
+    <dependency>
+      <groupId>com.sbss.bithon.shaded</groupId>
+      <artifactId>shaded-bigqueue</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.shaded</groupId>
+      <artifactId>shaded-kryo</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-bootstrap</artifactId>
       <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

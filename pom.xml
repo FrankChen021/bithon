@@ -18,7 +18,9 @@
     </properties>
 
     <modules>
+        <module>component/component-brpc</module>
         <module>component/agent-rpc-thrift</module>
+        <module>component/agent-rpc-brpc</module>
         <module>component/component-commons</module>
         <module>component/component-db</module>
         <module>agent</module>
@@ -44,6 +46,18 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.18.20</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sbss.bithon</groupId>
+                <artifactId>component-brpc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.sbss.bithon</groupId>
                 <artifactId>agent-rpc-thrift</artifactId>
@@ -130,6 +144,7 @@
                                 <exclude>**/README</exclude>
                                 <exclude>src/main/java/com/sbss/bithon/component/db/jooq/**</exclude>
                                 <exclude>src/main/java/com/sbss/bithon/agent/rpc/thrift/**</exclude>
+                                <exclude>src/test/java/com/sbss/bithon/component/brpc/example/protobuf</exclude>
                                 <exclude>src/main/resources/static/**</exclude>
                                 <exclude>**/*.properties</exclude>
                                 <exclude>**/*.sh</exclude>

@@ -1,18 +1,11 @@
 
-bootstrap:
-  appName:
-  appLogs:
-    - log4j2.xml
-    - log4j2.yml
-    - log4j2.yaml
-    - log4j2.json
-    - log4j2.jsn
-    - logback.groovy
-    - logback.xml
+application:
+  name:
+  env:
 
-fetcher:
+controller:
   servers: 127.0.0.1:9899
-  client: com.sbss.bithon.agent.dispatcher.thrift.SettingFetcherFactory
+  client: com.sbss.bithon.agent.dispatcher.brpc.BrpcAgentControllerFactory
 
 dispatchers:
   metric:
@@ -22,7 +15,7 @@ dispatchers:
       # in SECONDS
       gcPeriod: 60
     client:
-      factory: com.sbss.bithon.agent.dispatcher.thrift.MessageChannelFactory
+      factory: com.sbss.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
       timeout: 3000
     servers: 127.0.0.1:9898
@@ -35,7 +28,7 @@ dispatchers:
       # in SECONDS
       gcPeriod: 60
     client:
-      factory: com.sbss.bithon.agent.dispatcher.thrift.MessageChannelFactory
+      factory: com.sbss.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
       timeout: 3000
     servers: 127.0.0.1:9895
@@ -46,7 +39,9 @@ dispatchers:
       # in SECONDS
       gcPeriod: 60
     client:
-      factory: com.sbss.bithon.agent.dispatcher.thrift.MessageChannelFactory
+      factory: com.sbss.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
       timeout: 3000
     servers: 127.0.0.1:9896
+    messageDebug:
+      EventMessage: true

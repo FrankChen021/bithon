@@ -79,7 +79,7 @@
     {
       "type": "post",
       "name": "tps",
-      "expression": "callCount/interval",
+      "expression": "callCount/{interval}",
       "displayText": "TPS",
       "unit": "",
       "valueType": "double"

@@ -16,10 +16,10 @@
 
 package com.sbss.bithon.agent.dispatcher.thrift;
 
-import com.sbss.bithon.agent.core.config.DispatcherConfig;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.channel.IMessageChannel;
+import com.sbss.bithon.agent.core.dispatcher.config.DispatcherConfig;
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.IMetricCollector;
 import org.apache.thrift.protocol.TProtocol;

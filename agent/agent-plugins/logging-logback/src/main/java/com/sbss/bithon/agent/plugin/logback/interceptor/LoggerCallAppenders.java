@@ -31,24 +31,21 @@ public class LoggerCallAppenders extends AbstractInterceptor {
     private LogMetricCollector counter;
 
     @Override
-    public boolean initialize() {
-        counter = MetricCollectorManager.getInstance().register("logback", new LogMetricCollector());
-        return true;
-    }
-
-    @Override
     public void onMethodLeave(AopContext context) {
         ILoggingEvent iLoggingEvent = (ILoggingEvent) context.getArgs()[0];
         if (iLoggingEvent.getLevel().toInt() != Level.ERROR.toInt()) {
             return;
         }
         IThrowableProxy exception = iLoggingEvent.getThrowableProxy();
-        if (null != exception) {
-            counter.addException((String) InterceptorContext.get("uri"),
-                                 exception);
-            //this.addTrace(exception.getMessage());
-        } else if (iLoggingEvent.getMessage() != null) {
-            //this.addTrace(iLoggingEvent.getMessage());
+        if (null == exception) {
+            return;
         }
+
+        if (counter == null) {
+            counter = MetricCollectorManager.getInstance().getOrRegister("logback", LogMetricCollector.class);
+        }
+
+        counter.addException((String) InterceptorContext.get("uri"),
+                             exception);
     }
 }

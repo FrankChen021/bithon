@@ -19,7 +19,7 @@ package com.sbss.bithon.agent.dispatcher.thrift;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
 import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
-import com.sbss.bithon.agent.core.metric.domain.http.HttpClientCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
@@ -28,12 +28,13 @@ import com.sbss.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
-import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpOutgoingMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmGcMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
@@ -41,7 +42,6 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MongoDbMetricMess
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 
@@ -58,8 +58,8 @@ public class ToThriftMessageConverter implements IMessageConverter {
     public Object from(long timestamp,
                        int interval,
                        List<String> dimensions,
-                       HttpClientCompositeMetric metric) {
-        HttpClientMetricMessage message = new HttpClientMetricMessage();
+                       HttpOutgoingMetrics metric) {
+        HttpOutgoingMetricMessage message = new HttpOutgoingMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
         message.setUri(dimensions.get(0));
@@ -142,8 +142,8 @@ public class ToThriftMessageConverter implements IMessageConverter {
     public Object from(long timestamp,
                        int interval,
                        List<String> dimensions,
-                       WebRequestCompositeMetric metric) {
-        WebRequestMetricMessage message = new WebRequestMetricMessage();
+                       HttpIncomingMetrics metric) {
+        HttpIncomingMetricMessage message = new HttpIncomingMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
         message.setSrcApplication(dimensions.get(0));
@@ -151,12 +151,15 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setResponseTime(metric.getResponseTime().getSum().get());
         message.setMaxResponseTime(metric.getResponseTime().getMax().get());
         message.setMinResponseTime(metric.getResponseTime().getMin().get());
-        message.setCallCount(metric.getRequestCount().get());
+        message.setTotalCount(metric.getTotalCount().get());
         message.setErrorCount(metric.getErrorCount().get());
+        message.setOkCount(metric.getOkCount().get());
         message.setCount4xx(metric.getCount4xx().get());
         message.setCount5xx(metric.getCount5xx().get());
         message.setRequestBytes(metric.getRequestBytes().get());
         message.setResponseBytes(metric.getResponseBytes().get());
+        message.setFlowedCount(metric.getFlowedCount().get());
+        message.setDegradedCount(metric.getDegradedCount().get());
         return message;
     }
 
@@ -260,7 +263,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(TraceSpan span) {
+    public Object from(ITraceSpan span) {
         TraceSpanMessage spanMessage = new TraceSpanMessage();
         spanMessage.setTraceId(span.traceId());
         spanMessage.setSpanId(span.spanId());
@@ -297,10 +300,10 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setTimestamp(timestamp);
         message.setInterval(interval);
         message.setTimestamp(timestamp);
-        message.setGcName(metrics.gcName);
-        message.setGeneration(metrics.generation);
-        message.setGcCount(metrics.gcCount);
-        message.setGcTime(metrics.gcTime);
+        message.setGcName(metrics.getGcName());
+        message.setGeneration(metrics.getGeneration());
+        message.setGcCount(metrics.getGcCount());
+        message.setGcTime(metrics.getGcTime());
         return message;
     }
 

@@ -463,6 +463,10 @@ class Dashboard {
                 return function (v) {
                     return binaryByteFormat(v);
                 };
+            case 'compact_number':
+                return function(v) {
+                    return compactFormat(v);
+                }
             case 'percentage':
                 return function (v) {
                     return v + '%';

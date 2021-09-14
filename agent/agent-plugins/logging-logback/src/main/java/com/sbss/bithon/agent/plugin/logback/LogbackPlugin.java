@@ -16,31 +16,42 @@
 
 package com.sbss.bithon.agent.plugin.logback;
 
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
-import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptorBuilder.forClass;
+import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
  * logback pointcut and interceptor
  *
  * @author frankchen
  */
-public class LogbackPlugin extends AbstractPlugin {
+public class LogbackPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        return Collections.singletonList(
+        return Arrays.asList(
             forClass("ch.qos.logback.classic.Logger")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("callAppenders",
                                                                     "ch.qos.logback.classic.spi.ILoggingEvent")
                                                    .to("com.sbss.bithon.agent.plugin.logback.interceptor.LoggerCallAppenders")
+                ),
+
+            forClass("ch.qos.logback.core.pattern.PatternLayoutBase")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                        .onDefaultConstructor()
+                                                   .to("com.sbss.bithon.agent.plugin.logback.interceptor.PatternLayoutCtor"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndArgs("setPattern", "java.lang.String")
+                                                   .to("com.sbss.bithon.agent.plugin.logback.interceptor.PatternLayoutSetPattern")
                 )
         );
     }

@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public class BootstrapMethodAop {
     /**
-     * assigned by {@link com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller#generateAopClass(Map, TypePool, String, String, com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptor)}
+     * assigned by {@link com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller#generateAopClass(Map, TypePool, String, String, com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor)}
      */
     private static String INTERCEPTOR_CLASS_NAME;
 

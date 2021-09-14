@@ -16,30 +16,32 @@
 
 package com.sbss.bithon.agent.plugin.httpclient.jetty;
 
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptorBuilder.forClass;
+import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
  * jdk http-connection plugin
  *
  * @author frankchen
  */
-public class JettyHttpClientPlugin extends AbstractPlugin {
+public class JettyHttpClientPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        return Arrays.asList(
+        return Collections.singletonList(
             forClass("org.eclipse.jetty.client.HttpRequest")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("send",
-                                                                    "org.eclipse.jetty.client.api.Response$CompleteListener")
+                                                   .onMethodAndArgs(
+                                                       "send",
+                                                       "org.eclipse.jetty.client.api.Response$CompleteListener"
+                                                   )
                                                    .to("com.sbss.bithon.agent.plugin.httpclient.jetty.HttpRequestInterceptor"))
 
         );

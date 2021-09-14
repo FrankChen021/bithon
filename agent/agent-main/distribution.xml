@@ -2,6 +2,22 @@
   <id>main</id>
 
   <formats>
+    <!--
+      Specifies the formats of the assembly. It is often better to specify the formats via the goal parameter rather than here.
+      For example, that allows different profiles to generate different types of archives.
+      Multiple formats can be supplied and the Assembly Plugin will generate an archive for each of the desired formats.
+      When deploying your project, all file formats specified will also be deployed.
+      A format is specified by supplying one of the following values in a <format> subelement:
+        "zip" - Creates a ZIP file format
+        "tar" - Creates a TAR format
+        "tar.gz" or "tgz" - Creates a gzip'd TAR format
+        "tar.bz2" or "tbz2" - Creates a bzip'd TAR format
+        "tar.snappy" - Creates a snappy'd TAR format
+        "tar.xz" or "txz" - Creates a xz'd TAR format
+        "jar" - Creates a JAR format
+        "dir" - Creates an exploded directory format
+        "war" - Creates a WAR format
+    -->
     <format>dir</format>
   </formats>
 
@@ -26,10 +42,18 @@
       <outputDirectory>/boot</outputDirectory>
       <outputFileNameMapping>agent-bootstrap.jar</outputFileNameMapping>
     </dependencySet>
+    <dependencySet>
+      <includes>
+        <include>com.sbss.bithon.shaded:shaded-bytebuddy</include>
+      </includes>
+      <outputDirectory>/boot</outputDirectory>
+      <outputFileNameMapping>shaded-bytebuddy.jar</outputFileNameMapping>
+    </dependencySet>
 
     <!-- lib -->
     <dependencySet>
       <excludes>
+        <exclude>com.sbss.bithon.shaded:shaded-bytebuddy</exclude>
         <exclude>${project.parent.groupId}:agent-bootstrap</exclude>
         <exclude>${project.parent.groupId}:agent-main</exclude>
         <exclude>org.slf4j:slf4j-api</exclude>

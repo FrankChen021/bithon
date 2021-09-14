@@ -16,12 +16,12 @@
 
 package com.sbss.bithon.agent.plugin.jvm;
 
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 
 /**
  * @author frankchen
  */
-public class JvmPlugin extends AbstractPlugin {
+public class JvmPlugin implements IPlugin {
 
     @Override
     public void start() {

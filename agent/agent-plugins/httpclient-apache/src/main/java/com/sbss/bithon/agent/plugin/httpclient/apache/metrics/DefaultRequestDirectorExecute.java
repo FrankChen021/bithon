@@ -21,7 +21,7 @@ import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
 import org.apache.http.HttpConnection;
 import org.apache.http.HttpConnectionMetrics;
 import org.apache.http.HttpRequest;
@@ -38,12 +38,12 @@ import org.apache.http.protocol.HttpContext;
  */
 public class DefaultRequestDirectorExecute extends AbstractInterceptor {
 
-    private HttpClientMetricCollector metricCollector;
+    private HttpOutgoingMetricsCollector metricCollector;
 
     @Override
     public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("apache-http-client", HttpClientMetricCollector.class);
+                                                .getOrRegister("apache-http-client", HttpOutgoingMetricsCollector.class);
         return true;
     }
 

@@ -27,23 +27,15 @@
       <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-controller</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
     <finalName>${project.artifactId}</finalName>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <DispatcherFactory>com.sbss.bithon.agent.dispatcher.thrift.MessageChannelFactory
-              </DispatcherFactory>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
 
       <!--            <plugin>-->
       <!--                <groupId>org.apache.thrift.tools</groupId>-->

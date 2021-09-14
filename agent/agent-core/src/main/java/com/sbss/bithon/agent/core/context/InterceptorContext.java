@@ -16,8 +16,6 @@
 
 package com.sbss.bithon.agent.core.context;
 
-import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InterceptorContext {
     public static final String KEY_URI = "uri";
     public static final String KEY_TRACEID = "traceId";
-    public static final String HEADER_SRC_APPLICATION_NAME = ITracePropagator.BITHON_SOURCE_APPLICATION;
 
     private static final ThreadLocal<Map<String, Object>> HOLDER = ThreadLocal.withInitial(() -> new ConcurrentHashMap<>(
         17));
@@ -44,10 +41,14 @@ public class InterceptorContext {
     }
 
     public static <T> T getAs(String key) {
+        //noinspection unchecked
         return (T) HOLDER.get().get(key);
     }
 
     public static void remove(String key) {
-        HOLDER.get().remove(key);
+        try {
+            HOLDER.get().remove(key);
+        } catch (Exception ignored) {
+        }
     }
 }

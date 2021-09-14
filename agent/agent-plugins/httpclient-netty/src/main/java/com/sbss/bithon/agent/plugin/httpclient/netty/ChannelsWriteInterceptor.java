@@ -20,10 +20,10 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -36,12 +36,12 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
  */
 public class ChannelsWriteInterceptor extends AbstractInterceptor {
 
-    private HttpClientMetricCollector metricCollector;
+    private HttpOutgoingMetricsCollector metricCollector;
 
     @Override
     public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("httpClient-netty", HttpClientMetricCollector.class);
+                                                .getOrRegister("httpClient-netty", HttpOutgoingMetricsCollector.class);
         return true;
     }
 
@@ -53,19 +53,17 @@ public class ChannelsWriteInterceptor extends AbstractInterceptor {
 
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
 
-        final TraceSpan span = TraceSpanBuilder.buildAsyncSpan("httpClient-jetty")
-                                               .method(aopContext.getMethod())
-                                               .kind(SpanKind.CLIENT)
-                                               .tag("uri", httpRequest.getUri())
-                                               .start();
+        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-jetty")
+                                                .method(aopContext.getMethod())
+                                                .kind(SpanKind.CLIENT)
+                                                .tag("uri", httpRequest.getUri())
+                                                .start();
         //
         // propagate tracing after span creation
         //
-        if (!span.isNull()) {
-            span.context().propagate(httpRequest.headers(), (headersArgs, key, value) -> {
-                headersArgs.set(key, value);
-            });
-        }
+        span.context().propagate(httpRequest.headers(), (headersArgs, key, value) -> {
+            headersArgs.set(key, value);
+        });
 
         aopContext.setUserContext(span);
 
@@ -82,7 +80,7 @@ public class ChannelsWriteInterceptor extends AbstractInterceptor {
         final String uri = httpRequest.getUri();
         final String method = httpRequest.getMethod().getName();
         final long startAt = aopContext.getStartTimestamp();
-        final TraceSpan span = (TraceSpan) aopContext.getUserContext();
+        final ITraceSpan span = (ITraceSpan) aopContext.getUserContext();
 
         // unlink reference
         aopContext.setUserContext(null);

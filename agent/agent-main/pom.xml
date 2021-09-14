@@ -18,6 +18,10 @@
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-controller</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-dispatcher-thrift</artifactId>
       <exclusions>
         <exclusion>
@@ -32,13 +36,23 @@
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-dependencies</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <artifactId>agent-dispatcher-brpc</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-bootstrap</artifactId>
-      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-sentinel</artifactId>
+    </dependency>
+
+    <!-- a lib used by plugins -->
+    <dependency>
+      <groupId>com.sbss.bithon.shaded</groupId>
+      <artifactId>shaded-alibaba-druid</artifactId>
+      <version>1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
@@ -61,8 +75,9 @@
             <manifestEntries>
               <!-- See: https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/compact3-package-summary.html -->
               <Premain-Class>com.sbss.bithon.agen.main.Main</Premain-Class>
+              <Can-Retransform-Classes>true</Can-Retransform-Classes>
               <Can-Redefine-Classes>true</Can-Redefine-Classes>
-              <Boot-Class-Path>./boot/agent-bootstrap.jar</Boot-Class-Path>
+              <Boot-Class-Path>./boot/agent-bootstrap.jar ./boot/shaded-bytebuddy.jar</Boot-Class-Path>
             </manifestEntries>
           </archive>
         </configuration>
@@ -92,6 +107,20 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
+          <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <echo message="****** Clear Agent Output Directory: ../${project.distribution.dir}/lib *****" />
+                <delete dir="../${project.distribution.dir}/lib" />
+                <delete dir="../${project.distribution.dir}/boot" />
+              </tasks>
+            </configuration>
+          </execution>
           <execution>
             <phase>package</phase>
             <goals>

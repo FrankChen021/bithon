@@ -25,10 +25,14 @@ import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
 import com.sbss.bithon.agent.core.utils.time.DateTime;
+import com.sbss.bithon.agent.plugin.jvm.gc.GcMetricCollector;
+import com.sbss.bithon.agent.plugin.jvm.mem.ClassMetricCollector;
+import com.sbss.bithon.agent.plugin.jvm.mem.MemoryMetricCollector;
 import com.sun.management.UnixOperatingSystemMXBean;
-import shaded.com.alibaba.fastjson.JSON;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,6 +55,8 @@ public class JvmMetricCollector {
 
 
     public void start() {
+        MemoryMetricCollector.initDirectMemoryCollector();
+
         cpuMetricCollector = new CpuMetricCollector();
 
         //
@@ -146,12 +152,17 @@ public class JvmMetricCollector {
                      String.valueOf(unixOperatingSystemMXBean.getMaxFileDescriptorCount()));
         }
 
-        //TODO: remove JSON dependency by manual serialization
-        args.put("runtime.bootClassPath", JSON.toJSONString(RUNTIME_BEAN.getBootClassPath().split(File.pathSeparator)));
-        args.put("runtime.classPath", JSON.toJSONString(RUNTIME_BEAN.getClassPath().split(File.pathSeparator)));
-        args.put("runtime.arguments", JSON.toJSONString(RUNTIME_BEAN.getInputArguments()));
-        args.put("runtime.libraryPath", JSON.toJSONString(RUNTIME_BEAN.getLibraryPath().split(File.pathSeparator)));
-        args.put("runtime.systemProperties", JSON.toJSONString(RUNTIME_BEAN.getSystemProperties()));
+        ObjectMapper om = new ObjectMapper();
+        try {
+            args.put("runtime.bootClassPath",
+                     om.writeValueAsString(RUNTIME_BEAN.getBootClassPath().split(File.pathSeparator)));
+            args.put("runtime.classPath", om.writeValueAsString(RUNTIME_BEAN.getClassPath().split(File.pathSeparator)));
+            args.put("runtime.arguments", om.writeValueAsString(RUNTIME_BEAN.getInputArguments()));
+            args.put("runtime.libraryPath",
+                     om.writeValueAsString(RUNTIME_BEAN.getLibraryPath().split(File.pathSeparator)));
+            args.put("runtime.systemProperties", om.writeValueAsString(RUNTIME_BEAN.getSystemProperties()));
+        } catch (IOException ignored) {
+        }
         args.put("runtime.managementSpecVersion", RUNTIME_BEAN.getManagementSpecVersion());
         args.put("runtime.name", RUNTIME_BEAN.getName());
         args.put("runtime.java.name", RUNTIME_BEAN.getSpecName());

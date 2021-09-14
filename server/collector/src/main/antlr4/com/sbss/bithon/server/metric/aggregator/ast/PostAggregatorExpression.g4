@@ -8,12 +8,12 @@ prog
 expression
   : ID
   | NUMBER
-  | VARIABLE
+  | variable
   | expression op=(ADD|SUB|MUL|DIV) expression
   | '(' expression ')'
   ;
 
-VARIABLE: 'interval';
+variable: '{' ID '}';
 ADD: '+';
 SUB: '-';
 MUL: '*';

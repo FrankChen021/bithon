@@ -16,14 +16,16 @@
 
 package com.sbss.bithon.agent.core.starter;
 
-import com.sbss.bithon.agent.bootstrap.aop.BootstrapHelper;
+import com.sbss.bithon.agent.bootstrap.loader.AgentClassLoader;
+import com.sbss.bithon.agent.core.aop.InstrumentationHelper;
 import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.plugin.loader.PluginClassLoaderManager;
-import com.sbss.bithon.agent.core.plugin.loader.PluginInstaller;
+import com.sbss.bithon.agent.core.plugin.PluginInterceptorInstaller;
 import shaded.org.apache.log4j.xml.DOMConfigurator;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
+import java.util.ServiceLoader;
 
 import static java.io.File.separator;
 
@@ -33,20 +35,31 @@ import static java.io.File.separator;
 public class AgentStarter {
 
     public void start(String agentPath, Instrumentation inst) throws Exception {
-        BootstrapHelper.setPluginClassLoader(PluginClassLoaderManager.createDefault(agentPath));
+        InstrumentationHelper.setInstance(inst);
 
         initAgentLogger(agentPath);
+
+        //
+        // show loaded libs
+        //
+        AgentClassLoader.getClassLoader()
+                        .getJars()
+                        .stream()
+                        .map(jar -> new File(jar.getName()).getName())
+                        .sorted()
+                        .forEach(name -> LoggerFactory.getLogger("AgentClassLoader").info("Found lib {}", name));
 
         AgentContext agentContext = AgentContext.createInstance(agentPath);
 
         ensureApplicationTempDirectory(agentContext);
 
-        // init setting
-        /*
-        AgentSettingManager.createInstance(agentContext.getAppInstance(),
-                                           agentContext.getConfig().getFetcher());
-*/
-        PluginInstaller.install(agentContext, inst);
+        PluginInterceptorInstaller.install(agentContext, inst);
+
+        // initialize other agent libs
+        for (IAgentInitializer initializer : ServiceLoader.load(IAgentInitializer.class,
+                                                                AgentClassLoader.getClassLoader())) {
+            initializer.initialize(agentContext);
+        }
     }
 
     private void initAgentLogger(String agentPath) {
@@ -58,7 +71,13 @@ public class AgentStarter {
         System.setProperty(logConfigName, logConfigFile);
 
         // log config
-        DOMConfigurator.configure(logConfigFile);
+        ClassLoader ctxLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(AgentClassLoader.getClassLoader());
+            DOMConfigurator.configure(logConfigFile);
+        } finally {
+            Thread.currentThread().setContextClassLoader(ctxLoader);
+        }
 
         // restore original property
         if (oldLogConfig != null) {
@@ -70,7 +89,7 @@ public class AgentStarter {
 
     private void ensureApplicationTempDirectory(AgentContext context) {
         File tmpDir = new File(context.getAgentDirectory() + separator + AgentContext.TMP_DIR + separator +
-                               context.getConfig().getBootstrap().getAppName());
+                               context.getAppInstance().getAppName());
 
         if (!tmpDir.exists()) {
             tmpDir.mkdirs();

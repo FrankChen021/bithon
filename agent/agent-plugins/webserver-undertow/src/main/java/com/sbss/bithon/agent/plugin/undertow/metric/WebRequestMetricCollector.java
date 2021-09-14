@@ -16,10 +16,10 @@
 
 package com.sbss.bithon.agent.plugin.undertow.metric;
 
-import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IntervalMetricCollector;
-import com.sbss.bithon.agent.core.metric.domain.web.WebRequestCompositeMetric;
+import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
+import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
 import io.undertow.server.HttpServerExchange;
 
 import java.util.List;
@@ -27,27 +27,26 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class WebRequestMetricCollector extends IntervalMetricCollector<WebRequestCompositeMetric> {
+public class WebRequestMetricCollector extends IntervalMetricCollector<HttpIncomingMetrics> {
 
     public void update(HttpServerExchange exchange, long startNano) {
-        String srcApplication = exchange.getRequestHeaders().getLast(InterceptorContext.HEADER_SRC_APPLICATION_NAME);
+        String srcApplication = exchange.getRequestHeaders().getLast(ITracePropagator.BITHON_SRC_APPLICATION);
         String uri = exchange.getRequestPath();
-        int errorCount = exchange.getStatusCode() >= 400 ? 1 : 0;
         int httpStatus = exchange.getStatusCode();
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
-        int count5xx = httpStatus >= 500 && httpStatus < 600 ? 1 : 0;
+        int count5xx = httpStatus >= 500 ? 1 : 0;
         long requestByteSize = exchange.getRequestContentLength() < 0 ? 0 : exchange.getRequestContentLength();
         long responseByteSize = exchange.getResponseBytesSent();
         long costTime = System.nanoTime() - startNano;
 
-        WebRequestCompositeMetric counter = getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
-        counter.updateRequest(costTime, errorCount, count4xx, count5xx);
-        counter.updateBytes(requestByteSize, responseByteSize);
+        HttpIncomingMetrics metric = getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
+        metric.updateRequest(costTime, count4xx, count5xx);
+        metric.updateBytes(requestByteSize, responseByteSize);
     }
 
     @Override
-    protected WebRequestCompositeMetric newMetrics() {
-        return new WebRequestCompositeMetric();
+    protected HttpIncomingMetrics newMetrics() {
+        return new HttpIncomingMetrics();
     }
 
     @Override
@@ -55,7 +54,7 @@ public class WebRequestMetricCollector extends IntervalMetricCollector<WebReques
                                int interval,
                                long timestamp,
                                List<String> dimensions,
-                               WebRequestCompositeMetric metric) {
+                               HttpIncomingMetrics metric) {
         return messageConverter.from(timestamp, interval, dimensions, metric);
     }
 }

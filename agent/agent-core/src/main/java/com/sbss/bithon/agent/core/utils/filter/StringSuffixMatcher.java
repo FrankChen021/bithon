@@ -16,13 +16,30 @@
 
 package com.sbss.bithon.agent.core.utils.filter;
 
+import shaded.com.fasterxml.jackson.annotation.JsonCreator;
+import shaded.com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/17 9:17 下午
  */
 public class StringSuffixMatcher implements IMatcher {
 
-    private String suffix;
+    public static final String TYPE = "endwith";
+
+    private final String suffix;
+
+    @JsonCreator
+    public StringSuffixMatcher(@JsonProperty("suffix") String suffix) {
+        this.suffix = suffix;
+    }
+
+    @Override
+    public String toString() {
+        return "StringSuffixMatcher{" +
+               "suffix='" + suffix + '\'' +
+               '}';
+    }
 
     @Override
     public boolean matches(Object input) {

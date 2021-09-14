@@ -95,6 +95,13 @@ public class MetricCollectorManager {
         this.scheduler.scheduleWithFixedDelay(this::collectAndDispatch, 0, INTERVAL, TimeUnit.SECONDS);
     }
 
+    /**
+     * call of this method in plugins' initialization might return NULL
+     * This is because this class is still being constructing and the construction triggers some classes to be load,
+     * and these classes are transformed to be delegated to plugins' interceptors
+     *
+     * @return
+     */
     public static MetricCollectorManager getInstance() {
         return INSTANCE;
     }
@@ -113,9 +120,8 @@ public class MetricCollectorManager {
             throw new RuntimeException(String.format("Metrics Local Storage(%s) already registered!", collectorName));
         }
 
-        collectors.computeIfAbsent(collectorName, key -> new ManagedMetricCollector(collector));
-
-        return collector;
+        //noinspection unchecked
+        return (T) collectors.computeIfAbsent(collectorName, key -> new ManagedMetricCollector(collector)).collector;
     }
 
     @SuppressWarnings("unchecked")

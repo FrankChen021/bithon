@@ -27,9 +27,10 @@ public class PostAggregatorExpressionTest {
         PostAggregatorMetricSpec metricSpec = new PostAggregatorMetricSpec("avg",
                                                                            "dis",
                                                                            "",
-                                                                           "1000/interval",
+                                                                           "1000/{interval}",
                                                                            "long",
                                                                            true);
+
         final StringBuilder sb = new StringBuilder();
         metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
             @Override

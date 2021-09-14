@@ -16,6 +16,11 @@
 
 package com.sbss.bithon.agent.core.utils.filter;
 
+import shaded.com.fasterxml.jackson.annotation.JsonCreator;
+import shaded.com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -24,10 +29,20 @@ import java.util.Set;
  */
 public class InCollectionMatcher implements IMatcher {
 
-    private Set<String> collection;
+    public static final String TYPE = "in";
 
-    public InCollectionMatcher(Set<String> collection) {
-        this.collection = collection;
+    private final Set<String> collection;
+
+    @JsonCreator
+    public InCollectionMatcher(@JsonProperty("collection") Collection<String> collection) {
+        this.collection = new HashSet<>(collection);
+    }
+
+    @Override
+    public String toString() {
+        return "InCollectionMatcher{" +
+               "collection=" + collection +
+               '}';
     }
 
     @Override

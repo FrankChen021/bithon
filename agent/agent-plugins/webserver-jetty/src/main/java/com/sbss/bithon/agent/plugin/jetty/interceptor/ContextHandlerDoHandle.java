@@ -21,13 +21,12 @@ import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.context.InterceptorContext;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.domain.web.RequestUriFilter;
-import com.sbss.bithon.agent.core.metric.domain.web.UserAgentFilter;
+import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import com.sbss.bithon.agent.core.tracing.Tracer;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
 import com.sbss.bithon.agent.plugin.jetty.metric.WebRequestMetricCollector;
 import org.eclipse.jetty.server.Request;
 
@@ -38,15 +37,13 @@ import javax.servlet.http.HttpServletResponse;
  * @author frankchen
  */
 public class ContextHandlerDoHandle extends AbstractInterceptor {
-    private RequestUriFilter uriFilter;
-    private UserAgentFilter userAgentFilter;
+    private HttpIncomingFilter requestFilter;
 
     private WebRequestMetricCollector requestMetricCollector;
 
     @Override
     public boolean initialize() {
-        uriFilter = new RequestUriFilter();
-        userAgentFilter = new UserAgentFilter();
+        requestFilter = new HttpIncomingFilter();
 
         requestMetricCollector = MetricCollectorManager.getInstance()
                                                        .getOrRegister("jetty-web-request-metrics",
@@ -57,19 +54,18 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
 
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
         Request request = (Request) aopContext.getArgs()[1];
-        boolean filtered = this.userAgentFilter.isFiltered(request.getHeader("User-Agent"))
-                           || this.uriFilter.isFiltered(request.getRequestURI());
+        boolean filtered = this.requestFilter.shouldBeExcluded(request.getRequestURI(), request.getHeader("User-Agent"));
         if (filtered) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
 
-        TraceContext traceContext = Tracer.get()
-                                          .propagator()
-                                          .extract(request, (carrier, key) -> carrier.getHeader(key));
+        ITraceContext traceContext = Tracer.get()
+                                           .propagator()
+                                           .extract(request, (carrier, key) -> carrier.getHeader(key));
         if (traceContext != null) {
             TraceContextHolder.set(traceContext);
             InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
@@ -77,7 +73,6 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
             traceContext.currentSpan()
                         .component("jetty")
                         .tag("uri", request.getRequestURI())
-                        .clazz(aopContext.getTargetClass())
                         .method(aopContext.getMethod())
                         .kind(SpanKind.SERVER)
                         .start();
@@ -100,10 +95,10 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
 
-        TraceContext traceContext = null;
-        TraceSpan span = null;
+        ITraceContext traceContext = null;
+        ITraceSpan span = null;
         try {
-            traceContext = TraceContextHolder.get();
+            traceContext = TraceContextHolder.current();
             if (traceContext == null) {
                 return;
             }

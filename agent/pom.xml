@@ -21,9 +21,11 @@
     <modules>
         <module>agent-bootstrap</module>
         <module>agent-core</module>
-        <module>agent-dispatcher-grpc</module>
+        <module>agent-controller</module>
+        <module>agent-dispatcher-brpc</module>
         <module>agent-dispatcher-thrift</module>
         <module>agent-plugins</module>
+        <module>agent-sentinel</module>
         <module>agent-main</module>
     </modules>
 
@@ -42,10 +44,17 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Dispatcher Kafka client -->
+            <!-- Dispatcher thrift client -->
             <dependency>
                 <groupId>com.sbss.bithon.agent</groupId>
                 <artifactId>agent-dispatcher-thrift</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Dispatcher brpc client -->
+            <dependency>
+                <groupId>com.sbss.bithon.agent</groupId>
+                <artifactId>agent-dispatcher-brpc</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -53,6 +62,24 @@
                 <groupId>com.sbss.bithon.agent</groupId>
                 <artifactId>agent-bootstrap</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sbss.bithon.agent</groupId>
+                <artifactId>agent-controller</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sbss.bithon.agent</groupId>
+                <artifactId>agent-sentinel</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.13.2</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

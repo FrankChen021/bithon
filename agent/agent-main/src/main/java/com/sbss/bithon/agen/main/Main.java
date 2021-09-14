@@ -29,30 +29,29 @@ import java.util.Arrays;
  * @author frankchen
  */
 public class Main {
-    public static void premain(String agentArgs, Instrumentation inst) throws Exception {
+    public static void premain(String agentArgs, Instrumentation inst) throws Throwable {
         //
         // check whether to start agent
         //
         String disabled = System.getProperty("bithon.disabled", "false");
-        if ("".equals(disabled) || "true".equals(disabled)) {
+        if ("".equals(disabled) || "true".equalsIgnoreCase(disabled)) {
             System.out.println("bithon is disabled for the sake of -Dbithon.disabled");
             return;
         }
 
         //
+        // agent-boostrap.jar should be on the boot-class-path
         // check if agent is deployed correctly
         //
         boolean hasBootstrapJar = Arrays.stream(ManagementFactory.getRuntimeMXBean()
                                                                  .getBootClassPath()
                                                                  .split(File.pathSeparator))
-                                        .anyMatch(path -> path.endsWith("/agent-bootstrap.jar"));
+                                        .anyMatch(path -> path.endsWith(File.separator + "agent-bootstrap.jar"));
         if (!hasBootstrapJar) {
             throw new IllegalStateException("agent-bootstrap.jar is not on boot class path");
         }
 
         showBanner();
-
-        initAppLogger();
 
         File agentDirectory = new BootstrapJarLocator().locate(Main.class.getName()).getParentFile();
 
@@ -62,20 +61,10 @@ public class Main {
         Method startMethod = starterClass.getDeclaredMethod("start",
                                                             String.class,
                                                             Instrumentation.class);
-        startMethod.invoke(starterObject, agentDirectory.getAbsolutePath(), inst);
-    }
-
-    /**
-     * see {@link https://issues.apache.org/jira/browse/LOG4J2-1094}
-     */
-    private static void initAppLogger() {
         try {
-            Class<?> loggerFactoryClass = Class.forName("org.slf4j.LoggerFactory",
-                                                        true,
-                                                        ClassLoader.getSystemClassLoader());
-            Method getLoggerMethod = loggerFactoryClass.getDeclaredMethod("getLogger", String.class);
-            getLoggerMethod.invoke(null, "none");
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+            startMethod.invoke(starterObject, agentDirectory.getAbsolutePath(), inst);
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
         }
     }
 

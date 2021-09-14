@@ -27,9 +27,9 @@ import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import com.sbss.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpanBuilder;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -51,8 +51,7 @@ public class DefaultServerConnectionExecuteProtocol extends AbstractInterceptor 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         // create a span and save it in user-context
-        aopContext.setUserContext(TraceSpanBuilder.build("mongodb")
-                                                  .clazz(aopContext.getTargetClass())
+        aopContext.setUserContext(TraceSpanFactory.newSpan("mongodb")
                                                   .method(aopContext.getMethod())
                                                   .kind(SpanKind.CLIENT)
                                                   .start());
@@ -82,7 +81,7 @@ public class DefaultServerConnectionExecuteProtocol extends AbstractInterceptor 
         //
         // trace
         //
-        ((TraceSpan) aopContext.castUserContextAs())
+        ((ITraceSpan) aopContext.castUserContextAs())
             .tag(aopContext.getException())
             .tag("server", hostAndPort)
             .tag("database", command == null ? null : command.getDatabase())

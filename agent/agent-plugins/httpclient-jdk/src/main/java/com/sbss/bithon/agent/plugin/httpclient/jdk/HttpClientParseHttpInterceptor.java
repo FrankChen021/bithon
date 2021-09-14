@@ -20,11 +20,11 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
-import com.sbss.bithon.agent.core.metric.domain.http.HttpClientMetricCollector;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
+import com.sbss.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
+import com.sbss.bithon.agent.core.tracing.context.ITraceContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
-import com.sbss.bithon.agent.core.utils.StringUtils;
+import com.sbss.bithon.agent.core.utils.lang.StringUtils;
 import sun.net.www.MessageHeader;
 import sun.net.www.protocol.http.HttpURLConnection;
 
@@ -34,12 +34,12 @@ import sun.net.www.protocol.http.HttpURLConnection;
 public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
 
     //TODO: jdk-http metrics
-    HttpClientMetricCollector metricCollector;
+    HttpOutgoingMetricsCollector metricCollector;
 
     @Override
-    public boolean initialize() throws Exception {
+    public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("jdk-httpclient", HttpClientMetricCollector.class);
+                                                .getOrRegister("jdk-httpclient", HttpOutgoingMetricsCollector.class);
         return true;
     }
 
@@ -60,11 +60,11 @@ public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
             metricCollector.addRequest(requestUri, httpMethod, statusCode, aopContext.getCostTime());
         }
 
-        TraceContext traceContext = TraceContextHolder.get();
+        ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
             return;
         }
-        TraceSpan span = traceContext.currentSpan();
+        ITraceSpan span = traceContext.currentSpan();
         if (span == null) {
             return;
         }

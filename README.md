@@ -10,19 +10,30 @@ A preview demo is hosted [here](https://www.bithon.cn:9897/ui/home).
 
 # Build
 
-## 1. install dependencies
+## 1. clone source code
 
-Enter `agent/agent-dependencies` directory, and execute the following command to install agent-dependencies on local.
+## 2. make sure JDK8 is installed
 
+Currently, only JDK8 is supported. If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK8_HOME}` command to set correct JDK.
+For example
+
+```bash
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home
 ```
-mvn install 
+
+## 3. build & install dependencies
+
+Enter `shaded` directory, and execute the following command to build and install dependencies on your local.
+
+```bash
+mvn clean install 
 ```
 
-## 2. build project
+## 4. build project
 
-After step 1, to build the project, run the following command on root directory of project.
+After step 2, to build the project, run the following command on root directory of project.
 
-```
+```bash
 mvn clean package
 ```
 
@@ -34,7 +45,7 @@ Once the project has been built, you could run the project in a standalone mode 
 
 To launch server in evaluation mode, execute the following command:
 
-```
+```bash
 java -jar server/server-starter/target/bithon-server-starter.jar
 ```
 
@@ -45,7 +56,7 @@ By default, the application opens and listens on following ports at local
 | tracing | 9895 |
 | event  | 9896 |
 | metric | 9898 |
-| setting | 9899 |
+| ctrl | 9899 |
 | web | 9897 |
 
 Once the application has started, visit [http://localhost:9897/ui/home](http://localhost:9897/ui/home) to view the monitor.
@@ -54,7 +65,7 @@ Once the application has started, visit [http://localhost:9897/ui/home](http://l
 
 Attach agent to your java agent by adding following VM arguments.
 
-```
+```bash
 -javaagent:<YOUR_PROJECT_DIRECTORY>/agent/dest/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>
 ```
 

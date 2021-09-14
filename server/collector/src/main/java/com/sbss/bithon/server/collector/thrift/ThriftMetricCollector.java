@@ -19,7 +19,8 @@ package com.sbss.bithon.server.collector.thrift;
 import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.IMetricCollector;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpClientMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage;
+import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpOutgoingMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmGcMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
@@ -27,7 +28,6 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MongoDbMetricMess
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebRequestMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
@@ -52,12 +52,12 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
     }
 
     @Override
-    public void sendWebRequest(MessageHeader header, List<WebRequestMetricMessage> messages) {
+    public void sendIncomingHttp(MessageHeader header, List<HttpIncomingMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
 
-        metricSink.process("web-request-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("http-incoming-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override
@@ -97,12 +97,12 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
     }
 
     @Override
-    public void sendHttpClient(MessageHeader header, List<HttpClientMetricMessage> messages) {
+    public void sendOutgoingHttp(MessageHeader header, List<HttpOutgoingMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
         }
 
-        metricSink.process("http-client-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("http-outgoing-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
     @Override

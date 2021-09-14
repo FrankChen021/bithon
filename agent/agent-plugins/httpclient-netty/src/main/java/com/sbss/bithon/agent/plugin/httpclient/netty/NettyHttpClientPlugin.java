@@ -16,30 +16,34 @@
 
 package com.sbss.bithon.agent.plugin.httpclient.netty;
 
-import com.sbss.bithon.agent.core.plugin.AbstractPlugin;
-import com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptor;
-import com.sbss.bithon.agent.core.plugin.descriptor.MethodPointCutDescriptorBuilder;
+import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
+import com.sbss.bithon.agent.core.plugin.IPlugin;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import static com.sbss.bithon.agent.core.plugin.descriptor.InterceptorDescriptorBuilder.forClass;
+import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
  * @author frankchen
  */
-public class NettyHttpClientPlugin extends AbstractPlugin {
+public class NettyHttpClientPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
 
-        return Arrays.asList(
+        return Collections.singletonList(
 
             // netty http client
             forClass("org.jboss.netty.channel.Channels")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("write", "org.jboss.netty.channel.Channel", "java.lang.Object")
+                                                   .onMethodAndArgs(
+                                                       "write",
+                                                       "org.jboss.netty.channel.Channel",
+                                                       "java.lang.Object"
+                                                   )
                                                    .to("com.sbss.bithon.agent.plugin.httpclient.netty.ChannelsWriteInterceptor")
 
                 )

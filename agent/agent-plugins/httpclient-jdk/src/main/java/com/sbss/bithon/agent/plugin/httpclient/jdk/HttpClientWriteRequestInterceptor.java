@@ -20,12 +20,9 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
-import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.context.InterceptorContext;
+import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.core.tracing.context.SpanKind;
-import com.sbss.bithon.agent.core.tracing.context.TraceContext;
-import com.sbss.bithon.agent.core.tracing.context.TraceContextHolder;
-import com.sbss.bithon.agent.core.tracing.context.TraceSpan;
+import com.sbss.bithon.agent.core.tracing.context.TraceSpanFactory;
 import sun.net.www.MessageHeader;
 
 import java.net.HttpURLConnection;
@@ -35,27 +32,11 @@ import java.net.HttpURLConnection;
  */
 public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
 
-    private String thisApplication;
-
-    @Override
-    public boolean initialize() throws Exception {
-        thisApplication = AgentContext.getInstance().getAppInstance().getAppName();
-        return super.initialize();
-    }
-
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        //
-        // propagate source application
-        //
         MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
-        headers.set(InterceptorContext.HEADER_SRC_APPLICATION_NAME, thisApplication);
 
-        TraceContext traceContext = TraceContextHolder.get();
-        if (traceContext == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-        TraceSpan span = traceContext.currentSpan();
+        ITraceSpan span = TraceSpanFactory.newSpan("httpClient-jdk");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -63,22 +44,14 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
         IBithonObject injectedObject = aopContext.castTargetAs();
         HttpURLConnection connection = (HttpURLConnection) injectedObject.getInjectedObject();
 
-        //
-        // starts a span which will be finished after HttpClient.parseHttp
-        //
-        aopContext.setUserContext(span.newChildSpan("httpClient-jdk")
-                                      .clazz(aopContext.getTargetClass())
-                                      .method(aopContext.getMethod())
+        /*
+         * starts a span which will be finished after HttpClient.parseHttp
+         */
+        aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       .tag("uri", connection.getURL().toString())
+                                      .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))
                                       .start());
-
-        //
-        // propagate tracing after span creation
-        //
-        traceContext.propagate(headers, (headersArgs, key, value) -> {
-            headersArgs.set(key, value);
-        });
 
         return InterceptionDecision.CONTINUE;
     }
