@@ -63,9 +63,11 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
         //
         // propagate tracing after span creation
         //
-        span.context().propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> {
-            headersArgs.put(key, value);
-        });
+        if (!span.isNull()) {
+            span.context().propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> {
+                headersArgs.put(key, value);
+            });
+        }
 
         final long startAt = aopContext.getStartTimestamp();
 

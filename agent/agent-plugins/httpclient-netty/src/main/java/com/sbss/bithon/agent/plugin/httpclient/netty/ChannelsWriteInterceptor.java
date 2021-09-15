@@ -61,6 +61,10 @@ public class ChannelsWriteInterceptor extends AbstractInterceptor {
         //
         // propagate tracing after span creation
         //
+        if (span.isNull()) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
         span.context().propagate(httpRequest.headers(), (headersArgs, key, value) -> {
             headersArgs.set(key, value);
         });

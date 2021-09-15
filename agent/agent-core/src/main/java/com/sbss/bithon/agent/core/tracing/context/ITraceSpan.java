@@ -81,4 +81,8 @@ public interface ITraceSpan {
         context().propagate(injectedTo, setter);
         return this;
     }
+
+    default boolean isNull() {
+        return false;
+    }
 }

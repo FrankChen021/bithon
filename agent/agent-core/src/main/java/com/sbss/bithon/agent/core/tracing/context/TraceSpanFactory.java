@@ -40,19 +40,27 @@ public class TraceSpanFactory {
     public static ITraceSpan newAsyncSpan(String name) {
         ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext == null) {
-            return null;
+            return NullTraceSpan.INSTANCE;
         }
 
         ITraceSpan parentSpan = traceContext.currentSpan();
         if (parentSpan == null) {
-            return null;
+            return NullTraceSpan.INSTANCE;
         }
 
-        //TODO: provide a 'clone' on TraceContext
-        return new TraceContext(traceContext.traceId(),
-                                traceContext.spanIdGenerator())
-            .reporter(traceContext.reporter())
-            .currentSpan()
-            .component(name);
+        //TODO: provide a 'clone' on TraceContext to eliminate this instanceOf checking
+        if (traceContext instanceof PropagationTraceContext) {
+            return new PropagationTraceContext(traceContext.traceId(),
+                                               traceContext.spanIdGenerator())
+                .reporter(traceContext.reporter())
+                .newSpan(parentSpan.parentSpanId(), parentSpan.spanId())
+                .component(name);
+        } else {
+            return new TraceContext(traceContext.traceId(),
+                                    traceContext.spanIdGenerator())
+                .reporter(traceContext.reporter())
+                .newSpan(parentSpan.spanId(), traceContext.spanIdGenerator().newSpanId())
+                .component(name);
+        }
     }
 }
