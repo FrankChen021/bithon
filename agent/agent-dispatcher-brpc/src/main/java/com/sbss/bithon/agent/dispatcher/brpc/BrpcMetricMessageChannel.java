@@ -26,7 +26,8 @@ import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import com.sbss.bithon.component.brpc.channel.ClientChannel;
 import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 import com.sbss.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
-import com.sbss.bithon.component.brpc.exception.ServiceClientException;
+import com.sbss.bithon.component.brpc.exception.ClientSideException;
+import com.sbss.bithon.component.brpc.exception.ServerSideException;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -129,9 +130,10 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
         } catch (IllegalAccessException e) {
             log.warn("Failed to send metrics: []-[]", messageClass, method);
         } catch (InvocationTargetException e) {
-            if (e.getTargetException() instanceof ServiceClientException) {
+            if (e.getTargetException() instanceof ClientSideException
+                || e.getTargetException() instanceof ServerSideException) {
                 //suppress client exception
-                log.error("Failed to send metric: {}", e.getMessage());
+                log.error("Failed to send metric: {}", e.getTargetException().getMessage());
             } else {
                 throw new RuntimeException(e.getTargetException());
             }

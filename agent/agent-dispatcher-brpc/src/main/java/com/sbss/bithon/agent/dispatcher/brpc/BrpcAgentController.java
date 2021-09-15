@@ -26,7 +26,8 @@ import com.sbss.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import com.sbss.bithon.component.brpc.channel.ClientChannel;
 import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 import com.sbss.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
-import com.sbss.bithon.component.brpc.exception.ServiceClientException;
+import com.sbss.bithon.component.brpc.exception.ClientSideException;
+import com.sbss.bithon.component.brpc.exception.ServerSideException;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -74,9 +75,13 @@ public class BrpcAgentController implements IAgentController {
                                                     .build();
         try {
             return fetcher.fetch(header, lastModifiedSince);
-        } catch (ServiceClientException e) {
+        } catch (ClientSideException e) {
             //suppress client exception
             log.error("Failed to fetch settings: {}", e.getMessage());
+            return null;
+        } catch (ServerSideException e) {
+            //suppress stack trace since this exception occurs at server side
+            log.error("Failed to fetch settings due to server side exception:\n {}", e.getMessage());
             return null;
         }
     }

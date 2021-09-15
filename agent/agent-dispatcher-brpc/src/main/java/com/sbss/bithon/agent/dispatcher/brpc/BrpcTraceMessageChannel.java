@@ -27,7 +27,7 @@ import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import com.sbss.bithon.component.brpc.channel.ClientChannel;
 import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 import com.sbss.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
-import com.sbss.bithon.component.brpc.exception.ServiceClientException;
+import com.sbss.bithon.component.brpc.exception.ClientSideException;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -96,7 +96,7 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
             //noinspection unchecked
             this.traceCollector.sendTrace(this.header,
                                           (List<BrpcTraceSpanMessage>) message);
-        } catch (ServiceClientException e) {
+        } catch (ClientSideException e) {
             //suppress client exception
             log.error("Failed to send tracing: {}", e.getMessage());
         }

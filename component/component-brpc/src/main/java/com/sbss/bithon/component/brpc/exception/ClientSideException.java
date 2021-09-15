@@ -17,15 +17,17 @@
 package com.sbss.bithon.component.brpc.exception;
 
 /**
+ * This is the exception representing errors at the client side
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/7/1 2:01 下午
  */
-public class ServiceClientException extends ServiceInvocationException {
-    public ServiceClientException(CharSequence message) {
+public class ClientSideException extends ServiceInvocationException {
+    public ClientSideException(CharSequence message) {
         super(message);
     }
 
-    public ServiceClientException(String messageFormat, Object... args) {
+    public ClientSideException(String messageFormat, Object... args) {
         super(String.format(messageFormat, args));
     }
 }
