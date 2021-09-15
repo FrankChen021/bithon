@@ -18,6 +18,7 @@ package com.sbss.bithon.agent.plugin.mysql8;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
+import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import com.sbss.bithon.agent.core.metric.domain.sql.SqlMetricCollector;
@@ -41,12 +42,20 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
-        String methodName = aopContext.getMethod().getName();
+    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
         Statement statement = (Statement) aopContext.getTarget();
-        String connectionString = MiscUtils.cleanupConnectionString(statement.getConnection()
+
+        // get the connection info before execution since the connection might be closed during execution
+        aopContext.setUserContext(MiscUtils.cleanupConnectionString(statement.getConnection()
                                                                              .getMetaData()
-                                                                             .getURL());
+                                                                             .getURL()));
+        return InterceptionDecision.CONTINUE;
+    }
+
+    @Override
+    public void onMethodLeave(AopContext aopContext) {
+        String methodName = aopContext.getMethod().getName();
+        String connectionString = aopContext.castUserContextAs();
 
         SqlCompositeMetric metric = sqlMetricCollector.getOrCreateMetric(connectionString);
         boolean isQuery = true;
