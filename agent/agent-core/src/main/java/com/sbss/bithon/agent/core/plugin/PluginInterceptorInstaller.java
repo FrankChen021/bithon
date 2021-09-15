@@ -93,8 +93,6 @@ public class PluginInterceptorInstaller {
                     continue;
                 }
 
-                log.info("Found plugin {}", jarFileName);
-
                 //noinspection unchecked
                 Class<? extends IPlugin> pluginClass = (Class<? extends IPlugin>) Class.forName(pluginClassName,
                                                                                                 true,
@@ -107,6 +105,7 @@ public class PluginInterceptorInstaller {
                     continue;
                 }
 
+                log.info("Found plugin {}", jarFileName);
                 plugins.add(pluginClass.newInstance());
             } catch (Throwable e) {
                 LoggerFactory.getLogger(PluginInterceptorInstaller.class)
