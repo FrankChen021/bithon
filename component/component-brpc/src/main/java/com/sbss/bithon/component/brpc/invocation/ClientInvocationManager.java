@@ -18,8 +18,8 @@ package com.sbss.bithon.component.brpc.invocation;
 
 import com.sbss.bithon.component.brpc.ServiceConfig;
 import com.sbss.bithon.component.brpc.channel.IChannelWriter;
-import com.sbss.bithon.component.brpc.exception.ServiceClientException;
-import com.sbss.bithon.component.brpc.exception.ServiceInvocationException;
+import com.sbss.bithon.component.brpc.exception.CalleeSideException;
+import com.sbss.bithon.component.brpc.exception.CallerSideException;
 import com.sbss.bithon.component.brpc.exception.TimeoutException;
 import com.sbss.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import com.sbss.bithon.component.brpc.message.out.ServiceRequestMessageOut;
@@ -68,19 +68,19 @@ public class ClientInvocationManager {
         //
         Channel ch = channelWriter.getChannel();
         if (ch == null) {
-            throw new ServiceClientException("Failed to invoke %s#%s due to channel is empty",
-                                             method.getDeclaringClass().getSimpleName(),
-                                             method.getName());
+            throw new CallerSideException("Failed to invoke %s#%s due to channel is empty",
+                                          method.getDeclaringClass().getSimpleName(),
+                                          method.getName());
         }
         if (!ch.isActive()) {
-            throw new ServiceClientException("Failed to invoke %s#%s due to channel is not active",
-                                             method.getDeclaringClass().getSimpleName(),
-                                             method.getName());
+            throw new CallerSideException("Failed to invoke %s#%s due to channel is not active",
+                                          method.getDeclaringClass().getSimpleName(),
+                                          method.getName());
         }
         if (!ch.isWritable()) {
-            throw new ServiceClientException("Failed to invoke %s#%s due to channel is not writable",
-                                             method.getDeclaringClass().getSimpleName(),
-                                             method.getName());
+            throw new CallerSideException("Failed to invoke %s#%s due to channel is not writable",
+                                          method.getDeclaringClass().getSimpleName(),
+                                          method.getName());
         }
 
         // TODO: cache method.toString()
@@ -121,7 +121,7 @@ public class ClientInvocationManager {
                 }
             } catch (InterruptedException e) {
                 inflightRequests.remove(serviceRequest.getTransactionId());
-                throw new ServiceClientException("interrupted");
+                throw new CallerSideException("interrupted");
             }
 
             //make sure it has been cleared when timeout
@@ -156,7 +156,7 @@ public class ClientInvocationManager {
         }
 
         if (!StringUtil.isNullOrEmpty(response.getException())) {
-            inflightRequest.exception = new ServiceInvocationException(response.getException());
+            inflightRequest.exception = new CalleeSideException(response.getException());
         }
 
         //noinspection SynchronizationOnLocalVariableOrMethodParameter

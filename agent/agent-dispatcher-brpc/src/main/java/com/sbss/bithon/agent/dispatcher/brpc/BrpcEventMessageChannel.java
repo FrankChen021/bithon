@@ -27,7 +27,7 @@ import com.sbss.bithon.agent.rpc.brpc.event.IEventCollector;
 import com.sbss.bithon.component.brpc.channel.ClientChannel;
 import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 import com.sbss.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
-import com.sbss.bithon.component.brpc.exception.ServiceClientException;
+import com.sbss.bithon.component.brpc.exception.CallerSideException;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -93,7 +93,7 @@ public class BrpcEventMessageChannel implements IMessageChannel {
 
         try {
             eventCollector.sendEvent(header, (BrpcEventMessage) message);
-        } catch (ServiceClientException e) {
+        } catch (CallerSideException e) {
             //suppress client exception
             log.error("Failed to send event: {}", e.getMessage());
         }
