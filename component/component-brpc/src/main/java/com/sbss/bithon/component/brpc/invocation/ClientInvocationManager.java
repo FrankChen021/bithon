@@ -18,8 +18,8 @@ package com.sbss.bithon.component.brpc.invocation;
 
 import com.sbss.bithon.component.brpc.ServiceConfig;
 import com.sbss.bithon.component.brpc.channel.IChannelWriter;
-import com.sbss.bithon.component.brpc.exception.ClientSideException;
-import com.sbss.bithon.component.brpc.exception.ServerSideException;
+import com.sbss.bithon.component.brpc.exception.CalleeSideException;
+import com.sbss.bithon.component.brpc.exception.CallerSideException;
 import com.sbss.bithon.component.brpc.exception.TimeoutException;
 import com.sbss.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import com.sbss.bithon.component.brpc.message.out.ServiceRequestMessageOut;
@@ -68,17 +68,17 @@ public class ClientInvocationManager {
         //
         Channel ch = channelWriter.getChannel();
         if (ch == null) {
-            throw new ClientSideException("Failed to invoke %s#%s due to channel is empty",
+            throw new CallerSideException("Failed to invoke %s#%s due to channel is empty",
                                           method.getDeclaringClass().getSimpleName(),
                                           method.getName());
         }
         if (!ch.isActive()) {
-            throw new ClientSideException("Failed to invoke %s#%s due to channel is not active",
+            throw new CallerSideException("Failed to invoke %s#%s due to channel is not active",
                                           method.getDeclaringClass().getSimpleName(),
                                           method.getName());
         }
         if (!ch.isWritable()) {
-            throw new ClientSideException("Failed to invoke %s#%s due to channel is not writable",
+            throw new CallerSideException("Failed to invoke %s#%s due to channel is not writable",
                                           method.getDeclaringClass().getSimpleName(),
                                           method.getName());
         }
@@ -121,7 +121,7 @@ public class ClientInvocationManager {
                 }
             } catch (InterruptedException e) {
                 inflightRequests.remove(serviceRequest.getTransactionId());
-                throw new ClientSideException("interrupted");
+                throw new CallerSideException("interrupted");
             }
 
             //make sure it has been cleared when timeout
@@ -156,7 +156,7 @@ public class ClientInvocationManager {
         }
 
         if (!StringUtil.isNullOrEmpty(response.getException())) {
-            inflightRequest.exception = new ServerSideException(response.getException());
+            inflightRequest.exception = new CalleeSideException(response.getException());
         }
 
         //noinspection SynchronizationOnLocalVariableOrMethodParameter

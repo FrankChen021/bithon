@@ -17,13 +17,13 @@
 package com.sbss.bithon.component.brpc.exception;
 
 /**
- * This is an exception representing the exception raised at the server side
+ * This is an exception representing the exception raised at the callee side, usually refers to server side
  *
  * @author frank.chen021@outlook.com
  */
-public class ServerSideException extends ServiceInvocationException {
+public class CalleeSideException extends ServiceInvocationException {
 
-    public ServerSideException(CharSequence message) {
+    public CalleeSideException(CharSequence message) {
         super(message);
     }
 }
