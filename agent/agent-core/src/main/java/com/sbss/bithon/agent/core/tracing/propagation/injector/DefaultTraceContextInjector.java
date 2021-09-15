@@ -32,12 +32,13 @@ public class DefaultTraceContextInjector implements ITraceContextInjector {
         try {
             setter.put(request, ITracePropagator.BITHON_TRACE_ID, context.traceId());
 
-            // propagate nextSpanId;currentSpanId
+            // propagate currentSpanId(parent for the next):nextSpanId
             setter.put(request,
                        ITracePropagator.BITHON_SPAN_IDS,
-                       context.spanIdGenerator().newSpanId()
+                       context.currentSpan().spanId()
                        + ITracePropagator.BITHON_ID_SEPARATOR
-                       + context.currentSpan().spanId());
+                       + context.spanIdGenerator().newSpanId()
+            );
 
             setter.put(request,
                        ITracePropagator.BITHON_SRC_APPLICATION,
