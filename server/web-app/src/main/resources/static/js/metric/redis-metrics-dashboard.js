@@ -1,37 +1,45 @@
-var redis_metrics_dashboard = {
+const redis_metrics_dashboard = {
     "title": "",
-    "charts":[{
+    "charts": [{
         "dataSource": "redis-metrics",
         "title": "Commands",
         "width": 4, //1,2,3,4
-        "metrics":[{
+        "metrics": [{
             "name": "totalCount"
         }]
-    },{
+    }, {
         "dataSource": "redis-metrics",
         "title": "Time",
         "width": 4, //1,2,3,4
         "yAxis": [{
             "unit": "nano2Millisecond"
         }],
-        "metrics":[{
-           "name": "requestTime"
-        },{
-           "name": "responseTime"
+        "metrics": [{
+            "name": "minRequestTime"
+        }, {
+            "name": "avgRequestTime"
+        }, {
+            "name": "maxRequestTime"
+        }, {
+            "name": "minResponseTime"
+        }, {
+            "name": "avgResponseTime"
+        }, {
+            "name": "maxResponseTime"
         }]
-     },{
+    }, {
         "dataSource": "redis-metrics",
         "title": "IO",
         "width": 4, //1,2,3,4
-        "yAxis": [ {
-           "minInterval": 1024 * 1024,
-           "interval": 1024 * 1024 * 1024,
-           "unit": "binary_byte"
+        "yAxis": [{
+            "minInterval": 1024 * 1024,
+            "interval": 1024 * 1024 * 1024,
+            "unit": "binary_byte"
         }],
-        "metrics":[{
+        "metrics": [{
             "name": "requestBytes"
-        },{
-          "name": "responseBytes"
+        }, {
+            "name": "responseBytes"
         }]
     }]
 }
