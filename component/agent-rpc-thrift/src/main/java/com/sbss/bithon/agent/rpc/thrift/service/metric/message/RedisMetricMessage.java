@@ -19,10 +19,14 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
   private static final org.apache.thrift.protocol.TField INTERVAL_FIELD_DESC = new org.apache.thrift.protocol.TField("interval", org.apache.thrift.protocol.TType.I32, (short)4);
   private static final org.apache.thrift.protocol.TField EXCEPTION_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("exceptionCount", org.apache.thrift.protocol.TType.I64, (short)5);
   private static final org.apache.thrift.protocol.TField TOTAL_COUNT_FIELD_DESC = new org.apache.thrift.protocol.TField("totalCount", org.apache.thrift.protocol.TType.I64, (short)6);
-  private static final org.apache.thrift.protocol.TField REQUEST_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("requestTime", org.apache.thrift.protocol.TType.I64, (short)7);
-  private static final org.apache.thrift.protocol.TField RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("responseTime", org.apache.thrift.protocol.TType.I64, (short)8);
-  private static final org.apache.thrift.protocol.TField REQUEST_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("requestBytes", org.apache.thrift.protocol.TType.I64, (short)9);
-  private static final org.apache.thrift.protocol.TField RESPONSE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("responseBytes", org.apache.thrift.protocol.TType.I64, (short)10);
+  private static final org.apache.thrift.protocol.TField MIN_REQUEST_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("minRequestTime", org.apache.thrift.protocol.TType.I64, (short)7);
+  private static final org.apache.thrift.protocol.TField REQUEST_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("requestTime", org.apache.thrift.protocol.TType.I64, (short)8);
+  private static final org.apache.thrift.protocol.TField MAX_REQUEST_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("maxRequestTime", org.apache.thrift.protocol.TType.I64, (short)9);
+  private static final org.apache.thrift.protocol.TField MIN_RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("minResponseTime", org.apache.thrift.protocol.TType.I64, (short)10);
+  private static final org.apache.thrift.protocol.TField RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("responseTime", org.apache.thrift.protocol.TType.I64, (short)11);
+  private static final org.apache.thrift.protocol.TField MAX_RESPONSE_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("maxResponseTime", org.apache.thrift.protocol.TType.I64, (short)12);
+  private static final org.apache.thrift.protocol.TField REQUEST_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("requestBytes", org.apache.thrift.protocol.TType.I64, (short)13);
+  private static final org.apache.thrift.protocol.TField RESPONSE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("responseBytes", org.apache.thrift.protocol.TType.I64, (short)14);
 
   private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new RedisMetricMessageStandardSchemeFactory();
   private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new RedisMetricMessageTupleSchemeFactory();
@@ -33,8 +37,12 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
   public int interval; // required
   public long exceptionCount; // required
   public long totalCount; // required
+  public long minRequestTime; // required
   public long requestTime; // required
+  public long maxRequestTime; // required
+  public long minResponseTime; // required
   public long responseTime; // required
+  public long maxResponseTime; // required
   public long requestBytes; // required
   public long responseBytes; // required
 
@@ -46,10 +54,14 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
     INTERVAL((short)4, "interval"),
     EXCEPTION_COUNT((short)5, "exceptionCount"),
     TOTAL_COUNT((short)6, "totalCount"),
-    REQUEST_TIME((short)7, "requestTime"),
-    RESPONSE_TIME((short)8, "responseTime"),
-    REQUEST_BYTES((short)9, "requestBytes"),
-    RESPONSE_BYTES((short)10, "responseBytes");
+    MIN_REQUEST_TIME((short)7, "minRequestTime"),
+    REQUEST_TIME((short)8, "requestTime"),
+    MAX_REQUEST_TIME((short)9, "maxRequestTime"),
+    MIN_RESPONSE_TIME((short)10, "minResponseTime"),
+    RESPONSE_TIME((short)11, "responseTime"),
+    MAX_RESPONSE_TIME((short)12, "maxResponseTime"),
+    REQUEST_BYTES((short)13, "requestBytes"),
+    RESPONSE_BYTES((short)14, "responseBytes");
 
     private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -77,13 +89,21 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
           return EXCEPTION_COUNT;
         case 6: // TOTAL_COUNT
           return TOTAL_COUNT;
-        case 7: // REQUEST_TIME
+        case 7: // MIN_REQUEST_TIME
+          return MIN_REQUEST_TIME;
+        case 8: // REQUEST_TIME
           return REQUEST_TIME;
-        case 8: // RESPONSE_TIME
+        case 9: // MAX_REQUEST_TIME
+          return MAX_REQUEST_TIME;
+        case 10: // MIN_RESPONSE_TIME
+          return MIN_RESPONSE_TIME;
+        case 11: // RESPONSE_TIME
           return RESPONSE_TIME;
-        case 9: // REQUEST_BYTES
+        case 12: // MAX_RESPONSE_TIME
+          return MAX_RESPONSE_TIME;
+        case 13: // REQUEST_BYTES
           return REQUEST_BYTES;
-        case 10: // RESPONSE_BYTES
+        case 14: // RESPONSE_BYTES
           return RESPONSE_BYTES;
         default:
           return null;
@@ -130,11 +150,15 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
   private static final int __INTERVAL_ISSET_ID = 1;
   private static final int __EXCEPTIONCOUNT_ISSET_ID = 2;
   private static final int __TOTALCOUNT_ISSET_ID = 3;
-  private static final int __REQUESTTIME_ISSET_ID = 4;
-  private static final int __RESPONSETIME_ISSET_ID = 5;
-  private static final int __REQUESTBYTES_ISSET_ID = 6;
-  private static final int __RESPONSEBYTES_ISSET_ID = 7;
-  private byte __isset_bitfield = 0;
+  private static final int __MINREQUESTTIME_ISSET_ID = 4;
+  private static final int __REQUESTTIME_ISSET_ID = 5;
+  private static final int __MAXREQUESTTIME_ISSET_ID = 6;
+  private static final int __MINRESPONSETIME_ISSET_ID = 7;
+  private static final int __RESPONSETIME_ISSET_ID = 8;
+  private static final int __MAXRESPONSETIME_ISSET_ID = 9;
+  private static final int __REQUESTBYTES_ISSET_ID = 10;
+  private static final int __RESPONSEBYTES_ISSET_ID = 11;
+  private short __isset_bitfield = 0;
   public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -150,9 +174,17 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.TOTAL_COUNT, new org.apache.thrift.meta_data.FieldMetaData("totalCount", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.MIN_REQUEST_TIME, new org.apache.thrift.meta_data.FieldMetaData("minRequestTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.REQUEST_TIME, new org.apache.thrift.meta_data.FieldMetaData("requestTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.MAX_REQUEST_TIME, new org.apache.thrift.meta_data.FieldMetaData("maxRequestTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.MIN_RESPONSE_TIME, new org.apache.thrift.meta_data.FieldMetaData("minResponseTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.RESPONSE_TIME, new org.apache.thrift.meta_data.FieldMetaData("responseTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.MAX_RESPONSE_TIME, new org.apache.thrift.meta_data.FieldMetaData("maxResponseTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.REQUEST_BYTES, new org.apache.thrift.meta_data.FieldMetaData("requestBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
@@ -172,8 +204,12 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
     int interval,
     long exceptionCount,
     long totalCount,
+    long minRequestTime,
     long requestTime,
+    long maxRequestTime,
+    long minResponseTime,
     long responseTime,
+    long maxResponseTime,
     long requestBytes,
     long responseBytes)
   {
@@ -188,10 +224,18 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
     setExceptionCountIsSet(true);
     this.totalCount = totalCount;
     setTotalCountIsSet(true);
+    this.minRequestTime = minRequestTime;
+    setMinRequestTimeIsSet(true);
     this.requestTime = requestTime;
     setRequestTimeIsSet(true);
+    this.maxRequestTime = maxRequestTime;
+    setMaxRequestTimeIsSet(true);
+    this.minResponseTime = minResponseTime;
+    setMinResponseTimeIsSet(true);
     this.responseTime = responseTime;
     setResponseTimeIsSet(true);
+    this.maxResponseTime = maxResponseTime;
+    setMaxResponseTimeIsSet(true);
     this.requestBytes = requestBytes;
     setRequestBytesIsSet(true);
     this.responseBytes = responseBytes;
@@ -213,8 +257,12 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
     this.interval = other.interval;
     this.exceptionCount = other.exceptionCount;
     this.totalCount = other.totalCount;
+    this.minRequestTime = other.minRequestTime;
     this.requestTime = other.requestTime;
+    this.maxRequestTime = other.maxRequestTime;
+    this.minResponseTime = other.minResponseTime;
     this.responseTime = other.responseTime;
+    this.maxResponseTime = other.maxResponseTime;
     this.requestBytes = other.requestBytes;
     this.responseBytes = other.responseBytes;
   }
@@ -235,10 +283,18 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
     this.exceptionCount = 0;
     setTotalCountIsSet(false);
     this.totalCount = 0;
+    setMinRequestTimeIsSet(false);
+    this.minRequestTime = 0;
     setRequestTimeIsSet(false);
     this.requestTime = 0;
+    setMaxRequestTimeIsSet(false);
+    this.maxRequestTime = 0;
+    setMinResponseTimeIsSet(false);
+    this.minResponseTime = 0;
     setResponseTimeIsSet(false);
     this.responseTime = 0;
+    setMaxResponseTimeIsSet(false);
+    this.maxResponseTime = 0;
     setRequestBytesIsSet(false);
     this.requestBytes = 0;
     setResponseBytesIsSet(false);
@@ -387,6 +443,29 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __TOTALCOUNT_ISSET_ID, value);
   }
 
+  public long getMinRequestTime() {
+    return this.minRequestTime;
+  }
+
+  public RedisMetricMessage setMinRequestTime(long minRequestTime) {
+    this.minRequestTime = minRequestTime;
+    setMinRequestTimeIsSet(true);
+    return this;
+  }
+
+  public void unsetMinRequestTime() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __MINREQUESTTIME_ISSET_ID);
+  }
+
+  /** Returns true if field minRequestTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetMinRequestTime() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __MINREQUESTTIME_ISSET_ID);
+  }
+
+  public void setMinRequestTimeIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __MINREQUESTTIME_ISSET_ID, value);
+  }
+
   public long getRequestTime() {
     return this.requestTime;
   }
@@ -410,6 +489,52 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __REQUESTTIME_ISSET_ID, value);
   }
 
+  public long getMaxRequestTime() {
+    return this.maxRequestTime;
+  }
+
+  public RedisMetricMessage setMaxRequestTime(long maxRequestTime) {
+    this.maxRequestTime = maxRequestTime;
+    setMaxRequestTimeIsSet(true);
+    return this;
+  }
+
+  public void unsetMaxRequestTime() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __MAXREQUESTTIME_ISSET_ID);
+  }
+
+  /** Returns true if field maxRequestTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetMaxRequestTime() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __MAXREQUESTTIME_ISSET_ID);
+  }
+
+  public void setMaxRequestTimeIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __MAXREQUESTTIME_ISSET_ID, value);
+  }
+
+  public long getMinResponseTime() {
+    return this.minResponseTime;
+  }
+
+  public RedisMetricMessage setMinResponseTime(long minResponseTime) {
+    this.minResponseTime = minResponseTime;
+    setMinResponseTimeIsSet(true);
+    return this;
+  }
+
+  public void unsetMinResponseTime() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __MINRESPONSETIME_ISSET_ID);
+  }
+
+  /** Returns true if field minResponseTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetMinResponseTime() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __MINRESPONSETIME_ISSET_ID);
+  }
+
+  public void setMinResponseTimeIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __MINRESPONSETIME_ISSET_ID, value);
+  }
+
   public long getResponseTime() {
     return this.responseTime;
   }
@@ -431,6 +556,29 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
 
   public void setResponseTimeIsSet(boolean value) {
     __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __RESPONSETIME_ISSET_ID, value);
+  }
+
+  public long getMaxResponseTime() {
+    return this.maxResponseTime;
+  }
+
+  public RedisMetricMessage setMaxResponseTime(long maxResponseTime) {
+    this.maxResponseTime = maxResponseTime;
+    setMaxResponseTimeIsSet(true);
+    return this;
+  }
+
+  public void unsetMaxResponseTime() {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __MAXRESPONSETIME_ISSET_ID);
+  }
+
+  /** Returns true if field maxResponseTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetMaxResponseTime() {
+    return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __MAXRESPONSETIME_ISSET_ID);
+  }
+
+  public void setMaxResponseTimeIsSet(boolean value) {
+    __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __MAXRESPONSETIME_ISSET_ID, value);
   }
 
   public long getRequestBytes() {
@@ -529,6 +677,14 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
       }
       break;
 
+    case MIN_REQUEST_TIME:
+      if (value == null) {
+        unsetMinRequestTime();
+      } else {
+        setMinRequestTime((java.lang.Long)value);
+      }
+      break;
+
     case REQUEST_TIME:
       if (value == null) {
         unsetRequestTime();
@@ -537,11 +693,35 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
       }
       break;
 
+    case MAX_REQUEST_TIME:
+      if (value == null) {
+        unsetMaxRequestTime();
+      } else {
+        setMaxRequestTime((java.lang.Long)value);
+      }
+      break;
+
+    case MIN_RESPONSE_TIME:
+      if (value == null) {
+        unsetMinResponseTime();
+      } else {
+        setMinResponseTime((java.lang.Long)value);
+      }
+      break;
+
     case RESPONSE_TIME:
       if (value == null) {
         unsetResponseTime();
       } else {
         setResponseTime((java.lang.Long)value);
+      }
+      break;
+
+    case MAX_RESPONSE_TIME:
+      if (value == null) {
+        unsetMaxResponseTime();
+      } else {
+        setMaxResponseTime((java.lang.Long)value);
       }
       break;
 
@@ -585,11 +765,23 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
     case TOTAL_COUNT:
       return getTotalCount();
 
+    case MIN_REQUEST_TIME:
+      return getMinRequestTime();
+
     case REQUEST_TIME:
       return getRequestTime();
 
+    case MAX_REQUEST_TIME:
+      return getMaxRequestTime();
+
+    case MIN_RESPONSE_TIME:
+      return getMinResponseTime();
+
     case RESPONSE_TIME:
       return getResponseTime();
+
+    case MAX_RESPONSE_TIME:
+      return getMaxResponseTime();
 
     case REQUEST_BYTES:
       return getRequestBytes();
@@ -620,10 +812,18 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
       return isSetExceptionCount();
     case TOTAL_COUNT:
       return isSetTotalCount();
+    case MIN_REQUEST_TIME:
+      return isSetMinRequestTime();
     case REQUEST_TIME:
       return isSetRequestTime();
+    case MAX_REQUEST_TIME:
+      return isSetMaxRequestTime();
+    case MIN_RESPONSE_TIME:
+      return isSetMinResponseTime();
     case RESPONSE_TIME:
       return isSetResponseTime();
+    case MAX_RESPONSE_TIME:
+      return isSetMaxResponseTime();
     case REQUEST_BYTES:
       return isSetRequestBytes();
     case RESPONSE_BYTES:
@@ -699,6 +899,15 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
         return false;
     }
 
+    boolean this_present_minRequestTime = true;
+    boolean that_present_minRequestTime = true;
+    if (this_present_minRequestTime || that_present_minRequestTime) {
+      if (!(this_present_minRequestTime && that_present_minRequestTime))
+        return false;
+      if (this.minRequestTime != that.minRequestTime)
+        return false;
+    }
+
     boolean this_present_requestTime = true;
     boolean that_present_requestTime = true;
     if (this_present_requestTime || that_present_requestTime) {
@@ -708,12 +917,39 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
         return false;
     }
 
+    boolean this_present_maxRequestTime = true;
+    boolean that_present_maxRequestTime = true;
+    if (this_present_maxRequestTime || that_present_maxRequestTime) {
+      if (!(this_present_maxRequestTime && that_present_maxRequestTime))
+        return false;
+      if (this.maxRequestTime != that.maxRequestTime)
+        return false;
+    }
+
+    boolean this_present_minResponseTime = true;
+    boolean that_present_minResponseTime = true;
+    if (this_present_minResponseTime || that_present_minResponseTime) {
+      if (!(this_present_minResponseTime && that_present_minResponseTime))
+        return false;
+      if (this.minResponseTime != that.minResponseTime)
+        return false;
+    }
+
     boolean this_present_responseTime = true;
     boolean that_present_responseTime = true;
     if (this_present_responseTime || that_present_responseTime) {
       if (!(this_present_responseTime && that_present_responseTime))
         return false;
       if (this.responseTime != that.responseTime)
+        return false;
+    }
+
+    boolean this_present_maxResponseTime = true;
+    boolean that_present_maxResponseTime = true;
+    if (this_present_maxResponseTime || that_present_maxResponseTime) {
+      if (!(this_present_maxResponseTime && that_present_maxResponseTime))
+        return false;
+      if (this.maxResponseTime != that.maxResponseTime)
         return false;
     }
 
@@ -758,9 +994,17 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(totalCount);
 
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(minRequestTime);
+
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(requestTime);
 
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(maxRequestTime);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(minResponseTime);
+
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(responseTime);
+
+    hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(maxResponseTime);
 
     hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(requestBytes);
 
@@ -837,6 +1081,16 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
         return lastComparison;
       }
     }
+    lastComparison = java.lang.Boolean.compare(isSetMinRequestTime(), other.isSetMinRequestTime());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMinRequestTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.minRequestTime, other.minRequestTime);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = java.lang.Boolean.compare(isSetRequestTime(), other.isSetRequestTime());
     if (lastComparison != 0) {
       return lastComparison;
@@ -847,12 +1101,42 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
         return lastComparison;
       }
     }
+    lastComparison = java.lang.Boolean.compare(isSetMaxRequestTime(), other.isSetMaxRequestTime());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMaxRequestTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.maxRequestTime, other.maxRequestTime);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetMinResponseTime(), other.isSetMinResponseTime());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMinResponseTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.minResponseTime, other.minResponseTime);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = java.lang.Boolean.compare(isSetResponseTime(), other.isSetResponseTime());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetResponseTime()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.responseTime, other.responseTime);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = java.lang.Boolean.compare(isSetMaxResponseTime(), other.isSetMaxResponseTime());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMaxResponseTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.maxResponseTime, other.maxResponseTime);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -930,12 +1214,28 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
     sb.append(this.totalCount);
     first = false;
     if (!first) sb.append(", ");
+    sb.append("minRequestTime:");
+    sb.append(this.minRequestTime);
+    first = false;
+    if (!first) sb.append(", ");
     sb.append("requestTime:");
     sb.append(this.requestTime);
     first = false;
     if (!first) sb.append(", ");
+    sb.append("maxRequestTime:");
+    sb.append(this.maxRequestTime);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("minResponseTime:");
+    sb.append(this.minResponseTime);
+    first = false;
+    if (!first) sb.append(", ");
     sb.append("responseTime:");
     sb.append(this.responseTime);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("maxResponseTime:");
+    sb.append(this.maxResponseTime);
     first = false;
     if (!first) sb.append(", ");
     sb.append("requestBytes:");
@@ -1038,7 +1338,15 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 7: // REQUEST_TIME
+          case 7: // MIN_REQUEST_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.minRequestTime = iprot.readI64();
+              struct.setMinRequestTimeIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 8: // REQUEST_TIME
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.requestTime = iprot.readI64();
               struct.setRequestTimeIsSet(true);
@@ -1046,7 +1354,23 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 8: // RESPONSE_TIME
+          case 9: // MAX_REQUEST_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.maxRequestTime = iprot.readI64();
+              struct.setMaxRequestTimeIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 10: // MIN_RESPONSE_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.minResponseTime = iprot.readI64();
+              struct.setMinResponseTimeIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 11: // RESPONSE_TIME
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.responseTime = iprot.readI64();
               struct.setResponseTimeIsSet(true);
@@ -1054,7 +1378,15 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 9: // REQUEST_BYTES
+          case 12: // MAX_RESPONSE_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.maxResponseTime = iprot.readI64();
+              struct.setMaxResponseTimeIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 13: // REQUEST_BYTES
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.requestBytes = iprot.readI64();
               struct.setRequestBytesIsSet(true);
@@ -1062,7 +1394,7 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 10: // RESPONSE_BYTES
+          case 14: // RESPONSE_BYTES
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.responseBytes = iprot.readI64();
               struct.setResponseBytesIsSet(true);
@@ -1107,11 +1439,23 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
       oprot.writeFieldBegin(TOTAL_COUNT_FIELD_DESC);
       oprot.writeI64(struct.totalCount);
       oprot.writeFieldEnd();
+      oprot.writeFieldBegin(MIN_REQUEST_TIME_FIELD_DESC);
+      oprot.writeI64(struct.minRequestTime);
+      oprot.writeFieldEnd();
       oprot.writeFieldBegin(REQUEST_TIME_FIELD_DESC);
       oprot.writeI64(struct.requestTime);
       oprot.writeFieldEnd();
+      oprot.writeFieldBegin(MAX_REQUEST_TIME_FIELD_DESC);
+      oprot.writeI64(struct.maxRequestTime);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(MIN_RESPONSE_TIME_FIELD_DESC);
+      oprot.writeI64(struct.minResponseTime);
+      oprot.writeFieldEnd();
       oprot.writeFieldBegin(RESPONSE_TIME_FIELD_DESC);
       oprot.writeI64(struct.responseTime);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(MAX_RESPONSE_TIME_FIELD_DESC);
+      oprot.writeI64(struct.maxResponseTime);
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(REQUEST_BYTES_FIELD_DESC);
       oprot.writeI64(struct.requestBytes);
@@ -1155,19 +1499,31 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
       if (struct.isSetTotalCount()) {
         optionals.set(5);
       }
-      if (struct.isSetRequestTime()) {
+      if (struct.isSetMinRequestTime()) {
         optionals.set(6);
       }
-      if (struct.isSetResponseTime()) {
+      if (struct.isSetRequestTime()) {
         optionals.set(7);
       }
-      if (struct.isSetRequestBytes()) {
+      if (struct.isSetMaxRequestTime()) {
         optionals.set(8);
       }
-      if (struct.isSetResponseBytes()) {
+      if (struct.isSetMinResponseTime()) {
         optionals.set(9);
       }
-      oprot.writeBitSet(optionals, 10);
+      if (struct.isSetResponseTime()) {
+        optionals.set(10);
+      }
+      if (struct.isSetMaxResponseTime()) {
+        optionals.set(11);
+      }
+      if (struct.isSetRequestBytes()) {
+        optionals.set(12);
+      }
+      if (struct.isSetResponseBytes()) {
+        optionals.set(13);
+      }
+      oprot.writeBitSet(optionals, 14);
       if (struct.isSetUri()) {
         oprot.writeString(struct.uri);
       }
@@ -1186,11 +1542,23 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
       if (struct.isSetTotalCount()) {
         oprot.writeI64(struct.totalCount);
       }
+      if (struct.isSetMinRequestTime()) {
+        oprot.writeI64(struct.minRequestTime);
+      }
       if (struct.isSetRequestTime()) {
         oprot.writeI64(struct.requestTime);
       }
+      if (struct.isSetMaxRequestTime()) {
+        oprot.writeI64(struct.maxRequestTime);
+      }
+      if (struct.isSetMinResponseTime()) {
+        oprot.writeI64(struct.minResponseTime);
+      }
       if (struct.isSetResponseTime()) {
         oprot.writeI64(struct.responseTime);
+      }
+      if (struct.isSetMaxResponseTime()) {
+        oprot.writeI64(struct.maxResponseTime);
       }
       if (struct.isSetRequestBytes()) {
         oprot.writeI64(struct.requestBytes);
@@ -1203,7 +1571,7 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, RedisMetricMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-      java.util.BitSet incoming = iprot.readBitSet(10);
+      java.util.BitSet incoming = iprot.readBitSet(14);
       if (incoming.get(0)) {
         struct.uri = iprot.readString();
         struct.setUriIsSet(true);
@@ -1229,18 +1597,34 @@ public class RedisMetricMessage implements org.apache.thrift.TBase<RedisMetricMe
         struct.setTotalCountIsSet(true);
       }
       if (incoming.get(6)) {
+        struct.minRequestTime = iprot.readI64();
+        struct.setMinRequestTimeIsSet(true);
+      }
+      if (incoming.get(7)) {
         struct.requestTime = iprot.readI64();
         struct.setRequestTimeIsSet(true);
       }
-      if (incoming.get(7)) {
+      if (incoming.get(8)) {
+        struct.maxRequestTime = iprot.readI64();
+        struct.setMaxRequestTimeIsSet(true);
+      }
+      if (incoming.get(9)) {
+        struct.minResponseTime = iprot.readI64();
+        struct.setMinResponseTimeIsSet(true);
+      }
+      if (incoming.get(10)) {
         struct.responseTime = iprot.readI64();
         struct.setResponseTimeIsSet(true);
       }
-      if (incoming.get(8)) {
+      if (incoming.get(11)) {
+        struct.maxResponseTime = iprot.readI64();
+        struct.setMaxResponseTimeIsSet(true);
+      }
+      if (incoming.get(12)) {
         struct.requestBytes = iprot.readI64();
         struct.setRequestBytesIsSet(true);
       }
-      if (incoming.get(9)) {
+      if (incoming.get(13)) {
         struct.responseBytes = iprot.readI64();
         struct.setResponseBytesIsSet(true);
       }

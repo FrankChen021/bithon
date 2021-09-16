@@ -203,10 +203,17 @@ struct RedisMetricMessage {
     4:i32 interval;
     5:i64 exceptionCount;
     6:i64 totalCount;
-    7:i64 requestTime;
-    8:i64 responseTime;
-    9:i64 requestBytes;
-    10:i64 responseBytes;
+
+    7:i64 minRequestTime;
+    8:i64 requestTime;
+    9:i64 maxRequestTime;
+
+    10:i64 minResponseTime;
+    11:i64 responseTime;
+    12:i64 maxResponseTime;
+
+    13:i64 requestBytes;
+    14:i64 responseBytes;
 }
 
 /**************************************************************************/

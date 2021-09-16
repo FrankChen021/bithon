@@ -51,13 +51,13 @@
     {
       "type": "longSum",
       "name": "requestTime",
-      "displayText": "requestTime",
+      "displayText": "Request Time",
       "unit": "nanosecond"
     },
     {
       "type": "longMax",
       "name": "maxRequestTime",
-      "displayText": "requestTime",
+      "displayText": "Max Request Time",
       "unit": "nanosecond"
     },
 
@@ -70,7 +70,7 @@
     {
       "type": "longSum",
       "name": "responseTime",
-      "displayText": "responseTime",
+      "displayText": "Response Time",
       "unit": "nanosecond"
     },
     {
@@ -78,6 +78,15 @@
       "name": "maxResponseTime",
       "displayText": "Max Response Time",
       "unit": "nanosecond"
+    },
+
+    {
+      "type": "post",
+      "name": "avgRequestTime",
+      "expression": "requestTime/totalCount",
+      "displayText": "AVG Request Time",
+      "unit": "nanosecond",
+      "valueType": "double"
     },
     {
       "type": "post",
