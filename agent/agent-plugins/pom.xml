@@ -16,9 +16,6 @@
 
   <modules>
     <module>jdbc-druid</module>
-    <module>webserver-tomcat</module>
-    <module>webserver-undertow</module>
-    <module>webserver-jetty</module>
     <module>jvm</module>
     <module>jvm-jdk8</module>
     <module>jvm-jdk9</module>
@@ -37,6 +34,10 @@
     <module>logging-log4j2</module>
     <module>logging-logback</module>
     <module>spring</module>
+    <module>webserver-tomcat</module>
+    <module>webserver-undertow</module>
+    <module>webserver-jetty</module>
+    <module>webserver-netty</module>
   </modules>
 
   <dependencies>
@@ -56,6 +57,11 @@
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-plugin-webserver-jetty</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-plugin-webserver-netty</artifactId>
       <version>${project.version}</version>
     </dependency>
 
