@@ -33,6 +33,19 @@ public class MetricMessage extends HashMap<String, Object> {
         MetricMessage metricMessage = new MetricMessage();
         ReflectionUtils.getFields(header, metricMessage);
         ReflectionUtils.getFields(message, metricMessage);
+
+        // adaptor
+        // protobuf turns the name 'count4xx' in .proto file to 'count4Xx'
+        // we have to convert it back to make it compatible with existing name style
+        Object count4xx = metricMessage.remove("count4Xx");
+        if (count4xx != null) {
+            metricMessage.put("count4xx", count4xx);
+        }
+        Object count5xx = metricMessage.remove("count5Xx");
+        if (count5xx != null) {
+            metricMessage.put("count5xx", count5xx);
+        }
+
         return metricMessage;
     }
 
