@@ -44,11 +44,13 @@ public class SpringWebFluxPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("handle")
-                                                   .to("com.sbss.bithon.agent.plugin.spring.webflux.interceptor.Handle"),
+                                                   .to("com.sbss.bithon.agent.plugin.spring.webflux.interceptor.Handle")
 
+                    /*
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("handleResult")
                                                    .to("com.sbss.bithon.agent.plugin.spring.webflux.interceptor.HandleResult")
+                     */
                 )
         );
     }

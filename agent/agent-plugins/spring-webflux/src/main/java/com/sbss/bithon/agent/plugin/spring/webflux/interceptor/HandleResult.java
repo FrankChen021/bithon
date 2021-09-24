@@ -73,7 +73,8 @@ public class HandleResult extends AbstractInterceptor {
                 type -> metricCollector.update(
                     exchange.getRequest(),
                     exchange.getResponse(),
-                    ((WebFluxContext) ((IBithonObject) exchange).getInjectedObject()).getStartTime()
+                    ((WebFluxContext) ((IBithonObject) exchange).getInjectedObject()).getStartTime(),
+                    false
                 ))
         );
     }

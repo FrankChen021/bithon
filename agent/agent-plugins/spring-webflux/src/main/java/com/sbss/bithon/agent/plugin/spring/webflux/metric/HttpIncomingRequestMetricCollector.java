@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class HttpIncomingRequestMetricCollector extends IntervalMetricCollector<HttpIncomingMetrics> {
 
-    public void update(ServerHttpRequest request, ServerHttpResponse response, long responseTime) {
+    public void update(ServerHttpRequest request, ServerHttpResponse response, long responseTime, boolean hasException) {
         String uri = request.getURI().getPath();
         if (uri == null) {
             return;
@@ -41,7 +41,7 @@ public class HttpIncomingRequestMetricCollector extends IntervalMetricCollector<
 
         int httpStatus = response.getStatusCode().value();
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
-        int count5xx = httpStatus >= 500 ? 1 : 0;
+        int count5xx = hasException ? 1 : (httpStatus >= 500 ? 1 : 0);
         long requestByteSize = request.getHeaders().getContentLength();
         long responseByteSize = response.getHeaders().getContentLength();
 

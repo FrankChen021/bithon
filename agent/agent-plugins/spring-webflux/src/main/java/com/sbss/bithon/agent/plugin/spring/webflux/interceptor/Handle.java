@@ -20,8 +20,12 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
+import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import com.sbss.bithon.agent.plugin.spring.webflux.WebFluxContext;
+import com.sbss.bithon.agent.plugin.spring.webflux.metric.HttpIncomingRequestMetricCollector;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 /**
  * {@link org.springframework.web.reactive.DispatcherHandler#handle(ServerWebExchange)}
@@ -30,6 +34,21 @@ import org.springframework.web.server.ServerWebExchange;
  * @date 2021-09-23 00:16
  */
 public class Handle extends AbstractInterceptor {
+
+    private HttpIncomingRequestMetricCollector metricCollector;
+    private HttpIncomingFilter requestFilter;
+
+    @Override
+    public boolean initialize() {
+        requestFilter = new HttpIncomingFilter();
+
+        metricCollector = MetricCollectorManager.getInstance()
+                                                .getOrRegister("webflux-request-metrics",
+                                                               HttpIncomingRequestMetricCollector.class);
+
+        return true;
+    }
+
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         ServerWebExchange webExchange = aopContext.getArgAs(0);
@@ -38,6 +57,26 @@ public class Handle extends AbstractInterceptor {
             ctx.setStartTime(System.currentTimeMillis());
             ((IBithonObject) webExchange).setInjectedObject(ctx);
         }
-        return InterceptionDecision.SKIP_LEAVE;
+
+        return InterceptionDecision.CONTINUE;
+    }
+
+    @Override
+    public void onMethodLeave(AopContext aopContext) throws Exception {
+        final long start = System.nanoTime();
+        Mono<Void> mono = (Mono<Void>) aopContext.getReturning();
+        aopContext.setReturning(mono.doOnSuccessOrError((sucecss, error) -> {
+            ServerWebExchange exchange = (ServerWebExchange) aopContext.getArgs()[0];
+            if (!(exchange instanceof IBithonObject)) {
+                return;
+            }
+
+            metricCollector.update(
+                exchange.getRequest(),
+                exchange.getResponse(),
+                System.nanoTime() - start,
+                error != null
+            );
+        }));
     }
 }
