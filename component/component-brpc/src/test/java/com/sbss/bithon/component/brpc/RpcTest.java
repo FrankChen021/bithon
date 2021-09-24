@@ -29,7 +29,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -215,7 +214,7 @@ public class RpcTest {
             ch.bindService(new ExampleServiceImpl() {
                 @Override
                 public void block(int timeout) {
-                    throw new NotImplementedException();
+                    throw new RuntimeException("Not Implemented");
                 }
             });
 
