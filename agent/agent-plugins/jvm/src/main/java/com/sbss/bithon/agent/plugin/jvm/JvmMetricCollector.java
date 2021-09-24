@@ -154,8 +154,10 @@ public class JvmMetricCollector {
 
         ObjectMapper om = new ObjectMapper();
         try {
-            args.put("runtime.bootClassPath",
-                     om.writeValueAsString(RUNTIME_BEAN.getBootClassPath().split(File.pathSeparator)));
+            if (RUNTIME_BEAN.isBootClassPathSupported()) {
+                args.put("runtime.bootClassPath",
+                         om.writeValueAsString(RUNTIME_BEAN.getBootClassPath().split(File.pathSeparator)));
+            }
             args.put("runtime.classPath", om.writeValueAsString(RUNTIME_BEAN.getClassPath().split(File.pathSeparator)));
             args.put("runtime.arguments", om.writeValueAsString(RUNTIME_BEAN.getInputArguments()));
             args.put("runtime.libraryPath",
