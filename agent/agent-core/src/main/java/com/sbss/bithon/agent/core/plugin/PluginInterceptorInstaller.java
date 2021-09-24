@@ -16,6 +16,7 @@
 
 package com.sbss.bithon.agent.core.plugin;
 
+import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.bootstrap.loader.JarClassLoader;
 import com.sbss.bithon.agent.core.aop.AopClassGenerator;
 import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
@@ -50,8 +51,7 @@ public class PluginInterceptorInstaller {
         List<IPlugin> plugins = loadPlugins();
 
         // install interceptors for bootstrap classes
-        AgentBuilder agentBuilder = new AopClassGenerator(inst,
-                                                          new AgentBuilder.Default()).generate(plugins);
+        AgentBuilder agentBuilder = new AopClassGenerator(inst, createAgentBuilder(inst)).generate(plugins);
 
         // install interceptors
         install(agentBuilder, inst, plugins);
@@ -61,6 +61,14 @@ public class PluginInterceptorInstaller {
 
         // install shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> plugins.forEach(IPlugin::stop)));
+    }
+
+    private static AgentBuilder createAgentBuilder(Instrumentation inst) {
+        AgentBuilder builder = new AgentBuilder.Default();
+
+        builder = builder.assureReadEdgeFromAndTo(inst, IBithonObject.class);
+
+        return builder;
     }
 
     private static void install(AgentBuilder agentBuilder, Instrumentation inst, List<IPlugin> plugins) {
@@ -99,7 +107,8 @@ public class PluginInterceptorInstaller {
                                                                                                 pluginClassLoader);
 
                 Boolean isPluginDisabled = PluginConfigurationManager.load(pluginClass)
-                                                                     .getConfig("agent.plugin." + getPluginPackageName(pluginClassName) + ".disabled", Boolean.class);
+                                                                     .getConfig("agent.plugin." + getPluginPackageName(
+                                                                         pluginClassName) + ".disabled", Boolean.class);
                 if (isPluginDisabled != null && isPluginDisabled) {
                     log.info("Found plugin {}, but it's DISABLED by configuration", jarFileName);
                     continue;
