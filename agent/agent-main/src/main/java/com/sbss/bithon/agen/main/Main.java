@@ -43,12 +43,14 @@ public class Main {
         // agent-boostrap.jar should be on the boot-class-path
         // check if agent is deployed correctly
         //
-        boolean hasBootstrapJar = Arrays.stream(ManagementFactory.getRuntimeMXBean()
-                                                                 .getBootClassPath()
-                                                                 .split(File.pathSeparator))
-                                        .anyMatch(path -> path.endsWith(File.separator + "agent-bootstrap.jar"));
-        if (!hasBootstrapJar) {
-            throw new IllegalStateException("agent-bootstrap.jar is not on boot class path");
+        if (ManagementFactory.getRuntimeMXBean().isBootClassPathSupported()) {
+            boolean hasBootstrapJar = Arrays.stream(ManagementFactory.getRuntimeMXBean()
+                                                                     .getBootClassPath()
+                                                                     .split(File.pathSeparator))
+                                            .anyMatch(path -> path.endsWith(File.separator + "agent-bootstrap.jar"));
+            if (!hasBootstrapJar) {
+                throw new IllegalStateException("agent-bootstrap.jar is not on boot class path");
+            }
         }
 
         showBanner();

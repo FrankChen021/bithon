@@ -37,8 +37,6 @@ public class Validator {
         }};
 
         for (Field field : obj.getClass().getDeclaredFields()) {
-            field.setAccessible(true);
-
             for (Map.Entry<Class<? extends Annotation>, IValueValidator> entry : validators.entrySet()) {
                 Class<? extends Annotation> annotation = entry.getKey();
                 IValueValidator validator = entry.getValue();
@@ -64,6 +62,13 @@ public class Validator {
 
         String violationMessagePattern;
         try {
+            // although this function would be called twice if this field has more than 1 validation annotations
+            // by putting this call here, we prevent this call on fields with some types that we don't support
+            // this prevents following warning/error when using JDK9+
+            // WARNING: An illegal reflective access operation has occurred
+            field.setAccessible(true);
+
+
             violationMessagePattern = valueValidator.validate(validatorAnnotation,
                                                               field.getType(),
                                                               field.get(object));
