@@ -12,14 +12,19 @@ A preview demo is hosted [here](https://www.bithon.cn:9897/ui/home).
 
 ## 1. clone source code
 
-## 2. make sure JDK8 is installed
+## 2. choose a right JDK
 
-Currently, only JDK8 is supported. If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK8_HOME}` command to set correct JDK.
+It's highly recommended that JDK that is used to compile bithon is the same as the JRE that runs your applications.
+See [JDKs Compatibility](#jdks-compatibility) for more information.
+
+So you have to choose a right JDK to compile bithon. If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK.
+
 For example
 
 ```bash
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home
 ```
+
 
 ## 3. build & install dependencies
 
@@ -69,6 +74,11 @@ Attach agent to your java agent by adding following VM arguments.
 -javaagent:<YOUR_PROJECT_DIRECTORY>/agent/dest/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>
 ```
 
+For applications running on JRE 9 or above, append following arguments to above command line
+```bash
+--add-exports java.base/jdk.internal.misc=ALL-UNNAMED
+```
+
 |Variable|Description|
 | --- | --- |
 | YOUR_PROJECT_DIRECTORY | the directory where this project saves |
@@ -78,6 +88,32 @@ Attach agent to your java agent by adding following VM arguments.
 By default, the agent connects collector running at local(127.0.0.1). 
 Collector address could be changed in file `agent/agent-main/src/main/resources/agent.yml`.
 Make sure to re-build the project after changing the configuration file above.
+
+# JDKs Compatibility
+
+Following matrix lists the JDKs that have been tested on macOS. And in theory, this matrix works both for Windows and Linux.
+
+|JDK| Supported | 
+| --- | --- |
+| JDK 1.8.0_291 | Yes |
+| JDK 9.0.4 | Yes |
+| JDK 10.0.2 | Yes |
+| JDK 11.0.12 | Yes |
+| JDK 12.0.2 | Yes |
+| JDK 13.0.2 | Yes |
+| JDK 14.0.2 | Yes |
+| JDK 15.0.2 | Yes |
+| JDK 16.02 | Yes |
+| JDK 17 | Yes |
+
+Due to the backward compatibility of JRE, Bithon that is compiled with a specific version of JDK may work for a range of JREs that applications are running on.
+
+For example:
+
+- Bithon + JDK 1.8 works only for JRE 1.8
+- Bithon + JDK  9 works for JRE between 9 and 17
+- Bithon + JDK 10 works for JRE between 10 and 17
+- Bithon + JDK 17 works for JRE 17
 
 # Contribution
 
