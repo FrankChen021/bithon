@@ -20,7 +20,6 @@ import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import com.sbss.bithon.agent.core.plugin.IPlugin;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
