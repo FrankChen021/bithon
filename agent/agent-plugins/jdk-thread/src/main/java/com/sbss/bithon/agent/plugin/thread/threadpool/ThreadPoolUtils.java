@@ -16,7 +16,11 @@
 
 package com.sbss.bithon.agent.plugin.thread.threadpool;
 
+import com.sbss.bithon.agent.bootstrap.expt.AgentException;
+
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
@@ -35,9 +39,15 @@ public class ThreadPoolUtils {
         THREAD_FACTORY_NAMES.put("com.zaxxer.hikari.util.UtilityElf$DefaultThreadFactory", "threadName");
 
         THREAD_FACTORY_NAMES.put("com.alibaba.druid.util", "nameStart");
+
+        THREAD_FACTORY_NAMES.put("", "name");
     }
 
     public static String getThreadPoolName(ThreadFactory threadFactory) {
+
+        //
+        // search the class hierachy to see if this ThreadFactory is a sub-class of above defined classes
+        //
         String fieldName = null;
         Class<?> factoryClass = threadFactory.getClass();
         while (factoryClass != null && fieldName == null) {
@@ -47,18 +57,19 @@ public class ThreadPoolUtils {
                 factoryClass = factoryClass.getSuperclass();
             }
         }
+
         if (fieldName != null) {
-            return getThreadPoolName(threadFactory, factoryClass, new String[]{fieldName});
+            return getThreadPoolName(threadFactory, factoryClass, Collections.singletonList(fieldName));
         } else {
             return getThreadPoolName(threadFactory,
                                      threadFactory.getClass(),
-                                     THREAD_FACTORY_NAMES.values().toArray(new String[0]));
+                                     THREAD_FACTORY_NAMES.values());
         }
     }
 
     public static String getThreadPoolName(ThreadFactory threadFactoryObj,
                                            Class<?> threadFactoryClass,
-                                           String[] nameFields) {
+                                           Collection<String> nameFields) {
         for (String nameField : nameFields) {
             try {
                 Field f = threadFactoryClass.getDeclaredField(nameField);
@@ -67,13 +78,15 @@ public class ThreadPoolUtils {
             } catch (NoSuchFieldException | IllegalAccessException ignored) {
             }
         }
-        return String.valueOf(threadFactoryObj.hashCode());
+
+        // ignore those ThreadFactory(s) which don't define a name field
+        throw new AgentException("No name field defined on ThreadFactory class [%s]", threadFactoryClass.getName());
     }
 
     public static String stripSuffix(String text, String suffix) {
         if (text != null) {
-            if (text.endsWith("-")) {
-                return text.substring(0, text.length() - 1);
+            if (text.endsWith(suffix)) {
+                return text.substring(0, text.length() - suffix.length());
             } else {
                 return text;
             }
