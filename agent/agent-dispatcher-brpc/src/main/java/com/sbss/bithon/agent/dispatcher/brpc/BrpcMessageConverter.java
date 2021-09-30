@@ -218,6 +218,7 @@ public class BrpcMessageConverter implements IMessageConverter {
                                           .setInterval(interval)
                                           .setExecutorClass(metric.getExecutorClass())
                                           .setPoolName(metric.getThreadPoolName())
+                                          // task
                                           .setCallerRunTaskCount(metric.getCallerRunTaskCount())
                                           .setAbortedTaskCount(metric.getAbortedTaskCount())
                                           .setDiscardedOldestTaskCount(metric.getDiscardedOldestTaskCount())
@@ -225,6 +226,11 @@ public class BrpcMessageConverter implements IMessageConverter {
                                           .setExceptionTaskCount(metric.getExceptionTaskCount())
                                           .setSuccessfulTaskCount(metric.getSuccessfulTaskCount())
                                           .setTotalTaskCount(metric.getTotalTaskCount())
+                                          // thread pool
+                                          .setActiveThreads(metric.getActiveThreads())
+                                          .setCurrentPoolSize(metric.getCurrentPoolSize())
+                                          .setMaxPoolSize(metric.getMaxPoolSize())
+                                          .setLargestPoolSize(metric.getLargestPoolSize())
                                           .build();
     }
 
