@@ -17,11 +17,13 @@
 package com.sbss.bithon.server.metric.api;
 
 import com.sbss.bithon.server.common.pojo.DisplayableText;
+import com.sbss.bithon.server.common.utils.datetime.Period;
 import com.sbss.bithon.server.common.utils.datetime.TimeSpan;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchema;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.storage.IMetricStorage;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -128,5 +131,21 @@ public class DataSourceApi {
             request.getConditions(),
             request.getDimension()
         );
+    }
+
+    @PostMapping("api/datasource/ttl/update")
+    public Map<String, Long> updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request) {
+        Map<String, Long> result = new HashMap<>();
+        schemaManager.getDataSources().forEach((name, datasource) -> {
+            Period ttl = request.getTtl();
+            if (!CollectionUtils.isEmpty(request.getTtls())) {
+                ttl = request.getTtls().getOrDefault(name, null);
+            }
+            if (ttl != null) {
+                datasource.setTtl(ttl);
+                result.put(name, ttl.getMilliseconds());
+            }
+        });
+        return result;
     }
 }
