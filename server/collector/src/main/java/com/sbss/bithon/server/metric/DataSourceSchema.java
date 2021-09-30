@@ -27,6 +27,7 @@ import com.sbss.bithon.server.metric.dimension.transformer.IDimensionTransformer
 import com.sbss.bithon.server.metric.filter.IFilter;
 import com.sbss.bithon.server.metric.flatten.IFlattener;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -70,7 +71,8 @@ public class DataSourceSchema {
     private final Map<String, IMetricSpec> metricsMap = new HashMap<>();
 
     @Getter
-    private final Period ttl;
+    @Setter
+    private Period ttl;
 
     @JsonCreator
     public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,
