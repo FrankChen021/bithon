@@ -107,6 +107,8 @@ class MetricJdbcWriter implements IMetricWriter {
 
             try {
                 dsl.batch(queries.toArray(new Query[0])).execute();
+            } catch (DuplicateKeyException e) {
+                log.error("Duplicate Key:{}", queries);
             } catch (Exception e) {
                 log.error("Failed to insert records into [{}]. Error message: {}. SQL:{}",
                           this.table.getName(),
@@ -131,6 +133,8 @@ class MetricJdbcWriter implements IMetricWriter {
 
             try {
                 dsl.batch(queries.toArray(new Query[0])).execute();
+            } catch (DuplicateKeyException e) {
+                log.error("Duplicate Key:{}", queries);
             } catch (Exception e) {
                 log.error("Failed to insert records into [{}]. Error message: {}. SQL:{}",
                           this.table.getName(),
