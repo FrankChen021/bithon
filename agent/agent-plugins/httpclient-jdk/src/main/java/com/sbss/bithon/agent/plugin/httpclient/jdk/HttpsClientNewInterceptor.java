@@ -33,6 +33,11 @@ public class HttpsClientNewInterceptor extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         IBithonObject injectedObject = aopContext.castReturningAs();
+        if (injectedObject == null) {
+            // usually there's exception thrown when establish connection
+            return;
+        }
+
         injectedObject.setInjectedObject(aopContext.getArgs()[6]);
     }
 }
