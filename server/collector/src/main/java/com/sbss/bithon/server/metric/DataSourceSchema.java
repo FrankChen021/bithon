@@ -77,16 +77,16 @@ public class DataSourceSchema {
     @JsonCreator
     public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,
                             @JsonProperty("name") String name,
-                            @JsonProperty("timestampSpec") TimestampSpec timestampSpec,
+                            @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
                             @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
                             @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
                             @JsonProperty("filtersSpec") @Nullable List<IFilter> filtersSpec,
                             @JsonProperty("flattenSpec") @Nullable List<IFlattener> flattenSpec,
                             @JsonProperty("ttl") @Nullable Period ttl) {
-        this.ttl = ttl == null ? Period.years(99) : ttl;
+        this.ttl = ttl == null ? new Period("P1D") : ttl;
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
-        this.timestampSpec = timestampSpec;
+        this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
         this.filtersSpec = filtersSpec == null ? Collections.emptyList() : filtersSpec;

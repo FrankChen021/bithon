@@ -40,13 +40,13 @@ public class DataSourceSchemaManager implements SmartLifecycle {
     private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
 
     public void addDataSourceSchema(DataSourceSchema schema) {
-        schemas.put(schema.getName(), schema);
-
-        for (IDataSourceSchemaListener listener : listeners) {
-            try {
-                listener.onAdd(schema);
-            } catch (Exception e) {
-                log.error("notify onAdd exception", e);
+        if (schemas.putIfAbsent(schema.getName(), schema) == null) {
+            for (IDataSourceSchemaListener listener : listeners) {
+                try {
+                    listener.onAdd(schema);
+                } catch (Exception e) {
+                    log.error("notify onAdd exception", e);
+                }
             }
         }
     }
