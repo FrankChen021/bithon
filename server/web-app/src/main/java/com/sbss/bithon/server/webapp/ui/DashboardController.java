@@ -17,8 +17,6 @@
 package com.sbss.bithon.server.webapp.ui;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,14 +32,14 @@ import java.io.InputStream;
 @RestController
 public class DashboardController {
 
-    @GetMapping("/ui/api/dashboard/{boardName}")
+    @GetMapping("/web/api/dashboard/get/{boardName}")
     public void getBoardConfig(@PathVariable("boardName") String boardName, HttpServletResponse response) {
         response.setContentType("application/json");
 
         // for now, it loads config from static file
         // in future it can be changed to load from external storage
         try (InputStream is = DashboardController.class.getClassLoader().getResourceAsStream("dashboard/" + boardName + ".json")) {
-            if ( is == null ) {
+            if (is == null) {
                 response.setStatus(HttpStatus.NOT_FOUND.value());
                 return;
             }

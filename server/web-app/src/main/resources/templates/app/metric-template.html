@@ -5,8 +5,6 @@
       layout:decorate="~{app/app-layout}">
 <head>
     <title>Bithon</title>
-
-<!--    <script th:src="@{'/js/metric/' + ${metricName} + '-dashboard.js'}"></script>-->
     <script th:src="@{'/js/api-client/dashboard-api.js'}"></script>
 </head>
 <body>
@@ -24,7 +22,7 @@ $(document).ready(function () {
                 dashboard.resize();
             });
         }, (error) => {
-            alert(error);
+            alert(error.responseText);
         });
 });
 </script>

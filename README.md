@@ -6,7 +6,7 @@ It targets application metrics, logging, distributed tracing, alert and applicat
 
 # Demon
 
-A preview demo is hosted [here](https://www.bithon.cn:9897/ui/home).
+A preview demo is hosted [here](https://www.bithon.cn:9897/web/home).
 
 # Build
 
@@ -64,7 +64,7 @@ By default, the application opens and listens on following ports at local
 | ctrl | 9899 |
 | web | 9897 |
 
-Once the application has started, visit [http://localhost:9897/ui/home](http://localhost:9897/ui/home) to view the monitor.
+Once the application has started, visit [http://localhost:9897/web/home](http://localhost:9897/web/home) to view the monitor.
 
 ## 2. Attach agent to your java application
 

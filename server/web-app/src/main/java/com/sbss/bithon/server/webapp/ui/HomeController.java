@@ -34,7 +34,7 @@ public class HomeController {
         this.serviceDiscovery = serviceDiscovery;
     }
 
-    @GetMapping("/ui/home")
+    @GetMapping("/web/home")
     public String home(Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         return "home/index";

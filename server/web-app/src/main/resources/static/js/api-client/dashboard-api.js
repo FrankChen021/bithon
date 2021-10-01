@@ -4,7 +4,7 @@ class DashboardApi {
     getDashboardConfig(boardName, successCallback, errorCallback) {
         $.ajax({
             type: 'GET',
-            url: "/ui/api/dashboard/" + boardName,
+            url: "/web/api/dashboard/get/" + boardName,
             async: true,
             dataType: "json",
             contentType: "application/json",

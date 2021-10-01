@@ -52,6 +52,6 @@ class MetricSidebar {
 
     // PRIVATE
     addMetricItem(item) {
-        this._container.append(`<a href="/ui/app/metric/${appName}/${item.id}">${item.text}</a>`);
+        this._container.append(`<a href="/web/app/metric/${appName}/${item.id}">${item.text}</a>`);
     }
 }
