@@ -50,10 +50,12 @@
     <script th:src="@{/js/utils/number.js}"></script>
     <script th:src="@{/js/utils/time.js}"></script>
 
+
     <script th:inline="javascript">
         const apiHost = [[${apiHost}]];
         const appName = [[${appName}]];
     </script>
+    <script th:src="@{/js/api-client/schema-api.js}"></script>
     <script th:src="@{/js/component/dashboard/component.js}"></script>
 </head>
 <body>
@@ -330,7 +332,7 @@
                 window.clearInterval(handler);
             }, 300);
         })
-        new MetricSidebar("metricSidebar", appName).load();
+        new MetricSidebar("metricSidebar", appName, new SchemaApi()).load();
     });
 </script>
 </html>
