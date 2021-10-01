@@ -35,13 +35,13 @@ public class AppController {
         this.serviceDiscovery = serviceDiscovery;
     }
 
-    @GetMapping("/ui/app/*")
+    @GetMapping("/web/app/*")
     public String appHomePage(Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         return "app/index";
     }
 
-    @GetMapping("/ui/app/metric/{appName}/{metricName}")
+    @GetMapping("/web/app/metric/{appName}/{metricName}")
     public String webServerPage(@PathVariable("appName") String appName,
                                 @PathVariable("metricName") String metricName,
                                 Model model) {
@@ -51,7 +51,7 @@ public class AppController {
         return "app/metric-template";
     }
 
-    @GetMapping("/ui/app/trace/{appName}")
+    @GetMapping("/web/app/trace/{appName}")
     public String traceHomePage(@PathVariable("appName") String appName,
                                 Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
@@ -59,7 +59,7 @@ public class AppController {
         return "app/trace";
     }
 
-    @GetMapping("/ui/app/topo/{appName}")
+    @GetMapping("/web/app/topo/{appName}")
     public String topoHome(@PathVariable("appName") String appName,
                            Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());

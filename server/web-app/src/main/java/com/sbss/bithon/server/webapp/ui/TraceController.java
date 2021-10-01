@@ -35,7 +35,7 @@ public class TraceController {
         this.serviceDiscovery = serviceDiscovery;
     }
 
-    @GetMapping("/ui/trace/detail/{traceId}")
+    @GetMapping("/web/trace/detail/{traceId}")
     public String traceHome(@PathVariable("traceId") String traceId,
                             Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());

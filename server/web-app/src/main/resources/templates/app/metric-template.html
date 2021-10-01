@@ -5,21 +5,25 @@
       layout:decorate="~{app/app-layout}">
 <head>
     <title>Bithon</title>
-    <script th:src="@{/js/api-client/metric-client.js}"></script>
-    <script th:src="@{'/js/metric/' + ${metricName} + '-dashboard.js'}"></script>
+    <script th:src="@{'/js/api-client/dashboard-api.js'}"></script>
 </head>
 <body>
 
 <div layout:fragment="content" id="dashboard">
 
 <script th:inline="javascript">
-$(document).ready(function(){
-    const dashboard = new Dashboard('dashboard', [[${appName}]], new SchemaApi());
-    dashboard.load([(${#strings.replace(metricName,'-','_')})]_dashboard);
+$(document).ready(function () {
+    new DashboardApi().getDashboardConfig([[${metricName}]],
+        (boardConfig) => {
+            const dashboard = new Dashboard('dashboard', [[${appName}]], new SchemaApi());
+            dashboard.load(boardConfig);
 
-    $(window).bind('resize', ()=>{
-        dashboard.resize();
-    });
+            $(window).bind('resize', () => {
+                dashboard.resize();
+            });
+        }, (error) => {
+            alert(error.responseText);
+        });
 });
 </script>
 

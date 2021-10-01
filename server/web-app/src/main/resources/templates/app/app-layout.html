@@ -50,10 +50,12 @@
     <script th:src="@{/js/utils/number.js}"></script>
     <script th:src="@{/js/utils/time.js}"></script>
 
+
     <script th:inline="javascript">
         const apiHost = [[${apiHost}]];
         const appName = [[${appName}]];
     </script>
+    <script th:src="@{/js/api-client/schema-api.js}"></script>
     <script th:src="@{/js/component/dashboard/component.js}"></script>
 </head>
 <body>
@@ -65,7 +67,7 @@
             <div class=" sidebar-item sidebar-menu">
                 <ul>
                     <li class="sidebar">
-                        <a th:href="@{'/ui/app/topo/' + ${appName}}">
+                        <a th:href="@{'/web/app/topo/' + ${appName}}">
                             <i class="fa fa-tachometer-alt"></i>
                             <span class="menu-text">Topo</span>
                         </a>
@@ -92,7 +94,7 @@
                         <div class="sidebar-submenu">
                             <ul>
                                 <li>
-                                    <a th:href="@{'/ui/app/trace/' + ${appName}}">Request List</a>
+                                    <a th:href="@{'/web/app/trace/' + ${appName}}">Request List</a>
                                 </li>
                             </ul>
                         </div>
@@ -280,7 +282,7 @@
     <main class="page-content" style="padding-top:57px!important">
         <nav class="navbar navbar-dark bg-dark fixed-top">
             <!-- Navbar content -->
-            <a class="navbar-brand" href="/ui/home">Bithon</a>
+            <a class="navbar-brand" href="/web/home">Bithon</a>
         </nav>
         <div id="overlay" class="overlay"></div>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -330,7 +332,7 @@
                 window.clearInterval(handler);
             }, 300);
         })
-        new MetricSidebar("metricSidebar", appName).load();
+        new MetricSidebar("metricSidebar", appName, new SchemaApi()).load();
     });
 </script>
 </html>

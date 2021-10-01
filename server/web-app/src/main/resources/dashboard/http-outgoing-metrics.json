@@ -1,0 +1,70 @@
+{
+  "title": "",
+  "charts": [
+    {
+      "dataSource": "http-outgoing-metrics",
+      "title": "QPS",
+      "width": 4,
+      "metrics": [
+        {
+          "name": "qps"
+        }
+      ]
+    },
+    {
+      "dataSource": "http-outgoing-metrics",
+      "title": "Response Time",
+      "width": 4,
+      "yAxis": [
+        {
+          "unit": "millisecond"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "avgResponseTime"
+        },
+        {
+          "name": "minResponseTime"
+        },
+        {
+          "name": "maxResponseTime"
+        }
+      ]
+    },
+    {
+      "dataSource": "http-outgoing-metrics",
+      "title": "Error",
+      "width": 4,
+      "metrics": [
+        {
+          "name": "count4xx"
+        },
+        {
+          "name": "count5xx"
+        },
+        {
+          "name": "countException"
+        }
+      ]
+    },
+    {
+      "dataSource": "http-outgoing-metrics",
+      "title": "IO",
+      "width": 4,
+      "yAxis": [
+        {
+          "unit": "compact_number"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "requestBytes"
+        },
+        {
+          "name": "responseBytes"
+        }
+      ]
+    }
+  ]
+}
