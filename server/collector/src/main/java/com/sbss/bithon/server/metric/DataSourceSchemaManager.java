@@ -70,16 +70,18 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         synchronized (this) {
             try (InputStream is = this.getClass().getClassLoader()
                                       .getResourceAsStream(String.format("schema/%s.json", name))) {
-
-                ObjectMapper om = new ObjectMapper();
-                om.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
-                DataSourceSchema dataSourceSchema = om.readValue(is, DataSourceSchema.class);
-                addDataSourceSchema(dataSourceSchema);
-                return dataSourceSchema;
+                if (is != null) {
+                    ObjectMapper om = new ObjectMapper();
+                    om.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+                    DataSourceSchema dataSourceSchema = om.readValue(is, DataSourceSchema.class);
+                    addDataSourceSchema(dataSourceSchema);
+                    return dataSourceSchema;
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
+        throw new RuntimeException("Can't find schema for datasource " + name);
     }
 
     public Map<String, DataSourceSchema> getDataSources() {
