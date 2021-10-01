@@ -35,6 +35,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +81,8 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        metricCollector = new ClientChannel(new RoundRobinEndPointProvider(endpoints)).getRemoteService(IMetricCollector.class);
+        metricCollector = new ClientChannel(new RoundRobinEndPointProvider(endpoints)).configureRetry(3, Duration.ofMillis(100))
+                                                                                      .getRemoteService(IMetricCollector.class);
 
         this.dispatcherConfig = dispatcherConfig;
 
