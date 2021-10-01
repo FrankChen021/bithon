@@ -203,13 +203,16 @@ public class BrpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(long timestamp, int interval, ExceptionMetricSet metric) {
-        return BrpcExceptionMetricMessage.newBuilder()
-                                         .setTimestamp(timestamp)
-                                         .setInterval(interval)
-                                         .setUri(metric.getUri())
-                                         .setMessage(metric.getMessage())
-                                         .setExceptionCount(metric.getCount())
-                                         .build();
+        BrpcExceptionMetricMessage.Builder builder = BrpcExceptionMetricMessage.newBuilder()
+                                                                               .setTimestamp(timestamp)
+                                                                               .setInterval(interval);
+        if (metric.getUri() != null) {
+            builder.setUri(metric.getUri());
+        }
+
+        return builder.setMessage(metric.getMessage())
+                      .setExceptionCount(metric.getCount())
+                      .build();
     }
 
     @Override
