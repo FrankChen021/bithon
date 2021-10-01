@@ -31,6 +31,7 @@ import com.sbss.bithon.component.brpc.exception.CallerSideException;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,7 +53,9 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        traceCollector = new ClientChannel(new RoundRobinEndPointProvider(endpoints)).getRemoteService(ITraceCollector.class);
+        traceCollector = new ClientChannel(new RoundRobinEndPointProvider(endpoints))
+            .configureRetry(3, Duration.ofMillis(200))
+            .getRemoteService(ITraceCollector.class);
 
         this.dispatcherConfig = dispatcherConfig;
 
