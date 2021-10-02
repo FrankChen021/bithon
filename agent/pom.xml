@@ -26,17 +26,12 @@
         <module>agent-dispatcher-thrift</module>
         <module>agent-plugins</module>
         <module>agent-sentinel</module>
+        <module>agent-sdk</module>
         <module>agent-main</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.sbss.bithon.agent</groupId>
-                <artifactId>agent-bootstrap</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
             <!-- Core -->
             <dependency>
                 <groupId>com.sbss.bithon.agent</groupId>
@@ -73,6 +68,12 @@
             <dependency>
                 <groupId>com.sbss.bithon.agent</groupId>
                 <artifactId>agent-sentinel</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.sbss.bithon.agent</groupId>
+                <artifactId>agent-sdk</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

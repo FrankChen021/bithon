@@ -48,6 +48,11 @@
       <artifactId>agent-sentinel</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-sdk</artifactId>
+    </dependency>
+
     <!-- a lib used by plugins -->
     <dependency>
       <groupId>com.sbss.bithon.shaded</groupId>
@@ -78,6 +83,7 @@
               <Can-Retransform-Classes>true</Can-Retransform-Classes>
               <Can-Redefine-Classes>true</Can-Redefine-Classes>
               <Boot-Class-Path>./boot/agent-bootstrap.jar ./boot/shaded-bytebuddy.jar</Boot-Class-Path>
+              <Class-Path>./sdk/agent-sdk.jar</Class-Path>
             </manifestEntries>
           </archive>
         </configuration>
@@ -115,9 +121,14 @@
             </goals>
             <configuration>
               <tasks>
-                <echo message="****** Clear Agent Output Directory: ../${project.distribution.dir}/lib *****" />
+                <!-- NOTE:
+                We can't delete the ../${project.distribution.dir} since agent-plugins module has copied its output to a subdirectory of this directory
+                So we have to clear relevant directories one by one
+                -->
+                <echo message="****** Clear Agent Output Directory: ../${project.distribution.dir}/lib,boot,sdk *****" />
                 <delete dir="../${project.distribution.dir}/lib" />
                 <delete dir="../${project.distribution.dir}/boot" />
+                <delete dir="../${project.distribution.dir}/sdk" />
               </tasks>
             </configuration>
           </execution>

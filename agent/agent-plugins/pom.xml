@@ -15,6 +15,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>bithon-sdk</module>
     <module>jdbc-druid</module>
     <module>jvm</module>
     <module>jvm-jdk8</module>
@@ -42,6 +43,11 @@
 
   <dependencies>
     <!-- Use to publish -->
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-plugin-bithon-sdk</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- Web Container-->
     <dependency>
