@@ -19,27 +19,27 @@ package com.sbss.bithon.agent.core.metric.domain.jvm;
 import java.lang.management.MemoryUsage;
 
 /**
- * @author: frank.chen021@outlook.com
- * @date: 2020/12/29 9:54 下午
+ * @author frank.chen021@outlook.com
+ * @date 2020/12/29 9:54 下午
  */
 public class MemoryRegionCompositeMetric {
 
     // approximate to -XX:MaxPermSize
-    public long max = -1;
+    public long max = 0;
 
     // approximate to -XX:PermSize
-    public long init = -1;
+    public long init = 0;
 
-    public long used = -1;
+    public long used = 0;
 
     // available memory including used
-    public long committed = -1;
+    public long committed = 0;
 
     public MemoryRegionCompositeMetric() {
     }
 
     public MemoryRegionCompositeMetric(long max, long init, long used, long committed) {
-        this.max = max;
+        this.max = Math.max(max, 0);
         this.init = init;
         this.used = used;
         this.committed = committed;
