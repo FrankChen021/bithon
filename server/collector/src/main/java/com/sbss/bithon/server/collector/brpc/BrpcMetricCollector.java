@@ -33,7 +33,7 @@ import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
-import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
+import com.sbss.bithon.server.metric.handler.MetricMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
@@ -47,9 +47,9 @@ import java.util.List;
 @Slf4j
 public class BrpcMetricCollector implements IMetricCollector {
 
-    private final IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink;
+    private final IMessageSink<CloseableIterator<MetricMessage>> metricSink;
 
-    public BrpcMetricCollector(IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink) {
+    public BrpcMetricCollector(IMessageSink<CloseableIterator<MetricMessage>> metricSink) {
         this.metricSink = metricSink;
     }
 
@@ -154,10 +154,10 @@ public class BrpcMetricCollector implements IMetricCollector {
 
     @Override
     public void sendGenericMetrics(BrpcMessageHeader header, BrpcGenericMetricMessage message) {
-        log.info("{}", message);
+        metricSink.process();
     }
 
-    private static class GenericMetricMessageIterator implements CloseableIterator<GenericMetricMessage> {
+    private static class GenericMetricMessageIterator implements CloseableIterator<MetricMessage> {
         private final Iterator<?> iterator;
         private final BrpcMessageHeader header;
 
@@ -176,8 +176,8 @@ public class BrpcMetricCollector implements IMetricCollector {
         }
 
         @Override
-        public GenericMetricMessage next() {
-            return GenericMetricMessage.of(header, iterator.next());
+        public MetricMessage next() {
+            return MetricMessage.of(header, iterator.next());
         }
     }
 }

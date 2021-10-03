@@ -27,17 +27,17 @@ import java.util.HashMap;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class GenericMetricMessage extends HashMap<String, Object> {
+public class MetricMessage extends HashMap<String, Object> {
 
-    public static GenericMetricMessage of(BrpcMessageHeader header, Object message) {
-        GenericMetricMessage metricMessage = new GenericMetricMessage();
+    public static MetricMessage of(BrpcMessageHeader header, Object message) {
+        MetricMessage metricMessage = new MetricMessage();
         ReflectionUtils.getFields(header, metricMessage);
         ReflectionUtils.getFields(message, metricMessage);
         return metricMessage;
     }
 
-    public static GenericMetricMessage of(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, Object message) {
-        GenericMetricMessage metricMessage = new GenericMetricMessage();
+    public static MetricMessage of(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, Object message) {
+        MetricMessage metricMessage = new MetricMessage();
         ReflectionUtils.getFields(header, metricMessage);
         ReflectionUtils.getFields(message, metricMessage);
         return metricMessage;

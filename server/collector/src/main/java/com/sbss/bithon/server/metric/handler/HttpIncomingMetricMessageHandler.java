@@ -55,7 +55,7 @@ public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandl
     }
 
     @Override
-    protected boolean beforeProcess(GenericMetricMessage message) {
+    protected boolean beforeProcess(MetricMessage message) {
         if (message.getLong("totalCount") <= 0) {
             return false;
         }
@@ -71,7 +71,7 @@ public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandl
     }
 
     @Override
-    protected MetricSet extractEndpointLink(GenericMetricMessage message) {
+    protected MetricSet extractEndpointLink(MetricMessage message) {
         String srcApplication;
         EndPointType srcEndPointType;
         if (StringUtils.isEmpty(message.getString("srcApplication"))) {

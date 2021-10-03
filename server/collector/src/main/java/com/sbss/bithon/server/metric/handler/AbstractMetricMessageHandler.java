@@ -45,7 +45,7 @@ import java.util.Map;
 @Slf4j
 @Getter
 public abstract class AbstractMetricMessageHandler
-    extends AbstractThreadPoolMessageHandler<CloseableIterator<GenericMetricMessage>> {
+    extends AbstractThreadPoolMessageHandler<CloseableIterator<MetricMessage>> {
 
     private final DataSourceSchema schema;
     private final DataSourceSchema endpointSchema;
@@ -76,12 +76,12 @@ public abstract class AbstractMetricMessageHandler
         return this.schema.getName();
     }
 
-    protected boolean beforeProcess(GenericMetricMessage message) throws Exception {
+    protected boolean beforeProcess(MetricMessage message) throws Exception {
         return true;
     }
 
     @Override
-    protected final void onMessage(CloseableIterator<GenericMetricMessage> metricMessages) {
+    protected final void onMessage(CloseableIterator<MetricMessage> metricMessages) {
         if (!metricMessages.hasNext()) {
             return;
         }
@@ -93,7 +93,7 @@ public abstract class AbstractMetricMessageHandler
         //
         List<InputRow> inputRowList = new ArrayList<>(8);
         while (metricMessages.hasNext()) {
-            GenericMetricMessage metricMessage = metricMessages.next();
+            MetricMessage metricMessage = metricMessages.next();
 
             try {
                 if (!beforeProcess(metricMessage)) {
@@ -135,7 +135,7 @@ public abstract class AbstractMetricMessageHandler
         }
     }
 
-    protected MetricSet extractEndpointLink(GenericMetricMessage message) {
+    protected MetricSet extractEndpointLink(MetricMessage message) {
         return null;
     }
 
@@ -216,7 +216,7 @@ public abstract class AbstractMetricMessageHandler
         }
     }
 
-    private void processMeta(GenericMetricMessage metric) {
+    private void processMeta(MetricMessage metric) {
         String appName = metric.getApplicationName();
         String instanceName = metric.getInstanceName();
         try {

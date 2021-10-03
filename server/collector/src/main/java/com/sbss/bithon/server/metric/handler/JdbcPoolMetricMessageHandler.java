@@ -48,7 +48,7 @@ public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler {
     }
 
     @Override
-    protected boolean beforeProcess(GenericMetricMessage metricObject) {
+    protected boolean beforeProcess(MetricMessage metricObject) {
         //TODO: cache the parse result
         MiscUtils.ConnectionString conn = MiscUtils.parseConnectionString(metricObject.getString("connectionString"));
         metricObject.set("server", conn.getHostAndPort());
