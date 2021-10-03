@@ -48,11 +48,7 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
         super("http-outgoing-metrics",
               metaStorage,
               metricStorage,
-              dataSourceSchemaManager,
-              1,
-              10,
-              Duration.ofSeconds(60),
-              4096);
+              dataSourceSchemaManager);
         this.uriNormalizer = uriNormalizer;
     }
 

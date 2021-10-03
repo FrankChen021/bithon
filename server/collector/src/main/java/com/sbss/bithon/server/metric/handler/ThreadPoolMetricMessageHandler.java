@@ -39,10 +39,6 @@ public class ThreadPoolMetricMessageHandler extends AbstractMetricMessageHandler
         super("thread-pool-metrics",
               metaStorage,
               metricStorage,
-              dataSourceSchemaManager,
-              1,
-              5,
-              Duration.ofSeconds(60),
-              4096);
+              dataSourceSchemaManager);
     }
 }

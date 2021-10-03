@@ -27,23 +27,13 @@ import com.sbss.bithon.server.collector.sink.local.LocalMetricSink;
 import com.sbss.bithon.server.collector.sink.local.LocalTraceSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.event.handler.EventsMessageHandler;
-import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.HttpIncomingMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.HttpOutgoingMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.MetricMessage;
-import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
 import com.sbss.bithon.server.tracing.handler.TraceMessageHandler;
 import lombok.Data;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -72,29 +62,9 @@ public class ThriftCollectorConfig {
     @Bean("metricSink")
     public IMessageSink<CloseableIterator<MetricMessage>> metricSink(ThriftCollectorConfig config,
                                                                      ObjectMapper om,
-                                                                     JvmMetricMessageHandler jvmMetricMessageHandler,
-                                                                     JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
-                                                                     HttpIncomingMetricMessageHandler httpIncomingMetricMessageHandler,
-                                                                     WebServerMetricMessageHandler webServerMetricMessageHandler,
-                                                                     ExceptionMetricMessageHandler exceptionMetricMessageHandler,
-                                                                     HttpOutgoingMetricMessageHandler httpOutgoingMetricMessageHandler,
-                                                                     ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
-                                                                     JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
-                                                                     RedisMetricMessageHandler redisMetricMessageHandler,
-                                                                     SqlMetricMessageHandler sqlMetricMessageHandler,
-                                                                     MongoDbMetricMessageHandler mongoDbMetricMessageHandler) {
+                                                                     ApplicationContext applicationContext) {
         if ("local".equals(config.getSink().getType())) {
-            return new LocalMetricSink(jvmMetricMessageHandler,
-                                       jvmGcMetricMessageHandler,
-                                       httpIncomingMetricMessageHandler,
-                                       webServerMetricMessageHandler,
-                                       exceptionMetricMessageHandler,
-                                       httpOutgoingMetricMessageHandler,
-                                       threadPoolMetricMessageHandler,
-                                       jdbcPoolMetricMessageHandler,
-                                       redisMetricMessageHandler,
-                                       sqlMetricMessageHandler,
-                                       mongoDbMetricMessageHandler);
+            return new LocalMetricSink(applicationContext);
         } else {
             return new KafkaMetricSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink()
                                                                                                    .getProps(),

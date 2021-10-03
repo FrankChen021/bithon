@@ -40,11 +40,7 @@ public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler {
         super("jdbc-pool-metrics",
               metaStorage,
               metricStorage,
-              dataSourceSchemaManager,
-              2,
-              20,
-              Duration.ofSeconds(60),
-              4096);
+              dataSourceSchemaManager);
     }
 
     @Override

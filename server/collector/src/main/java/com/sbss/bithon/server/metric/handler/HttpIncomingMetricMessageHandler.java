@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.time.Duration;
 
 /**
  * @author frank.chen021@outlook.com
@@ -46,11 +45,7 @@ public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandl
         super("http-incoming-metrics",
               metaStorage,
               metricStorage,
-              dataSourceSchemaManager,
-              1,
-              10,
-              Duration.ofSeconds(60),
-              4096);
+              dataSourceSchemaManager);
         this.uriNormalizer = uriNormalizer;
     }
 

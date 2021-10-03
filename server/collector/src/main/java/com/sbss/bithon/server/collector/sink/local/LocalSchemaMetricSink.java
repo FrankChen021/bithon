@@ -17,6 +17,7 @@
 package com.sbss.bithon.server.collector.sink.local;
 
 import com.sbss.bithon.server.collector.sink.IMessageSink;
+import com.sbss.bithon.server.common.utils.ThreadUtils;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
 import com.sbss.bithon.server.metric.DataSourceSchemaManager;
 import com.sbss.bithon.server.metric.handler.AbstractMetricMessageHandler;
@@ -26,9 +27,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +44,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
     final Map<String, AbstractMetricMessageHandler> handlers;
     final DataSourceSchemaManager schemaManager;
     final ApplicationContext applicationContext;
+    final ThreadPoolExecutor executor;
 
     public LocalSchemaMetricSink(ApplicationContext applicationContext) {
         Map<String, AbstractMetricMessageHandler> handlers = applicationContext.getBeansOfType(AbstractMetricMessageHandler.class);
@@ -53,6 +57,23 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
 
         this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);
         this.applicationContext = applicationContext;
+
+        final String name = "schema-metric-sink";
+        executor = new ThreadPoolExecutor(2,
+                                          32,
+                                          1,
+                                          TimeUnit.MINUTES,
+                                          new LinkedBlockingQueue<>(4096),
+                                          new ThreadUtils.NamedThreadFactory(name),
+                                          new ThreadPoolExecutor.DiscardPolicy());
+        log.info("Starting executor [{}]", name);
+
+        Thread shutdownThread = new Thread(() -> {
+            log.info("Shutting down executor [{}]", name);
+            executor.shutdown();
+        });
+        shutdownThread.setName(name + "-shutdown");
+        Runtime.getRuntime().addShutdownHook(shutdownThread);
     }
 
     @Override
@@ -63,7 +84,16 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
             return;
         }
 
-        handler.submit(message.getMetrics());
+        executor.submit(() -> {
+            String oldName = Thread.currentThread().getName();
+            Thread.currentThread().setName(oldName + "-" + messageType);
+            try {
+                handler.process(message.getMetrics());
+            } finally {
+                Thread.currentThread().setName(oldName);
+            }
+        });
+
     }
 
     private AbstractMetricMessageHandler getMessageHandler(SchemaMetricMessage message) {
@@ -82,11 +112,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
                     handler = new MetricMessageHandler(message.getSchema().getName(),
                                                        applicationContext.getBean(IMetaStorage.class),
                                                        applicationContext.getBean(IMetricStorage.class),
-                                                       schemaManager,
-                                                       1,
-                                                       1,
-                                                       Duration.ofSeconds(10),
-                                                       1024);
+                                                       schemaManager);
 
                     handlers.put(message.getSchema().getName(), handler);
                     return handler;
@@ -106,18 +132,11 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
         public MetricMessageHandler(String dataSourceName,
                                     IMetaStorage metaStorage,
                                     IMetricStorage metricStorage,
-                                    DataSourceSchemaManager dataSourceSchemaManager,
-                                    int corePoolSize,
-                                    int maxPoolSize,
-                                    Duration keepAliveTime, int queueSize) throws IOException {
+                                    DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
             super(dataSourceName,
                   metaStorage,
                   metricStorage,
-                  dataSourceSchemaManager,
-                  corePoolSize,
-                  maxPoolSize,
-                  keepAliveTime,
-                  queueSize);
+                  dataSourceSchemaManager);
         }
     }
 }

@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.Duration;
 
 /**
  * @author frank.chen021@outlook.com
@@ -41,11 +40,7 @@ public class SqlMetricMessageHandler extends AbstractMetricMessageHandler {
         super("sql-metrics",
               metaStorage,
               metricStorage,
-              dataSourceSchemaManager,
-              1,
-              5,
-              Duration.ofSeconds(60),
-              1024);
+              dataSourceSchemaManager);
     }
 
     // TODO: cache the process result of connection string
