@@ -18,6 +18,7 @@ package com.sbss.bithon.agent.dispatcher.thrift;
 
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
+import com.sbss.bithon.agent.core.metric.collector.IMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
@@ -44,7 +45,9 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
+import com.sbss.bithon.agent.sdk.metric.schema.Schema;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -312,6 +315,11 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setGcCount(metrics.getGcCount());
         message.setGcTime(metrics.getGcTime());
         return message;
+    }
+
+    @Override
+    public Object from(Schema schema, Collection<IMetricSet> metricCollection, long timestamp, int interval) {
+        return null;
     }
 
     @Override

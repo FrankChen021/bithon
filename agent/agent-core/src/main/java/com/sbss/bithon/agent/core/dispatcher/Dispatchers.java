@@ -66,7 +66,6 @@ public class Dispatchers {
             return DISPATCHERS.computeIfAbsent(dispatcherName, key -> {
                 try {
                     return new Dispatcher(dispatcherName,
-                                          AgentContext.getInstance().getAgentDirectory(),
                                           AgentContext.getInstance().getAppInstance(),
                                           config);
                 } catch (Exception e) {

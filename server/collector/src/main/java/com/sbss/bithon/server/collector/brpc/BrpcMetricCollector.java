@@ -19,6 +19,7 @@ package com.sbss.bithon.server.collector.brpc;
 
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpOutgoingMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
@@ -149,6 +150,11 @@ public class BrpcMetricCollector implements IMetricCollector {
         }
 
         metricSink.process("mongodb-metrics", new GenericMetricMessageIterator(header, messages));
+    }
+
+    @Override
+    public void sendGenericMetrics(BrpcMessageHeader header, BrpcGenericMetricMessage message) {
+        log.info("{}", message);
     }
 
     private static class GenericMetricMessageIterator implements CloseableIterator<GenericMetricMessage> {

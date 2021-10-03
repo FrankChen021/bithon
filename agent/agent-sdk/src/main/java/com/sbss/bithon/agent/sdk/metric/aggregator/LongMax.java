@@ -16,13 +16,15 @@
 
 package com.sbss.bithon.agent.sdk.metric.aggregator;
 
+import com.sbss.bithon.agent.sdk.metric.IMetricValue;
+
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Frank Chen
  * @date 2021-10-01
  */
-public class LongMax implements IAggregator {
+public class LongMax implements IMetricValue {
     private final AtomicLong value = new AtomicLong(Long.MIN_VALUE);
 
     @Override

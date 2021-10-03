@@ -19,6 +19,7 @@
     </properties>
 
     <modules>
+        <module>agent-sdk</module>
         <module>agent-bootstrap</module>
         <module>agent-core</module>
         <module>agent-controller</module>
@@ -26,7 +27,6 @@
         <module>agent-dispatcher-thrift</module>
         <module>agent-plugins</module>
         <module>agent-sentinel</module>
-        <module>agent-sdk</module>
         <module>agent-main</module>
     </modules>
 

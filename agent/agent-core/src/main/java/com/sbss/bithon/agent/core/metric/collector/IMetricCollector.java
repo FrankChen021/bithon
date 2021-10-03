@@ -23,9 +23,7 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public interface IMetricCollector {
-
-    boolean isEmpty();
+public interface IMetricCollector extends IMetricCollectorBase {
 
     List<Object> collect(IMessageConverter messageConverter,
                          int interval,

@@ -20,7 +20,9 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
-import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
+import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollector2;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollectorBase;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
 import com.sbss.bithon.agent.sdk.metric.IMetricsRegistry;
@@ -48,13 +50,13 @@ public class MetricRegistryFactory$Create extends AbstractInterceptor {
 
         // TODO: use bytebuddy to generate dynamic proxy
         Object delegate = Proxy.newProxyInstance(PluginClassLoaderManager.getDefaultLoader(),
-                                                 new Class[]{IMetricsRegistry.class, IMetricCollector.class},
+                                                 new Class[]{IMetricsRegistry.class, IMetricCollector2.class},
                                                  new MetricRegistryInvocationHandler(name,
                                                                                      dimensionSpec,
                                                                                      metricClass));
 
         // TODO: register the object into bithon's metric system
-        MetricCollectorManager.getInstance().register(name, (IMetricCollector) delegate);
+        MetricCollectorManager.getInstance().register(name, (IMetricCollectorBase) delegate);
 
         aopContext.setReturning(delegate);
     }
@@ -86,9 +88,6 @@ public class MetricRegistryFactory$Create extends AbstractInterceptor {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
-            if ("get".equals(method.getName())) {
-                return delegate.get((boolean) args[0]);
-            }
             if ("getOrCreateMetric".equals(method.getName())) {
                 AppInstance appInstance = AgentContext.getInstance().getAppInstance();
 
@@ -106,6 +105,9 @@ public class MetricRegistryFactory$Create extends AbstractInterceptor {
             }
             if ("isEmpty".equals(method.getName())) {
                 return delegate.isEmpty();
+            }
+            if ("collect".equals(method.getName())) {
+                return delegate.collect((IMessageConverter) args[0], (int) args[1], (long) args[2]);
             }
             return null;
         }

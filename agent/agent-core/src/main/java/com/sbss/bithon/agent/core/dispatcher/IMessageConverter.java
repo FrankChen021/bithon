@@ -17,6 +17,7 @@
 package com.sbss.bithon.agent.core.dispatcher;
 
 import com.sbss.bithon.agent.core.event.EventMessage;
+import com.sbss.bithon.agent.core.metric.collector.IMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
@@ -30,7 +31,9 @@ import com.sbss.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric
 import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
 import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
+import com.sbss.bithon.agent.sdk.metric.schema.Schema;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -73,4 +76,6 @@ public interface IMessageConverter {
     Object from(Map<String, String> log);
 
     Object from(long timestamp, int interval, GcCompositeMetric gcMetricSet);
+
+    Object from(Schema schema, Collection<IMetricSet> metricCollection, long timestamp, int interval);
 }

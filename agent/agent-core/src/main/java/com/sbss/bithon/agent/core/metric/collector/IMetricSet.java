@@ -14,14 +14,18 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric.aggregator;
+package com.sbss.bithon.agent.core.metric.collector;
+
+import com.sbss.bithon.agent.sdk.metric.IMetricValue;
+
+import java.util.List;
 
 /**
  * @author Frank Chen
- * @date 2021-10-01
+ * @date 3/10/21 11:40
  */
-public interface IAggregator {
-    long update(long v);
+public interface IMetricSet {
+    List<String> getDimensions();
 
-    long value();
+    IMetricValue[] getMetrics();
 }

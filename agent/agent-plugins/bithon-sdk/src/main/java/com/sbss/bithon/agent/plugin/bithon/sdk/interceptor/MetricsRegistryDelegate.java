@@ -16,7 +16,11 @@
 
 package com.sbss.bithon.agent.plugin.bithon.sdk.interceptor;
 
-import com.sbss.bithon.agent.sdk.metric.Metrics;
+import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollector2;
+import com.sbss.bithon.agent.core.metric.collector.IMetricSet;
+import com.sbss.bithon.agent.sdk.metric.IMetricProvider;
+import com.sbss.bithon.agent.sdk.metric.IMetricValue;
 import com.sbss.bithon.agent.sdk.metric.aggregator.LongMax;
 import com.sbss.bithon.agent.sdk.metric.aggregator.LongMin;
 import com.sbss.bithon.agent.sdk.metric.aggregator.LongSum;
@@ -31,8 +35,6 @@ import com.sbss.bithon.agent.sdk.metric.schema.StringDimensionSpec;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,11 +45,36 @@ import java.util.stream.Collectors;
  * @author Frank Chen
  * @date 2021-10-01
  */
-public class MetricsRegistryDelegate {
+public class MetricsRegistryDelegate implements IMetricCollector2 {
+
+    static class MetricSet implements IMetricSet {
+        private final List<String> dimensions;
+        private final Object metricProvider;
+
+        public Object getMetricProvider() {
+            return metricProvider;
+        }
+
+        MetricSet(List<String> dimensions, Object metricProvider) {
+            this.dimensions = dimensions;
+            this.metricProvider = metricProvider;
+        }
+
+        @Override
+        public List<String> getDimensions() {
+            return dimensions;
+        }
+
+        @Override
+        public IMetricValue[] getMetrics() {
+            //TODO: remove IMetricProvider interface
+            return ((IMetricProvider) metricProvider).getMetrics();
+        }
+    }
+
     private final Supplier<Object> metricInstantiator;
     private final Schema schema;
-    private Map<List<String>, Object> metricsMap = new ConcurrentHashMap<>();
-    private long start = System.currentTimeMillis();
+    private Map<List<String>, IMetricSet> metricsMap = new ConcurrentHashMap<>();
 
     protected MetricsRegistryDelegate(String name,
                                       List<String> dimensionSpec,
@@ -76,43 +103,24 @@ public class MetricsRegistryDelegate {
         if (dimensions.length != schema.getDimensionsSpec().size()) {
             throw new RuntimeException("dimensions not matched. Expected dimensions: " + schema.getDimensionsSpec());
         }
-        return metricsMap.computeIfAbsent(Arrays.asList(dimensions), key -> metricInstantiator.get());
+
+        List<String> dimensionList = Arrays.asList(dimensions);
+        return ((MetricSet) metricsMap.computeIfAbsent(dimensionList, key -> {
+            Object metricProvider = metricInstantiator.get();
+            return new MetricSet(dimensionList, metricProvider);
+        })).getMetricProvider();
     }
 
-    public Metrics get(boolean reset) {
-        long timestamp = this.start;
-        long interval = (System.currentTimeMillis() - this.start) / 1000;
-
-        Map<List<String>, Object> metricMap;
-        if (reset) {
-            metricMap = this.metricsMap;
-            this.metricsMap = new ConcurrentHashMap<>();
-            this.start = System.currentTimeMillis();
-        } else {
-            metricMap = new HashMap<>(this.metricsMap);
-        }
-
-        List<LinkedHashMap<String, Object>> metrics = new ArrayList<>();
-        metricMap.forEach((k, v) -> {
-
-            LinkedHashMap<String, String> dimensions = new LinkedHashMap<>();
-            for (int i = 0; i < schema.getDimensionsSpec().size(); i++) {
-                dimensions.put(schema.getDimensionsSpec().get(i).getName(), k.get(i));
-            }
-
-            LinkedHashMap<String, Object> row = new LinkedHashMap<>();
-            row.put("timestamp", timestamp);
-            row.put("interval", interval);
-            row.put("dimensions", dimensions);
-            row.put("metrics", v);
-
-            metrics.add(row);
-        });
-
-        return new Metrics(schema, metrics);
-    }
-
+    @Override
     public boolean isEmpty() {
         return metricsMap.isEmpty();
+    }
+
+    @Override
+    public Object collect(IMessageConverter messageConverter, int interval, long timestamp) {
+        Map<List<String>, IMetricSet> metricMap = this.metricsMap;
+        this.metricsMap = new ConcurrentHashMap<>();
+
+        return messageConverter.from(this.schema, metricMap.values(), timestamp, interval);
     }
 }

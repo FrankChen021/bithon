@@ -243,3 +243,34 @@ message BrpcMongoDbMetricMessage {
     int64 requestBytes         =  12;
     int64 responseBytes        =  13;
 }
+
+/**************************************************************************/
+/*******************************  Generic Metric Message       ***************************/
+/**************************************************************************/
+message BrpcGenericDimensionSpec {
+    string type = 1;
+    string name = 2;
+}
+
+message BrpcGenericMetricSpec {
+    string type = 1;
+    string name = 2;
+}
+
+message BrpcGenericMetricSchema {
+    string name = 1;
+    repeated BrpcGenericDimensionSpec dimensionsSpec = 2;
+    repeated BrpcGenericMetricSpec metricsSpec = 3;
+}
+
+message BrpcGenericMetricSet {
+    repeated string dimension = 3;
+    repeated int64  metric = 4;
+}
+
+message BrpcGenericMetricMessage {
+    int64 timestamp            =  1;
+    int64 interval             =  2;
+    BrpcGenericMetricSchema schema = 3;
+    repeated BrpcGenericMetricSet metricSet = 4;
+}
