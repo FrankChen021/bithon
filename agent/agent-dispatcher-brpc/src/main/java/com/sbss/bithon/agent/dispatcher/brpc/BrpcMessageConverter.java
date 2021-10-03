@@ -297,19 +297,16 @@ public class BrpcMessageConverter implements IMessageConverter {
                        Collection<IMetricSet> metricCollection,
                        long timestamp,
                        int interval) {
-        BrpcGenericMetricSchema.Builder schemaBuilder = BrpcGenericMetricSchema.newBuilder();
-        schema.getDimensionsSpec().forEach(dimensionSpec -> {
-            schemaBuilder.addDimensionsSpec(BrpcGenericDimensionSpec.newBuilder()
-                                                                    .setName(dimensionSpec.getName())
-                                                                    .setType(dimensionSpec.getType())
-                                                                    .build());
-        });
-        schema.getMetricsSpec().forEach(metricSpec -> {
-            schemaBuilder.addMetricsSpec(BrpcGenericMetricSpec.newBuilder()
-                                                              .setName(metricSpec.getName())
-                                                              .setType(metricSpec.getType())
-                                                              .build());
-        });
+        BrpcGenericMetricSchema.Builder schemaBuilder = BrpcGenericMetricSchema.newBuilder()
+                                                                               .setName(schema.getName());
+        schema.getDimensionsSpec().forEach(dimensionSpec -> schemaBuilder.addDimensionsSpec(BrpcGenericDimensionSpec.newBuilder()
+                                                                                                                    .setName(dimensionSpec.getName())
+                                                                                                                    .setType(dimensionSpec.getType())
+                                                                                                                    .build()));
+        schema.getMetricsSpec().forEach(metricSpec -> schemaBuilder.addMetricsSpec(BrpcGenericMetricSpec.newBuilder()
+                                                                                                        .setName(metricSpec.getName())
+                                                                                                        .setType(metricSpec.getType())
+                                                                                                        .build()));
 
         BrpcGenericMetricMessage.Builder messageBuilder = BrpcGenericMetricMessage.newBuilder();
         messageBuilder.setSchema(schemaBuilder.build());

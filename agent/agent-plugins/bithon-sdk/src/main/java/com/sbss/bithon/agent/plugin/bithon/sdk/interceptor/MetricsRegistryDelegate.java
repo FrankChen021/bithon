@@ -96,6 +96,9 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
             }
         }
 
+        // reserved metric
+        metricsSpec.add(new LongSumMetricSpec("interval"));
+
         schema = new Schema(name, dimensionSpecs, metricsSpec);
     }
 
