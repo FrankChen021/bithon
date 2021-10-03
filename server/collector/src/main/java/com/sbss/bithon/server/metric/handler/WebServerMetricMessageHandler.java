@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.Duration;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,10 +38,6 @@ public class WebServerMetricMessageHandler extends AbstractMetricMessageHandler 
         super("web-server-metrics",
               metaStorage,
               metricStorage,
-              dataSourceSchemaManager,
-              1,
-            5,
-              Duration.ofMinutes(1),
-              1024);
+              dataSourceSchemaManager);
     }
 }

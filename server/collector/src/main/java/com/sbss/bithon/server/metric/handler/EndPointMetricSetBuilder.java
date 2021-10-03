@@ -30,9 +30,9 @@ import java.util.Map;
  */
 public class EndPointMetricSetBuilder {
 
-    private long timestamp;
     private final Map<String, Number> metrics = new HashMap<>(8);
     private final Map<String, String> dimensions = new HashMap<>(8);
+    private long timestamp;
 
     public static EndPointMetricSetBuilder builder() {
         return new EndPointMetricSetBuilder();

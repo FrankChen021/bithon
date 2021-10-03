@@ -16,7 +16,6 @@
 
 package com.sbss.bithon.server.metric.handler;
 
-import com.sbss.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.meta.MetadataType;
 import com.sbss.bithon.server.meta.storage.IMetaStorage;
@@ -32,7 +31,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,8 +42,7 @@ import java.util.Map;
  */
 @Slf4j
 @Getter
-public abstract class AbstractMetricMessageHandler
-    extends AbstractThreadPoolMessageHandler<CloseableIterator<MetricMessage>> {
+public abstract class AbstractMetricMessageHandler {
 
     private final DataSourceSchema schema;
     private final DataSourceSchema endpointSchema;
@@ -56,12 +53,7 @@ public abstract class AbstractMetricMessageHandler
     public AbstractMetricMessageHandler(String dataSourceName,
                                         IMetaStorage metaStorage,
                                         IMetricStorage metricStorage,
-                                        DataSourceSchemaManager dataSourceSchemaManager,
-                                        int corePoolSize,
-                                        int maxPoolSize,
-                                        Duration keepAliveTime,
-                                        int queueSize) throws IOException {
-        super(dataSourceName, corePoolSize, maxPoolSize, keepAliveTime, queueSize);
+                                        DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
 
         this.schema = dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
         this.metaStorage = metaStorage;
@@ -71,7 +63,6 @@ public abstract class AbstractMetricMessageHandler
         this.endpointMetricStorageWriter = metricStorage.createMetricWriter(endpointSchema);
     }
 
-    @Override
     public String getType() {
         return this.schema.getName();
     }
@@ -80,8 +71,7 @@ public abstract class AbstractMetricMessageHandler
         return true;
     }
 
-    @Override
-    protected final void onMessage(CloseableIterator<MetricMessage> metricMessages) {
+    public final void process(CloseableIterator<MetricMessage> metricMessages) {
         if (!metricMessages.hasNext()) {
             return;
         }
@@ -137,6 +127,20 @@ public abstract class AbstractMetricMessageHandler
 
     protected MetricSet extractEndpointLink(MetricMessage message) {
         return null;
+    }
+
+    private void processMeta(MetricMessage metric) {
+        String appName = metric.getApplicationName();
+        String instanceName = metric.getInstanceName();
+        try {
+            long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
+            metaStorage.getOrCreateMetadataId(instanceName, MetadataType.APP_INSTANCE, appId);
+        } catch (Exception e) {
+            log.error("Failed to save app info[appName={}, instance={}] due to: {}",
+                      appName,
+                      instanceName,
+                      e);
+        }
     }
 
     static class TimeSlot extends HashMap<Map<String, String>, Map<String, NumberAggregator>> {
@@ -213,20 +217,6 @@ public abstract class AbstractMetricMessageHandler
                 }
             }
             return metricSetList;
-        }
-    }
-
-    private void processMeta(MetricMessage metric) {
-        String appName = metric.getApplicationName();
-        String instanceName = metric.getInstanceName();
-        try {
-            long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
-            metaStorage.getOrCreateMetadataId(instanceName, MetadataType.APP_INSTANCE, appId);
-        } catch (Exception e) {
-            log.error("Failed to save app info[appName={}, instance={}] due to: {}",
-                      appName,
-                      instanceName,
-                      e);
         }
     }
 }

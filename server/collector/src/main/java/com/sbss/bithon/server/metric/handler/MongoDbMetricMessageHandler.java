@@ -25,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.Duration;
 
 /**
  * @author frank.chen021@outlook.com
@@ -41,11 +40,7 @@ public class MongoDbMetricMessageHandler extends AbstractMetricMessageHandler {
         super("mongodb-metrics",
               metaStorage,
               metricStorage,
-              dataSourceSchemaManager,
-              1,
-              5,
-              Duration.ofSeconds(60),
-              2048);
+              dataSourceSchemaManager);
     }
 
     @Override

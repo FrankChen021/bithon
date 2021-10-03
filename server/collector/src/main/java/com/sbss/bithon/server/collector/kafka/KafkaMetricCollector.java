@@ -47,6 +47,6 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<MetricMessage> 
 
     @Override
     protected void onMessage(CloseableIterator<MetricMessage> msg) {
-        messageHandler.submit(msg);
+        messageHandler.process(msg);
     }
 }

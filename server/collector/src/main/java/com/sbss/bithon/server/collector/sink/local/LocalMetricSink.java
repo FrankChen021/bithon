@@ -17,25 +17,18 @@
 package com.sbss.bithon.server.collector.sink.local;
 
 import com.sbss.bithon.server.collector.sink.IMessageSink;
-import com.sbss.bithon.server.common.handler.IMessageHandler;
+import com.sbss.bithon.server.common.utils.ThreadUtils;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
-import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.HttpIncomingMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.HttpOutgoingMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.AbstractMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.MetricMessage;
-import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.ThreadPoolMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.WebServerMetricMessageHandler;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This sink is designed for function evaluation and local development.
@@ -47,42 +40,48 @@ import java.util.Map;
 @Slf4j
 public class LocalMetricSink implements IMessageSink<CloseableIterator<MetricMessage>> {
 
-    @Getter
-    private final Map<String, IMessageHandler<CloseableIterator<MetricMessage>>> handlers = new HashMap<>();
+    private final Map<String, AbstractMetricMessageHandler> handlers = new HashMap<>();
+    private final ThreadPoolExecutor executor;
 
-    public LocalMetricSink(JvmMetricMessageHandler jvmMetricMessageHandler,
-                           JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
-                           HttpIncomingMetricMessageHandler httpIncomingMetricMessageHandler,
-                           WebServerMetricMessageHandler webServerMetricMessageHandler,
-                           ExceptionMetricMessageHandler exceptionMetricMessageHandler,
-                           HttpOutgoingMetricMessageHandler httpOutgoingMetricMessageHandler,
-                           ThreadPoolMetricMessageHandler threadPoolMetricMessageHandler,
-                           JdbcPoolMetricMessageHandler jdbcPoolMetricMessageHandler,
-                           RedisMetricMessageHandler redisMetricMessageHandler,
-                           SqlMetricMessageHandler sqlMetricMessageHandler,
-                           MongoDbMetricMessageHandler mongoDbMetricMessageHandler) {
-        add(jvmMetricMessageHandler);
-        add(jvmGcMetricMessageHandler);
-        add(httpIncomingMetricMessageHandler);
-        add(webServerMetricMessageHandler);
-        add(exceptionMetricMessageHandler);
-        add(httpOutgoingMetricMessageHandler);
-        add(threadPoolMetricMessageHandler);
-        add(jdbcPoolMetricMessageHandler);
-        add(redisMetricMessageHandler);
-        add(sqlMetricMessageHandler);
-        add(mongoDbMetricMessageHandler);
+
+    public LocalMetricSink(ApplicationContext applicationContext) {
+        applicationContext.getBeansOfType(AbstractMetricMessageHandler.class).values().forEach(this::add);
+
+        final String name = "metric-sink";
+        executor = new ThreadPoolExecutor(2,
+                                          32,
+                                          1,
+                                          TimeUnit.MINUTES,
+                                          new LinkedBlockingQueue<>(4096),
+                                          new ThreadUtils.NamedThreadFactory(name),
+                                          new ThreadPoolExecutor.DiscardPolicy());
+        log.info("Starting executor [{}]", name);
+
+        Thread shutdownThread = new Thread(() -> {
+            log.info("Shutting down executor [{}]", name);
+            executor.shutdown();
+        });
+        shutdownThread.setName(name + "-shutdown");
+        Runtime.getRuntime().addShutdownHook(shutdownThread);
     }
 
-    private void add(IMessageHandler<CloseableIterator<MetricMessage>> handler) {
+    private void add(AbstractMetricMessageHandler handler) {
         handlers.put(handler.getType(), handler);
     }
 
     @Override
     public void process(String messageType, CloseableIterator<MetricMessage> messages) {
-        IMessageHandler<CloseableIterator<MetricMessage>> handler = handlers.get(messageType);
+        AbstractMetricMessageHandler handler = handlers.get(messageType);
         if (handler != null) {
-            handler.submit(messages);
+            executor.submit(() -> {
+                String oldName = Thread.currentThread().getName();
+                Thread.currentThread().setName(oldName + "-" + messageType);
+                try {
+                    handler.process(messages);
+                } finally {
+                    Thread.currentThread().setName(oldName);
+                }
+            });
         } else {
             log.error("No Handler for message [{}]", messageType);
         }

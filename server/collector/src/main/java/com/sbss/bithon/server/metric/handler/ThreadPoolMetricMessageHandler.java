@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.Duration;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,10 +38,6 @@ public class ThreadPoolMetricMessageHandler extends AbstractMetricMessageHandler
         super("thread-pool-metrics",
               metaStorage,
               metricStorage,
-              dataSourceSchemaManager,
-              1,
-              5,
-              Duration.ofSeconds(60),
-              4096);
+              dataSourceSchemaManager);
     }
 }
