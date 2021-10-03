@@ -14,31 +14,12 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric;
-
-import com.sbss.bithon.agent.sdk.metric.schema.Schema;
-
-import java.util.LinkedHashMap;
-import java.util.List;
+package com.sbss.bithon.agent.bootstrap.aop;
 
 /**
  * @author Frank Chen
- * @date {} {}
+ * @date 3/10/21 16:23
  */
-public class Metrics {
-    private final Schema schema;
-    private final List<LinkedHashMap<String, Object>> metrics;
-
-    public Metrics(Schema schema, List<LinkedHashMap<String, Object>> metrics) {
-        this.schema = schema;
-        this.metrics = metrics;
-    }
-
-    public Schema getSchema() {
-        return schema;
-    }
-
-    public List<LinkedHashMap<String, Object>> getMetrics() {
-        return metrics;
-    }
+public interface IReplacementInterceptor {
+    Object onExecute(Object[] args);
 }

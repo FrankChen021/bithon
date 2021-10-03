@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
  * @author frankchen
  * @date 2020-12-31 22:22:05
  */
-public final class AroundMethodAop {
+public final class AroundMethodAopImpl {
 
     public static Object intercept(IAopLogger log,
                                    AbstractInterceptor interceptor,
@@ -87,6 +87,9 @@ public final class AroundMethodAop {
         if (null != exception) {
             throw exception;
         }
-        return returning;
+
+        // return value stored in the context,
+        // so that interceptor can modify the return value
+        return context.getReturning();
     }
 }

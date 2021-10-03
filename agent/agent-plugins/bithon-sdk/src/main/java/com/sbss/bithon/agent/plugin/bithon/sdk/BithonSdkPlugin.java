@@ -20,20 +20,20 @@ import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import com.sbss.bithon.agent.core.plugin.IPlugin;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
  * @author Frank Chen
- * @date {} {}
+ * @date 2021-10-01
  */
 public class BithonSdkPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        return Arrays.asList(
+        return Collections.singletonList(
             //
             // metrics
             //
@@ -41,7 +41,7 @@ public class BithonSdkPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("create")
-                                                   .to("com.sbss.bithon.agent.plugin.bithon.sdk.interceptor.MetricRegistryFactory$Create")
+                                                   .replaceBy("com.sbss.bithon.agent.plugin.bithon.sdk.interceptor.MetricRegistryFactory$Create")
                 )
         );
     }

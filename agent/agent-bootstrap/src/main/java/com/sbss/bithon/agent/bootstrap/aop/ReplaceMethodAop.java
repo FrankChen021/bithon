@@ -14,25 +14,25 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.core.aop.descriptor;
+package com.sbss.bithon.agent.bootstrap.aop;
+
+import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
+import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
 
 /**
- * An enum describe the type of intercepted methods
- * @author frank.chen021@outlook.com
- * @date 2021/2/20 9:42 下午
+ * @author Frank Chen
+ * @date 3/10/21 16:01
  */
-public enum MethodType {
+public class ReplaceMethodAop {
 
-    CONSTRUCTOR,
+    private final IReplacementInterceptor interceptor;
 
-    /**
-     * for those which are not constructors
-     */
-    NON_CONSTRUCTOR,
+    public ReplaceMethodAop(IReplacementInterceptor interceptor) {
+        this.interceptor = interceptor;
+    }
 
-    /**
-     * replace the original method implementation
-     * this only works for non-constructor methods
-     */
-    REPLACEMENT;
+    @RuntimeType
+    public Object intercept(@AllArguments Object[] args) throws Exception {
+        return interceptor.onExecute(args);
+    }
 }
