@@ -20,6 +20,8 @@ import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
+import com.sbss.bithon.agent.core.metric.collector.IMetricCollector;
+import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
 import com.sbss.bithon.agent.sdk.metric.IMetricsRegistry;
 
@@ -46,10 +48,13 @@ public class MetricRegistryFactory$Create extends AbstractInterceptor {
 
         // TODO: use bytebuddy to generate dynamic proxy
         Object delegate = Proxy.newProxyInstance(PluginClassLoaderManager.getDefaultLoader(),
-                                                 new Class[]{IMetricsRegistry.class},
+                                                 new Class[]{IMetricsRegistry.class, IMetricCollector.class},
                                                  new MetricRegistryInvocationHandler(name,
                                                                                      dimensionSpec,
                                                                                      metricClass));
+
+        // TODO: register the object into bithon's metric system
+        MetricCollectorManager.getInstance().register(name, (IMetricCollector) delegate);
 
         aopContext.setReturning(delegate);
     }
@@ -94,6 +99,13 @@ public class MetricRegistryFactory$Create extends AbstractInterceptor {
                 String[] oldArgs = (String[]) args[0];
                 System.arraycopy(oldArgs, 0, newArgs, 2, oldArgs.length);
                 return delegate.getOrCreateMetric(newArgs);
+            }
+            if ("unregister".equals(method.getName())) {
+                // TODO:
+                return null;
+            }
+            if ("isEmpty".equals(method.getName())) {
+                return delegate.isEmpty();
             }
             return null;
         }

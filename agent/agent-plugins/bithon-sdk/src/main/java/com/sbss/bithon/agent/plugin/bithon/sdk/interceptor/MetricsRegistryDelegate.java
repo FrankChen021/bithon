@@ -112,4 +112,7 @@ public class MetricsRegistryDelegate {
         return new Metrics(schema, metrics);
     }
 
+    public boolean isEmpty() {
+        return metricsMap.isEmpty();
+    }
 }

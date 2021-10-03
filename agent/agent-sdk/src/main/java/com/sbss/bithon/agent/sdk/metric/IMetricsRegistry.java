@@ -25,4 +25,6 @@ public interface IMetricsRegistry<T> {
     T getOrCreateMetric(String... dimensions);
 
     Metrics get(boolean reset);
+
+    void unregister();
 }

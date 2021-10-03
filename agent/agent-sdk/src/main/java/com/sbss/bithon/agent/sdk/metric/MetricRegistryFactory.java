@@ -36,12 +36,17 @@ public class MetricRegistryFactory {
 
         @Override
         public Object getOrCreateMetric(String... dimensions) {
-            throw new NotImplementedException("getOrCreateMetric proxy is not installed correctly");
+            throw new NotImplementedException("'getOrCreateMetric' proxy is not installed correctly");
         }
 
         @Override
         public Metrics get(boolean reset) {
-            throw new NotImplementedException("get proxy is not installed correctly");
+            throw new NotImplementedException("'get' proxy is not installed correctly");
+        }
+
+        @Override
+        public void unregister() {
+            throw new NotImplementedException("'unregister' proxy is not installed correctly");
         }
     }
 
