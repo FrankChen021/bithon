@@ -129,6 +129,20 @@ public abstract class AbstractMetricMessageHandler {
         return null;
     }
 
+    private void processMeta(MetricMessage metric) {
+        String appName = metric.getApplicationName();
+        String instanceName = metric.getInstanceName();
+        try {
+            long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
+            metaStorage.getOrCreateMetadataId(instanceName, MetadataType.APP_INSTANCE, appId);
+        } catch (Exception e) {
+            log.error("Failed to save app info[appName={}, instance={}] due to: {}",
+                      appName,
+                      instanceName,
+                      e);
+        }
+    }
+
     static class TimeSlot extends HashMap<Map<String, String>, Map<String, NumberAggregator>> {
         @Getter
         private final long timestamp;
@@ -203,20 +217,6 @@ public abstract class AbstractMetricMessageHandler {
                 }
             }
             return metricSetList;
-        }
-    }
-
-    private void processMeta(MetricMessage metric) {
-        String appName = metric.getApplicationName();
-        String instanceName = metric.getInstanceName();
-        try {
-            long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
-            metaStorage.getOrCreateMetadataId(instanceName, MetadataType.APP_INSTANCE, appId);
-        } catch (Exception e) {
-            log.error("Failed to save app info[appName={}, instance={}] due to: {}",
-                      appName,
-                      instanceName,
-                      e);
         }
     }
 }
