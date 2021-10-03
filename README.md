@@ -126,3 +126,7 @@ For more information, check [Here](dev/README.md).
 # License
 
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+# User Doc
+1. [Configuration](doc/configuration.md)
+2. [Metrics](doc/metrics.md)

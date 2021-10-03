@@ -57,7 +57,7 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
     }
 
     @Override
-    protected boolean beforeProcess(GenericMetricMessage metricObject) throws Exception {
+    protected boolean beforeProcess(MetricMessage metricObject) throws Exception {
         if (metricObject.getLong("requestCount") <= 0) {
             return false;
         }
@@ -83,7 +83,7 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
     }
 
     @Override
-    protected MetricSet extractEndpointLink(GenericMetricMessage metricObject) {
+    protected MetricSet extractEndpointLink(MetricMessage metricObject) {
         String targetHostPort = metricObject.getString("targetHostPort");
         if (NetworkUtils.isIpAddress(metricObject.getString("targetHost"))) {
 

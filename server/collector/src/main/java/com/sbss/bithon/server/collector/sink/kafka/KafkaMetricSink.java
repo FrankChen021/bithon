@@ -20,14 +20,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
-import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
+import com.sbss.bithon.server.metric.handler.MetricMessage;
 import org.springframework.kafka.core.KafkaTemplate;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class KafkaMetricSink implements IMessageSink<CloseableIterator<GenericMetricMessage>> {
+public class KafkaMetricSink implements IMessageSink<CloseableIterator<MetricMessage>> {
 
     private final KafkaTemplate<String, String> producer;
     private final ObjectMapper objectMapper;
@@ -38,7 +38,7 @@ public class KafkaMetricSink implements IMessageSink<CloseableIterator<GenericMe
     }
 
     @Override
-    public void process(String messageType, CloseableIterator<GenericMetricMessage> messages) {
+    public void process(String messageType, CloseableIterator<MetricMessage> messages) {
         if (!messages.hasNext()) {
             return;
         }
@@ -53,7 +53,7 @@ public class KafkaMetricSink implements IMessageSink<CloseableIterator<GenericMe
         //
         StringBuilder messageText = new StringBuilder();
         while (messages.hasNext()) {
-            GenericMetricMessage metricMessage = messages.next();
+            MetricMessage metricMessage = messages.next();
 
             // Sink receives messages from an agent, it's safe to use instance name of first item
             key = metricMessage.getInstanceName();

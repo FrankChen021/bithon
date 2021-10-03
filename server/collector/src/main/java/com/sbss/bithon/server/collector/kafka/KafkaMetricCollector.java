@@ -18,7 +18,7 @@ package com.sbss.bithon.server.collector.kafka;
 
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.handler.AbstractMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
+import com.sbss.bithon.server.metric.handler.MetricMessage;
 
 /**
  * Kafka collector that is connecting to {@link com.sbss.bithon.server.collector.sink.kafka.KafkaMetricSink}
@@ -26,12 +26,12 @@ import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaMetricCollector extends AbstractKafkaCollector<GenericMetricMessage> {
+public class KafkaMetricCollector extends AbstractKafkaCollector<MetricMessage> {
 
     private final AbstractMetricMessageHandler messageHandler;
 
     public KafkaMetricCollector(AbstractMetricMessageHandler messageHandler) {
-        super(GenericMetricMessage.class);
+        super(MetricMessage.class);
         this.messageHandler = messageHandler;
     }
 
@@ -46,7 +46,7 @@ public class KafkaMetricCollector extends AbstractKafkaCollector<GenericMetricMe
     }
 
     @Override
-    protected void onMessage(CloseableIterator<GenericMetricMessage> msg) {
+    protected void onMessage(CloseableIterator<MetricMessage> msg) {
         messageHandler.submit(msg);
     }
 }

@@ -57,14 +57,21 @@ public class MetricCollectorManager {
          */
         int interval;
 
-        IMetricCollector collector;
+        IMetricCollectorBase collector;
 
-        public ManagedMetricCollector(IMetricCollector collector) {
+        public ManagedMetricCollector(IMetricCollectorBase collector) {
             this.collector = collector;
         }
 
-        public List<Object> collect(IMessageConverter messageConverter) {
-            return this.collector.collect(messageConverter, interval, lastCollectedAt);
+        public Object collect(IMessageConverter messageConverter) {
+            if (collector instanceof IMetricCollector) {
+                List<Object> objects = ((IMetricCollector) this.collector).collect(messageConverter, interval, lastCollectedAt);
+                if (CollectionUtils.isEmpty(objects)) {
+                    return null;
+                }
+                return objects;
+            }
+            return ((IMetricCollector2) collector).collect(messageConverter, interval, lastCollectedAt);
         }
 
         public boolean isEmpty() {
@@ -100,7 +107,6 @@ public class MetricCollectorManager {
      * This is because this class is still being constructing and the construction triggers some classes to be load,
      * and these classes are transformed to be delegated to plugins' interceptors
      *
-     * @return
      */
     public static MetricCollectorManager getInstance() {
         return INSTANCE;
@@ -115,7 +121,7 @@ public class MetricCollectorManager {
         return false;
     }
 
-    public <T extends IMetricCollector> T register(String collectorName, T collector) {
+    public synchronized <T extends IMetricCollectorBase> T register(String collectorName, T collector) {
         if (collectors.containsKey(collectorName)) {
             throw new RuntimeException(String.format("Metrics Local Storage(%s) already registered!", collectorName));
         }
@@ -125,7 +131,7 @@ public class MetricCollectorManager {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends IMetricCollector> T getOrRegister(String collectorName, Class<T> collectorClass) {
+    public <T extends IMetricCollectorBase> T getOrRegister(String collectorName, Class<T> collectorClass) {
         ManagedMetricCollector managedCollector = collectors.get(collectorName);
         if (managedCollector != null) {
             return (T) managedCollector.collector;
@@ -147,6 +153,10 @@ public class MetricCollectorManager {
         }
     }
 
+    public void unregister(String name) {
+        collectors.remove(name);
+    }
+
     private void collectAndDispatch() {
         if (!dispatcher.isReady()) {
             return;
@@ -159,9 +169,9 @@ public class MetricCollectorManager {
 
             this.scheduler.execute(() -> {
                 try {
-                    List<Object> messages = managedCollector.collect(dispatcher.getMessageConverter());
-                    if (CollectionUtils.isNotEmpty(messages)) {
-                        dispatcher.sendMessage(messages);
+                    Object message = managedCollector.collect(dispatcher.getMessageConverter());
+                    if (message != null) {
+                        dispatcher.sendMessage(message);
                     }
                 } catch (Throwable e) {
                     log.error("Throwable(unrecoverable) exception occurred when dispatching!", e);

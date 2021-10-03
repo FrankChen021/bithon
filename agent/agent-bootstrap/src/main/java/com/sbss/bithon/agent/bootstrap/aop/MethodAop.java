@@ -44,12 +44,12 @@ public class MethodAop {
                             @Morph ISuperMethod superMethod,
                             @This(optional = true) Object targetObject,
                             @AllArguments Object[] args) throws Exception {
-        return AroundMethodAop.intercept(LOGGER,
-                                         (AbstractInterceptor) interceptor,
-                                         targetClass,
-                                         superMethod,
-                                         targetObject,
-                                         targetMethod,
-                                         args);
+        return AroundMethodAopImpl.intercept(LOGGER,
+                                             (AbstractInterceptor) interceptor,
+                                             targetClass,
+                                             superMethod,
+                                             targetObject,
+                                             targetMethod,
+                                             args);
     }
 }

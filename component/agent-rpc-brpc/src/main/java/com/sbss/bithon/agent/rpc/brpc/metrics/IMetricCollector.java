@@ -59,4 +59,7 @@ public interface IMetricCollector {
 
     @ServiceConfig(isOneway = true)
     void sendMongoDb(BrpcMessageHeader header, List<BrpcMongoDbMetricMessage> messages);
+
+    @ServiceConfig(isOneway = true)
+    void sendGenericMetrics(BrpcMessageHeader header, BrpcGenericMetricMessage message);
 }

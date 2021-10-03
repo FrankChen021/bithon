@@ -39,7 +39,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
     private final List<IDataSourceSchemaListener> listeners = new ArrayList<>();
     private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
 
-    public void addDataSourceSchema(DataSourceSchema schema) {
+    public boolean addDataSourceSchema(DataSourceSchema schema) {
         if (schemas.putIfAbsent(schema.getName(), schema) == null) {
             for (IDataSourceSchemaListener listener : listeners) {
                 try {
@@ -48,7 +48,9 @@ public class DataSourceSchemaManager implements SmartLifecycle {
                     log.error("notify onAdd exception", e);
                 }
             }
+            return true;
         }
+        return false;
     }
 
     public void rmvDataSourceSchema(DataSourceSchema schema) {

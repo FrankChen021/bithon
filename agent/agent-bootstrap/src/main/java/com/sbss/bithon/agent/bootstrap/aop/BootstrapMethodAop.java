@@ -51,13 +51,13 @@ public class BootstrapMethodAop {
             return superMethod.invoke(args);
         }
 
-        return AroundMethodAop.intercept(log,
-                                         INTERCEPTOR,
-                                         targetClass,
-                                         superMethod,
-                                         target,
-                                         method,
-                                         args);
+        return AroundMethodAopImpl.intercept(log,
+                                             INTERCEPTOR,
+                                             targetClass,
+                                             superMethod,
+                                             target,
+                                             method,
+                                             args);
     }
 
     private static AbstractInterceptor ensureInterceptor() {

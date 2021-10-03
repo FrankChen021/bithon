@@ -20,12 +20,12 @@ import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.handler.IMessageHandler;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.handler.ExceptionMetricMessageHandler;
-import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
 import com.sbss.bithon.server.metric.handler.HttpIncomingMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.HttpOutgoingMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JdbcPoolMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmGcMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.JvmMetricMessageHandler;
+import com.sbss.bithon.server.metric.handler.MetricMessage;
 import com.sbss.bithon.server.metric.handler.MongoDbMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.RedisMetricMessageHandler;
 import com.sbss.bithon.server.metric.handler.SqlMetricMessageHandler;
@@ -45,10 +45,10 @@ import java.util.Map;
  * @date 2021/3/15
  */
 @Slf4j
-public class LocalMetricSink implements IMessageSink<CloseableIterator<GenericMetricMessage>> {
+public class LocalMetricSink implements IMessageSink<CloseableIterator<MetricMessage>> {
 
     @Getter
-    private final Map<String, IMessageHandler<CloseableIterator<GenericMetricMessage>>> handlers = new HashMap<>();
+    private final Map<String, IMessageHandler<CloseableIterator<MetricMessage>>> handlers = new HashMap<>();
 
     public LocalMetricSink(JvmMetricMessageHandler jvmMetricMessageHandler,
                            JvmGcMetricMessageHandler jvmGcMetricMessageHandler,
@@ -74,13 +74,13 @@ public class LocalMetricSink implements IMessageSink<CloseableIterator<GenericMe
         add(mongoDbMetricMessageHandler);
     }
 
-    private void add(IMessageHandler<CloseableIterator<GenericMetricMessage>> handler) {
+    private void add(IMessageHandler<CloseableIterator<MetricMessage>> handler) {
         handlers.put(handler.getType(), handler);
     }
 
     @Override
-    public void process(String messageType, CloseableIterator<GenericMetricMessage> messages) {
-        IMessageHandler<CloseableIterator<GenericMetricMessage>> handler = handlers.get(messageType);
+    public void process(String messageType, CloseableIterator<MetricMessage> messages) {
+        IMessageHandler<CloseableIterator<MetricMessage>> handler = handlers.get(messageType);
         if (handler != null) {
             handler.submit(messages);
         } else {

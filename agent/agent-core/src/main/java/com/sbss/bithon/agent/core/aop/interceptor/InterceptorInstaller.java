@@ -21,8 +21,10 @@ import com.sbss.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
 import com.sbss.bithon.agent.bootstrap.aop.BootstrapMethodAop;
 import com.sbss.bithon.agent.bootstrap.aop.ConstructorAop;
 import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
+import com.sbss.bithon.agent.bootstrap.aop.IReplacementInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.ISuperMethod;
 import com.sbss.bithon.agent.bootstrap.aop.MethodAop;
+import com.sbss.bithon.agent.bootstrap.aop.ReplaceMethodAop;
 import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import com.sbss.bithon.agent.core.aop.AopClassGenerator;
 import com.sbss.bithon.agent.core.aop.AopDebugger;
@@ -142,7 +144,8 @@ public class InterceptorInstaller {
                              getSimpleClassName(typeDescription.getName()),
                              pointCut);
                     if (interceptor.isBootstrapClass()) {
-                        builder = installBootstrapInterceptor(builder,
+                        builder = installBootstrapInterceptor(typeDescription,
+                                                              builder,
                                                               pointCut.getInterceptor(),
                                                               pointCut);
                     } else {
@@ -168,7 +171,8 @@ public class InterceptorInstaller {
      * {@link BootstrapConstructorAop}
      * are defined as static, the interceptors must be installed as classes
      */
-    private DynamicType.Builder<?> installBootstrapInterceptor(DynamicType.Builder<?> builder,
+    private DynamicType.Builder<?> installBootstrapInterceptor(TypeDescription typeDescription,
+                                                               DynamicType.Builder<?> builder,
                                                                String interceptorClassName,
                                                                MethodPointCutDescriptor pointCutDescriptor) {
         try {
@@ -178,6 +182,10 @@ public class InterceptorInstaller {
                                      .intercept(MethodDelegation.withDefaultConfiguration()
                                                                 .withBinders(Morph.Binder.install(ISuperMethod.class))
                                                                 .to(getBootstrapAopClass(interceptorClassName)));
+                    break;
+
+                case REPLACEMENT:
+                    log.error("REPLACEMENT on JDK class [{}] is not allowed", typeDescription.getName());
                     break;
 
                 case CONSTRUCTOR:
@@ -228,7 +236,7 @@ public class InterceptorInstaller {
                                                       ClassLoader classLoader,
                                                       MethodPointCutDescriptor pointCutDescriptor) {
 
-        AbstractInterceptor interceptor;
+        Object interceptor;
         try {
             interceptor = InterceptorManager.loadInterceptor(interceptorProvider,
                                                              interceptorName,
@@ -252,10 +260,21 @@ public class InterceptorInstaller {
                                                                 .to(new MethodAop(interceptor)));
                     break;
 
+                case REPLACEMENT:
+                    if (!(interceptor instanceof IReplacementInterceptor)) {
+                        throw new AgentException("interceptor [%s] does not implement [IReplacementInterceptor]");
+                    }
+
+                    builder = builder.method(pointCutDescriptor.getMethodMatcher())
+                                     .intercept(MethodDelegation.withDefaultConfiguration()
+                                                                .withBinders(Morph.Binder.install(ISuperMethod.class))
+                                                                .to(new ReplaceMethodAop((IReplacementInterceptor) interceptor)));
+                    break;
+
                 case CONSTRUCTOR:
                     builder = builder.constructor(pointCutDescriptor.getMethodMatcher())
                                      .intercept(SuperMethodCall.INSTANCE
-                                                    .andThen(MethodDelegation.to(new ConstructorAop(interceptor))));
+                                                    .andThen(MethodDelegation.to(new ConstructorAop((AbstractInterceptor) interceptor))));
                     break;
 
                 default:
@@ -268,7 +287,7 @@ public class InterceptorInstaller {
             log.error("Failed to load interceptor[{}] due to {}",
                       interceptorName,
                       e.getMessage());
-            return null;
+            return builder;
         }
 
         if (log.isDebugEnabled()) {

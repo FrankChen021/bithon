@@ -28,5 +28,11 @@ public enum MethodType {
     /**
      * for those which are not constructors
      */
-    NON_CONSTRUCTOR;
+    NON_CONSTRUCTOR,
+
+    /**
+     * replace the original method implementation
+     * this only works for non-constructor methods
+     */
+    REPLACEMENT;
 }

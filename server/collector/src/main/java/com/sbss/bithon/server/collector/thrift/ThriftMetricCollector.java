@@ -31,7 +31,7 @@ import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricM
 import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
-import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
+import com.sbss.bithon.server.metric.handler.MetricMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
@@ -45,9 +45,9 @@ import java.util.List;
 @Slf4j
 public class ThriftMetricCollector implements IMetricCollector.Iface {
 
-    private final IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink;
+    private final IMessageSink<CloseableIterator<MetricMessage>> metricSink;
 
-    public ThriftMetricCollector(IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink) {
+    public ThriftMetricCollector(IMessageSink<CloseableIterator<MetricMessage>> metricSink) {
         this.metricSink = metricSink;
     }
 
@@ -150,7 +150,7 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
         metricSink.process("mongodb-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
-    private static class GenericMetricMessageIterator implements CloseableIterator<GenericMetricMessage> {
+    private static class GenericMetricMessageIterator implements CloseableIterator<MetricMessage> {
         private final Iterator<?> iterator;
         private final MessageHeader header;
 
@@ -169,8 +169,8 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
         }
 
         @Override
-        public GenericMetricMessage next() {
-            return GenericMetricMessage.of(header, iterator.next());
+        public MetricMessage next() {
+            return MetricMessage.of(header, iterator.next());
         }
     }
 }

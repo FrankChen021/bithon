@@ -57,7 +57,7 @@ public class SqlMetricMessageHandler extends AbstractMetricMessageHandler {
      * jdbc:netezza://main:5490/sales;user=admin;password=password;loglevel=2
      */
     @Override
-    protected boolean beforeProcess(GenericMetricMessage metricObject) {
+    protected boolean beforeProcess(MetricMessage metricObject) {
         long callCount = metricObject.getLong("callCount");
         if (callCount <= 0) {
             return false;
@@ -71,7 +71,7 @@ public class SqlMetricMessageHandler extends AbstractMetricMessageHandler {
     }
 
     @Override
-    protected MetricSet extractEndpointLink(GenericMetricMessage metricObject) {
+    protected MetricSet extractEndpointLink(MetricMessage metricObject) {
         return EndPointMetricSetBuilder.builder()
                                        .timestamp(metricObject.getTimestamp())
                                        .srcEndpointType(EndPointType.APPLICATION)

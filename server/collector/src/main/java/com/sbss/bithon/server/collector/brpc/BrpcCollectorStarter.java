@@ -85,8 +85,8 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
             switch (service) {
                 case "metric":
                     clazz = IMetricCollector.class;
-                    serviceProvider = new BrpcMetricCollector(applicationContext.getBean("metricSink",
-                                                                                         IMessageSink.class));
+                    serviceProvider = new BrpcMetricCollector(applicationContext.getBean("schemaMetricSink", IMessageSink.class),
+                                                              applicationContext.getBean("metricSink", IMessageSink.class));
                     break;
 
                 case "event":

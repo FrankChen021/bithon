@@ -35,9 +35,7 @@ import java.lang.reflect.Method;
 public class Dispatcher {
     private static final Logger log = LoggerFactory.getLogger(Dispatcher.class);
 
-    private final String agentPath;
     private final String dispatcherName;
-    private final String appName;
     private final IMessageConverter messageConverter;
     private final IMessageChannel dispatcher;
     private final DispatcherConfig dispatcherConfig;
@@ -45,13 +43,10 @@ public class Dispatcher {
     private DispatchTask task;
 
     Dispatcher(String dispatcherName,
-               String agentPath,
                AppInstance appInstance,
                DispatcherConfig dispatcherConfig) throws Exception {
         this.dispatcherName = dispatcherName;
-        this.agentPath = agentPath;
         this.dispatcherConfig = dispatcherConfig;
-        this.appName = appInstance.getAppName();
 
         //
         // create dispatcher instance by config

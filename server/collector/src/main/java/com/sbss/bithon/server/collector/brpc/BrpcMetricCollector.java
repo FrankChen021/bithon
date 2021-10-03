@@ -19,6 +19,8 @@ package com.sbss.bithon.server.collector.brpc;
 
 import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSet;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpOutgoingMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
@@ -31,13 +33,24 @@ import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
+import com.sbss.bithon.server.common.utils.ReflectionUtils;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
-import com.sbss.bithon.server.metric.handler.GenericMetricMessage;
+import com.sbss.bithon.server.metric.DataSourceSchema;
+import com.sbss.bithon.server.metric.TimestampSpec;
+import com.sbss.bithon.server.metric.aggregator.spec.IMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.spec.LongMaxMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.spec.LongMinMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.spec.LongSumMetricSpec;
+import com.sbss.bithon.server.metric.dimension.IDimensionSpec;
+import com.sbss.bithon.server.metric.dimension.StringDimensionSpec;
+import com.sbss.bithon.server.metric.handler.MetricMessage;
+import com.sbss.bithon.server.metric.handler.SchemaMetricMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -46,9 +59,12 @@ import java.util.List;
 @Slf4j
 public class BrpcMetricCollector implements IMetricCollector {
 
-    private final IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink;
+    private final IMessageSink<SchemaMetricMessage> schemaMetricSink;
+    private final IMessageSink<CloseableIterator<MetricMessage>> metricSink;
 
-    public BrpcMetricCollector(IMessageSink<CloseableIterator<GenericMetricMessage>> metricSink) {
+    public BrpcMetricCollector(IMessageSink<SchemaMetricMessage> schemaMetricSink,
+                               IMessageSink<CloseableIterator<MetricMessage>> metricSink) {
+        this.schemaMetricSink = schemaMetricSink;
         this.metricSink = metricSink;
     }
 
@@ -151,7 +167,88 @@ public class BrpcMetricCollector implements IMetricCollector {
         metricSink.process("mongodb-metrics", new GenericMetricMessageIterator(header, messages));
     }
 
-    private static class GenericMetricMessageIterator implements CloseableIterator<GenericMetricMessage> {
+    @Override
+    public void sendGenericMetrics(BrpcMessageHeader header, BrpcGenericMetricMessage message) {
+        SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();
+
+        DataSourceSchema schema = new DataSourceSchema(message.getSchema().getName(),
+                                                       message.getSchema().getName(),
+                                                       new TimestampSpec("timestamp", "auto", null),
+                                                       message.getSchema().getDimensionsSpecList()
+                                                              .stream()
+                                                              .map(dimSpec -> new StringDimensionSpec(dimSpec.getName(),
+                                                                                                      dimSpec.getName(),
+                                                                                                      true,
+                                                                                                      true,
+                                                                                                      null))
+                                                              .collect(Collectors.toList()),
+                                                       message.getSchema().getMetricsSpecList()
+                                                              .stream()
+                                                              .map(metricSpec -> {
+                                                                  if (metricSpec.getType().equals("longMax")) {
+                                                                      return new LongMaxMetricSpec(metricSpec.getName(),
+                                                                                                   metricSpec.getName(),
+                                                                                                   "",
+                                                                                                   true);
+                                                                  }
+                                                                  if (metricSpec.getType().equals("longMin")) {
+                                                                      return new LongMinMetricSpec(metricSpec.getName(),
+                                                                                                   metricSpec.getName(),
+                                                                                                   "",
+                                                                                                   true);
+                                                                  }
+                                                                  if (metricSpec.getType().equals("longSum")) {
+                                                                      return new LongSumMetricSpec(metricSpec.getName(),
+                                                                                                   metricSpec.getName(),
+                                                                                                   "",
+                                                                                                   true);
+                                                                  }
+
+                                                                  return null;
+                                                              }).collect(Collectors.toList()),
+                                                       null,
+                                                       null,
+                                                       null);
+
+        Iterator<BrpcGenericMetricSet> iterator = message.getMetricSetList().iterator();
+        schemaMetricMessage.setSchema(schema);
+        schemaMetricMessage.setMetrics(new CloseableIterator<MetricMessage>() {
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public MetricMessage next() {
+                MetricMessage metricMessage = new MetricMessage();
+                BrpcGenericMetricSet metricSet = iterator.next();
+
+                int i = 0;
+                for (String dimension : metricSet.getDimensionList()) {
+                    IDimensionSpec dimensionSpec = schema.getDimensionsSpec().get(i++);
+                    metricMessage.put(dimensionSpec.getName(), dimension);
+                }
+
+                i = 0;
+                for (long metric : metricSet.getMetricList()) {
+                    IMetricSpec metricSpec = schema.getMetricsSpec().get(i++);
+                    metricMessage.put(metricSpec.getName(), metric);
+                }
+
+                metricMessage.put("interval", message.getInterval());
+                metricMessage.put("timestamp", message.getTimestamp());
+                ReflectionUtils.getFields(header, metricMessage);
+                return metricMessage;
+            }
+        });
+        schemaMetricSink.process(message.getSchema().getName(), schemaMetricMessage);
+    }
+
+    private static class GenericMetricMessageIterator implements CloseableIterator<MetricMessage> {
         private final Iterator<?> iterator;
         private final BrpcMessageHeader header;
 
@@ -170,8 +267,8 @@ public class BrpcMetricCollector implements IMetricCollector {
         }
 
         @Override
-        public GenericMetricMessage next() {
-            return GenericMetricMessage.of(header, iterator.next());
+        public MetricMessage next() {
+            return MetricMessage.of(header, iterator.next());
         }
     }
 }

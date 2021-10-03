@@ -49,7 +49,7 @@ public class MongoDbMetricMessageHandler extends AbstractMetricMessageHandler {
     }
 
     @Override
-    protected MetricSet extractEndpointLink(GenericMetricMessage metricObject) {
+    protected MetricSet extractEndpointLink(MetricMessage metricObject) {
         return EndPointMetricSetBuilder.builder()
                                        .timestamp(metricObject.getTimestamp())
                                        .srcEndpointType(EndPointType.APPLICATION)

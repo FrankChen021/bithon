@@ -56,9 +56,19 @@
         <exclude>com.sbss.bithon.shaded:shaded-bytebuddy</exclude>
         <exclude>${project.parent.groupId}:agent-bootstrap</exclude>
         <exclude>${project.parent.groupId}:agent-main</exclude>
+        <exclude>${project.parent.groupId}:agent-sdk</exclude>
         <exclude>org.slf4j:slf4j-api</exclude>
       </excludes>
       <outputDirectory>/lib</outputDirectory>
+    </dependencySet>
+
+    <!-- sdk -->
+    <dependencySet>
+      <includes>
+        <include>${project.parent.groupId}:agent-sdk</include>
+      </includes>
+      <outputDirectory>/sdk</outputDirectory>
+      <outputFileNameMapping>agent-sdk.jar</outputFileNameMapping>
     </dependencySet>
   </dependencySets>
 

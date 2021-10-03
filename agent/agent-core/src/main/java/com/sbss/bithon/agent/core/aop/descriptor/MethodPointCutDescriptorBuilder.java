@@ -16,6 +16,7 @@
 
 package com.sbss.bithon.agent.core.aop.descriptor;
 
+import com.sbss.bithon.agent.bootstrap.expt.AgentException;
 import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
@@ -48,6 +49,15 @@ public class MethodPointCutDescriptorBuilder {
                                             methodMatcher,
                                             methodType,
                                             interceptorQualifiedClassName);
+    }
+
+    public MethodPointCutDescriptor replaceBy(String interceptorQualifiedClassName) {
+        if (methodType == MethodType.CONSTRUCTOR) {
+            throw new AgentException("Can't replace a constructor by [%s]", interceptorQualifiedClassName);
+        }
+
+        methodType = MethodType.REPLACEMENT;
+        return to(interceptorQualifiedClassName);
     }
 
     public MethodPointCutDescriptorBuilder onAllMethods(String method) {

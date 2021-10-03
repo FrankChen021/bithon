@@ -33,16 +33,16 @@ import java.util.concurrent.locks.ReentrantLock;
 class InterceptorManager {
     private static final Logger log = LoggerFactory.getLogger(InterceptorManager.class);
 
-    private static final Map<String, AbstractInterceptor> INTERCEPTORS = new ConcurrentHashMap<>();
+    private static final Map<String, Object> INTERCEPTORS = new ConcurrentHashMap<>();
 
     private static final ReentrantLock INTERCEPTOR_INSTANTIATION_LOCK = new ReentrantLock();
 
-    static AbstractInterceptor loadInterceptor(String interceptorProvider,
-                                               String interceptorClassName,
-                                               ClassLoader classLoader) throws Exception {
+    static Object loadInterceptor(String interceptorProvider,
+                                  String interceptorClassName,
+                                  ClassLoader classLoader) throws Exception {
         // get interceptor from cache first
         String interceptorId = generateInterceptorId(interceptorClassName, classLoader);
-        AbstractInterceptor interceptor = INTERCEPTORS.get(interceptorId);
+        Object interceptor = INTERCEPTORS.get(interceptorId);
         if (interceptor != null) {
             return interceptor;
         }
@@ -59,12 +59,14 @@ class InterceptorManager {
                 return interceptor;
             }
 
-            interceptor = (AbstractInterceptor) interceptorClass.newInstance();
-            if (!interceptor.initialize()) {
-                log.warn("Interceptor not loaded for failure of initialization: [{}.{}]",
-                         interceptorProvider,
-                         interceptorClass);
-                return null;
+            interceptor = interceptorClass.newInstance();
+            if (interceptor instanceof AbstractInterceptor) {
+                if (!((AbstractInterceptor) interceptor).initialize()) {
+                    log.warn("Interceptor not loaded for failure of initialization: [{}.{}]",
+                             interceptorProvider,
+                             interceptorClass);
+                    return null;
+                }
             }
 
             INTERCEPTORS.put(interceptorId, interceptor);

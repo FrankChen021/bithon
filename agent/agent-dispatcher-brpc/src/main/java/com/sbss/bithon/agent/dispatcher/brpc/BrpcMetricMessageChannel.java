@@ -70,10 +70,17 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
 
             Type metricMessageParamType = paramTypes[1];
             if (metricMessageParamType instanceof ParameterizedType) {
+                // the 2nd parameter is something like List<BrpcXXXMessage>
+                //
+                // TODO: Change definition of List<BrpcMessage> into BrpcBatchMessage
+                //
                 Type messageType = ((ParameterizedType) metricMessageParamType).getActualTypeArguments()[0];
                 if (messageType instanceof Class) {
                     sendMethods.put(((Class<?>) messageType).getName(), method);
                 }
+            } else {
+                //TODO: check Class of the 2nd parameter is subclass of protobuf 'Message'
+                sendMethods.put(paramTypes[1].getTypeName(), method);
             }
         }
 
@@ -109,14 +116,16 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
 
     @Override
     public void sendMessage(Object message) {
-        if (!(message instanceof List)) {
-            return;
-        }
-        if (((List<?>) message).isEmpty()) {
-            return;
-        }
+        final String messageClass;
+        if ((message instanceof List)) {
+            if (((List<?>) message).isEmpty()) {
+                return;
+            }
 
-        final String messageClass = ((List<?>) message).get(0).getClass().getName();
+            messageClass = ((List<?>) message).get(0).getClass().getName();
+        } else {
+            messageClass = message.getClass().getName();
+        }
 
         Method method = sendMethods.get(messageClass);
         if (null == method) {

@@ -61,6 +61,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-sdk</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>

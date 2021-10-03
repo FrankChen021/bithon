@@ -18,6 +18,7 @@ package com.sbss.bithon.agent.dispatcher.brpc;
 
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.event.EventMessage;
+import com.sbss.bithon.agent.core.metric.collector.IMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
 import com.sbss.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import com.sbss.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
@@ -33,6 +34,11 @@ import com.sbss.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import com.sbss.bithon.agent.core.tracing.context.ITraceSpan;
 import com.sbss.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcGenericDimensionSpec;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchema;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSet;
+import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpOutgoingMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
@@ -42,7 +48,10 @@ import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
+import com.sbss.bithon.agent.sdk.metric.IMetricValue;
+import com.sbss.bithon.agent.sdk.metric.schema.Schema;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -281,5 +290,40 @@ public class BrpcMessageConverter implements IMessageConverter {
                                      .setGcTime(gcMetricSet.getGcTime())
                                      .setGcCount(gcMetricSet.getGcCount())
                                      .build();
+    }
+
+    @Override
+    public Object from(Schema schema,
+                       Collection<IMetricSet> metricCollection,
+                       long timestamp,
+                       int interval) {
+        BrpcGenericMetricSchema.Builder schemaBuilder = BrpcGenericMetricSchema.newBuilder()
+                                                                               .setName(schema.getName());
+        schema.getDimensionsSpec().forEach(dimensionSpec -> schemaBuilder.addDimensionsSpec(BrpcGenericDimensionSpec.newBuilder()
+                                                                                                                    .setName(dimensionSpec.getName())
+                                                                                                                    .setType(dimensionSpec.getType())
+                                                                                                                    .build()));
+        schema.getMetricsSpec().forEach(metricSpec -> schemaBuilder.addMetricsSpec(BrpcGenericMetricSpec.newBuilder()
+                                                                                                        .setName(metricSpec.getName())
+                                                                                                        .setType(metricSpec.getType())
+                                                                                                        .build()));
+
+        BrpcGenericMetricMessage.Builder messageBuilder = BrpcGenericMetricMessage.newBuilder();
+        messageBuilder.setSchema(schemaBuilder.build());
+        messageBuilder.setInterval(interval);
+        messageBuilder.setTimestamp(timestamp);
+
+        metricCollection.forEach(metricSet -> {
+            BrpcGenericMetricSet.Builder set = BrpcGenericMetricSet.newBuilder();
+            for (String dimension : metricSet.getDimensions()) {
+                set.addDimension(dimension);
+            }
+            for (IMetricValue metricValue : metricSet.getMetrics()) {
+                set.addMetric(metricValue.value());
+            }
+            messageBuilder.addMetricSet(set.build());
+        });
+
+        return messageBuilder.build();
     }
 }
