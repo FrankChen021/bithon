@@ -16,40 +16,45 @@
 
 package com.sbss.bithon.agent.sdk.metric;
 
+import com.sbss.bithon.agent.sdk.expt.SdkException;
+
+import java.lang.reflect.Constructor;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Frank Chen
- * @date {} {}
+ * @date 2021-10-02
  */
 public class MetricRegistryFactory {
 
-    static class NotImplementedException extends RuntimeException {
-        public NotImplementedException(String message) {
-            super(message);
-        }
-    }
+    static class EmptyMetricsRegistry<T> implements IMetricsRegistry<T> {
+        final Constructor<T> defaultCtor;
 
-    static class EmptyMetricProvider {
-    }
-
-    static class NotImplemented implements IMetricsRegistry<EmptyMetricProvider> {
-
-        static final NotImplemented INSTANCE = new NotImplemented();
-
-        @Override
-        public EmptyMetricProvider getOrCreateMetric(String... dimensions) {
-            throw new NotImplementedException("'getOrCreateMetric' proxy is not installed correctly");
+        public EmptyMetricsRegistry(Class<T> metricClass) {
+            //noinspection unchecked
+            defaultCtor = (Constructor<T>) Stream.of(metricClass.getConstructors())
+                                                 .filter(ctor -> ctor.getParameterCount() == 0)
+                                                 .findFirst()
+                                                 .orElseThrow(() -> new SdkException("[%s] has no default constructor",
+                                                                                     metricClass.getName()));
         }
 
         @Override
-        public Metrics get(boolean reset) {
-            throw new NotImplementedException("'get' proxy is not installed correctly");
+        public T getOrCreateMetric(String... dimensions) {
+            System.out.println("MetricRegistryFactory is not installed correctly");
+            try {
+                return (T) defaultCtor.newInstance();
+            } catch (Exception e) {
+                throw new SdkException("Can't instantiate metric class[%s]: %s",
+                                       defaultCtor.getDeclaringClass().getName(),
+                                       e.getMessage());
+            }
         }
 
         @Override
         public void unregister() {
-            throw new NotImplementedException("'unregister' proxy is not installed correctly");
+            System.out.println("MetricRegistryFactory is not installed correctly");
         }
 
     }
@@ -61,7 +66,6 @@ public class MetricRegistryFactory {
         // return an object in case of missing agent
         // so that any call on this object won't cause NPE but our defined exception
         //
-        //noinspection unchecked
-        return (IMetricsRegistry<T>) NotImplemented.INSTANCE;
+        return new EmptyMetricsRegistry<>(metricClass);
     }
 }

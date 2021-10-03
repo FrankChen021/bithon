@@ -14,20 +14,18 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric.schema;
+package com.sbss.bithon.agent.sdk.expt;
 
 /**
  * @author Frank Chen
- * @date 2021-10-02
+ * @date 3/10/21 16:33
  */
-public class StringDimensionSpec extends AbstractDimensionSpec {
-
-    public StringDimensionSpec(String name) {
-        super(name);
+public class SdkException extends RuntimeException {
+    public SdkException(String message) {
+        super(message);
     }
 
-    @Override
-    public String getType() {
-        return "string";
+    public SdkException(String format, Object... args) {
+        super(String.format(format, args));
     }
 }

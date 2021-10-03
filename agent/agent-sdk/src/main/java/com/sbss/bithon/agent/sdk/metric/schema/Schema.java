@@ -20,7 +20,7 @@ import java.util.List;
 
 /**
  * @author Frank Chen
- * @date {} {}
+ * @date 2021-10-02
  */
 public class Schema {
     private final String name;

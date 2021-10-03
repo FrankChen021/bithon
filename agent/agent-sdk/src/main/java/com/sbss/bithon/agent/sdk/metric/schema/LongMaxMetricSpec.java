@@ -18,7 +18,7 @@ package com.sbss.bithon.agent.sdk.metric.schema;
 
 /**
  * @author Frank Chen
- * @date {} {}
+ * @date 2021-10-02
  */
 public class LongMaxMetricSpec extends AbstractMetricSpec {
 

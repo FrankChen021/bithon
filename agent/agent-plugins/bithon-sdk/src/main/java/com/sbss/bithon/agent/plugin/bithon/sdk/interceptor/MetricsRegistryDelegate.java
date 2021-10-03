@@ -19,6 +19,7 @@ package com.sbss.bithon.agent.plugin.bithon.sdk.interceptor;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector2;
 import com.sbss.bithon.agent.core.metric.collector.IMetricSet;
+import com.sbss.bithon.agent.sdk.expt.SdkException;
 import com.sbss.bithon.agent.sdk.metric.IMetricValue;
 import com.sbss.bithon.agent.sdk.metric.aggregator.LongMax;
 import com.sbss.bithon.agent.sdk.metric.aggregator.LongMin;
@@ -101,14 +102,14 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         final Constructor<?> defaultCtor = Arrays.stream(metricClass.getConstructors())
                                                  .filter(ctor -> ctor.getParameterCount() == 0)
                                                  .findFirst()
-                                                 .orElseThrow(() -> new RuntimeException(String.format("Class[%s] has no default ctor",
-                                                                                                       metricClass.getName())));
+                                                 .orElseThrow(() -> new SdkException(String.format("Class[%s] has no default ctor",
+                                                                                                   metricClass.getName())));
         defaultCtor.setAccessible(true);
         this.metricInstantiator = () -> {
             try {
                 return defaultCtor.newInstance();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new SdkException("Can't instantiate metric class [%s]: %s", metricClass, e.getMessage());
             }
         };
 
@@ -128,6 +129,9 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
             }
             field.setAccessible(true);
             metricField.add(field);
+        }
+        if (metricField.isEmpty()) {
+            throw new SdkException("[%s] has no metric defined");
         }
 
         // reserved metric

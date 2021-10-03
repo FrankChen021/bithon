@@ -16,8 +16,7 @@
 
 package com.sbss.bithon.agent.plugin.bithon.sdk.interceptor;
 
-import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import com.sbss.bithon.agent.bootstrap.aop.AopContext;
+import com.sbss.bithon.agent.bootstrap.aop.IReplacementInterceptor;
 import com.sbss.bithon.agent.core.context.AgentContext;
 import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
@@ -25,7 +24,12 @@ import com.sbss.bithon.agent.core.metric.collector.IMetricCollector2;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollectorBase;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
+import com.sbss.bithon.agent.core.utils.CollectionUtils;
+import com.sbss.bithon.agent.core.utils.lang.StringUtils;
+import com.sbss.bithon.agent.sdk.expt.SdkException;
 import com.sbss.bithon.agent.sdk.metric.IMetricsRegistry;
+import shaded.org.slf4j.Logger;
+import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -37,26 +41,42 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021-10-01
  */
-public class MetricRegistryFactory$Create extends AbstractInterceptor {
+public class MetricRegistryFactory$Create implements IReplacementInterceptor {
+
+    private static final Logger log = LoggerFactory.getLogger(MetricRegistryFactory$Create.class);
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
+    public Object onExecute(Object[] args) {
+        String name = (String) args[0];
+        if (StringUtils.isEmpty(name)) {
+            throw new SdkException("name can't be null");
+        }
 
-        String name = aopContext.getArgAs(0);
-        List<String> dimensionSpec = aopContext.getArgAs(1);
-        Class<?> metricClass = aopContext.getArgAs(2);
+        List<String> dimensionSpec = (List<String>) args[1];
+        if (CollectionUtils.isEmpty(dimensionSpec)) {
+            throw new SdkException("dimensionSpec can't be null");
+        }
+
+        Class<?> metricClass = (Class<?>) args[2];
+        if (metricClass == null) {
+            throw new SdkException("metricClass can't be null");
+        }
 
         // TODO: use bytebuddy to generate dynamic proxy
+        MetricRegistryInvocationHandler proxyHandler = new MetricRegistryInvocationHandler(name,
+                                                                                           dimensionSpec,
+                                                                                           metricClass);
         Object delegate = Proxy.newProxyInstance(PluginClassLoaderManager.getDefaultLoader(),
                                                  new Class[]{IMetricsRegistry.class, IMetricCollector2.class},
-                                                 new MetricRegistryInvocationHandler(name,
-                                                                                     dimensionSpec,
-                                                                                     metricClass));
+                                                 proxyHandler);
 
-        // TODO: register the object into bithon's metric system
         MetricCollectorManager.getInstance().register(name, (IMetricCollectorBase) delegate);
 
-        aopContext.setReturning(delegate);
+        log.info("MetricRegister[{}] Registered with Dimensions: {}, Metrics: {}",
+                 name,
+                 dimensionSpec,
+                 proxyHandler.delegate.getSchema().getMetricsSpec());
+        return delegate;
     }
 
     static class MetricRegistryInvocationHandler implements InvocationHandler {
