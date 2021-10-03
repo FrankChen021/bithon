@@ -20,7 +20,7 @@ package com.sbss.bithon.agent.sdk.metric;
  * @author Frank Chen
  * @date 2021-10-01
  */
-public interface IMetricsRegistry<T extends IMetricProvider> {
+public interface IMetricsRegistry<T> {
 
     T getOrCreateMetric(String... dimensions);
 

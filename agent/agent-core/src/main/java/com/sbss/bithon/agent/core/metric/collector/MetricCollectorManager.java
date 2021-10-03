@@ -153,6 +153,10 @@ public class MetricCollectorManager {
         }
     }
 
+    public void unregister(String name) {
+        collectors.remove(name);
+    }
+
     private void collectAndDispatch() {
         if (!dispatcher.isReady()) {
             return;

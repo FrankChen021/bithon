@@ -19,7 +19,6 @@ package com.sbss.bithon.agent.plugin.bithon.sdk.interceptor;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector2;
 import com.sbss.bithon.agent.core.metric.collector.IMetricSet;
-import com.sbss.bithon.agent.sdk.metric.IMetricProvider;
 import com.sbss.bithon.agent.sdk.metric.IMetricValue;
 import com.sbss.bithon.agent.sdk.metric.aggregator.LongMax;
 import com.sbss.bithon.agent.sdk.metric.aggregator.LongMin;
@@ -31,7 +30,10 @@ import com.sbss.bithon.agent.sdk.metric.schema.LongMinMetricSpec;
 import com.sbss.bithon.agent.sdk.metric.schema.LongSumMetricSpec;
 import com.sbss.bithon.agent.sdk.metric.schema.Schema;
 import com.sbss.bithon.agent.sdk.metric.schema.StringDimensionSpec;
+import shaded.org.slf4j.Logger;
+import shaded.org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,17 +49,21 @@ import java.util.stream.Collectors;
  */
 public class MetricsRegistryDelegate implements IMetricCollector2 {
 
+    private static final Logger log = LoggerFactory.getLogger(MetricsRegistryDelegate.class);
+
     static class MetricSet implements IMetricSet {
         private final List<String> dimensions;
         private final Object metricProvider;
+        private final List<Field> metricFields;
 
         public Object getMetricProvider() {
             return metricProvider;
         }
 
-        MetricSet(List<String> dimensions, Object metricProvider) {
+        MetricSet(Object metricProvider, List<String> dimensions, List<Field> metricFields) {
             this.dimensions = dimensions;
             this.metricProvider = metricProvider;
+            this.metricFields = metricFields;
         }
 
         @Override
@@ -67,20 +73,44 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
         @Override
         public IMetricValue[] getMetrics() {
-            //TODO: remove IMetricProvider interface
-            return ((IMetricProvider) metricProvider).getMetrics();
+            IMetricValue[] values = new IMetricValue[metricFields.size()];
+
+            int i = 0;
+            for (Field field : metricFields) {
+                try {
+                    values[i++] = (IMetricValue) field.get(metricProvider);
+                } catch (IllegalAccessException e) {
+                    log.error("Can't get value of [{}] on class [{}]: {}",
+                              field.getName(),
+                              metricProvider.getClass().getName(),
+                              e.getMessage());
+                }
+            }
+            return values;
         }
     }
 
     private final Supplier<Object> metricInstantiator;
     private final Schema schema;
     private Map<List<String>, IMetricSet> metricsMap = new ConcurrentHashMap<>();
+    private final List<Field> metricField = new ArrayList<>();
 
     protected MetricsRegistryDelegate(String name,
                                       List<String> dimensionSpec,
-                                      Supplier<Object> metricInstantiator,
                                       Class<?> metricClass) {
-        this.metricInstantiator = metricInstantiator;
+        final Constructor<?> defaultCtor = Arrays.stream(metricClass.getConstructors())
+                                                 .filter(ctor -> ctor.getParameterCount() == 0)
+                                                 .findFirst()
+                                                 .orElseThrow(() -> new RuntimeException(String.format("Class[%s] has no default ctor",
+                                                                                                       metricClass.getName())));
+        defaultCtor.setAccessible(true);
+        this.metricInstantiator = () -> {
+            try {
+                return defaultCtor.newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
 
         List<IDimensionSpec> dimensionSpecs = dimensionSpec.stream().map(StringDimensionSpec::new).collect(Collectors.toList());
 
@@ -93,7 +123,11 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
                 metricsSpec.add(new LongMinMetricSpec(field.getName()));
             } else if (fieldClass == LongSum.class) {
                 metricsSpec.add(new LongSumMetricSpec(field.getName()));
+            } else {
+                continue;
             }
+            field.setAccessible(true);
+            metricField.add(field);
         }
 
         // reserved metric
@@ -110,13 +144,19 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         List<String> dimensionList = Arrays.asList(dimensions);
         return ((MetricSet) metricsMap.computeIfAbsent(dimensionList, key -> {
             Object metricProvider = metricInstantiator.get();
-            return new MetricSet(dimensionList, metricProvider);
+            return new MetricSet(metricProvider, dimensionList, metricField);
         })).getMetricProvider();
+    }
+
+    public Schema getSchema() {
+        return schema;
     }
 
     @Override
     public boolean isEmpty() {
-        return metricsMap.isEmpty();
+        // this make sure the schema will be sent to remote server even if the metric set is empty
+        // so that remote server could show the data source
+        return false;
     }
 
     @Override

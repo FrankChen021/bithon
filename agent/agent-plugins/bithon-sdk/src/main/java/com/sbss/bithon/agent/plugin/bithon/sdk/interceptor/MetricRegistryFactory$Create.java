@@ -27,12 +27,10 @@ import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.plugin.PluginClassLoaderManager;
 import com.sbss.bithon.agent.sdk.metric.IMetricsRegistry;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -66,23 +64,11 @@ public class MetricRegistryFactory$Create extends AbstractInterceptor {
         private final MetricsRegistryDelegate delegate;
 
         public MetricRegistryInvocationHandler(String name, List<String> dimensionSpec, Class<?> metricClass) {
-            Constructor<?> defaultCtor = Arrays.stream(metricClass.getConstructors())
-                                               .filter(ctor -> ctor.getParameterCount() == 0)
-                                               .findFirst()
-                                               .get();
-
             dimensionSpec = new ArrayList<>(dimensionSpec);
             dimensionSpec.add(0, "appName");
             dimensionSpec.add(1, "instance");
             delegate = new MetricsRegistryDelegate(name,
                                                    dimensionSpec,
-                                                   () -> {
-                                                       try {
-                                                           return defaultCtor.newInstance();
-                                                       } catch (Exception e) {
-                                                           throw new RuntimeException(e);
-                                                       }
-                                                   },
                                                    metricClass);
         }
 
@@ -101,6 +87,7 @@ public class MetricRegistryFactory$Create extends AbstractInterceptor {
             }
             if ("unregister".equals(method.getName())) {
                 // TODO:
+                MetricCollectorManager.getInstance().unregister(delegate.getSchema().getName());
                 return null;
             }
             if ("isEmpty".equals(method.getName())) {

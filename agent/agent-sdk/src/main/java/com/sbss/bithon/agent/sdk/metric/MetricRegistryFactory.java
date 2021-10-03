@@ -30,11 +30,7 @@ public class MetricRegistryFactory {
         }
     }
 
-    static class EmptyMetricProvider implements IMetricProvider {
-        @Override
-        public IMetricValue[] getMetrics() {
-            return new IMetricValue[0];
-        }
+    static class EmptyMetricProvider {
     }
 
     static class NotImplemented implements IMetricsRegistry<EmptyMetricProvider> {
@@ -55,13 +51,17 @@ public class MetricRegistryFactory {
         public void unregister() {
             throw new NotImplementedException("'unregister' proxy is not installed correctly");
         }
+
     }
 
-    public static <T extends IMetricProvider> IMetricsRegistry<T> create(String name,
-                                                                         List<String> dimensionSpec,
-                                                                         Class<T> metricClass) {
+    public static <T> IMetricsRegistry<T> create(String name,
+                                                 List<String> dimensionSpec,
+                                                 Class<T> metricClass) {
+        //
         // return an object in case of missing agent
         // so that any call on this object won't cause NPE but our defined exception
+        //
+        //noinspection unchecked
         return (IMetricsRegistry<T>) NotImplemented.INSTANCE;
     }
 }
