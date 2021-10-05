@@ -38,6 +38,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ *
+ * A controller that accepts and serves commands from remote server
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/6/28 10:41 上午
  */
@@ -53,7 +56,7 @@ public class BrpcAgentController implements IAgentController {
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
 
-        channel = new ClientChannel(new RoundRobinEndPointProvider(endpoints))
+        channel = new ClientChannel(new RoundRobinEndPointProvider(endpoints), 2)
             .applicationName(AgentContext.getInstance().getAppInstance().getAppName())
             .configureRetry(3, Duration.ofSeconds(2));
 
