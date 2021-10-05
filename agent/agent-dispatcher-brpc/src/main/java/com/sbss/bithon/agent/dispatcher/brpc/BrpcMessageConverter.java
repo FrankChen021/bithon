@@ -218,9 +218,10 @@ public class BrpcMessageConverter implements IMessageConverter {
         if (metric.getUri() != null) {
             builder.setUri(metric.getUri());
         }
-
-        return builder.setMessage(metric.getMessage())
-                      .setExceptionCount(metric.getCount())
+        if (metric.getMessage() != null) {
+            builder.setMessage(metric.getMessage());
+        }
+        return builder.setExceptionCount(metric.getCount())
                       .build();
     }
 
