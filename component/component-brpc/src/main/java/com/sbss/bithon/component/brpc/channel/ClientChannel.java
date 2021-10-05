@@ -73,12 +73,22 @@ public class ClientChannel implements IChannelWriter, Closeable {
         this(new SingleEndPointProvider(host, port));
     }
 
+    /**
+     * create a ClientChannel object with 1 worker threads
+     */
     public ClientChannel(IEndPointProvider endPointProvider) {
+        this(endPointProvider, 1);
+    }
+
+    /**
+     * @param nThreads if it's 0, worker threads will be default to Runtime.getRuntime().availableProcessors() * 2
+     */
+    public ClientChannel(IEndPointProvider endPointProvider, int nThreads) {
         this.endPointProvider = endPointProvider;
         this.maxRetry = MAX_RETRY;
         this.retryInterval = Duration.ofMillis(100);
 
-        bossGroup = new NioEventLoopGroup();
+        bossGroup = new NioEventLoopGroup(nThreads);
         bootstrap = new Bootstrap();
         bootstrap.group(bossGroup)
                  .channel(NioSocketChannel.class)
