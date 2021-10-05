@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * A replacement of {@link com.sbss.bithon.agent.sdk.metric.MetricRegistryFactory#create(String, List, Class)}
  * @author frank.chen021@outlook.com
  * @date 2021-10-01
  */
@@ -52,6 +53,7 @@ public class MetricRegistryFactory$Create implements IReplacementInterceptor {
             throw new SdkException("name can't be null");
         }
 
+        //noinspection unchecked
         List<String> dimensionSpec = (List<String>) args[1];
         if (CollectionUtils.isEmpty(dimensionSpec)) {
             throw new SdkException("dimensionSpec can't be null");
@@ -95,18 +97,18 @@ public class MetricRegistryFactory$Create implements IReplacementInterceptor {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
             if ("getOrCreateMetric".equals(method.getName())) {
+                String[] oldArgs = (String[]) args[0];
+
                 AppInstance appInstance = AgentContext.getInstance().getAppInstance();
 
-                String[] newArgs = new String[args.length + 2];
+                String[] newArgs = new String[oldArgs.length + 2];
                 newArgs[0] = appInstance.getAppName();
                 newArgs[1] = appInstance.getHostIp();
-
-                String[] oldArgs = (String[]) args[0];
                 System.arraycopy(oldArgs, 0, newArgs, 2, oldArgs.length);
+
                 return delegate.getOrCreateMetric(newArgs);
             }
             if ("unregister".equals(method.getName())) {
-                // TODO:
                 MetricCollectorManager.getInstance().unregister(delegate.getSchema().getName());
                 return null;
             }
@@ -116,7 +118,7 @@ public class MetricRegistryFactory$Create implements IReplacementInterceptor {
             if ("collect".equals(method.getName())) {
                 return delegate.collect((IMessageConverter) args[0], (int) args[1], (long) args[2]);
             }
-            return null;
+            throw new SdkException("method [%s] is not implemented", method.getName());
         }
     }
 }
