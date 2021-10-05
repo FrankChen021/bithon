@@ -32,4 +32,9 @@ public abstract class AbstractDimensionSpec implements IDimensionSpec {
     public String getName() {
         return name;
     }
+
+    @Override
+    public String toString() {
+        return String.format("dimension(type=%s, name=%s)", getType(), name);
+    }
 }

@@ -31,4 +31,9 @@ public abstract class AbstractMetricSpec implements IMetricSpec {
     public String getName() {
         return name;
     }
+
+    @Override
+    public String toString() {
+        return this.getType() + "(" + name + ")";
+    }
 }
