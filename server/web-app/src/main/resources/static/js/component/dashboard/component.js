@@ -342,7 +342,7 @@ class Dashboard {
                 dataSource: chartDescriptor.dataSource,
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                dimensions: this._selectedDimensions,
+                dimensions: chartDescriptor.dimensions === undefined ? this._selectedDimensions : Object.assign(chartDescriptor.dimensions, this._selectedDimensions),
                 metrics: chartComponent.getOption().metrics
             }),
             processResult: (data) => {
