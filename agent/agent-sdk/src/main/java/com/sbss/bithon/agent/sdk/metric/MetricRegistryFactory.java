@@ -44,7 +44,19 @@ public class MetricRegistryFactory {
         public T getOrCreateMetric(String... dimensions) {
             System.out.println("MetricRegistryFactory is not installed correctly");
             try {
-                return (T) defaultCtor.newInstance();
+                return defaultCtor.newInstance();
+            } catch (Exception e) {
+                throw new SdkException("Can't instantiate metric class[%s]: %s",
+                                       defaultCtor.getDeclaringClass().getName(),
+                                       e.getMessage());
+            }
+        }
+
+        @Override
+        public T getPermanentMetrics(String... dimensions) {
+            System.out.println("MetricRegistryFactory is not installed correctly");
+            try {
+                return defaultCtor.newInstance();
             } catch (Exception e) {
                 throw new SdkException("Can't instantiate metric class[%s]: %s",
                                        defaultCtor.getDeclaringClass().getName(),

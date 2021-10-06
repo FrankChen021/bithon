@@ -18,19 +18,8 @@ package com.sbss.bithon.agent.sdk.metric;
 
 /**
  * @author Frank Chen
- * @date 2021-10-01
+ * @date 6/10/21 1:05 pm
  */
-public interface IMetricsRegistry<T> {
-
-    /**
-     * get a metrics that can be reset after metrics have been reported to remote server
-     */
-    T getOrCreateMetric(String... dimensions);
-
-    /**
-     * get a metrics that can NOT be reset after metrics have been reported to remote server
-     */
-    T getPermanentMetrics(String... dimensions);
-
-    void unregister();
+public interface IMetricValueProvider {
+    long value();
 }

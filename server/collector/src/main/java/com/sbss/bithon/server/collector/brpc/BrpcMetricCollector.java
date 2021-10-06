@@ -38,6 +38,7 @@ import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.DataSourceSchema;
 import com.sbss.bithon.server.metric.TimestampSpec;
 import com.sbss.bithon.server.metric.aggregator.spec.IMetricSpec;
+import com.sbss.bithon.server.metric.aggregator.spec.LongLastMetricSpec;
 import com.sbss.bithon.server.metric.aggregator.spec.LongMaxMetricSpec;
 import com.sbss.bithon.server.metric.aggregator.spec.LongMinMetricSpec;
 import com.sbss.bithon.server.metric.aggregator.spec.LongSumMetricSpec;
@@ -202,6 +203,12 @@ public class BrpcMetricCollector implements IMetricCollector {
                                                                                                    metricSpec.getName(),
                                                                                                    "",
                                                                                                    true);
+                                                                  }
+                                                                  if (metricSpec.getType().equals("longLast")) {
+                                                                      return new LongLastMetricSpec(metricSpec.getName(),
+                                                                                                    metricSpec.getName(),
+                                                                                                    "",
+                                                                                                    true);
                                                                   }
 
                                                                   return null;
