@@ -17,8 +17,6 @@
 package com.sbss.bithon.agent.plugin.bithon.sdk.interceptor;
 
 import com.sbss.bithon.agent.bootstrap.aop.IReplacementInterceptor;
-import com.sbss.bithon.agent.core.context.AgentContext;
-import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector2;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollectorBase;
@@ -39,6 +37,7 @@ import java.util.List;
 
 /**
  * A replacement of {@link com.sbss.bithon.agent.sdk.metric.MetricRegistryFactory#create(String, List, Class)}
+ *
  * @author frank.chen021@outlook.com
  * @date 2021-10-01
  */
@@ -85,7 +84,9 @@ public class MetricRegistryFactory$Create implements IReplacementInterceptor {
 
         private final MetricsRegistryDelegate delegate;
 
-        public MetricRegistryInvocationHandler(String name, List<String> dimensionSpec, Class<?> metricClass) {
+        public MetricRegistryInvocationHandler(String name,
+                                               List<String> dimensionSpec,
+                                               Class<?> metricClass) {
             dimensionSpec = new ArrayList<>(dimensionSpec);
             dimensionSpec.add(0, "appName");
             dimensionSpec.add(1, "instance");
@@ -97,16 +98,10 @@ public class MetricRegistryFactory$Create implements IReplacementInterceptor {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
             if ("getOrCreateMetric".equals(method.getName())) {
-                String[] oldArgs = (String[]) args[0];
-
-                AppInstance appInstance = AgentContext.getInstance().getAppInstance();
-
-                String[] newArgs = new String[oldArgs.length + 2];
-                newArgs[0] = appInstance.getAppName();
-                newArgs[1] = appInstance.getHostIp();
-                System.arraycopy(oldArgs, 0, newArgs, 2, oldArgs.length);
-
-                return delegate.getOrCreateMetric(newArgs);
+                return delegate.getOrCreateMetric(false, (String[]) args[0]);
+            }
+            if ("getPermanentMetrics".equals(method.getName())) {
+                return delegate.getOrCreateMetric(true, (String[]) args[0]);
             }
             if ("unregister".equals(method.getName())) {
                 MetricCollectorManager.getInstance().unregister(delegate.getSchema().getName());

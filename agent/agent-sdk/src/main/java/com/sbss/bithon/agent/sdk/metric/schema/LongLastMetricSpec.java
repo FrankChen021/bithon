@@ -14,23 +14,19 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric;
+package com.sbss.bithon.agent.sdk.metric.schema;
 
 /**
  * @author Frank Chen
- * @date 2021-10-01
+ * @date 6/10/21 1:08 pm
  */
-public interface IMetricsRegistry<T> {
+public class LongLastMetricSpec extends AbstractMetricSpec {
+    public LongLastMetricSpec(String name) {
+        super(name);
+    }
 
-    /**
-     * get a metrics that can be reset after metrics have been reported to remote server
-     */
-    T getOrCreateMetric(String... dimensions);
-
-    /**
-     * get a metrics that can NOT be reset after metrics have been reported to remote server
-     */
-    T getPermanentMetrics(String... dimensions);
-
-    void unregister();
+    @Override
+    public String getType() {
+        return "longLast";
+    }
 }

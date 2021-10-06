@@ -20,8 +20,6 @@ package com.sbss.bithon.agent.sdk.metric;
  * @author Frank Chen
  * @date 2021-10-01
  */
-public interface IMetricValue {
+public interface IMetricValue extends IMetricValueProvider {
     long update(long v);
-
-    long value();
 }

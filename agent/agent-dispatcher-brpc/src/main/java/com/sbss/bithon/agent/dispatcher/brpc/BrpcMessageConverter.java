@@ -48,7 +48,7 @@ import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import com.sbss.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
-import com.sbss.bithon.agent.sdk.metric.IMetricValue;
+import com.sbss.bithon.agent.sdk.metric.IMetricValueProvider;
 import com.sbss.bithon.agent.sdk.metric.schema.Schema;
 
 import java.util.Collection;
@@ -319,7 +319,7 @@ public class BrpcMessageConverter implements IMessageConverter {
             for (String dimension : metricSet.getDimensions()) {
                 set.addDimension(dimension);
             }
-            for (IMetricValue metricValue : metricSet.getMetrics()) {
+            for (IMetricValueProvider metricValue : metricSet.getMetrics()) {
                 set.addMetric(metricValue.value());
             }
             messageBuilder.addMetricSet(set.build());

@@ -16,16 +16,19 @@
 
 package com.sbss.bithon.agent.plugin.bithon.sdk.interceptor;
 
+import com.sbss.bithon.agent.core.context.AgentContext;
+import com.sbss.bithon.agent.core.context.AppInstance;
 import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IMetricCollector2;
 import com.sbss.bithon.agent.core.metric.collector.IMetricSet;
 import com.sbss.bithon.agent.sdk.expt.SdkException;
-import com.sbss.bithon.agent.sdk.metric.IMetricValue;
+import com.sbss.bithon.agent.sdk.metric.IMetricValueProvider;
 import com.sbss.bithon.agent.sdk.metric.aggregator.LongMax;
 import com.sbss.bithon.agent.sdk.metric.aggregator.LongMin;
 import com.sbss.bithon.agent.sdk.metric.aggregator.LongSum;
 import com.sbss.bithon.agent.sdk.metric.schema.IDimensionSpec;
 import com.sbss.bithon.agent.sdk.metric.schema.IMetricSpec;
+import com.sbss.bithon.agent.sdk.metric.schema.LongLastMetricSpec;
 import com.sbss.bithon.agent.sdk.metric.schema.LongMaxMetricSpec;
 import com.sbss.bithon.agent.sdk.metric.schema.LongMinMetricSpec;
 import com.sbss.bithon.agent.sdk.metric.schema.LongSumMetricSpec;
@@ -52,6 +55,15 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
     private static final Logger log = LoggerFactory.getLogger(MetricsRegistryDelegate.class);
 
+    static class NullMetricValueProvider implements IMetricValueProvider {
+        static NullMetricValueProvider INSTANCE = new NullMetricValueProvider();
+
+        @Override
+        public long value() {
+            return 0;
+        }
+    }
+
     static class MetricSet implements IMetricSet {
         private final List<String> dimensions;
         private final Object metricProvider;
@@ -73,19 +85,21 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         }
 
         @Override
-        public IMetricValue[] getMetrics() {
-            IMetricValue[] values = new IMetricValue[metricFields.size()];
+        public IMetricValueProvider[] getMetrics() {
+            IMetricValueProvider[] values = new IMetricValueProvider[metricFields.size()];
 
             int i = 0;
             for (Field field : metricFields) {
+                IMetricValueProvider provider = null;
                 try {
-                    values[i++] = (IMetricValue) field.get(metricProvider);
+                    provider = (IMetricValueProvider) field.get(metricProvider);
                 } catch (IllegalAccessException e) {
                     log.error("Can't get value of [{}] on class [{}]: {}",
                               field.getName(),
                               metricProvider.getClass().getName(),
                               e.getMessage());
                 }
+                values[i++] = provider == null ? NullMetricValueProvider.INSTANCE : provider;
             }
             return values;
         }
@@ -94,6 +108,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
     private final Supplier<Object> metricInstantiator;
     private final Schema schema;
     private Map<List<String>, IMetricSet> metricsMap = new ConcurrentHashMap<>();
+    private Map<List<String>, IMetricSet> retainedMetricsMap = new ConcurrentHashMap<>();
     private final List<Field> metricField = new ArrayList<>();
 
     protected MetricsRegistryDelegate(String name,
@@ -124,6 +139,8 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
                 metricsSpec.add(new LongMinMetricSpec(field.getName()));
             } else if (fieldClass == LongSum.class) {
                 metricsSpec.add(new LongSumMetricSpec(field.getName()));
+            } else if (fieldClass.isAssignableFrom(IMetricValueProvider.class)) {
+                metricsSpec.add(new LongLastMetricSpec(field.getName()));
             } else {
                 continue;
             }
@@ -137,16 +154,25 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         // reserved metric
         metricsSpec.add(new LongSumMetricSpec("interval"));
 
-        schema = new Schema(name, dimensionSpecs, metricsSpec);
+        this.schema = new Schema(name, dimensionSpecs, metricsSpec);
     }
 
-    public Object getOrCreateMetric(String... dimensions) {
-        if (dimensions.length != schema.getDimensionsSpec().size()) {
+    public Object getOrCreateMetric(boolean retained, String... dimensions) {
+        AppInstance appInstance = AgentContext.getInstance().getAppInstance();
+
+        String[] newDimensions = new String[dimensions.length + 2];
+        newDimensions[0] = appInstance.getAppName();
+        newDimensions[1] = appInstance.getHostIp();
+        System.arraycopy(dimensions, 0, newDimensions, 2, dimensions.length);
+
+        if (newDimensions.length != schema.getDimensionsSpec().size()) {
             throw new RuntimeException("dimensions not matched. Expected dimensions: " + schema.getDimensionsSpec());
         }
 
-        List<String> dimensionList = Arrays.asList(dimensions);
-        return ((MetricSet) metricsMap.computeIfAbsent(dimensionList, key -> {
+        List<String> dimensionList = Arrays.asList(newDimensions);
+
+        Map map = retained ? retainedMetricsMap : metricsMap;
+        return ((MetricSet) map.computeIfAbsent(dimensionList, key -> {
             Object metricProvider = metricInstantiator.get();
             return new MetricSet(metricProvider, dimensionList, metricField);
         })).getMetricProvider();
@@ -167,6 +193,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
     public Object collect(IMessageConverter messageConverter, int interval, long timestamp) {
         Map<List<String>, IMetricSet> metricMap = this.metricsMap;
         this.metricsMap = new ConcurrentHashMap<>();
+        metricMap.putAll(retainedMetricsMap);
 
         return messageConverter.from(this.schema, metricMap.values(), timestamp, interval);
     }

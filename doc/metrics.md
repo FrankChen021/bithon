@@ -33,6 +33,7 @@ Following steps guides how to use this SDK
         private final LongSum responseTime = new LongSum();
     }
    ```
+
 3. Register your metrics to Bithon by its public interface
 
     ```java
@@ -72,3 +73,17 @@ Following steps guides how to use this SDK
         }
    }
    ```
+
+## Register a callback style metric
+
+   ```java
+   @Data
+    public class GatewayMetrics {
+        public IMetricValueProvider activeConnections;
+        public IMetricValueProvider totalConnections;
+    }
+
+    GatewayMetrics metrics = gatewayMetrics.getPermanent(request.getTargetIp());
+    metrics.activeConnections = ()->{ someClass.getActiveConnection(); };
+   ```
+   
