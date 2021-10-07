@@ -35,6 +35,7 @@
     <module>logging-log4j2</module>
     <module>logging-logback</module>
     <module>spring</module>
+    <module>spring-webflux</module>
     <module>webserver-tomcat</module>
     <module>webserver-undertow</module>
     <module>webserver-jetty</module>
@@ -152,9 +153,15 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Spring -->
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-plugin-spring</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sbss.bithon.agent</groupId>
+      <artifactId>agent-plugin-spring-webflux</artifactId>
       <version>${project.version}</version>
     </dependency>
 
