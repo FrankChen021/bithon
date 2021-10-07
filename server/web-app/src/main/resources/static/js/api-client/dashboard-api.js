@@ -16,4 +16,22 @@ class DashboardApi {
             }
         });
     }
+
+    getDashboardList(successCallback, errorCallback) {
+        $.ajax({
+            type: 'GET',
+            url: "/web/api/dashboard/names",
+            async: true,
+            dataType: "json",
+            contentType: "application/json",
+            success: (data) => {
+                successCallback(data);
+            },
+            error: (data) => {
+                errorCallback(data);
+            }
+        });
+    }
 }
+
+const g_DashboardApi = new DashboardApi();

@@ -1,5 +1,5 @@
 {
-  "title": "",
+  "title": "Web Server",
   "charts": [
     {
       "dataSource": "web-server-metrics",

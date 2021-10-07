@@ -1,5 +1,5 @@
 {
-  "title": "",
+  "title": "Redis",
   "charts": [
     {
       "dataSource": "redis-metrics",

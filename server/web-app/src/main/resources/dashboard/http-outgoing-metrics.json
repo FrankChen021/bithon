@@ -1,5 +1,5 @@
 {
-  "title": "",
+  "title": "HTTP Outgoing",
   "charts": [
     {
       "dataSource": "http-outgoing-metrics",

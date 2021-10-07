@@ -83,7 +83,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
                 throw new RuntimeException(e);
             }
         }
-        throw new RuntimeException("Can't find schema for datasource " + name);
+        throw new DataSourceNotFoundException("Can't find schema for datasource " + name);
     }
 
     public Map<String, DataSourceSchema> getDataSources() {
