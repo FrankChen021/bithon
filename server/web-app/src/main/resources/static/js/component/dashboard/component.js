@@ -349,8 +349,9 @@ class Dashboard {
                 const timeLabels = data.map(d => moment(d.timestamp).local().format('HH:mm:ss'));
 
                 const series = chartDescriptor.metrics.map(metric => {
+
                     return {
-                        name: metricNamePrefix + metric.name,
+                        name: metricNamePrefix + (metric.displayName === undefined ? metric.name : metric.displayName),
                         type: metric.chartType || 'line',
                         areaStyle: {opacity: 0.3},
                         data: data.map(d => metric.transformer(d, metric.name)),
