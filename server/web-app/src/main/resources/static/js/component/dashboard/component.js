@@ -349,14 +349,19 @@ class Dashboard {
                 const timeLabels = data.map(d => moment(d.timestamp).local().format('HH:mm:ss'));
 
                 const series = chartDescriptor.metrics.map(metric => {
+
                     return {
-                        name: metricNamePrefix + metric.name,
+                        name: metricNamePrefix + (metric.displayName === undefined ? metric.name : metric.displayName),
                         type: metric.chartType || 'line',
                         areaStyle: {opacity: 0.3},
                         data: data.map(d => metric.transformer(d, metric.name)),
                         lineStyle: {width: 1},
                         itemStyle: {opacity: 0},
-                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis
+                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
+
+                        // selected is not a property of series
+                        // this is used to render default selected state of legend by chart-component
+                        selected: metric.selected === undefined ? true : metric.selected
                     }
                 });
 

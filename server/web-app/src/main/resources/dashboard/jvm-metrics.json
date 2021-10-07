@@ -44,13 +44,17 @@
       ],
       "metrics": [
         {
-          "name": "heapMax"
+          "name": "heapUsed",
+          "displayName": "used"
         },
         {
-          "name": "heapUsed"
+          "name": "heapMax",
+          "displayName": "max"
         },
         {
-          "name": "heapCommitted"
+          "name": "heapCommitted",
+          "displayName": "committed",
+          "selected": false
         }
       ]
     },
@@ -67,13 +71,17 @@
       ],
       "metrics": [
         {
-          "name": "nonHeapMax"
+          "name": "nonHeapUsed",
+          "displayName": "used"
         },
         {
-          "name": "nonHeapUsed"
+          "name": "nonHeapMax",
+          "displayName": "max"
         },
         {
-          "name": "nonHeapCommitted"
+          "name": "nonHeapCommitted",
+          "displayName": "committed",
+          "selected": false
         }
       ]
     },
@@ -90,13 +98,17 @@
       ],
       "metrics": [
         {
-          "name": "metaspaceMax"
+          "name": "metaspaceUsed",
+          "displayName": "used"
         },
         {
-          "name": "metaspaceUsed"
+          "name": "metaspaceMax",
+          "displayName": "max"
         },
         {
-          "name": "metaspaceCommitted"
+          "name": "metaspaceCommitted",
+          "displayName": "committed",
+          "selected": false
         }
       ]
     },
@@ -113,10 +125,12 @@
       ],
       "metrics": [
         {
-          "name": "directUsed"
+          "name": "directUsed",
+          "displayName": "used"
         },
         {
-          "name": "directMax"
+          "name": "directMax",
+          "displayName": "max"
         }
       ]
     },
