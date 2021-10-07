@@ -102,14 +102,19 @@ class ChartComponent {
                     }
                     returnedOption.series = series;
                 }
-                returnedOption.legend = {
-                    data: returnedOption.series.map(s => {
-                        return {
-                            name: s.name,
-                            icon: 'circle'
-                        }
-                    })
+
+                let legend = {
+                    data: [],
+                    selected: {}
                 };
+                returnedOption.series.forEach(s=>{
+                    legend.data.push({
+                        name: s.name,
+                        icon: 'circle'
+                    });
+                    legend.selected[s.name] = s.selected;
+                });
+                returnedOption.legend = legend;
                 this.setChartOption(returnedOption);
             },
             error: (data) => {
@@ -132,10 +137,10 @@ class ChartComponent {
             const currentOption = this.getChartOption();
             const newSeries = [];
             const newList = [];
-            for(let i = 0; i < currentOption.legend[0].data.length; i++) {
+            for (let i = 0; i < currentOption.legend[0].data.length; i++) {
                 const legend = currentOption.legend[0].data[i];
 
-                if ( legend.name.startsWith(name) ) {
+                if (legend.name.startsWith(name)) {
                     delete this._chartSeries[legend.name];
                     currentOption.series[i].data = [];
                 } else {

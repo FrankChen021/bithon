@@ -90,13 +90,15 @@
       ],
       "metrics": [
         {
-          "name": "metaspaceMax"
-        },
-        {
           "name": "metaspaceUsed"
         },
         {
-          "name": "metaspaceCommitted"
+          "name": "metaspaceCommitted",
+          "selected": false
+        },
+        {
+          "name": "metaspaceMax",
+          "selected": false
         }
       ]
     },

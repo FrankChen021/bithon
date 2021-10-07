@@ -356,7 +356,11 @@ class Dashboard {
                         data: data.map(d => metric.transformer(d, metric.name)),
                         lineStyle: {width: 1},
                         itemStyle: {opacity: 0},
-                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis
+                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
+
+                        // selected is not a property of series
+                        // this is used to render default selected state of legend by chart-component
+                        selected: metric.selected === undefined ? true : metric.selected
                     }
                 });
 
