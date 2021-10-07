@@ -21,6 +21,15 @@ class Dashboard {
         };
 
         this.addDimension('appName', appName);
+
+        // Y Axis Formatter
+        this._formatters = {};
+        this._formatters['binary_byte'] = binaryByteFormat;
+        this._formatters['compact_number'] = compactFormat;
+        this._formatters['percentage'] = (v) => v + '%';
+        this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 0);
+        this._formatters['millisecond'] = (v) => v + 'ms';
+        this._formatters['microsecond'] = (v) => v + 'µs';
     }
 
     // PUBLIC
@@ -463,34 +472,7 @@ class Dashboard {
 
     //PRIVATE
     getFormatter(unit) {
-        switch (unit) {
-            case 'binary_byte':
-                return function (v) {
-                    return binaryByteFormat(v);
-                };
-            case 'compact_number':
-                return function(v) {
-                    return compactFormat(v);
-                }
-            case 'percentage':
-                return function (v) {
-                    return v + '%';
-                };
-            case 'nano2Millisecond':
-                return function (v) {
-                    return (v / 1000 / 1000).toFixed(0) + 'ms';
-                }
-            case 'millisecond':
-                return function (v) {
-                    return v + 'ms';
-                }
-            case 'microsecond':
-                return function (v) {
-                    return v + 'µs';
-                }
-            default:
-                return null;
-        }
+        return this._formatters[unit];
     }
 
     resize() {

@@ -16,7 +16,7 @@ const mongodb_metrics_dashboard = {
         "title": "Time",
         "width": 4, //1,2,3,4
         "yAxis": [{
-            "unit": "nano2Millisecond"
+            "unit": "nanoFormatter"
         }],
         "metrics": [{
             "name": "avgResponseTime"

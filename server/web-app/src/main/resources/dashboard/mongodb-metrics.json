@@ -25,7 +25,7 @@
       "width": 4,
       "yAxis": [
         {
-          "unit": "nano2Millisecond"
+          "unit": "nanoFormatter"
         }
       ],
       "metrics": [
