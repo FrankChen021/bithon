@@ -39,6 +39,14 @@ public class SpringWebFluxPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("apply")
                                                    .to("com.sbss.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
+                ),
+
+            forClass("reactor.netty.http.server.HttpServerConfig$HttpServerChannelInitializer")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .debug()
+                                                   .onAllMethods("onChannelInit")
+                                                   .to("com.sbss.bithon.agent.plugin.spring.webflux.interceptor.HttpServerChannelInitializer$OnChannelInit")
                 )
         );
     }

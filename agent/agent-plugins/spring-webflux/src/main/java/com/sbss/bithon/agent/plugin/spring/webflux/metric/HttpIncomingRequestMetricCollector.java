@@ -32,19 +32,20 @@ import java.util.List;
 public class HttpIncomingRequestMetricCollector extends IntervalMetricCollector<HttpIncomingMetrics> {
 
     public void update(HttpServerRequest request, HttpServerResponse response, long responseTime) {
-        String uri = request.uri();
+        String uri = request.fullPath();
 
         String srcApplication = request.requestHeaders().get(ITracePropagator.BITHON_SRC_APPLICATION);
 
         int httpStatus = response.status().code();
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
         int count5xx = httpStatus >= 500 ? 1 : 0;
-        long requestByteSize = request.requestHeaders().getInt("Content-Length", 0);
-        long responseByteSize = request.requestHeaders().getInt("Content-Length", 0);
 
-        HttpIncomingMetrics metric = getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
+        HttpIncomingMetrics metric = this.getOrCreateMetric(srcApplication, uri);
         metric.updateRequest(responseTime, count4xx, count5xx);
-        metric.updateBytes(requestByteSize, responseByteSize);
+    }
+
+    public HttpIncomingMetrics getOrCreateMetric(String srcApplication, String uri) {
+        return super.getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
     }
 
     @Override
