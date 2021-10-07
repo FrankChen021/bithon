@@ -18,7 +18,7 @@ Date.prototype.format = function (fmt) { //author: meizz
     return fmt;
 }
 
-function nanoFormat(nanoTime) {
+function nanoFormat(nanoTime, fractionDigits) {
     const formatter = ['ns', 'us', 'ms', 's'];
     let time = nanoTime;
     let val = +time || 0;
@@ -28,5 +28,5 @@ function nanoFormat(nanoTime) {
         index += 1;
         val = time / (1000 ** index);
     }
-    return val.toFixed(2) + formatter[index];
-};
+    return val.toFixed(fractionDigits === undefined ? 2 : fractionDigits) + formatter[index];
+}

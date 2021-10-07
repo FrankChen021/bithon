@@ -17,7 +17,7 @@
       "width": 4,
       "yAxis": [
         {
-          "unit": "nano2Millisecond"
+          "format": "nanoFormatter"
         }
       ],
       "metrics": [
@@ -49,7 +49,7 @@
         {
           "minInterval": 1048576,
           "interval": 1073741824,
-          "unit": "binary_byte"
+          "format": "binary_byte"
         }
       ],
       "metrics": [

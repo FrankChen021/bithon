@@ -21,6 +21,15 @@ class Dashboard {
         };
 
         this.addDimension('appName', appName);
+
+        // Y Axis Formatter
+        this._formatters = {};
+        this._formatters['binary_byte'] = binaryByteFormat;
+        this._formatters['compact_number'] = compactFormat;
+        this._formatters['percentage'] = (v) => v + '%';
+        this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 0);
+        this._formatters['millisecond'] = (v) => v + 'ms';
+        this._formatters['microsecond'] = (v) => v + 'µs';
     }
 
     // PUBLIC
@@ -212,7 +221,7 @@ class Dashboard {
             }
         });
         if (chartDescriptor.yAxis != null) {
-            const formatterFns = chartDescriptor.yAxis.map(y => this.getFormatter(y.unit));
+            const formatterFns = chartDescriptor.yAxis.map(y => this.getFormatter(y.format));
             for (let i = 1; i < formatterFns.length; i++) {
                 if (formatterFns[i] == null)
                     formatterFns[i] = formatterFns[i - 1]; //default to prev config
@@ -394,7 +403,7 @@ class Dashboard {
             const yIndex = metricDescriptor.yAxis == null ? 0 : metricDescriptor.yAxis;
             if (yIndex < chartDescriptor.yAxis.length) {
                 const yAxis = chartDescriptor.yAxis[yIndex];
-                if (yAxis.unit === 'millisecond' && schema.metricsSpec[metricName].unit === 'nanosecond') {
+                if (yAxis.format === 'millisecond' && schema.metricsSpec[metricName].unit === 'nanosecond') {
                     return function (data, metricName) {
                         const val = data[metricName];
                         return val == null ? 0 : (val / 1000 / 1000).toFixed(2);
@@ -462,35 +471,8 @@ class Dashboard {
     }
 
     //PRIVATE
-    getFormatter(unit) {
-        switch (unit) {
-            case 'binary_byte':
-                return function (v) {
-                    return binaryByteFormat(v);
-                };
-            case 'compact_number':
-                return function(v) {
-                    return compactFormat(v);
-                }
-            case 'percentage':
-                return function (v) {
-                    return v + '%';
-                };
-            case 'nano2Millisecond':
-                return function (v) {
-                    return (v / 1000 / 1000).toFixed(0) + 'ms';
-                }
-            case 'millisecond':
-                return function (v) {
-                    return v + 'ms';
-                }
-            case 'microsecond':
-                return function (v) {
-                    return v + 'µs';
-                }
-            default:
-                return null;
-        }
+    getFormatter(format) {
+        return this._formatters[format];
     }
 
     resize() {

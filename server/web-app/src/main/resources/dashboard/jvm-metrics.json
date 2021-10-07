@@ -7,13 +7,13 @@
       "width": 2,
       "yAxis": [
         {
-          "unit": "percentage"
+          "format": "percentage"
         }
       ],
       "metrics": [
         {
           "name": "processCpuLoad",
-          "unit": "percentage",
+          "format": "percentage",
           "chartType": "line"
         }
       ]
@@ -39,7 +39,7 @@
         {
           "minInterval": 1048576,
           "interval": 1073741824,
-          "unit": "binary_byte"
+          "format": "binary_byte"
         }
       ],
       "metrics": [
@@ -66,7 +66,7 @@
         {
           "minInterval": 1048576,
           "interval": 1073741824,
-          "unit": "binary_byte"
+          "format": "binary_byte"
         }
       ],
       "metrics": [
@@ -93,7 +93,7 @@
         {
           "minInterval": 1048576,
           "interval": 1073741824,
-          "unit": "binary_byte"
+          "format": "binary_byte"
         }
       ],
       "metrics": [
@@ -120,7 +120,7 @@
         {
           "minInterval": 1048576,
           "interval": 1073741824,
-          "unit": "binary_byte"
+          "format": "binary_byte"
         }
       ],
       "metrics": [
@@ -142,7 +142,7 @@
         {
         },
         {
-          "unit": "millisecond"
+          "format": "millisecond"
         }
       ],
       "dimensions": {
@@ -172,7 +172,7 @@
         {
         },
         {
-          "unit": "millisecond"
+          "format": "millisecond"
         }
       ],
       "dimensions": {
