@@ -20,27 +20,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import sun.misc.Launcher;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
 /**
@@ -50,59 +46,48 @@ import java.util.stream.Collectors;
  * @author frank.chen021@outlook.com
  * @date 2021-10-01
  */
+@Slf4j
 @RestController
 public class DashboardController {
 
     @Getter
     @AllArgsConstructor
-    public class DisplayableText {
+    public static class DisplayableText {
         private final String value;
         private final String text;
     }
 
-    private Map<String, LoadedDashboard> dashboardConfigs = new HashMap<>();
-    private List<DisplayableText> dashboardNames;
-    private final ObjectMapper om;
+    private final Map<String, LoadedDashboard> dashboardConfigs;
+    private final List<DisplayableText> dashboardNames;
 
-    public void loadDashboard() throws IOException {
-        final String path = "dashboard";
-        final File jarFile = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+    static class DashboardLoader {
+        private final ObjectMapper om;
+        private final ResourceLoader resourceLoader;
 
-        if (jarFile.isFile()) {
-            final JarFile jar = new JarFile(jarFile);
-            final Enumeration<JarEntry> entries = jar.entries();
-            while (entries.hasMoreElements()) {
-                JarEntry jarEntry = entries.nextElement();
-                final String name = jarEntry.getName();
-                if (name.startsWith(path + "/") && name.endsWith(".json")) {
-                    LoadedDashboard board = LoadedDashboard.load(om,
-                                                                 name,
-                                                                 jar.getInputStream(jarEntry));
-                    dashboardConfigs.put(board.id, board);
-                }
-            }
-            jar.close();
-        } else { // Run with IDE
-            final URL url = Launcher.class.getResource("/" + path);
-            if (url != null) {
-                try {
-                    final File dir = new File(url.toURI());
-                    for (File file : dir.listFiles()) {
-                        if (!file.getName().endsWith(".json")) {
-                            continue;
-                        }
+        DashboardLoader(ObjectMapper om, ResourceLoader resourceLoader) {
+            this.om = om;
+            this.resourceLoader = resourceLoader;
+        }
 
-                        try (InputStream is = new FileInputStream(file)) {
-                            LoadedDashboard board = LoadedDashboard.load(om,
-                                                                         file.getName(),
-                                                                         is);
-                            dashboardConfigs.put(board.id, board);
-                        }
+        public Map<String, LoadedDashboard> loadDashboard() {
+            Map<String, LoadedDashboard> dashboardConfigs = new HashMap<>();
+            try {
+                Resource[] resources = ResourcePatternUtils.getResourcePatternResolver(resourceLoader)
+                                                           .getResources("classpath:/dashboard/*.json");
+                for (Resource resource : resources) {
+                    try {
+                        LoadedDashboard board = LoadedDashboard.load(om,
+                                                                     resource.getFilename(),
+                                                                     resource.getInputStream());
+                        dashboardConfigs.put(board.id, board);
+                    } catch (IOException e) {
+                        log.error("Error loading {}: {}}", resource.getFilename(), e.getMessage());
                     }
-                } catch (URISyntaxException ex) {
-                    // never happens
                 }
+            } catch (IOException e) {
+                log.error("Error when loading dashboard resources", e);
             }
+            return dashboardConfigs;
         }
     }
 
@@ -138,16 +123,10 @@ public class DashboardController {
                 return bs.toByteArray();
             }
         }
-
     }
 
-    public DashboardController(ObjectMapper om) {
-        this.om = om;
-        try {
-            loadDashboard();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public DashboardController(ObjectMapper om, ResourceLoader resourceLoader) {
+        this.dashboardConfigs = new DashboardLoader(om, resourceLoader).loadDashboard();
         this.dashboardNames = this.dashboardConfigs.values()
                                                    .stream()
                                                    .map(dashboard -> new DisplayableText(dashboard.id, dashboard.title))
