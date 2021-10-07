@@ -1,5 +1,5 @@
 {
-  "title": "",
+  "title": "MongoDb",
   "charts": [
     {
       "dataSource": "mongodb-metrics",

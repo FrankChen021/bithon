@@ -1,8 +1,7 @@
 class MetricSidebar {
-    constructor(containerId, appName, schemaApi) {
+    constructor(containerId, appName) {
         this._container = $('#' + containerId);
         this._appName = appName;
-        this._schemaApi = schemaApi;
     }
 
     load() {
@@ -37,7 +36,7 @@ class MetricSidebar {
         // $.each(data, (index, item) => {
         //     this.addMetricItem(item);
         // });
-        this._schemaApi.getNames(
+        g_DashboardApi.getDashboardList(
             (data) => {
                 $.each(data, (index, item) => {
                     this.addMetricItem({id: item.value, text: item.text});

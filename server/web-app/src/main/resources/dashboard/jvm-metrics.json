@@ -1,5 +1,5 @@
 {
-  "title": "",
+  "title": "JVM",
   "charts": [
     {
       "dataSource": "jvm-metrics",

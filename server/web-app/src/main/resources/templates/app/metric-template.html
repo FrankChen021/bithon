@@ -2,30 +2,31 @@
 <html lang="zh_CN"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{app/app-layout}">
+      layout:decorate="~{app/app-layout}"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.ultraq.net.nz/thymeleaf/layout ">
 <head>
     <title>Bithon</title>
-    <script th:src="@{'/js/api-client/dashboard-api.js'}"></script>
 </head>
 <body>
 
 <div layout:fragment="content" id="dashboard">
 
-<script th:inline="javascript">
-$(document).ready(function () {
-    new DashboardApi().getDashboardConfig([[${metricName}]],
-        (boardConfig) => {
-            const dashboard = new Dashboard('dashboard', [[${appName}]], new SchemaApi());
-            dashboard.load(boardConfig);
+    <script th:inline="javascript">
+        $(document).ready(function () {
+            new DashboardApi().getDashboardConfig([[${metricName}]],
+                (boardConfig) => {
+                    const dashboard = new Dashboard('dashboard', [[${appName}]], new SchemaApi());
+                    dashboard.load(boardConfig);
 
-            $(window).bind('resize', () => {
-                dashboard.resize();
-            });
-        }, (error) => {
-            alert(error.responseText);
+                    $(window).bind('resize', () => {
+                        dashboard.resize();
+                    });
+                }, (error) => {
+                    alert(error.responseText);
+                });
         });
-});
-</script>
+    </script>
 
 </div>
 </body>
