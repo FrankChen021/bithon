@@ -221,7 +221,7 @@ class Dashboard {
             }
         });
         if (chartDescriptor.yAxis != null) {
-            const formatterFns = chartDescriptor.yAxis.map(y => this.getFormatter(y.unit));
+            const formatterFns = chartDescriptor.yAxis.map(y => this.getFormatter(y.format));
             for (let i = 1; i < formatterFns.length; i++) {
                 if (formatterFns[i] == null)
                     formatterFns[i] = formatterFns[i - 1]; //default to prev config
@@ -403,7 +403,7 @@ class Dashboard {
             const yIndex = metricDescriptor.yAxis == null ? 0 : metricDescriptor.yAxis;
             if (yIndex < chartDescriptor.yAxis.length) {
                 const yAxis = chartDescriptor.yAxis[yIndex];
-                if (yAxis.unit === 'millisecond' && schema.metricsSpec[metricName].unit === 'nanosecond') {
+                if (yAxis.format === 'millisecond' && schema.metricsSpec[metricName].unit === 'nanosecond') {
                     return function (data, metricName) {
                         const val = data[metricName];
                         return val == null ? 0 : (val / 1000 / 1000).toFixed(2);
@@ -471,8 +471,8 @@ class Dashboard {
     }
 
     //PRIVATE
-    getFormatter(unit) {
-        return this._formatters[unit];
+    getFormatter(format) {
+        return this._formatters[format];
     }
 
     resize() {

@@ -28,7 +28,7 @@
       "width": 4,
       "yAxis": [
         {
-          "unit": "millisecond"
+          "format": "millisecond"
         }
       ],
       "metrics": [
@@ -68,7 +68,7 @@
       "width": 4,
       "yAxis": [
         {
-          "unit": "compact_number"
+          "format": "compact_number"
         }
       ],
       "metrics": [

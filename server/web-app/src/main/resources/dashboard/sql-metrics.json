@@ -33,7 +33,7 @@
       "width": 4,
       "yAxis": [
         {
-          "unit": "millisecond"
+          "format": "millisecond"
         }
       ],
       "metrics": [
