@@ -20,30 +20,27 @@ import com.sbss.bithon.agent.core.dispatcher.IMessageConverter;
 import com.sbss.bithon.agent.core.metric.collector.IntervalMetricCollector;
 import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
 import com.sbss.bithon.agent.core.tracing.propagation.ITracePropagator;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpResponse;
+import reactor.netty.http.server.HttpServerRequest;
+import reactor.netty.http.server.HttpServerResponse;
 
 import java.util.List;
 
 /**
  * @author Frank Chen
- * @date {20201-09-23} {00:22}
+ * @date 20201-09-23 00:22
  */
 public class HttpIncomingRequestMetricCollector extends IntervalMetricCollector<HttpIncomingMetrics> {
 
-    public void update(ServerHttpRequest request, ServerHttpResponse response, long responseTime, boolean hasException) {
-        String uri = request.getURI().getPath();
-        if (uri == null) {
-            return;
-        }
+    public void update(HttpServerRequest request, HttpServerResponse response, long responseTime) {
+        String uri = request.uri();
 
-        String srcApplication = request.getHeaders().getFirst(ITracePropagator.BITHON_SRC_APPLICATION);
+        String srcApplication = request.requestHeaders().get(ITracePropagator.BITHON_SRC_APPLICATION);
 
-        int httpStatus = response.getStatusCode().value();
+        int httpStatus = response.status().code();
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
-        int count5xx = hasException ? 1 : (httpStatus >= 500 ? 1 : 0);
-        long requestByteSize = request.getHeaders().getContentLength();
-        long responseByteSize = response.getHeaders().getContentLength();
+        int count5xx = httpStatus >= 500 ? 1 : 0;
+        long requestByteSize = request.requestHeaders().getInt("Content-Length", 0);
+        long responseByteSize = request.requestHeaders().getInt("Content-Length", 0);
 
         HttpIncomingMetrics metric = getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri);
         metric.updateRequest(responseTime, count4xx, count5xx);

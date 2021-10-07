@@ -16,12 +16,11 @@
 
 package com.sbss.bithon.agent.plugin.spring.webflux;
 
-import com.sbss.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
 import com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import com.sbss.bithon.agent.core.plugin.IPlugin;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -33,24 +32,13 @@ import static com.sbss.bithon.agent.core.aop.descriptor.InterceptorDescriptorBui
 public class SpringWebFluxPlugin implements IPlugin {
 
     @Override
-    public BithonClassDescriptor getBithonClassDescriptor() {
-        return BithonClassDescriptor.of("org.springframework.web.server.adapter.DefaultServerWebExchange");
-    }
-
-    @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        return Collections.singletonList(
-            forClass("org.springframework.web.reactive.DispatcherHandler")
+        return Arrays.asList(
+            forClass("org.springframework.http.server.reactive.ReactorHttpHandlerAdapter")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("handle")
-                                                   .to("com.sbss.bithon.agent.plugin.spring.webflux.interceptor.Handle")
-
-                    /*
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("handleResult")
-                                                   .to("com.sbss.bithon.agent.plugin.spring.webflux.interceptor.HandleResult")
-                     */
+                                                   .onAllMethods("apply")
+                                                   .to("com.sbss.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
                 )
         );
     }

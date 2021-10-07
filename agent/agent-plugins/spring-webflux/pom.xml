@@ -21,6 +21,12 @@
       <version>5.0.0.RELEASE</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>io.projectreactor.netty</groupId>
+      <artifactId>reactor-netty-http</artifactId>
+      <version>1.0.10</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>

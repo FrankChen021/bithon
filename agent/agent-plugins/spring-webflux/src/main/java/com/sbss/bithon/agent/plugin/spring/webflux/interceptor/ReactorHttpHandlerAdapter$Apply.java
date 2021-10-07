@@ -18,20 +18,25 @@ package com.sbss.bithon.agent.plugin.spring.webflux.interceptor;
 
 import com.sbss.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import com.sbss.bithon.agent.bootstrap.aop.AopContext;
-import com.sbss.bithon.agent.bootstrap.aop.IBithonObject;
 import com.sbss.bithon.agent.bootstrap.aop.InterceptionDecision;
 import com.sbss.bithon.agent.core.metric.collector.MetricCollectorManager;
 import com.sbss.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
-import com.sbss.bithon.agent.plugin.spring.webflux.WebFluxContext;
 import com.sbss.bithon.agent.plugin.spring.webflux.metric.HttpIncomingRequestMetricCollector;
-import org.springframework.web.reactive.HandlerResult;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.server.HttpServerRequest;
+import reactor.netty.http.server.HttpServerResponse;
+import shaded.org.slf4j.Logger;
+import shaded.org.slf4j.LoggerFactory;
 
 /**
- * {@link org.springframework.web.reactive.DispatcherHandler#handleResult(ServerWebExchange, HandlerResult)}
+ * {@link org.springframework.http.server.reactive.ReactorHttpHandlerAdapter#apply}
+ *
+ * @author Frank Chen
+ * @date 7/10/21 3:16 pm
  */
-public class HandleResult extends AbstractInterceptor {
+public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ReactorHttpHandlerAdapter$Apply.class);
 
     private HttpIncomingRequestMetricCollector metricCollector;
     private HttpIncomingFilter requestFilter;
@@ -49,33 +54,40 @@ public class HandleResult extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ServerWebExchange exchange = (ServerWebExchange) aopContext.getArgs()[0];
+        final HttpServerRequest request = (HttpServerRequest) aopContext.getArgs()[0];
 
-        if (requestFilter.shouldBeExcluded(exchange.getRequest().getURI().toString(),
-                                           exchange.getRequest().getHeaders().getFirst("User-Agent"))) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
-        return InterceptionDecision.CONTINUE;
+        boolean shouldExclude = requestFilter.shouldBeExcluded(request.uri(),
+                                                               request.requestHeaders().get("User-Agent"));
+        return shouldExclude ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
     }
+
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
+        final HttpServerRequest request = (HttpServerRequest) aopContext.getArgs()[0];
+        final HttpServerResponse response = (HttpServerResponse) aopContext.getArgs()[1];
 
-        ServerWebExchange exchange = (ServerWebExchange) aopContext.getArgs()[0];
-        if (!(exchange instanceof IBithonObject)) {
+        Mono<Void> mono = aopContext.castReturningAs();
+        if (aopContext.hasException() || mono.equals(Mono.empty())) {
+            metricCollector.update(
+                request,
+                response,
+                aopContext.getCostTime()
+            );
             return;
         }
 
-        Mono result = (Mono) aopContext.getReturning();
-        aopContext.setReturning(
-            result.doFinally(
-                type -> metricCollector.update(
-                    exchange.getRequest(),
-                    exchange.getResponse(),
-                    ((WebFluxContext) ((IBithonObject) exchange).getInjectedObject()).getStartTime(),
-                    false
-                ))
-        );
+        final long start = System.nanoTime();
+        aopContext.setReturning(mono.doOnSuccessOrError((sucecss, error) -> {
+            try {
+                metricCollector.update(
+                    request,
+                    response,
+                    System.nanoTime() - start
+                );
+            } catch (Exception e) {
+                LOG.error("failed to record http incoming metrics", e);
+            }
+        }));
     }
 }
