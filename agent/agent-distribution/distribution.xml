@@ -20,13 +20,13 @@
         "dir" - Creates an exploded directory format
         "war" - Creates a WAR format
     -->
+    <format>dir</format>
     <format>zip</format>
   </formats>
-
   <includeBaseDirectory>true</includeBaseDirectory>
 
   <dependencySets>
-    <!-- agent-bootstrap -->
+    <!-- agent entry point -->
     <dependencySet>
       <includes>
         <include>${project.parent.groupId}:agent-main</include>
@@ -47,7 +47,7 @@
       <includes>
         <include>com.sbss.bithon.shaded:shaded-bytebuddy</include>
       </includes>
-      <outputDirectory>/boot</outputDirectory>
+      <outputDirectory>boot</outputDirectory>
       <outputFileNameMapping>shaded-bytebuddy.jar</outputFileNameMapping>
     </dependencySet>
 
@@ -60,7 +60,7 @@
         <exclude>${project.parent.groupId}:agent-sdk</exclude>
         <exclude>org.slf4j:slf4j-api</exclude>
       </excludes>
-      <outputDirectory>/lib</outputDirectory>
+      <outputDirectory>lib</outputDirectory>
     </dependencySet>
 
     <!-- sdk -->
@@ -75,20 +75,22 @@
 
   <fileSets>
     <fileSet>
-      <directory>${project.build.outputDirectory}</directory>
-      <outputDirectory>/conf</outputDirectory>
+      <directory>resources</directory>
+      <outputDirectory>conf</outputDirectory>
       <includes>
         <include>*.yml</include>
         <include>*.xml</include>
       </includes>
     </fileSet>
+
     <fileSet>
-      <directory>../dest/plugins</directory>
-      <outputDirectory>/plugins</outputDirectory>
+      <directory>../agent-plugins/target/agent-plugins</directory>
+      <outputDirectory>plugins</outputDirectory>
       <includes>
         <include>*.jar</include>
       </includes>
     </fileSet>
+
   </fileSets>
 
 </assembly>

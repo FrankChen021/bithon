@@ -71,7 +71,7 @@ Once the application has started, visit [http://localhost:9897/web/home](http://
 Attach agent to your java agent by adding following VM arguments.
 
 ```bash
--javaagent:<YOUR_PROJECT_DIRECTORY>/agent/dest/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>
+-javaagent:<YOUR_PROJECT_DIRECTORY>/agent/agent-distribution/target/agent-distribution/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>
 ```
 
 For applications running on JRE 9 or above, append following arguments to above command line
