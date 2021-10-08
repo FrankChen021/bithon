@@ -28,10 +28,21 @@
         <module>agent-plugins</module>
         <module>agent-sentinel</module>
         <module>agent-main</module>
+
+        <!-- Must be the last module -->
+        <!-- make distribution package -->
+        <module>agent-distribution</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <!-- Core -->
+            <dependency>
+                <groupId>com.sbss.bithon.agent</groupId>
+                <artifactId>agent-main</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <!-- Core -->
             <dependency>
                 <groupId>com.sbss.bithon.agent</groupId>
@@ -101,7 +112,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.5.3</version>
+                    <version>2.6</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -111,6 +122,17 @@
             </plugins>
         </pluginManagement>
         <plugins>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-assembly-plugin</artifactId>-->
+<!--                <configuration>-->
+<!--                    <finalName>hdpetl-${project.version}</finalName>-->
+<!--                    <descriptors>-->
+<!--                        <descriptor>agent-assembly/assembly.xml</descriptor>-->
+<!--                    </descriptors>-->
+<!--                    <appendAssemblyId>true</appendAssemblyId>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>

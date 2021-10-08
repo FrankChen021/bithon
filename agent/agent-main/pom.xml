@@ -14,50 +14,8 @@
   <dependencies>
     <dependency>
       <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-controller</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-dispatcher-thrift</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>httpclient</artifactId>
-          <groupId>org.apache.httpcomponents</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>httpcore</artifactId>
-          <groupId>org.apache.httpcomponents</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-dispatcher-brpc</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
       <artifactId>agent-bootstrap</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-sentinel</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-sdk</artifactId>
-    </dependency>
-
-    <!-- a lib used by plugins -->
-    <dependency>
-      <groupId>com.sbss.bithon.shaded</groupId>
-      <artifactId>shaded-alibaba-druid</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -89,25 +47,25 @@
         </configuration>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <descriptors>
-            <descriptor>distribution.xml</descriptor>
-          </descriptors>
-          <appendAssemblyId>false</appendAssemblyId>
-        </configuration>
-        <executions>
-          <execution>
-            <id>make-distribution</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-assembly-plugin</artifactId>-->
+<!--        <configuration>-->
+<!--          <descriptors>-->
+<!--            <descriptor>distribution.xml</descriptor>-->
+<!--          </descriptors>-->
+<!--          <appendAssemblyId>false</appendAssemblyId>-->
+<!--        </configuration>-->
+<!--        <executions>-->
+<!--          <execution>-->
+<!--            <id>make-distribution</id>-->
+<!--            <phase>package</phase>-->
+<!--            <goals>-->
+<!--              <goal>single</goal>-->
+<!--            </goals>-->
+<!--          </execution>-->
+<!--        </executions>-->
+<!--      </plugin>-->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -130,18 +88,6 @@
                 <delete dir="../${project.distribution.dir}/boot" />
                 <delete dir="../${project.distribution.dir}/sdk" />
               </tasks>
-            </configuration>
-          </execution>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <move file="${project.build.directory}/${project.name}/"
-                      tofile="../${project.distribution.dir}" overwrite="true"/>
-              </target>
             </configuration>
           </execution>
         </executions>
