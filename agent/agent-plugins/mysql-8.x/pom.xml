@@ -44,7 +44,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.mysql8.MySql8Plugin</Plugin-Class>
+              <Plugin-Class>org.bithon.agent.plugin.mysql8.MySql8Plugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>

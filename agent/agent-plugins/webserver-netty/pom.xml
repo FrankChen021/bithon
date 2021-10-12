@@ -32,7 +32,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.netty.NettyPlugin</Plugin-Class>
+              <Plugin-Class>org.bithon.agent.plugin.netty.NettyPlugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>

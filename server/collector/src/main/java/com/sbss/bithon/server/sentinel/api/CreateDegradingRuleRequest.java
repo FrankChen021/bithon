@@ -16,8 +16,8 @@
 
 package com.sbss.bithon.server.sentinel.api;
 
-import com.sbss.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import lombok.Data;
+import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 
 import javax.validation.constraints.NotNull;
 

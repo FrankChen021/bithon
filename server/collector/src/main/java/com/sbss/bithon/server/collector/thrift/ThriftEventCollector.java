@@ -16,12 +16,12 @@
 
 package com.sbss.bithon.server.collector.thrift;
 
-import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
-import com.sbss.bithon.agent.rpc.thrift.service.event.IEventCollector;
-import com.sbss.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.event.handler.EventMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.agent.rpc.thrift.service.MessageHeader;
+import org.bithon.agent.rpc.thrift.service.event.IEventCollector;
+import org.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 
 /**
  * @author frank.chen021@outlook.com

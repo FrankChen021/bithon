@@ -16,10 +16,6 @@
 
 package com.sbss.bithon.server.collector.thrift;
 
-import com.sbss.bithon.agent.rpc.thrift.service.event.IEventCollector;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.IMetricCollector;
-import com.sbss.bithon.agent.rpc.thrift.service.setting.SettingService;
-import com.sbss.bithon.agent.rpc.thrift.service.trace.ITraceCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.setting.AgentSettingService;
 import com.sbss.bithon.server.setting.SettingServiceThriftImpl;
@@ -34,6 +30,10 @@ import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.layered.TFramedTransport;
+import org.bithon.agent.rpc.thrift.service.event.IEventCollector;
+import org.bithon.agent.rpc.thrift.service.metric.IMetricCollector;
+import org.bithon.agent.rpc.thrift.service.setting.SettingService;
+import org.bithon.agent.rpc.thrift.service.trace.ITraceCollector;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;

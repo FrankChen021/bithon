@@ -33,7 +33,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.mongodb38.MongoDb38Plugin</Plugin-Class>
+              <Plugin-Class>org.bithon.agent.plugin.mongodb38.MongoDb38Plugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>

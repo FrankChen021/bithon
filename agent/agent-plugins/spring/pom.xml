@@ -36,7 +36,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.spring.SpringPlugin
+              <Plugin-Class>org.bithon.agent.plugin.spring.SpringPlugin
               </Plugin-Class>
             </manifestEntries>
           </archive>

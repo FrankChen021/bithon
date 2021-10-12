@@ -38,7 +38,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin</Plugin-Class>
+              <Plugin-Class>org.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>

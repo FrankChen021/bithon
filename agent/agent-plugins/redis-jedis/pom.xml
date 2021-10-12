@@ -31,7 +31,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.jedis.JedisPlugin</Plugin-Class>
+              <Plugin-Class>org.bithon.agent.plugin.jedis.JedisPlugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>

@@ -16,11 +16,11 @@
 
 package com.sbss.bithon.server.sentinel.api;
 
-import com.sbss.bithon.agent.sentinel.degrade.IDegradingRuleManager;
-import com.sbss.bithon.agent.sentinel.flow.IFlowRuleManager;
-import com.sbss.bithon.component.brpc.IServiceController;
 import com.sbss.bithon.server.cmd.CommandService;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.agent.sentinel.degrade.IDegradingRuleManager;
+import org.bithon.agent.sentinel.flow.IFlowRuleManager;
+import org.bithon.component.brpc.IServiceController;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

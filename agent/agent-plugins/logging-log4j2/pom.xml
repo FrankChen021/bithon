@@ -31,7 +31,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.log4j2.Log4j2Plugin</Plugin-Class>
+              <Plugin-Class>org.bithon.agent.plugin.log4j2.Log4j2Plugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>

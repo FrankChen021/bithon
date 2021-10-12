@@ -29,7 +29,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.bithon.sdk.BithonSdkPlugin</Plugin-Class>
+              <Plugin-Class>org.bithon.agent.plugin.bithon.sdk.BithonSdkPlugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>

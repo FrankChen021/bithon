@@ -16,11 +16,6 @@
 
 package com.sbss.bithon.server.collector.brpc;
 
-import com.sbss.bithon.agent.rpc.brpc.event.IEventCollector;
-import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
-import com.sbss.bithon.agent.rpc.brpc.setting.ISettingFetcher;
-import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
-import com.sbss.bithon.component.brpc.channel.ServerChannel;
 import com.sbss.bithon.server.cmd.CommandService;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.setting.AgentSettingService;
@@ -28,6 +23,11 @@ import com.sbss.bithon.server.setting.BrpcSettingFetcher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.agent.rpc.brpc.event.IEventCollector;
+import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
+import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
+import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
+import org.bithon.component.brpc.channel.ServerChannel;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;

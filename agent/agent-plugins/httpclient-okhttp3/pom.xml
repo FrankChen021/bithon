@@ -31,7 +31,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.httpclient.okhttp3.OkHttp3HttpClientPlugin
+              <Plugin-Class>org.bithon.agent.plugin.httpclient.okhttp3.OkHttp3HttpClientPlugin
               </Plugin-Class>
             </manifestEntries>
           </archive>

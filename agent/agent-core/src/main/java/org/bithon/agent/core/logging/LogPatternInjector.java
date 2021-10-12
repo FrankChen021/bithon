@@ -1,0 +1,59 @@
+/*
+ *    Copyright 2020 bithon.cn
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package org.bithon.agent.core.logging;
+
+/**
+ * @author frank.chen021@outlook.com
+ * @date 2021/7/23 5:25 下午
+ */
+public class LogPatternInjector {
+
+    public static String injectTracePattern(String userPattern) {
+
+        if (userPattern.contains("%X{bTxId}") || userPattern.contains("%X{bSpanId}")) {
+            return userPattern;
+        }
+
+        int messageIndex = -1;
+        String[] messagePatterns = new String[]{"%m", "%msg", "%message"};
+        for (String msgPattern : messagePatterns) {
+            int index = userPattern.indexOf(msgPattern);
+            if (index != -1) {
+                messageIndex = index;
+                break;
+            }
+        }
+
+        /*
+         * we deem that a log pattern without message pattern is not a valid pattern
+         */
+        if (messageIndex == -1) {
+            return userPattern;
+        }
+
+        // insert the trace pattern before the message pattern
+        StringBuilder newPattern = new StringBuilder(userPattern.substring(0, messageIndex));
+        if (newPattern.charAt(newPattern.length() - 1) != ' ') {
+            newPattern.append(' ');
+        }
+        newPattern.append("[bTxId:%X{bTxId}, bSpanId:%X{bSpanId}] ");
+        newPattern.append(userPattern.substring(messageIndex));
+
+        return newPattern.toString();
+
+    }
+}

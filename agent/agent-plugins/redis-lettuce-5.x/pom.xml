@@ -35,7 +35,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.lettuce.LettucePlugin
+              <Plugin-Class>org.bithon.agent.plugin.lettuce.LettucePlugin
               </Plugin-Class>
             </manifestEntries>
           </archive>

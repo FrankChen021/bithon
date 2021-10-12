@@ -17,21 +17,6 @@
 package com.sbss.bithon.server.collector.brpc;
 
 
-import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSet;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcHttpOutgoingMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcMongoDbMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
-import com.sbss.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
@@ -47,6 +32,21 @@ import com.sbss.bithon.server.metric.dimension.StringDimensionSpec;
 import com.sbss.bithon.server.metric.handler.MetricMessage;
 import com.sbss.bithon.server.metric.handler.SchemaMetricMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
+import org.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSet;
+import org.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcHttpOutgoingMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcMongoDbMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Iterator;

@@ -16,12 +16,12 @@
 
 package com.sbss.bithon.server.collector.brpc;
 
-import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import com.sbss.bithon.agent.rpc.brpc.event.BrpcEventMessage;
-import com.sbss.bithon.agent.rpc.brpc.event.IEventCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.event.handler.EventMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
+import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
+import org.bithon.agent.rpc.brpc.event.IEventCollector;
 
 /**
  * @author frank.chen021@outlook.com

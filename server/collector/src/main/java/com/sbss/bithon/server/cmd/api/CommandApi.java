@@ -16,9 +16,9 @@
 
 package com.sbss.bithon.server.cmd.api;
 
-import com.sbss.bithon.agent.rpc.brpc.cmd.IJvmCommand;
-import com.sbss.bithon.component.brpc.endpoint.EndPoint;
 import com.sbss.bithon.server.cmd.CommandService;
+import org.bithon.agent.rpc.brpc.cmd.IJvmCommand;
+import org.bithon.component.brpc.endpoint.EndPoint;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

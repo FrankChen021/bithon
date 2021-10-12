@@ -32,7 +32,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.jetty.JettyPlugin</Plugin-Class>
+              <Plugin-Class>org.bithon.agent.plugin.jetty.JettyPlugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>

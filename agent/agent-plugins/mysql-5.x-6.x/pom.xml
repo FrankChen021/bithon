@@ -42,7 +42,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.mysql.MySqlPlugin</Plugin-Class>
+              <Plugin-Class>org.bithon.agent.plugin.mysql.MySqlPlugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>

@@ -16,23 +16,23 @@
 
 package com.sbss.bithon.server.collector.thrift;
 
-import com.sbss.bithon.agent.rpc.thrift.service.MessageHeader;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.IMetricCollector;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.HttpOutgoingMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmGcMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.MongoDbMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
-import com.sbss.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.metric.handler.MetricMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.agent.rpc.thrift.service.MessageHeader;
+import org.bithon.agent.rpc.thrift.service.metric.IMetricCollector;
+import org.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
+import org.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage;
+import org.bithon.agent.rpc.thrift.service.metric.message.HttpOutgoingMetricMessage;
+import org.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
+import org.bithon.agent.rpc.thrift.service.metric.message.JvmGcMetricMessage;
+import org.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
+import org.bithon.agent.rpc.thrift.service.metric.message.MongoDbMetricMessage;
+import org.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
+import org.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
+import org.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
+import org.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Iterator;

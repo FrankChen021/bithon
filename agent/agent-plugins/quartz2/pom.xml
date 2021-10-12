@@ -38,7 +38,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.quartz2.QuartzPlugin
+              <Plugin-Class>org.bithon.agent.plugin.quartz2.QuartzPlugin
               </Plugin-Class>
             </manifestEntries>
           </archive>

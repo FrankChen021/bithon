@@ -39,7 +39,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.tomcat.TomcatPlugin</Plugin-Class>
+              <Plugin-Class>org.bithon.agent.plugin.tomcat.TomcatPlugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>

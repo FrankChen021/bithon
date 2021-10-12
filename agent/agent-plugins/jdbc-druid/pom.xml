@@ -33,7 +33,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.jdbc.druid.DruidPlugin
+              <Plugin-Class>org.bithon.agent.plugin.jdbc.druid.DruidPlugin
               </Plugin-Class>
             </manifestEntries>
           </archive>

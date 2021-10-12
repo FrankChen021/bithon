@@ -16,8 +16,9 @@
 
 package com.sbss.bithon.server.metric.handler;
 
-import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import com.sbss.bithon.server.common.utils.ReflectionUtils;
+import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
+import org.bithon.agent.rpc.thrift.service.MessageHeader;
 
 import java.util.HashMap;
 
@@ -49,7 +50,7 @@ public class MetricMessage extends HashMap<String, Object> {
         return metricMessage;
     }
 
-    public static MetricMessage of(com.sbss.bithon.agent.rpc.thrift.service.MessageHeader header, Object message) {
+    public static MetricMessage of(MessageHeader header, Object message) {
         MetricMessage metricMessage = new MetricMessage();
         ReflectionUtils.getFields(header, metricMessage);
         ReflectionUtils.getFields(message, metricMessage);

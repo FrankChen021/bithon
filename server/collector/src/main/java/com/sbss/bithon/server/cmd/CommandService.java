@@ -16,7 +16,7 @@
 
 package com.sbss.bithon.server.cmd;
 
-import com.sbss.bithon.component.brpc.channel.ServerChannel;
+import org.bithon.component.brpc.channel.ServerChannel;
 import org.springframework.stereotype.Service;
 
 /**

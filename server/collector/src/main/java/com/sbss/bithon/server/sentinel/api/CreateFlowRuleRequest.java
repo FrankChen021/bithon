@@ -16,8 +16,8 @@
 
 package com.sbss.bithon.server.sentinel.api;
 
-import com.sbss.bithon.agent.sentinel.flow.FlowRuleDto;
 import lombok.Data;
+import org.bithon.agent.sentinel.flow.FlowRuleDto;
 
 import javax.validation.constraints.NotNull;
 

@@ -16,11 +16,11 @@
 
 package com.sbss.bithon.server.setting;
 
-import com.sbss.bithon.agent.rpc.thrift.service.setting.FetchRequest;
-import com.sbss.bithon.agent.rpc.thrift.service.setting.FetchResponse;
-import com.sbss.bithon.agent.rpc.thrift.service.setting.SettingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
+import org.bithon.agent.rpc.thrift.service.setting.FetchRequest;
+import org.bithon.agent.rpc.thrift.service.setting.FetchResponse;
+import org.bithon.agent.rpc.thrift.service.setting.SettingService;
 
 /**
  * @author frank.chen021@outlook.com

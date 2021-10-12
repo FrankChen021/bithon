@@ -16,13 +16,13 @@
 
 package com.sbss.bithon.server.collector.brpc;
 
-import com.sbss.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import com.sbss.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
-import com.sbss.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import com.sbss.bithon.server.collector.sink.IMessageSink;
 import com.sbss.bithon.server.common.utils.collection.CloseableIterator;
 import com.sbss.bithon.server.tracing.handler.TraceSpan;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
+import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
+import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
