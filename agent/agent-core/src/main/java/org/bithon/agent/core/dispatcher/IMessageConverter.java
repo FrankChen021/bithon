@@ -16,7 +16,6 @@
 
 package org.bithon.agent.core.dispatcher;
 
-import com.sbss.bithon.agent.sdk.metric.schema.Schema;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMetricSet;
 import org.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
@@ -32,6 +31,7 @@ import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.sdk.metric.schema.Schema;
 
 import java.util.Collection;
 import java.util.List;

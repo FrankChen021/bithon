@@ -14,19 +14,20 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.sdk.metric.schema;
 
 /**
  * @author Frank Chen
  * @date 2021-10-02
  */
-public class LongSumMetricSpec extends AbstractMetricSpec {
-    public LongSumMetricSpec(String name) {
+public class StringDimensionSpec extends AbstractDimensionSpec {
+
+    public StringDimensionSpec(String name) {
         super(name);
     }
 
     @Override
     public String getType() {
-        return "longSum";
+        return "string";
     }
 }

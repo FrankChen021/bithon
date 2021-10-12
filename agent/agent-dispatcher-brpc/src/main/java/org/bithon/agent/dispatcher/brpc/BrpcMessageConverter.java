@@ -16,8 +16,6 @@
 
 package org.bithon.agent.dispatcher.brpc;
 
-import com.sbss.bithon.agent.sdk.metric.IMetricValueProvider;
-import com.sbss.bithon.agent.sdk.metric.schema.Schema;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMetricSet;
@@ -50,6 +48,8 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
+import org.bithon.agent.sdk.metric.IMetricValueProvider;
+import org.bithon.agent.sdk.metric.schema.Schema;
 
 import java.util.Collection;
 import java.util.Collections;

@@ -14,35 +14,27 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric.aggregator;
-
-import com.sbss.bithon.agent.sdk.metric.IMetricValue;
-
-import java.util.concurrent.atomic.AtomicLong;
+package org.bithon.agent.sdk.metric.schema;
 
 /**
  * @author Frank Chen
- * @date 2021-10-01
+ * @date 2021-10-02
  */
-public class LongMin implements IMetricValue {
-    private final AtomicLong value = new AtomicLong(Long.MAX_VALUE);
+public abstract class AbstractDimensionSpec implements IDimensionSpec {
 
-    @Override
-    public long update(long value) {
-        while (true) {
-            long current = this.value.get();
-            if (current > value) {
-                if (this.value.compareAndSet(current, value)) {
-                    return value;
-                }
-            } else {
-                return current;
-            }
-        }
+    private final String name;
+
+    public AbstractDimensionSpec(String name) {
+        this.name = name;
     }
 
     @Override
-    public long value() {
-        return value.get();
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("dimension(type=%s, name=%s)", getType(), name);
     }
 }

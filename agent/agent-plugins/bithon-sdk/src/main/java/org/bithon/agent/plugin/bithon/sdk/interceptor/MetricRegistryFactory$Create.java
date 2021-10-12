@@ -16,8 +16,6 @@
 
 package org.bithon.agent.plugin.bithon.sdk.interceptor;
 
-import com.sbss.bithon.agent.sdk.expt.SdkException;
-import com.sbss.bithon.agent.sdk.metric.IMetricsRegistry;
 import org.bithon.agent.bootstrap.aop.IReplacementInterceptor;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector2;
@@ -26,6 +24,9 @@ import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.plugin.PluginClassLoaderManager;
 import org.bithon.agent.core.utils.CollectionUtils;
 import org.bithon.agent.core.utils.lang.StringUtils;
+import org.bithon.agent.sdk.expt.SdkException;
+import org.bithon.agent.sdk.metric.IMetricsRegistry;
+import org.bithon.agent.sdk.metric.MetricRegistryFactory;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A replacement of {@link com.sbss.bithon.agent.sdk.metric.MetricRegistryFactory#create(String, List, Class)}
+ * A replacement of {@link MetricRegistryFactory#create(String, List, Class)}
  *
  * @author frank.chen021@outlook.com
  * @date 2021-10-01

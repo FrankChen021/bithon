@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.sdk.metric.schema;
 
 /**
  * @author Frank Chen

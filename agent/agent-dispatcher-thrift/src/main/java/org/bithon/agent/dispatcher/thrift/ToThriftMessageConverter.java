@@ -16,7 +16,6 @@
 
 package org.bithon.agent.dispatcher.thrift;
 
-import com.sbss.bithon.agent.sdk.metric.schema.Schema;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMetricSet;
@@ -46,6 +45,7 @@ import org.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import org.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
+import org.bithon.agent.sdk.metric.schema.Schema;
 
 import java.util.Collection;
 import java.util.List;

@@ -14,14 +14,18 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.sdk.expt;
 
 /**
  * @author Frank Chen
- * @date 2021-10-02
+ * @date 3/10/21 16:33
  */
-public interface IDimensionSpec {
-    String getName();
+public class SdkException extends RuntimeException {
+    public SdkException(String message) {
+        super(message);
+    }
 
-    String getType();
+    public SdkException(String format, Object... args) {
+        super(String.format(format, args));
+    }
 }

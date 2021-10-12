@@ -14,18 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.metric.collector;
-
-import org.bithon.agent.sdk.metric.IMetricValueProvider;
-
-import java.util.List;
+package org.bithon.agent.sdk.metric;
 
 /**
  * @author Frank Chen
- * @date 3/10/21 11:40
+ * @date 6/10/21 1:05 pm
  */
-public interface IMetricSet {
-    List<String> getDimensions();
-
-    IMetricValueProvider[] getMetrics();
+public interface IMetricValueProvider {
+    long value();
 }

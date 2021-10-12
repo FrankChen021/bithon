@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric;
+package org.bithon.agent.sdk.metric;
 
-import com.sbss.bithon.agent.sdk.expt.SdkException;
+import org.bithon.agent.sdk.expt.SdkException;
 
 import java.lang.reflect.Constructor;
 import java.util.List;

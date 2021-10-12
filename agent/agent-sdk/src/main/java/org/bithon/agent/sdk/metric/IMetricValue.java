@@ -14,12 +14,12 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric;
+package org.bithon.agent.sdk.metric;
 
 /**
  * @author Frank Chen
- * @date 6/10/21 1:05 pm
+ * @date 2021-10-01
  */
-public interface IMetricValueProvider {
-    long value();
+public interface IMetricValue extends IMetricValueProvider {
+    long update(long v);
 }

@@ -14,12 +14,20 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric;
+package org.bithon.agent.sdk.metric.schema;
 
 /**
  * @author Frank Chen
- * @date 2021-10-01
+ * @date 2021-10-02
  */
-public interface IMetricValue extends IMetricValueProvider {
-    long update(long v);
+public class LongMaxMetricSpec extends AbstractMetricSpec {
+
+    public LongMaxMetricSpec(String name) {
+        super(name);
+    }
+
+    @Override
+    public String getType() {
+        return "longMax";
+    }
 }

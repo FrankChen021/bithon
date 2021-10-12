@@ -37,7 +37,7 @@ public class BithonSdkPlugin implements IPlugin {
             //
             // metrics
             //
-            forClass("com.sbss.bithon.agent.sdk.metric.MetricRegistryFactory")
+            forClass("org.bithon.agent.sdk.metric.MetricRegistryFactory")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("create")

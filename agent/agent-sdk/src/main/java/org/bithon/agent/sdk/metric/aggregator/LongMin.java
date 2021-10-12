@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric.aggregator;
+package org.bithon.agent.sdk.metric.aggregator;
 
-import com.sbss.bithon.agent.sdk.metric.IMetricValue;
+import org.bithon.agent.sdk.metric.IMetricValue;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -24,14 +24,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Frank Chen
  * @date 2021-10-01
  */
-public class LongMax implements IMetricValue {
-    private final AtomicLong value = new AtomicLong(Long.MIN_VALUE);
+public class LongMin implements IMetricValue {
+    private final AtomicLong value = new AtomicLong(Long.MAX_VALUE);
 
     @Override
     public long update(long value) {
         while (true) {
             long current = this.value.get();
-            if (current < value) {
+            if (current > value) {
                 if (this.value.compareAndSet(current, value)) {
                     return value;
                 }

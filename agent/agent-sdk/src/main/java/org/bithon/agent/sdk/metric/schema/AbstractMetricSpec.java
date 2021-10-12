@@ -14,20 +14,26 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.sdk.metric.schema;
 
 /**
  * @author Frank Chen
- * @date 2021-10-02
+ * @date 2021-10-01
  */
-public class StringDimensionSpec extends AbstractDimensionSpec {
+public abstract class AbstractMetricSpec implements IMetricSpec {
+    private final String name;
 
-    public StringDimensionSpec(String name) {
-        super(name);
+    public AbstractMetricSpec(String name) {
+        this.name = name;
     }
 
     @Override
-    public String getType() {
-        return "string";
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return this.getType() + "(" + name + ")";
     }
 }

@@ -14,26 +14,35 @@
  *    limitations under the License.
  */
 
-package com.sbss.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.sdk.metric.aggregator;
+
+import org.bithon.agent.sdk.metric.IMetricValue;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Frank Chen
  * @date 2021-10-01
  */
-public abstract class AbstractMetricSpec implements IMetricSpec {
-    private final String name;
+public class LongMax implements IMetricValue {
+    private final AtomicLong value = new AtomicLong(Long.MIN_VALUE);
 
-    public AbstractMetricSpec(String name) {
-        this.name = name;
+    @Override
+    public long update(long value) {
+        while (true) {
+            long current = this.value.get();
+            if (current < value) {
+                if (this.value.compareAndSet(current, value)) {
+                    return value;
+                }
+            } else {
+                return current;
+            }
+        }
     }
 
     @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        return this.getType() + "(" + name + ")";
+    public long value() {
+        return value.get();
     }
 }
