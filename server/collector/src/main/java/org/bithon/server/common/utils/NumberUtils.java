@@ -1,5 +1,5 @@
 /*
- *    Copyright 2020 bithon.cn
+ *    Copyright 2020 bithon.org
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,10 +17,11 @@
 package org.bithon.server.common.utils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * @author frankchen
- * @Date 2020-08-27 17:28:11
+ * @date 2020-08-27 17:28:11
  */
 public class NumberUtils {
 
@@ -28,7 +29,7 @@ public class NumberUtils {
                              double divisor,
                              int scale) {
         try {
-            return new BigDecimal(dividend / divisor).setScale(scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+            return new BigDecimal(dividend / divisor).setScale(scale, RoundingMode.HALF_UP).doubleValue();
         } catch (NumberFormatException e) {
             return 0;
         }
@@ -40,16 +41,16 @@ public class NumberUtils {
         if (divisor.equals(BigDecimal.ZERO)) {
             return dividend.doubleValue();
         }
-        return dividend.divide(divisor, scale, BigDecimal.ROUND_HALF_UP).doubleValue();
+        return dividend.divide(divisor, scale, RoundingMode.HALF_UP).doubleValue();
     }
 
     public static BigDecimal scaleTo(double val,
                                      int scale) {
-        return new BigDecimal(val).setScale(scale, BigDecimal.ROUND_HALF_UP);
+        return new BigDecimal(val).setScale(scale, RoundingMode.HALF_UP);
     }
 
     public static String toString(double val,
                                   int scale) {
-        return BigDecimal.valueOf(val).setScale(scale, BigDecimal.ROUND_HALF_UP).toString();
+        return BigDecimal.valueOf(val).setScale(scale, RoundingMode.HALF_UP).toString();
     }
 }
