@@ -4,7 +4,7 @@
          xmlns="http://maven.apache.org/POM/4.0.0">
 
   <parent>
-    <groupId>com.sbss.bithon.agent</groupId>
+    <groupId>org.bithon.agent</groupId>
     <artifactId>agent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
@@ -14,15 +14,15 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-controller</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.shaded</groupId>
+      <groupId>org.bithon.shaded</groupId>
       <artifactId>shaded-alibaba-druid</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>

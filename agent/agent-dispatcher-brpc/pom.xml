@@ -3,7 +3,7 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <groupId>com.sbss.bithon.agent</groupId>
+    <groupId>org.bithon.agent</groupId>
     <artifactId>agent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
@@ -13,16 +13,16 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.sbss.bithon</groupId>
+      <groupId>org.bithon</groupId>
       <artifactId>agent-rpc-brpc</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-controller</artifactId>
     </dependency>
   </dependencies>

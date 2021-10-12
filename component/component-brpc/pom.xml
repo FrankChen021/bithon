@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <groupId>com.sbss.bithon</groupId>
+    <groupId>org.bithon</groupId>
     <artifactId>bithon</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
@@ -19,22 +19,22 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.sbss.bithon.shaded</groupId>
+      <groupId>org.bithon.shaded</groupId>
       <artifactId>shaded-slf4j</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.shaded</groupId>
+      <groupId>org.bithon.shaded</groupId>
       <artifactId>shaded-netty</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.shaded</groupId>
+      <groupId>org.bithon.shaded</groupId>
       <artifactId>shaded-protobuf</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.shaded</groupId>
+      <groupId>org.bithon.shaded</groupId>
       <artifactId>shaded-jackson</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
