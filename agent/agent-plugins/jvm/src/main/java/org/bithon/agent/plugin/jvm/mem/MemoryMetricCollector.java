@@ -21,11 +21,11 @@ import org.bithon.agent.core.metric.domain.jvm.MemoryCompositeMetric;
 import org.bithon.agent.core.metric.domain.jvm.MemoryRegionCompositeMetric;
 import org.bithon.agent.core.plugin.PluginClassLoaderManager;
 import org.bithon.agent.plugin.jvm.JmxBeans;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.util.Iterator;
+import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
 /**
@@ -48,16 +48,24 @@ public class MemoryMetricCollector {
                                                                        PluginClassLoaderManager.getDefaultLoader());
         Iterator<IDirectMemoryCollector> i = spi.iterator();
         if (!i.hasNext()) {
-            LoggerFactory.getLogger(MemoryMetricCollector.class)
-                         .error(
-                             "unable to find instance of IDirectMemoryCollector. Check if agent-plugin-jvm-jdkXXXX.jar exists.");
-            System.exit(-1);
+            throw new AgentException("Unable to find instance of IDirectMemoryCollector. Check if agent-plugin-jvm-jdkXXXX.jar exists.");
         }
         try {
             directMemoryCollector = i.next();
         } catch (UnsupportedClassVersionError e) {
-            throw new AgentException("Current JRE[%s] is mismatched with the JDK that is used to compile Bithon. Make sure to use a matched JRE, or compile Bithon with a right JDK.",
-                                     JmxBeans.RUNTIME_BEAN.getSpecVersion());
+            throw new AgentException(
+                "JRE[%s], which is used to run this application, is mismatched with the JDK that is used to compile Bithon. Make sure to use a matched JRE, or compile Bithon with a right JDK.",
+                JmxBeans.RUNTIME_BEAN.getSpecVersion());
+        } catch (ServiceConfigurationError e) {
+            Throwable cause = e.getCause();
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
+            }
+            if (cause instanceof AgentException) {
+                throw (AgentException) cause;
+            } else {
+                throw new AgentException(cause);
+            }
         }
     }
 

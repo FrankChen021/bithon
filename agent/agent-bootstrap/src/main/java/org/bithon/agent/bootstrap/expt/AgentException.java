@@ -33,11 +33,11 @@ public class AgentException extends RuntimeException {
         super(String.format(format, args));
     }
 
-    public AgentException(Exception e, String format, Object... args) {
+    public AgentException(Throwable e, String format, Object... args) {
         super(String.format(format, args), e);
     }
 
-    public AgentException(Exception e) {
+    public AgentException(Throwable e) {
         super(e);
     }
 }
