@@ -16,7 +16,9 @@
 
 package org.bithon.agent.plugin.jvm.jdk8;
 
+import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.metric.domain.jvm.MemoryRegionCompositeMetric;
+import org.bithon.agent.plugin.jvm.JmxBeans;
 import org.bithon.agent.plugin.jvm.mem.IDirectMemoryCollector;
 import sun.misc.VM;
 
@@ -34,6 +36,19 @@ public class DirectMemoryCollector implements IDirectMemoryCollector {
                                                                                 .filter(bean -> "direct".equalsIgnoreCase(bean.getName()))
                                                                                 .findFirst()
                                                                                 .get();
+
+    //
+    // call the VM.maxDirectMemory in static initializer so that if the VM class does not exist, a ClassNotFoundException will be raised
+    //
+    static {
+        try {
+            VM.maxDirectMemory();
+        } catch (NoClassDefFoundError e) {
+            throw new AgentException(
+                "JRE[%s], which is used to run this application, is mismatched with the JDK-1.8 that is used to compile Bithon. Make sure to use a matched JRE, or compile Bithon with a right JDK.",
+                JmxBeans.RUNTIME_BEAN.getSpecVersion());
+        }
+    }
 
     @Override
     public MemoryRegionCompositeMetric collect() {
