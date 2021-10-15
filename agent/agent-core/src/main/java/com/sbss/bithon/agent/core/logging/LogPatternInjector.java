@@ -47,7 +47,8 @@ public class LogPatternInjector {
 
         // insert the trace pattern before the message pattern
         StringBuilder newPattern = new StringBuilder(userPattern.substring(0, messageIndex));
-        if (newPattern.charAt(newPattern.length() - 1) != ' ') {
+        if (newPattern.length() > 0 // messageIndex can be zero if the %msg pattern is the first
+            && newPattern.charAt(newPattern.length() - 1) != ' ') {
             newPattern.append(' ');
         }
         newPattern.append("[bTxId:%X{bTxId}, bSpanId:%X{bSpanId}] ");
