@@ -6,7 +6,7 @@ It targets application metrics, logging, distributed tracing, alert and applicat
 
 # Demon
 
-A preview demo is hosted [here](https://www.bithon.cn:9897/web/home).
+A preview demo is hosted [here](https://www.bithon.org:9897/web/home).
 
 # Build
 

@@ -5,7 +5,7 @@ application:
 
 controller:
   servers: 127.0.0.1:9899
-  client: com.sbss.bithon.agent.dispatcher.brpc.BrpcAgentControllerFactory
+  client: org.bithon.agent.dispatcher.brpc.BrpcAgentControllerFactory
 
 dispatchers:
   metric:
@@ -15,7 +15,7 @@ dispatchers:
       # in SECONDS
       gcPeriod: 60
     client:
-      factory: com.sbss.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
       timeout: 3000
     servers: 127.0.0.1:9898
@@ -28,7 +28,7 @@ dispatchers:
       # in SECONDS
       gcPeriod: 60
     client:
-      factory: com.sbss.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
       timeout: 3000
     servers: 127.0.0.1:9895
@@ -39,7 +39,7 @@ dispatchers:
       # in SECONDS
       gcPeriod: 60
     client:
-      factory: com.sbss.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
       timeout: 3000
     servers: 127.0.0.1:9896

@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.sbss.bithon.agent</groupId>
+    <groupId>org.bithon.agent</groupId>
     <artifactId>agent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
@@ -12,15 +12,15 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-controller</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.shaded</groupId>
+      <groupId>org.bithon.shaded</groupId>
       <artifactId>shaded-alibaba-druid</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
@@ -42,23 +42,10 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>com.sbss.bithon.agent.plugin.mysql.MySqlPlugin</Plugin-Class>
+              <Plugin-Class>org.bithon.agent.plugin.mysql.MySqlPlugin</Plugin-Class>
             </manifestEntries>
           </archive>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>3.2.1</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
