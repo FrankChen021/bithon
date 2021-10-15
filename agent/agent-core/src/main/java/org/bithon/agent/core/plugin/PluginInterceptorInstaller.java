@@ -107,15 +107,14 @@ public class PluginInterceptorInstaller {
                                                                                                 pluginClassLoader);
 
                 Boolean isPluginDisabled = PluginConfigurationManager.load(pluginClass)
-                                                                     .getConfig("agent.plugin." + getPluginPackageName(
-                                                                         pluginClassName) + ".disabled", Boolean.class);
+                                                                     .getConfig(PluginConfigurationManager.getPluginConfigurationPrefixName(pluginClassName) + "disabled", Boolean.class);
                 if (isPluginDisabled != null && isPluginDisabled) {
                     log.info("Found plugin {}, but it's DISABLED by configuration", jarFileName);
                     continue;
                 }
 
                 log.info("Found plugin {}", jarFileName);
-                plugins.add(pluginClass.newInstance());
+                plugins.add(pluginClass.getDeclaredConstructor().newInstance());
             } catch (Throwable e) {
                 LoggerFactory.getLogger(PluginInterceptorInstaller.class)
                              .error(String.format("Failed to add plugin from jar %s",
@@ -124,13 +123,5 @@ public class PluginInterceptorInstaller {
             }
         }
         return plugins;
-    }
-
-    private static String getPluginPackageName(String pluginClassName) {
-        String[] parts = pluginClassName.split("\\.");
-        if (parts.length > 1) {
-            return parts[parts.length - 2];
-        }
-        return null;
     }
 }

@@ -16,10 +16,13 @@
 
 package org.bithon.agent.core.plugin;
 
+import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.config.Configuration;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,15 +33,32 @@ public class PluginConfigurationManager {
     public static Configuration load(Class<? extends IPlugin> pluginClass) {
         String pkgName = pluginClass.getPackage().getName().replace('.', '/');
 
-        String[] packages = pkgName.split("/");
-        String pluginName = packages[packages.length - 1];
-
         String name = pkgName + "/plugin.yml";
         try (InputStream is = pluginClass.getClassLoader().getResourceAsStream(name)) {
-            return Configuration.create(name, is, "bithon.agent.plugin." + pluginName + ".");
+            return Configuration.create(name,
+                                        is,
+                                        "bithon." + getPluginConfigurationPrefixName(pluginClass.getName()));
         } catch (IOException ignored) {
             // ignore this exception thrown from InputStream.close
             return Configuration.EMPTY;
         }
+    }
+
+    public static String getPluginConfigurationPrefixName(String pluginClassName) {
+        String prefix = "org.bithon.agent.plugin.";
+        if (!pluginClassName.startsWith(prefix)) {
+            throw new AgentException("Plugin class name[%s] does not under 'org.bithon.agent.plugin' package.");
+        }
+
+        String[] parts = pluginClassName.substring(prefix.length()).split("\\.");
+        if (parts.length <= 1) {
+            throw new AgentException("Package name of [%s] does not contain a plugin name.");
+        }
+
+        return "agent.plugin." + Arrays.stream(parts,
+                                               0,
+                                               parts.length - 1/*exclusive*/)
+                                       .collect(Collectors.joining("."))
+               + ".";
     }
 }

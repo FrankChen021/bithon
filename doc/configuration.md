@@ -15,7 +15,20 @@ Given a static configuration `agent.plugin.http.incoming.filter.uri.suffixes`, i
 ```
 
 ## Configurations
-### Agent Plugin Configuration
+
+### Plugin Configuration
+
+#### Agent Plugin Enabler flag
+User can disable a specific plugin by passing a system property to the java application to debug or tailor unnecessary plugins. 
+Say we want to disable the `webserver-tomcat` plugin, passing the following property
+
+```bash
+-Dbithon.agent.plugin.webserver.tomcat.disabled=true
+```
+
+#### Agent Plugin Configuration
+
+Plugin configuration locates each plugin's resource directory with the name 'plugin.yml'q
 
 | configuration | description | default | example |
 |---|---|---|---|
