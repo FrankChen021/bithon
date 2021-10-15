@@ -200,4 +200,20 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- distribution -->
+    <distributionManagement>
+        <snapshotRepository>
+            <!-- the id maps to the server element in settings.xml -->
+            <id>sonatype-nexus</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <!-- the id maps to the server element in settings.xml -->
+            <id>sonatype-nexus</id>
+            <name>Nexus Release Repository</name>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 </project>
