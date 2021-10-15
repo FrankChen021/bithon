@@ -38,7 +38,7 @@ public class DirectMemoryCollector implements IDirectMemoryCollector {
                                                                                 .get();
 
     //
-    // call the VM.maxDirectMemory in static initializer so that if the VM class does not exist, a ClassNotFoundException will be raised
+    // call the VM.maxDirectMemory in static initializer so that if the VM class does not exist, a NoClassDefFoundError will be raised
     //
     static {
         try {
