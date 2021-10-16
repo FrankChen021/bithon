@@ -27,9 +27,17 @@ public class Period {
     @Getter
     private final long milliseconds;
 
+    private final String text;
+
     @JsonCreator
     public Period(String period) {
-        milliseconds = org.joda.time.Period.parse(period).toStandardDuration().getMillis();
+        this.milliseconds = org.joda.time.Period.parse(period).toStandardDuration().getMillis();
+        this.text = period;
+    }
+
+    @Override
+    public String toString() {
+        return text;
     }
 
     public static Period years(int i) {

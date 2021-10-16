@@ -95,6 +95,12 @@ public class EventJdbcStorage implements IEventStorage {
                       .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(eventMessage.getTimestamp()))
                       .execute();
         }
+
+        @Override
+        public void deleteBefore(long timestamp) {
+            dslContext.delete(Tables.BITHON_EVENT)
+                      .where(Tables.BITHON_EVENT.TIMESTAMP.le(new Timestamp(timestamp))).execute();
+        }
     }
 
     private static class EventReader implements IEventReader {
