@@ -17,7 +17,11 @@
         $(document).ready(function () {
             new DashboardApi().getDashboardConfig(dashboardName,
                 (boardConfig) => {
-                    const dashboard = new Dashboard('dashboard', [[${appName}]], dashboardName, new SchemaApi());
+                    const dashboard = new Dashboard('dashboard',
+                        [[${appName}]],
+                        dashboardName,
+                        g_MetricSelectedInterval,
+                        new SchemaApi());
                     dashboard.load(boardConfig);
 
                     $(window).bind('resize', () => {

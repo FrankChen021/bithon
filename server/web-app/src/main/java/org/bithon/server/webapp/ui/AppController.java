@@ -19,8 +19,10 @@ package org.bithon.server.webapp.ui;
 import org.bithon.server.webapp.services.ServiceDiscovery;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author frank.chen021@outlook.com
@@ -44,10 +46,12 @@ public class AppController {
     @GetMapping("/web/app/metric/{appName}/{dashboardName}")
     public String webServerPage(@PathVariable("appName") String appName,
                                 @PathVariable("dashboardName") String dashboardName,
+                                @RequestParam(value = "interval", required = false) String interval,
                                 Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         model.addAttribute("appName", appName);
         model.addAttribute("dashboardName", dashboardName);
+        model.addAttribute("interval", interval);
         return "app/metric-template";
     }
 

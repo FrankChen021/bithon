@@ -54,6 +54,7 @@
     <script th:inline="javascript">
         const apiHost = [[${apiHost}]];
         const appName = [[${appName}]];
+        var g_MetricSelectedInterval = [[${interval} ?: '5']];
     </script>
     <script th:src="@{/js/api-client/schema-api.js}"></script>
     <script th:src="@{/js/component/dashboard/component.js}"></script>

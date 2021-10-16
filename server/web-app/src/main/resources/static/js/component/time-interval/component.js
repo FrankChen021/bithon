@@ -1,12 +1,12 @@
 class TimeInterval {
 
-    constructor(option) {
+    constructor(defaultInterval) {
         this._listeners = [];
 
         this._control = $('<select id="intervalSelector" class="form-control">       ' +
             '    <option value="1" data-unit="minute">Last 1m</option>   ' +
             '    <option value="3" data-unit="minute">Last 3m</option>   ' +
-            '    <option value="5" data-unit="minute" selected>Last 5m</option>   ' +
+            '    <option value="5" data-unit="minute">Last 5m</option>   ' +
             '    <option value="15" data-unit="minute">Last 15m</option> ' +
             '    <option value="30" data-unit="minute">Last 30m</option> ' +
             '    <option value="1" data-unit="hour">Last 1h</option>    ' +
@@ -21,27 +21,30 @@ class TimeInterval {
             const option = $(this._control).find("option:selected");
             const val = option.val();
 
-            let fn;
-            if ( val === 'today') {
-                fn = function () {
-                    return {
-                        start: moment().utc().local().startOf('day').toISOString(),
-                        end: moment().utc().local().toISOString()
-                    }
-                };
+            if (val === 'today') {
+                this._interval = {
+                    start: moment().utc().local().startOf('day').toISOString(),
+                    end: moment().utc().local().toISOString(),
+                    val: val
+                }
             } else {
                 const unit = option.attr('data-unit');
-                fn = function () {
-                    return {
-                        start: moment().utc().subtract(val, unit).local().toISOString(),
-                        end: moment().utc().local().toISOString()
-                    }
-                };
+                this._interval = {
+                    start: moment().utc().subtract(val, unit).local().toISOString(),
+                    end: moment().utc().local().toISOString(),
+                    val: val
+                }
             }
+
             $.each(this._listeners, (index, listener) => {
-                listener(fn);
+                listener.apply();
             });
         });
+
+        this._control.find(`option[value="${defaultInterval}"]`).attr('selected', true);
+
+        // trigger the change event to load default value
+        this._control.change();
     }
 
     childOf(element) {
@@ -51,5 +54,12 @@ class TimeInterval {
 
     registerIntervalChangedListener(listener) {
         this._listeners.push(listener);
+        return this;
+    }
+
+    //PUBLIC
+    getInterval() {
+        return this._interval;
     }
 }
+
