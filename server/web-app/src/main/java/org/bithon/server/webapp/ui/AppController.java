@@ -19,7 +19,6 @@ package org.bithon.server.webapp.ui;
 import org.bithon.server.webapp.services.ServiceDiscovery;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,7 +51,7 @@ public class AppController {
         model.addAttribute("appName", appName);
         model.addAttribute("dashboardName", dashboardName);
         model.addAttribute("interval", interval);
-        return "app/metric-template";
+        return "app/dashboard";
     }
 
     @GetMapping("/web/app/trace/{appName}")
