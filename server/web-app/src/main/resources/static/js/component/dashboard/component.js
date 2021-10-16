@@ -28,8 +28,8 @@ class Dashboard {
         this._formatters['compact_number'] = compactFormat;
         this._formatters['percentage'] = (v) => v + '%';
         this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 0);
-        this._formatters['millisecond'] = (v) => v + 'ms';
-        this._formatters['microsecond'] = (v) => v + 'µs';
+        this._formatters['millisecond'] = (v) => milliFormat(v, 0);
+        this._formatters['microsecond'] = (v) => microFormat(v, 0);
     }
 
     // PUBLIC
