@@ -1,6 +1,8 @@
 class Dashboard {
-    constructor(containerId, appName, schemaApi) {
+    constructor(containerId, appName, dashboardName, schemaApi) {
         this._schemaApi = schemaApi;
+        this._appName = appName;
+        this._dashboardName = dashboardName;
 
         // View
         this._containerId = containerId;
@@ -20,8 +22,6 @@ class Dashboard {
             return this.getLatestInterval(5, 'minute');
         };
 
-        this.addDimension('appName', appName);
-
         // Y Axis Formatter
         this._formatters = {};
         this._formatters['binary_byte'] = binaryByteFormat;
@@ -39,14 +39,15 @@ class Dashboard {
         //
         // App Filter
         //
-        new AppSelector().childOf('appSelector').registerAppChangedListener((text, value) => {
+        new AppSelector(this._appName).childOf('appSelector').registerAppChangedListener((text, value) => {
+            window.location = `/web/app/metric/${value}/${this._dashboardName}`;
             // update appName for dimension filters
-            this._appName = value;
+            //this._appName = value;
 
             // update dimensions for dashboard chart
-            this.addDimension('appName', value);
+            //this.addDimension('appName', value);
 
-            this.refreshDashboard();
+            //this.refreshDashboard();
         });
 
         //

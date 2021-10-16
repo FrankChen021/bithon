@@ -41,13 +41,13 @@ public class AppController {
         return "app/index";
     }
 
-    @GetMapping("/web/app/metric/{appName}/{metricName}")
+    @GetMapping("/web/app/metric/{appName}/{dashboardName}")
     public String webServerPage(@PathVariable("appName") String appName,
-                                @PathVariable("metricName") String metricName,
+                                @PathVariable("dashboardName") String dashboardName,
                                 Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         model.addAttribute("appName", appName);
-        model.addAttribute("metricName", metricName);
+        model.addAttribute("dashboardName", dashboardName);
         return "app/metric-template";
     }
 
