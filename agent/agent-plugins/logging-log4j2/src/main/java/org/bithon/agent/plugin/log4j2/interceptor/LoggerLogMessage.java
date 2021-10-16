@@ -21,15 +21,17 @@ import org.apache.logging.log4j.spi.StandardLevel;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.plugin.log4j2.LogMetricCollector;
+import org.bithon.agent.core.dispatcher.Dispatcher;
+import org.bithon.agent.core.dispatcher.Dispatchers;
+import org.bithon.agent.core.event.EventMessage;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author frankchen
  */
 public class LoggerLogMessage extends AbstractInterceptor {
-    private LogMetricCollector metricCollector;
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -41,10 +43,14 @@ public class LoggerLogMessage extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        if (metricCollector == null) {
-            metricCollector = MetricCollectorManager.getInstance().getOrRegister("log4j2", LogMetricCollector.class);
-        }
-        Throwable e = (Throwable) aopContext.getArgs()[4];
-        metricCollector.addException((String) InterceptorContext.get("uri"), e);
+        Throwable exception = (Throwable) aopContext.getArgs()[4];
+
+        Map<String, String> exceptionArgs = new HashMap<>();
+        exceptionArgs.put("exceptionClass", exception.getClass().getName());
+        exceptionArgs.put("message", exception.getMessage());
+        exceptionArgs.put("stack", exception.toString());
+        EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
+        Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
+        dispatcher.sendMessage(dispatcher.getMessageConverter().from(exceptionEvent));
     }
 }

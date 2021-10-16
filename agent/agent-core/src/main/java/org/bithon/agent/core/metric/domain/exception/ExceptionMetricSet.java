@@ -16,6 +16,8 @@
 
 package org.bithon.agent.core.metric.domain.exception;
 
+import org.bithon.agent.core.metric.model.IMetric;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
@@ -23,7 +25,7 @@ import java.security.MessageDigest;
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 8:21 下午
  */
-public class ExceptionMetricSet {
+public class ExceptionMetricSet implements IMetric {
     // dimension
     private final String uri;
     private final String exceptionId;
