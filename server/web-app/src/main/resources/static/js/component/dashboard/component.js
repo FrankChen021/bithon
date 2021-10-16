@@ -1,6 +1,9 @@
 class Dashboard {
-    constructor(containerId, appName, schemaApi) {
+    constructor(containerId, appName, dashboardName, defaultInterval, schemaApi) {
         this._schemaApi = schemaApi;
+        this._appName = appName;
+        this._dashboardName = dashboardName;
+        this._defaultInterval = defaultInterval;
 
         // View
         this._containerId = containerId;
@@ -16,11 +19,8 @@ class Dashboard {
         this._selectedDimensions = {};
         this.addDimension('appName', appName);
 
-        this._intervalFn = () => {
-            return this.getLatestInterval(5, 'minute');
-        };
-
-        this.addDimension('appName', appName);
+        // UI Component
+        this._timeSelector = null;
 
         // Y Axis Formatter
         this._formatters = {};
@@ -28,8 +28,8 @@ class Dashboard {
         this._formatters['compact_number'] = compactFormat;
         this._formatters['percentage'] = (v) => v + '%';
         this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 0);
-        this._formatters['millisecond'] = (v) => v + 'ms';
-        this._formatters['microsecond'] = (v) => v + 'µs';
+        this._formatters['millisecond'] = (v) => milliFormat(v, 0);
+        this._formatters['microsecond'] = (v) => microFormat(v, 0);
     }
 
     // PUBLIC
@@ -39,14 +39,15 @@ class Dashboard {
         //
         // App Filter
         //
-        new AppSelector().childOf('appSelector').registerAppChangedListener((text, value) => {
+        new AppSelector(this._appName).childOf('appSelector').registerAppChangedListener((text, value) => {
+            window.location = `/web/app/metric/${value}/${this._dashboardName}`;
             // update appName for dimension filters
-            this._appName = value;
+            //this._appName = value;
 
             // update dimensions for dashboard chart
-            this.addDimension('appName', value);
+            //this.addDimension('appName', value);
 
-            this.refreshDashboard();
+            //this.refreshDashboard();
         });
 
         //
@@ -111,7 +112,7 @@ class Dashboard {
                     $.each(charts, (index, chartId) => {
                         this.refreshChart(this._chartDescriptors[chartId],
                             this._chartComponents[chartId],
-                            this._intervalFn.apply());
+                            this.getSelectedTimeInterval());
                     });
                 },
                 (error) => {
@@ -132,8 +133,9 @@ class Dashboard {
         //
         // Create TimeInterval
         //
-        new TimeInterval().childOf(parent).registerIntervalChangedListener((fn) => {
-            this.setInterval(fn);
+        this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener(() => {
+            g_MetricSelectedInterval = this._timeSelector.getInterval().val;
+            this.refreshDashboard();
         });
 
         $.each(dashboard.charts, (index, chartDescriptor) => {
@@ -186,7 +188,7 @@ class Dashboard {
                     }
                 }
 
-                const interval = this._intervalFn.apply();
+                const interval = this.getSelectedTimeInterval();
                 return JSON.stringify({
                     dataSource: dataSourceName,
                     dimension: dimensionName,
@@ -296,13 +298,6 @@ class Dashboard {
         return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}" style="margin-bottom: 0;padding-bottom: 10px;padding-left: 5px;padding-right: 5px"></div>`);
     }
 
-    //
-    setInterval(intervalFn) {
-        this._intervalFn = intervalFn;
-
-        this.refreshDashboard();
-    }
-
     // PUBLIC
     refreshDashboard() {
         if (this._dashboard == null) {
@@ -311,7 +306,7 @@ class Dashboard {
 
         // refresh each chart
         for (const id in this._chartComponents) {
-            this.refreshChart(this._chartDescriptors[id], this._chartComponents[id], this._intervalFn.apply());
+            this.refreshChart(this._chartDescriptors[id], this._chartComponents[id], this.getSelectedTimeInterval());
         }
     }
 
@@ -596,6 +591,10 @@ class Dashboard {
                 delete this._chartComponents['compare_charts'];
             }
         });
+    }
+
+    getSelectedTimeInterval() {
+        return this._timeSelector.getInterval();
     }
 
     //PRIVATE

@@ -19,14 +19,24 @@ Date.prototype.format = function (fmt) { //author: meizz
 }
 
 function nanoFormat(nanoTime, fractionDigits) {
-    const formatter = ['ns', 'us', 'ms', 's'];
-    let time = nanoTime;
+    return timeFormat(nanoTime, fractionDigits, ['ns', 'us', 'ms', 's']);
+}
+
+function microFormat(milliTime, fractionDigits) {
+    return timeFormat(milliTime, fractionDigits, ['us', 'ms', 's'])
+}
+
+function milliFormat(milliTime, fractionDigits) {
+    return timeFormat(milliTime, fractionDigits, ['ms', 's'])
+}
+
+function timeFormat(time, fractionDigits, units) {
     let val = +time || 0;
     let index = 0;
     if (val <= 0) return '0';
-    while (val >= 1000 && index < formatter.length - 1) {
+    while (val >= 1000 && index < units.length - 1) {
         index += 1;
         val = time / (1000 ** index);
     }
-    return val.toFixed(fractionDigits === undefined ? 2 : fractionDigits) + formatter[index];
+    return val.toFixed(fractionDigits === undefined ? 2 : fractionDigits) + units[index];
 }

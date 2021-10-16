@@ -13,10 +13,15 @@
 <div layout:fragment="content" id="dashboard">
 
     <script th:inline="javascript">
+        const dashboardName = [[${dashboardName}]];
         $(document).ready(function () {
-            new DashboardApi().getDashboardConfig([[${metricName}]],
+            new DashboardApi().getDashboardConfig(dashboardName,
                 (boardConfig) => {
-                    const dashboard = new Dashboard('dashboard', [[${appName}]], new SchemaApi());
+                    const dashboard = new Dashboard('dashboard',
+                        [[${appName}]],
+                        dashboardName,
+                        g_MetricSelectedInterval,
+                        new SchemaApi());
                     dashboard.load(boardConfig);
 
                     $(window).bind('resize', () => {

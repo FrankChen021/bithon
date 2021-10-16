@@ -45,18 +45,25 @@
       "title": "IO",
       "width": 4,
       "yAxis": [
+        {},
         {
-          "minInterval": 1048576,
-          "interval": 1073741824,
           "format": "binary_byte"
         }
       ],
       "metrics": [
         {
-          "name": "requestBytes"
+          "name": "requestByteRate"
         },
         {
-          "name": "responseBytes"
+          "name": "responseByteRate"
+        },
+        {
+          "name": "requestBytes",
+          "yAxis": 1
+        },
+        {
+          "name": "responseBytes",
+          "yAxis": 1
         }
       ]
     }

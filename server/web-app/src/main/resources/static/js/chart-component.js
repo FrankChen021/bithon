@@ -103,18 +103,20 @@ class ChartComponent {
                     returnedOption.series = series;
                 }
 
-                let legend = {
-                    data: [],
-                    selected: {}
-                };
-                returnedOption.series.forEach(s=>{
-                    legend.data.push({
-                        name: s.name,
-                        icon: 'circle'
+                if (!this.hasUserSelection()) {
+                    let legend = {
+                        data: [],
+                        selected: {}
+                    };
+                    returnedOption.series.forEach(s => {
+                        legend.data.push({
+                            name: s.name,
+                            icon: 'circle'
+                        });
+                        legend.selected[s.name] = s.selected;
                     });
-                    legend.selected[s.name] = s.selected;
-                });
-                returnedOption.legend = legend;
+                    returnedOption.legend = legend;
+                }
                 this.setChartOption(returnedOption);
             },
             error: (data) => {
@@ -252,5 +254,21 @@ class ChartComponent {
 
         this._openHandler = openHandler;
         return this;
+    }
+
+    //PRIVATE
+    hasUserSelection() {
+        const oldLegend = this.getChartOption().legend;
+        if (oldLegend === undefined || oldLegend.length === 0) {
+            return false;
+        }
+        if (oldLegend[0].selected === undefined)
+            return false;
+
+        for (const prop in oldLegend[0].selected) {
+            // the 'selected' object has a property
+            return true;
+        }
+        return false;
     }
 }
