@@ -62,7 +62,10 @@ class MetricJdbcWriter implements IMetricWriter {
         this.dsl = dsl;
         this.table = new MetricTable(schema);
 
-        CreateTableIndexStep s = dsl.createTableIfNotExists(table).columns(table.fields()).index(table.getIndex());
+        CreateTableIndexStep s = dsl.createTableIfNotExists(table).columns(table.fields());
+        if (schema.isEnforceDuplicationCheck()) {
+            s.index(table.getIndex());
+        }
         String sql = s.getSQL();
         s.execute();
     }

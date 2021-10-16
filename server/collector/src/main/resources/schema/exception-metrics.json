@@ -18,13 +18,8 @@
       "required": true
     },
     {
-      "name": "uri",
-      "displayText": "URL",
-      "required": true
-    },
-    {
-      "name": "className",
-      "displayText": "Class Name",
+      "name": "exceptionClass",
+      "displayText": "Exception Class Name",
       "required": true
     }
   ],

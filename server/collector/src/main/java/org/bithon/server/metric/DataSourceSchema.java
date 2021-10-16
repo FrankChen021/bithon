@@ -74,6 +74,13 @@ public class DataSourceSchema {
     @Setter
     private Period ttl;
 
+    /**
+     * check a {timestamp, dimensions} are unique to help find out some internal wrong implementation
+     */
+    @Getter
+    @Setter
+    private boolean enforceDuplicationCheck = true;
+
     @JsonCreator
     public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,
                             @JsonProperty("name") String name,
