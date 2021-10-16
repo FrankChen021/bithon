@@ -54,15 +54,25 @@
       "width": 4,
       "yAxis": [
         {
-          "format": "compact_number"
+        },
+        {
+          "format": "binary_byte"
         }
       ],
       "metrics": [
         {
-          "name": "requestBytes"
+          "name": "requestByteRate"
         },
         {
-          "name": "responseBytes"
+          "name": "responseByteRate"
+        },
+        {
+          "name": "requestBytes",
+          "yAxis": 1
+        },
+        {
+          "name": "responseBytes",
+          "yAxis": 1
         }
       ]
     }

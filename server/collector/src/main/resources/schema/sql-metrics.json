@@ -29,8 +29,6 @@
     }
   ],
   "metricsSpec": [
-
-    // ---count---
     {
       "type": "longSum",
       "name": "callCount",
@@ -55,8 +53,6 @@
       "displayText": "update count",
       "unit": ""
     },
-
-    // ---timer----------------------
     {
       "type": "longSum",
       "name": "responseTime",

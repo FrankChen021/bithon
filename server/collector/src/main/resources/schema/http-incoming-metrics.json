@@ -133,6 +133,22 @@
       "displayText": "Avg QPS per instance",
       "unit": "",
       "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "requestByteRate",
+      "expression": "requestBytes/{interval}",
+      "displayText": "Avg Request Byte Rate",
+      "unit": "Bps",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "responseByteRate",
+      "expression": "responseBytes/{interval}",
+      "displayText": "Avg Response Byte Rate",
+      "unit": "Bps",
+      "valueType": "double"
     }
   ]
 }
