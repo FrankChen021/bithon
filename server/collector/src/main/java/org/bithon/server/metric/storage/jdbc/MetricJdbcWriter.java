@@ -62,8 +62,9 @@ class MetricJdbcWriter implements IMetricWriter {
         this.dsl = dsl;
         this.table = new MetricTable(schema);
 
-        CreateTableIndexStep s = dsl.createTableIfNotExists(table).columns(table.fields()).index(table.getIndex());
-        String sql = s.getSQL();
+        CreateTableIndexStep s = dsl.createTableIfNotExists(table)
+                                    .columns(table.fields())
+                                    .index(table.getIndex(schema.isEnforceDuplicationCheck()));
         s.execute();
     }
 
@@ -95,7 +96,7 @@ class MetricJdbcWriter implements IMetricWriter {
     @Override
     public void write(List<InputRow> inputRowList) {
         int index = 0;
-        int thisBatch = 0;
+        int thisBatch;
         List<Query> queries = new ArrayList<>(BATCH_SIZE);
         for (int leftSize = inputRowList.size(); leftSize > 0; leftSize -= thisBatch) {
             thisBatch = Math.min(BATCH_SIZE, leftSize);
@@ -121,7 +122,7 @@ class MetricJdbcWriter implements IMetricWriter {
     @Override
     public void write(Collection<MetricSet> metricSetList) {
         int index = 0;
-        int thisBatch = 0;
+        int thisBatch;
         List<Query> queries = new ArrayList<>(BATCH_SIZE);
         for (int leftSize = metricSetList.size(); leftSize > 0; leftSize -= thisBatch) {
             thisBatch = Math.min(BATCH_SIZE, leftSize);
@@ -150,7 +151,8 @@ class MetricJdbcWriter implements IMetricWriter {
         dsl.deleteFrom(table).where(table.timestampField.lt(new Timestamp(timestamp))).execute();
     }
 
-    private InsertSetMoreStep toInsertSql(InputRow inputRow) {
+    @SuppressWarnings("unchecked")
+    private InsertSetMoreStep<?> toInsertSql(InputRow inputRow) {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
                                        .set(table.timestampField,
                                             new Timestamp(inputRow.getColAsLong("timestamp")));
@@ -167,6 +169,7 @@ class MetricJdbcWriter implements IMetricWriter {
         return step;
     }
 
+    @SuppressWarnings("unchecked")
     private InsertSetMoreStep toInsertSql(MetricSet metricSet) {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
                                        .set(table.timestampField,
@@ -213,14 +216,14 @@ class MetricJdbcWriter implements IMetricWriter {
             }
         }
 
-        public Index getIndex() {
+        public Index getIndex(boolean unique) {
             List<Field> indexesFields = new ArrayList<>();
             indexesFields.add(timestampField);
             indexesFields.addAll(dimensions);
             return Internal.createIndex("idx_" + this.getName() + "_dimensions",
                                         this,
                                         indexesFields.toArray(new Field[0]),
-                                        true);
+                                        unique);
 
         }
 

@@ -21,31 +21,44 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
+import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.dispatcher.Dispatcher;
+import org.bithon.agent.core.dispatcher.Dispatchers;
+import org.bithon.agent.core.event.EventMessage;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author frankchen
  */
 public class LoggerCallAppenders extends AbstractInterceptor {
-    private LogMetricCollector counter;
 
     @Override
-    public void onMethodLeave(AopContext context) {
-        ILoggingEvent iLoggingEvent = (ILoggingEvent) context.getArgs()[0];
+    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+        ILoggingEvent iLoggingEvent = (ILoggingEvent) aopContext.getArgs()[0];
         if (iLoggingEvent.getLevel().toInt() != Level.ERROR.toInt()) {
-            return;
+            return InterceptionDecision.SKIP_LEAVE;
         }
         IThrowableProxy exception = iLoggingEvent.getThrowableProxy();
         if (null == exception) {
-            return;
+            return InterceptionDecision.SKIP_LEAVE;
         }
 
-        if (counter == null) {
-            counter = MetricCollectorManager.getInstance().getOrRegister("logback", LogMetricCollector.class);
-        }
+        aopContext.setUserContext(exception);
+        return InterceptionDecision.CONTINUE;
+    }
 
-        counter.addException((String) InterceptorContext.get("uri"),
-                             exception);
+    @Override
+    public void onMethodLeave(AopContext aopContext) {
+        IThrowableProxy exception = aopContext.castUserContextAs();
+
+        Map<String, String> exceptionArgs = new HashMap<>();
+        exceptionArgs.put("exceptionClass", exception.getClassName());
+        exceptionArgs.put("message", exception.getMessage());
+        exceptionArgs.put("stack", exception.toString());
+        EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
+        Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
+        dispatcher.sendMessage(dispatcher.getMessageConverter().from(exceptionEvent));
     }
 }

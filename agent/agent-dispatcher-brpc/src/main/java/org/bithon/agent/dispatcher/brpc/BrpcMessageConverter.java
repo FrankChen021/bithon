@@ -222,6 +222,7 @@ public class BrpcMessageConverter implements IMessageConverter {
             builder.setMessage(metric.getMessage());
         }
         return builder.setExceptionCount(metric.getCount())
+                      .setClassName(metric.getExceptionClass())
                       .build();
     }
 

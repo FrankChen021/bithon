@@ -20,10 +20,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.event.storage.IEventStorage;
 import org.bithon.server.event.storage.IEventWriter;
+import org.bithon.server.metric.DataSourceSchema;
+import org.bithon.server.metric.DataSourceSchemaManager;
+import org.bithon.server.metric.input.InputRow;
+import org.bithon.server.metric.storage.IMetricStorage;
+import org.bithon.server.metric.storage.IMetricWriter;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.HashMap;
 
 /**
  * @author frank.chen021@outlook.com
@@ -34,15 +40,31 @@ import java.time.Duration;
 public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<EventMessage> {
 
     final IEventWriter eventWriter;
+    final IMetricWriter exceptionMetricWriter;
 
-    public EventsMessageHandler(IEventStorage eventStorage) {
+    public EventsMessageHandler(IEventStorage eventStorage,
+                                IMetricStorage metricStorage,
+                                DataSourceSchemaManager schemaManager) throws IOException {
         super("event", 1, 5, Duration.ofMinutes(3), 1024);
-        eventWriter = eventStorage.createWriter();
+        this.eventWriter = eventStorage.createWriter();
+
+        DataSourceSchema schema = schemaManager.getDataSourceSchema("exception-metrics");
+        schema.setEnforceDuplicationCheck(false);
+        this.exceptionMetricWriter = metricStorage.createMetricWriter(schema);
     }
 
     @Override
     protected void onMessage(EventMessage body) throws IOException {
-        log.info("Receiving Event Message: {}", body);
+        if (body.getType().equals("exception")) {
+            // generate a metric
+
+            InputRow row = new InputRow(new HashMap<String, Object>(body.getArgs()));
+            row.updateColumn("appName", body.getAppName());
+            row.updateColumn("instanceName", body.getInstanceName());
+            row.updateColumn("timestamp", body.getTimestamp());
+            row.updateColumn("exceptionCount", 1);
+            exceptionMetricWriter.write(row);
+        }
         eventWriter.write(body);
     }
 

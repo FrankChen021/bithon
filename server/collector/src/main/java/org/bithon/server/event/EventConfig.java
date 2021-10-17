@@ -1,5 +1,5 @@
 /*
- *    Copyright 2020 bithon.org
+ *    Copyright 2020 bithon.cn
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,22 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.storage;
+package org.bithon.server.event;
 
-import org.bithon.server.event.handler.EventMessage;
-
-import java.io.IOException;
+import lombok.Data;
+import org.bithon.agent.core.config.ConfigurationProperties;
+import org.bithon.server.common.utils.datetime.Period;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * @author Frank Chen
+ * @date 16/10/21 11:44 pm
  */
-public interface IEventWriter extends AutoCloseable {
-
-    void write(EventMessage eventMessage) throws IOException;
-
-    /**
-     * delete data whose timestamp is less than or equal to the given timestamp
-     */
-    void deleteBefore(long timestamp);
+@Data
+@Configuration
+@ConfigurationProperties(prefix = "collector.event")
+public class EventConfig {
+    private Period ttl = new Period("P1D");
+    private Period cleanPeriod = new Period("PT5M");
 }
