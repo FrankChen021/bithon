@@ -65,3 +65,6 @@ collector:
   event:
     ttl: P1D
     cleanPeriod: PT3M
+  trace:
+    ttl: P1D
+    cleanPeriod: PT3M
