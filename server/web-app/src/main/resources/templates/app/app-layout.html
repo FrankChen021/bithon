@@ -50,10 +50,10 @@
     <script th:src="@{/js/utils/number.js}"></script>
     <script th:src="@{/js/utils/time.js}"></script>
 
-
     <script th:inline="javascript">
         const apiHost = [[${apiHost}]];
-        const appName = [[${appName}]];
+        const g_SelectedApp = [[${appName}]];
+        var g_SelectedInstance = [[${instance}]];
         var g_MetricSelectedInterval = [[${interval} ?: '5']];
     </script>
     <script th:src="@{/js/api-client/schema-api.js}"></script>
@@ -333,7 +333,7 @@
                 window.clearInterval(handler);
             }, 300);
         })
-        new MetricSidebar("metricSidebar", appName).load();
+        new MetricSidebar("metricSidebar", g_SelectedApp).load();
     });
 </script>
 </html>

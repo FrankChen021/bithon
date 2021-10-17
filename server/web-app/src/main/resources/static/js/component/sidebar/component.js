@@ -21,7 +21,11 @@ class MetricSidebar {
     // PRIVATE
     addDashboardItem(item) {
         const i = $(`<a href="#">${item.text}</a>`).click(() => {
-            window.location = `${item.id}?interval=${g_MetricSelectedInterval}`;
+            let url = `${item.id}?interval=${g_MetricSelectedInterval}`;
+            if ( g_SelectedInstance != null ) {
+                url += `&instance=${g_SelectedInstance}`;
+            }
+            window.location = url;
         });
         this._container.append(i);
     }

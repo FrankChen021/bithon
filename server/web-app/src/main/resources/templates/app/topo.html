@@ -51,7 +51,7 @@ class TopoComponent {
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                application: appName
+                application: g_SelectedApp
             }),
             processResult: (topo)=>{
                 var chartOption = {
