@@ -28,4 +28,9 @@ import java.util.List;
 public interface ITraceWriter extends AutoCloseable {
 
     void write(List<TraceSpan> traceSpans) throws IOException;
+
+    /**
+     * delete records whose timestamp is less than or equal to the given timestamp
+     */
+    void deleteBefore(long timestamp);
 }

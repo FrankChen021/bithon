@@ -178,6 +178,14 @@ public class TraceJdbcStorage implements ITraceStorage {
         }
 
         @Override
+        public void deleteBefore(long timestamp) {
+            dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
+                      .where(Tables.BITHON_TRACE_SPAN.TRACEID.in(dslContext.selectDistinct(Tables.BITHON_TRACE_SPAN.TRACEID)
+                                                                           .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(new Timestamp(timestamp)))));
+
+        }
+
+        @Override
         public void close() {
 
         }
