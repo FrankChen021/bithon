@@ -213,11 +213,12 @@ Apache License version 2.0
 ================================
 
 SOURCE/JAVA-SERVER
-    This product contains schema definition related code adapted from Apache Druid
-      * server/collector/src/main/java/com/sbss/bithon/server/metric/TimestampSpec.java
-      * server/collector/src/main/java/com/sbss/bithon/server/metric/parser/DateTimes.java
-      * server/collector/src/main/java/com/sbss/bithon/server/metric/parser/ParserUtils.java
-      * server/collector/src/main/java/com/sbss/bithon/server/metric/parser/TimestampParser.java
-      * server/collector/src/main/java/com/sbss/bithon/server/common/utils/collection/CloseableIterator.java
-
+  This product contains schema definition related code adapted from Apache Druid
+    * server/collector/src/main/java/org/bithon/server/metric/TimestampSpec.java
+    * server/collector/src/main/java/org/bithon/server/metric/parser/DateTimes.java
+    * server/collector/src/main/java/org/bithon/server/metric/parser/ParserUtils.java
+    * server/collector/src/main/java/org/bithon/server/metric/parser/TimestampParser.java
+    * server/collector/src/main/java/org/bithon/server/common/utils/collection/CloseableIterator.java
+    * hooks/pre-push.sh
+    * setup-hooks.sh
 

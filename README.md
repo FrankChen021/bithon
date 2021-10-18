@@ -121,7 +121,7 @@ To develop for this project, intellij is recommended.
 
 A code style template file(`dev/bithon_intellij_code_style`) must be imported into intellij for coding.
 
-For more information, check [Here](dev/README.md).
+For more information, check the [development doc](doc/development.md).
 
 # License
 

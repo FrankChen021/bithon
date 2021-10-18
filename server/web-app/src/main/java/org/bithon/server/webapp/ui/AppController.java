@@ -46,7 +46,7 @@ public class AppController {
     public String webServerPage(@PathVariable("appName") String appName,
                                 @PathVariable("dashboardName") String dashboardName,
                                 @RequestParam(value = "interval", required = false) String interval,
-                                @RequestParam(value="instance", required = false) String instance,
+                                @RequestParam(value = "instance", required = false) String instance,
                                 Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         model.addAttribute("appName", appName);
