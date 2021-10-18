@@ -54,15 +54,20 @@ public class ServiceRegistry {
     }
 
     private void addService(Class<?> interfaceType, Object serviceImpl) {
+        ServiceConfig typeLevelConfig = interfaceType.getAnnotation(ServiceConfig.class);
         for (Method method : interfaceType.getDeclaredMethods()) {
 
-            ServiceConfig config = method.getAnnotation(ServiceConfig.class);
+            ServiceConfig methodLevelConfig = method.getAnnotation(ServiceConfig.class);
             String name = null;
-            if (config != null && !StringUtil.isNullOrEmpty(config.name())) {
-                name = config.name();
+            if (methodLevelConfig != null && !StringUtil.isNullOrEmpty(methodLevelConfig.name())) {
+                name = methodLevelConfig.name();
             } else {
-                //full qualified name
-                name = method.toString();
+                if (typeLevelConfig != null && !StringUtil.isNullOrEmpty(typeLevelConfig.name())) {
+                    name = typeLevelConfig.name();
+                } else {
+                    //full qualified name
+                    name = method.toString();
+                }
             }
             RegistryItem item = registry.put(name, new RegistryItem(method, serviceImpl));
             if (item != null) {
