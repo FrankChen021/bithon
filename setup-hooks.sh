@@ -14,4 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ln -s hooks/pre-push.sh .git/hooks/pre-push
+ln -s ../../hooks/pre-push.sh .git/hooks/pre-push
