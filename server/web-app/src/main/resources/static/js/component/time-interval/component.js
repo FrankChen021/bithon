@@ -17,22 +17,28 @@ class TimeInterval {
             '    <option value="today" data-unit="hour">Today</option>  ' +
             '</select>                                                 ');
 
+        this._intervalFn = null;
+
         $(this._control).change(() => {
             const option = $(this._control).find("option:selected");
             const val = option.val();
 
             if (val === 'today') {
-                this._interval = {
-                    start: moment().utc().local().startOf('day').toISOString(),
-                    end: moment().utc().local().toISOString(),
-                    val: val
+                this._intervalFn = function () {
+                    return {
+                        start: moment().utc().local().startOf('day').toISOString(),
+                        end: moment().utc().local().toISOString(),
+                        val: val
+                    };
                 }
             } else {
                 const unit = option.attr('data-unit');
-                this._interval = {
-                    start: moment().utc().subtract(val, unit).local().toISOString(),
-                    end: moment().utc().local().toISOString(),
-                    val: val
+                this._intervalFn = function () {
+                    return {
+                        start: moment().utc().subtract(val, unit).local().toISOString(),
+                        end: moment().utc().local().toISOString(),
+                        val: val
+                    };
                 }
             }
 
@@ -59,7 +65,7 @@ class TimeInterval {
 
     //PUBLIC
     getInterval() {
-        return this._interval;
+        return this._intervalFn.apply();
     }
 }
 
