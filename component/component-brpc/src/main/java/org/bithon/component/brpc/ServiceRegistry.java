@@ -16,14 +16,13 @@
 
 package org.bithon.component.brpc;
 
-import shaded.io.netty.util.internal.StringUtil;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.brpc.exception.DuplicateServiceException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -31,15 +30,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ServiceRegistry {
 
-    private static final Logger log = LoggerFactory.getLogger(ServiceRegistry.class);
-
-    private final Map<String, RegistryItem> registry = new ConcurrentHashMap<>();
+    /**
+     * key is the service name
+     * val is its methods where key is the method name, val is the registry
+     */
+    private final Map<String, Map<String, RegistryItem>> registry = new ConcurrentHashMap<>();
 
     public void addService(Object serviceImpl) {
         // prevent duplicated registry for interfaces declared on multiple super classes
-        Set<Class<?>> interfaces = new HashSet<>();
 
-        interfaces.addAll(Arrays.asList(serviceImpl.getClass().getInterfaces()));
+        Set<Class<?>> interfaces = new HashSet<>(Arrays.asList(serviceImpl.getClass().getInterfaces()));
 
         Class<?> superClass = serviceImpl.getClass().getSuperclass();
         while (superClass != null) {
@@ -54,30 +54,19 @@ public class ServiceRegistry {
     }
 
     private void addService(Class<?> interfaceType, Object serviceImpl) {
-        ServiceConfig typeLevelConfig = interfaceType.getAnnotation(ServiceConfig.class);
         for (Method method : interfaceType.getDeclaredMethods()) {
+            ServiceConfiguration configuration = ServiceConfiguration.getServiceConfiguration(method);
 
-            ServiceConfig methodLevelConfig = method.getAnnotation(ServiceConfig.class);
-            String name = null;
-            if (methodLevelConfig != null && !StringUtil.isNullOrEmpty(methodLevelConfig.name())) {
-                name = methodLevelConfig.name();
-            } else {
-                if (typeLevelConfig != null && !StringUtil.isNullOrEmpty(typeLevelConfig.name())) {
-                    name = typeLevelConfig.name();
-                } else {
-                    //full qualified name
-                    name = method.toString();
-                }
-            }
-            RegistryItem item = registry.put(name, new RegistryItem(method, serviceImpl));
-            if (item != null) {
-                log.error("{} is overwritten", item.method);
+            if (null != registry.computeIfAbsent(configuration.getServiceName(), v -> new ConcurrentHashMap<>())
+                                .putIfAbsent(configuration.getMethodName(), new RegistryItem(method, serviceImpl))) {
+
+                throw new DuplicateServiceException(interfaceType, method, configuration.getServiceName(), configuration.getMethodName());
             }
         }
     }
 
-    public RegistryItem findServiceProvider(CharSequence methodName) {
-        return registry.get(methodName);
+    public RegistryItem findServiceProvider(String serviceName, String methodName) {
+        return registry.getOrDefault(serviceName, Collections.emptyMap()).get(methodName);
     }
 
     public static class ParameterType {

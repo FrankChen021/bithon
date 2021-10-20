@@ -65,6 +65,12 @@ public class ServerChannel implements Closeable {
      */
     private final ClientChannelManager clientChannelManager = new ClientChannelManager();
 
+    /**
+     * bind current service provider to this channel
+     * NOTE:
+     * 1. only those methods defined in interface will be binded
+     * 2. methods name can be the same, but the methods with same name must use {@link org.bithon.component.brpc.ServiceConfig} to give alias name to each method
+     */
     public ServerChannel bindService(Object impl) {
         serviceRegistry.addService(impl);
         return this;

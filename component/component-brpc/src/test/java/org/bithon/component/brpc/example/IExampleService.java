@@ -42,6 +42,7 @@ public interface IExampleService {
      */
     int[] append(int[] arrays, int value);
 
+    @ServiceConfig(name = "appendString")
     String[] append(String[] arrays, String value);
 
     /**
@@ -54,16 +55,16 @@ public interface IExampleService {
      */
     Map<String, String> merge(Map<String, String> a, Map<String, String> b);
 
-    String send(WebRequestMetrics metrics);
+    String sendWebMetrics(WebRequestMetrics metrics);
 
     /**
      * test multiple protobuf messages
      */
-    String send(WebRequestMetrics metrics1, WebRequestMetrics metrics2);
+    String sendWebMetrics1(WebRequestMetrics metrics1, WebRequestMetrics metrics2);
 
-    String send(String uri, WebRequestMetrics metrics);
+    String sendWebMetrics2(String uri, WebRequestMetrics metrics);
 
-    String send(WebRequestMetrics metrics, String uri);
+    String sendWebMetrics3(WebRequestMetrics metrics, String uri);
 
     @ServiceConfig(serializer = Serializer.JSON, name = "merge2")
     Map<String, String> mergeWithJson(Map<String, String> a, Map<String, String> b);

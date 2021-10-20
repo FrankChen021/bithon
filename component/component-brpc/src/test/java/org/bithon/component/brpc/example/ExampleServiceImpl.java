@@ -79,23 +79,23 @@ public class ExampleServiceImpl implements IExampleService {
     }
 
     @Override
-    public String send(WebRequestMetrics metrics) {
+    public String sendWebMetrics(WebRequestMetrics metrics) {
         System.out.printf("Receiving metrics: %s\n", metrics);
         return metrics.getUri();
     }
 
     @Override
-    public String send(WebRequestMetrics metrics1, WebRequestMetrics metrics2) {
+    public String sendWebMetrics1(WebRequestMetrics metrics1, WebRequestMetrics metrics2) {
         return metrics1.getUri() + "-" + metrics2.getUri();
     }
 
     @Override
-    public String send(String uri, WebRequestMetrics metrics) {
+    public String sendWebMetrics2(String uri, WebRequestMetrics metrics) {
         return uri + "-" + metrics.getUri();
     }
 
     @Override
-    public String send(WebRequestMetrics metrics, String uri) {
+    public String sendWebMetrics3(WebRequestMetrics metrics, String uri) {
         return metrics.getUri() + "-" + uri;
     }
 

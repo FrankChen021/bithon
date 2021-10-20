@@ -59,8 +59,8 @@ public class ServiceInvocationRunnable implements Runnable {
                 throw new BadRequestException("methodName is null");
             }
 
-            ServiceRegistry.RegistryItem serviceProvider = serviceRegistry.findServiceProvider(
-                serviceRequest.getMethodName());
+            ServiceRegistry.RegistryItem serviceProvider = serviceRegistry.findServiceProvider(serviceRequest.getServiceName(),
+                                                                                               serviceRequest.getMethodName());
             if (serviceProvider == null) {
                 throw new BadRequestException("Can't find service provider %s#%s",
                                               serviceRequest.getServiceName(),
