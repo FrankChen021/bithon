@@ -64,7 +64,7 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
             isQuery = false;
         } else if ((MySql8Plugin.METHOD_EXECUTE.equals(methodName) || MySql8Plugin.METHOD_EXECUTE_INTERNAL.equals(
             methodName))) {
-            Object result = aopContext.castReturningAs();
+            Object result = aopContext.getReturning();
             if (result instanceof Boolean && !(boolean) result) {
                 isQuery = false;
             }

@@ -33,12 +33,14 @@ public class SqlCompositeMetric implements ICompositeMetric {
     private final Sum bytesIn = new Sum();
     private final Sum bytesOut = new Sum();
 
-    public void update(boolean isQuery, boolean failed, long responseTime) {
+    public void update(Boolean isQuery, boolean failed, long responseTime) {
         this.responseTime.update(responseTime);
-        if (isQuery) {
-            this.queryCount.incr();
-        } else {
-            this.updateCount.incr();
+        if (isQuery != null) {
+            if (isQuery) {
+                this.queryCount.incr();
+            } else {
+                this.updateCount.incr();
+            }
         }
 
         if (failed) {
