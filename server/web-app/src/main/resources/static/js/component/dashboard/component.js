@@ -40,7 +40,8 @@ class Dashboard {
         // App Filter
         //
         new AppSelector(this._appName).childOf('appSelector').registerAppChangedListener((text, value) => {
-            window.location = `/web/app/metric/${value}/${this._dashboardName}`;
+            window.location = `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`;
+
             // update appName for dimension filters
             //this._appName = value;
 
