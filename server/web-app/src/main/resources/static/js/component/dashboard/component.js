@@ -133,8 +133,8 @@ class Dashboard {
         //
         // Create TimeInterval
         //
-        this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener(() => {
-            g_MetricSelectedInterval = this._timeSelector.getInterval().val;
+        this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
+            g_MetricSelectedInterval = selectedModel.id;
             this.refreshDashboard();
         });
 
