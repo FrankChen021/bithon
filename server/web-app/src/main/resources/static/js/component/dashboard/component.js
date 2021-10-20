@@ -40,7 +40,8 @@ class Dashboard {
         // App Filter
         //
         new AppSelector(this._appName).childOf('appSelector').registerAppChangedListener((text, value) => {
-            window.location = `/web/app/metric/${value}/${this._dashboardName}`;
+            window.location = `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`;
+
             // update appName for dimension filters
             //this._appName = value;
 
@@ -133,8 +134,8 @@ class Dashboard {
         //
         // Create TimeInterval
         //
-        this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener(() => {
-            g_MetricSelectedInterval = this._timeSelector.getInterval().val;
+        this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
+            g_MetricSelectedInterval = selectedModel.id;
             this.refreshDashboard();
         });
 
