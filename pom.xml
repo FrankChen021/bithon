@@ -182,11 +182,11 @@
         </configuration>
       </plugin>
 
-      <!-- the sonatype requires javadoc -->
+      <!-- sonatype requires javadoc -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9.1</version>
+        <version>3.1.1</version>
         <configuration>
           <show>private</show>
           <nohelp>true</nohelp>
@@ -194,6 +194,8 @@
           <encoding>UTF-8</encoding>
           <docencoding>UTF-8</docencoding>
           <additionalparam>-Xdoclint:none</additionalparam>
+          <failOnWarnings>false</failOnWarnings>
+          <failOnError>false</failOnError>
           <tags>
             <tag>
               <name>date</name>

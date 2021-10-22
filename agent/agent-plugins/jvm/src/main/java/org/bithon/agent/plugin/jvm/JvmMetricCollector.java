@@ -176,7 +176,7 @@ public class JvmMetricCollector {
         args.put("mem.heap.max", String.valueOf(JmxBeans.MEM_BEAN.getHeapMemoryUsage().getMax()));
 
         args.put("agent.version", AgentBuildVersion.VERSION);
-        args.put("agent.build", AgentBuildVersion.SCM_REVISION)
+        args.put("agent.build", AgentBuildVersion.SCM_REVISION);
         args.put("agent.timestamp", AgentBuildVersion.TIMESTAMP);
 
         return new EventMessage("jvm.started", args);

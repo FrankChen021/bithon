@@ -51,7 +51,7 @@ public class AgentControllerInitializer implements IAgentInitializer {
         IAgentController controller;
         try {
             IAgentControllerFactory factory = (IAgentControllerFactory) Class.forName(ctrlConfig.getClient())
-                                                                             .newInstance();
+                                                                             .getDeclaredConstructor().newInstance();
             controller = factory.createController(ctrlConfig);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             log.error("Can't create instanceof fetcher {}", ctrlConfig.getClient());
