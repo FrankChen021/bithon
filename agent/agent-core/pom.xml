@@ -72,58 +72,50 @@
     </dependency>
   </dependencies>
 
-  <!--    <scm>&lt;!&ndash; buildnumber插件需要先设置为空 &ndash;&gt;-->
-  <!--        <connection>scm:git:ssh://</connection>-->
-  <!--        <developerConnection>scm:git:ssh://</developerConnection>-->
-  <!--        <url>http://</url>-->
-  <!--    </scm>-->
-
   <build>
     <finalName>${project.artifactId}</finalName>
     <sourceDirectory>src/main/java</sourceDirectory>
 
     <!-- 打包版本号 -->
-    <!--        <plugins>-->
-    <!--            <plugin>-->
-    <!--                <groupId>org.codehaus.mojo</groupId>-->
-    <!--                <artifactId>buildnumber-maven-plugin</artifactId>-->
-    <!--                <version>1.4</version>-->
-    <!--                <executions>-->
-    <!--                    <execution>-->
-    <!--                        <id>bn1</id>-->
-    <!--                        <goals>-->
-    <!--                            &lt;!&ndash; 创建${buildNumber} &ndash;&gt;-->
-    <!--                            <goal>create</goal>-->
-    <!--                        </goals>-->
-    <!--                    </execution>-->
-    <!--                    <execution>-->
-    <!--                        <id>bn2</id>-->
-    <!--                        <goals>-->
-    <!--                            &lt;!&ndash; 创建时间戳${buildtimestamp} &ndash;&gt;-->
-    <!--                            <goal>create-timestamp</goal>-->
-    <!--                        </goals>-->
-    <!--                        <configuration>-->
-    <!--                            &lt;!&ndash; 指定时间戳变量名 &ndash;&gt;-->
-    <!--                            <timestampPropertyName>buildtimestamp</timestampPropertyName>-->
-    <!--                            &lt;!&ndash; 指定日期格式 &ndash;&gt;-->
-    <!--                            <timestampFormat>yyyy-MM-dd HH:mm:ss</timestampFormat>-->
-    <!--                        </configuration>-->
-    <!--                    </execution>-->
-    <!--                </executions>-->
-    <!--            </plugin>-->
-    <!--            <plugin>-->
-    <!--                <groupId>org.codehaus.mojo</groupId>-->
-    <!--                <artifactId>templating-maven-plugin</artifactId>-->
-    <!--                <version>1.0.0</version>-->
-    <!--                <executions>-->
-    <!--                    <execution>-->
-    <!--                        <id>filtering-java-templates</id>-->
-    <!--                        <goals>-->
-    <!--                            <goal>filter-sources</goal>-->
-    <!--                        </goals>-->
-    <!--                    </execution>-->
-    <!--                </executions>-->
-    <!--            </plugin>-->
-    <!--        </plugins>-->
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <id>bn1</id>
+            <goals>
+              <!-- create ${buildNumber} replacement -->
+              <goal>create</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>bn2</id>
+            <goals>
+              <!-- create ${buildtimestamp} replacement-->
+              <goal>create-timestamp</goal>
+            </goals>
+            <configuration>
+              <timestampPropertyName>buildtimestamp</timestampPropertyName>
+              <timestampFormat>yyyy-MM-dd HH:mm:ss</timestampFormat>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>templating-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <executions>
+          <execution>
+            <id>filtering-java-templates</id>
+            <goals>
+              <goal>filter-sources</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>
