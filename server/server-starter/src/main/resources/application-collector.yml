@@ -42,8 +42,7 @@ collector-kafka:
 
 logging:
   level:
-    com.sbss.bithon.collector: debug
-
+    org.bithon.collector: debug
 
 spring:
   datasource:
@@ -57,7 +56,15 @@ spring:
       enabled: true
       path: /h2-ui
 
-  #jOOQ Configuration
 jooq:
   sql:
     dialect: H2
+
+
+collector:
+  event:
+    ttl: P1D
+    cleanPeriod: PT3M
+  trace:
+    ttl: P1D
+    cleanPeriod: PT3M

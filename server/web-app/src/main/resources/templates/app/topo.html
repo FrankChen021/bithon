@@ -17,9 +17,8 @@ class TopoComponent {
         //
         // App Filter
         //
-        new AppSelector().childOf('appSelector').registerAppChangedListener((text, value)=>{
-            window.appName = value;
-            this.refreshTopo();
+        new AppSelector('[[${appName}]]').childOf('appSelector').registerAppChangedListener((text, value)=>{
+            window.location = `/web/app/topo/${value}`;
         });
 
         //
@@ -52,7 +51,7 @@ class TopoComponent {
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                application: appName
+                application: g_SelectedApp
             }),
             processResult: (topo)=>{
                 var chartOption = {

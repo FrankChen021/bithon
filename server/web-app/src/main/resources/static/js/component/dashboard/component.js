@@ -1,6 +1,9 @@
 class Dashboard {
-    constructor(containerId, appName, schemaApi) {
+    constructor(containerId, appName, dashboardName, defaultInterval, schemaApi) {
         this._schemaApi = schemaApi;
+        this._appName = appName;
+        this._dashboardName = dashboardName;
+        this._defaultInterval = defaultInterval;
 
         // View
         this._containerId = containerId;
@@ -16,11 +19,17 @@ class Dashboard {
         this._selectedDimensions = {};
         this.addDimension('appName', appName);
 
-        this._intervalFn = () => {
-            return this.getLatestInterval(5, 'minute');
-        };
+        // UI Component
+        this._timeSelector = null;
 
-        this.addDimension('appName', appName);
+        // Y Axis Formatter
+        this._formatters = {};
+        this._formatters['binary_byte'] = binaryByteFormat;
+        this._formatters['compact_number'] = compactFormat;
+        this._formatters['percentage'] = (v) => v + '%';
+        this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 0);
+        this._formatters['millisecond'] = (v) => milliFormat(v, 0);
+        this._formatters['microsecond'] = (v) => microFormat(v, 0);
     }
 
     // PUBLIC
@@ -30,14 +39,16 @@ class Dashboard {
         //
         // App Filter
         //
-        new AppSelector().childOf('appSelector').registerAppChangedListener((text, value) => {
+        new AppSelector(this._appName).childOf('appSelector').registerAppChangedListener((text, value) => {
+            window.location = `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`;
+
             // update appName for dimension filters
-            this._appName = value;
+            //this._appName = value;
 
             // update dimensions for dashboard chart
-            this.addDimension('appName', value);
+            //this.addDimension('appName', value);
 
-            this.refreshDashboard();
+            //this.refreshDashboard();
         });
 
         //
@@ -102,7 +113,7 @@ class Dashboard {
                     $.each(charts, (index, chartId) => {
                         this.refreshChart(this._chartDescriptors[chartId],
                             this._chartComponents[chartId],
-                            this._intervalFn.apply());
+                            this.getSelectedTimeInterval());
                     });
                 },
                 (error) => {
@@ -123,8 +134,9 @@ class Dashboard {
         //
         // Create TimeInterval
         //
-        new TimeInterval().childOf(parent).registerIntervalChangedListener((fn) => {
-            this.setInterval(fn);
+        this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
+            g_MetricSelectedInterval = selectedModel.id;
+            this.refreshDashboard();
         });
 
         $.each(dashboard.charts, (index, chartDescriptor) => {
@@ -143,22 +155,36 @@ class Dashboard {
     // PRIVATE
     createDimensionFilter(filterBar, dimensionIndex, dimensionName, displayText) {
         const appendedSelect = filterBar.append(`<li class="nav-item"><select style="width:150px"></select></li>`).find('select').last();
+        if (dimensionIndex === 1 && g_SelectedInstance != null) {
+            appendedSelect.append(`<option value="${g_SelectedInstance}">${g_SelectedInstance}</option>`);
+        }
         appendedSelect.select2({
             theme: 'bootstrap4',
             allowClear: true,
             dropdownAutoWidth: true,
             placeholder: displayText,
-            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionIndex, dimensionName)
+            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionIndex, dimensionName),
         }).on('change', (event) => {
             if (event.target.selectedIndex == null || event.target.selectedIndex < 0) {
+                if (dimensionIndex === 1) {
+                    g_SelectedInstance = null;
+                }
                 this.rmvDimension(dimensionName);
                 return;
             }
 
             // get selected dimension
             const dimensionValue = event.target.selectedOptions[0].value;
+
+            if (dimensionIndex === 1) {
+                g_SelectedInstance = dimensionValue;
+            }
             this.addDimension(dimensionName, dimensionValue);
         });
+
+        if (dimensionIndex === 1 && g_SelectedInstance != null) {
+            appendedSelect.change();
+        }
     }
 
     // PRIVATE
@@ -177,7 +203,7 @@ class Dashboard {
                     }
                 }
 
-                const interval = this._intervalFn.apply();
+                const interval = this.getSelectedTimeInterval();
                 return JSON.stringify({
                     dataSource: dataSourceName,
                     dimension: dimensionName,
@@ -212,7 +238,7 @@ class Dashboard {
             }
         });
         if (chartDescriptor.yAxis != null) {
-            const formatterFns = chartDescriptor.yAxis.map(y => this.getFormatter(y.unit));
+            const formatterFns = chartDescriptor.yAxis.map(y => this.getFormatter(y.format));
             for (let i = 1; i < formatterFns.length; i++) {
                 if (formatterFns[i] == null)
                     formatterFns[i] = formatterFns[i - 1]; //default to prev config
@@ -287,13 +313,6 @@ class Dashboard {
         return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}" style="margin-bottom: 0;padding-bottom: 10px;padding-left: 5px;padding-right: 5px"></div>`);
     }
 
-    //
-    setInterval(intervalFn) {
-        this._intervalFn = intervalFn;
-
-        this.refreshDashboard();
-    }
-
     // PUBLIC
     refreshDashboard() {
         if (this._dashboard == null) {
@@ -301,8 +320,9 @@ class Dashboard {
         }
 
         // refresh each chart
+        const interval = this.getSelectedTimeInterval();
         for (const id in this._chartComponents) {
-            this.refreshChart(this._chartDescriptors[id], this._chartComponents[id], this._intervalFn.apply());
+            this.refreshChart(this._chartDescriptors[id], this._chartComponents[id], interval);
         }
     }
 
@@ -336,27 +356,39 @@ class Dashboard {
         if (metricNamePrefix == null) {
             metricNamePrefix = '';
         }
+        var dimensions = {};
+        if ( chartDescriptor.dimensions === undefined) {
+            dimensions = this._selectedDimensions;
+        } else {
+            Object.assign(dimensions, this._selectedDimensions);
+            Object.assign(dimensions, chartDescriptor.dimensions);
+        }
         chartComponent.load({
             url: apiHost + "/api/datasource/metrics",
             ajaxData: JSON.stringify({
                 dataSource: chartDescriptor.dataSource,
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                dimensions: this._selectedDimensions,
+                dimensions: dimensions,
                 metrics: chartComponent.getOption().metrics
             }),
             processResult: (data) => {
                 const timeLabels = data.map(d => moment(d.timestamp).local().format('HH:mm:ss'));
 
                 const series = chartDescriptor.metrics.map(metric => {
+
                     return {
-                        name: metricNamePrefix + metric.name,
+                        name: metricNamePrefix + (metric.displayName === undefined ? metric.name : metric.displayName),
                         type: metric.chartType || 'line',
                         areaStyle: {opacity: 0.3},
                         data: data.map(d => metric.transformer(d, metric.name)),
                         lineStyle: {width: 1},
                         itemStyle: {opacity: 0},
-                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis
+                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
+
+                        // selected is not a property of series
+                        // this is used to render default selected state of legend by chart-component
+                        selected: metric.selected === undefined ? true : metric.selected
                     }
                 });
 
@@ -389,7 +421,7 @@ class Dashboard {
             const yIndex = metricDescriptor.yAxis == null ? 0 : metricDescriptor.yAxis;
             if (yIndex < chartDescriptor.yAxis.length) {
                 const yAxis = chartDescriptor.yAxis[yIndex];
-                if (yAxis.unit === 'millisecond' && schema.metricsSpec[metricName].unit === 'nanosecond') {
+                if (yAxis.format === 'millisecond' && schema.metricsSpec[metricName].unit === 'nanosecond') {
                     return function (data, metricName) {
                         const val = data[metricName];
                         return val == null ? 0 : (val / 1000 / 1000).toFixed(2);
@@ -457,35 +489,8 @@ class Dashboard {
     }
 
     //PRIVATE
-    getFormatter(unit) {
-        switch (unit) {
-            case 'binary_byte':
-                return function (v) {
-                    return binaryByteFormat(v);
-                };
-            case 'compact_number':
-                return function(v) {
-                    return compactFormat(v);
-                }
-            case 'percentage':
-                return function (v) {
-                    return v + '%';
-                };
-            case 'nano2Millisecond':
-                return function (v) {
-                    return (v / 1000 / 1000).toFixed(0) + 'ms';
-                }
-            case 'millisecond':
-                return function (v) {
-                    return v + 'ms';
-                }
-            case 'microsecond':
-                return function (v) {
-                    return v + 'µs';
-                }
-            default:
-                return null;
-        }
+    getFormatter(format) {
+        return this._formatters[format];
     }
 
     resize() {
@@ -609,6 +614,10 @@ class Dashboard {
                 delete this._chartComponents['compare_charts'];
             }
         });
+    }
+
+    getSelectedTimeInterval() {
+        return this._timeSelector.getInterval();
     }
 
     //PRIVATE

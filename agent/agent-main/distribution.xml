@@ -1,4 +1,6 @@
-<assembly>
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
   <id>main</id>
 
   <formats>
@@ -18,13 +20,12 @@
         "dir" - Creates an exploded directory format
         "war" - Creates a WAR format
     -->
-    <format>dir</format>
+    <format>zip</format>
   </formats>
 
-  <includeBaseDirectory>false</includeBaseDirectory>
+  <includeBaseDirectory>true</includeBaseDirectory>
 
   <dependencySets>
-
     <!-- agent-bootstrap -->
     <dependencySet>
       <includes>
@@ -56,9 +57,19 @@
         <exclude>com.sbss.bithon.shaded:shaded-bytebuddy</exclude>
         <exclude>${project.parent.groupId}:agent-bootstrap</exclude>
         <exclude>${project.parent.groupId}:agent-main</exclude>
+        <exclude>${project.parent.groupId}:agent-sdk</exclude>
         <exclude>org.slf4j:slf4j-api</exclude>
       </excludes>
       <outputDirectory>/lib</outputDirectory>
+    </dependencySet>
+
+    <!-- sdk -->
+    <dependencySet>
+      <includes>
+        <include>${project.parent.groupId}:agent-sdk</include>
+      </includes>
+      <outputDirectory>/sdk</outputDirectory>
+      <outputFileNameMapping>agent-sdk.jar</outputFileNameMapping>
     </dependencySet>
   </dependencySets>
 
@@ -69,6 +80,13 @@
       <includes>
         <include>*.yml</include>
         <include>*.xml</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>../dest/plugins</directory>
+      <outputDirectory>/plugins</outputDirectory>
+      <includes>
+        <include>*.jar</include>
       </includes>
     </fileSet>
   </fileSets>

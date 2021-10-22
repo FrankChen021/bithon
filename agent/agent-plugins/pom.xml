@@ -4,21 +4,19 @@
          xmlns="http://maven.apache.org/POM/4.0.0">
 
   <parent>
-    <groupId>com.sbss.bithon.agent</groupId>
+    <groupId>org.bithon.agent</groupId>
     <artifactId>agent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>agent-plugin</artifactId>
+  <artifactId>agent-plugins</artifactId>
   <packaging>pom</packaging>
 
   <modules>
+    <module>bithon-sdk</module>
     <module>jdbc-druid</module>
-    <module>webserver-tomcat</module>
-    <module>webserver-undertow</module>
-    <module>webserver-jetty</module>
     <module>jvm</module>
     <module>jvm-jdk8</module>
     <module>jvm-jdk9</module>
@@ -39,133 +37,153 @@
     <module>logging-log4j2</module>
     <module>logging-logback</module>
     <module>spring</module>
-
+    <module>spring-webflux</module>
+    <module>webserver-tomcat</module>
+    <module>webserver-undertow</module>
+    <module>webserver-jetty</module>
+    <module>webserver-netty</module>
   </modules>
 
   <dependencies>
     <!-- Use to publish -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-bithon-sdk</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- Web Container-->
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-webserver-tomcat</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-webserver-undertow</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-webserver-jetty</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-webserver-netty</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <!-- JDK -->
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-jvm</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-jdk-thread</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <!-- SQL -->
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-jdbc-druid</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-mysql-5.x-6.x</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-mysql-8.x</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-quartz2</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <!-- HTTP Client -->
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpclient-okhttp3</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpclient-okhttp32</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpclient-jdk</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpclient-apache</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpclient-jetty</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-httpclient-netty</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <!-- Redis -->
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-redis-jedis</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-redis-lettuce-5.x</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <!-- Log -->
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-logging-logback</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-logging-log4j2</artifactId>
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Spring -->
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-spring</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-spring-webflux</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-mongodb</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-mongodb-3.8</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -187,7 +205,7 @@
       </activation>
       <dependencies>
         <dependency>
-          <groupId>com.sbss.bithon.agent</groupId>
+          <groupId>org.bithon.agent</groupId>
           <artifactId>agent-plugin-jvm-jdk8</artifactId>
           <version>${project.version}</version>
         </dependency>
@@ -200,7 +218,7 @@
       </activation>
       <dependencies>
         <dependency>
-          <groupId>com.sbss.bithon.agent</groupId>
+          <groupId>org.bithon.agent</groupId>
           <artifactId>agent-plugin-jvm-jdk9</artifactId>
           <version>${project.version}</version>
         </dependency>
@@ -209,7 +227,7 @@
   </profiles>
 
   <build>
-    <finalName>agent-plugin</finalName>
+    <finalName>agent-plugins</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -227,39 +245,6 @@
             <goals>
               <goal>single</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <tasks>
-                <echo
-                    message="****** Clear Agent Plugin Output Directory: ../${project.distribution.dir}/plugins *****"/>
-                <delete dir="../${project.distribution.dir}/plugins"/>
-              </tasks>
-            </configuration>
-          </execution>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <move file="${project.build.directory}/${project.name}/"
-                      tofile="../${project.distribution.dir}" overwrite="true"/>
-              </target>
-            </configuration>
           </execution>
         </executions>
       </plugin>

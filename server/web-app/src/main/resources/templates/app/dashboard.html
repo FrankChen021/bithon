@@ -1,0 +1,38 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.ultraq.net.nz/thymeleaf/layout ">
+<head>
+    <title>Bithon</title>
+</head>
+<body>
+
+<div layout:fragment="content" id="dashboard">
+
+    <script th:inline="javascript">
+        const dashboardName = [[${dashboardName}]];
+        $(document).ready(function () {
+            new DashboardApi().getDashboardConfig(dashboardName,
+                (boardConfig) => {
+                    const dashboard = new Dashboard('dashboard',
+                        [[${appName}]],
+                        dashboardName,
+                        g_MetricSelectedInterval,
+                        new SchemaApi());
+                    dashboard.load(boardConfig);
+
+                    $(window).bind('resize', () => {
+                        dashboard.resize();
+                    });
+                }, (error) => {
+                    alert(error.responseText);
+                });
+        });
+    </script>
+
+</div>
+</body>
+</html>

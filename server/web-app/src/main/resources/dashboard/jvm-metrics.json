@@ -1,0 +1,194 @@
+{
+  "title": "JVM",
+  "charts": [
+    {
+      "dataSource": "jvm-metrics",
+      "title": "CPU",
+      "width": 2,
+      "yAxis": [
+        {
+          "format": "percentage"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "processCpuLoad",
+          "format": "percentage",
+          "chartType": "line"
+        }
+      ]
+    },
+    {
+      "dataSource": "jvm-metrics",
+      "title": "Threads",
+      "width": 2,
+      "metrics": [
+        {
+          "name": "activeThreads"
+        },
+        {
+          "name": "totalThreads"
+        }
+      ]
+    },
+    {
+      "dataSource": "jvm-metrics",
+      "title": "Heap",
+      "width": 1,
+      "yAxis": [
+        {
+          "minInterval": 1048576,
+          "format": "binary_byte"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "heapUsed",
+          "displayName": "used"
+        },
+        {
+          "name": "heapMax",
+          "displayName": "max"
+        },
+        {
+          "name": "heapCommitted",
+          "displayName": "committed",
+          "selected": false
+        }
+      ]
+    },
+    {
+      "dataSource": "jvm-metrics",
+      "title": "Non-Heap",
+      "width": 1,
+      "yAxis": [
+        {
+          "minInterval": 1048576,
+          "format": "binary_byte"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "nonHeapUsed",
+          "displayName": "used"
+        },
+        {
+          "name": "nonHeapMax",
+          "displayName": "max"
+        },
+        {
+          "name": "nonHeapCommitted",
+          "displayName": "committed",
+          "selected": false
+        }
+      ]
+    },
+    {
+      "dataSource": "jvm-metrics",
+      "title": "Metaspace",
+      "width": 1,
+      "yAxis": [
+        {
+          "minInterval": 1048576,
+          "format": "binary_byte"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "metaspaceUsed",
+          "displayName": "used"
+        },
+        {
+          "name": "metaspaceMax",
+          "displayName": "max"
+        },
+        {
+          "name": "metaspaceCommitted",
+          "displayName": "committed",
+          "selected": false
+        }
+      ]
+    },
+    {
+      "dataSource": "jvm-metrics",
+      "title": "Direct Memory",
+      "width": 1,
+      "yAxis": [
+        {
+          "minInterval": 1048576,
+          "format": "binary_byte"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "directUsed",
+          "displayName": "used"
+        },
+        {
+          "name": "directMax",
+          "displayName": "max"
+        }
+      ]
+    },
+    {
+      "dataSource": "jvm-gc-metrics",
+      "title": "Young GC",
+      "width": 4,
+      "yAxis": [
+        {
+        },
+        {
+          "format": "millisecond"
+        }
+      ],
+      "dimensions": {
+        "generation": {
+          "dimension": "generation",
+          "matcher": {
+            "type": "equal",
+            "pattern": "new"
+          }
+        }
+      },
+      "metrics": [
+        {
+          "name": "gcCount"
+        },
+        {
+          "name": "avgGcTime",
+          "yAxis": 1
+        }
+      ]
+    },
+    {
+      "dataSource": "jvm-gc-metrics",
+      "title": "Old GC",
+      "width": 4,
+      "yAxis": [
+        {
+        },
+        {
+          "format": "millisecond"
+        }
+      ],
+      "dimensions": {
+        "generation": {
+          "dimension": "generation",
+          "matcher": {
+            "type": "equal",
+            "pattern": "old"
+          }
+        }
+      },
+      "metrics": [
+        {
+          "name": "gcCount"
+        },
+        {
+          "name": "avgGcTime",
+          "yAxis": 1
+        }
+      ]
+    }
+  ]
+}

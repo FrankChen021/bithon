@@ -41,7 +41,6 @@
       "displayText": "Total Commands",
       "unit": ""
     },
-
     {
       "type": "longMin",
       "name": "minRequestTime",
@@ -51,16 +50,15 @@
     {
       "type": "longSum",
       "name": "requestTime",
-      "displayText": "requestTime",
+      "displayText": "Request Time",
       "unit": "nanosecond"
     },
     {
       "type": "longMax",
       "name": "maxRequestTime",
-      "displayText": "requestTime",
+      "displayText": "Max Request Time",
       "unit": "nanosecond"
     },
-
     {
       "type": "longMin",
       "name": "minResponseTime",
@@ -70,7 +68,7 @@
     {
       "type": "longSum",
       "name": "responseTime",
-      "displayText": "responseTime",
+      "displayText": "Response Time",
       "unit": "nanosecond"
     },
     {
@@ -81,13 +79,20 @@
     },
     {
       "type": "post",
+      "name": "avgRequestTime",
+      "expression": "requestTime/totalCount",
+      "displayText": "AVG Request Time",
+      "unit": "nanosecond",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
       "name": "avgResponseTime",
       "expression": "responseTime/totalCount",
       "displayText": "AVG Response Time",
       "unit": "nanosecond",
       "valueType": "double"
     },
-
     {
       "type": "longSum",
       "name": "requestBytes",
@@ -99,6 +104,22 @@
       "name": "responseBytes",
       "displayText": "Response Bytes",
       "unit": "byte"
+    },
+    {
+      "type": "post",
+      "name": "requestByteRate",
+      "expression": "requestBytes/{interval}",
+      "displayText": "Avg Request Byte Rate",
+      "unit": "Bps",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "responseByteRate",
+      "expression": "responseBytes/{interval}",
+      "displayText": "Avg Response Byte Rate",
+      "unit": "Bps",
+      "valueType": "double"
     }
   ]
 }

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package org.bithon.agent.rpc.brpc.tracing;
+
+option java_multiple_files = true;
+
+message BrpcTraceSpanMessage {
+    string traceId = 1;
+    string spanId  = 2;
+    optional string parentSpanId = 3;
+    optional string parentAppName = 4;
+    string kind = 5;
+    string name = 6;
+    string clazz = 7;
+    string method = 8;
+    map<string, string> tags = 9;
+    int64 startTime = 10;
+    int64 endTime = 11;
+}
