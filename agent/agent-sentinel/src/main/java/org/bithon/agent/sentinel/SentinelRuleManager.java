@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 public class SentinelRuleManager {
 
     private static final Logger log = LoggerFactory.getLogger(SentinelRuleManager.class);
-    private static SentinelRuleManager INSTANCE;
+    private static volatile SentinelRuleManager INSTANCE;
 
     static {
         if (System.getProperty("csp.sentinel.log.output.type") == null) {
@@ -431,7 +431,7 @@ public class SentinelRuleManager {
     }
 
     /**
-     * uri ---> { flow-rules, degrade-rules }
+     * uri --- { flow-rules, degrade-rules }
      */
     public static class CompositeRule {
         private final Set<String> flowRules = new ConcurrentSkipListSet<>();

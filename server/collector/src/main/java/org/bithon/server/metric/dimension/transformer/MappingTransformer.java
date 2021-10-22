@@ -22,8 +22,7 @@ import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 /**
- * @author
- * @date
+ * @author Frank Chen
  */
 public class MappingTransformer implements IDimensionTransformer {
 

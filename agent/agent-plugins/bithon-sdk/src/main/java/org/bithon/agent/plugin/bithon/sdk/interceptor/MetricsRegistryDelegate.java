@@ -108,17 +108,19 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
     private final Supplier<Object> metricInstantiator;
     private final Schema schema;
     private Map<List<String>, IMetricSet> metricsMap = new ConcurrentHashMap<>();
-    private Map<List<String>, IMetricSet> retainedMetricsMap = new ConcurrentHashMap<>();
+    private final Map<List<String>, IMetricSet> retainedMetricsMap = new ConcurrentHashMap<>();
     private final List<Field> metricField = new ArrayList<>();
 
+    @SuppressWarnings("unchecked")
     protected MetricsRegistryDelegate(String name,
                                       List<String> dimensionSpec,
                                       Class<?> metricClass) {
         final Constructor<?> defaultCtor = Arrays.stream(metricClass.getConstructors())
                                                  .filter(ctor -> ctor.getParameterCount() == 0)
                                                  .findFirst()
-                                                 .orElseThrow(() -> new SdkException(String.format("Class[%s] has no default ctor",
-                                                                                                   metricClass.getName())));
+                                                 .orElseThrow(() -> new SdkException(String.format(
+                                                     "Class[%s] has no default ctor",
+                                                     metricClass.getName())));
         defaultCtor.setAccessible(true);
         this.metricInstantiator = () -> {
             try {
@@ -128,10 +130,13 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
             }
         };
 
-        List<IDimensionSpec> dimensionSpecs = dimensionSpec.stream().map(StringDimensionSpec::new).collect(Collectors.toList());
+        List<IDimensionSpec> dimensionSpecs = dimensionSpec.stream()
+                                                           .map(StringDimensionSpec::new)
+                                                           .collect(Collectors.toList());
 
         List<IMetricSpec> metricsSpec = new ArrayList<>();
         for (Field field : metricClass.getDeclaredFields()) {
+            //noinspection rawtypes
             Class fieldClass = field.getType();
             if (fieldClass == LongMax.class) {
                 metricsSpec.add(new LongMaxMetricSpec(field.getName()));
@@ -171,7 +176,9 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
         List<String> dimensionList = Arrays.asList(newDimensions);
 
+        //noinspection rawtypes
         Map map = retained ? retainedMetricsMap : metricsMap;
+        //noinspection unchecked
         return ((MetricSet) map.computeIfAbsent(dimensionList, key -> {
             Object metricProvider = metricInstantiator.get();
             return new MetricSet(metricProvider, dimensionList, metricField);

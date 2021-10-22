@@ -21,8 +21,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 /**
- * @author
- * @date
+ * @author Frank Chen
  */
 public class DoubleValueType implements IValueType {
 
