@@ -68,7 +68,7 @@ public class BootstrapConstructorAop {
         log = BootstrapHelper.createAopLogger(BootstrapMethodAop.class);
 
         try {
-            // load class out of sync to eliminate potential dead lock
+            // load class out of sync to eliminate potential deadlock
             Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
                                                       true,
                                                       BootstrapHelper.getPluginClassLoader());
@@ -78,7 +78,7 @@ public class BootstrapConstructorAop {
                     return INTERCEPTOR;
                 }
 
-                INTERCEPTOR = (AbstractInterceptor) interceptorClass.newInstance();
+                INTERCEPTOR = (AbstractInterceptor) interceptorClass.getDeclaredConstructor().newInstance();
             }
             INTERCEPTOR.initialize();
         } catch (Exception e) {

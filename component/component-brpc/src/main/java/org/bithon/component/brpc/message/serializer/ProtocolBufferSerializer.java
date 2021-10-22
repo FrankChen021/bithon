@@ -407,7 +407,7 @@ public class ProtocolBufferSerializer {
                 collection = new LinkedList();
             } else {
                 try {
-                    collection = (Collection) rawClass.newInstance();
+                    collection = (Collection) rawClass.getDeclaredConstructor().newInstance();
                 } catch (Exception e) {
                     throw new IllegalStateException(String.format("Failed to create instance of [%s]:%s",
                                                                   rawClass.getName(),
@@ -433,7 +433,7 @@ public class ProtocolBufferSerializer {
                 superType = ((Class<?>) type).getGenericSuperclass();
             }
             if (!(superType instanceof ParameterizedType)) {
-                throw new IllegalStateException("Unsupport Map type to deserialize: " + type.toString());
+                throw new IllegalStateException("Unsupported Map type to deserialize: " + type.toString());
             }
             ParameterizedType parameterizedType = (ParameterizedType) superType;
             Type elementType = parameterizedType.getActualTypeArguments()[0];
@@ -539,7 +539,7 @@ public class ProtocolBufferSerializer {
 
             try {
                 //noinspection unchecked
-                return (Map<Object, Object>) clazz.newInstance();
+                return (Map<Object, Object>) clazz.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw new IllegalStateException("unsupport type " + type, e);
             }
@@ -559,6 +559,7 @@ public class ProtocolBufferSerializer {
         public Object deserialize(Type type, CodedInputStream is) throws IOException {
             try {
                 Method newBuilderMethod = ((Class<?>) type).getDeclaredMethod("newBuilder");
+                //noinspection rawtypes
                 GeneratedMessageV3.Builder builder = (GeneratedMessageV3.Builder) newBuilderMethod.invoke(null);
                 is.readMessage(builder, ExtensionRegistryLite.getEmptyRegistry());
                 return builder.build();
@@ -588,19 +589,16 @@ public class ProtocolBufferSerializer {
         @Override
         public Object deserialize(Type type, CodedInputStream is) throws IOException {
 
-            Class componentClass;
             Type componentType;
             if (type instanceof GenericArrayType) {
                 GenericArrayType clazz = (GenericArrayType) type;
                 componentType = clazz.getGenericComponentType();
                 if (componentType instanceof TypeVariable) {
                     throw new RuntimeException("Not Supported");
-                } else {
-                    componentClass = TypeReference.getClass(componentType);
                 }
             } else {
                 Class clazz = (Class) type;
-                componentType = componentClass = clazz.getComponentType();
+                componentType = clazz.getComponentType();
             }
 
             int size = is.readInt32();

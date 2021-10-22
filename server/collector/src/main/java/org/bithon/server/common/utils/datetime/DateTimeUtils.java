@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author frankchen
- * @Date 2020-03-24 22:31:38
+ * @date 2020-03-24 22:31:38
  */
 public class DateTimeUtils {
 

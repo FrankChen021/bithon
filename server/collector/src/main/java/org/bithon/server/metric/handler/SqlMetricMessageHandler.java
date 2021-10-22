@@ -48,7 +48,7 @@ public class SqlMetricMessageHandler extends AbstractMetricMessageHandler {
     /**
      * connection string template:
      * jdbc:h2:mem:007af5e4-ee6e-4af5-a515-f961f0fd02a1;a=b
-     * jdbc:mysql://localhost:3306/bithon?useUnicode=true&useSSL=false&autoReconnect=TRUE
+     * jdbc:mysql://localhost:3306/bithon?useUnicode=true&amp;useSSL=false&amp;autoReconnect=TRUE
      * jdbc:netezza://main:5490/sales;user=admin;password=password;loglevel=2
      */
     @Override

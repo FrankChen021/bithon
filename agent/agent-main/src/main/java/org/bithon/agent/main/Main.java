@@ -59,7 +59,7 @@ public class Main {
 
         ClassLoader classLoader = AgentClassLoader.initialize(agentDirectory);
         Class<?> starterClass = classLoader.loadClass("org.bithon.agent.core.starter.AgentStarter");
-        Object starterObject = starterClass.newInstance();
+        Object starterObject = starterClass.getDeclaredConstructor().newInstance();
         Method startMethod = starterClass.getDeclaredMethod("start",
                                                             String.class,
                                                             Instrumentation.class);
