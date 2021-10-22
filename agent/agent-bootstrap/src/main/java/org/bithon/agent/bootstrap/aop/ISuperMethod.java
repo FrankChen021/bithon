@@ -17,7 +17,7 @@
 package org.bithon.agent.bootstrap.aop;
 
 /**
- * See {@link net.bytebuddy.implementation.bind.annotation.Morph} for how this interface works
+ * See {@link shaded.net.bytebuddy.implementation.bind.annotation.Morph} for how this interface works
  *
  * @author frank.chen021@outlook.com
  * @date 2021/3/30 22:49

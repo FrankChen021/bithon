@@ -24,7 +24,7 @@ public class MathUtils {
 
     /**
      * A of copy Apache commons-math 3.6.1 FastMath.floorMod(long, long)
-     * Finds q such that dividend = q * divisor + r with 0 <= r < divisor if divisor > 0 and divisor < r <= 0 if divisor < 0.
+     * Finds q such that dividend = q * divisor + r with 0 &lt;= r &lt; divisor if divisor &gt; 0 and divisor &lt; r &lt;= 0 if divisor &lt; 0.
      * <p>
      * This methods returns the same value as integer division when
      * a and b are same signs, but returns a different value when

@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CommandHelper {
 
     /**
-     * {@link com.mongodb.connection.CommandHelper#executeCommand(String, org.bson.BsonDocument, com.mongodb.connection.InternalConnection)}
+     * see com.mongodb.connection.CommandHelper#executeCommand(String, org.bson.BsonDocument, com.mongodb.connection.InternalConnection)
      */
     public static class ExecuteCommand extends AbstractInterceptor {
 
