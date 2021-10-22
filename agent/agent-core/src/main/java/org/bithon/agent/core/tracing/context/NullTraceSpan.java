@@ -141,4 +141,9 @@ public class NullTraceSpan implements ITraceSpan {
     public void finish() {
 
     }
+
+    @Override
+    public boolean isNull() {
+        return true;
+    }
 }
