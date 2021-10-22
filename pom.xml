@@ -41,8 +41,8 @@
   </licenses>
   <inceptionYear>2020</inceptionYear>
   <scm>
-    <connection>scm:git@github.com:FrankChen021/bithon.git</connection>
-    <developerConnection>scm:git@github.com:FrankChen021/bithon.git</developerConnection>
+    <connection>scm:git:ssh://github.com:FrankChen021/bithon.git</connection>
+    <developerConnection>scm:git:ssh://github.com:FrankChen021/bithon.git</developerConnection>
     <url>https://github.com/FrankChen021/bithon.git</url>
   </scm>
   <developers>
@@ -194,6 +194,13 @@
           <encoding>UTF-8</encoding>
           <docencoding>UTF-8</docencoding>
           <additionalparam>-Xdoclint:none</additionalparam>
+          <tags>
+            <tag>
+              <name>date</name>
+            </tag>
+          </tags>
+          <quiet>true</quiet>
+          <old>true</old>
         </configuration>
         <executions>
           <execution>

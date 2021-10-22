@@ -14,14 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.bootstrap.aop;
+package org.bithon.agent;
 
 /**
- * See {@link shaded.net.bytebuddy.implementation.bind.annotation.Morph} for how this interface works
- *
- * @author frank.chen021@outlook.com
- * @date 2021/3/30 22:49
+ * @author Frank Chen
  */
-public interface ISuperMethod {
-    Object invoke(Object[] args);
+public final class AgentBuildVersion {
+
+    public static final String VERSION = "${project.version}";
+
+    /**
+     * SCM(git) revision
+     */
+    public static final String SCM_REVISION = "${buildNumber}";
+
+    /**
+     * SCM branch
+     */
+    public static final String SCM_BRANCH = "${scmBranch}";
+
+    /**
+     * build timestamp
+     */
+    public static final String TIMESTAMP = "${buildtimestamp}";
 }
