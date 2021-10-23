@@ -16,8 +16,6 @@
 
 package org.bithon.server.meta.storage;
 
-import org.bithon.server.common.pojo.DisplayableText;
-import org.bithon.server.meta.EndPointLink;
 import org.bithon.server.meta.Metadata;
 import org.bithon.server.meta.MetadataType;
 
@@ -33,21 +31,10 @@ public interface IMetaStorage {
 
     Collection<Metadata> getMetadataByType(MetadataType type);
 
-    long createMetricDimension(String dataSource,
-                               String dimensionName,
-                               String dimensionValue, long timestamp);
-
-    long createTopo(EndPointLink link);
-
     /**
      * @param instanceName host+port
      */
     String getApplicationByInstance(String instanceName);
 
     boolean isApplicationExist(String applicationName);
-
-    Collection<DisplayableText> getMetricDimensions(String dataSourceName,
-                                                    String dimensionName,
-                                                    String startISO8601,
-                                                    String endISO8601);
 }

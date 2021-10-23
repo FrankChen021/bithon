@@ -18,9 +18,6 @@ package org.bithon.server.meta.storage.jdbc;
 
 import org.bithon.component.db.dao.MetadataDAO;
 import org.bithon.component.db.jooq.tables.records.BithonMetadataRecord;
-import org.bithon.server.common.pojo.DisplayableText;
-import org.bithon.server.common.utils.datetime.DateTimeUtils;
-import org.bithon.server.meta.EndPointLink;
 import org.bithon.server.meta.Metadata;
 import org.bithon.server.meta.MetadataType;
 import org.bithon.server.meta.storage.IMetaStorage;
@@ -55,22 +52,6 @@ public class MetadataJdbcStorage implements IMetaStorage {
     }
 
     @Override
-    public long createMetricDimension(String dataSource,
-                                      String dimensionName,
-                                      String dimensionValue,
-                                      long timestamp) {
-        return metadataDao.upsertDimension(dataSource, dimensionName, dimensionValue, timestamp);
-    }
-
-    @Override
-    public long createTopo(EndPointLink link) {
-        return metadataDao.upsertTopo(link.getSrcEndpointType(),
-                                      link.getSrcEndpoint(),
-                                      link.getDstEndpointType(),
-                                      link.getDstEndpoint());
-    }
-
-    @Override
     public String getApplicationByInstance(String instanceName) {
         BithonMetadataRecord application = metadataDao.getMetaByNameAndType(instanceName,
                                                                             MetadataType.APP_INSTANCE.getType());
@@ -82,24 +63,5 @@ public class MetadataJdbcStorage implements IMetaStorage {
         BithonMetadataRecord application = metadataDao.getMetaByNameAndType(applicationName,
                                                                             MetadataType.APPLICATION.getType());
         return application != null;
-    }
-
-    @Override
-    public Collection<DisplayableText> getMetricDimensions(String dataSourceName,
-                                                           String dimensionName,
-                                                           String startISO8601,
-                                                           String endISO8601) {
-        try {
-            return metadataDao.getMetricDimensions(dataSourceName,
-                                                   dimensionName,
-                                                   DateTimeUtils.fromISO8601(startISO8601),
-                                                   DateTimeUtils.fromISO8601(endISO8601))
-                              .stream()
-                              .map(r -> new DisplayableText(r.getId().toString(),
-                                                            r.getDimensionValue()))
-                              .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.bithon.server.meta.api;
 
-import org.bithon.server.common.pojo.DisplayableText;
 import org.bithon.server.meta.Metadata;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -44,13 +43,5 @@ public class MetadataApi {
     @PostMapping("/api/meta/getMetadataList")
     public Collection<Metadata> getMetadataList(@Valid @RequestBody GetMetadataListRequest request) {
         return metaStorage.getMetadataByType(request.getType());
-    }
-
-    @PostMapping("/api/meta/dimensions")
-    public Collection<DisplayableText> getDimensionValues(@Valid GetDimensionValueRequest request) {
-        return metaStorage.getMetricDimensions(request.getDataSourceName(),
-                                               request.getDimensionName(),
-                                               request.getStartISO8601(),
-                                               request.getEndISO8601());
     }
 }

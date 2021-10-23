@@ -18,11 +18,6 @@ package org.bithon.server.meta.storage;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import org.bithon.server.common.pojo.DisplayableText;
-import org.bithon.server.meta.EndPointLink;
 import org.bithon.server.meta.Metadata;
 import org.bithon.server.meta.MetadataType;
 
@@ -38,12 +33,6 @@ public class CachableMetadataStorage implements IMetaStorage {
     private final IMetaStorage delegate;
     // TODO: replace with LoadingCache
     private final Cache<Metadata, Long> metaCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build();
-    private final Cache<DimensionValue, Long> dimensionCache = Caffeine.newBuilder()
-                                                                       .expireAfterWrite(Duration.ofHours(1))
-                                                                       .build();
-    private final Cache<EndPointLink, Long> topoCache = Caffeine.newBuilder()
-                                                                .expireAfterWrite(Duration.ofHours(1))
-                                                                .build();
     private final Cache<String, String> instanceCache = Caffeine.newBuilder()
                                                                 .expireAfterWrite(Duration.ofMinutes(5))
                                                                 .build();
@@ -73,30 +62,6 @@ public class CachableMetadataStorage implements IMetaStorage {
     }
 
     @Override
-    public long createMetricDimension(String dataSource,
-                                      String dimensionName,
-                                      String dimensionValue,
-                                      long timestamp) {
-        DimensionValue key = new DimensionValue(dataSource, dimensionName, dimensionValue);
-        Long id = dimensionCache.getIfPresent(key);
-        if (id == null) {
-            id = delegate.createMetricDimension(dataSource, dimensionName, dimensionValue, timestamp);
-            dimensionCache.put(key, id);
-        }
-        return id;
-    }
-
-    @Override
-    public long createTopo(EndPointLink link) {
-        Long id = topoCache.getIfPresent(link);
-        if (id == null) {
-            id = delegate.createTopo(link);
-            topoCache.put(link, id);
-        }
-        return id;
-    }
-
-    @Override
     public String getApplicationByInstance(String instanceName) {
         String applicationName = instanceCache.getIfPresent(instanceName);
         if (applicationName == null) {
@@ -113,22 +78,5 @@ public class CachableMetadataStorage implements IMetaStorage {
     public boolean isApplicationExist(String applicationName) {
         //TODO: cache
         return delegate.isApplicationExist(applicationName);
-    }
-
-    @Override
-    public Collection<DisplayableText> getMetricDimensions(String dataSourceName,
-                                                           String dimensionName,
-                                                           String startISO8601,
-                                                           String endISO8601) {
-        return null;
-    }
-
-    @Getter
-    @EqualsAndHashCode
-    @AllArgsConstructor
-    static class DimensionValue {
-        private final String dataSource;
-        private final String name;
-        private final String value;
     }
 }
