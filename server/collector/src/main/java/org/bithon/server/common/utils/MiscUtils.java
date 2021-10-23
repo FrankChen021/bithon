@@ -57,6 +57,10 @@ public class MiscUtils {
                     return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
                                                 uri.getPath().substring(1),
                                                 EndPointType.DB_MYSQL);
+                case "clickhouse":
+                    return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
+                                                uri.getPath().substring(1),
+                                                EndPointType.DB_CLICKHOUSE);
                 default:
                     throw new RuntimeException(String.format("Unknown schema of Connection String: [%s]",
                                                              connectionString));

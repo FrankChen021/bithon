@@ -26,13 +26,14 @@ public enum EndPointType {
     APPLICATION(0),
 
     // Database
-    DB_UNKOWN(1),
-    DB_H2(1),
-    DB_MYSQL(1),
-    DB_MONGO(3),
+    DB_UNKNOWN(10),
+    DB_H2(11),
+    DB_MYSQL(12),
+    DB_MONGO(13),
+    DB_CLICKHOUSE(14),
 
-    REDIS(2),
-    WEB_SERVICE(5);
+    REDIS(20),
+    WEB_SERVICE(30);
 
     public int getType() {
         return type;
