@@ -19,6 +19,7 @@ package org.bithon.server.tracing.storage.jdbc;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.db.jooq.Indexes;
 import org.bithon.component.db.jooq.Tables;
 import org.bithon.component.db.jooq.tables.records.BithonTraceSpanRecord;
@@ -29,6 +30,7 @@ import org.bithon.server.tracing.storage.ITraceWriter;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jooq.impl.ThreadLocalTransactionProvider;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/2/4 8:34 下午
  */
+@Slf4j
 public class TraceJdbcStorage implements ITraceStorage {
 
     private final DSLContext dslContext;
@@ -170,7 +173,11 @@ public class TraceJdbcStorage implements ITraceStorage {
                         spanRecord.setTags(span.tags == null ? "{}" : objectMapper.writeValueAsString(span.tags));
                         batchRecords.add(spanRecord);
                     }
-                    dslContext.batchInsert(batchRecords).execute();
+                    try {
+                        dslContext.batchInsert(batchRecords).execute();
+                    } catch (DuplicateKeyException e) {
+                        log.error("Duplicated Span Records: {}", batchRecords);
+                    }
 
                     leftSize -= thisBatch;
                 }

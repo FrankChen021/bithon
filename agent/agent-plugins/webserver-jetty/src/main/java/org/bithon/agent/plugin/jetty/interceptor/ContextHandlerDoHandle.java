@@ -18,8 +18,15 @@ package org.bithon.agent.plugin.jetty.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
+import org.bithon.agent.core.tracing.Tracer;
+import org.bithon.agent.core.tracing.context.ITraceContext;
+import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.jetty.metric.WebRequestMetricCollector;
 import org.eclipse.jetty.server.Request;
 
@@ -46,16 +53,82 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext context) {
-        Request request = (Request) context.getArgs()[1];
+    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+        Request request = (Request) aopContext.getArgs()[1];
         boolean filtered = this.requestFilter.shouldBeExcluded(request.getRequestURI(), request.getHeader("User-Agent"));
         if (filtered) {
-            return;
+            return InterceptionDecision.SKIP_LEAVE;
         }
 
-        requestMetricCollector.update((Request) context.getArgs()[1],
-                                      (HttpServletRequest) context.getArgs()[2],
-                                      (HttpServletResponse) context.getArgs()[3],
-                                      context.getCostTime());
+        InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
+
+        ITraceContext traceContext = Tracer.get()
+                                           .propagator()
+                                           .extract(request, (carrier, key) -> carrier.getHeader(key));
+        if (traceContext != null) {
+            TraceContextHolder.set(traceContext);
+            InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
+
+            traceContext.currentSpan()
+                        .component("jetty")
+                        .tag("uri", request.getRequestURI())
+                        .method(aopContext.getMethod())
+                        .kind(SpanKind.SERVER)
+                        .start();
+        }
+
+        return InterceptionDecision.CONTINUE;
+    }
+
+    @Override
+    public void onMethodLeave(AopContext aopContext) {
+        // update metric
+        requestMetricCollector.update((Request) aopContext.getArgs()[1],
+                                      (HttpServletRequest) aopContext.getArgs()[2],
+                                      (HttpServletResponse) aopContext.getArgs()[3],
+                                      aopContext.getCostTime());
+
+        //
+        // trace
+        //
+        InterceptorContext.remove(InterceptorContext.KEY_URI);
+        InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
+
+        ITraceContext traceContext = null;
+        ITraceSpan span = null;
+        try {
+            traceContext = TraceContextHolder.current();
+            if (traceContext == null) {
+                return;
+            }
+            span = traceContext.currentSpan();
+            if (span == null) {
+                // TODO: ERROR
+                return;
+            }
+
+            HttpServletResponse response = (HttpServletResponse) aopContext.getArgs()[3];
+            span.tag("status", Integer.toString(response.getStatus()));
+            if (aopContext.hasException()) {
+                span.tag("exception", aopContext.getException().toString());
+            }
+        } finally {
+            try {
+                if (span != null) {
+                    span.finish();
+                }
+            } catch (Exception ignored) {
+            }
+            try {
+                if (traceContext != null) {
+                    traceContext.finish();
+                }
+            } catch (Exception ignored) {
+            }
+            try {
+                TraceContextHolder.remove();
+            } catch (Exception ignored) {
+            }
+        }
     }
 }

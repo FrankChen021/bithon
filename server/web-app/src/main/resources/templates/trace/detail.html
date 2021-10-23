@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/lib/jquery-treegrid-0.2/css/jquery-treegrid.min.css}"/>
     <script th:src="@{/lib/jquery-treegrid-0.2/js/jquery-treegrid.min.js}"></script>
     <script th:src="@{/lib/bootstrap-table/extensions/treegrid/bootstrap-table-treegrid.min.js}"></script>
+
 </head>
 <body>
 <div style="padding:20px;" layout:fragment="content">
@@ -41,7 +42,7 @@
                 const columns = table.bootstrapTable('getOptions').columns;
                 if (columns && columns[0][1].visible) {
                     table.treegrid({
-                        treeColumn: 1,
+                        treeColumn: 2,
                         onChange: function () {
                             table.bootstrapTable('resetView')
                         }
@@ -60,6 +61,9 @@
             columns: [{
                 field: 'appName',
                 title: 'Application'
+            }, {
+                field: 'instanceName',
+                title: 'instance'
             }, {
                 field: 'name',
                 title: 'Component'
