@@ -258,7 +258,11 @@ class ChartComponent {
 
     //PRIVATE
     hasUserSelection() {
-        const oldLegend = this.getChartOption().legend;
+        const chartOption = this.getChartOption();
+        if (chartOption === undefined) {
+            return false;
+        }
+        const oldLegend = chartOption.legend;
         if (oldLegend === undefined || oldLegend.length === 0) {
             return false;
         }

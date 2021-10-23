@@ -28,7 +28,6 @@ import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.topo.service.EndpointBo;
 import org.bithon.server.topo.service.Link;
 import org.bithon.server.topo.service.Topo;
-import org.bithon.server.topo.service.TopoService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,7 +50,6 @@ public class TopoApi {
     private final DataSourceSchema topoSchema;
 
     public TopoApi(DataSourceSchemaManager schemaManager,
-                   TopoService topoService,
                    IMetricStorage metricStorage) {
         this.topoSchema = schemaManager.getDataSourceSchema("topo-metrics");
         this.metricReader = metricStorage.createMetricReader(topoSchema);
@@ -59,18 +57,17 @@ public class TopoApi {
 
     @PostMapping("/api/topo/getApplicationTopo")
     public Topo getTopo(@Valid @RequestBody GetTopoRequest request) {
-        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
+        // since the min granularity is minute, round down the timestamp to minute
+        // and notice that the 'end' parameter is inclusive, so the round down has no impact on the query range
+        TimeSpan start = new TimeSpan(TimeSpan.fromISO8601(request.getStartTimeISO8601()).getMilliseconds() / 60_000 * 60_000);
+        TimeSpan end = new TimeSpan((TimeSpan.fromISO8601(request.getEndTimeISO8601()).getMilliseconds()) / 60_000 * 60_000);
         List<Map<String, Object>> callees = metricReader.groupBy(start,
                                                                  end,
                                                                  topoSchema,
                                                                  Arrays.asList(new DimensionCondition("srcEndpoint",
-                                                                                                      new EqualMatcher(
-                                                                                                          request.getApplication())),
+                                                                                                      new EqualMatcher(request.getApplication())),
                                                                                new DimensionCondition("srcEndpointType",
-                                                                                                      new EqualMatcher(
-                                                                                                          EndPointType.APPLICATION
-                                                                                                              .name()))),
+                                                                                                      new EqualMatcher(EndPointType.APPLICATION.name()))),
                                                                  Arrays.asList("callCount",
                                                                                "avgResponseTime",
                                                                                "maxResponseTime",
@@ -84,7 +81,7 @@ public class TopoApi {
         EndpointBo thisApplication = new EndpointBo(EndPointType.APPLICATION,
                                                     request.getApplication(),
                                                     x,
-                                           y + callees.size() / 2 * nodeHeight);
+                                                    y + callees.size() / 2L * nodeHeight);
         topo.addEndpoint(thisApplication);
 
         for (Map<String, Object> callee : callees) {
