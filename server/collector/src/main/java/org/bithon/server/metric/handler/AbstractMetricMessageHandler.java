@@ -60,6 +60,7 @@ public abstract class AbstractMetricMessageHandler {
         this.metricStorageWriter = metricStorage.createMetricWriter(schema);
 
         this.endpointSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
+        this.endpointSchema.setEnforceDuplicationCheck(false);
         this.endpointMetricStorageWriter = metricStorage.createMetricWriter(endpointSchema);
     }
 
@@ -143,6 +144,10 @@ public abstract class AbstractMetricMessageHandler {
         }
     }
 
+    /**
+     * key is dimensions
+     * value is metrics
+     */
     static class TimeSlot extends HashMap<Map<String, String>, Map<String, NumberAggregator>> {
         @Getter
         private final long timestamp;
@@ -161,6 +166,9 @@ public abstract class AbstractMetricMessageHandler {
             this.timeSlot = new TimeSlot[minutes];
         }
 
+        /**
+         * aggregate the input metrics to a specified time slot metrics
+         */
         public void aggregate(MetricSet metricSet) {
             if (metricSet == null) {
                 return;
@@ -199,10 +207,11 @@ public abstract class AbstractMetricMessageHandler {
         }
 
         private TimeSlot getSlot(long timestamp) {
-            int slotIndex = (int) ((timestamp / 1000 / 60) % timeSlot.length);
+            long minutes = timestamp / 60_000;
+            int slotIndex = (int) (minutes % timeSlot.length);
 
             if (timeSlot[slotIndex] == null) {
-                timeSlot[slotIndex] = new TimeSlot(timestamp);
+                timeSlot[slotIndex] = new TimeSlot(minutes * 60_000);
             }
             return timeSlot[slotIndex];
         }

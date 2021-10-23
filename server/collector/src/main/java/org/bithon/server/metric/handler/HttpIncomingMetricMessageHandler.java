@@ -88,7 +88,8 @@ public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandl
                                        .minResponseTime(message.getLong("minResponseTime"))
                                        .maxResponseTime(message.getLong("maxResponseTime"))
                                        .responseTime(message.getLong("responseTime"))
-                                       .callCount(message.getLong("callCount"))
+                                       .callCount(message.getLong("totalCount"))
+                                       .errorCount(message.getLong("errorCount"))
                                        .build();
     }
 }
