@@ -88,8 +88,7 @@ public class Tracer {
 
                     AppInstance appInstance = AgentContext.getInstance().getAppInstance();
                     try {
-                        INSTANCE = new Tracer(appInstance.getAppName(),
-                                              appInstance.getHostIp() + ":" + appInstance.getPort())
+                        INSTANCE = new Tracer(appInstance.getAppName(), appInstance.getHostAndPort())
                             .propagator(new DefaultPropagator())
                             .traceIdGenerator(new UUIDGenerator())
                             .reporter(traceConfig.isDisabled() ? new NoopReporter() : new DefaultReporter())
