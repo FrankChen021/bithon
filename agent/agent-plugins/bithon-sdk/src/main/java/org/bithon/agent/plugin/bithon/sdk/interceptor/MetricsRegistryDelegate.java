@@ -167,7 +167,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
         String[] newDimensions = new String[dimensions.length + 2];
         newDimensions[0] = appInstance.getAppName();
-        newDimensions[1] = appInstance.getHostIp();
+        newDimensions[1] = appInstance.getHostAndPort();
         System.arraycopy(dimensions, 0, newDimensions, 2, dimensions.length);
 
         if (newDimensions.length != schema.getDimensionsSpec().size()) {

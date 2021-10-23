@@ -37,6 +37,7 @@ public class AppInstance {
     private final String env;
     private final List<IAppInstanceChangedListener> listeners = new ArrayList<>();
     private int port;
+    private String hostAndPort;
 
     AppInstance(String appName, String env) {
         this.rawAppName = appName;
@@ -45,10 +46,9 @@ public class AppInstance {
         this.port = 0;
 
         NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
-        InetAddress address = null != ipAddress.getInetAddress()
-                              ? ipAddress.getInetAddress()
-                              : ipAddress.getLocalInetAddress();
+        InetAddress address = null != ipAddress.getInetAddress() ? ipAddress.getInetAddress() : ipAddress.getLocalInetAddress();
         this.hostIp = address.getHostAddress();
+        this.hostAndPort = hostIp;
     }
 
     public String getAppName() {
@@ -61,7 +61,7 @@ public class AppInstance {
 
     public void setPort(int port) {
         this.port = port;
-
+        this.hostAndPort = this.hostIp + ":" + this.port;
         for (IAppInstanceChangedListener listener : listeners) {
             try {
                 listener.onPortChanged(port);
@@ -77,6 +77,10 @@ public class AppInstance {
 
     public String getHostIp() {
         return hostIp;
+    }
+
+    public String getHostAndPort() {
+        return hostAndPort;
     }
 
     public String getEnv() {

@@ -69,9 +69,7 @@ public class BrpcAgentController implements IAgentController {
         BrpcMessageHeader header = BrpcMessageHeader.newBuilder()
                                                     .setAppName(appInstance.getRawAppName())
                                                     .setEnv(appInstance.getEnv())
-                                                    .setInstanceName(appInstance.getHostIp()
-                                                                     + ":"
-                                                                     + appInstance.getPort())
+                                                    .setInstanceName(appInstance.getHostAndPort())
                                                     .setHostIp(appInstance.getHostIp())
                                                     .setPort(appInstance.getPort())
                                                     .setAppType(ApplicationType.JAVA)

@@ -54,12 +54,12 @@ public class ThriftTracingMessageChannel implements IMessageChannel {
         this.header = new MessageHeader();
         this.header.setAppName(appInstance.getAppName());
         this.header.setEnv(appInstance.getEnv());
-        this.header.setInstanceName(appInstance.getHostIp() + ":" + appInstance.getPort());
+        this.header.setInstanceName(appInstance.getHostAndPort());
         this.header.setHostIp(appInstance.getHostIp());
         this.header.setPort(appInstance.getPort());
         appInstance.addListener(port -> {
             this.header.setPort(appInstance.getPort());
-            this.header.setInstanceName(appInstance.getHostIp() + ":" + appInstance.getPort());
+            this.header.setInstanceName(appInstance.getHostAndPort());
         });
     }
 
