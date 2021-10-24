@@ -4,10 +4,9 @@
 package org.bithon.component.db.jooq.tables.records;
 
 
-import org.bithon.component.db.jooq.tables.BithonAgentSetting;
-
 import java.sql.Timestamp;
 
+import org.bithon.component.db.jooq.tables.BithonAgentSetting;
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.Record6;
@@ -21,7 +20,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSettingRecord> implements Record6<Long, String, String, String, Timestamp, Timestamp> {
 
-    private static final long serialVersionUID = -806698378;
+    private static final long serialVersionUID = 1995774512;
 
     /**
      * Setter for <code>bithon_agent_setting.id</code>. 唯一编号

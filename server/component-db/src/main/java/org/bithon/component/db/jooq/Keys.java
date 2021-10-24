@@ -5,20 +5,13 @@ package org.bithon.component.db.jooq;
 
 
 import org.bithon.component.db.jooq.tables.BithonAgentSetting;
-import org.bithon.component.db.jooq.tables.BithonApplication;
-import org.bithon.component.db.jooq.tables.BithonApplicationTopo;
+import org.bithon.component.db.jooq.tables.BithonApplicationInstance;
 import org.bithon.component.db.jooq.tables.BithonEvent;
-import org.bithon.component.db.jooq.tables.BithonMetadata;
-import org.bithon.component.db.jooq.tables.BithonMetricDimension;
 import org.bithon.component.db.jooq.tables.BithonTraceSpan;
 import org.bithon.component.db.jooq.tables.records.BithonAgentSettingRecord;
-import org.bithon.component.db.jooq.tables.records.BithonApplicationRecord;
-import org.bithon.component.db.jooq.tables.records.BithonApplicationTopoRecord;
+import org.bithon.component.db.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.component.db.jooq.tables.records.BithonEventRecord;
-import org.bithon.component.db.jooq.tables.records.BithonMetadataRecord;
-import org.bithon.component.db.jooq.tables.records.BithonMetricDimensionRecord;
 import org.bithon.component.db.jooq.tables.records.BithonTraceSpanRecord;
-
 import org.jooq.Identity;
 import org.jooq.UniqueKey;
 import org.jooq.impl.Internal;
@@ -36,11 +29,7 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final Identity<BithonAgentSettingRecord, Long> IDENTITY_BITHON_AGENT_SETTING = Identities0.IDENTITY_BITHON_AGENT_SETTING;
-    public static final Identity<BithonApplicationTopoRecord, Long> IDENTITY_BITHON_APPLICATION_TOPO = Identities0.IDENTITY_BITHON_APPLICATION_TOPO;
     public static final Identity<BithonEventRecord, Long> IDENTITY_BITHON_EVENT = Identities0.IDENTITY_BITHON_EVENT;
-    public static final Identity<BithonMetadataRecord, Long> IDENTITY_BITHON_METADATA = Identities0.IDENTITY_BITHON_METADATA;
-    public static final Identity<BithonMetricDimensionRecord, Long> IDENTITY_BITHON_METRIC_DIMENSION = Identities0.IDENTITY_BITHON_METRIC_DIMENSION;
-    public static final Identity<BithonTraceSpanRecord, Long> IDENTITY_BITHON_TRACE_SPAN = Identities0.IDENTITY_BITHON_TRACE_SPAN;
 
     // -------------------------------------------------------------------------
     // UNIQUE and PRIMARY KEY definitions
@@ -48,16 +37,8 @@ public class Keys {
 
     public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_PRIMARY = UniqueKeys0.KEY_BITHON_AGENT_SETTING_PRIMARY;
     public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = UniqueKeys0.KEY_BITHON_AGENT_SETTING_KEY_APPNAME;
-    public static final UniqueKey<BithonApplicationRecord> KEY_BITHON_APPLICATION_PRIMARY = UniqueKeys0.KEY_BITHON_APPLICATION_PRIMARY;
-    public static final UniqueKey<BithonApplicationRecord> KEY_BITHON_APPLICATION_UQ_NAME = UniqueKeys0.KEY_BITHON_APPLICATION_UQ_NAME;
-    public static final UniqueKey<BithonApplicationTopoRecord> KEY_BITHON_APPLICATION_TOPO_PRIMARY = UniqueKeys0.KEY_BITHON_APPLICATION_TOPO_PRIMARY;
-    public static final UniqueKey<BithonApplicationTopoRecord> KEY_BITHON_APPLICATION_TOPO_IDX_TOPO = UniqueKeys0.KEY_BITHON_APPLICATION_TOPO_IDX_TOPO;
+    public static final UniqueKey<BithonApplicationInstanceRecord> KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME = UniqueKeys0.KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME;
     public static final UniqueKey<BithonEventRecord> KEY_BITHON_EVENT_PRIMARY = UniqueKeys0.KEY_BITHON_EVENT_PRIMARY;
-    public static final UniqueKey<BithonMetadataRecord> KEY_BITHON_METADATA_PRIMARY = UniqueKeys0.KEY_BITHON_METADATA_PRIMARY;
-    public static final UniqueKey<BithonMetadataRecord> KEY_BITHON_METADATA_UQ_NAME = UniqueKeys0.KEY_BITHON_METADATA_UQ_NAME;
-    public static final UniqueKey<BithonMetricDimensionRecord> KEY_BITHON_METRIC_DIMENSION_PRIMARY = UniqueKeys0.KEY_BITHON_METRIC_DIMENSION_PRIMARY;
-    public static final UniqueKey<BithonMetricDimensionRecord> KEY_BITHON_METRIC_DIMENSION_IDX_DIMENSION = UniqueKeys0.KEY_BITHON_METRIC_DIMENSION_IDX_DIMENSION;
-    public static final UniqueKey<BithonTraceSpanRecord> KEY_BITHON_TRACE_SPAN_PRIMARY = UniqueKeys0.KEY_BITHON_TRACE_SPAN_PRIMARY;
     public static final UniqueKey<BithonTraceSpanRecord> KEY_BITHON_TRACE_SPAN_IDX_KEY = UniqueKeys0.KEY_BITHON_TRACE_SPAN_IDX_KEY;
 
     // -------------------------------------------------------------------------
@@ -70,31 +51,15 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     private static class Identities0 {
-        public static Identity<BithonAgentSettingRecord, Long> IDENTITY_BITHON_AGENT_SETTING = Internal.createIdentity(
-            BithonAgentSetting.BITHON_AGENT_SETTING, BithonAgentSetting.BITHON_AGENT_SETTING.ID);
-        public static Identity<BithonApplicationTopoRecord, Long> IDENTITY_BITHON_APPLICATION_TOPO = Internal.createIdentity(BithonApplicationTopo.BITHON_APPLICATION_TOPO, BithonApplicationTopo.BITHON_APPLICATION_TOPO.ID);
+        public static Identity<BithonAgentSettingRecord, Long> IDENTITY_BITHON_AGENT_SETTING = Internal.createIdentity(BithonAgentSetting.BITHON_AGENT_SETTING, BithonAgentSetting.BITHON_AGENT_SETTING.ID);
         public static Identity<BithonEventRecord, Long> IDENTITY_BITHON_EVENT = Internal.createIdentity(BithonEvent.BITHON_EVENT, BithonEvent.BITHON_EVENT.ID);
-        public static Identity<BithonMetadataRecord, Long> IDENTITY_BITHON_METADATA = Internal.createIdentity(
-            BithonMetadata.BITHON_METADATA, BithonMetadata.BITHON_METADATA.ID);
-        public static Identity<BithonMetricDimensionRecord, Long> IDENTITY_BITHON_METRIC_DIMENSION = Internal.createIdentity(BithonMetricDimension.BITHON_METRIC_DIMENSION, BithonMetricDimension.BITHON_METRIC_DIMENSION.ID);
-        public static Identity<BithonTraceSpanRecord, Long> IDENTITY_BITHON_TRACE_SPAN = Internal.createIdentity(
-            BithonTraceSpan.BITHON_TRACE_SPAN, BithonTraceSpan.BITHON_TRACE_SPAN.ID);
     }
 
     private static class UniqueKeys0 {
         public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_PRIMARY = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, "KEY_bithon_agent_setting_PRIMARY", BithonAgentSetting.BITHON_AGENT_SETTING.ID);
         public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, "KEY_bithon_agent_setting_key_appName", BithonAgentSetting.BITHON_AGENT_SETTING.APP_NAME, BithonAgentSetting.BITHON_AGENT_SETTING.SETTING_NAME);
-        public static final UniqueKey<BithonApplicationRecord> KEY_BITHON_APPLICATION_PRIMARY = Internal.createUniqueKey(
-            BithonApplication.BITHON_APPLICATION, "KEY_bithon_application_PRIMARY", BithonApplication.BITHON_APPLICATION.ID);
-        public static final UniqueKey<BithonApplicationRecord> KEY_BITHON_APPLICATION_UQ_NAME = Internal.createUniqueKey(BithonApplication.BITHON_APPLICATION, "KEY_bithon_application_uq_name", BithonApplication.BITHON_APPLICATION.NAME, BithonApplication.BITHON_APPLICATION.ENV);
-        public static final UniqueKey<BithonApplicationTopoRecord> KEY_BITHON_APPLICATION_TOPO_PRIMARY = Internal.createUniqueKey(BithonApplicationTopo.BITHON_APPLICATION_TOPO, "KEY_bithon_application_topo_PRIMARY", BithonApplicationTopo.BITHON_APPLICATION_TOPO.ID);
-        public static final UniqueKey<BithonApplicationTopoRecord> KEY_BITHON_APPLICATION_TOPO_IDX_TOPO = Internal.createUniqueKey(BithonApplicationTopo.BITHON_APPLICATION_TOPO, "KEY_bithon_application_topo_idx_topo", BithonApplicationTopo.BITHON_APPLICATION_TOPO.SRC_ENDPOINT, BithonApplicationTopo.BITHON_APPLICATION_TOPO.SRC_ENDPOINT_TYPE, BithonApplicationTopo.BITHON_APPLICATION_TOPO.DST_ENDPOINT, BithonApplicationTopo.BITHON_APPLICATION_TOPO.DST_ENDPOINT_TYPE);
+        public static final UniqueKey<BithonApplicationInstanceRecord> KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME = Internal.createUniqueKey(BithonApplicationInstance.BITHON_APPLICATION_INSTANCE, "KEY_bithon_application_instance_uq_name", BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.INSTANCE_NAME);
         public static final UniqueKey<BithonEventRecord> KEY_BITHON_EVENT_PRIMARY = Internal.createUniqueKey(BithonEvent.BITHON_EVENT, "KEY_bithon_event_PRIMARY", BithonEvent.BITHON_EVENT.ID);
-        public static final UniqueKey<BithonMetadataRecord> KEY_BITHON_METADATA_PRIMARY = Internal.createUniqueKey(BithonMetadata.BITHON_METADATA, "KEY_bithon_metadata_PRIMARY", BithonMetadata.BITHON_METADATA.ID);
-        public static final UniqueKey<BithonMetadataRecord> KEY_BITHON_METADATA_UQ_NAME = Internal.createUniqueKey(BithonMetadata.BITHON_METADATA, "KEY_bithon_metadata_uq_name", BithonMetadata.BITHON_METADATA.NAME, BithonMetadata.BITHON_METADATA.TYPE);
-        public static final UniqueKey<BithonMetricDimensionRecord> KEY_BITHON_METRIC_DIMENSION_PRIMARY = Internal.createUniqueKey(BithonMetricDimension.BITHON_METRIC_DIMENSION, "KEY_bithon_metric_dimension_PRIMARY", BithonMetricDimension.BITHON_METRIC_DIMENSION.ID);
-        public static final UniqueKey<BithonMetricDimensionRecord> KEY_BITHON_METRIC_DIMENSION_IDX_DIMENSION = Internal.createUniqueKey(BithonMetricDimension.BITHON_METRIC_DIMENSION, "KEY_bithon_metric_dimension_idx_dimension", BithonMetricDimension.BITHON_METRIC_DIMENSION.DATA_SOURCE, BithonMetricDimension.BITHON_METRIC_DIMENSION.DIMENSION_NAME, BithonMetricDimension.BITHON_METRIC_DIMENSION.DIMENSION_VALUE);
-        public static final UniqueKey<BithonTraceSpanRecord> KEY_BITHON_TRACE_SPAN_PRIMARY = Internal.createUniqueKey(BithonTraceSpan.BITHON_TRACE_SPAN, "KEY_bithon_trace_span_PRIMARY", BithonTraceSpan.BITHON_TRACE_SPAN.ID);
         public static final UniqueKey<BithonTraceSpanRecord> KEY_BITHON_TRACE_SPAN_IDX_KEY = Internal.createUniqueKey(BithonTraceSpan.BITHON_TRACE_SPAN, "KEY_bithon_trace_span_idx_key", BithonTraceSpan.BITHON_TRACE_SPAN.TRACEID, BithonTraceSpan.BITHON_TRACE_SPAN.SPANID);
     }
 }

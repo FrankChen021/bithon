@@ -18,7 +18,7 @@ class AppCardComponent {
                 console.log(this._appList);
 
                 $.each(data, (index, app) => {
-                    this.getOrCreateAppCard(app.name);
+                    this.getOrCreateAppCard(app.applicationName);
                 });
 
                 this.loadAppOverview();

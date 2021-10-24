@@ -4,18 +4,14 @@
 package org.bithon.component.db.jooq;
 
 
-import org.bithon.component.db.jooq.tables.BithonAgentSetting;
-import org.bithon.component.db.jooq.tables.BithonApplication;
-import org.bithon.component.db.jooq.tables.BithonApplicationTopo;
-import org.bithon.component.db.jooq.tables.BithonEvent;
-import org.bithon.component.db.jooq.tables.BithonMetadata;
-import org.bithon.component.db.jooq.tables.BithonMetricDimension;
-import org.bithon.component.db.jooq.tables.BithonTraceSpan;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bithon.component.db.jooq.tables.BithonAgentSetting;
+import org.bithon.component.db.jooq.tables.BithonApplicationInstance;
+import org.bithon.component.db.jooq.tables.BithonEvent;
+import org.bithon.component.db.jooq.tables.BithonTraceSpan;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
@@ -27,7 +23,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = -115380166;
+    private static final long serialVersionUID = 1433738329;
 
     /**
      * The reference instance of <code></code>
@@ -37,37 +33,22 @@ public class DefaultSchema extends SchemaImpl {
     /**
      * 配置
      */
-    public final BithonAgentSetting BITHON_AGENT_SETTING = BithonAgentSetting.BITHON_AGENT_SETTING;
+    public final BithonAgentSetting BITHON_AGENT_SETTING = org.bithon.component.db.jooq.tables.BithonAgentSetting.BITHON_AGENT_SETTING;
 
     /**
      * 应用
      */
-    public final BithonApplication BITHON_APPLICATION = BithonApplication.BITHON_APPLICATION;
-
-    /**
-     * TOPO
-     */
-    public final BithonApplicationTopo BITHON_APPLICATION_TOPO = BithonApplicationTopo.BITHON_APPLICATION_TOPO;
+    public final BithonApplicationInstance BITHON_APPLICATION_INSTANCE = org.bithon.component.db.jooq.tables.BithonApplicationInstance.BITHON_APPLICATION_INSTANCE;
 
     /**
      * The table <code>bithon_event</code>.
      */
-    public final BithonEvent BITHON_EVENT = BithonEvent.BITHON_EVENT;
-
-    /**
-     * 应用
-     */
-    public final BithonMetadata BITHON_METADATA = BithonMetadata.BITHON_METADATA;
-
-    /**
-     * Metric Dimension
-     */
-    public final BithonMetricDimension BITHON_METRIC_DIMENSION = BithonMetricDimension.BITHON_METRIC_DIMENSION;
+    public final BithonEvent BITHON_EVENT = org.bithon.component.db.jooq.tables.BithonEvent.BITHON_EVENT;
 
     /**
      * The table <code>bithon_trace_span</code>.
      */
-    public final BithonTraceSpan BITHON_TRACE_SPAN = BithonTraceSpan.BITHON_TRACE_SPAN;
+    public final BithonTraceSpan BITHON_TRACE_SPAN = org.bithon.component.db.jooq.tables.BithonTraceSpan.BITHON_TRACE_SPAN;
 
     /**
      * No further instances allowed
@@ -92,11 +73,8 @@ public class DefaultSchema extends SchemaImpl {
     private final List<Table<?>> getTables0() {
         return Arrays.<Table<?>>asList(
             BithonAgentSetting.BITHON_AGENT_SETTING,
-            BithonApplication.BITHON_APPLICATION,
-            BithonApplicationTopo.BITHON_APPLICATION_TOPO,
+            BithonApplicationInstance.BITHON_APPLICATION_INSTANCE,
             BithonEvent.BITHON_EVENT,
-            BithonMetadata.BITHON_METADATA,
-            BithonMetricDimension.BITHON_METRIC_DIMENSION,
             BithonTraceSpan.BITHON_TRACE_SPAN);
     }
 }

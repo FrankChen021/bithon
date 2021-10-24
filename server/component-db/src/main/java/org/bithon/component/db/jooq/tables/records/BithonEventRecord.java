@@ -4,10 +4,9 @@
 package org.bithon.component.db.jooq.tables.records;
 
 
-import org.bithon.component.db.jooq.tables.BithonEvent;
-
 import java.sql.Timestamp;
 
+import org.bithon.component.db.jooq.tables.BithonEvent;
 import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.Record6;
@@ -21,7 +20,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonEventRecord extends UpdatableRecordImpl<BithonEventRecord> implements Record6<Long, String, String, String, String, Timestamp> {
 
-    private static final long serialVersionUID = 841252736;
+    private static final long serialVersionUID = 875533780;
 
     /**
      * Setter for <code>bithon_event.id</code>.

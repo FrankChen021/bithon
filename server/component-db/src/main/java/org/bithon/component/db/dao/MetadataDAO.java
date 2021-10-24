@@ -18,14 +18,13 @@ package org.bithon.component.db.dao;
 
 import org.bithon.component.db.jooq.DefaultSchema;
 import org.bithon.component.db.jooq.Tables;
-import org.bithon.component.db.jooq.tables.pojos.BithonMetadata;
-import org.bithon.component.db.jooq.tables.records.BithonMetadataRecord;
+import org.bithon.component.db.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -37,77 +36,58 @@ public class MetadataDAO {
     public MetadataDAO(DSLContext dsl) {
         this.dsl = dsl;
         if (dsl.configuration().dialect().equals(SQLDialect.H2)) {
-            this.dsl.createTableIfNotExists(Tables.BITHON_METADATA)
-                    .columns(Tables.BITHON_METADATA.ID,
-                             Tables.BITHON_METADATA.NAME,
-                             Tables.BITHON_METADATA.TYPE,
-                             Tables.BITHON_METADATA.PARENT_ID,
-                             Tables.BITHON_METADATA.CREATED_AT,
-                             Tables.BITHON_METADATA.UPDATED_AT)
-                    .indexes(DefaultSchema.DEFAULT_SCHEMA.BITHON_METADATA.getIndexes())
-                    .execute();
-
-            this.dsl.createTableIfNotExists(Tables.BITHON_METRIC_DIMENSION)
-                    .columns(Tables.BITHON_METRIC_DIMENSION.ID,
-                             Tables.BITHON_METRIC_DIMENSION.DATA_SOURCE,
-                             Tables.BITHON_METRIC_DIMENSION.DIMENSION_NAME,
-                             Tables.BITHON_METRIC_DIMENSION.DIMENSION_VALUE,
-                             Tables.BITHON_METRIC_DIMENSION.CREATED_AT,
-                             Tables.BITHON_METRIC_DIMENSION.UPDATED_AT)
-                    .execute();
-
-            this.dsl.createTableIfNotExists(Tables.BITHON_APPLICATION_TOPO)
-                    .columns(Tables.BITHON_APPLICATION_TOPO.ID,
-                             Tables.BITHON_APPLICATION_TOPO.SRC_ENDPOINT_TYPE,
-                             Tables.BITHON_APPLICATION_TOPO.SRC_ENDPOINT,
-                             Tables.BITHON_APPLICATION_TOPO.DST_ENDPOINT_TYPE,
-                             Tables.BITHON_APPLICATION_TOPO.DST_ENDPOINT,
-                             Tables.BITHON_APPLICATION_TOPO.CREATED_AT,
-                             Tables.BITHON_APPLICATION_TOPO.UPDATED_AT)
+            this.dsl.createTableIfNotExists(Tables.BITHON_APPLICATION_INSTANCE)
+                    .columns(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME,
+                             Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE,
+                             Tables.BITHON_APPLICATION_INSTANCE.INSTANCE_NAME,
+                             Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP)
+                    .indexes(DefaultSchema.DEFAULT_SCHEMA.BITHON_APPLICATION_INSTANCE.getIndexes())
                     .execute();
         }
     }
 
-    public Long upsertMetadata(String name, String type, long parent) {
+    public void saveApplicationInstance(String applicationName, String applicationType, String instanceName) {
         try {
-            BithonMetadataRecord meta = dsl.insertInto(Tables.BITHON_METADATA)
-                                           .set(Tables.BITHON_METADATA.NAME, name)
-                                           .set(Tables.BITHON_METADATA.TYPE, type)
-                                           .set(Tables.BITHON_METADATA.PARENT_ID, parent)
-                                           .returning(Tables.BITHON_METADATA.ID)
-                                           .fetchOne();
-            return meta.getId();
-        } catch (DuplicateKeyException e) {
-            long id = dsl.select(Tables.BITHON_METADATA.ID)
-                         .from(Tables.BITHON_METADATA)
-                         .where(Tables.BITHON_METADATA.NAME.eq(name))
-                         .and(Tables.BITHON_METADATA.TYPE.eq(type))
-                         .and(Tables.BITHON_METADATA.PARENT_ID.eq(parent))
-                         .fetchOne(Tables.BITHON_METADATA.ID);
-
-            dsl.update(Tables.BITHON_METADATA)
-               .set(Tables.BITHON_METADATA.UPDATED_AT, new Timestamp(System.currentTimeMillis()))
-               .where(Tables.BITHON_METADATA.ID.eq(id))
+            dsl.insertInto(Tables.BITHON_APPLICATION_INSTANCE)
+               .set(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME, applicationName)
+               .set(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE, applicationType)
+               .set(Tables.BITHON_APPLICATION_INSTANCE.INSTANCE_NAME, instanceName)
+               .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
                .execute();
-            return id;
+        } catch (DuplicateKeyException e) {
+            dsl.update(Tables.BITHON_APPLICATION_INSTANCE)
+               .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+               .where(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME.eq(applicationName)
+                                                                         .and(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE.eq(
+                                                                             applicationType))
+                                                                         .and(Tables.BITHON_APPLICATION_INSTANCE.INSTANCE_NAME.eq(
+                                                                             instanceName)))
+               .execute();
         }
     }
 
-    public BithonMetadataRecord getMetaByNameAndType(String instanceName,
-                                                     String type) {
-        return dsl.selectFrom(Tables.BITHON_METADATA)
-                  .where(Tables.BITHON_METADATA.NAME.eq(instanceName))
-                  .and(Tables.BITHON_METADATA.TYPE.eq(type))
-                  .orderBy(Tables.BITHON_METADATA.UPDATED_AT.desc())
+    public BithonApplicationInstanceRecord getByApplicationName(String applicationName) {
+        return dsl.selectFrom(Tables.BITHON_APPLICATION_INSTANCE)
+                  .where(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME.eq(applicationName))
+                  .orderBy(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.desc())
                   .limit(1)
                   .fetchOne();
     }
 
-    public Collection<BithonMetadata> getMetadata(String type) {
-        return dsl.selectFrom(Tables.BITHON_METADATA)
-                  .where(Tables.BITHON_METADATA.TYPE.eq(type))
-                  .orderBy(Tables.BITHON_METADATA.UPDATED_AT.desc())
-                  .limit(10)
-                  .fetchInto(BithonMetadata.class);
+    public BithonApplicationInstanceRecord getByInstanceName(String instanceName) {
+        return dsl.selectFrom(Tables.BITHON_APPLICATION_INSTANCE)
+                  .where(Tables.BITHON_APPLICATION_INSTANCE.INSTANCE_NAME.eq(instanceName))
+                  .orderBy(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.desc())
+                  .limit(1)
+                  .fetchOne();
+    }
+
+    public <T> List<T> getApplications(long since, Class<T> clazz) {
+        return dsl.select(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME, Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE)
+                  .from(Tables.BITHON_APPLICATION_INSTANCE)
+                  .where(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since)))
+                  .groupBy(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME, Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE)
+                  .orderBy(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME)
+                  .fetchInto(clazz);
     }
 }

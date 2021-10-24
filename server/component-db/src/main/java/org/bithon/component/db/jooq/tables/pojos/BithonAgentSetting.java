@@ -14,7 +14,7 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSetting implements Serializable {
 
-    private static final long serialVersionUID = 1928920851;
+    private static final long serialVersionUID = -151877019;
 
     private Long      id;
     private String    appName;

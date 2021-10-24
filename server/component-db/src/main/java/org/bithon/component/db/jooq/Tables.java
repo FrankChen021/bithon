@@ -5,11 +5,8 @@ package org.bithon.component.db.jooq;
 
 
 import org.bithon.component.db.jooq.tables.BithonAgentSetting;
-import org.bithon.component.db.jooq.tables.BithonApplication;
-import org.bithon.component.db.jooq.tables.BithonApplicationTopo;
+import org.bithon.component.db.jooq.tables.BithonApplicationInstance;
 import org.bithon.component.db.jooq.tables.BithonEvent;
-import org.bithon.component.db.jooq.tables.BithonMetadata;
-import org.bithon.component.db.jooq.tables.BithonMetricDimension;
 import org.bithon.component.db.jooq.tables.BithonTraceSpan;
 
 
@@ -27,27 +24,12 @@ public class Tables {
     /**
      * 应用
      */
-    public static final BithonApplication BITHON_APPLICATION = BithonApplication.BITHON_APPLICATION;
-
-    /**
-     * TOPO
-     */
-    public static final BithonApplicationTopo BITHON_APPLICATION_TOPO = BithonApplicationTopo.BITHON_APPLICATION_TOPO;
+    public static final BithonApplicationInstance BITHON_APPLICATION_INSTANCE = BithonApplicationInstance.BITHON_APPLICATION_INSTANCE;
 
     /**
      * The table <code>bithon_event</code>.
      */
     public static final BithonEvent BITHON_EVENT = BithonEvent.BITHON_EVENT;
-
-    /**
-     * 应用
-     */
-    public static final BithonMetadata BITHON_METADATA = BithonMetadata.BITHON_METADATA;
-
-    /**
-     * Metric Dimension
-     */
-    public static final BithonMetricDimension BITHON_METRIC_DIMENSION = BithonMetricDimension.BITHON_METRIC_DIMENSION;
 
     /**
      * The table <code>bithon_trace_span</code>.

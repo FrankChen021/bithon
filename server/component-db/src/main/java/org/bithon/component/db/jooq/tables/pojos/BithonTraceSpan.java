@@ -14,9 +14,8 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan implements Serializable {
 
-    private static final long serialVersionUID = -1345552142;
+    private static final long serialVersionUID = -2059458785;
 
-    private Long      id;
     private String    appName;
     private String    instanceName;
     private String    name;
@@ -33,7 +32,6 @@ public class BithonTraceSpan implements Serializable {
     public BithonTraceSpan() {}
 
     public BithonTraceSpan(BithonTraceSpan value) {
-        this.id = value.id;
         this.appName = value.appName;
         this.instanceName = value.instanceName;
         this.name = value.name;
@@ -49,7 +47,6 @@ public class BithonTraceSpan implements Serializable {
     }
 
     public BithonTraceSpan(
-        Long      id,
         String    appName,
         String    instanceName,
         String    name,
@@ -63,7 +60,6 @@ public class BithonTraceSpan implements Serializable {
         String    tags,
         Timestamp timestamp
     ) {
-        this.id = id;
         this.appName = appName;
         this.instanceName = instanceName;
         this.name = name;
@@ -76,14 +72,6 @@ public class BithonTraceSpan implements Serializable {
         this.costtime = costtime;
         this.tags = tags;
         this.timestamp = timestamp;
-    }
-
-    public Long getId() {
-        return this.id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getAppName() {
@@ -186,8 +174,7 @@ public class BithonTraceSpan implements Serializable {
     public String toString() {
         StringBuilder sb = new StringBuilder("BithonTraceSpan (");
 
-        sb.append(id);
-        sb.append(", ").append(appName);
+        sb.append(appName);
         sb.append(", ").append(instanceName);
         sb.append(", ").append(name);
         sb.append(", ").append(clazz);

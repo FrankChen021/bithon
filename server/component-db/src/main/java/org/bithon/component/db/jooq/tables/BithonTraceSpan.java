@@ -4,22 +4,20 @@
 package org.bithon.component.db.jooq.tables;
 
 
-import org.bithon.component.db.jooq.DefaultSchema;
-import org.bithon.component.db.jooq.Indexes;
-import org.bithon.component.db.jooq.Keys;
-import org.bithon.component.db.jooq.tables.records.BithonTraceSpanRecord;
-
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bithon.component.db.jooq.DefaultSchema;
+import org.bithon.component.db.jooq.Indexes;
+import org.bithon.component.db.jooq.Keys;
+import org.bithon.component.db.jooq.tables.records.BithonTraceSpanRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row13;
+import org.jooq.Row12;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -34,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
-    private static final long serialVersionUID = -586484093;
+    private static final long serialVersionUID = 1757202894;
 
     /**
      * The reference instance of <code>bithon_trace_span</code>
@@ -48,11 +46,6 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     public Class<BithonTraceSpanRecord> getRecordType() {
         return BithonTraceSpanRecord.class;
     }
-
-    /**
-     * The column <code>bithon_trace_span.id</code>.
-     */
-    public final TableField<BithonTraceSpanRecord, Long> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).identity(true), this, "");
 
     /**
      * The column <code>bithon_trace_span.app_name</code>.
@@ -154,22 +147,12 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_APP_NAME, Indexes.BITHON_TRACE_SPAN_IDX_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_KEY, Indexes.BITHON_TRACE_SPAN_IDX_PARENTSPANID, Indexes.BITHON_TRACE_SPAN_PRIMARY);
-    }
-
-    @Override
-    public Identity<BithonTraceSpanRecord, Long> getIdentity() {
-        return Keys.IDENTITY_BITHON_TRACE_SPAN;
-    }
-
-    @Override
-    public UniqueKey<BithonTraceSpanRecord> getPrimaryKey() {
-        return Keys.KEY_BITHON_TRACE_SPAN_PRIMARY;
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_APP_NAME, Indexes.BITHON_TRACE_SPAN_IDX_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_KEY, Indexes.BITHON_TRACE_SPAN_IDX_PARENTSPANID);
     }
 
     @Override
     public List<UniqueKey<BithonTraceSpanRecord>> getKeys() {
-        return Arrays.<UniqueKey<BithonTraceSpanRecord>>asList(Keys.KEY_BITHON_TRACE_SPAN_PRIMARY, Keys.KEY_BITHON_TRACE_SPAN_IDX_KEY);
+        return Arrays.<UniqueKey<BithonTraceSpanRecord>>asList(Keys.KEY_BITHON_TRACE_SPAN_IDX_KEY);
     }
 
     @Override
@@ -199,11 +182,11 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row13 type methods
+    // Row12 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row13<Long, String, String, String, String, String, String, String, String, String, Long, String, Timestamp> fieldsRow() {
-        return (Row13) super.fieldsRow();
+    public Row12<String, String, String, String, String, String, String, String, String, Long, String, Timestamp> fieldsRow() {
+        return (Row12) super.fieldsRow();
     }
 }

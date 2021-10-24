@@ -24,6 +24,7 @@ import org.bithon.server.event.storage.IEventReader;
 import org.bithon.server.event.storage.IEventStorage;
 import org.bithon.server.event.storage.IEventWriter;
 import org.jooq.DSLContext;
+import org.jooq.InsertSetMoreStep;
 import org.jooq.impl.DSL;
 import org.jooq.impl.ThreadLocalTransactionProvider;
 
@@ -43,18 +44,20 @@ public class EventJdbcStorage implements IEventStorage {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
 
-        this.dslContext.createTableIfNotExists(Tables.BITHON_EVENT)
-                       .columns(Tables.BITHON_EVENT.ID,
-                                Tables.BITHON_EVENT.APP_NAME,
-                                Tables.BITHON_EVENT.INSTANCE_NAME,
-                                Tables.BITHON_EVENT.TYPE,
-                                Tables.BITHON_EVENT.ARGUMENTS,
-                                Tables.BITHON_EVENT.TIMESTAMP)
-                       .indexes(Indexes.BITHON_EVENT_IDX_APPNAME,
-                                Indexes.BITHON_EVENT_IDX_INSTANCENAME,
-                                Indexes.BITHON_EVENT_IDX_TYPE,
-                                Indexes.BITHON_EVENT_IDX_TIMESTAMP)
-                       .execute();
+        if (!dslContext.dialect().name().equals("CLICKHOUSE")) {
+            this.dslContext.createTableIfNotExists(Tables.BITHON_EVENT)
+                           .columns(Tables.BITHON_EVENT.ID,
+                                    Tables.BITHON_EVENT.APP_NAME,
+                                    Tables.BITHON_EVENT.INSTANCE_NAME,
+                                    Tables.BITHON_EVENT.TYPE,
+                                    Tables.BITHON_EVENT.ARGUMENTS,
+                                    Tables.BITHON_EVENT.TIMESTAMP)
+                           .indexes(Indexes.BITHON_EVENT_IDX_APPNAME,
+                                    Indexes.BITHON_EVENT_IDX_INSTANCENAME,
+                                    Indexes.BITHON_EVENT_IDX_TYPE,
+                                    Indexes.BITHON_EVENT_IDX_TIMESTAMP)
+                           .execute();
+        }
     }
 
     @Override
@@ -87,17 +90,20 @@ public class EventJdbcStorage implements IEventStorage {
 
         @Override
         public void write(EventMessage eventMessage) throws IOException {
-            dslContext.insertInto(Tables.BITHON_EVENT)
-                      .set(Tables.BITHON_EVENT.APP_NAME, eventMessage.getAppName())
-                      .set(Tables.BITHON_EVENT.INSTANCE_NAME, eventMessage.getInstanceName())
-                      .set(Tables.BITHON_EVENT.TYPE, eventMessage.getType())
-                      .set(Tables.BITHON_EVENT.ARGUMENTS, om.writeValueAsString(eventMessage.getArgs()))
-                      .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(eventMessage.getTimestamp()))
-                      .execute();
+            InsertSetMoreStep step = dslContext.insertInto(Tables.BITHON_EVENT)
+                                               .set(Tables.BITHON_EVENT.APP_NAME, eventMessage.getAppName())
+                                               .set(Tables.BITHON_EVENT.INSTANCE_NAME, eventMessage.getInstanceName())
+                                               .set(Tables.BITHON_EVENT.TYPE, eventMessage.getType())
+                                               .set(Tables.BITHON_EVENT.ARGUMENTS, om.writeValueAsString(eventMessage.getArgs()))
+                                               .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(eventMessage.getTimestamp()));
+            step.execute();
         }
 
         @Override
         public void deleteBefore(long timestamp) {
+            if (dslContext.dialect().name().equals("CLICKHOUSE")) {
+                return;
+            }
             dslContext.delete(Tables.BITHON_EVENT)
                       .where(Tables.BITHON_EVENT.TIMESTAMP.le(new Timestamp(timestamp))).execute();
         }

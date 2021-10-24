@@ -4,15 +4,14 @@
 package org.bithon.component.db.jooq.tables;
 
 
-import org.bithon.component.db.jooq.DefaultSchema;
-import org.bithon.component.db.jooq.Indexes;
-import org.bithon.component.db.jooq.Keys;
-import org.bithon.component.db.jooq.tables.records.BithonEventRecord;
-
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bithon.component.db.jooq.DefaultSchema;
+import org.bithon.component.db.jooq.Indexes;
+import org.bithon.component.db.jooq.Keys;
+import org.bithon.component.db.jooq.tables.records.BithonEventRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
@@ -34,7 +33,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonEvent extends TableImpl<BithonEventRecord> {
 
-    private static final long serialVersionUID = 848698241;
+    private static final long serialVersionUID = 782949491;
 
     /**
      * The reference instance of <code>bithon_event</code>

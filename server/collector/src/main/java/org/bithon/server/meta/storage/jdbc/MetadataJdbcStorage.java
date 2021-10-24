@@ -17,14 +17,13 @@
 package org.bithon.server.meta.storage.jdbc;
 
 import org.bithon.component.db.dao.MetadataDAO;
-import org.bithon.component.db.jooq.tables.records.BithonMetadataRecord;
+import org.bithon.component.db.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.meta.Metadata;
 import org.bithon.server.meta.MetadataType;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.jooq.DSLContext;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,29 +38,25 @@ public class MetadataJdbcStorage implements IMetaStorage {
     }
 
     @Override
-    public long getOrCreateMetadataId(String name, MetadataType type, long parent) {
-        return metadataDao.upsertMetadata(name, type.getType(), parent);
+    public void saveApplicationInstance(String applicationName, String applicationType, String instance) {
+        metadataDao.saveApplicationInstance(applicationName, applicationType, instance);
     }
 
     @Override
     public Collection<Metadata> getMetadataByType(MetadataType type) {
-        return metadataDao.getMetadata(type.getType())
-                          .stream()
-                          .map(r -> new Metadata(r.getName(), r.getType(), r.getParentId()))
-                          .collect(Collectors.toList());
+        long day = 3600_000 * 24;
+        return metadataDao.getApplications(System.currentTimeMillis() - day, Metadata.class);
     }
 
     @Override
     public String getApplicationByInstance(String instanceName) {
-        BithonMetadataRecord application = metadataDao.getMetaByNameAndType(instanceName,
-                                                                            MetadataType.APP_INSTANCE.getType());
-        return application == null ? null : application.getName();
+        BithonApplicationInstanceRecord instance = metadataDao.getByInstanceName(instanceName);
+        return instance == null ? null : instance.getApplicationName();
     }
 
     @Override
     public boolean isApplicationExist(String applicationName) {
-        BithonMetadataRecord application = metadataDao.getMetaByNameAndType(applicationName,
-                                                                            MetadataType.APPLICATION.getType());
-        return application != null;
+        BithonApplicationInstanceRecord instance = metadataDao.getByApplicationName(applicationName);
+        return instance != null;
     }
 }

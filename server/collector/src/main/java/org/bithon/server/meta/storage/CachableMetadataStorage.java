@@ -46,14 +46,18 @@ public class CachableMetadataStorage implements IMetaStorage {
     // 控制写入TPS
     // 中间采用一个队列，新数据覆盖队列中的数据（时间）
     @Override
-    public long getOrCreateMetadataId(String name, MetadataType type, long parent) {
-        Metadata key = new Metadata(name, type.getType(), parent);
+    public void saveApplicationInstance(String applicationName, String applicationType, String instance) {
+        Metadata key = new Metadata(applicationName, applicationType);
         Long id = metaCache.getIfPresent(key);
         if (id == null) {
-            id = delegate.getOrCreateMetadataId(name, type, parent);
-            metaCache.put(key, id);
+            synchronized (this) {
+                if (metaCache.getIfPresent(key) != null) {
+                    return;
+                }
+                delegate.saveApplicationInstance(applicationName, applicationType, instance);
+                metaCache.put(key, System.currentTimeMillis());
+            }
         }
-        return id;
     }
 
     @Override

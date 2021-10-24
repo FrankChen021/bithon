@@ -4,15 +4,14 @@
 package org.bithon.component.db.jooq.tables;
 
 
-import org.bithon.component.db.jooq.DefaultSchema;
-import org.bithon.component.db.jooq.Indexes;
-import org.bithon.component.db.jooq.Keys;
-import org.bithon.component.db.jooq.tables.records.BithonAgentSettingRecord;
-
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bithon.component.db.jooq.DefaultSchema;
+import org.bithon.component.db.jooq.Indexes;
+import org.bithon.component.db.jooq.Keys;
+import org.bithon.component.db.jooq.tables.records.BithonAgentSettingRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
@@ -34,7 +33,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
 
-    private static final long serialVersionUID = -1657898656;
+    private static final long serialVersionUID = 1928759328;
 
     /**
      * The reference instance of <code>bithon_agent_setting</code>

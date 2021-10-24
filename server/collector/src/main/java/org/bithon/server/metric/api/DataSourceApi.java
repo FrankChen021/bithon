@@ -73,6 +73,7 @@ public class DataSourceApi {
 
     /**
      * TODO: interval should be consistent with retention rules
+     * @return interval in seconds
      */
     private int getInterval(TimeSpan start, TimeSpan end) {
         long length = end.diff(start) / 1000;

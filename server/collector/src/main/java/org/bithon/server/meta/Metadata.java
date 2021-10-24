@@ -16,46 +16,14 @@
 
 package org.bithon.server.meta;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.Objects;
+import lombok.Data;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/31 9:50 上午
  */
+@Data
 public class Metadata {
-
-    @Getter
-    private final String name;
-    @Getter
-    private final String type;
-    @Getter
-    private final Long parent;
-    @Getter
-    @Setter
-    private Long id;
-
-    public Metadata(String name, String type, Long parent) {
-        this.name = name;
-        this.type = type;
-        this.parent = parent;
-    }
-
-    @Override
-    public boolean equals(Object rhs) {
-        if (rhs instanceof Metadata) {
-            Metadata that = ((Metadata) rhs);
-            return this.name.equals(that.name)
-                   && this.type.equals(that.type)
-                   && this.parent.equals(that.parent);
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, type, parent);
-    }
+    private final String applicationName;
+    private final String applicationType;
 }
