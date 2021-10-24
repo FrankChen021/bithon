@@ -1,14 +1,17 @@
 bithon:
   storage:
-    tracing: jdbc
-    metric: jdbc
-    event: jdbc
-    meta: jdbc
+    tracing: clickhouse
+    metric: clickhouse
+    event: clickhouse
+    meta: clickhouse
     provider:
-      type: jdbc
+      type: clickhouse
       parameters:
-        url: jdbc:h2:mem:bithon;MODE=mysql;
-        username: sa
+        #url: jdbc:h2:mem:bithon;MODE=mysql;
+        #username: sa
+        url: jdbc:clickhouse://localhost:8123/default?date_time_input_format=best_effort
+        driverClassName: ru.yandex.clickhouse.ClickHouseDriver
+        username: default
         password:
 
 spring:

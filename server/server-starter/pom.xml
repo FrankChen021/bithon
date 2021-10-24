@@ -39,10 +39,35 @@
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>bithon-server-collector</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>jooq</artifactId>
+          <groupId>org.jooq</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq</artifactId>
+      <version>3.13.7</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>jaxb-api</artifactId>
+          <groupId>javax.xml.bind</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>javax.activation-api</artifactId>
+          <groupId>javax.activation</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>bithon-storage-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>bithon-storage-jdbc-clickhouse</artifactId>
     </dependency>
     <dependency>
       <groupId>org.bithon</groupId>

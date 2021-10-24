@@ -11,31 +11,19 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>bithon-storage-jdbc-clickhouse</artifactId>
   <name>storage-jdbc-clickhouse</name>
-  <description>Bithon ClickHouse Storage</description>
+  <description>Bithon Storage on ClickHouse</description>
 
   <dependencies>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>2.11.3</version>
-    </dependency>
-
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>bithon-storage-jdbc</artifactId>
     </dependency>
 
-    <!-- Lombok -->
+    <!-- ClickHouse JDBC Driver -->
     <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.1</version>
-      <scope>test</scope>
+      <groupId>ru.yandex.clickhouse</groupId>
+      <artifactId>clickhouse-jdbc</artifactId>
+      <version>0.3.1-patch</version>
     </dependency>
   </dependencies>
 
