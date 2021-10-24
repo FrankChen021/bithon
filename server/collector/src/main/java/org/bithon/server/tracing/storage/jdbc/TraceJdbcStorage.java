@@ -54,22 +54,23 @@ public class TraceJdbcStorage implements ITraceStorage {
                                                                                              .connectionProvider())));
         this.objectMapper = objectMapper;
 
-        dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN)
-                  .columns(Tables.BITHON_TRACE_SPAN.ID,
-                           Tables.BITHON_TRACE_SPAN.TIMESTAMP,
-                           Tables.BITHON_TRACE_SPAN.APP_NAME,
-                           Tables.BITHON_TRACE_SPAN.INSTANCE_NAME,
-                           Tables.BITHON_TRACE_SPAN.NAME,
-                           Tables.BITHON_TRACE_SPAN.CLAZZ,
-                           Tables.BITHON_TRACE_SPAN.METHOD,
-                           Tables.BITHON_TRACE_SPAN.KIND,
-                           Tables.BITHON_TRACE_SPAN.TRACEID,
-                           Tables.BITHON_TRACE_SPAN.SPANID,
-                           Tables.BITHON_TRACE_SPAN.COSTTIME,
-                           Tables.BITHON_TRACE_SPAN.PARENTSPANID,
-                           Tables.BITHON_TRACE_SPAN.TAGS)
-                  .indexes(Indexes.BITHON_TRACE_SPAN_IDX_KEY)
-                  .execute();
+        if (!dslContext.dialect().name().equals("CLICKHOUSE")) {
+            dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN)
+                      .columns(Tables.BITHON_TRACE_SPAN.TIMESTAMP,
+                               Tables.BITHON_TRACE_SPAN.APP_NAME,
+                               Tables.BITHON_TRACE_SPAN.INSTANCE_NAME,
+                               Tables.BITHON_TRACE_SPAN.NAME,
+                               Tables.BITHON_TRACE_SPAN.CLAZZ,
+                               Tables.BITHON_TRACE_SPAN.METHOD,
+                               Tables.BITHON_TRACE_SPAN.KIND,
+                               Tables.BITHON_TRACE_SPAN.TRACEID,
+                               Tables.BITHON_TRACE_SPAN.SPANID,
+                               Tables.BITHON_TRACE_SPAN.COSTTIME,
+                               Tables.BITHON_TRACE_SPAN.PARENTSPANID,
+                               Tables.BITHON_TRACE_SPAN.TAGS)
+                      .indexes(Indexes.BITHON_TRACE_SPAN_IDX_KEY)
+                      .execute();
+        }
     }
 
     @Override
@@ -186,10 +187,14 @@ public class TraceJdbcStorage implements ITraceStorage {
 
         @Override
         public void deleteBefore(long timestamp) {
+            if (dslContext.dialect().name().equals("CLICKHOUSE")) {
+                return;
+            }
+
             dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
                       .where(Tables.BITHON_TRACE_SPAN.TRACEID.in(dslContext.selectDistinct(Tables.BITHON_TRACE_SPAN.TRACEID)
-                                                                           .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(new Timestamp(timestamp)))));
-
+                                                                           .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(new Timestamp(
+                                                                               timestamp)))));
         }
 
         @Override

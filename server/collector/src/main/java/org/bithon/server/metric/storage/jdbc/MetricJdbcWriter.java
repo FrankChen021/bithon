@@ -35,6 +35,7 @@ import org.jooq.Field;
 import org.jooq.Index;
 import org.jooq.InsertSetMoreStep;
 import org.jooq.Query;
+import org.jooq.SortField;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
@@ -62,10 +63,36 @@ class MetricJdbcWriter implements IMetricWriter {
         this.dsl = dsl;
         this.table = new MetricTable(schema);
 
-        CreateTableIndexStep s = dsl.createTableIfNotExists(table)
-                                    .columns(table.fields())
-                                    .index(table.getIndex(schema.isEnforceDuplicationCheck()));
-        s.execute();
+        if (dsl.dialect().name().equals("CLICKHOUSE")) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s` (\n", table.getName()));
+            for (Field f : table.fields()) {
+
+                if (f.getDataType().hasPrecision()) {
+                    sb.append(String.format("`%s` %s(%d, %d) ,\n",
+                                            f.getName(),
+                                            f.getDataType().getTypeName(),
+                                            f.getDataType().precision(),
+                                            f.getDataType().scale()));
+                } else {
+                    sb.append(String.format("`%s` %s ,\n", f.getName(), f.getDataType().getTypeName()));
+                }
+            }
+            sb.delete(sb.length() - 2, sb.length());
+            sb.append(") ENGINE=MergeTree ORDER BY(");
+            Index idx = table.getIndex(schema.isEnforceDuplicationCheck());
+            for (SortField f : idx.getFields()) {
+                sb.append(String.format("`%s`,", f.getName()));
+            }
+            sb.delete(sb.length() - 1, sb.length());
+            sb.append(");");
+            dsl.execute(sb.toString());
+        } else {
+            CreateTableIndexStep s = dsl.createTableIfNotExists(table)
+                                        .columns(table.fields())
+                                        .index(table.getIndex(schema.isEnforceDuplicationCheck()));
+            s.execute();
+        }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -95,6 +122,7 @@ class MetricJdbcWriter implements IMetricWriter {
 
     @Override
     public void write(List<InputRow> inputRowList) {
+
         int index = 0;
         int thisBatch;
         List<Query> queries = new ArrayList<>(BATCH_SIZE);
@@ -148,14 +176,16 @@ class MetricJdbcWriter implements IMetricWriter {
     @SuppressWarnings("unchecked")
     @Override
     public void deleteBefore(long timestamp) {
+        if (dsl.dialect().name().equals("CLICKHOUSE")) {
+            return;
+        }
         dsl.deleteFrom(table).where(table.timestampField.lt(new Timestamp(timestamp))).execute();
     }
 
     @SuppressWarnings("unchecked")
     private InsertSetMoreStep<?> toInsertSql(InputRow inputRow) {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
-                                       .set(table.timestampField,
-                                            new Timestamp(inputRow.getColAsLong("timestamp")));
+                                       .set(table.timestampField, new Timestamp(inputRow.getColAsLong("timestamp")));
 
         for (Field dimension : table.dimensions) {
             Object value = inputRow.getCol(dimension.getName(), "");
@@ -202,7 +232,8 @@ class MetricJdbcWriter implements IMetricWriter {
         public MetricTable(DataSourceSchema schema) {
             super(DSL.name("bithon_" + schema.getName().replace("-", "_")));
 
-            timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP);
+            //noinspection unchecked
+            timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP(3));
 
             for (IDimensionSpec dimension : schema.getDimensionsSpec()) {
                 dimensions.add(createField(dimension.getName(), dimension.getValueType()));

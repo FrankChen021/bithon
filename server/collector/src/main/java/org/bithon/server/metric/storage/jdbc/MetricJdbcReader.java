@@ -62,10 +62,79 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 class MetricJdbcReader implements IMetricReader {
+    /**
+     * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS
+     */
+    interface ISQLProvider {
+        default String timeFloor(String field, long interval) {
+            return String.format("UNIX_TIMESTAMP(\"%s\")/ %d * %d", field, interval, interval);
+        }
+
+        default boolean groupByRawExpression() {
+            return false;
+        }
+
+        default String formatTimestamp(TimeSpan timeSpan) {
+            return "'" + timeSpan.toISO8601() + "'";
+        }
+    }
+
+    static class DefaultSQLProvider implements ISQLProvider {
+        public static ISQLProvider INSTANCE = new DefaultSQLProvider();
+    }
+
+    static class H2SQLProvider implements ISQLProvider {
+        public static ISQLProvider INSTANCE = new H2SQLProvider();
+
+        @Override
+        public boolean groupByRawExpression() {
+            return true;
+        }
+
+        /*
+         * NOTE, H2 does not support timestamp comparison, we have to use ISO8601 format
+         */
+    }
+
+    static class ClickHouseSQLProvider implements ISQLProvider {
+        public static ISQLProvider INSTANCE = new ClickHouseSQLProvider();
+
+        @Override
+        public String timeFloor(String field, long interval) {
+            return String.format("toUnixTimestamp(\"%s\")/ %d * %d", field, interval, interval);
+        }
+
+        /**
+         * ClickHouse does not support ISO8601 very well, we treat it as timestamp
+         */
+        @Override
+        public String formatTimestamp(TimeSpan timeSpan) {
+            return String.format("fromUnixTimestamp(%d)", timeSpan.getMilliseconds());
+        }
+    }
+
     private final DSLContext dsl;
+    private final ISQLProvider sqlProvider;
 
     public MetricJdbcReader(DSLContext dsl) {
         this.dsl = dsl;
+
+        /*
+         * we don't use the SQLDialect enum directly
+         * because the enum 'CLICKHOUSE' is not supported by the current JOOQ(3.13~3.15) but by our modified version
+         * using the string version so that it's compatible with these official libs
+         */
+        switch (dsl.dialect().name()) {
+            case "H2":
+                this.sqlProvider = H2SQLProvider.INSTANCE;
+                break;
+            case "CLICKHOUSE":
+                this.sqlProvider = ClickHouseSQLProvider.INSTANCE;
+                break;
+            default:
+                this.sqlProvider = DefaultSQLProvider.INSTANCE;
+                break;
+        }
     }
 
     // TODO: 具有多个纬度的聚合条件下，last/first应该按多个纬度分组求last/first，再聚合求和
@@ -76,9 +145,9 @@ class MetricJdbcReader implements IMetricReader {
                                                 Collection<DimensionCondition> filters,
                                                 Collection<String> metrics,
                                                 int interval) {
-        String sql = new SQLClauseBuilder(start, end, dataSourceSchema, interval).filters(filters)
-                                                                                 .metrics(metrics)
-                                                                                 .build();
+        String sql = new SQLClauseBuilder(sqlProvider, start, end, dataSourceSchema, interval).filters(filters)
+                                                                                              .metrics(metrics)
+                                                                                              .build();
         List<Map<String, Object>> queryResult = executeSql(sql);
 
         //
@@ -116,7 +185,7 @@ class MetricJdbcReader implements IMetricReader {
                                               DataSourceSchema dataSourceSchema,
                                               Collection<DimensionCondition> filters,
                                               Collection<String> metrics) {
-        String sql = new SQLClauseBuilder(start,
+        String sql = new SQLClauseBuilder(sqlProvider, start,
                                           end,
                                           dataSourceSchema,
                                           (end.getMilliseconds() - start.getMilliseconds()) / 1000).filters(filters)
@@ -196,13 +265,13 @@ class MetricJdbcReader implements IMetricReader {
                                      .map(d -> d.getMatcher().accept(new SQLFilterBuilder(d.getDimension())))
                                      .collect(Collectors.joining(" AND "));
         String sql = String.format(
-            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' ",
+            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s ",
             dimension,
             dimension,
             "bithon_" + dataSourceSchema.getName().replace("-", "_"),
             condition,
-            start.toISO8601(),
-            end.toISO8601()
+            sqlProvider.formatTimestamp(start),
+            sqlProvider.formatTimestamp(end)
         );
 
         log.info("Executing {}", sql);
@@ -487,21 +556,25 @@ class MetricJdbcReader implements IMetricReader {
         private final String tableName;
         private final DataSourceSchema schema;
         private final long interval;
+        private final ISQLProvider sqlProvider;
         private String filters;
         private final TimeSpan start;
         private final TimeSpan end;
 
         static class MetricClauseBuilder extends MetricSpecVisitor {
+            private final ISQLProvider sqlProvider;
             private final List<String> postExpressions;
             private final Set<String> rawExpressions;
             private final boolean addAlias;
             private final Map<String, Object> variables;
             private boolean hasLast;
 
-            public MetricClauseBuilder(Map<String, Object> variables,
+            public MetricClauseBuilder(ISQLProvider sqlProvider,
+                                       Map<String, Object> variables,
                                        boolean addAlias,
                                        List<String> postExpressions,
                                        Set<String> rawExpressions) {
+                this.sqlProvider = sqlProvider;
                 this.variables = variables;
                 this.addAlias = addAlias;
                 this.postExpressions = postExpressions;
@@ -591,20 +664,20 @@ class MetricJdbcReader implements IMetricReader {
                 postExpressions.add(String.format(" \"%s\"", metricName));
 
                 int interval = ((Number) this.variables.get("interval")).intValue();
-                rawExpressions.add(String.format(
-                    "FIRST_VALUE(\"%s\") OVER (partition by UNIX_TIMESTAMP(\"timestamp\")/%d*%d ORDER BY \"timestamp\" DESC) \"%s\"",
-                    metricName,
-                    interval,
-                    interval,
-                    metricName));
+                rawExpressions.add(String.format("FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) \"%s\"",
+                                                 metricName,
+                                                 sqlProvider.timeFloor("timestamp", interval),
+                                                 metricName));
             }
         }
 
-        SQLClauseBuilder(TimeSpan start,
+        SQLClauseBuilder(ISQLProvider sqlProvider,
+                         TimeSpan start,
                          TimeSpan end,
                          DataSourceSchema dataSourceSchema,
                          long interval) {
-            tableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
+            this.sqlProvider = sqlProvider;
+            this.tableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
             this.start = start;
             this.end = end;
             this.schema = dataSourceSchema;
@@ -612,13 +685,15 @@ class MetricJdbcReader implements IMetricReader {
         }
 
         SQLClauseBuilder metrics(Collection<String> metrics) {
-            MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(
-                ImmutableMap.of("interval", interval,
-                                //TODO: use the quote based on the SQL dialect
-                                "instanceCount", "count(distinct \"instanceName\")"),
-                true,
-                postExpressions,
-                rawExpressions);
+            MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(this.sqlProvider,
+                                                                              ImmutableMap.of("interval",
+                                                                                              interval,
+                                                                                              //TODO: use the quote based on the SQL dialect
+                                                                                              "instanceCount",
+                                                                                              "count(distinct \"instanceName\")"),
+                                                                              true,
+                                                                              postExpressions,
+                                                                              rawExpressions);
             for (String metric : metrics) {
                 schema.getMetricSpecByName(metric).accept(metricFieldsBuilder);
             }
@@ -630,39 +705,38 @@ class MetricJdbcReader implements IMetricReader {
 
         SQLClauseBuilder filters(Collection<DimensionCondition> filters) {
             this.filters = filters.stream()
-                                  .map(dimension -> dimension.getMatcher()
-                                                             .accept(new SQLFilterBuilder(dimension.getDimension())))
+                                  .map(dimension -> dimension.getMatcher().accept(new SQLFilterBuilder(dimension.getDimension())))
                                   .collect(Collectors.joining(" AND "));
             return this;
         }
 
         String build() {
-            String groupByExpression = String.format("UNIX_TIMESTAMP(\"timestamp\") / %d * %d", interval, interval);
+            String groupByExpression = sqlProvider.timeFloor("timestamp", interval);
             if (rawExpressions.isEmpty()) {
                 return String.format(
-                    "SELECT %s \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY %s",
+                    "SELECT %s \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s",
                     groupByExpression,
                     String.join(",", postExpressions),
                     tableName,
                     "OUTER",
                     this.filters,
-                    start.toISO8601(),
-                    end.toISO8601(),
-                    groupByExpression
+                    sqlProvider.formatTimestamp(start),
+                    sqlProvider.formatTimestamp(end),
+                    sqlProvider.groupByRawExpression() ? groupByExpression : "timestamp"
                 );
             } else {
                 return String.format(
                     "SELECT \"timestamp\", %s FROM "
                     + "("
-                    + "     SELECT %s, %s \"timestamp\" FROM \"%s\" WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s'"
+                    + "     SELECT %s, %s \"timestamp\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s"
                     + ")GROUP BY \"timestamp\"",
                     String.join(",", postExpressions),
                     String.join(",", rawExpressions),
                     groupByExpression,
                     tableName,
                     this.filters,
-                    start.toISO8601(),
-                    end.toISO8601()
+                    sqlProvider.formatTimestamp(start),
+                    sqlProvider.formatTimestamp(end)
                 );
             }
         }
