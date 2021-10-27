@@ -27,9 +27,4 @@ import java.io.IOException;
 public interface IEventWriter extends AutoCloseable {
 
     void write(EventMessage eventMessage) throws IOException;
-
-    /**
-     * delete data whose timestamp is less than or equal to the given timestamp
-     */
-    void deleteBefore(long timestamp);
 }

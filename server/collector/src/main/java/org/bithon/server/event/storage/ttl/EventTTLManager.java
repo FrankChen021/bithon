@@ -20,8 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.DateTimeUtils;
 import org.bithon.server.event.EventConfig;
+import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.event.storage.IEventStorage;
-import org.bithon.server.event.storage.IEventWriter;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
@@ -60,8 +60,8 @@ public class EventTTLManager implements SmartLifecycle {
         {
             long older = System.currentTimeMillis() - eventConfig.getTtl().getMilliseconds();
             log.info("Clean events before {}", DateTimeUtils.toISO8601(older));
-            try (IEventWriter writer = eventStorage.createWriter()) {
-                writer.deleteBefore(older);
+            try (IEventCleaner cleaner = eventStorage.createCleaner()) {
+                cleaner.clean(older);
             } catch (Exception e) {
                 log.error("Failed to clean events", e);
             }

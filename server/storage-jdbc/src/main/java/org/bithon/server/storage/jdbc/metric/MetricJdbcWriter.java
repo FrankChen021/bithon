@@ -127,15 +127,6 @@ class MetricJdbcWriter implements IMetricWriter {
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public void deleteBefore(long timestamp) {
-        if ("CLICKHOUSE".equals(dsl.dialect().name())) {
-            return;
-        }
-        dsl.deleteFrom(table).where(table.timestampField.lt(new Timestamp(timestamp))).execute();
-    }
-
-    @SuppressWarnings("unchecked")
     private InsertSetMoreStep<?> toInsertSql(InputRow inputRow) {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
                                        .set(table.timestampField, new Timestamp(inputRow.getColAsLong("timestamp")));

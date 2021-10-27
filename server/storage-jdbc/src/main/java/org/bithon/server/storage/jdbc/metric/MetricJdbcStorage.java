@@ -21,11 +21,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.metric.DataSourceSchema;
+import org.bithon.server.metric.storage.IMetricCleaner;
 import org.bithon.server.metric.storage.IMetricReader;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.IMetricWriter;
 import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
+
+import java.sql.Timestamp;
 
 /**
  * @author frank.chen021@outlook.com
@@ -51,6 +54,14 @@ public class MetricJdbcStorage implements IMetricStorage {
     @Override
     public IMetricReader createMetricReader(DataSourceSchema schema) {
         return new MetricJdbcReader(dslContext);
+    }
+
+    @Override
+    public IMetricCleaner createMetricCleaner(DataSourceSchema schema) {
+        return timestamp -> {
+            final MetricTable table = new MetricTable(schema);
+            dslContext.deleteFrom(table).where(table.timestampField.lt(new Timestamp(timestamp))).execute();
+        };
     }
 
     protected void initialize(DataSourceSchema schema, MetricTable table) {

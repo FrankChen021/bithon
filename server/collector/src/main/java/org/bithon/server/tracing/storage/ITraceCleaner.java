@@ -14,24 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.storage;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+package org.bithon.server.tracing.storage;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * @author Frank Chen
+ * @date 27/10/21 10:31 pm
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IEventStorage {
+public interface ITraceCleaner extends AutoCloseable {
 
-    default void initialize() {
-
+    default void close() {
     }
 
-    IEventWriter createWriter();
-
-    IEventReader createReader();
-
-    IEventCleaner createCleaner();
+    /**
+     * clean records whose timestamp is less than or equal to the given timestamp
+     */
+    void clean(long beforeTimestamp);
 }

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
+import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.jooq.DSLContext;
 
 /**
@@ -41,6 +42,11 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public void initialize() {
+    }
 
+    @Override
+    public ITraceCleaner createCleaner() {
+        return beforeTimestamp -> {
+        };
     }
 }

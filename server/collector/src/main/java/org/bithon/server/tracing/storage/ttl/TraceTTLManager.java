@@ -19,8 +19,8 @@ package org.bithon.server.tracing.storage.ttl;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.DateTimeUtils;
+import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceStorage;
-import org.bithon.server.tracing.storage.ITraceWriter;
 import org.bithon.server.tracing.storage.TraceConfig;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
@@ -60,8 +60,8 @@ public class TraceTTLManager implements SmartLifecycle {
         {
             long older = System.currentTimeMillis() - traceConfig.getTtl().getMilliseconds();
             log.info("Clean events before {}", DateTimeUtils.toISO8601(older));
-            try (ITraceWriter writer = traceStorage.createWriter()) {
-                writer.deleteBefore(older);
+            try (ITraceCleaner cleaner = traceStorage.createCleaner()) {
+                cleaner.clean(older);
             } catch (Exception e) {
                 log.error("Failed to clean events", e);
             }

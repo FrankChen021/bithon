@@ -34,6 +34,4 @@ public interface IMetricWriter extends AutoCloseable {
     void write(List<InputRow> inputRowList) throws IOException;
 
     void write(Collection<MetricSet> metricSetList) throws IOException;
-
-    void deleteBefore(long timestamp);
 }

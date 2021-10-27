@@ -28,6 +28,7 @@ import org.bithon.component.db.jooq.Indexes;
 import org.bithon.component.db.jooq.Tables;
 import org.bithon.component.db.jooq.tables.records.BithonTraceSpanRecord;
 import org.bithon.server.tracing.handler.TraceSpan;
+import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
@@ -89,6 +90,15 @@ public class TraceJdbcStorage implements ITraceStorage {
     @Override
     public ITraceReader createReader() {
         return new TraceJdbcReader();
+    }
+
+    @Override
+    public ITraceCleaner createCleaner() {
+        return beforeTimestamp -> dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
+                                            .where(Tables.BITHON_TRACE_SPAN.TRACEID
+                                                       .in(dslContext.selectDistinct(Tables.BITHON_TRACE_SPAN.TRACEID)
+                                                                     .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(new Timestamp(
+                                                                         beforeTimestamp)))));
     }
 
     private class TraceJdbcReader implements ITraceReader {
@@ -191,23 +201,6 @@ public class TraceJdbcStorage implements ITraceStorage {
                     leftSize -= thisBatch;
                 }
             });
-        }
-
-        @Override
-        public void deleteBefore(long timestamp) {
-            if ("CLICKHOUSE".equals(dslContext.dialect().name())) {
-                return;
-            }
-
-            dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
-                      .where(Tables.BITHON_TRACE_SPAN.TRACEID.in(dslContext.selectDistinct(Tables.BITHON_TRACE_SPAN.TRACEID)
-                                                                           .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(new Timestamp(
-                                                                               timestamp)))));
-        }
-
-        @Override
-        public void close() {
-
         }
     }
 }

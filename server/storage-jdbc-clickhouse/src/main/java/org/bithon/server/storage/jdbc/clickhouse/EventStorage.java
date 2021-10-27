@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.jooq.DSLContext;
 
@@ -36,5 +37,15 @@ public class EventStorage extends EventJdbcStorage {
     public EventStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         super(dslContext, objectMapper);
+    }
+
+    @Override
+    public void initialize() {
+    }
+
+    @Override
+    public IEventCleaner createCleaner() {
+        return timestamp -> {
+        };
     }
 }

@@ -21,8 +21,8 @@ import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.DateTimeUtils;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
+import org.bithon.server.metric.storage.IMetricCleaner;
 import org.bithon.server.metric.storage.IMetricStorage;
-import org.bithon.server.metric.storage.IMetricWriter;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
@@ -69,8 +69,8 @@ public class MetricTTLManager implements SmartLifecycle {
         long older = System.currentTimeMillis() - schema.getTtl().getMilliseconds();
 
         log.info("Clean [{}] before {}", schema.getName(), DateTimeUtils.toISO8601(older));
-        try (IMetricWriter writer = metricStorage.createMetricWriter(schema)) {
-            writer.deleteBefore(older);
+        try (IMetricCleaner cleaner = metricStorage.createMetricCleaner(schema)) {
+            cleaner.clean(older);
         } catch (Exception e) {
             log.error("Failed to clean " + schema.getName(), e);
         }

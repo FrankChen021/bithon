@@ -32,4 +32,6 @@ public interface ITraceStorage {
     ITraceWriter createWriter();
 
     ITraceReader createReader();
+
+    ITraceCleaner createCleaner();
 }

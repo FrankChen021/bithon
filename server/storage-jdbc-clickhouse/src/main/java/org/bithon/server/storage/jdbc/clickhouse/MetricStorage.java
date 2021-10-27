@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.metric.DataSourceSchema;
+import org.bithon.server.metric.storage.IMetricCleaner;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.jooq.DSLContext;
@@ -65,5 +66,11 @@ public class MetricStorage extends MetricJdbcStorage {
         sb.delete(sb.length() - 1, sb.length());
         sb.append(");");
         dslContext.execute(sb.toString());
+    }
+
+    @Override
+    public IMetricCleaner createMetricCleaner(DataSourceSchema schema) {
+        return timestamp -> {
+        };
     }
 }

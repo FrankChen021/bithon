@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.db.jooq.Indexes;
 import org.bithon.component.db.jooq.Tables;
 import org.bithon.server.event.handler.EventMessage;
+import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.event.storage.IEventReader;
 import org.bithon.server.event.storage.IEventStorage;
 import org.bithon.server.event.storage.IEventWriter;
@@ -79,6 +80,17 @@ public class EventJdbcStorage implements IEventStorage {
         return new EventReader(dslContext);
     }
 
+    @Override
+    public IEventCleaner createCleaner() {
+        return new IEventCleaner() {
+            @Override
+            public void clean(long timestamp) {
+                dslContext.delete(Tables.BITHON_EVENT)
+                          .where(Tables.BITHON_EVENT.TIMESTAMP.le(new Timestamp(timestamp))).execute();
+            }
+        };
+    }
+
     private static class EventWriter implements IEventWriter {
         private final DSLContext dslContext;
         private final ObjectMapper om;
@@ -105,15 +117,6 @@ public class EventJdbcStorage implements IEventStorage {
                                                .set(Tables.BITHON_EVENT.ARGUMENTS, om.writeValueAsString(eventMessage.getArgs()))
                                                .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(eventMessage.getTimestamp()));
             step.execute();
-        }
-
-        @Override
-        public void deleteBefore(long timestamp) {
-            if ("CLICKHOUSE".equals(dslContext.dialect().name())) {
-                return;
-            }
-            dslContext.delete(Tables.BITHON_EVENT)
-                      .where(Tables.BITHON_EVENT.TIMESTAMP.le(new Timestamp(timestamp))).execute();
         }
     }
 

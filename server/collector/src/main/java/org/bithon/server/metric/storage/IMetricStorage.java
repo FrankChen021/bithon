@@ -34,6 +34,8 @@ public interface IMetricStorage {
 
     IMetricReader createMetricReader(DataSourceSchema schema);
 
+    IMetricCleaner createMetricCleaner(DataSourceSchema schema);
+
     default void initialize() {
 
     }
