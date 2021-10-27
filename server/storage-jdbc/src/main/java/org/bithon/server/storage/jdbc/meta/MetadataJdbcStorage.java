@@ -14,8 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.meta.storage.jdbc;
+package org.bithon.server.storage.jdbc.meta;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.db.dao.MetadataDAO;
 import org.bithon.component.db.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.meta.Metadata;
@@ -29,11 +33,13 @@ import java.util.Collection;
  * @author frank.chen021@outlook.com
  * @date 2021/1/11 10:56 下午
  */
+@JsonTypeName("jdbc")
 public class MetadataJdbcStorage implements IMetaStorage {
 
     private final MetadataDAO metadataDao;
 
-    public MetadataJdbcStorage(DSLContext dsl) {
+    @JsonCreator
+    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dsl) {
         this.metadataDao = new MetadataDAO(dsl);
     }
 

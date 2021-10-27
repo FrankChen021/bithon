@@ -16,11 +16,9 @@
 
 package org.bithon.server.meta.storage;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.meta.Metadata;
 import org.bithon.server.meta.MetadataType;
-import org.bithon.server.meta.storage.jdbc.MetadataJdbcStorage;
 
 import java.util.Collection;
 
@@ -29,9 +27,6 @@ import java.util.Collection;
  * @date 2021/1/31 9:49 上午
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "jdbc", value = MetadataJdbcStorage.class)
-})
 public interface IMetaStorage {
 
     void saveApplicationInstance(String applicationName, String applicationType, String instance);

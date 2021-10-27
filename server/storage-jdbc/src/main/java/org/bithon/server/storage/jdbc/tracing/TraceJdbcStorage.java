@@ -14,8 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.tracing.storage.jdbc;
+package org.bithon.server.storage.jdbc.tracing;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,19 +46,22 @@ import java.util.Map;
  * @date 2021/2/4 8:34 下午
  */
 @Slf4j
+@JsonTypeName("jdbc")
 public class TraceJdbcStorage implements ITraceStorage {
 
     private final DSLContext dslContext;
     private final ObjectMapper objectMapper;
 
-    public TraceJdbcStorage(DSLContext dslContext, ObjectMapper objectMapper) {
+    @JsonCreator
+    public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
+                            @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.dslContext = DSL.using(dslContext
                                         .configuration()
                                         .derive(new ThreadLocalTransactionProvider(dslContext.configuration()
                                                                                              .connectionProvider())));
         this.objectMapper = objectMapper;
 
-        if (!dslContext.dialect().name().equals("CLICKHOUSE")) {
+        if (!"CLICKHOUSE".equals(dslContext.dialect().name())) {
             dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN)
                       .columns(Tables.BITHON_TRACE_SPAN.TIMESTAMP,
                                Tables.BITHON_TRACE_SPAN.APP_NAME,
@@ -187,7 +194,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
         @Override
         public void deleteBefore(long timestamp) {
-            if (dslContext.dialect().name().equals("CLICKHOUSE")) {
+            if ("CLICKHOUSE".equals(dslContext.dialect().name())) {
                 return;
             }
 

@@ -27,6 +27,7 @@
     <module>component/component-commons</module>
     <module>agent</module>
     <module>server/component-db</module>
+    <module>server/storage-jdbc</module>
     <module>server/collector</module>
     <module>server/web-app</module>
     <module>server/server-starter</module>
@@ -88,6 +89,11 @@
       <dependency>
         <groupId>org.bithon</groupId>
         <artifactId>bithon-server-collector</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bithon</groupId>
+        <artifactId>bithon-storage-jdbc</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -223,7 +229,6 @@
               <charset>UTF-8</charset>
               <encoding>UTF-8</encoding>
               <docencoding>UTF-8</docencoding>
-              <additionalparam>-Xdoclint:none</additionalparam>
               <failOnWarnings>false</failOnWarnings>
               <failOnError>false</failOnError>
               <tags>

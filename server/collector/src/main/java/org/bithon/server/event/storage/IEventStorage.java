@@ -16,10 +16,13 @@
 
 package org.bithon.server.event.storage;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:17 下午
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IEventStorage {
     IEventWriter createWriter();
 

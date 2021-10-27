@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.storage.jdbc;
+package org.bithon.server.storage.jdbc.metric;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +63,7 @@ class MetricJdbcWriter implements IMetricWriter {
         this.dsl = dsl;
         this.table = new MetricTable(schema);
 
-        if (dsl.dialect().name().equals("CLICKHOUSE")) {
+        if ("CLICKHOUSE".equals(dsl.dialect().name())) {
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s` (\n", table.getName()));
             for (Field f : table.fields()) {
@@ -176,7 +176,7 @@ class MetricJdbcWriter implements IMetricWriter {
     @SuppressWarnings("unchecked")
     @Override
     public void deleteBefore(long timestamp) {
-        if (dsl.dialect().name().equals("CLICKHOUSE")) {
+        if ("CLICKHOUSE".equals(dsl.dialect().name())) {
             return;
         }
         dsl.deleteFrom(table).where(table.timestampField.lt(new Timestamp(timestamp))).execute();

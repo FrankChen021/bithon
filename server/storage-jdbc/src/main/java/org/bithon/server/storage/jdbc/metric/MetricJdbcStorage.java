@@ -14,8 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.storage.jdbc;
+package org.bithon.server.storage.jdbc.metric;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.storage.IMetricReader;
 import org.bithon.server.metric.storage.IMetricStorage;
@@ -26,11 +30,13 @@ import org.jooq.DSLContext;
  * @author frank.chen021@outlook.com
  * @date 2021/1/31 1:37 下午
  */
+@JsonTypeName("jdbc")
 public class MetricJdbcStorage implements IMetricStorage {
 
     private final DSLContext dslContext;
 
-    public MetricJdbcStorage(DSLContext dslContext) {
+    @JsonCreator
+    public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 

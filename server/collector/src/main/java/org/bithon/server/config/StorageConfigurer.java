@@ -18,43 +18,44 @@ package org.bithon.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.event.storage.IEventStorage;
-import org.bithon.server.event.storage.jdbc.EventJdbcStorage;
 import org.bithon.server.meta.storage.CachableMetadataStorage;
 import org.bithon.server.meta.storage.IMetaStorage;
-import org.bithon.server.meta.storage.jdbc.MetadataJdbcStorage;
 import org.bithon.server.metric.storage.IMetricStorage;
-import org.bithon.server.metric.storage.jdbc.MetricJdbcStorage;
 import org.bithon.server.tracing.storage.ITraceStorage;
-import org.bithon.server.tracing.storage.jdbc.TraceJdbcStorage;
-import org.jooq.DSLContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
+
 /**
- * TODO：采用jackson反序列化方式创建，storage的参数放在一起
- *
  * @author frank.chen021@outlook.com
  * @date 2021/1/30 8:34 下午
  */
 @Configuration
-public class ServerConfig {
+public class StorageConfigurer {
+
     @Bean
-    public IMetricStorage createMetricStorage(DSLContext dslContext) {
-        return new MetricJdbcStorage(dslContext);
+    public IMetricStorage createMetricStorage(ObjectMapper om, @Value("${bithon.storage.metric}") String metricType) throws IOException {
+        String type = String.format("{\"type\":\"%s\"}", metricType);
+        return om.readValue(type, IMetricStorage.class);
     }
 
     @Bean
-    public IMetaStorage metaStorage(DSLContext dslContext) {
-        return new CachableMetadataStorage(new MetadataJdbcStorage(dslContext));
+    public IMetaStorage metaStorage(ObjectMapper om, @Value("${bithon.storage.meta}") String metaType) throws IOException {
+        String type = String.format("{\"type\":\"%s\"}", metaType);
+        return new CachableMetadataStorage(om.readValue(type, IMetaStorage.class));
     }
 
     @Bean
-    public ITraceStorage traceStorage(DSLContext dslContext, ObjectMapper objectMapper) {
-        return new TraceJdbcStorage(dslContext, objectMapper);
+    public ITraceStorage traceStorage(ObjectMapper om, @Value("${bithon.storage.tracing}") String tracingType) throws IOException {
+        String type = String.format("{\"type\":\"%s\"}", tracingType);
+        return om.readValue(type, ITraceStorage.class);
     }
 
     @Bean
-    public IEventStorage eventStorage(DSLContext dslContext, ObjectMapper objectMapper) {
-        return new EventJdbcStorage(dslContext, objectMapper);
+    public IEventStorage eventStorage(ObjectMapper om, @Value("${bithon.storage.event}") String eventType) throws IOException {
+        String type = String.format("{\"type\":\"%s\"}", eventType);
+        return om.readValue(type, IEventStorage.class);
     }
 }

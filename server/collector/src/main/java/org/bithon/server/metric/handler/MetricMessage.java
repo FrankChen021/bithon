@@ -75,7 +75,7 @@ public class MetricMessage extends HashMap<String, Object> {
     }
 
     public String getApplicationType() {
-        return ((ApplicationType)this.getOrDefault("appType", ApplicationType.UNRECOGNIZED)).name();
+        return ((ApplicationType) this.getOrDefault("appType", ApplicationType.UNRECOGNIZED)).name();
     }
 
     public long getLong(String prop) {

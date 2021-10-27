@@ -14,8 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.storage.jdbc;
+package org.bithon.server.storage.jdbc.event;
 
+
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.db.jooq.Indexes;
 import org.bithon.component.db.jooq.Tables;
@@ -35,16 +40,19 @@ import java.sql.Timestamp;
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:19 下午
  */
+@JsonTypeName("jdbc")
 public class EventJdbcStorage implements IEventStorage {
 
     private final DSLContext dslContext;
     private final ObjectMapper objectMapper;
 
-    public EventJdbcStorage(DSLContext dslContext, ObjectMapper objectMapper) {
+    @JsonCreator
+    public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
+                            @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
 
-        if (!dslContext.dialect().name().equals("CLICKHOUSE")) {
+        if (!"CLICKHOUSE".equals(dslContext.dialect().name())) {
             this.dslContext.createTableIfNotExists(Tables.BITHON_EVENT)
                            .columns(Tables.BITHON_EVENT.ID,
                                     Tables.BITHON_EVENT.APP_NAME,
@@ -75,10 +83,9 @@ public class EventJdbcStorage implements IEventStorage {
         private final ObjectMapper om;
 
         private EventWriter(DSLContext dslContext, ObjectMapper om) {
-            this.dslContext = DSL.using(dslContext
-                                            .configuration()
-                                            .derive(new ThreadLocalTransactionProvider(dslContext.configuration()
-                                                                                                 .connectionProvider())));
+            this.dslContext = DSL.using(dslContext.configuration()
+                                                  .derive(new ThreadLocalTransactionProvider(dslContext.configuration()
+                                                                                                       .connectionProvider())));
 
             this.om = om;
         }
@@ -101,7 +108,7 @@ public class EventJdbcStorage implements IEventStorage {
 
         @Override
         public void deleteBefore(long timestamp) {
-            if (dslContext.dialect().name().equals("CLICKHOUSE")) {
+            if ("CLICKHOUSE".equals(dslContext.dialect().name())) {
                 return;
             }
             dslContext.delete(Tables.BITHON_EVENT)
