@@ -16,33 +16,17 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.aggregator.spec.IMetricSpec;
-import org.bithon.server.metric.aggregator.spec.PostAggregatorMetricSpec;
-import org.bithon.server.metric.dimension.IDimensionSpec;
 import org.bithon.server.metric.input.InputRow;
 import org.bithon.server.metric.input.MetricSet;
 import org.bithon.server.metric.storage.IMetricWriter;
-import org.bithon.server.metric.typing.DoubleValueType;
-import org.bithon.server.metric.typing.IValueType;
-import org.bithon.server.metric.typing.LongValueType;
-import org.bithon.server.metric.typing.StringValueType;
-import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
 import org.jooq.Field;
-import org.jooq.Index;
 import org.jooq.InsertSetMoreStep;
 import org.jooq.Query;
-import org.jooq.SortField;
-import org.jooq.impl.DSL;
-import org.jooq.impl.Internal;
-import org.jooq.impl.SQLDataType;
-import org.jooq.impl.TableImpl;
 import org.springframework.dao.DuplicateKeyException;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,40 +43,9 @@ class MetricJdbcWriter implements IMetricWriter {
     private final DSLContext dsl;
     private final MetricTable table;
 
-    public MetricJdbcWriter(DSLContext dsl, DataSourceSchema schema) {
+    public MetricJdbcWriter(DSLContext dsl, DataSourceSchema schema, MetricTable table) {
         this.dsl = dsl;
-        this.table = new MetricTable(schema);
-
-        if ("CLICKHOUSE".equals(dsl.dialect().name())) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s` (\n", table.getName()));
-            for (Field f : table.fields()) {
-
-                if (f.getDataType().hasPrecision()) {
-                    sb.append(String.format("`%s` %s(%d, %d) ,\n",
-                                            f.getName(),
-                                            f.getDataType().getTypeName(),
-                                            f.getDataType().precision(),
-                                            f.getDataType().scale()));
-                } else {
-                    sb.append(String.format("`%s` %s ,\n", f.getName(), f.getDataType().getTypeName()));
-                }
-            }
-            sb.delete(sb.length() - 2, sb.length());
-            sb.append(") ENGINE=MergeTree ORDER BY(");
-            Index idx = table.getIndex(schema.isEnforceDuplicationCheck());
-            for (SortField f : idx.getFields()) {
-                sb.append(String.format("`%s`,", f.getName()));
-            }
-            sb.delete(sb.length() - 1, sb.length());
-            sb.append(");");
-            dsl.execute(sb.toString());
-        } else {
-            CreateTableIndexStep s = dsl.createTableIfNotExists(table)
-                                        .columns(table.fields())
-                                        .index(table.getIndex(schema.isEnforceDuplicationCheck()));
-            s.execute();
-        }
+        this.table = table;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -102,11 +55,11 @@ class MetricJdbcWriter implements IMetricWriter {
                                          .set(table.timestampField,
                                               new Timestamp(inputRow.getColAsLong("timestamp")))) {
 
-            for (Field dimension : table.dimensions) {
+            for (Field dimension : table.getDimensions()) {
                 Object value = inputRow.getCol(dimension.getName(), "");
                 step.set(dimension, value);
             }
-            for (Field metric : table.metrics) {
+            for (Field metric : table.getMetrics()) {
                 Object value = inputRow.getCol(metric.getName(), 0);
                 step.set(metric, value);
             }
@@ -187,11 +140,11 @@ class MetricJdbcWriter implements IMetricWriter {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
                                        .set(table.timestampField, new Timestamp(inputRow.getColAsLong("timestamp")));
 
-        for (Field dimension : table.dimensions) {
+        for (Field dimension : table.getDimensions()) {
             Object value = inputRow.getCol(dimension.getName(), "");
             step.set(dimension, value);
         }
-        for (Field metric : table.metrics) {
+        for (Field metric : table.getMetrics()) {
             Object value = inputRow.getCol(metric.getName(), 0);
             step.set(metric, value);
         }
@@ -205,11 +158,11 @@ class MetricJdbcWriter implements IMetricWriter {
                                        .set(table.timestampField,
                                             new Timestamp(metricSet.getTimestamp()));
 
-        for (Field dimension : table.dimensions) {
+        for (Field dimension : table.getDimensions()) {
             Object value = metricSet.getDimension(dimension.getName(), "");
             step.set(dimension, value);
         }
-        for (Field metric : table.metrics) {
+        for (Field metric : table.getMetrics()) {
             Object value = metricSet.getMetric(metric.getName(), 0);
             step.set(metric, value);
         }
@@ -219,56 +172,5 @@ class MetricJdbcWriter implements IMetricWriter {
 
     @Override
     public void close() {
-    }
-
-    @SuppressWarnings("rawtypes")
-    static class MetricTable extends TableImpl {
-        @Getter
-        private final List<Field> dimensions = new ArrayList<>();
-        @Getter
-        private final List<Field> metrics = new ArrayList<>();
-        Field<Timestamp> timestampField;
-
-        public MetricTable(DataSourceSchema schema) {
-            super(DSL.name("bithon_" + schema.getName().replace("-", "_")));
-
-            //noinspection unchecked
-            timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP(3));
-
-            for (IDimensionSpec dimension : schema.getDimensionsSpec()) {
-                dimensions.add(createField(dimension.getName(), dimension.getValueType()));
-            }
-
-            for (IMetricSpec metric : schema.getMetricsSpec()) {
-                if (metric instanceof PostAggregatorMetricSpec) {
-                    continue;
-                }
-                metrics.add(createField(metric.getName(), metric.getValueType()));
-            }
-        }
-
-        public Index getIndex(boolean unique) {
-            List<Field> indexesFields = new ArrayList<>();
-            indexesFields.add(timestampField);
-            indexesFields.addAll(dimensions);
-            return Internal.createIndex("idx_" + this.getName() + "_dimensions",
-                                        this,
-                                        indexesFields.toArray(new Field[0]),
-                                        unique);
-
-        }
-
-        private Field createField(String name, IValueType valueType) {
-            if (valueType.equals(DoubleValueType.INSTANCE)) {
-                return this.createField(DSL.name(name),
-                                        SQLDataType.DECIMAL(18, 2).nullable(false).defaultValue(BigDecimal.valueOf(0)));
-            } else if (valueType.equals(LongValueType.INSTANCE)) {
-                return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L));
-            } else if (valueType.equals(StringValueType.INSTANCE)) {
-                return this.createField(DSL.name(name), SQLDataType.VARCHAR(128).nullable(false).defaultValue(""));
-            } else {
-                throw new RuntimeException("unknown type:" + valueType);
-            }
-        }
     }
 }

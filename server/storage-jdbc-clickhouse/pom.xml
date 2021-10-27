@@ -9,9 +9,9 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>bithon-storage-jdbc</artifactId>
-  <name>storage-jdbc</name>
-  <description>Bithon JDBC Storage</description>
+  <artifactId>bithon-storage-jdbc-clickhouse</artifactId>
+  <name>storage-jdbc-clickhouse</name>
+  <description>Bithon ClickHouse Storage</description>
 
   <dependencies>
     <dependency>
@@ -22,26 +22,13 @@
 
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>bithon-server-collector</artifactId>
+      <artifactId>bithon-storage-jdbc</artifactId>
     </dependency>
 
     <!-- Lombok -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-    </dependency>
-
-    <!-- Bithon Storage -->
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>component-db</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>1.4.200</version>
     </dependency>
 
     <dependency>

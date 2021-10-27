@@ -49,8 +49,8 @@ import java.util.Map;
 @JsonTypeName("jdbc")
 public class TraceJdbcStorage implements ITraceStorage {
 
-    private final DSLContext dslContext;
-    private final ObjectMapper objectMapper;
+    protected final DSLContext dslContext;
+    protected final ObjectMapper objectMapper;
 
     @JsonCreator
     public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
@@ -60,24 +60,25 @@ public class TraceJdbcStorage implements ITraceStorage {
                                         .derive(new ThreadLocalTransactionProvider(dslContext.configuration()
                                                                                              .connectionProvider())));
         this.objectMapper = objectMapper;
+    }
 
-        if (!"CLICKHOUSE".equals(dslContext.dialect().name())) {
-            dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN)
-                      .columns(Tables.BITHON_TRACE_SPAN.TIMESTAMP,
-                               Tables.BITHON_TRACE_SPAN.APP_NAME,
-                               Tables.BITHON_TRACE_SPAN.INSTANCE_NAME,
-                               Tables.BITHON_TRACE_SPAN.NAME,
-                               Tables.BITHON_TRACE_SPAN.CLAZZ,
-                               Tables.BITHON_TRACE_SPAN.METHOD,
-                               Tables.BITHON_TRACE_SPAN.KIND,
-                               Tables.BITHON_TRACE_SPAN.TRACEID,
-                               Tables.BITHON_TRACE_SPAN.SPANID,
-                               Tables.BITHON_TRACE_SPAN.COSTTIME,
-                               Tables.BITHON_TRACE_SPAN.PARENTSPANID,
-                               Tables.BITHON_TRACE_SPAN.TAGS)
-                      .indexes(Indexes.BITHON_TRACE_SPAN_IDX_KEY)
-                      .execute();
-        }
+    @Override
+    public void initialize() {
+        dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN)
+                  .columns(Tables.BITHON_TRACE_SPAN.TIMESTAMP,
+                           Tables.BITHON_TRACE_SPAN.APP_NAME,
+                           Tables.BITHON_TRACE_SPAN.INSTANCE_NAME,
+                           Tables.BITHON_TRACE_SPAN.NAME,
+                           Tables.BITHON_TRACE_SPAN.CLAZZ,
+                           Tables.BITHON_TRACE_SPAN.METHOD,
+                           Tables.BITHON_TRACE_SPAN.KIND,
+                           Tables.BITHON_TRACE_SPAN.TRACEID,
+                           Tables.BITHON_TRACE_SPAN.SPANID,
+                           Tables.BITHON_TRACE_SPAN.COSTTIME,
+                           Tables.BITHON_TRACE_SPAN.PARENTSPANID,
+                           Tables.BITHON_TRACE_SPAN.TAGS)
+                  .indexes(Indexes.BITHON_TRACE_SPAN_IDX_KEY)
+                  .execute();
     }
 
     @Override

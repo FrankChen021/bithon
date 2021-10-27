@@ -38,24 +38,32 @@ public class StorageConfigurer {
     @Bean
     public IMetricStorage createMetricStorage(ObjectMapper om, @Value("${bithon.storage.metric}") String metricType) throws IOException {
         String type = String.format("{\"type\":\"%s\"}", metricType);
-        return om.readValue(type, IMetricStorage.class);
+        IMetricStorage metricStorage = om.readValue(type, IMetricStorage.class);
+        metricStorage.initialize();
+        return metricStorage;
     }
 
     @Bean
     public IMetaStorage metaStorage(ObjectMapper om, @Value("${bithon.storage.meta}") String metaType) throws IOException {
         String type = String.format("{\"type\":\"%s\"}", metaType);
-        return new CachableMetadataStorage(om.readValue(type, IMetaStorage.class));
+        IMetaStorage metaStorage = new CachableMetadataStorage(om.readValue(type, IMetaStorage.class));
+        metaStorage.initialize();
+        return metaStorage;
     }
 
     @Bean
     public ITraceStorage traceStorage(ObjectMapper om, @Value("${bithon.storage.tracing}") String tracingType) throws IOException {
         String type = String.format("{\"type\":\"%s\"}", tracingType);
-        return om.readValue(type, ITraceStorage.class);
+        ITraceStorage storage = om.readValue(type, ITraceStorage.class);
+        storage.initialize();
+        return storage;
     }
 
     @Bean
     public IEventStorage eventStorage(ObjectMapper om, @Value("${bithon.storage.event}") String eventType) throws IOException {
         String type = String.format("{\"type\":\"%s\"}", eventType);
-        return om.readValue(type, IEventStorage.class);
+        IEventStorage eventStorage = om.readValue(type, IEventStorage.class);
+        eventStorage.initialize();
+        return eventStorage;
     }
 }

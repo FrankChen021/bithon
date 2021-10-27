@@ -51,21 +51,22 @@ public class EventJdbcStorage implements IEventStorage {
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
+    }
 
-        if (!"CLICKHOUSE".equals(dslContext.dialect().name())) {
-            this.dslContext.createTableIfNotExists(Tables.BITHON_EVENT)
-                           .columns(Tables.BITHON_EVENT.ID,
-                                    Tables.BITHON_EVENT.APP_NAME,
-                                    Tables.BITHON_EVENT.INSTANCE_NAME,
-                                    Tables.BITHON_EVENT.TYPE,
-                                    Tables.BITHON_EVENT.ARGUMENTS,
-                                    Tables.BITHON_EVENT.TIMESTAMP)
-                           .indexes(Indexes.BITHON_EVENT_IDX_APPNAME,
-                                    Indexes.BITHON_EVENT_IDX_INSTANCENAME,
-                                    Indexes.BITHON_EVENT_IDX_TYPE,
-                                    Indexes.BITHON_EVENT_IDX_TIMESTAMP)
-                           .execute();
-        }
+    @Override
+    public void initialize() {
+        this.dslContext.createTableIfNotExists(Tables.BITHON_EVENT)
+                       .columns(Tables.BITHON_EVENT.ID,
+                                Tables.BITHON_EVENT.APP_NAME,
+                                Tables.BITHON_EVENT.INSTANCE_NAME,
+                                Tables.BITHON_EVENT.TYPE,
+                                Tables.BITHON_EVENT.ARGUMENTS,
+                                Tables.BITHON_EVENT.TIMESTAMP)
+                       .indexes(Indexes.BITHON_EVENT_IDX_APPNAME,
+                                Indexes.BITHON_EVENT_IDX_INSTANCENAME,
+                                Indexes.BITHON_EVENT_IDX_TYPE,
+                                Indexes.BITHON_EVENT_IDX_TIMESTAMP)
+                       .execute();
     }
 
     @Override

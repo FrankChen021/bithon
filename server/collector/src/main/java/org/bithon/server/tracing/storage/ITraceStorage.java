@@ -25,6 +25,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface ITraceStorage {
+    default void initialize() {
+
+    }
+
     ITraceWriter createWriter();
 
     ITraceReader createReader();

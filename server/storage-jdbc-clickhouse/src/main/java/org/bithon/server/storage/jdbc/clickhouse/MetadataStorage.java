@@ -14,22 +14,28 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.storage;
+package org.bithon.server.storage.jdbc.clickhouse;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
+import org.jooq.DSLContext;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * @date 2021/10/27 9:56 下午
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IEventStorage {
+@JsonTypeName("clickhouse")
+public class MetadataStorage extends MetadataJdbcStorage {
 
-    default void initialize() {
-
+    @JsonCreator
+    public MetadataStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dsl) {
+        super(dsl);
     }
 
-    IEventWriter createWriter();
-
-    IEventReader createReader();
+    @Override
+    public void initialize() {
+    }
 }

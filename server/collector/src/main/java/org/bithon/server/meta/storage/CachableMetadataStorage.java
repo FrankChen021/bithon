@@ -83,4 +83,9 @@ public class CachableMetadataStorage implements IMetaStorage {
         //TODO: cache
         return delegate.isApplicationExist(applicationName);
     }
+
+    @Override
+    public void initialize() {
+        delegate.initialize();
+    }
 }

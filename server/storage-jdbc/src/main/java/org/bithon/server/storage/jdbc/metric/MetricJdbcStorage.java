@@ -24,6 +24,7 @@ import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.storage.IMetricReader;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.IMetricWriter;
+import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
 
 /**
@@ -33,7 +34,7 @@ import org.jooq.DSLContext;
 @JsonTypeName("jdbc")
 public class MetricJdbcStorage implements IMetricStorage {
 
-    private final DSLContext dslContext;
+    protected final DSLContext dslContext;
 
     @JsonCreator
     public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext) {
@@ -42,11 +43,20 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     @Override
     public IMetricWriter createMetricWriter(DataSourceSchema schema) {
-        return new MetricJdbcWriter(dslContext, schema);
+        MetricTable table = new MetricTable(schema);
+        initialize(schema, table);
+        return new MetricJdbcWriter(dslContext, schema, table);
     }
 
     @Override
     public IMetricReader createMetricReader(DataSourceSchema schema) {
         return new MetricJdbcReader(dslContext);
+    }
+
+    protected void initialize(DataSourceSchema schema, MetricTable table) {
+        CreateTableIndexStep s = dslContext.createTableIfNotExists(table)
+                                           .columns(table.fields())
+                                           .index(table.getIndex(schema.isEnforceDuplicationCheck()));
+        s.execute();
     }
 }
