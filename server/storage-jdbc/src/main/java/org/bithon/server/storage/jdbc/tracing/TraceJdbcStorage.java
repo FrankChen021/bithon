@@ -33,14 +33,13 @@ import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
-import org.jooq.impl.ThreadLocalTransactionProvider;
 import org.springframework.dao.DuplicateKeyException;
 
+import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -56,10 +55,7 @@ public class TraceJdbcStorage implements ITraceStorage {
     @JsonCreator
     public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
-        this.dslContext = DSL.using(dslContext
-                                        .configuration()
-                                        .derive(new ThreadLocalTransactionProvider(dslContext.configuration()
-                                                                                             .connectionProvider())));
+        this.dslContext = dslContext;
         this.objectMapper = objectMapper;
     }
 
@@ -159,48 +155,32 @@ public class TraceJdbcStorage implements ITraceStorage {
     }
 
     private class TraceJdbcWriter implements ITraceWriter {
-        static final int BATCH_SIZE = 10;
-
         @Override
         public void write(List<TraceSpan> traceSpans) {
-
-            dslContext.transaction((configuration) -> {
-                List<BithonTraceSpanRecord> batchRecords = new ArrayList<>();
-
-                int index = 0;
-                int leftSize = traceSpans.size();
-
-                while (leftSize > 0) {
-                    int thisBatch = Math.min(BATCH_SIZE, leftSize);
-
-                    batchRecords.clear();
-                    for (int i = 0; i < thisBatch; i++, index++) {
-                        TraceSpan span = traceSpans.get(index);
-
-                        BithonTraceSpanRecord spanRecord = new BithonTraceSpanRecord();
-                        spanRecord.setAppName(span.appName);
-                        spanRecord.setInstanceName(span.instanceName);
-                        spanRecord.setTimestamp(new Timestamp(span.startTime / 1000));
-                        spanRecord.setTraceid(span.traceId);
-                        spanRecord.setSpanid(span.spanId);
-                        spanRecord.setParentspanid(span.parentSpanId);
-                        spanRecord.setCosttime(span.costTime);
-                        spanRecord.setName(span.name);
-                        spanRecord.setClazz(span.clazz == null ? "" : span.clazz);
-                        spanRecord.setMethod(span.method == null ? "" : span.method);
-                        spanRecord.setKind(span.kind);
-                        spanRecord.setTags(span.tags == null ? "{}" : objectMapper.writeValueAsString(span.tags));
-                        batchRecords.add(spanRecord);
-                    }
-                    try {
-                        dslContext.batchInsert(batchRecords).execute();
-                    } catch (DuplicateKeyException e) {
-                        log.error("Duplicated Span Records: {}", batchRecords);
-                    }
-
-                    leftSize -= thisBatch;
+            List<BithonTraceSpanRecord> records = traceSpans.stream().map((span) -> {
+                BithonTraceSpanRecord spanRecord = new BithonTraceSpanRecord();
+                spanRecord.setAppName(span.appName);
+                spanRecord.setInstanceName(span.instanceName);
+                spanRecord.setTimestamp(new Timestamp(span.startTime / 1000));
+                spanRecord.setTraceid(span.traceId);
+                spanRecord.setSpanid(span.spanId);
+                spanRecord.setParentspanid(span.parentSpanId);
+                spanRecord.setCosttime(span.costTime);
+                spanRecord.setName(span.name);
+                spanRecord.setClazz(span.clazz == null ? "" : span.clazz);
+                spanRecord.setMethod(span.method == null ? "" : span.method);
+                spanRecord.setKind(span.kind);
+                try {
+                    spanRecord.setTags(span.tags == null ? "{}" : objectMapper.writeValueAsString(span.tags));
+                } catch (IOException ignored) {
                 }
-            });
+                return spanRecord;
+            }).collect(Collectors.toList());
+            try {
+                dslContext.batchInsert(records).execute();
+            } catch (DuplicateKeyException e) {
+                log.error("Duplicated Span Records: {}", records);
+            }
         }
     }
 }
