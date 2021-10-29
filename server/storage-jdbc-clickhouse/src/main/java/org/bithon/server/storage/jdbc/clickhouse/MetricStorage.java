@@ -20,8 +20,12 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.storage.IMetricCleaner;
+import org.bithon.server.metric.storage.IMetricReader;
+import org.bithon.server.storage.jdbc.metric.ISQLExpressionProvider;
+import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.jooq.DSLContext;
@@ -66,6 +70,29 @@ public class MetricStorage extends MetricJdbcStorage {
         sb.delete(sb.length() - 1, sb.length());
         sb.append(");");
         dslContext.execute(sb.toString());
+    }
+
+
+    static class ClickHouseSQLExpressionProvider implements ISQLExpressionProvider {
+        public static ISQLExpressionProvider INSTANCE = new ClickHouseSQLExpressionProvider();
+
+        @Override
+        public String timeFloor(String field, long interval) {
+            return String.format("toUnixTimestamp(\"%s\")/ %d * %d", field, interval, interval);
+        }
+
+        /**
+         * ClickHouse does not support ISO8601 very well, we treat it as timestamp, which only accepts timestamp in seconds not milli-seconds
+         */
+        @Override
+        public String formatTimestamp(TimeSpan timeSpan) {
+            return String.format("fromUnixTimestamp(%d)", timeSpan.getMilliseconds() / 1000);
+        }
+    }
+
+    @Override
+    public IMetricReader createMetricReader(DataSourceSchema schema) {
+        return new MetricJdbcReader(dslContext, ClickHouseSQLExpressionProvider.INSTANCE);
     }
 
     @Override

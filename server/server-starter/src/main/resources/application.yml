@@ -4,4 +4,4 @@ spring:
   application:
     name: server
   profiles:
-    include: dev, storage, collector, webapp
+    include: dev, storage-clickhouse, collector, webapp

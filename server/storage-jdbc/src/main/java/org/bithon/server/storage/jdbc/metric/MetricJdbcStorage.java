@@ -27,6 +27,7 @@ import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.IMetricWriter;
 import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
 
 import java.sql.Timestamp;
 
@@ -53,9 +54,16 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     @Override
     public IMetricReader createMetricReader(DataSourceSchema schema) {
-        return new MetricJdbcReader(dslContext);
+        ISQLExpressionProvider sqlProvider;
+        if (dslContext.dialect() == SQLDialect.H2) {
+            sqlProvider = MetricJdbcReader.H2SQLExpressionProvider.INSTANCE;
+        } else {
+            sqlProvider = MetricJdbcReader.DefaultSQLExpressionProvider.INSTANCE;
+        }
+        return new MetricJdbcReader(dslContext, sqlProvider);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public IMetricCleaner createMetricCleaner(DataSourceSchema schema) {
         return timestamp -> {

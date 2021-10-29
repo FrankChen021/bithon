@@ -61,30 +61,14 @@ import java.util.stream.Collectors;
  * @date 2021/1/31 1:39 下午
  */
 @Slf4j
-class MetricJdbcReader implements IMetricReader {
-    /**
-     * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS
-     */
-    interface ISQLProvider {
-        default String timeFloor(String field, long interval) {
-            return String.format("UNIX_TIMESTAMP(\"%s\")/ %d * %d", field, interval, interval);
-        }
+public class MetricJdbcReader implements IMetricReader {
 
-        default boolean groupByRawExpression() {
-            return false;
-        }
-
-        default String formatTimestamp(TimeSpan timeSpan) {
-            return "'" + timeSpan.toISO8601() + "'";
-        }
+    static class DefaultSQLExpressionProvider implements ISQLExpressionProvider {
+        public static ISQLExpressionProvider INSTANCE = new DefaultSQLExpressionProvider();
     }
 
-    static class DefaultSQLProvider implements ISQLProvider {
-        public static ISQLProvider INSTANCE = new DefaultSQLProvider();
-    }
-
-    static class H2SQLProvider implements ISQLProvider {
-        public static ISQLProvider INSTANCE = new H2SQLProvider();
+    static class H2SQLExpressionProvider implements ISQLExpressionProvider {
+        public static ISQLExpressionProvider INSTANCE = new H2SQLExpressionProvider();
 
         @Override
         public boolean groupByRawExpression() {
@@ -96,45 +80,12 @@ class MetricJdbcReader implements IMetricReader {
          */
     }
 
-    static class ClickHouseSQLProvider implements ISQLProvider {
-        public static ISQLProvider INSTANCE = new ClickHouseSQLProvider();
-
-        @Override
-        public String timeFloor(String field, long interval) {
-            return String.format("toUnixTimestamp(\"%s\")/ %d * %d", field, interval, interval);
-        }
-
-        /**
-         * ClickHouse does not support ISO8601 very well, we treat it as timestamp
-         */
-        @Override
-        public String formatTimestamp(TimeSpan timeSpan) {
-            return String.format("fromUnixTimestamp(%d)", timeSpan.getMilliseconds());
-        }
-    }
-
     private final DSLContext dsl;
-    private final ISQLProvider sqlProvider;
+    private final ISQLExpressionProvider sqlProvider;
 
-    public MetricJdbcReader(DSLContext dsl) {
+    public MetricJdbcReader(DSLContext dsl, ISQLExpressionProvider sqlProvider) {
         this.dsl = dsl;
-
-        /*
-         * we don't use the SQLDialect enum directly
-         * because the enum 'CLICKHOUSE' is not supported by the current JOOQ(3.13~3.15) but by our modified version
-         * using the string version so that it's compatible with these official libs
-         */
-        switch (dsl.dialect().name()) {
-            case "H2":
-                this.sqlProvider = H2SQLProvider.INSTANCE;
-                break;
-            case "CLICKHOUSE":
-                this.sqlProvider = ClickHouseSQLProvider.INSTANCE;
-                break;
-            default:
-                this.sqlProvider = DefaultSQLProvider.INSTANCE;
-                break;
-        }
+        this.sqlProvider = sqlProvider;
     }
 
     // TODO: 具有多个纬度的聚合条件下，last/first应该按多个纬度分组求last/first，再聚合求和
@@ -351,6 +302,11 @@ class MetricJdbcReader implements IMetricReader {
         private final boolean addAlias;
         private final Map<String, Object> variables;
 
+        /**
+         * used to keep which metrics current SQL are using
+         */
+        private final Set<String> metrics;
+
         public MetricFieldsClauseBuilder(String sqlTableName,
                                          String tableAlias,
                                          DataSourceSchema dataSource,
@@ -368,20 +324,25 @@ class MetricJdbcReader implements IMetricReader {
             this.dataSource = dataSource;
             this.variables = variables;
             this.addAlias = addAlias;
+            this.metrics = new HashSet<>();
         }
 
         @Override
         public String visit(LongSumMetricSpec metricSpec) {
+            this.metrics.add(metricSpec.getName());
+
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("sum(\"%s\")", metricSpec.getName()));
             if (addAlias) {
-                sb.append(String.format(" \"%s\"", metricSpec.getName()));
+                sb.append(String.format(" AS \"%s\"", metricSpec.getName()));
             }
             return sb.toString();
         }
 
         @Override
         public String visit(DoubleSumMetricSpec metricSpec) {
+            this.metrics.add(metricSpec.getName());
+
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("sum(\"%s\")", metricSpec.getName()));
             if (addAlias) {
@@ -396,11 +357,18 @@ class MetricJdbcReader implements IMetricReader {
             metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
                 @Override
                 public void visitMetric(IMetricSpec metricSpec) {
-                    sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(null,
-                                                                              null,
-                                                                              dataSource,
-                                                                              variables,
-                                                                              false)));
+                    if (metrics.contains(metricSpec.getName())) {
+                        // this metricSpec has been in the SQL,
+                        // don't need to construct the aggregation expression for this post aggregator
+                        // because some DBMS does not support duplicated aggregation expressions for one metric
+                        sb.append(metricSpec.getName());
+                    } else {
+                        sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(null,
+                                                                                  null,
+                                                                                  dataSource,
+                                                                                  variables,
+                                                                                  false)));
+                    }
                 }
 
                 @Override
@@ -438,10 +406,12 @@ class MetricJdbcReader implements IMetricReader {
 
         @Override
         public String visit(CountMetricSpec metricSpec) {
+            this.metrics.add(metricSpec.getName());
+
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("sum(\"%s\")", metricSpec.getName()));
             if (addAlias) {
-                sb.append(String.format(" \"%s\"", metricSpec.getName()));
+                sb.append(String.format(" AS \"%s\"", metricSpec.getName()));
             }
             return sb.toString();
         }
@@ -556,20 +526,21 @@ class MetricJdbcReader implements IMetricReader {
         private final String tableName;
         private final DataSourceSchema schema;
         private final long interval;
-        private final ISQLProvider sqlProvider;
+        private final ISQLExpressionProvider sqlProvider;
         private String filters;
         private final TimeSpan start;
         private final TimeSpan end;
 
         static class MetricClauseBuilder extends MetricSpecVisitor {
-            private final ISQLProvider sqlProvider;
+            private final ISQLExpressionProvider sqlProvider;
             private final List<String> postExpressions;
             private final Set<String> rawExpressions;
             private final boolean addAlias;
             private final Map<String, Object> variables;
+            private final Set<String> metrics;
             private boolean hasLast;
 
-            public MetricClauseBuilder(ISQLProvider sqlProvider,
+            public MetricClauseBuilder(ISQLExpressionProvider sqlProvider,
                                        Map<String, Object> variables,
                                        boolean addAlias,
                                        List<String> postExpressions,
@@ -579,6 +550,7 @@ class MetricJdbcReader implements IMetricReader {
                 this.addAlias = addAlias;
                 this.postExpressions = postExpressions;
                 this.rawExpressions = rawExpressions;
+                this.metrics = new HashSet<>();
             }
 
             @Override
@@ -590,8 +562,11 @@ class MetricJdbcReader implements IMetricReader {
                         metricSpec.accept(new MetricSpecVisitor() {
                             @Override
                             protected void visit(IMetricSpec metricSpec, String aggregator) {
-                                sb.append(String.format("%s(\"%s\")", aggregator, metricSpec.getName()));
-
+                                if (metrics.contains(metricSpec.getName())) {
+                                    sb.append(String.format("\"%s\"", metricSpec.getName()));
+                                } else {
+                                    sb.append(String.format("%s(\"%s\")", aggregator, metricSpec.getName()));
+                                }
                                 rawExpressions.add(String.format("\"%s\"", metricSpec.getName()));
                             }
 
@@ -649,10 +624,11 @@ class MetricJdbcReader implements IMetricReader {
 
             @Override
             protected void visit(IMetricSpec metricSpec, String aggregator) {
+                this.metrics.add(metricSpec.getName());
                 postExpressions.add(String.format("%s(\"%s\")%s",
                                                   aggregator,
                                                   metricSpec.getName(),
-                                                  addAlias ? String.format(" \"%s\"", metricSpec.getName()) : ""));
+                                                  addAlias ? String.format(" AS \"%s\"", metricSpec.getName()) : ""));
 
                 rawExpressions.add(String.format(" \"%s\"", metricSpec.getName()));
             }
@@ -671,7 +647,7 @@ class MetricJdbcReader implements IMetricReader {
             }
         }
 
-        SQLClauseBuilder(ISQLProvider sqlProvider,
+        SQLClauseBuilder(ISQLExpressionProvider sqlProvider,
                          TimeSpan start,
                          TimeSpan end,
                          DataSourceSchema dataSourceSchema,

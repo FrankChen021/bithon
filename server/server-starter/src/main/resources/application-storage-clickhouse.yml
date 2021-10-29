@@ -1,0 +1,13 @@
+bithon:
+  storage:
+    tracing: clickhouse
+    metric: clickhouse
+    event: clickhouse
+    meta: clickhouse
+    provider:
+      type: clickhouse
+      parameters:
+        url: jdbc:clickhouse://localhost:8123/default?date_time_input_format=best_effort&allow_experimental_window_functions=1
+        driverClassName: ru.yandex.clickhouse.ClickHouseDriver
+        username: default
+        password:
