@@ -35,6 +35,7 @@ import org.jooq.impl.TableImpl;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,8 +50,10 @@ public class MetricTable extends TableImpl {
     private final List<Field> metrics = new ArrayList<>();
     Field<Timestamp> timestampField;
 
-    public MetricTable(DataSourceSchema schema) {
-        super(DSL.name("bithon_" + schema.getName().replace("-", "_")));
+    private final List<Index> indexes;
+
+    public MetricTable(DataSourceSchema schema, ISqlExpressionFormatter sqlExpressionFormatter) {
+        super(DSL.name(sqlExpressionFormatter.getWriteTableName(schema.getName())));
 
         //noinspection unchecked
         timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP(3));
@@ -65,17 +68,20 @@ public class MetricTable extends TableImpl {
             }
             metrics.add(createField(metric.getName(), metric.getValueType()));
         }
-    }
 
-    public Index getIndex(boolean unique) {
         List<Field> indexesFields = new ArrayList<>();
         indexesFields.add(timestampField);
         indexesFields.addAll(dimensions);
-        return Internal.createIndex("idx_" + this.getName() + "_dimensions",
-                                    this,
-                                    indexesFields.toArray(new Field[0]),
-                                    unique);
+        Index index = Internal.createIndex("idx_" + this.getName() + "_dimensions",
+                                           this,
+                                           indexesFields.toArray(new Field[0]),
+                                           schema.isEnforceDuplicationCheck());
+        this.indexes = Collections.singletonList(index);
+    }
 
+    @Override
+    public List<Index> getIndexes() {
+        return indexes;
     }
 
     private Field createField(String name, IValueType valueType) {

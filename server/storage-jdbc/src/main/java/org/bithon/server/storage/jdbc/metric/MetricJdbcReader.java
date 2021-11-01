@@ -46,11 +46,9 @@ import org.bithon.server.metric.storage.TimeseriesQuery;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -103,7 +101,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                     query.getDataSource(),
                                                     query.getInterval().getGranularity()).filters(query.getFilters())
                                                                                          .metrics(query.getMetrics())
-            .groupBy(query.getGroupBys())
+                                                                                         .groupBy(query.getGroupBys())
                                                                                          .build();
         List<Map<String, Object>> queryResult = executeSql(sql);
 
@@ -141,7 +139,8 @@ public class MetricJdbcReader implements IMetricReader {
 
     @Override
     public List<Map<String, Object>> groupBy(GroupByQuery query) {
-        String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
+        String sqlTableName = this.sqlFormatter.getReadTableName(query.getDataSource().getName());
+
         MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
                                                                                       "OUTER",
                                                                                       query.getDataSource(),
@@ -209,7 +208,7 @@ public class MetricJdbcReader implements IMetricReader {
             "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s ",
             dimension,
             dimension,
-            "bithon_" + dataSourceSchema.getName().replace("-", "_"),
+            sqlFormatter.getReadTableName(dataSourceSchema.getName()),
             condition,
             sqlFormatter.formatTimestamp(start),
             sqlFormatter.formatTimestamp(end)
@@ -646,7 +645,7 @@ public class MetricJdbcReader implements IMetricReader {
                                    DataSourceSchema dataSourceSchema,
                                    long interval) {
             this.sqlFormatter = sqlFormatter;
-            this.tableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
+            this.tableName = sqlFormatter.getReadTableName(dataSourceSchema.getName());
             this.start = start;
             this.end = end;
             this.schema = dataSourceSchema;

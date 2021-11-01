@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.component.db.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.jooq.DSLContext;
 
@@ -30,12 +31,20 @@ import org.jooq.DSLContext;
 @JsonTypeName("clickhouse")
 public class MetadataStorage extends MetadataJdbcStorage {
 
+    private final ClickHouseConfig config;
+    private final ClickHouseSqlExpressionFormatter formatter;
+
     @JsonCreator
-    public MetadataStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dsl) {
+    public MetadataStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dsl,
+                           @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
+                           @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlExpressionFormatter formatter) {
         super(dsl);
+        this.config = config;
+        this.formatter = formatter;
     }
 
     @Override
     public void initialize() {
+        new TableCreator(config, formatter, this.metadataDao.getDsl()).createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE, "application_instance");
     }
 }

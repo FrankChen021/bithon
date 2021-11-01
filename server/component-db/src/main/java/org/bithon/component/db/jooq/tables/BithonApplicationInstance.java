@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.bithon.component.db.jooq.DefaultSchema;
 import org.bithon.component.db.jooq.Indexes;
-import org.bithon.component.db.jooq.Keys;
 import org.bithon.component.db.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -21,7 +20,6 @@ import org.jooq.Row4;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
@@ -32,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonApplicationInstance extends TableImpl<BithonApplicationInstanceRecord> {
 
-    private static final long serialVersionUID = -1008340893;
+    private static final long serialVersionUID = 1994879689;
 
     /**
      * The reference instance of <code>bithon_application_instance</code>
@@ -107,12 +105,7 @@ public class BithonApplicationInstance extends TableImpl<BithonApplicationInstan
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_APPLICATION_INSTANCE_UQ_NAME);
-    }
-
-    @Override
-    public List<UniqueKey<BithonApplicationInstanceRecord>> getKeys() {
-        return Arrays.<UniqueKey<BithonApplicationInstanceRecord>>asList(Keys.KEY_BITHON_APPLICATION_INSTANCE_UQ_NAME);
+        return Arrays.<Index>asList(Indexes.BITHON_APPLICATION_INSTANCE_IDX_APP_NAME, Indexes.BITHON_APPLICATION_INSTANCE_IDX_TIMESTAMP);
     }
 
     @Override

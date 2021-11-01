@@ -61,4 +61,12 @@ public interface ISqlExpressionFormatter {
     default String orderByTimestamp(String timestampField) {
         return "";
     }
+
+    default String getReadTableName(String name) {
+        return "bithon_" + name.replace("-", "_");
+    }
+
+    default String getWriteTableName(String name) {
+        return "bithon_" + name.replace("-", "_");
+    }
 }

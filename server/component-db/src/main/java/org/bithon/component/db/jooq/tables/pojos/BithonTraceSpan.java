@@ -14,8 +14,9 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan implements Serializable {
 
-    private static final long serialVersionUID = -2059458785;
+    private static final long serialVersionUID = -1408973903;
 
+    private Timestamp timestamp;
     private String    appName;
     private String    instanceName;
     private String    name;
@@ -27,11 +28,11 @@ public class BithonTraceSpan implements Serializable {
     private String    kind;
     private Long      costtime;
     private String    tags;
-    private Timestamp timestamp;
 
     public BithonTraceSpan() {}
 
     public BithonTraceSpan(BithonTraceSpan value) {
+        this.timestamp = value.timestamp;
         this.appName = value.appName;
         this.instanceName = value.instanceName;
         this.name = value.name;
@@ -43,10 +44,10 @@ public class BithonTraceSpan implements Serializable {
         this.kind = value.kind;
         this.costtime = value.costtime;
         this.tags = value.tags;
-        this.timestamp = value.timestamp;
     }
 
     public BithonTraceSpan(
+        Timestamp timestamp,
         String    appName,
         String    instanceName,
         String    name,
@@ -57,9 +58,9 @@ public class BithonTraceSpan implements Serializable {
         String    parentspanid,
         String    kind,
         Long      costtime,
-        String    tags,
-        Timestamp timestamp
+        String    tags
     ) {
+        this.timestamp = timestamp;
         this.appName = appName;
         this.instanceName = instanceName;
         this.name = name;
@@ -71,6 +72,13 @@ public class BithonTraceSpan implements Serializable {
         this.kind = kind;
         this.costtime = costtime;
         this.tags = tags;
+    }
+
+    public Timestamp getTimestamp() {
+        return this.timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -162,19 +170,12 @@ public class BithonTraceSpan implements Serializable {
         this.tags = tags;
     }
 
-    public Timestamp getTimestamp() {
-        return this.timestamp;
-    }
-
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("BithonTraceSpan (");
 
-        sb.append(appName);
+        sb.append(timestamp);
+        sb.append(", ").append(appName);
         sb.append(", ").append(instanceName);
         sb.append(", ").append(name);
         sb.append(", ").append(clazz);
@@ -185,7 +186,6 @@ public class BithonTraceSpan implements Serializable {
         sb.append(", ").append(kind);
         sb.append(", ").append(costtime);
         sb.append(", ").append(tags);
-        sb.append(", ").append(timestamp);
 
         sb.append(")");
         return sb.toString();

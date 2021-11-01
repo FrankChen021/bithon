@@ -10,19 +10,16 @@ import java.util.List;
 
 import org.bithon.component.db.jooq.DefaultSchema;
 import org.bithon.component.db.jooq.Indexes;
-import org.bithon.component.db.jooq.Keys;
 import org.bithon.component.db.jooq.tables.records.BithonEventRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row6;
+import org.jooq.Row5;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
@@ -33,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonEvent extends TableImpl<BithonEventRecord> {
 
-    private static final long serialVersionUID = 782949491;
+    private static final long serialVersionUID = 1037279452;
 
     /**
      * The reference instance of <code>bithon_event</code>
@@ -49,9 +46,9 @@ public class BithonEvent extends TableImpl<BithonEventRecord> {
     }
 
     /**
-     * The column <code>bithon_event.id</code>.
+     * The column <code>bithon_event.timestamp</code>. reported Timestamp
      */
-    public final TableField<BithonEventRecord, Long> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).identity(true), this, "");
+    public final TableField<BithonEventRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "reported Timestamp");
 
     /**
      * The column <code>bithon_event.app_name</code>.
@@ -72,11 +69,6 @@ public class BithonEvent extends TableImpl<BithonEventRecord> {
      * The column <code>bithon_event.arguments</code>. JSON formatted Map&lt;String, String&gt;
      */
     public final TableField<BithonEventRecord, String> ARGUMENTS = createField(DSL.name("arguments"), org.jooq.impl.SQLDataType.CLOB, this, "JSON formatted Map<String, String>");
-
-    /**
-     * The column <code>bithon_event.timestamp</code>. reported Timestamp
-     */
-    public final TableField<BithonEventRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "reported Timestamp");
 
     /**
      * Create a <code>bithon_event</code> table reference
@@ -118,22 +110,7 @@ public class BithonEvent extends TableImpl<BithonEventRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_EVENT_IDX_APPNAME, Indexes.BITHON_EVENT_IDX_INSTANCENAME, Indexes.BITHON_EVENT_IDX_TIMESTAMP, Indexes.BITHON_EVENT_IDX_TYPE, Indexes.BITHON_EVENT_PRIMARY);
-    }
-
-    @Override
-    public Identity<BithonEventRecord, Long> getIdentity() {
-        return Keys.IDENTITY_BITHON_EVENT;
-    }
-
-    @Override
-    public UniqueKey<BithonEventRecord> getPrimaryKey() {
-        return Keys.KEY_BITHON_EVENT_PRIMARY;
-    }
-
-    @Override
-    public List<UniqueKey<BithonEventRecord>> getKeys() {
-        return Arrays.<UniqueKey<BithonEventRecord>>asList(Keys.KEY_BITHON_EVENT_PRIMARY);
+        return Arrays.<Index>asList(Indexes.BITHON_EVENT_IDX_APPNAME, Indexes.BITHON_EVENT_IDX_INSTANCENAME, Indexes.BITHON_EVENT_IDX_TIMESTAMP, Indexes.BITHON_EVENT_IDX_TYPE);
     }
 
     @Override
@@ -163,11 +140,11 @@ public class BithonEvent extends TableImpl<BithonEventRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row6 type methods
+    // Row5 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<Long, String, String, String, String, Timestamp> fieldsRow() {
-        return (Row6) super.fieldsRow();
+    public Row5<Timestamp, String, String, String, String> fieldsRow() {
+        return (Row5) super.fieldsRow();
     }
 }

@@ -7,7 +7,12 @@ bithon:
     provider:
       type: clickhouse
       parameters:
-        url: jdbc:clickhouse://localhost:8123/default?date_time_input_format=best_effort&allow_experimental_window_functions=1
+        # data source parameters
+        url: jdbc:clickhouse://localhost:8123/bithon
         driverClassName: ru.yandex.clickhouse.ClickHouseDriver
         username: default
         password:
+        # cluster parameters
+        # engine: MergeTree
+        # cluster: <should be set if engine is ReplicatedMergeTree>
+

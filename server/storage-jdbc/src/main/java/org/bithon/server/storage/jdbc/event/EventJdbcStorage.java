@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.component.db.jooq.Indexes;
 import org.bithon.component.db.jooq.Tables;
 import org.bithon.server.event.handler.EventMessage;
 import org.bithon.server.event.storage.IEventCleaner;
@@ -44,8 +43,8 @@ import java.sql.Timestamp;
 @JsonTypeName("jdbc")
 public class EventJdbcStorage implements IEventStorage {
 
-    private final DSLContext dslContext;
-    private final ObjectMapper objectMapper;
+    protected final DSLContext dslContext;
+    protected final ObjectMapper objectMapper;
 
     @JsonCreator
     public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
@@ -57,16 +56,8 @@ public class EventJdbcStorage implements IEventStorage {
     @Override
     public void initialize() {
         this.dslContext.createTableIfNotExists(Tables.BITHON_EVENT)
-                       .columns(Tables.BITHON_EVENT.ID,
-                                Tables.BITHON_EVENT.APP_NAME,
-                                Tables.BITHON_EVENT.INSTANCE_NAME,
-                                Tables.BITHON_EVENT.TYPE,
-                                Tables.BITHON_EVENT.ARGUMENTS,
-                                Tables.BITHON_EVENT.TIMESTAMP)
-                       .indexes(Indexes.BITHON_EVENT_IDX_APPNAME,
-                                Indexes.BITHON_EVENT_IDX_INSTANCENAME,
-                                Indexes.BITHON_EVENT_IDX_TYPE,
-                                Indexes.BITHON_EVENT_IDX_TIMESTAMP)
+                       .columns(Tables.BITHON_EVENT.fields())
+                       .indexes(Tables.BITHON_EVENT.getIndexes())
                        .execute();
     }
 
@@ -82,13 +73,9 @@ public class EventJdbcStorage implements IEventStorage {
 
     @Override
     public IEventCleaner createCleaner() {
-        return new IEventCleaner() {
-            @Override
-            public void clean(long timestamp) {
-                dslContext.delete(Tables.BITHON_EVENT)
-                          .where(Tables.BITHON_EVENT.TIMESTAMP.le(new Timestamp(timestamp))).execute();
-            }
-        };
+        return timestamp -> dslContext.delete(Tables.BITHON_EVENT)
+                                      .where(Tables.BITHON_EVENT.TIMESTAMP.le(new Timestamp(timestamp)))
+                                      .execute();
     }
 
     private static class EventWriter implements IEventWriter {
@@ -110,12 +97,12 @@ public class EventJdbcStorage implements IEventStorage {
 
         @Override
         public void write(EventMessage eventMessage) throws IOException {
-            InsertSetMoreStep step = dslContext.insertInto(Tables.BITHON_EVENT)
-                                               .set(Tables.BITHON_EVENT.APP_NAME, eventMessage.getAppName())
-                                               .set(Tables.BITHON_EVENT.INSTANCE_NAME, eventMessage.getInstanceName())
-                                               .set(Tables.BITHON_EVENT.TYPE, eventMessage.getType())
-                                               .set(Tables.BITHON_EVENT.ARGUMENTS, om.writeValueAsString(eventMessage.getArgs()))
-                                               .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(eventMessage.getTimestamp()));
+            InsertSetMoreStep<?> step = dslContext.insertInto(Tables.BITHON_EVENT)
+                                                  .set(Tables.BITHON_EVENT.APP_NAME, eventMessage.getAppName())
+                                                  .set(Tables.BITHON_EVENT.INSTANCE_NAME, eventMessage.getInstanceName())
+                                                  .set(Tables.BITHON_EVENT.TYPE, eventMessage.getType())
+                                                  .set(Tables.BITHON_EVENT.ARGUMENTS, om.writeValueAsString(eventMessage.getArgs()))
+                                                  .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(eventMessage.getTimestamp()));
             step.execute();
         }
     }

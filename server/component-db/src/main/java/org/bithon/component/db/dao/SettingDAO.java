@@ -36,20 +36,20 @@ public class SettingDAO {
         this.dsl = dsl;
         if (dsl.configuration().dialect().equals(SQLDialect.H2)) {
             this.dsl.createTableIfNotExists(Tables.BITHON_AGENT_SETTING)
-                .columns(Tables.BITHON_AGENT_SETTING.ID,
-                         Tables.BITHON_AGENT_SETTING.SETTING,
-                         Tables.BITHON_AGENT_SETTING.SETTING_NAME,
-                         Tables.BITHON_AGENT_SETTING.APP_NAME,
-                         Tables.BITHON_AGENT_SETTING.UPDATED_AT)
-                .execute();
+                    .columns(Tables.BITHON_AGENT_SETTING.ID,
+                             Tables.BITHON_AGENT_SETTING.SETTING,
+                             Tables.BITHON_AGENT_SETTING.SETTING_NAME,
+                             Tables.BITHON_AGENT_SETTING.APP_NAME,
+                             Tables.BITHON_AGENT_SETTING.UPDATED_AT)
+                    .execute();
         }
     }
 
     public Map<String, String> getSettings(String appName, long since) {
         return dsl.select(Tables.BITHON_AGENT_SETTING.SETTING_NAME, Tables.BITHON_AGENT_SETTING.SETTING)
-            .from(Tables.BITHON_AGENT_SETTING)
-            .where(Tables.BITHON_AGENT_SETTING.APP_NAME.eq(appName))
-            .and(Tables.BITHON_AGENT_SETTING.UPDATED_AT.gt(new Timestamp(since)))
-            .fetchMap(Tables.BITHON_AGENT_SETTING.SETTING_NAME, Tables.BITHON_AGENT_SETTING.SETTING);
+                  .from(Tables.BITHON_AGENT_SETTING)
+                  .where(Tables.BITHON_AGENT_SETTING.APP_NAME.eq(appName))
+                  .and(Tables.BITHON_AGENT_SETTING.UPDATED_AT.gt(new Timestamp(since)))
+                  .fetchMap(Tables.BITHON_AGENT_SETTING.SETTING_NAME, Tables.BITHON_AGENT_SETTING.SETTING);
     }
 }

@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
-    private static final long serialVersionUID = 1757202894;
+    private static final long serialVersionUID = -185394534;
 
     /**
      * The reference instance of <code>bithon_trace_span</code>
@@ -46,6 +46,11 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     public Class<BithonTraceSpanRecord> getRecordType() {
         return BithonTraceSpanRecord.class;
     }
+
+    /**
+     * The column <code>bithon_trace_span.timestamp</code>. Milli Seconds
+     */
+    public final TableField<BithonTraceSpanRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Milli Seconds");
 
     /**
      * The column <code>bithon_trace_span.app_name</code>.
@@ -103,11 +108,6 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     public final TableField<BithonTraceSpanRecord, String> TAGS = createField(DSL.name("tags"), org.jooq.impl.SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>bithon_trace_span.timestamp</code>. Milli Seconds
-     */
-    public final TableField<BithonTraceSpanRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Milli Seconds");
-
-    /**
      * Create a <code>bithon_trace_span</code> table reference
      */
     public BithonTraceSpan() {
@@ -147,7 +147,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_APP_NAME, Indexes.BITHON_TRACE_SPAN_IDX_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_KEY, Indexes.BITHON_TRACE_SPAN_IDX_PARENTSPANID);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_APP_NAME, Indexes.BITHON_TRACE_SPAN_IDX_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_KEY, Indexes.BITHON_TRACE_SPAN_IDX_PARENTSPANID, Indexes.BITHON_TRACE_SPAN_IDX_TIMESTAMP);
     }
 
     @Override
@@ -186,7 +186,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row12<String, String, String, String, String, String, String, String, String, Long, String, Timestamp> fieldsRow() {
+    public Row12<Timestamp, String, String, String, String, String, String, String, String, String, Long, String> fieldsRow() {
         return (Row12) super.fieldsRow();
     }
 }

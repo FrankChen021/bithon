@@ -14,48 +14,44 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonEvent implements Serializable {
 
-    private static final long serialVersionUID = 198809163;
+    private static final long serialVersionUID = 1308184876;
 
-    private Long      id;
+    private Timestamp timestamp;
     private String    appName;
     private String    instanceName;
     private String    type;
     private String    arguments;
-    private Timestamp timestamp;
 
     public BithonEvent() {}
 
     public BithonEvent(BithonEvent value) {
-        this.id = value.id;
+        this.timestamp = value.timestamp;
         this.appName = value.appName;
         this.instanceName = value.instanceName;
         this.type = value.type;
         this.arguments = value.arguments;
-        this.timestamp = value.timestamp;
     }
 
     public BithonEvent(
-        Long      id,
+        Timestamp timestamp,
         String    appName,
         String    instanceName,
         String    type,
-        String    arguments,
-        Timestamp timestamp
+        String    arguments
     ) {
-        this.id = id;
+        this.timestamp = timestamp;
         this.appName = appName;
         this.instanceName = instanceName;
         this.type = type;
         this.arguments = arguments;
+    }
+
+    public Timestamp getTimestamp() {
+        return this.timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
-    }
-
-    public Long getId() {
-        return this.id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getAppName() {
@@ -90,24 +86,15 @@ public class BithonEvent implements Serializable {
         this.arguments = arguments;
     }
 
-    public Timestamp getTimestamp() {
-        return this.timestamp;
-    }
-
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("BithonEvent (");
 
-        sb.append(id);
+        sb.append(timestamp);
         sb.append(", ").append(appName);
         sb.append(", ").append(instanceName);
         sb.append(", ").append(type);
         sb.append(", ").append(arguments);
-        sb.append(", ").append(timestamp);
 
         sb.append(")");
         return sb.toString();

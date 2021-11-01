@@ -20,18 +20,12 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.storage.IMetricCleaner;
-import org.bithon.server.metric.storage.IMetricReader;
 import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
-import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.jooq.DSLContext;
-import org.jooq.Field;
-import org.jooq.Index;
-import org.jooq.SortField;
 
 /**
  * @author frank.chen021@outlook.com
@@ -40,69 +34,26 @@ import org.jooq.SortField;
 @JsonTypeName("clickhouse")
 public class MetricStorage extends MetricJdbcStorage {
 
+    private final ClickHouseSqlExpressionFormatter formatter;
+    private final ClickHouseConfig config;
+
     @JsonCreator
-    public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext) {
+    public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
+                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlExpressionFormatter formatter,
+                         ClickHouseConfig config) {
         super(dslContext);
+        this.formatter = formatter;
+        this.config = config;
     }
 
     @Override
     protected void initialize(DataSourceSchema schema, MetricTable table) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s` (\n", table.getName()));
-        for (Field<?> f : table.fields()) {
-
-            if (f.getDataType().hasPrecision()) {
-                sb.append(String.format("`%s` %s(%d, %d) ,\n",
-                                        f.getName(),
-                                        f.getDataType().getTypeName(),
-                                        f.getDataType().precision(),
-                                        f.getDataType().scale()));
-            } else {
-                sb.append(String.format("`%s` %s ,\n", f.getName(), f.getDataType().getTypeName()));
-            }
-        }
-        sb.delete(sb.length() - 2, sb.length());
-        sb.append(") ENGINE=MergeTree ORDER BY(");
-        Index idx = table.getIndex(schema.isEnforceDuplicationCheck());
-        for (SortField<?> f : idx.getFields()) {
-            sb.append(String.format("`%s`,", f.getName()));
-        }
-        sb.delete(sb.length() - 1, sb.length());
-        sb.append(");");
-        dslContext.execute(sb.toString());
-    }
-
-
-    static class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
-        public static ISqlExpressionFormatter INSTANCE = new ClickHouseSqlExpressionFormatter();
-
-        @Override
-        public String timeFloor(String field, long interval) {
-            return String.format("CAST(toUnixTimestamp(\"%s\")/ %d AS Int64) * %d", field, interval, interval);
-        }
-
-        @Override
-        public boolean groupByUseRawExpression() {
-            return false;
-        }
-
-        /**
-         * ClickHouse does not support ISO8601 very well, we treat it as timestamp, which only accepts timestamp in seconds not milli-seconds
-         */
-        @Override
-        public String formatTimestamp(TimeSpan timeSpan) {
-            return String.format("fromUnixTimestamp(%d)", timeSpan.getMilliseconds() / 1000);
-        }
-
-        @Override
-        public String orderByTimestamp(String timestampField) {
-            return "ORDER BY \"" + timestampField + "\"";
-        }
+        new TableCreator(config, formatter, this.dslContext).createIfNotExist(table, schema.getName());
     }
 
     @Override
-    public IMetricReader createMetricReader(DataSourceSchema schema) {
-        return new MetricJdbcReader(dslContext, ClickHouseSqlExpressionFormatter.INSTANCE);
+    protected ISqlExpressionFormatter getSqlExpressionFormatter() {
+        return formatter;
     }
 
     @Override

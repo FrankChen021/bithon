@@ -19,12 +19,14 @@ package org.bithon.server.storage.jdbc.clickhouse;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
+import java.net.URI;
 
 /**
  * @author Frank Chen
@@ -38,6 +40,24 @@ public class ClickHouseStorageAutoConfiguration {
     @ConfigurationProperties(prefix = "bithon.storage.provider.parameters")
     DataSource createDataSource() {
         return new DruidDataSource();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "bithon.storage.provider.parameters")
+    ClickHouseConfig clickHouseConfig(@Value("${bithon.storage.provider.parameters.url}") String jdbc) throws Exception {
+        if (!jdbc.startsWith("jdbc:")) {
+            throw new RuntimeException("jdbc format is wrong.");
+        }
+        URI uri = new URI(jdbc.substring("jdbc:".length()));
+        String database = uri.getPath();
+        ClickHouseConfig config = new ClickHouseConfig();
+        config.setDatabase(database.substring(1)); // remove the leading slash
+        return config;
+    }
+
+    @Bean
+    ClickHouseSqlExpressionFormatter createFormatter(ClickHouseConfig config) {
+        return new ClickHouseSqlExpressionFormatter(config);
     }
 
     @Bean

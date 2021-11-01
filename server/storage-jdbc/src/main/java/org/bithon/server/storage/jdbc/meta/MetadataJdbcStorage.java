@@ -36,7 +36,7 @@ import java.util.Collection;
 @JsonTypeName("jdbc")
 public class MetadataJdbcStorage implements IMetaStorage {
 
-    private final MetadataDAO metadataDao;
+    protected final MetadataDAO metadataDao;
 
     @JsonCreator
     public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dsl) {

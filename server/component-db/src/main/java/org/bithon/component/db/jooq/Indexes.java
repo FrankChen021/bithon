@@ -25,16 +25,17 @@ public class Indexes {
 
     public static final Index BITHON_AGENT_SETTING_KEY_APPNAME = Indexes0.BITHON_AGENT_SETTING_KEY_APPNAME;
     public static final Index BITHON_AGENT_SETTING_PRIMARY = Indexes0.BITHON_AGENT_SETTING_PRIMARY;
-    public static final Index BITHON_APPLICATION_INSTANCE_UQ_NAME = Indexes0.BITHON_APPLICATION_INSTANCE_UQ_NAME;
+    public static final Index BITHON_APPLICATION_INSTANCE_IDX_APP_NAME = Indexes0.BITHON_APPLICATION_INSTANCE_IDX_APP_NAME;
+    public static final Index BITHON_APPLICATION_INSTANCE_IDX_TIMESTAMP = Indexes0.BITHON_APPLICATION_INSTANCE_IDX_TIMESTAMP;
     public static final Index BITHON_EVENT_IDX_APPNAME = Indexes0.BITHON_EVENT_IDX_APPNAME;
     public static final Index BITHON_EVENT_IDX_INSTANCENAME = Indexes0.BITHON_EVENT_IDX_INSTANCENAME;
     public static final Index BITHON_EVENT_IDX_TIMESTAMP = Indexes0.BITHON_EVENT_IDX_TIMESTAMP;
     public static final Index BITHON_EVENT_IDX_TYPE = Indexes0.BITHON_EVENT_IDX_TYPE;
-    public static final Index BITHON_EVENT_PRIMARY = Indexes0.BITHON_EVENT_PRIMARY;
     public static final Index BITHON_TRACE_SPAN_IDX_APP_NAME = Indexes0.BITHON_TRACE_SPAN_IDX_APP_NAME;
     public static final Index BITHON_TRACE_SPAN_IDX_INSTANCENAME = Indexes0.BITHON_TRACE_SPAN_IDX_INSTANCENAME;
     public static final Index BITHON_TRACE_SPAN_IDX_KEY = Indexes0.BITHON_TRACE_SPAN_IDX_KEY;
     public static final Index BITHON_TRACE_SPAN_IDX_PARENTSPANID = Indexes0.BITHON_TRACE_SPAN_IDX_PARENTSPANID;
+    public static final Index BITHON_TRACE_SPAN_IDX_TIMESTAMP = Indexes0.BITHON_TRACE_SPAN_IDX_TIMESTAMP;
 
     // -------------------------------------------------------------------------
     // [#1459] distribute members to avoid static initialisers > 64kb
@@ -43,15 +44,16 @@ public class Indexes {
     private static class Indexes0 {
         public static Index BITHON_AGENT_SETTING_KEY_APPNAME = Internal.createIndex("key_appName", BithonAgentSetting.BITHON_AGENT_SETTING, new OrderField[] { BithonAgentSetting.BITHON_AGENT_SETTING.APP_NAME, BithonAgentSetting.BITHON_AGENT_SETTING.SETTING_NAME }, true);
         public static Index BITHON_AGENT_SETTING_PRIMARY = Internal.createIndex("PRIMARY", BithonAgentSetting.BITHON_AGENT_SETTING, new OrderField[] { BithonAgentSetting.BITHON_AGENT_SETTING.ID }, true);
-        public static Index BITHON_APPLICATION_INSTANCE_UQ_NAME = Internal.createIndex("uq_name", BithonApplicationInstance.BITHON_APPLICATION_INSTANCE, new OrderField[] { BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE, BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.INSTANCE_NAME }, true);
+        public static Index BITHON_APPLICATION_INSTANCE_IDX_APP_NAME = Internal.createIndex("idx_app_name", BithonApplicationInstance.BITHON_APPLICATION_INSTANCE, new OrderField[] { BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME }, false);
+        public static Index BITHON_APPLICATION_INSTANCE_IDX_TIMESTAMP = Internal.createIndex("idx_timestamp", BithonApplicationInstance.BITHON_APPLICATION_INSTANCE, new OrderField[] { BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.TIMESTAMP }, false);
         public static Index BITHON_EVENT_IDX_APPNAME = Internal.createIndex("idx_appName", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.APP_NAME }, false);
         public static Index BITHON_EVENT_IDX_INSTANCENAME = Internal.createIndex("idx_instanceName", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.INSTANCE_NAME }, false);
         public static Index BITHON_EVENT_IDX_TIMESTAMP = Internal.createIndex("idx_timestamp", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.TIMESTAMP }, false);
         public static Index BITHON_EVENT_IDX_TYPE = Internal.createIndex("idx_type", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.TYPE }, false);
-        public static Index BITHON_EVENT_PRIMARY = Internal.createIndex("PRIMARY", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.ID }, true);
         public static Index BITHON_TRACE_SPAN_IDX_APP_NAME = Internal.createIndex("idx_app_name", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.APP_NAME }, false);
         public static Index BITHON_TRACE_SPAN_IDX_INSTANCENAME = Internal.createIndex("idx_instanceName", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.INSTANCE_NAME }, false);
         public static Index BITHON_TRACE_SPAN_IDX_KEY = Internal.createIndex("idx_key", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.TRACEID, BithonTraceSpan.BITHON_TRACE_SPAN.SPANID }, true);
         public static Index BITHON_TRACE_SPAN_IDX_PARENTSPANID = Internal.createIndex("idx_parentSpanId", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.PARENTSPANID }, false);
+        public static Index BITHON_TRACE_SPAN_IDX_TIMESTAMP = Internal.createIndex("idx_timestamp", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.TIMESTAMP }, false);
     }
 }

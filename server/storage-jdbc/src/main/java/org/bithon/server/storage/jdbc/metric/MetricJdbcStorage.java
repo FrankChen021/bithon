@@ -47,35 +47,37 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     @Override
     public IMetricWriter createMetricWriter(DataSourceSchema schema) {
-        MetricTable table = new MetricTable(schema);
+        MetricTable table = new MetricTable(schema, getSqlExpressionFormatter());
         initialize(schema, table);
         return new MetricJdbcWriter(dslContext, schema, table);
     }
 
     @Override
     public IMetricReader createMetricReader(DataSourceSchema schema) {
-        ISqlExpressionFormatter sqlProvider;
-        if (dslContext.dialect() == SQLDialect.H2) {
-            sqlProvider = MetricJdbcReader.H2SqlExpressionFormatter.INSTANCE;
-        } else {
-            sqlProvider = MetricJdbcReader.DefaultSqlExpressionFormatter.INSTANCE;
-        }
-        return new MetricJdbcReader(dslContext, sqlProvider);
+        return new MetricJdbcReader(dslContext, getSqlExpressionFormatter());
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public IMetricCleaner createMetricCleaner(DataSourceSchema schema) {
         return timestamp -> {
-            final MetricTable table = new MetricTable(schema);
+            final MetricTable table = new MetricTable(schema, getSqlExpressionFormatter());
             dslContext.deleteFrom(table).where(table.timestampField.lt(new Timestamp(timestamp))).execute();
         };
+    }
+
+    protected ISqlExpressionFormatter getSqlExpressionFormatter() {
+        if (dslContext.dialect() == SQLDialect.H2) {
+            return MetricJdbcReader.H2SqlExpressionFormatter.INSTANCE;
+        } else {
+            return MetricJdbcReader.DefaultSqlExpressionFormatter.INSTANCE;
+        }
     }
 
     protected void initialize(DataSourceSchema schema, MetricTable table) {
         CreateTableIndexStep s = dslContext.createTableIfNotExists(table)
                                            .columns(table.fields())
-                                           .index(table.getIndex(schema.isEnforceDuplicationCheck()));
+                                           .indexes(table.getIndexes());
         s.execute();
     }
 }

@@ -33,6 +33,10 @@ import java.util.List;
 public class MetadataDAO {
     private final DSLContext dsl;
 
+    public DSLContext getDsl() {
+        return dsl;
+    }
+
     public MetadataDAO(DSLContext dsl) {
         this.dsl = dsl;
         if (dsl.configuration().dialect().equals(SQLDialect.H2)) {
