@@ -42,6 +42,7 @@ import org.bithon.server.metric.aggregator.spec.PostAggregatorMetricSpec;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.metric.storage.GroupByQuery;
 import org.bithon.server.metric.storage.IMetricReader;
+import org.bithon.server.metric.storage.TimeseriesQuery;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -64,8 +65,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MetricJdbcReader implements IMetricReader {
 
-    static class DefaultSQLExpressionFormatter implements ISqlExpressionFormatter {
-        public static ISqlExpressionFormatter INSTANCE = new DefaultSQLExpressionFormatter();
+    static class DefaultSqlExpressionFormatter implements ISqlExpressionFormatter {
+        public static ISqlExpressionFormatter INSTANCE = new DefaultSqlExpressionFormatter();
 
         @Override
         public boolean groupByUseRawExpression() {
@@ -94,44 +95,44 @@ public class MetricJdbcReader implements IMetricReader {
         this.sqlFormatter = sqlFormatter;
     }
 
-    //
-    // TODO: merge the following groupBy method together
-    //
     @Override
-    public List<Map<String, Object>> timeseries(TimeSpan start,
-                                                TimeSpan end,
-                                                DataSourceSchema dataSourceSchema,
-                                                Collection<DimensionCondition> filters,
-                                                Collection<String> metrics,
-                                                int interval) {
-        String sql = new SQLClauseBuilder(sqlFormatter, start, end, dataSourceSchema, interval).filters(filters)
-                                                                                               .metrics(metrics)
-                                                                                               .build();
+    public List<Map<String, Object>> timeseries(TimeseriesQuery query) {
+        String sql = new TimeSeriesSqlClauseBuilder(sqlFormatter,
+                                                    query.getInterval().getStartTime(),
+                                                    query.getInterval().getEndTime(),
+                                                    query.getDataSource(),
+                                                    query.getInterval().getGranularity()).filters(query.getFilters())
+                                                                                         .metrics(query.getMetrics())
+            .groupBy(query.getGroupBys())
+                                                                                         .build();
         List<Map<String, Object>> queryResult = executeSql(sql);
 
         //
-        // fill empty
+        // fill empty time slot bucket
         //
         List<Map<String, Object>> returns = new ArrayList<>();
         int j = 0;
-        for (long slot = start.toSeconds() / interval * interval, endSlot = end.toSeconds() / interval * interval;
+        TimeSpan start = query.getInterval().getStartTime();
+        TimeSpan end = query.getInterval().getEndTime();
+        int granularity = query.getInterval().getGranularity();
+        for (long slot = start.toSeconds() / granularity * granularity, endSlot = end.toSeconds() / granularity * granularity;
              slot < endSlot;
-             slot += interval) {
+             slot += granularity) {
             if (j < queryResult.size()) {
                 long nextSlot = ((Number) queryResult.get(j).get("timestamp")).longValue();
                 while (slot < nextSlot) {
-                    Map<String, Object> empty = new HashMap<>(metrics.size());
+                    Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
                     empty.put("timestamp", slot * 1000);
-                    metrics.forEach((metric) -> empty.put(metric, 0));
+                    query.getMetrics().forEach((metric) -> empty.put(metric, 0));
                     returns.add(empty);
-                    slot += interval;
+                    slot += granularity;
                 }
                 queryResult.get(j).put("timestamp", nextSlot * 1000);
                 returns.add(queryResult.get(j++));
             } else {
-                Map<String, Object> empty = new HashMap<>(metrics.size());
+                Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
                 empty.put("timestamp", slot * 1000);
-                metrics.forEach((metric) -> empty.put(metric, 0));
+                query.getMetrics().forEach((metric) -> empty.put(metric, 0));
                 returns.add(empty);
             }
         }
@@ -144,12 +145,12 @@ public class MetricJdbcReader implements IMetricReader {
                                               DataSourceSchema dataSourceSchema,
                                               Collection<DimensionCondition> filters,
                                               Collection<String> metrics) {
-        String sql = new SQLClauseBuilder(sqlFormatter, start,
-                                          end,
-                                          dataSourceSchema,
-                                          (end.getMilliseconds() - start.getMilliseconds()) / 1000).filters(filters)
-                                                                                                   .metrics(metrics)
-                                                                                                   .build();
+        String sql = new TimeSeriesSqlClauseBuilder(sqlFormatter, start,
+                                                    end,
+                                                    dataSourceSchema,
+                                                    (end.getMilliseconds() - start.getMilliseconds()) / 1000).filters(filters)
+                                                                                                             .metrics(metrics)
+                                                                                                             .build();
         List<Map<String, Object>> queryResult = executeSql(sql);
 
         List<Map<String, Object>> values = executeSql(sql);
@@ -163,7 +164,8 @@ public class MetricJdbcReader implements IMetricReader {
                                                                                       "OUTER",
                                                                                       query.getDataSource(),
                                                                                       ImmutableMap.of("interval",
-                                                                                                      query.getInterval().getGranularity()));
+                                                                                                      query.getInterval()
+                                                                                                           .getGranularity()));
         String metricList = query.getMetrics()
                                  .stream()
                                  .map(m -> query.getDataSource().getMetricSpecByName(m).accept(metricFieldsBuilder))
@@ -204,7 +206,7 @@ public class MetricJdbcReader implements IMetricReader {
         //  although the explicit cast seems unnecessary, it must be kept so that compilation can pass
         //  this is might be a bug of JDK
         return (List<Map<String, Object>>) records.stream().map(record -> {
-            Map<String, Object> mapObject = new HashMap<>();
+            Map<String, Object> mapObject = new HashMap<>(record.fields().length);
             for (Field<?> field : record.fields()) {
                 mapObject.put(field.getName(), record.get(field));
             }
@@ -526,7 +528,7 @@ public class MetricJdbcReader implements IMetricReader {
         protected abstract void visitLast(String metricName);
     }
 
-    static class SQLClauseBuilder {
+    static class TimeSeriesSqlClauseBuilder {
         private final List<String> postExpressions = new ArrayList<>(8);
         private final Set<String> rawExpressions = new HashSet<>();
         private final String tableName;
@@ -536,6 +538,7 @@ public class MetricJdbcReader implements IMetricReader {
         private String filters;
         private final TimeSpan start;
         private final TimeSpan end;
+        private String groupBy = "";
 
         static class MetricClauseBuilder extends MetricSpecVisitor {
             private final ISqlExpressionFormatter sqlProvider;
@@ -655,11 +658,11 @@ public class MetricJdbcReader implements IMetricReader {
             }
         }
 
-        SQLClauseBuilder(ISqlExpressionFormatter sqlFormatter,
-                         TimeSpan start,
-                         TimeSpan end,
-                         DataSourceSchema dataSourceSchema,
-                         long interval) {
+        TimeSeriesSqlClauseBuilder(ISqlExpressionFormatter sqlFormatter,
+                                   TimeSpan start,
+                                   TimeSpan end,
+                                   DataSourceSchema dataSourceSchema,
+                                   long interval) {
             this.sqlFormatter = sqlFormatter;
             this.tableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
             this.start = start;
@@ -668,11 +671,9 @@ public class MetricJdbcReader implements IMetricReader {
             this.interval = interval;
         }
 
-        SQLClauseBuilder metrics(Collection<String> metrics) {
+        TimeSeriesSqlClauseBuilder metrics(Collection<String> metrics) {
             MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(this.sqlFormatter,
-                                                                              ImmutableMap.of("interval",
-                                                                                              interval,
-                                                                                              //TODO: use the quote based on the SQL dialect
+                                                                              ImmutableMap.of("interval", interval,
                                                                                               "instanceCount",
                                                                                               "count(distinct \"instanceName\")"),
                                                                               true,
@@ -708,36 +709,46 @@ public class MetricJdbcReader implements IMetricReader {
             return this;
         }
 
-        SQLClauseBuilder filters(Collection<DimensionCondition> filters) {
+        TimeSeriesSqlClauseBuilder filters(Collection<DimensionCondition> filters) {
             this.filters = filters.stream()
                                   .map(dimension -> dimension.getMatcher().accept(new SQLFilterBuilder(dimension.getDimension())))
                                   .collect(Collectors.joining(" AND "));
             return this;
         }
 
+        public TimeSeriesSqlClauseBuilder groupBy(List<String> groupBy) {
+            this.groupBy = groupBy.stream()
+                                  .map(field -> "," + schema.getDimensionSpecByName(field).getName())
+                                  .collect(Collectors.joining());
+            return this;
+        }
+
         String build() {
-            String groupByExpression = sqlFormatter.timeFloor("timestamp", interval);
+            String timestampExpression = sqlFormatter.timeFloor("timestamp", interval);
             if (rawExpressions.isEmpty()) {
                 return String.format(
-                    "SELECT %s \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s %s",
-                    groupByExpression,
+                    "SELECT %s \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s %s %s",
+                    timestampExpression,
                     String.join(",", postExpressions),
                     tableName,
                     this.filters,
                     sqlFormatter.formatTimestamp(start),
                     sqlFormatter.formatTimestamp(end),
-                    sqlFormatter.groupByUseRawExpression() ? groupByExpression : "timestamp",
+                    sqlFormatter.groupByUseRawExpression() ? timestampExpression : "timestamp",
+                    this.groupBy,
                     sqlFormatter.orderByTimestamp("timestamp")
                 );
             } else {
                 return String.format(
-                    "SELECT \"timestamp\", %s FROM "
+                    "SELECT \"timestamp\" %s ,%s FROM "
                     + "("
-                    + "     SELECT %s, %s \"timestamp\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s"
+                    + "     SELECT %s, %s \"timestamp\" %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s"
                     + ")GROUP BY \"timestamp\" %s",
+                    this.groupBy,
                     String.join(",", postExpressions),
                     String.join(",", rawExpressions),
-                    groupByExpression,
+                    timestampExpression,
+                    this.groupBy,
                     tableName,
                     this.filters,
                     sqlFormatter.formatTimestamp(start),

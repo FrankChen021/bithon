@@ -32,12 +32,7 @@ import java.util.Map;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IMetricReader {
 
-    List<Map<String, Object>> timeseries(TimeSpan start,
-                                         TimeSpan end,
-                                         DataSourceSchema dataSourceSchema,
-                                         Collection<DimensionCondition> filter,
-                                         Collection<String> metrics,
-                                         int interval);
+    List<Map<String, Object>> timeseries(TimeseriesQuery query);
 
     /**
      * Aggregate metrics by their pre-defined aggregators in the given period

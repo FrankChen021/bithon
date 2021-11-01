@@ -47,4 +47,6 @@ public class GetMetricsRequest {
 
     @Size(min = 1)
     private List<String> metrics;
+
+    private List<String> groups = Collections.emptyList();
 }

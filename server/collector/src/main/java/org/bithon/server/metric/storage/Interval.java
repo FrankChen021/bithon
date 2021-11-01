@@ -28,10 +28,14 @@ public class Interval {
     private final TimeSpan endTime;
     private final int granularity;
 
-    public Interval(TimeSpan startTime, TimeSpan endTime) {
+    private Interval(TimeSpan startTime, TimeSpan endTime) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.granularity = getGranularity(startTime, endTime);
+    }
+
+    public static Interval of(TimeSpan start, TimeSpan end) {
+        return new Interval(start, end);
     }
 
     public TimeSpan getStartTime() {

@@ -58,7 +58,7 @@ public class MetricJdbcStorage implements IMetricStorage {
         if (dslContext.dialect() == SQLDialect.H2) {
             sqlProvider = MetricJdbcReader.H2SqlExpressionFormatter.INSTANCE;
         } else {
-            sqlProvider = MetricJdbcReader.DefaultSQLExpressionFormatter.INSTANCE;
+            sqlProvider = MetricJdbcReader.DefaultSqlExpressionFormatter.INSTANCE;
         }
         return new MetricJdbcReader(dslContext, sqlProvider);
     }

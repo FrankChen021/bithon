@@ -24,6 +24,7 @@ import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.storage.GroupByQuery;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.Interval;
+import org.bithon.server.metric.storage.TimeseriesQuery;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,15 +61,13 @@ public class DataSourceApi {
 
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
-        int interval = getInterval(start, end);
-        return this.metricStorage.createMetricReader(schema).timeseries(
-            start,
-            end,
-            schema,
-            request.getDimensions().values(),
-            request.getMetrics(),
-            interval
-        );
+
+        return this.metricStorage.createMetricReader(schema)
+                                 .timeseries(new TimeseriesQuery(schema,
+                                                                 request.getMetrics(),
+                                                                 request.getDimensions().values(),
+                                                                 Interval.of(start, end),
+                                                                 request.getGroups()));
     }
 
     @PostMapping("/api/datasource/groupBy")
@@ -82,33 +81,8 @@ public class DataSourceApi {
                                                                                       request.getMetrics(),
                                                                                       request.getAggregators(),
                                                                                       request.getFilters().values(),
-                                                                                      new Interval(start, end),
+                                                                                      Interval.of(start, end),
                                                                                       request.getGroupBy()));
-    }
-
-    /**
-     * TODO: interval should be consistent with retention rules
-     *
-     * @return interval in seconds
-     */
-    private int getInterval(TimeSpan start, TimeSpan end) {
-        long length = end.diff(start) / 1000;
-        if (length >= 7 * 24 * 3600) {
-            return 15 * 60;
-        }
-        if (length >= 3 * 24 * 3600) {
-            return 10 * 60;
-        }
-        if (length >= 24 * 3600) {
-            return 5 * 60;
-        }
-        if (length >= 12 * 3600) {
-            return 60;
-        }
-        if (length >= 6 * 3600) {
-            return 30;
-        }
-        return 10;
     }
 
     @PostMapping("/api/datasource/schemas")
