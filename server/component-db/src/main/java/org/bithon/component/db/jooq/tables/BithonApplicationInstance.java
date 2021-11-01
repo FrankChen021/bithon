@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonApplicationInstance extends TableImpl<BithonApplicationInstanceRecord> {
 
-    private static final long serialVersionUID = 1994879689;
+    private static final long serialVersionUID = 948848794;
 
     /**
      * The reference instance of <code>bithon_application_instance</code>
@@ -51,19 +51,19 @@ public class BithonApplicationInstance extends TableImpl<BithonApplicationInstan
     public final TableField<BithonApplicationInstanceRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.TIMESTAMP)), this, "update time");
 
     /**
-     * The column <code>bithon_application_instance.application_name</code>.
+     * The column <code>bithon_application_instance.appName</code>.
      */
-    public final TableField<BithonApplicationInstanceRecord, String> APPLICATION_NAME = createField(DSL.name("application_name"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false), this, "");
+    public final TableField<BithonApplicationInstanceRecord, String> APPNAME = createField(DSL.name("appName"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_application_instance.application_type</code>.
+     * The column <code>bithon_application_instance.appType</code>.
      */
-    public final TableField<BithonApplicationInstanceRecord, String> APPLICATION_TYPE = createField(DSL.name("application_type"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<BithonApplicationInstanceRecord, String> APPTYPE = createField(DSL.name("appType"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_application_instance.instance_name</code>.
+     * The column <code>bithon_application_instance.instanceName</code>.
      */
-    public final TableField<BithonApplicationInstanceRecord, String> INSTANCE_NAME = createField(DSL.name("instance_name"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<BithonApplicationInstanceRecord, String> INSTANCENAME = createField(DSL.name("instanceName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * Create a <code>bithon_application_instance</code> table reference

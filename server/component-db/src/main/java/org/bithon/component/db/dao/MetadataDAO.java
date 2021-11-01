@@ -41,9 +41,9 @@ public class MetadataDAO {
         this.dsl = dsl;
         if (dsl.configuration().dialect().equals(SQLDialect.H2)) {
             this.dsl.createTableIfNotExists(Tables.BITHON_APPLICATION_INSTANCE)
-                    .columns(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME,
-                             Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE,
-                             Tables.BITHON_APPLICATION_INSTANCE.INSTANCE_NAME,
+                    .columns(Tables.BITHON_APPLICATION_INSTANCE.APPNAME,
+                             Tables.BITHON_APPLICATION_INSTANCE.APPTYPE,
+                             Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME,
                              Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP)
                     .indexes(DefaultSchema.DEFAULT_SCHEMA.BITHON_APPLICATION_INSTANCE.getIndexes())
                     .execute();
@@ -53,26 +53,24 @@ public class MetadataDAO {
     public void saveApplicationInstance(String applicationName, String applicationType, String instanceName) {
         try {
             dsl.insertInto(Tables.BITHON_APPLICATION_INSTANCE)
-               .set(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME, applicationName)
-               .set(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE, applicationType)
-               .set(Tables.BITHON_APPLICATION_INSTANCE.INSTANCE_NAME, instanceName)
+               .set(Tables.BITHON_APPLICATION_INSTANCE.APPNAME, applicationName)
+               .set(Tables.BITHON_APPLICATION_INSTANCE.APPTYPE, applicationType)
+               .set(Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME, instanceName)
                .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
                .execute();
         } catch (DuplicateKeyException e) {
             dsl.update(Tables.BITHON_APPLICATION_INSTANCE)
                .set(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
-               .where(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME.eq(applicationName)
-                                                                         .and(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE.eq(
-                                                                             applicationType))
-                                                                         .and(Tables.BITHON_APPLICATION_INSTANCE.INSTANCE_NAME.eq(
-                                                                             instanceName)))
+               .where(Tables.BITHON_APPLICATION_INSTANCE.APPNAME.eq(applicationName)
+                                                                .and(Tables.BITHON_APPLICATION_INSTANCE.APPTYPE.eq(applicationType))
+                                                                .and(Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME.eq(instanceName)))
                .execute();
         }
     }
 
     public BithonApplicationInstanceRecord getByApplicationName(String applicationName) {
         return dsl.selectFrom(Tables.BITHON_APPLICATION_INSTANCE)
-                  .where(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME.eq(applicationName))
+                  .where(Tables.BITHON_APPLICATION_INSTANCE.APPNAME.eq(applicationName))
                   .orderBy(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.desc())
                   .limit(1)
                   .fetchOne();
@@ -80,18 +78,18 @@ public class MetadataDAO {
 
     public BithonApplicationInstanceRecord getByInstanceName(String instanceName) {
         return dsl.selectFrom(Tables.BITHON_APPLICATION_INSTANCE)
-                  .where(Tables.BITHON_APPLICATION_INSTANCE.INSTANCE_NAME.eq(instanceName))
+                  .where(Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME.eq(instanceName))
                   .orderBy(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.desc())
                   .limit(1)
                   .fetchOne();
     }
 
     public <T> List<T> getApplications(long since, Class<T> clazz) {
-        return dsl.select(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME, Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE)
+        return dsl.select(Tables.BITHON_APPLICATION_INSTANCE.APPNAME, Tables.BITHON_APPLICATION_INSTANCE.APPTYPE)
                   .from(Tables.BITHON_APPLICATION_INSTANCE)
                   .where(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since)))
-                  .groupBy(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME, Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE)
-                  .orderBy(Tables.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME)
+                  .groupBy(Tables.BITHON_APPLICATION_INSTANCE.APPNAME, Tables.BITHON_APPLICATION_INSTANCE.APPTYPE)
+                  .orderBy(Tables.BITHON_APPLICATION_INSTANCE.APPNAME)
                   .fetchInto(clazz);
     }
 }

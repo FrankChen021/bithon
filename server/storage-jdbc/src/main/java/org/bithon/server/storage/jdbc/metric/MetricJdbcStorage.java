@@ -47,7 +47,7 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     @Override
     public IMetricWriter createMetricWriter(DataSourceSchema schema) {
-        MetricTable table = new MetricTable(schema, getSqlExpressionFormatter());
+        MetricTable table = new MetricTable(schema);
         initialize(schema, table);
         return new MetricJdbcWriter(dslContext, schema, table);
     }
@@ -61,7 +61,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     @Override
     public IMetricCleaner createMetricCleaner(DataSourceSchema schema) {
         return timestamp -> {
-            final MetricTable table = new MetricTable(schema, getSqlExpressionFormatter());
+            final MetricTable table = new MetricTable(schema);
             dslContext.deleteFrom(table).where(table.timestampField.lt(new Timestamp(timestamp))).execute();
         };
     }

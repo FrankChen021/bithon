@@ -63,8 +63,8 @@ public class TraceJdbcStorage implements ITraceStorage {
     public void initialize() {
         dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN)
                   .columns(Tables.BITHON_TRACE_SPAN.TIMESTAMP,
-                           Tables.BITHON_TRACE_SPAN.APP_NAME,
-                           Tables.BITHON_TRACE_SPAN.INSTANCE_NAME,
+                           Tables.BITHON_TRACE_SPAN.APPNAME,
+                           Tables.BITHON_TRACE_SPAN.INSTANCENAME,
                            Tables.BITHON_TRACE_SPAN.NAME,
                            Tables.BITHON_TRACE_SPAN.CLAZZ,
                            Tables.BITHON_TRACE_SPAN.METHOD,
@@ -108,7 +108,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         @Override
         public List<TraceSpan> getTraceList(String applicationName, int pageNumber, int pageSize) {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                             .where(Tables.BITHON_TRACE_SPAN.APP_NAME.eq(applicationName))
+                             .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(applicationName))
                              .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""))
                              .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc())
                              .offset(pageNumber * pageSize)
@@ -119,7 +119,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         @Override
         public int getTraceListSize(String applicationName) {
             return dslContext.fetchCount(dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                   .where(Tables.BITHON_TRACE_SPAN.APP_NAME.eq(applicationName))
+                                                   .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(applicationName))
                                                    .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq("")));
         }
 
@@ -133,8 +133,8 @@ public class TraceJdbcStorage implements ITraceStorage {
 
         private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {
             TraceSpan span = new TraceSpan();
-            span.appName = record.getAppName();
-            span.instanceName = record.getInstanceName();
+            span.appName = record.getAppname();
+            span.instanceName = record.getInstancename();
             span.traceId = record.getTraceid();
             span.spanId = record.getSpanid();
             span.parentSpanId = record.getParentspanid();
@@ -159,8 +159,8 @@ public class TraceJdbcStorage implements ITraceStorage {
         public void write(List<TraceSpan> traceSpans) {
             List<BithonTraceSpanRecord> records = traceSpans.stream().map((span) -> {
                 BithonTraceSpanRecord spanRecord = new BithonTraceSpanRecord();
-                spanRecord.setAppName(span.appName);
-                spanRecord.setInstanceName(span.instanceName);
+                spanRecord.setAppname(span.appName);
+                spanRecord.setInstancename(span.instanceName);
                 spanRecord.setTimestamp(new Timestamp(span.startTime / 1000));
                 spanRecord.setTraceid(span.traceId);
                 spanRecord.setSpanid(span.spanId);

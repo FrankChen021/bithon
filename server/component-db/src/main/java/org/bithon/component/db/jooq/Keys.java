@@ -49,7 +49,7 @@ public class Keys {
 
     private static class UniqueKeys0 {
         public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_PRIMARY = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, "KEY_bithon_agent_setting_PRIMARY", BithonAgentSetting.BITHON_AGENT_SETTING.ID);
-        public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, "KEY_bithon_agent_setting_key_appName", BithonAgentSetting.BITHON_AGENT_SETTING.APP_NAME, BithonAgentSetting.BITHON_AGENT_SETTING.SETTING_NAME);
+        public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, "KEY_bithon_agent_setting_key_appName", BithonAgentSetting.BITHON_AGENT_SETTING.APPNAME, BithonAgentSetting.BITHON_AGENT_SETTING.SETTINGNAME);
         public static final UniqueKey<BithonTraceSpanRecord> KEY_BITHON_TRACE_SPAN_IDX_KEY = Internal.createUniqueKey(BithonTraceSpan.BITHON_TRACE_SPAN, "KEY_bithon_trace_span_idx_key", BithonTraceSpan.BITHON_TRACE_SPAN.TRACEID, BithonTraceSpan.BITHON_TRACE_SPAN.SPANID);
     }
 }

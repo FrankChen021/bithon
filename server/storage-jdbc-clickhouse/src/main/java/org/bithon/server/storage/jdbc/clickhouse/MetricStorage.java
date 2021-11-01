@@ -40,7 +40,7 @@ public class MetricStorage extends MetricJdbcStorage {
     @JsonCreator
     public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlExpressionFormatter formatter,
-                         ClickHouseConfig config) {
+                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
         super(dslContext);
         this.formatter = formatter;
         this.config = config;
@@ -48,7 +48,7 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     protected void initialize(DataSourceSchema schema, MetricTable table) {
-        new TableCreator(config, formatter, this.dslContext).createIfNotExist(table, schema.getName());
+        new TableCreator(config, this.dslContext).createIfNotExist(table);
     }
 
     @Override

@@ -56,8 +56,8 @@ public class ClickHouseStorageAutoConfiguration {
     }
 
     @Bean
-    ClickHouseSqlExpressionFormatter createFormatter(ClickHouseConfig config) {
-        return new ClickHouseSqlExpressionFormatter(config);
+    ClickHouseSqlExpressionFormatter createFormatter() {
+        return new ClickHouseSqlExpressionFormatter();
     }
 
     @Bean

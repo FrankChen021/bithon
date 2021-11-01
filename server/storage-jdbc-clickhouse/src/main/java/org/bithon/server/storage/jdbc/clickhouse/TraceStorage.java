@@ -50,7 +50,7 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public void initialize() {
-        new TableCreator(config, formatter, dslContext).createIfNotExist(Tables.BITHON_TRACE_SPAN, "trace-span");
+        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_TRACE_SPAN);
     }
 
     @Override

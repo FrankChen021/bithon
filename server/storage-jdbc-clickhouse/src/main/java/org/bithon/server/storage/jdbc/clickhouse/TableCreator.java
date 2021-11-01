@@ -31,25 +31,23 @@ import org.springframework.util.StringUtils;
 public class TableCreator {
 
     private final ClickHouseConfig config;
-    private final ClickHouseSqlExpressionFormatter formatter;
     private final DSLContext dslContext;
 
-    public TableCreator(ClickHouseConfig config,
-                        ClickHouseSqlExpressionFormatter formatter, DSLContext dslContext) {
+    public TableCreator(ClickHouseConfig config, DSLContext dslContext) {
         this.config = config;
-        this.formatter = formatter;
         this.dslContext = dslContext;
     }
 
-    public void createIfNotExist(Table<?> table, String rawName) {
+    public void createIfNotExist(Table<?> table) {
         //
-        // create write table(local table)
+        // create local table
         //
         {
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s` %s (\n",
-                                    formatter.getWriteTableName(rawName),
-                                    StringUtils.hasText(config.getCluster()) ? " ON Cluster " + config.getCluster() : ""));
+            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (\n",
+                                    config.getDatabase(),
+                                    StringUtils.hasText(config.getCluster()) ? table.getName() + "_local" : table.getName(),
+                                    StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
             sb.append(getFieldText(table));
             sb.append(String.format(") ENGINE=%s PARTITION BY toYYYYMMDD(timestamp) ORDER BY(", config.getEngine()));
             for (Index idx : table.getIndexes()) {
@@ -61,27 +59,30 @@ public class TableCreator {
             sb.append(");");
             dslContext.execute(sb.toString());
         }
-        if (formatter.getReadTableName(rawName).equals(formatter.getWriteTableName(rawName))) {
+
+        if (!StringUtils.hasText(config.getCluster())) {
             return;
         }
         {
             //
-            // create read table
+            // create distributed table
             //
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s` %s (\n",
-                                    formatter.getReadTableName(rawName),
-                                    StringUtils.hasText(config.getCluster()) ? " ON Cluster " + config.getCluster() : ""));
+            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (\n",
+                                    config.getDatabase(),
+                                    table.getName(),
+                                    StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
             sb.append(getFieldText(table));
-            sb.append(String.format(") ENGINE=Distributed('%s', '%s', '%s', murmurHash2_64(appName)));",
+            sb.append(String.format(") ENGINE=Distributed('%s', '%s', '%s', murmurHash2_64(%s));",
                                     config.getCluster(),
                                     config.getDatabase(),
-                                    formatter.getWriteTableName(rawName)));
+                                    table.getName() + "_local",
+                                    "bithon_topo_metrics".equals(table.getName()) ? "srcEndpoint" : "appName"));
             dslContext.execute(sb.toString());
         }
     }
 
-    private String getFieldText(Table table) {
+    private String getFieldText(Table<?> table) {
         StringBuilder sb = new StringBuilder(128);
         for (Field<?> f : table.fields()) {
             if (f.getDataType().equals(SQLDataType.TIMESTAMP)) {

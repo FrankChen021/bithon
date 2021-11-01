@@ -19,7 +19,7 @@ import org.jooq.impl.TableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonApplicationInstanceRecord extends TableRecordImpl<BithonApplicationInstanceRecord> implements Record4<Timestamp, String, String, String> {
 
-    private static final long serialVersionUID = 419534274;
+    private static final long serialVersionUID = 464754213;
 
     /**
      * Setter for <code>bithon_application_instance.timestamp</code>. update time
@@ -36,44 +36,44 @@ public class BithonApplicationInstanceRecord extends TableRecordImpl<BithonAppli
     }
 
     /**
-     * Setter for <code>bithon_application_instance.application_name</code>.
+     * Setter for <code>bithon_application_instance.appName</code>.
      */
-    public void setApplicationName(String value) {
+    public void setAppname(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>bithon_application_instance.application_name</code>.
+     * Getter for <code>bithon_application_instance.appName</code>.
      */
-    public String getApplicationName() {
+    public String getAppname() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>bithon_application_instance.application_type</code>.
+     * Setter for <code>bithon_application_instance.appType</code>.
      */
-    public void setApplicationType(String value) {
+    public void setApptype(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>bithon_application_instance.application_type</code>.
+     * Getter for <code>bithon_application_instance.appType</code>.
      */
-    public String getApplicationType() {
+    public String getApptype() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>bithon_application_instance.instance_name</code>.
+     * Setter for <code>bithon_application_instance.instanceName</code>.
      */
-    public void setInstanceName(String value) {
+    public void setInstancename(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>bithon_application_instance.instance_name</code>.
+     * Getter for <code>bithon_application_instance.instanceName</code>.
      */
-    public String getInstanceName() {
+    public String getInstancename() {
         return (String) get(3);
     }
 
@@ -98,17 +98,17 @@ public class BithonApplicationInstanceRecord extends TableRecordImpl<BithonAppli
 
     @Override
     public Field<String> field2() {
-        return BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPLICATION_NAME;
+        return BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPNAME;
     }
 
     @Override
     public Field<String> field3() {
-        return BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPLICATION_TYPE;
+        return BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPTYPE;
     }
 
     @Override
     public Field<String> field4() {
-        return BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.INSTANCE_NAME;
+        return BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.INSTANCENAME;
     }
 
     @Override
@@ -118,17 +118,17 @@ public class BithonApplicationInstanceRecord extends TableRecordImpl<BithonAppli
 
     @Override
     public String component2() {
-        return getApplicationName();
+        return getAppname();
     }
 
     @Override
     public String component3() {
-        return getApplicationType();
+        return getApptype();
     }
 
     @Override
     public String component4() {
-        return getInstanceName();
+        return getInstancename();
     }
 
     @Override
@@ -138,17 +138,17 @@ public class BithonApplicationInstanceRecord extends TableRecordImpl<BithonAppli
 
     @Override
     public String value2() {
-        return getApplicationName();
+        return getAppname();
     }
 
     @Override
     public String value3() {
-        return getApplicationType();
+        return getApptype();
     }
 
     @Override
     public String value4() {
-        return getInstanceName();
+        return getInstancename();
     }
 
     @Override
@@ -159,19 +159,19 @@ public class BithonApplicationInstanceRecord extends TableRecordImpl<BithonAppli
 
     @Override
     public BithonApplicationInstanceRecord value2(String value) {
-        setApplicationName(value);
+        setAppname(value);
         return this;
     }
 
     @Override
     public BithonApplicationInstanceRecord value3(String value) {
-        setApplicationType(value);
+        setApptype(value);
         return this;
     }
 
     @Override
     public BithonApplicationInstanceRecord value4(String value) {
-        setInstanceName(value);
+        setInstancename(value);
         return this;
     }
 
@@ -198,12 +198,12 @@ public class BithonApplicationInstanceRecord extends TableRecordImpl<BithonAppli
     /**
      * Create a detached, initialised BithonApplicationInstanceRecord
      */
-    public BithonApplicationInstanceRecord(Timestamp timestamp, String applicationName, String applicationType, String instanceName) {
+    public BithonApplicationInstanceRecord(Timestamp timestamp, String appname, String apptype, String instancename) {
         super(BithonApplicationInstance.BITHON_APPLICATION_INSTANCE);
 
         set(0, timestamp);
-        set(1, applicationName);
-        set(2, applicationType);
-        set(3, instanceName);
+        set(1, appname);
+        set(2, apptype);
+        set(3, instancename);
     }
 }

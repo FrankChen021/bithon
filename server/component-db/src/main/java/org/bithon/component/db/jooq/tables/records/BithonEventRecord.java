@@ -19,7 +19,7 @@ import org.jooq.impl.TableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonEventRecord extends TableRecordImpl<BithonEventRecord> implements Record5<Timestamp, String, String, String, String> {
 
-    private static final long serialVersionUID = -1756199064;
+    private static final long serialVersionUID = 567754116;
 
     /**
      * Setter for <code>bithon_event.timestamp</code>. reported Timestamp
@@ -36,30 +36,30 @@ public class BithonEventRecord extends TableRecordImpl<BithonEventRecord> implem
     }
 
     /**
-     * Setter for <code>bithon_event.app_name</code>.
+     * Setter for <code>bithon_event.appName</code>.
      */
-    public void setAppName(String value) {
+    public void setAppname(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>bithon_event.app_name</code>.
+     * Getter for <code>bithon_event.appName</code>.
      */
-    public String getAppName() {
+    public String getAppname() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>bithon_event.instance_name</code>.
+     * Setter for <code>bithon_event.instanceName</code>.
      */
-    public void setInstanceName(String value) {
+    public void setInstancename(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>bithon_event.instance_name</code>.
+     * Getter for <code>bithon_event.instanceName</code>.
      */
-    public String getInstanceName() {
+    public String getInstancename() {
         return (String) get(2);
     }
 
@@ -112,12 +112,12 @@ public class BithonEventRecord extends TableRecordImpl<BithonEventRecord> implem
 
     @Override
     public Field<String> field2() {
-        return BithonEvent.BITHON_EVENT.APP_NAME;
+        return BithonEvent.BITHON_EVENT.APPNAME;
     }
 
     @Override
     public Field<String> field3() {
-        return BithonEvent.BITHON_EVENT.INSTANCE_NAME;
+        return BithonEvent.BITHON_EVENT.INSTANCENAME;
     }
 
     @Override
@@ -137,12 +137,12 @@ public class BithonEventRecord extends TableRecordImpl<BithonEventRecord> implem
 
     @Override
     public String component2() {
-        return getAppName();
+        return getAppname();
     }
 
     @Override
     public String component3() {
-        return getInstanceName();
+        return getInstancename();
     }
 
     @Override
@@ -162,12 +162,12 @@ public class BithonEventRecord extends TableRecordImpl<BithonEventRecord> implem
 
     @Override
     public String value2() {
-        return getAppName();
+        return getAppname();
     }
 
     @Override
     public String value3() {
-        return getInstanceName();
+        return getInstancename();
     }
 
     @Override
@@ -188,13 +188,13 @@ public class BithonEventRecord extends TableRecordImpl<BithonEventRecord> implem
 
     @Override
     public BithonEventRecord value2(String value) {
-        setAppName(value);
+        setAppname(value);
         return this;
     }
 
     @Override
     public BithonEventRecord value3(String value) {
-        setInstanceName(value);
+        setInstancename(value);
         return this;
     }
 
@@ -234,12 +234,12 @@ public class BithonEventRecord extends TableRecordImpl<BithonEventRecord> implem
     /**
      * Create a detached, initialised BithonEventRecord
      */
-    public BithonEventRecord(Timestamp timestamp, String appName, String instanceName, String type, String arguments) {
+    public BithonEventRecord(Timestamp timestamp, String appname, String instancename, String type, String arguments) {
         super(BithonEvent.BITHON_EVENT);
 
         set(0, timestamp);
-        set(1, appName);
-        set(2, instanceName);
+        set(1, appname);
+        set(2, instancename);
         set(3, type);
         set(4, arguments);
     }

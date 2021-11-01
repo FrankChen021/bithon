@@ -57,7 +57,7 @@ public class MetadataJdbcStorage implements IMetaStorage {
     @Override
     public String getApplicationByInstance(String instanceName) {
         BithonApplicationInstanceRecord instance = metadataDao.getByInstanceName(instanceName);
-        return instance == null ? null : instance.getApplicationName();
+        return instance == null ? null : instance.getAppname();
     }
 
     @Override

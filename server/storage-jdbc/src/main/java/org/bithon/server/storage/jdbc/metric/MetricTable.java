@@ -52,8 +52,8 @@ public class MetricTable extends TableImpl {
 
     private final List<Index> indexes;
 
-    public MetricTable(DataSourceSchema schema, ISqlExpressionFormatter sqlExpressionFormatter) {
-        super(DSL.name(sqlExpressionFormatter.getWriteTableName(schema.getName())));
+    public MetricTable(DataSourceSchema schema) {
+        super(DSL.name("bithon_" + schema.getName().replace('-', '_')));
 
         //noinspection unchecked
         timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP(3));

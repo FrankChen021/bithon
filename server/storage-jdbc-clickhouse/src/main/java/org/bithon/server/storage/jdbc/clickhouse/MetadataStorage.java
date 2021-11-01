@@ -45,6 +45,6 @@ public class MetadataStorage extends MetadataJdbcStorage {
 
     @Override
     public void initialize() {
-        new TableCreator(config, formatter, this.metadataDao.getDsl()).createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE, "application_instance");
+        new TableCreator(config, this.metadataDao.getDsl()).createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE);
     }
 }

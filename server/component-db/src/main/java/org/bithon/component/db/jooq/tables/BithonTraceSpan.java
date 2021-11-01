@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
-    private static final long serialVersionUID = -185394534;
+    private static final long serialVersionUID = 1896040278;
 
     /**
      * The reference instance of <code>bithon_trace_span</code>
@@ -53,14 +53,14 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     public final TableField<BithonTraceSpanRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Milli Seconds");
 
     /**
-     * The column <code>bithon_trace_span.app_name</code>.
+     * The column <code>bithon_trace_span.appName</code>.
      */
-    public final TableField<BithonTraceSpanRecord, String> APP_NAME = createField(DSL.name("app_name"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<BithonTraceSpanRecord, String> APPNAME = createField(DSL.name("appName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_trace_span.instance_name</code>.
+     * The column <code>bithon_trace_span.instanceName</code>.
      */
-    public final TableField<BithonTraceSpanRecord, String> INSTANCE_NAME = createField(DSL.name("instance_name"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<BithonTraceSpanRecord, String> INSTANCENAME = createField(DSL.name("instanceName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>bithon_trace_span.name</code>.

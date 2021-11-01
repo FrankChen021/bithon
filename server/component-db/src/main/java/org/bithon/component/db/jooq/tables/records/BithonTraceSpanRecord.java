@@ -19,7 +19,7 @@ import org.jooq.impl.TableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord> implements Record12<Timestamp, String, String, String, String, String, String, String, String, String, Long, String> {
 
-    private static final long serialVersionUID = -1028658649;
+    private static final long serialVersionUID = 1608220467;
 
     /**
      * Setter for <code>bithon_trace_span.timestamp</code>. Milli Seconds
@@ -36,30 +36,30 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
     }
 
     /**
-     * Setter for <code>bithon_trace_span.app_name</code>.
+     * Setter for <code>bithon_trace_span.appName</code>.
      */
-    public void setAppName(String value) {
+    public void setAppname(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>bithon_trace_span.app_name</code>.
+     * Getter for <code>bithon_trace_span.appName</code>.
      */
-    public String getAppName() {
+    public String getAppname() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>bithon_trace_span.instance_name</code>.
+     * Setter for <code>bithon_trace_span.instanceName</code>.
      */
-    public void setInstanceName(String value) {
+    public void setInstancename(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>bithon_trace_span.instance_name</code>.
+     * Getter for <code>bithon_trace_span.instanceName</code>.
      */
-    public String getInstanceName() {
+    public String getInstancename() {
         return (String) get(2);
     }
 
@@ -210,12 +210,12 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
 
     @Override
     public Field<String> field2() {
-        return BithonTraceSpan.BITHON_TRACE_SPAN.APP_NAME;
+        return BithonTraceSpan.BITHON_TRACE_SPAN.APPNAME;
     }
 
     @Override
     public Field<String> field3() {
-        return BithonTraceSpan.BITHON_TRACE_SPAN.INSTANCE_NAME;
+        return BithonTraceSpan.BITHON_TRACE_SPAN.INSTANCENAME;
     }
 
     @Override
@@ -270,12 +270,12 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
 
     @Override
     public String component2() {
-        return getAppName();
+        return getAppname();
     }
 
     @Override
     public String component3() {
-        return getInstanceName();
+        return getInstancename();
     }
 
     @Override
@@ -330,12 +330,12 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
 
     @Override
     public String value2() {
-        return getAppName();
+        return getAppname();
     }
 
     @Override
     public String value3() {
-        return getInstanceName();
+        return getInstancename();
     }
 
     @Override
@@ -391,13 +391,13 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
 
     @Override
     public BithonTraceSpanRecord value2(String value) {
-        setAppName(value);
+        setAppname(value);
         return this;
     }
 
     @Override
     public BithonTraceSpanRecord value3(String value) {
-        setInstanceName(value);
+        setInstancename(value);
         return this;
     }
 
@@ -486,12 +486,12 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
     /**
      * Create a detached, initialised BithonTraceSpanRecord
      */
-    public BithonTraceSpanRecord(Timestamp timestamp, String appName, String instanceName, String name, String clazz, String method, String traceid, String spanid, String parentspanid, String kind, Long costtime, String tags) {
+    public BithonTraceSpanRecord(Timestamp timestamp, String appname, String instancename, String name, String clazz, String method, String traceid, String spanid, String parentspanid, String kind, Long costtime, String tags) {
         super(BithonTraceSpan.BITHON_TRACE_SPAN);
 
         set(0, timestamp);
-        set(1, appName);
-        set(2, instanceName);
+        set(1, appname);
+        set(2, instancename);
         set(3, name);
         set(4, clazz);
         set(5, method);

@@ -38,18 +38,18 @@ public class SettingDAO {
             this.dsl.createTableIfNotExists(Tables.BITHON_AGENT_SETTING)
                     .columns(Tables.BITHON_AGENT_SETTING.ID,
                              Tables.BITHON_AGENT_SETTING.SETTING,
-                             Tables.BITHON_AGENT_SETTING.SETTING_NAME,
-                             Tables.BITHON_AGENT_SETTING.APP_NAME,
-                             Tables.BITHON_AGENT_SETTING.UPDATED_AT)
+                             Tables.BITHON_AGENT_SETTING.SETTINGNAME,
+                             Tables.BITHON_AGENT_SETTING.APPNAME,
+                             Tables.BITHON_AGENT_SETTING.UPDATEDAT)
                     .execute();
         }
     }
 
     public Map<String, String> getSettings(String appName, long since) {
-        return dsl.select(Tables.BITHON_AGENT_SETTING.SETTING_NAME, Tables.BITHON_AGENT_SETTING.SETTING)
+        return dsl.select(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING)
                   .from(Tables.BITHON_AGENT_SETTING)
-                  .where(Tables.BITHON_AGENT_SETTING.APP_NAME.eq(appName))
-                  .and(Tables.BITHON_AGENT_SETTING.UPDATED_AT.gt(new Timestamp(since)))
-                  .fetchMap(Tables.BITHON_AGENT_SETTING.SETTING_NAME, Tables.BITHON_AGENT_SETTING.SETTING);
+                  .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
+                  .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.gt(new Timestamp(since)))
+                  .fetchMap(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING);
     }
 }

@@ -139,7 +139,7 @@ public class MetricJdbcReader implements IMetricReader {
 
     @Override
     public List<Map<String, Object>> groupBy(GroupByQuery query) {
-        String sqlTableName = this.sqlFormatter.getReadTableName(query.getDataSource().getName());
+        String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
 
         MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
                                                                                       "OUTER",
@@ -208,7 +208,7 @@ public class MetricJdbcReader implements IMetricReader {
             "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s ",
             dimension,
             dimension,
-            sqlFormatter.getReadTableName(dataSourceSchema.getName()),
+            "bithon_" + dataSourceSchema.getName().replace("-", "_"),
             condition,
             sqlFormatter.formatTimestamp(start),
             sqlFormatter.formatTimestamp(end)
@@ -645,7 +645,7 @@ public class MetricJdbcReader implements IMetricReader {
                                    DataSourceSchema dataSourceSchema,
                                    long interval) {
             this.sqlFormatter = sqlFormatter;
-            this.tableName = sqlFormatter.getReadTableName(dataSourceSchema.getName());
+            this.tableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
             this.start = start;
             this.end = end;
             this.schema = dataSourceSchema;

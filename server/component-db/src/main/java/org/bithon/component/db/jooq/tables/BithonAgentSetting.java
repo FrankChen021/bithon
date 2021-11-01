@@ -33,7 +33,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
 
-    private static final long serialVersionUID = 1928759328;
+    private static final long serialVersionUID = 64372262;
 
     /**
      * The reference instance of <code>bithon_agent_setting</code>
@@ -54,14 +54,14 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     public final TableField<BithonAgentSettingRecord, Long> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).identity(true), this, "唯一编号");
 
     /**
-     * The column <code>bithon_agent_setting.app_name</code>. 名称
+     * The column <code>bithon_agent_setting.appName</code>. 名称
      */
-    public final TableField<BithonAgentSettingRecord, String> APP_NAME = createField(DSL.name("app_name"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "名称");
+    public final TableField<BithonAgentSettingRecord, String> APPNAME = createField(DSL.name("appName"), org.jooq.impl.SQLDataType.VARCHAR(128).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "名称");
 
     /**
-     * The column <code>bithon_agent_setting.setting_name</code>. 配置名称
+     * The column <code>bithon_agent_setting.settingName</code>. 配置名称
      */
-    public final TableField<BithonAgentSettingRecord, String> SETTING_NAME = createField(DSL.name("setting_name"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "配置名称");
+    public final TableField<BithonAgentSettingRecord, String> SETTINGNAME = createField(DSL.name("settingName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "配置名称");
 
     /**
      * The column <code>bithon_agent_setting.setting</code>. 设置
@@ -69,14 +69,14 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     public final TableField<BithonAgentSettingRecord, String> SETTING = createField(DSL.name("setting"), org.jooq.impl.SQLDataType.CLOB, this, "设置");
 
     /**
-     * The column <code>bithon_agent_setting.created_at</code>. 创建时间
+     * The column <code>bithon_agent_setting.createdAt</code>. 创建时间
      */
-    public final TableField<BithonAgentSettingRecord, Timestamp> CREATED_AT = createField(DSL.name("created_at"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.TIMESTAMP)), this, "创建时间");
+    public final TableField<BithonAgentSettingRecord, Timestamp> CREATEDAT = createField(DSL.name("createdAt"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.TIMESTAMP)), this, "创建时间");
 
     /**
-     * The column <code>bithon_agent_setting.updated_at</code>. 更新时间
+     * The column <code>bithon_agent_setting.updatedAt</code>. 更新时间
      */
-    public final TableField<BithonAgentSettingRecord, Timestamp> UPDATED_AT = createField(DSL.name("updated_at"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.TIMESTAMP)), this, "更新时间");
+    public final TableField<BithonAgentSettingRecord, Timestamp> UPDATEDAT = createField(DSL.name("updatedAt"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.TIMESTAMP)), this, "更新时间");
 
     /**
      * Create a <code>bithon_agent_setting</code> table reference

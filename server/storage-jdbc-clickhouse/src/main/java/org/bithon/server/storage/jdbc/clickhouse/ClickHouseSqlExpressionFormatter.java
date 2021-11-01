@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.jdbc.clickhouse;
 
-import org.bithon.agent.core.utils.lang.StringUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
 
@@ -25,12 +24,6 @@ import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
  * @date 1/11/21 5:21 pm
  */
 class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
-
-    private final ClickHouseConfig config;
-
-    ClickHouseSqlExpressionFormatter(ClickHouseConfig config) {
-        this.config = config;
-    }
 
     @Override
     public String timeFloor(String field, long interval) {
@@ -53,17 +46,5 @@ class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
     @Override
     public String orderByTimestamp(String timestampField) {
         return "ORDER BY \"" + timestampField + "\"";
-    }
-
-    @Override
-    public String getReadTableName(String name) {
-        return StringUtils.isBlank(config.getCluster()) ? ISqlExpressionFormatter.super.getReadTableName(name)
-                                                        : ISqlExpressionFormatter.super.getReadTableName(name) + "_all";
-    }
-
-    @Override
-    public String getWriteTableName(String name) {
-        return StringUtils.isBlank(config.getCluster()) ? ISqlExpressionFormatter.super.getReadTableName(name)
-                                                        : ISqlExpressionFormatter.super.getReadTableName(name) + "_local";
     }
 }

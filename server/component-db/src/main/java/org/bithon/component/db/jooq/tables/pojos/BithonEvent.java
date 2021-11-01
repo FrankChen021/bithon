@@ -14,11 +14,11 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonEvent implements Serializable {
 
-    private static final long serialVersionUID = 1308184876;
+    private static final long serialVersionUID = 309554348;
 
     private Timestamp timestamp;
-    private String    appName;
-    private String    instanceName;
+    private String    appname;
+    private String    instancename;
     private String    type;
     private String    arguments;
 
@@ -26,22 +26,22 @@ public class BithonEvent implements Serializable {
 
     public BithonEvent(BithonEvent value) {
         this.timestamp = value.timestamp;
-        this.appName = value.appName;
-        this.instanceName = value.instanceName;
+        this.appname = value.appname;
+        this.instancename = value.instancename;
         this.type = value.type;
         this.arguments = value.arguments;
     }
 
     public BithonEvent(
         Timestamp timestamp,
-        String    appName,
-        String    instanceName,
+        String    appname,
+        String    instancename,
         String    type,
         String    arguments
     ) {
         this.timestamp = timestamp;
-        this.appName = appName;
-        this.instanceName = instanceName;
+        this.appname = appname;
+        this.instancename = instancename;
         this.type = type;
         this.arguments = arguments;
     }
@@ -54,20 +54,20 @@ public class BithonEvent implements Serializable {
         this.timestamp = timestamp;
     }
 
-    public String getAppName() {
-        return this.appName;
+    public String getAppname() {
+        return this.appname;
     }
 
-    public void setAppName(String appName) {
-        this.appName = appName;
+    public void setAppname(String appname) {
+        this.appname = appname;
     }
 
-    public String getInstanceName() {
-        return this.instanceName;
+    public String getInstancename() {
+        return this.instancename;
     }
 
-    public void setInstanceName(String instanceName) {
-        this.instanceName = instanceName;
+    public void setInstancename(String instancename) {
+        this.instancename = instancename;
     }
 
     public String getType() {
@@ -91,8 +91,8 @@ public class BithonEvent implements Serializable {
         StringBuilder sb = new StringBuilder("BithonEvent (");
 
         sb.append(timestamp);
-        sb.append(", ").append(appName);
-        sb.append(", ").append(instanceName);
+        sb.append(", ").append(appname);
+        sb.append(", ").append(instancename);
         sb.append(", ").append(type);
         sb.append(", ").append(arguments);
 

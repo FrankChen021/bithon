@@ -98,8 +98,8 @@ public class EventJdbcStorage implements IEventStorage {
         @Override
         public void write(EventMessage eventMessage) throws IOException {
             InsertSetMoreStep<?> step = dslContext.insertInto(Tables.BITHON_EVENT)
-                                                  .set(Tables.BITHON_EVENT.APP_NAME, eventMessage.getAppName())
-                                                  .set(Tables.BITHON_EVENT.INSTANCE_NAME, eventMessage.getInstanceName())
+                                                  .set(Tables.BITHON_EVENT.APPNAME, eventMessage.getAppName())
+                                                  .set(Tables.BITHON_EVENT.INSTANCENAME, eventMessage.getInstanceName())
                                                   .set(Tables.BITHON_EVENT.TYPE, eventMessage.getType())
                                                   .set(Tables.BITHON_EVENT.ARGUMENTS, om.writeValueAsString(eventMessage.getArgs()))
                                                   .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(eventMessage.getTimestamp()));

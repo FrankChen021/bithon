@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonEvent extends TableImpl<BithonEventRecord> {
 
-    private static final long serialVersionUID = 1037279452;
+    private static final long serialVersionUID = 77562196;
 
     /**
      * The reference instance of <code>bithon_event</code>
@@ -51,14 +51,14 @@ public class BithonEvent extends TableImpl<BithonEventRecord> {
     public final TableField<BithonEventRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "reported Timestamp");
 
     /**
-     * The column <code>bithon_event.app_name</code>.
+     * The column <code>bithon_event.appName</code>.
      */
-    public final TableField<BithonEventRecord, String> APP_NAME = createField(DSL.name("app_name"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<BithonEventRecord, String> APPNAME = createField(DSL.name("appName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>bithon_event.instance_name</code>.
+     * The column <code>bithon_event.instanceName</code>.
      */
-    public final TableField<BithonEventRecord, String> INSTANCE_NAME = createField(DSL.name("instance_name"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
+    public final TableField<BithonEventRecord, String> INSTANCENAME = createField(DSL.name("instanceName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>bithon_event.type</code>. type of event

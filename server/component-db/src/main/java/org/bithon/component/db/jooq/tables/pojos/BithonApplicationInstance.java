@@ -14,32 +14,32 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonApplicationInstance implements Serializable {
 
-    private static final long serialVersionUID = 1733417018;
+    private static final long serialVersionUID = 1397583482;
 
     private Timestamp timestamp;
-    private String    applicationName;
-    private String    applicationType;
-    private String    instanceName;
+    private String    appname;
+    private String    apptype;
+    private String    instancename;
 
     public BithonApplicationInstance() {}
 
     public BithonApplicationInstance(BithonApplicationInstance value) {
         this.timestamp = value.timestamp;
-        this.applicationName = value.applicationName;
-        this.applicationType = value.applicationType;
-        this.instanceName = value.instanceName;
+        this.appname = value.appname;
+        this.apptype = value.apptype;
+        this.instancename = value.instancename;
     }
 
     public BithonApplicationInstance(
         Timestamp timestamp,
-        String    applicationName,
-        String    applicationType,
-        String    instanceName
+        String    appname,
+        String    apptype,
+        String    instancename
     ) {
         this.timestamp = timestamp;
-        this.applicationName = applicationName;
-        this.applicationType = applicationType;
-        this.instanceName = instanceName;
+        this.appname = appname;
+        this.apptype = apptype;
+        this.instancename = instancename;
     }
 
     public Timestamp getTimestamp() {
@@ -50,28 +50,28 @@ public class BithonApplicationInstance implements Serializable {
         this.timestamp = timestamp;
     }
 
-    public String getApplicationName() {
-        return this.applicationName;
+    public String getAppname() {
+        return this.appname;
     }
 
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
+    public void setAppname(String appname) {
+        this.appname = appname;
     }
 
-    public String getApplicationType() {
-        return this.applicationType;
+    public String getApptype() {
+        return this.apptype;
     }
 
-    public void setApplicationType(String applicationType) {
-        this.applicationType = applicationType;
+    public void setApptype(String apptype) {
+        this.apptype = apptype;
     }
 
-    public String getInstanceName() {
-        return this.instanceName;
+    public String getInstancename() {
+        return this.instancename;
     }
 
-    public void setInstanceName(String instanceName) {
-        this.instanceName = instanceName;
+    public void setInstancename(String instancename) {
+        this.instancename = instancename;
     }
 
     @Override
@@ -79,9 +79,9 @@ public class BithonApplicationInstance implements Serializable {
         StringBuilder sb = new StringBuilder("BithonApplicationInstance (");
 
         sb.append(timestamp);
-        sb.append(", ").append(applicationName);
-        sb.append(", ").append(applicationType);
-        sb.append(", ").append(instanceName);
+        sb.append(", ").append(appname);
+        sb.append(", ").append(apptype);
+        sb.append(", ").append(instancename);
 
         sb.append(")");
         return sb.toString();

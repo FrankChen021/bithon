@@ -20,7 +20,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSettingRecord> implements Record6<Long, String, String, String, Timestamp, Timestamp> {
 
-    private static final long serialVersionUID = 1995774512;
+    private static final long serialVersionUID = 337200568;
 
     /**
      * Setter for <code>bithon_agent_setting.id</code>. 唯一编号
@@ -37,30 +37,30 @@ public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSet
     }
 
     /**
-     * Setter for <code>bithon_agent_setting.app_name</code>. 名称
+     * Setter for <code>bithon_agent_setting.appName</code>. 名称
      */
-    public void setAppName(String value) {
+    public void setAppname(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>bithon_agent_setting.app_name</code>. 名称
+     * Getter for <code>bithon_agent_setting.appName</code>. 名称
      */
-    public String getAppName() {
+    public String getAppname() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>bithon_agent_setting.setting_name</code>. 配置名称
+     * Setter for <code>bithon_agent_setting.settingName</code>. 配置名称
      */
-    public void setSettingName(String value) {
+    public void setSettingname(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>bithon_agent_setting.setting_name</code>. 配置名称
+     * Getter for <code>bithon_agent_setting.settingName</code>. 配置名称
      */
-    public String getSettingName() {
+    public String getSettingname() {
         return (String) get(2);
     }
 
@@ -79,30 +79,30 @@ public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSet
     }
 
     /**
-     * Setter for <code>bithon_agent_setting.created_at</code>. 创建时间
+     * Setter for <code>bithon_agent_setting.createdAt</code>. 创建时间
      */
-    public void setCreatedAt(Timestamp value) {
+    public void setCreatedat(Timestamp value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>bithon_agent_setting.created_at</code>. 创建时间
+     * Getter for <code>bithon_agent_setting.createdAt</code>. 创建时间
      */
-    public Timestamp getCreatedAt() {
+    public Timestamp getCreatedat() {
         return (Timestamp) get(4);
     }
 
     /**
-     * Setter for <code>bithon_agent_setting.updated_at</code>. 更新时间
+     * Setter for <code>bithon_agent_setting.updatedAt</code>. 更新时间
      */
-    public void setUpdatedAt(Timestamp value) {
+    public void setUpdatedat(Timestamp value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>bithon_agent_setting.updated_at</code>. 更新时间
+     * Getter for <code>bithon_agent_setting.updatedAt</code>. 更新时间
      */
-    public Timestamp getUpdatedAt() {
+    public Timestamp getUpdatedat() {
         return (Timestamp) get(5);
     }
 
@@ -136,12 +136,12 @@ public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSet
 
     @Override
     public Field<String> field2() {
-        return BithonAgentSetting.BITHON_AGENT_SETTING.APP_NAME;
+        return BithonAgentSetting.BITHON_AGENT_SETTING.APPNAME;
     }
 
     @Override
     public Field<String> field3() {
-        return BithonAgentSetting.BITHON_AGENT_SETTING.SETTING_NAME;
+        return BithonAgentSetting.BITHON_AGENT_SETTING.SETTINGNAME;
     }
 
     @Override
@@ -151,12 +151,12 @@ public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSet
 
     @Override
     public Field<Timestamp> field5() {
-        return BithonAgentSetting.BITHON_AGENT_SETTING.CREATED_AT;
+        return BithonAgentSetting.BITHON_AGENT_SETTING.CREATEDAT;
     }
 
     @Override
     public Field<Timestamp> field6() {
-        return BithonAgentSetting.BITHON_AGENT_SETTING.UPDATED_AT;
+        return BithonAgentSetting.BITHON_AGENT_SETTING.UPDATEDAT;
     }
 
     @Override
@@ -166,12 +166,12 @@ public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSet
 
     @Override
     public String component2() {
-        return getAppName();
+        return getAppname();
     }
 
     @Override
     public String component3() {
-        return getSettingName();
+        return getSettingname();
     }
 
     @Override
@@ -181,12 +181,12 @@ public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSet
 
     @Override
     public Timestamp component5() {
-        return getCreatedAt();
+        return getCreatedat();
     }
 
     @Override
     public Timestamp component6() {
-        return getUpdatedAt();
+        return getUpdatedat();
     }
 
     @Override
@@ -196,12 +196,12 @@ public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSet
 
     @Override
     public String value2() {
-        return getAppName();
+        return getAppname();
     }
 
     @Override
     public String value3() {
-        return getSettingName();
+        return getSettingname();
     }
 
     @Override
@@ -211,12 +211,12 @@ public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSet
 
     @Override
     public Timestamp value5() {
-        return getCreatedAt();
+        return getCreatedat();
     }
 
     @Override
     public Timestamp value6() {
-        return getUpdatedAt();
+        return getUpdatedat();
     }
 
     @Override
@@ -227,13 +227,13 @@ public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSet
 
     @Override
     public BithonAgentSettingRecord value2(String value) {
-        setAppName(value);
+        setAppname(value);
         return this;
     }
 
     @Override
     public BithonAgentSettingRecord value3(String value) {
-        setSettingName(value);
+        setSettingname(value);
         return this;
     }
 
@@ -245,13 +245,13 @@ public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSet
 
     @Override
     public BithonAgentSettingRecord value5(Timestamp value) {
-        setCreatedAt(value);
+        setCreatedat(value);
         return this;
     }
 
     @Override
     public BithonAgentSettingRecord value6(Timestamp value) {
-        setUpdatedAt(value);
+        setUpdatedat(value);
         return this;
     }
 
@@ -280,14 +280,14 @@ public class BithonAgentSettingRecord extends UpdatableRecordImpl<BithonAgentSet
     /**
      * Create a detached, initialised BithonAgentSettingRecord
      */
-    public BithonAgentSettingRecord(Long id, String appName, String settingName, String setting, Timestamp createdAt, Timestamp updatedAt) {
+    public BithonAgentSettingRecord(Long id, String appname, String settingname, String setting, Timestamp createdat, Timestamp updatedat) {
         super(BithonAgentSetting.BITHON_AGENT_SETTING);
 
         set(0, id);
-        set(1, appName);
-        set(2, settingName);
+        set(1, appname);
+        set(2, settingname);
         set(3, setting);
-        set(4, createdAt);
-        set(5, updatedAt);
+        set(4, createdat);
+        set(5, updatedat);
     }
 }

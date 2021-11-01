@@ -13,6 +13,7 @@ bithon:
         username: default
         password:
         # cluster parameters
+        cluster: test_cluster_two_shards_localhost
         # engine: MergeTree
-        # cluster: <should be set if engine is ReplicatedMergeTree>
+
 

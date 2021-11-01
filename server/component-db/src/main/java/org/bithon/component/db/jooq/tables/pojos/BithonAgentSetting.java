@@ -14,40 +14,40 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSetting implements Serializable {
 
-    private static final long serialVersionUID = -151877019;
+    private static final long serialVersionUID = -571160475;
 
     private Long      id;
-    private String    appName;
-    private String    settingName;
+    private String    appname;
+    private String    settingname;
     private String    setting;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+    private Timestamp createdat;
+    private Timestamp updatedat;
 
     public BithonAgentSetting() {}
 
     public BithonAgentSetting(BithonAgentSetting value) {
         this.id = value.id;
-        this.appName = value.appName;
-        this.settingName = value.settingName;
+        this.appname = value.appname;
+        this.settingname = value.settingname;
         this.setting = value.setting;
-        this.createdAt = value.createdAt;
-        this.updatedAt = value.updatedAt;
+        this.createdat = value.createdat;
+        this.updatedat = value.updatedat;
     }
 
     public BithonAgentSetting(
         Long      id,
-        String    appName,
-        String    settingName,
+        String    appname,
+        String    settingname,
         String    setting,
-        Timestamp createdAt,
-        Timestamp updatedAt
+        Timestamp createdat,
+        Timestamp updatedat
     ) {
         this.id = id;
-        this.appName = appName;
-        this.settingName = settingName;
+        this.appname = appname;
+        this.settingname = settingname;
         this.setting = setting;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.createdat = createdat;
+        this.updatedat = updatedat;
     }
 
     public Long getId() {
@@ -58,20 +58,20 @@ public class BithonAgentSetting implements Serializable {
         this.id = id;
     }
 
-    public String getAppName() {
-        return this.appName;
+    public String getAppname() {
+        return this.appname;
     }
 
-    public void setAppName(String appName) {
-        this.appName = appName;
+    public void setAppname(String appname) {
+        this.appname = appname;
     }
 
-    public String getSettingName() {
-        return this.settingName;
+    public String getSettingname() {
+        return this.settingname;
     }
 
-    public void setSettingName(String settingName) {
-        this.settingName = settingName;
+    public void setSettingname(String settingname) {
+        this.settingname = settingname;
     }
 
     public String getSetting() {
@@ -82,20 +82,20 @@ public class BithonAgentSetting implements Serializable {
         this.setting = setting;
     }
 
-    public Timestamp getCreatedAt() {
-        return this.createdAt;
+    public Timestamp getCreatedat() {
+        return this.createdat;
     }
 
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
+    public void setCreatedat(Timestamp createdat) {
+        this.createdat = createdat;
     }
 
-    public Timestamp getUpdatedAt() {
-        return this.updatedAt;
+    public Timestamp getUpdatedat() {
+        return this.updatedat;
     }
 
-    public void setUpdatedAt(Timestamp updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdatedat(Timestamp updatedat) {
+        this.updatedat = updatedat;
     }
 
     @Override
@@ -103,11 +103,11 @@ public class BithonAgentSetting implements Serializable {
         StringBuilder sb = new StringBuilder("BithonAgentSetting (");
 
         sb.append(id);
-        sb.append(", ").append(appName);
-        sb.append(", ").append(settingName);
+        sb.append(", ").append(appname);
+        sb.append(", ").append(settingname);
         sb.append(", ").append(setting);
-        sb.append(", ").append(createdAt);
-        sb.append(", ").append(updatedAt);
+        sb.append(", ").append(createdat);
+        sb.append(", ").append(updatedat);
 
         sb.append(")");
         return sb.toString();
