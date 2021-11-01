@@ -140,24 +140,6 @@ public class MetricJdbcReader implements IMetricReader {
     }
 
     @Override
-    public Map<String, Object> getMetricValue(TimeSpan start,
-                                              TimeSpan end,
-                                              DataSourceSchema dataSourceSchema,
-                                              Collection<DimensionCondition> filters,
-                                              Collection<String> metrics) {
-        String sql = new TimeSeriesSqlClauseBuilder(sqlFormatter, start,
-                                                    end,
-                                                    dataSourceSchema,
-                                                    (end.getMilliseconds() - start.getMilliseconds()) / 1000).filters(filters)
-                                                                                                             .metrics(metrics)
-                                                                                                             .build();
-        List<Map<String, Object>> queryResult = executeSql(sql);
-
-        List<Map<String, Object>> values = executeSql(sql);
-        return CollectionUtils.isEmpty(values) ? Collections.emptyMap() : values.get(0);
-    }
-
-    @Override
     public List<Map<String, Object>> groupBy(GroupByQuery query) {
         String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
         MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,

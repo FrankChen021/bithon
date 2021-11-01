@@ -16,7 +16,6 @@
 
 package org.bithon.server.metric.storage;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
@@ -33,15 +32,6 @@ import java.util.Map;
 public interface IMetricReader {
 
     List<Map<String, Object>> timeseries(TimeseriesQuery query);
-
-    /**
-     * Aggregate metrics by their pre-defined aggregators in the given period
-     */
-    Map<String, Object> getMetricValue(TimeSpan start,
-                                       TimeSpan end,
-                                       DataSourceSchema dataSourceSchema,
-                                       Collection<DimensionCondition> dimensions,
-                                       Collection<String> metrics);
 
     /**
      * Aggregate metrics by their pre-defined aggregators in the given period
