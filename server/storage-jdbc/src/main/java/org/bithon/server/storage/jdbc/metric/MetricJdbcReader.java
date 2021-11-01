@@ -63,15 +63,20 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MetricJdbcReader implements IMetricReader {
 
-    static class DefaultSQLExpressionProvider implements ISQLExpressionProvider {
-        public static ISQLExpressionProvider INSTANCE = new DefaultSQLExpressionProvider();
-    }
-
-    static class H2SQLExpressionProvider implements ISQLExpressionProvider {
-        public static ISQLExpressionProvider INSTANCE = new H2SQLExpressionProvider();
+    static class DefaultSQLExpressionFormatter implements ISqlExpressionFormatter {
+        public static ISqlExpressionFormatter INSTANCE = new DefaultSQLExpressionFormatter();
 
         @Override
-        public boolean groupByRawExpression() {
+        public boolean groupByUseRawExpression() {
+            return false;
+        }
+    }
+
+    static class H2SqlExpressionFormatter implements ISqlExpressionFormatter {
+        public static ISqlExpressionFormatter INSTANCE = new H2SqlExpressionFormatter();
+
+        @Override
+        public boolean groupByUseRawExpression() {
             return true;
         }
 
@@ -81,14 +86,16 @@ public class MetricJdbcReader implements IMetricReader {
     }
 
     private final DSLContext dsl;
-    private final ISQLExpressionProvider sqlProvider;
+    private final ISqlExpressionFormatter sqlFormatter;
 
-    public MetricJdbcReader(DSLContext dsl, ISQLExpressionProvider sqlProvider) {
+    public MetricJdbcReader(DSLContext dsl, ISqlExpressionFormatter sqlFormatter) {
         this.dsl = dsl;
-        this.sqlProvider = sqlProvider;
+        this.sqlFormatter = sqlFormatter;
     }
 
-    // TODO: 具有多个纬度的聚合条件下，last/first应该按多个纬度分组求last/first，再聚合求和
+    //
+    // TODO: merge the following groupBy method together
+    //
     @Override
     public List<Map<String, Object>> timeseries(TimeSpan start,
                                                 TimeSpan end,
@@ -96,9 +103,9 @@ public class MetricJdbcReader implements IMetricReader {
                                                 Collection<DimensionCondition> filters,
                                                 Collection<String> metrics,
                                                 int interval) {
-        String sql = new SQLClauseBuilder(sqlProvider, start, end, dataSourceSchema, interval).filters(filters)
-                                                                                              .metrics(metrics)
-                                                                                              .build();
+        String sql = new SQLClauseBuilder(sqlFormatter, start, end, dataSourceSchema, interval).filters(filters)
+                                                                                               .metrics(metrics)
+                                                                                               .build();
         List<Map<String, Object>> queryResult = executeSql(sql);
 
         //
@@ -136,7 +143,7 @@ public class MetricJdbcReader implements IMetricReader {
                                               DataSourceSchema dataSourceSchema,
                                               Collection<DimensionCondition> filters,
                                               Collection<String> metrics) {
-        String sql = new SQLClauseBuilder(sqlProvider, start,
+        String sql = new SQLClauseBuilder(sqlFormatter, start,
                                           end,
                                           dataSourceSchema,
                                           (end.getMilliseconds() - start.getMilliseconds()) / 1000).filters(filters)
@@ -175,14 +182,14 @@ public class MetricJdbcReader implements IMetricReader {
         String groupByFields = groupBy.stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
 
         String sql = String.format(
-            "SELECT %s, %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= '%s' AND \"timestamp\" <= '%s' GROUP BY %s",
+            "SELECT %s, %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s",
             groupByFields,
             metricList,
             sqlTableName,
             "OUTER",
             condition,
-            start.toISO8601(),
-            end.toISO8601(),
+            sqlFormatter.formatTimestamp(start),
+            sqlFormatter.formatTimestamp(end),
             groupByFields
         );
         return executeSql(sql);
@@ -221,8 +228,8 @@ public class MetricJdbcReader implements IMetricReader {
             dimension,
             "bithon_" + dataSourceSchema.getName().replace("-", "_"),
             condition,
-            sqlProvider.formatTimestamp(start),
-            sqlProvider.formatTimestamp(end)
+            sqlFormatter.formatTimestamp(start),
+            sqlFormatter.formatTimestamp(end)
         );
 
         log.info("Executing {}", sql);
@@ -526,13 +533,13 @@ public class MetricJdbcReader implements IMetricReader {
         private final String tableName;
         private final DataSourceSchema schema;
         private final long interval;
-        private final ISQLExpressionProvider sqlProvider;
+        private final ISqlExpressionFormatter sqlFormatter;
         private String filters;
         private final TimeSpan start;
         private final TimeSpan end;
 
         static class MetricClauseBuilder extends MetricSpecVisitor {
-            private final ISQLExpressionProvider sqlProvider;
+            private final ISqlExpressionFormatter sqlProvider;
             private final List<String> postExpressions;
             private final Set<String> rawExpressions;
             private final boolean addAlias;
@@ -540,7 +547,7 @@ public class MetricJdbcReader implements IMetricReader {
             private final Set<String> metrics;
             private boolean hasLast;
 
-            public MetricClauseBuilder(ISQLExpressionProvider sqlProvider,
+            public MetricClauseBuilder(ISqlExpressionFormatter sqlProvider,
                                        Map<String, Object> variables,
                                        boolean addAlias,
                                        List<String> postExpressions,
@@ -649,12 +656,12 @@ public class MetricJdbcReader implements IMetricReader {
             }
         }
 
-        SQLClauseBuilder(ISQLExpressionProvider sqlProvider,
+        SQLClauseBuilder(ISqlExpressionFormatter sqlFormatter,
                          TimeSpan start,
                          TimeSpan end,
                          DataSourceSchema dataSourceSchema,
                          long interval) {
-            this.sqlProvider = sqlProvider;
+            this.sqlFormatter = sqlFormatter;
             this.tableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
             this.start = start;
             this.end = end;
@@ -663,7 +670,7 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         SQLClauseBuilder metrics(Collection<String> metrics) {
-            MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(this.sqlProvider,
+            MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(this.sqlFormatter,
                                                                               ImmutableMap.of("interval",
                                                                                               interval,
                                                                                               //TODO: use the quote based on the SQL dialect
@@ -710,7 +717,7 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         String build() {
-            String groupByExpression = sqlProvider.timeFloor("timestamp", interval);
+            String groupByExpression = sqlFormatter.timeFloor("timestamp", interval);
             if (rawExpressions.isEmpty()) {
                 return String.format(
                     "SELECT %s \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s %s",
@@ -718,10 +725,10 @@ public class MetricJdbcReader implements IMetricReader {
                     String.join(",", postExpressions),
                     tableName,
                     this.filters,
-                    sqlProvider.formatTimestamp(start),
-                    sqlProvider.formatTimestamp(end),
-                    sqlProvider.groupByRawExpression() ? groupByExpression : "timestamp",
-                    sqlProvider.orderByTimestamp("timestamp")
+                    sqlFormatter.formatTimestamp(start),
+                    sqlFormatter.formatTimestamp(end),
+                    sqlFormatter.groupByUseRawExpression() ? groupByExpression : "timestamp",
+                    sqlFormatter.orderByTimestamp("timestamp")
                 );
             } else {
                 return String.format(
@@ -734,9 +741,9 @@ public class MetricJdbcReader implements IMetricReader {
                     groupByExpression,
                     tableName,
                     this.filters,
-                    sqlProvider.formatTimestamp(start),
-                    sqlProvider.formatTimestamp(end),
-                    sqlProvider.orderByTimestamp("timestamp")
+                    sqlFormatter.formatTimestamp(start),
+                    sqlFormatter.formatTimestamp(end),
+                    sqlFormatter.orderByTimestamp("timestamp")
                 );
             }
         }

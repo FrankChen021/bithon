@@ -24,7 +24,7 @@ import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.storage.IMetricCleaner;
 import org.bithon.server.metric.storage.IMetricReader;
-import org.bithon.server.storage.jdbc.metric.ISQLExpressionProvider;
+import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcReader;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
@@ -73,12 +73,17 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
 
-    static class ClickHouseSQLExpressionProvider implements ISQLExpressionProvider {
-        public static ISQLExpressionProvider INSTANCE = new ClickHouseSQLExpressionProvider();
+    static class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
+        public static ISqlExpressionFormatter INSTANCE = new ClickHouseSqlExpressionFormatter();
 
         @Override
         public String timeFloor(String field, long interval) {
-            return String.format("toUnixTimestamp(\"%s\")/ %d * %d", field, interval, interval);
+            return String.format("CAST(toUnixTimestamp(\"%s\")/ %d AS Int64) * %d", field, interval, interval);
+        }
+
+        @Override
+        public boolean groupByUseRawExpression() {
+            return false;
         }
 
         /**
@@ -97,7 +102,7 @@ public class MetricStorage extends MetricJdbcStorage {
 
     @Override
     public IMetricReader createMetricReader(DataSourceSchema schema) {
-        return new MetricJdbcReader(dslContext, ClickHouseSQLExpressionProvider.INSTANCE);
+        return new MetricJdbcReader(dslContext, ClickHouseSqlExpressionFormatter.INSTANCE);
     }
 
     @Override

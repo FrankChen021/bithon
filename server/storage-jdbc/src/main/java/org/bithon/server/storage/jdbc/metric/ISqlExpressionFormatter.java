@@ -23,7 +23,7 @@ import org.bithon.server.common.utils.datetime.TimeSpan;
  * @author Frank Chen
  * @date 2021-10-26
  */
-public interface ISQLExpressionProvider {
+public interface ISqlExpressionFormatter {
     /**
      * different DBMS has different functions to support time_floor semantics
      */
@@ -48,9 +48,7 @@ public interface ISQLExpressionProvider {
      * GROUP BY UNIX_TIMESTAMP("timestamp")/ 10 * 10
      * </p>
      */
-    default boolean groupByRawExpression() {
-        return false;
-    }
+    boolean groupByUseRawExpression();
 
     default String formatTimestamp(TimeSpan timeSpan) {
         return "'" + timeSpan.toISO8601() + "'";
