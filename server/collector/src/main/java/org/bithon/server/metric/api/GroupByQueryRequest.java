@@ -28,10 +28,10 @@ import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/30 8:20 下午
+ * @date 2022/11/01 14:28
  */
 @Data
-public class GetMetricsRequest {
+public class GroupByQueryRequest {
     @NotEmpty
     private String startTimeISO8601;
 
@@ -41,10 +41,12 @@ public class GetMetricsRequest {
     @NotEmpty
     private String dataSource;
 
+    private Map<String, DimensionCondition> filters = Collections.emptyMap();
+
+    private List<String> metrics = Collections.emptyList();
+    private List<IQuerableAggregator> aggregators = Collections.emptyList();
+
     @Valid
     @Size(min = 1)
-    private Map<String, DimensionCondition> dimensions;
-
-    @Size(min = 1)
-    private List<String> metrics;
+    private List<String> groupBy;
 }

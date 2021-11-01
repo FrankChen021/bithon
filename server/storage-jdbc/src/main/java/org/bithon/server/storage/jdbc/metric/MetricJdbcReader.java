@@ -40,6 +40,7 @@ import org.bithon.server.metric.aggregator.spec.LongSumMetricSpec;
 import org.bithon.server.metric.aggregator.spec.PostAggregatorExpressionVisitor;
 import org.bithon.server.metric.aggregator.spec.PostAggregatorMetricSpec;
 import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.GroupByQuery;
 import org.bithon.server.metric.storage.IMetricReader;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -156,40 +157,38 @@ public class MetricJdbcReader implements IMetricReader {
     }
 
     @Override
-    public List<Map<String, Object>> groupBy(TimeSpan start,
-                                             TimeSpan end,
-                                             DataSourceSchema dataSourceSchema,
-                                             Collection<DimensionCondition> filter,
-                                             Collection<String> metrics,
-                                             Collection<String> groupBy) {
-        String sqlTableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
+    public List<Map<String, Object>> groupBy(GroupByQuery query) {
+        String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
         MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
                                                                                       "OUTER",
-                                                                                      dataSourceSchema,
+                                                                                      query.getDataSource(),
                                                                                       ImmutableMap.of("interval",
-                                                                                                      (end.getMilliseconds()
-                                                                                                       - start.getMilliseconds())
-                                                                                                      / 1000));
-        String metricList = metrics.stream()
-                                   .map(m -> dataSourceSchema.getMetricSpecByName(m).accept(metricFieldsBuilder))
-                                   .collect(Collectors.joining(", "));
+                                                                                                      query.getInterval().getGranularity()));
+        String metricList = query.getMetrics()
+                                 .stream()
+                                 .map(m -> query.getDataSource().getMetricSpecByName(m).accept(metricFieldsBuilder))
+                                 .collect(Collectors.joining(", "));
 
-        String condition = filter.stream()
-                                 .map(dimension -> dimension.getMatcher()
-                                                            .accept(new SQLFilterBuilder(dimension.getDimension())))
-                                 .collect(Collectors.joining(" AND "));
+        String aggregatorList = query.getAggregators()
+                                     .stream()
+                                     .map(aggregator -> ", " + aggregator.accept(new QuerableAggregatorSqlVisitor()))
+                                     .collect(Collectors.joining());
 
-        String groupByFields = groupBy.stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
+        String filter = query.getFilters().stream()
+                             .map(dimension -> dimension.getMatcher().accept(new SQLFilterBuilder(dimension.getDimension())) + " AND ")
+                             .collect(Collectors.joining());
+
+        String groupByFields = query.getGroupBys().stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
 
         String sql = String.format(
-            "SELECT %s, %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s",
+            "SELECT %s, %s %s FROM \"%s\" OUTER WHERE %s \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s",
             groupByFields,
             metricList,
+            aggregatorList,
             sqlTableName,
-            "OUTER",
-            condition,
-            sqlFormatter.formatTimestamp(start),
-            sqlFormatter.formatTimestamp(end),
+            filter,
+            sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
+            sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
             groupByFields
         );
         return executeSql(sql);
