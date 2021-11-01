@@ -615,7 +615,7 @@ public class MetricJdbcReader implements IMetricReader {
                         sb.append(variableValue);
                     }
                 });
-                sb.append(String.format(" \"%s\"", postMetricSpec.getName()));
+                sb.append(String.format(" AS \"%s\"", postMetricSpec.getName()));
 
                 postExpressions.add(sb.toString());
 
@@ -629,7 +629,6 @@ public class MetricJdbcReader implements IMetricReader {
                                                   aggregator,
                                                   metricSpec.getName(),
                                                   addAlias ? String.format(" AS \"%s\"", metricSpec.getName()) : ""));
-
                 rawExpressions.add(String.format(" \"%s\"", metricSpec.getName()));
             }
 
@@ -637,7 +636,10 @@ public class MetricJdbcReader implements IMetricReader {
             protected void visitLast(String metricName) {
                 this.hasLast = true;
 
-                postExpressions.add(String.format(" \"%s\"", metricName));
+                //postExpressions.add(String.format(" \"%s\"", metricName));
+                postExpressions.add(String.format("sum(\"%s\")%s",
+                                                  metricName,
+                                                  addAlias ? String.format(" AS \"%s\"", metricName) : ""));
 
                 int interval = ((Number) this.variables.get("interval")).intValue();
                 rawExpressions.add(String.format("FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) \"%s\"",
@@ -670,9 +672,30 @@ public class MetricJdbcReader implements IMetricReader {
                                                                               true,
                                                                               postExpressions,
                                                                               rawExpressions);
-            for (String metric : metrics) {
-                schema.getMetricSpecByName(metric).accept(metricFieldsBuilder);
+
+            List<IMetricSpec> postMetricSpecList = new ArrayList<>();
+            for (String metricName : metrics) {
+                IMetricSpec metricSpec = schema.getMetricSpecByName(metricName);
+                if (metricSpec == null) {
+                    throw new RuntimeException(String.format("[%s] not defined", metricName));
+                }
+
+                if (metricSpec instanceof PostAggregatorMetricSpec) {
+                    //
+                    // post metrics will be processed at last
+                    // so that there won't be duplicated expressions for one field
+                    //
+                    // This constraint is required by some DBMS
+                    //
+                    postMetricSpecList.add(metricSpec);
+                } else {
+                    metricSpec.accept(metricFieldsBuilder);
+                }
             }
+            for (IMetricSpec postMetricSpec : postMetricSpecList) {
+                postMetricSpec.accept(metricFieldsBuilder);
+            }
+
             if (!metricFieldsBuilder.hasLast) {
                 this.rawExpressions.clear();
             }
@@ -690,29 +713,30 @@ public class MetricJdbcReader implements IMetricReader {
             String groupByExpression = sqlProvider.timeFloor("timestamp", interval);
             if (rawExpressions.isEmpty()) {
                 return String.format(
-                    "SELECT %s \"timestamp\", %s FROM \"%s\" %s WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s",
+                    "SELECT %s \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s %s",
                     groupByExpression,
                     String.join(",", postExpressions),
                     tableName,
-                    "OUTER",
                     this.filters,
                     sqlProvider.formatTimestamp(start),
                     sqlProvider.formatTimestamp(end),
-                    sqlProvider.groupByRawExpression() ? groupByExpression : "timestamp"
+                    sqlProvider.groupByRawExpression() ? groupByExpression : "timestamp",
+                    sqlProvider.orderByTimestamp("timestamp")
                 );
             } else {
                 return String.format(
                     "SELECT \"timestamp\", %s FROM "
                     + "("
                     + "     SELECT %s, %s \"timestamp\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s"
-                    + ")GROUP BY \"timestamp\"",
+                    + ")GROUP BY \"timestamp\" %s",
                     String.join(",", postExpressions),
                     String.join(",", rawExpressions),
                     groupByExpression,
                     tableName,
                     this.filters,
                     sqlProvider.formatTimestamp(start),
-                    sqlProvider.formatTimestamp(end)
+                    sqlProvider.formatTimestamp(end),
+                    sqlProvider.orderByTimestamp("timestamp")
                 );
             }
         }

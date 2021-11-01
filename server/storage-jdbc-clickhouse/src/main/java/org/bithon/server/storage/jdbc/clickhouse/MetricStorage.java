@@ -88,6 +88,11 @@ public class MetricStorage extends MetricJdbcStorage {
         public String formatTimestamp(TimeSpan timeSpan) {
             return String.format("fromUnixTimestamp(%d)", timeSpan.getMilliseconds() / 1000);
         }
+
+        @Override
+        public String orderByTimestamp(String timestampField) {
+            return "ORDER BY \"" + timestampField + "\"";
+        }
     }
 
     @Override

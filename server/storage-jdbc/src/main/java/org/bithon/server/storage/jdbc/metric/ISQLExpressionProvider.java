@@ -55,4 +55,12 @@ public interface ISQLExpressionProvider {
     default String formatTimestamp(TimeSpan timeSpan) {
         return "'" + timeSpan.toISO8601() + "'";
     }
+
+    /**
+     * some DBMS returns data out of timestamp order
+     * this interface returns a ORDER-BY SQL clause for such DBMS
+     */
+    default String orderByTimestamp(String timestampField) {
+        return "";
+    }
 }
