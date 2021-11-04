@@ -78,7 +78,8 @@ public class ClickHouseStorageAutoConfiguration {
                 context.registerSubtypes(TraceStorage.class,
                                          MetricStorage.class,
                                          EventStorage.class,
-                                         MetadataStorage.class);
+                                         MetadataStorage.class,
+                                         SettingStorage.class);
             }
         };
     }

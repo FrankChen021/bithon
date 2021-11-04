@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.Module;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
+import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -38,7 +39,7 @@ import javax.sql.DataSource;
  */
 @Configuration
 @ConditionalOnProperty(prefix = "bithon.storage.provider", name = "type", havingValue = "jdbc")
-@AutoConfigureBefore({DataSourceAutoConfiguration.class })
+@AutoConfigureBefore({DataSourceAutoConfiguration.class})
 public class JdbcStorageAutoConfiguration {
 
     @Bean
@@ -65,7 +66,8 @@ public class JdbcStorageAutoConfiguration {
                 context.registerSubtypes(TraceJdbcStorage.class,
                                          MetricJdbcStorage.class,
                                          EventJdbcStorage.class,
-                                         MetadataJdbcStorage.class);
+                                         MetadataJdbcStorage.class,
+                                         SettingJdbcStorage.class);
             }
         };
     }

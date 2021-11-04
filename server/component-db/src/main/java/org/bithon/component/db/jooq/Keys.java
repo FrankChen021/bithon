@@ -8,7 +8,6 @@ import org.bithon.component.db.jooq.tables.BithonAgentSetting;
 import org.bithon.component.db.jooq.tables.BithonTraceSpan;
 import org.bithon.component.db.jooq.tables.records.BithonAgentSettingRecord;
 import org.bithon.component.db.jooq.tables.records.BithonTraceSpanRecord;
-import org.jooq.Identity;
 import org.jooq.UniqueKey;
 import org.jooq.impl.Internal;
 
@@ -24,13 +23,11 @@ public class Keys {
     // IDENTITY definitions
     // -------------------------------------------------------------------------
 
-    public static final Identity<BithonAgentSettingRecord, Long> IDENTITY_BITHON_AGENT_SETTING = Identities0.IDENTITY_BITHON_AGENT_SETTING;
 
     // -------------------------------------------------------------------------
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_PRIMARY = UniqueKeys0.KEY_BITHON_AGENT_SETTING_PRIMARY;
     public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = UniqueKeys0.KEY_BITHON_AGENT_SETTING_KEY_APPNAME;
     public static final UniqueKey<BithonTraceSpanRecord> KEY_BITHON_TRACE_SPAN_IDX_KEY = UniqueKeys0.KEY_BITHON_TRACE_SPAN_IDX_KEY;
 
@@ -43,12 +40,7 @@ public class Keys {
     // [#1459] distribute members to avoid static initialisers > 64kb
     // -------------------------------------------------------------------------
 
-    private static class Identities0 {
-        public static Identity<BithonAgentSettingRecord, Long> IDENTITY_BITHON_AGENT_SETTING = Internal.createIdentity(BithonAgentSetting.BITHON_AGENT_SETTING, BithonAgentSetting.BITHON_AGENT_SETTING.ID);
-    }
-
     private static class UniqueKeys0 {
-        public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_PRIMARY = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, "KEY_bithon_agent_setting_PRIMARY", BithonAgentSetting.BITHON_AGENT_SETTING.ID);
         public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, "KEY_bithon_agent_setting_key_appName", BithonAgentSetting.BITHON_AGENT_SETTING.APPNAME, BithonAgentSetting.BITHON_AGENT_SETTING.SETTINGNAME);
         public static final UniqueKey<BithonTraceSpanRecord> KEY_BITHON_TRACE_SPAN_IDX_KEY = Internal.createUniqueKey(BithonTraceSpan.BITHON_TRACE_SPAN, "KEY_bithon_trace_span_idx_key", BithonTraceSpan.BITHON_TRACE_SPAN.TRACEID, BithonTraceSpan.BITHON_TRACE_SPAN.SPANID);
     }

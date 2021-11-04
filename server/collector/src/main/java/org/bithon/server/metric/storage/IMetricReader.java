@@ -16,7 +16,6 @@
 
 package org.bithon.server.metric.storage;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 
@@ -28,7 +27,6 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2020/12/11 11:09 上午
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IMetricReader {
 
     List<Map<String, Object>> timeseries(TimeseriesQuery query);

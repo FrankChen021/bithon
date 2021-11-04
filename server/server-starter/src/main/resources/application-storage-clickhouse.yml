@@ -4,6 +4,7 @@ bithon:
     metric: clickhouse
     event: clickhouse
     meta: clickhouse
+    setting: clickhouse
     provider:
       type: clickhouse
       parameters:

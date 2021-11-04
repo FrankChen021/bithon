@@ -40,7 +40,5 @@ public interface IMetaStorage {
 
     boolean isApplicationExist(String applicationName);
 
-    default void initialize() {
-
-    }
+    void initialize();
 }

@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonApplicationInstance extends TableImpl<BithonApplicationInstanceRecord> {
 
-    private static final long serialVersionUID = 948848794;
+    private static final long serialVersionUID = -1498053259;
 
     /**
      * The reference instance of <code>bithon_application_instance</code>
@@ -48,7 +48,7 @@ public class BithonApplicationInstance extends TableImpl<BithonApplicationInstan
     /**
      * The column <code>bithon_application_instance.timestamp</code>. update time
      */
-    public final TableField<BithonApplicationInstanceRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.TIMESTAMP)), this, "update time");
+    public final TableField<BithonApplicationInstanceRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "update time");
 
     /**
      * The column <code>bithon_application_instance.appName</code>.
@@ -105,7 +105,7 @@ public class BithonApplicationInstance extends TableImpl<BithonApplicationInstan
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_APPLICATION_INSTANCE_IDX_APP_NAME, Indexes.BITHON_APPLICATION_INSTANCE_IDX_TIMESTAMP);
+        return Arrays.<Index>asList(Indexes.BITHON_APPLICATION_INSTANCE_IDX_APP_INSTANCE_TIMESTAMP, Indexes.BITHON_APPLICATION_INSTANCE_IDX_APP_NAME);
     }
 
     @Override

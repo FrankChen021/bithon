@@ -4,6 +4,7 @@ bithon:
     metric: jdbc
     event: jdbc
     meta: jdbc
+    setting: jdbc
     provider:
       type: jdbc
       parameters:

@@ -14,11 +14,10 @@ import org.bithon.component.db.jooq.Keys;
 import org.bithon.component.db.jooq.tables.records.BithonAgentSettingRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row6;
+import org.jooq.Row5;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -33,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
 
-    private static final long serialVersionUID = 64372262;
+    private static final long serialVersionUID = 850252921;
 
     /**
      * The reference instance of <code>bithon_agent_setting</code>
@@ -49,9 +48,9 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     }
 
     /**
-     * The column <code>bithon_agent_setting.id</code>. 唯一编号
+     * The column <code>bithon_agent_setting.timestamp</code>. Created Timestamp
      */
-    public final TableField<BithonAgentSettingRecord, Long> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).identity(true), this, "唯一编号");
+    public final TableField<BithonAgentSettingRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Created Timestamp");
 
     /**
      * The column <code>bithon_agent_setting.appName</code>. 名称
@@ -67,11 +66,6 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
      * The column <code>bithon_agent_setting.setting</code>. 设置
      */
     public final TableField<BithonAgentSettingRecord, String> SETTING = createField(DSL.name("setting"), org.jooq.impl.SQLDataType.CLOB, this, "设置");
-
-    /**
-     * The column <code>bithon_agent_setting.createdAt</code>. 创建时间
-     */
-    public final TableField<BithonAgentSettingRecord, Timestamp> CREATEDAT = createField(DSL.name("createdAt"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.TIMESTAMP)), this, "创建时间");
 
     /**
      * The column <code>bithon_agent_setting.updatedAt</code>. 更新时间
@@ -118,22 +112,12 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_AGENT_SETTING_KEY_APPNAME, Indexes.BITHON_AGENT_SETTING_PRIMARY);
-    }
-
-    @Override
-    public Identity<BithonAgentSettingRecord, Long> getIdentity() {
-        return Keys.IDENTITY_BITHON_AGENT_SETTING;
-    }
-
-    @Override
-    public UniqueKey<BithonAgentSettingRecord> getPrimaryKey() {
-        return Keys.KEY_BITHON_AGENT_SETTING_PRIMARY;
+        return Arrays.<Index>asList(Indexes.BITHON_AGENT_SETTING_KEY_APPNAME);
     }
 
     @Override
     public List<UniqueKey<BithonAgentSettingRecord>> getKeys() {
-        return Arrays.<UniqueKey<BithonAgentSettingRecord>>asList(Keys.KEY_BITHON_AGENT_SETTING_PRIMARY, Keys.KEY_BITHON_AGENT_SETTING_KEY_APPNAME);
+        return Arrays.<UniqueKey<BithonAgentSettingRecord>>asList(Keys.KEY_BITHON_AGENT_SETTING_KEY_APPNAME);
     }
 
     @Override
@@ -163,11 +147,11 @@ public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row6 type methods
+    // Row5 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<Long, String, String, String, Timestamp, Timestamp> fieldsRow() {
-        return (Row6) super.fieldsRow();
+    public Row5<Timestamp, String, String, String, Timestamp> fieldsRow() {
+        return (Row5) super.fieldsRow();
     }
 }

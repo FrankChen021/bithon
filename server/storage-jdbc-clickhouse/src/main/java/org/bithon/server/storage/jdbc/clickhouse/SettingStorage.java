@@ -1,5 +1,5 @@
 /*
- *    Copyright 2020 bithon.org
+ *    Copyright 2020 bithon.cn
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -21,30 +21,27 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.db.jooq.Tables;
-import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
+import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.jooq.DSLContext;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/10/27 9:56 下午
+ * @author Frank Chen
+ * @date 4/11/21 3:34 pm
  */
 @JsonTypeName("clickhouse")
-public class MetadataStorage extends MetadataJdbcStorage {
+public class SettingStorage extends SettingJdbcStorage {
 
     private final ClickHouseConfig config;
-    private final ClickHouseSqlExpressionFormatter formatter;
 
     @JsonCreator
-    public MetadataStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dsl,
-                           @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
-                           @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlExpressionFormatter formatter) {
-        super(dsl);
+    public SettingStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
+                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
+        super(dslContext);
         this.config = config;
-        this.formatter = formatter;
     }
 
     @Override
     public void initialize() {
-        new TableCreator(config, this.dslContext).createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE);
+        new TableCreator(config, this.dslContext).createIfNotExist(Tables.BITHON_AGENT_SETTING);
     }
 }

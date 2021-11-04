@@ -23,11 +23,11 @@ DROP TABLE IF EXISTS `bithon_application`;
 DROP TABLE IF EXISTS `bithon_application_instance`;
 CREATE TABLE `bithon_application_instance`
 (
-    `timestamp`        datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+    `timestamp`        TIMESTAMP(3)     NOT NULL COMMENT'update time',
     `appName` varchar(128) NOT NULL,
     `appType` varchar(64)  NOT NULL,
     `instanceName`    varchar(64)  NOT NULL,
-    KEY `idx_timestamp` (`timestamp`),
+    KEY `idx_app_instance_timestamp` (`timestamp`), # Use a unique index name because some db like H2 rejects duplicated name
     KEY `idx_app_name` (`appName`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='应用';
@@ -35,16 +35,13 @@ CREATE TABLE `bithon_application_instance`
 DROP TABLE IF EXISTS `bithon_agent_setting`;
 CREATE TABLE `bithon_agent_setting`
 (
-    `id`           bigint(20)   NOT NULL AUTO_INCREMENT COMMENT '唯一编号',
+    `timestamp`   TIMESTAMP    NOT NULL COMMENT 'Created Timestamp',
     `appName`     varchar(128) NOT NULL DEFAULT '' COMMENT '名称',
     `settingName` varchar(64)  NOT NULL DEFAULT '' COMMENT '配置名称',
     `setting`      TEXT COMMENT '设置',
-    `createdAt`   datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updatedAt`   datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
     UNIQUE KEY `key_appName` (`appName`, `settingName`)
 ) ENGINE = InnoDB
-  AUTO_INCREMENT = 100000
   DEFAULT CHARSET = utf8mb4 COMMENT ='配置';
 
 DROP TABLE IF EXISTS `bithon_trace_span`;

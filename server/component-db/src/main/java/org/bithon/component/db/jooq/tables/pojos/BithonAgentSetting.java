@@ -14,48 +14,44 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSetting implements Serializable {
 
-    private static final long serialVersionUID = -571160475;
+    private static final long serialVersionUID = 331202753;
 
-    private Long      id;
+    private Timestamp timestamp;
     private String    appname;
     private String    settingname;
     private String    setting;
-    private Timestamp createdat;
     private Timestamp updatedat;
 
     public BithonAgentSetting() {}
 
     public BithonAgentSetting(BithonAgentSetting value) {
-        this.id = value.id;
+        this.timestamp = value.timestamp;
         this.appname = value.appname;
         this.settingname = value.settingname;
         this.setting = value.setting;
-        this.createdat = value.createdat;
         this.updatedat = value.updatedat;
     }
 
     public BithonAgentSetting(
-        Long      id,
+        Timestamp timestamp,
         String    appname,
         String    settingname,
         String    setting,
-        Timestamp createdat,
         Timestamp updatedat
     ) {
-        this.id = id;
+        this.timestamp = timestamp;
         this.appname = appname;
         this.settingname = settingname;
         this.setting = setting;
-        this.createdat = createdat;
         this.updatedat = updatedat;
     }
 
-    public Long getId() {
-        return this.id;
+    public Timestamp getTimestamp() {
+        return this.timestamp;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getAppname() {
@@ -82,14 +78,6 @@ public class BithonAgentSetting implements Serializable {
         this.setting = setting;
     }
 
-    public Timestamp getCreatedat() {
-        return this.createdat;
-    }
-
-    public void setCreatedat(Timestamp createdat) {
-        this.createdat = createdat;
-    }
-
     public Timestamp getUpdatedat() {
         return this.updatedat;
     }
@@ -102,11 +90,10 @@ public class BithonAgentSetting implements Serializable {
     public String toString() {
         StringBuilder sb = new StringBuilder("BithonAgentSetting (");
 
-        sb.append(id);
+        sb.append(timestamp);
         sb.append(", ").append(appname);
         sb.append(", ").append(settingname);
         sb.append(", ").append(setting);
-        sb.append(", ").append(createdat);
         sb.append(", ").append(updatedat);
 
         sb.append(")");
