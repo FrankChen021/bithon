@@ -16,8 +16,8 @@
 
 package org.bithon.server.topo.api;
 
-import org.bithon.component.db.dao.EndPointType;
 import org.bithon.server.common.matcher.EqualMatcher;
+import org.bithon.server.common.utils.EndPointType;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;

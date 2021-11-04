@@ -20,11 +20,11 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.component.db.jooq.Tables;
-import org.bithon.component.db.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.meta.Metadata;
 import org.bithon.server.meta.MetadataType;
 import org.bithon.server.meta.storage.IMetaStorage;
+import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.jooq.DSLContext;
 import org.springframework.dao.DuplicateKeyException;
 

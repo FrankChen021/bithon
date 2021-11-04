@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.db.dao;
+package org.bithon.server.common.utils;
 
 /**
  * @author frank.chen021@outlook.com

@@ -26,7 +26,6 @@
     <module>component/agent-rpc-brpc</module>
     <module>component/component-commons</module>
     <module>agent</module>
-    <module>server/component-db</module>
     <module>server/storage-jdbc</module>
     <module>server/storage-jdbc-clickhouse</module>
     <module>server/collector</module>

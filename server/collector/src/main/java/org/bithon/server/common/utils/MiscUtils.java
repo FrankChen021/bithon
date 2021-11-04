@@ -18,7 +18,6 @@ package org.bithon.server.common.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.bithon.component.db.dao.EndPointType;
 import org.jooq.tools.StringUtils;
 
 import java.net.URI;

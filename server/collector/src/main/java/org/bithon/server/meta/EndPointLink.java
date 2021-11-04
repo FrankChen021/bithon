@@ -21,7 +21,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.bithon.component.db.dao.EndPointType;
+import org.bithon.server.common.utils.EndPointType;
 
 import java.util.Arrays;
 import java.util.List;

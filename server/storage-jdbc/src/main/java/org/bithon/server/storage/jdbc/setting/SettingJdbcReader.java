@@ -1,5 +1,5 @@
 /*
- *    Copyright 2020 bithon.cn
+ *    Copyright 2020 bithon.org
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.bithon.server.storage.jdbc.setting;
 
-import org.bithon.component.db.jooq.Tables;
 import org.bithon.server.setting.storage.ISettingReader;
+import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.jooq.DSLContext;
 
 import java.sql.Timestamp;

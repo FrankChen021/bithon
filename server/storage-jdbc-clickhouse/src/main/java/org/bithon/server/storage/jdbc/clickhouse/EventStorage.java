@@ -22,9 +22,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.component.db.jooq.Tables;
 import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
+import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.jooq.DSLContext;
 
 /**

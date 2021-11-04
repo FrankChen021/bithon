@@ -16,7 +16,7 @@
 
 package org.bithon.server.metric.handler;
 
-import org.bithon.component.db.dao.EndPointType;
+import org.bithon.server.common.utils.EndPointType;
 import org.bithon.server.metric.input.MetricSet;
 
 import java.util.HashMap;

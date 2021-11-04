@@ -19,7 +19,7 @@ package org.bithon.server.topo.service;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.component.db.dao.EndPointType;
+import org.bithon.server.common.utils.EndPointType;
 
 /**
  * @author frank.chen021@outlook.com
