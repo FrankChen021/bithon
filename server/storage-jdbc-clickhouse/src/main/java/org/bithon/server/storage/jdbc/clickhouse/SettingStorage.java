@@ -42,6 +42,7 @@ public class SettingStorage extends SettingJdbcStorage {
 
     @Override
     public void initialize() {
-        new TableCreator(config, this.dslContext).createIfNotExist(Tables.BITHON_AGENT_SETTING);
+        // Apply ReplacingMergeTree to this table
+        new TableCreator(config, this.dslContext).createIfNotExist(Tables.BITHON_AGENT_SETTING, true);
     }
 }

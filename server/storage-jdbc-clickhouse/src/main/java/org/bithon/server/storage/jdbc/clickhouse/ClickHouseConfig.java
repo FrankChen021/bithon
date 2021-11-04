@@ -30,13 +30,24 @@ public class ClickHouseConfig implements InitializingBean {
     private String engine = "MergeTree";
     private String database;
 
+    /**
+     * a runtime property
+     */
+    private String tableEngine;
+
     @Override
     public void afterPropertiesSet() {
         if (!StringUtils.hasText(engine)) {
             throw new RuntimeException("'engine' should not be null");
         }
-        if (engine.startsWith("ReplicatedMergeTree") && !StringUtils.hasText(cluster)) {
-            throw new RuntimeException("cluster parameter misses value");
+
+        int spaceIndex = engine.indexOf(' ');
+        tableEngine = spaceIndex == -1 ? engine : engine.substring(0, spaceIndex);
+        if (!tableEngine.endsWith("MergeTree")) {
+            throw new RuntimeException(String.format("engine[%s] is not a member of MergeTree family", tableEngine));
+        }
+        if (tableEngine.startsWith("ReplicatedMergeTree") && !StringUtils.hasText(cluster)) {
+            throw new RuntimeException("ReplicatedMergeTree requires cluster to be given");
         }
     }
 }

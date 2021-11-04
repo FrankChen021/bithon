@@ -39,17 +39,39 @@ public class TableCreator {
     }
 
     public void createIfNotExist(Table<?> table) {
+        createIfNotExist(table, false);
+    }
+
+    public void createIfNotExist(Table<?> table, boolean useReplacingMergeTree) {
         //
         // create local table
         //
         {
+            //
+            // NOTE: for ReplacingMergeTree, version is not specified on CREATE table DDL
+            // that means the last record will be kept
+            //
+            String engine = config.getEngine();
+            if (useReplacingMergeTree && !config.getTableEngine().contains("Replacing")) {
+                // turn the engine into xxxReplacingMergeTree
+                String enginePrefix = config.getTableEngine().substring(0, config.getTableEngine().length() - "MergeTree".length());
+                String tableEngine = enginePrefix + "ReplacingMergeTree";
+
+                int spaceIndex = engine.indexOf(' ');
+                if (spaceIndex > 0) {
+                    engine = tableEngine + engine.substring(spaceIndex + 1);
+                } else {
+                    engine = tableEngine;
+                }
+            }
+
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (\n",
                                     config.getDatabase(),
                                     StringUtils.hasText(config.getCluster()) ? table.getName() + "_local" : table.getName(),
                                     StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
             sb.append(getFieldText(table));
-            sb.append(String.format(") ENGINE=%s PARTITION BY toYYYYMMDD(timestamp) ORDER BY(", config.getEngine()));
+            sb.append(String.format(") ENGINE=%s PARTITION BY toYYYYMMDD(timestamp) ORDER BY(", engine));
             for (Index idx : table.getIndexes()) {
                 for (SortField<?> f : idx.getFields()) {
                     sb.append(String.format("`%s`,", f.getName()));

@@ -41,9 +41,6 @@ public class SettingJdbcReader implements ISettingReader {
                          .from(Tables.BITHON_AGENT_SETTING)
                          .where(Tables.BITHON_AGENT_SETTING.APPNAME.eq(appName))
                          .and(Tables.BITHON_AGENT_SETTING.UPDATEDAT.gt(new Timestamp(since)))
-                         .groupBy(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING)
-                         .orderBy(Tables.BITHON_AGENT_SETTING.UPDATEDAT.desc())
-                         .limit(1)
                          .fetchMap(Tables.BITHON_AGENT_SETTING.SETTINGNAME, Tables.BITHON_AGENT_SETTING.SETTING);
     }
 }
