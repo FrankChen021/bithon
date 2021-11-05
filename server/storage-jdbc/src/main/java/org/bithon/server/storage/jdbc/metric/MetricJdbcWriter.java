@@ -27,7 +27,6 @@ import org.jooq.Query;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,7 +37,6 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 class MetricJdbcWriter implements IMetricWriter {
-    private static final int BATCH_SIZE = 20;
     private final DSLContext dsl;
     private final MetricTable table;
 
@@ -47,81 +45,26 @@ class MetricJdbcWriter implements IMetricWriter {
         this.table = table;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Override
-    public void write(InputRow inputRow) {
-        try (InsertSetMoreStep step = dsl.insertInto(table)
-                                         .set(table.timestampField,
-                                              new Timestamp(inputRow.getColAsLong("timestamp")))) {
-
-            for (Field dimension : table.getDimensions()) {
-                Object value = inputRow.getCol(dimension.getName(), "");
-                step.set(dimension, value);
-            }
-            for (Field metric : table.getMetrics()) {
-                Object value = inputRow.getCol(metric.getName(), 0);
-                step.set(metric, value);
-            }
-
-            try {
-                step.execute();
-            } catch (DuplicateKeyException e) {
-                // TODO: this is a bug???
-                log.error("Duplicate Key:{}", inputRow);
-            }
-        }
-    }
-
     @Override
     public void write(List<InputRow> inputRowList) {
-
-        int index = 0;
-        int thisBatch;
-        List<Query> queries = new ArrayList<>(BATCH_SIZE);
-        for (int leftSize = inputRowList.size(); leftSize > 0; leftSize -= thisBatch) {
-            thisBatch = Math.min(BATCH_SIZE, leftSize);
-
-            queries.clear();
-            for (int i = 0; i < thisBatch; i++, index++) {
-                queries.add(toInsertSql(inputRowList.get(index)));
-            }
-
-            try {
-                dsl.batch(queries.toArray(new Query[0])).execute();
-            } catch (DuplicateKeyException e) {
-                log.error("Duplicate Key:{}", queries);
-            } catch (Exception e) {
-                log.error("Failed to insert records into [{}]. Error message: {}. SQL:{}",
-                          this.table.getName(),
-                          e.getMessage(),
-                          queries.stream().map(Query::getSQL).collect(Collectors.joining("\n")));
-            }
-        }
+        writeRows(inputRowList.stream().map(this::toInsertSql).collect(Collectors.toList()));
     }
 
     @Override
     public void write(Collection<MetricSet> metricSetList) {
-        int index = 0;
-        int thisBatch;
-        List<Query> queries = new ArrayList<>(BATCH_SIZE);
-        for (int leftSize = metricSetList.size(); leftSize > 0; leftSize -= thisBatch) {
-            thisBatch = Math.min(BATCH_SIZE, leftSize);
+        writeRows(metricSetList.stream().map(this::toInsertSql).collect(Collectors.toList()));
+    }
 
-            queries.clear();
-            for (int i = 0; i < thisBatch; i++, index++) {
-                queries.add(toInsertSql(((List<MetricSet>) metricSetList).get(index)));
-            }
-
-            try {
-                dsl.batch(queries.toArray(new Query[0])).execute();
-            } catch (DuplicateKeyException e) {
-                log.error("Duplicate Key:{}", queries);
-            } catch (Exception e) {
-                log.error("Failed to insert records into [{}]. Error message: {}. SQL:{}",
-                          this.table.getName(),
-                          e.getMessage(),
-                          queries.stream().map(Query::getSQL).collect(Collectors.joining("\n")));
-            }
+    private void writeRows(List<Query> queries) {
+        try {
+            dsl.batch(queries.toArray(new Query[0])).execute();
+        } catch (DuplicateKeyException e) {
+            log.error("Duplicate Key:{}", queries);
+        } catch (Exception e) {
+            log.error("Failed to insert records into [{}]. Error message: {}. SQL:{}",
+                      this.table.getName(),
+                      e.getMessage(),
+                      queries.stream().map(Query::getSQL).collect(Collectors.joining("\n")));
         }
     }
 
@@ -130,7 +73,7 @@ class MetricJdbcWriter implements IMetricWriter {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
                                        .set(table.timestampField, new Timestamp(inputRow.getColAsLong("timestamp")));
 
-        //noinspection DuplicatedCode,rawtypes
+        //noinspection rawtypes
         for (Field dimension : table.getDimensions()) {
             Object value = inputRow.getCol(dimension.getName(), "");
             step.set(dimension, value);
