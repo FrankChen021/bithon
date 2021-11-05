@@ -14,21 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event;
+package org.bithon.server.meta.storage;
 
 import lombok.Data;
-import org.bithon.server.common.utils.datetime.Period;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Frank Chen
- * @date 16/10/21 11:44 pm
+ * @date 17/10/21 10:44 am
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "collector.event")
-public class EventConfig {
-    private Period ttl;
-    private Period cleanPeriod;
+@ConfigurationProperties(prefix = "bithon.storage.meta")
+public class MetaStorageConfig {
+    private String type;
 }

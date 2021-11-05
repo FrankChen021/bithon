@@ -1,5 +1,5 @@
 /*
- *    Copyright 2020 bithon.org
+ *    Copyright 2020 bithon.cn
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.api;
+package org.bithon.server.setting.storage;
 
 import lombok.Data;
-import org.bithon.server.common.utils.datetime.Period;
-
-import javax.validation.constraints.NotNull;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 20201-09-30
+ * @author Frank Chen
+ * @date 5/11/21 1:21 pm
  */
 @Data
-public class UpdateTTLRequest {
-    @NotNull
-    private Period ttl;
+@Configuration
+@ConfigurationProperties(prefix = "bithon.storage.setting")
+public class SettingStorageConfig {
+    private String type;
 }

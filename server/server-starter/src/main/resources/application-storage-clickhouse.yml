@@ -1,10 +1,21 @@
 bithon:
   storage:
-    tracing: clickhouse
-    metric: clickhouse
-    event: clickhouse
-    meta: clickhouse
-    setting: clickhouse
+    tracing:
+      type: clickhouse
+      ttl: P7D
+      cleanPeriod: PT30M
+    metric:
+      type: clickhouse
+      ttl: P7D
+      cleanPeriod: PT30M
+    event:
+      type: clickhouse
+      ttl: P7D
+      cleanPeriod: PT30M
+    meta:
+      type: clickhouse
+    setting:
+      type: clickhouse
     provider:
       type: clickhouse
       parameters:
@@ -16,5 +27,3 @@ bithon:
         # cluster parameters
         cluster: test_cluster_two_shards_localhost
         # engine: MergeTree
-
-

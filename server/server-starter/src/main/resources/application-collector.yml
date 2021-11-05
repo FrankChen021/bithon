@@ -58,11 +58,3 @@ logging:
 #      enabled: true
 #      path: /h2-ui
 
-
-collector:
-  event:
-    ttl: P1D
-    cleanPeriod: PT3M
-  trace:
-    ttl: P1D
-    cleanPeriod: PT3M

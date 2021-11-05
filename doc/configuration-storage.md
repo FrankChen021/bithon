@@ -8,11 +8,22 @@ Currently, two types of storages are supported:
 ```yaml
 bithon:
   storage:
-    tracing: jdbc
-    metric: jdbc
-    event: jdbc
-    meta: jdbc
-    setting: jdbc
+    tracing:
+      type: jdbc
+      ttl: P1D
+      cleanPeriod: PT3M
+    metric:
+      type: jdbc
+      ttl: P1D
+      cleanPeriod: PT3M
+    event:
+      type: jdbc
+      ttl: P1D
+      cleanPeriod: PT3M
+    meta:
+      type: jdbc
+    setting:
+      type: jdbc
     provider:
       type: jdbc
       parameters:
@@ -50,11 +61,22 @@ Window functionality must be enabled on your ClickHouse cluster.
 ```yaml
 bithon:
   storage:
-    tracing: clickhouse
-    metric: clickhouse
-    event: clickhouse
-    meta: clickhouse
-    setting: clickhouse
+    tracing:
+      type: clickhouse
+      ttl: P7D
+      cleanPeriod: PT30M
+    metric:
+      type: clickhouse
+      ttl: P7D
+      cleanPeriod: PT30M
+    event:
+      type: clickhouse
+      ttl: P7D
+      cleanPeriod: PT30M
+    meta:
+      type: clickhouse
+    setting:
+      type: clickhouse
     provider:
       type: clickhouse
       parameters:

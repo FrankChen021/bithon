@@ -21,10 +21,12 @@ import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.DateTimeUtils;
 import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceStorage;
-import org.bithon.server.tracing.storage.TraceConfig;
+import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -37,36 +39,36 @@ import java.util.concurrent.TimeUnit;
 public class TraceTTLManager implements SmartLifecycle {
 
     private final ITraceStorage traceStorage;
-    private final TraceConfig traceConfig;
+    private final TraceStorageConfig storageConfig;
     private ScheduledThreadPoolExecutor executor;
 
-    public TraceTTLManager(ITraceStorage traceStorage, TraceConfig traceConfig) {
+    public TraceTTLManager(ITraceStorage traceStorage, TraceStorageConfig storageConfig) {
         this.traceStorage = traceStorage;
-        this.traceConfig = traceConfig;
+        this.storageConfig = storageConfig;
     }
 
     @Override
     public void start() {
-        log.info("Starting Trace ttl manager and schedule cleanup task for every {}", traceConfig.getCleanPeriod());
+        log.info("Starting Trace ttl manager and schedule cleanup task for every {}", storageConfig.getCleanPeriod());
         this.executor = new ScheduledThreadPoolExecutor(1, new ThreadUtils.NamedThreadFactory("trace-ttl-manager"));
         this.executor.scheduleAtFixedRate(this::clean,
                                           3,
-                                          traceConfig.getCleanPeriod().getMilliseconds(),
+                                          storageConfig.getCleanPeriod().getMilliseconds(),
                                           TimeUnit.MILLISECONDS);
     }
 
     private void clean() {
         log.info("Trace clean up starts...");
-        {
-            long older = System.currentTimeMillis() - traceConfig.getTtl().getMilliseconds();
-            log.info("Clean events before {}", DateTimeUtils.toISO8601(older));
-            try (ITraceCleaner cleaner = traceStorage.createCleaner()) {
-                cleaner.clean(older);
-            } catch (Exception e) {
-                log.error("Failed to clean events", e);
-            }
+        long start = System.currentTimeMillis();
+        long older = start - storageConfig.getTtl().getMilliseconds();
+        log.info("Clean events before {}", DateTimeUtils.toISO8601(older));
+        try (ITraceCleaner cleaner = traceStorage.createCleaner()) {
+            cleaner.clean(older);
+        } catch (Exception e) {
+            log.error("Failed to clean events", e);
         }
-        log.info("Trace clean up ends...");
+        log.info("Trace clean up ends, next round is about at {}",
+                 new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date(start + storageConfig.getCleanPeriod().getMilliseconds())));
     }
 
     @Override

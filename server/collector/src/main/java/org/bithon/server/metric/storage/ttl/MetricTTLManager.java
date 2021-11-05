@@ -23,9 +23,12 @@ import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.storage.IMetricCleaner;
 import org.bithon.server.metric.storage.IMetricStorage;
+import org.bithon.server.metric.storage.MetricStorageConfig;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -40,11 +43,14 @@ public class MetricTTLManager implements SmartLifecycle {
     private final DataSourceSchemaManager schemaManager;
     private final IMetricStorage metricStorage;
     private ScheduledThreadPoolExecutor executor;
+    private final MetricStorageConfig storageConfig;
 
     public MetricTTLManager(DataSourceSchemaManager schemaManager,
-                            IMetricStorage metricStorage) {
+                            IMetricStorage metricStorage,
+                            MetricStorageConfig storageConfig) {
         this.schemaManager = schemaManager;
         this.metricStorage = metricStorage;
+        this.storageConfig = storageConfig;
     }
 
     @Override
@@ -53,20 +59,22 @@ public class MetricTTLManager implements SmartLifecycle {
         this.executor = new ScheduledThreadPoolExecutor(1, new ThreadUtils.NamedThreadFactory("metrics-ttl-manager"));
         this.executor.scheduleAtFixedRate(this::clean,
                                           3,
-                                          1,
-                                          TimeUnit.MINUTES);
+                                          storageConfig.getCleanPeriod().getMilliseconds(),
+                                          TimeUnit.MILLISECONDS);
     }
 
     private void clean() {
         log.info("Metrics clean up starts...");
+        long start = System.currentTimeMillis();
         for (DataSourceSchema schema : schemaManager.getDataSources().values()) {
             cleanDataSource(schema);
         }
-        log.info("Metrics clean up ends...");
+        log.info("Metrics clean up ends, next round is about at {}",
+                 new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date(start + storageConfig.getCleanPeriod().getMilliseconds())));
     }
 
     private void cleanDataSource(DataSourceSchema schema) {
-        long older = System.currentTimeMillis() - schema.getTtl().getMilliseconds();
+        long older = System.currentTimeMillis() - storageConfig.getTtl().getMilliseconds();
 
         log.info("Clean [{}] before {}", schema.getName(), DateTimeUtils.toISO8601(older));
         try (IMetricCleaner cleaner = metricStorage.createMetricCleaner(schema)) {

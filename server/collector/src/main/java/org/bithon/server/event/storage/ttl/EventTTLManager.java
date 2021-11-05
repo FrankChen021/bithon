@@ -19,12 +19,14 @@ package org.bithon.server.event.storage.ttl;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.DateTimeUtils;
-import org.bithon.server.event.EventConfig;
+import org.bithon.server.event.storage.EventStorageConfig;
 import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.event.storage.IEventStorage;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -37,36 +39,36 @@ import java.util.concurrent.TimeUnit;
 public class EventTTLManager implements SmartLifecycle {
 
     private final IEventStorage eventStorage;
-    private final EventConfig eventConfig;
+    private final EventStorageConfig eventStorageConfig;
     private ScheduledThreadPoolExecutor executor;
 
-    public EventTTLManager(IEventStorage eventStorage, EventConfig eventConfig) {
+    public EventTTLManager(IEventStorage eventStorage, EventStorageConfig eventStorageConfig) {
         this.eventStorage = eventStorage;
-        this.eventConfig = eventConfig;
+        this.eventStorageConfig = eventStorageConfig;
     }
 
     @Override
     public void start() {
-        log.info("Starting Event ttl manager and schedule cleanup task for every {}", eventConfig.getCleanPeriod());
+        log.info("Starting Event ttl manager and schedule cleanup task for every {}", eventStorageConfig.getCleanPeriod());
         this.executor = new ScheduledThreadPoolExecutor(1, new ThreadUtils.NamedThreadFactory("event-ttl-manager"));
         this.executor.scheduleAtFixedRate(this::clean,
                                           3,
-                                          eventConfig.getCleanPeriod().getMilliseconds(),
+                                          eventStorageConfig.getCleanPeriod().getMilliseconds(),
                                           TimeUnit.MILLISECONDS);
     }
 
     private void clean() {
         log.info("Event clean up starts...");
-        {
-            long older = System.currentTimeMillis() - eventConfig.getTtl().getMilliseconds();
-            log.info("Clean events before {}", DateTimeUtils.toISO8601(older));
-            try (IEventCleaner cleaner = eventStorage.createCleaner()) {
-                cleaner.clean(older);
-            } catch (Exception e) {
-                log.error("Failed to clean events", e);
-            }
+        long start = System.currentTimeMillis();
+        long older = start - eventStorageConfig.getTtl().getMilliseconds();
+        log.info("Clean events before {}", DateTimeUtils.toISO8601(older));
+        try (IEventCleaner cleaner = eventStorage.createCleaner()) {
+            cleaner.clean(older);
+        } catch (Exception e) {
+            log.error("Failed to clean events", e);
         }
-        log.info("Metrics clean up ends...");
+        log.info("Event clean up ends, next round is about at {}",
+                 new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date(start + eventStorageConfig.getCleanPeriod().getMilliseconds())));
     }
 
     @Override

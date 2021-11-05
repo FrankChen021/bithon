@@ -17,6 +17,7 @@
 package org.bithon.server.config;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -54,6 +55,7 @@ public class ObjectMapperConfigurer {
                               }
                           }
                       })
+                      .configure(JsonParser.Feature.ALLOW_COMMENTS, true)
                       .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
                       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                       .configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);

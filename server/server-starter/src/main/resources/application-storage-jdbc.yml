@@ -1,10 +1,21 @@
 bithon:
   storage:
-    tracing: jdbc
-    metric: jdbc
-    event: jdbc
-    meta: jdbc
-    setting: jdbc
+    tracing:
+      type: jdbc
+      ttl: P1D
+      cleanPeriod: PT3M
+    metric:
+      type: jdbc
+      ttl: P1D
+      cleanPeriod: PT3M
+    event:
+      type: jdbc
+      ttl: P1D
+      cleanPeriod: PT3M
+    meta:
+      type: jdbc
+    setting:
+      type: jdbc
     provider:
       type: jdbc
       parameters:

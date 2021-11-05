@@ -17,13 +17,16 @@
 package org.bithon.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.server.event.storage.EventStorageConfig;
 import org.bithon.server.event.storage.IEventStorage;
 import org.bithon.server.meta.storage.CachableMetadataStorage;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.storage.IMetricStorage;
+import org.bithon.server.metric.storage.MetricStorageConfig;
 import org.bithon.server.setting.storage.ISettingStorage;
+import org.bithon.server.setting.storage.SettingStorageConfig;
 import org.bithon.server.tracing.storage.ITraceStorage;
-import org.springframework.beans.factory.annotation.Value;
+import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,40 +40,40 @@ import java.io.IOException;
 public class StorageConfigurer {
 
     @Bean
-    public IMetricStorage createMetricStorage(ObjectMapper om, @Value("${bithon.storage.metric}") String metricType) throws IOException {
-        String jsonType = String.format("{\"type\":\"%s\"}", metricType);
+    public IMetricStorage createMetricStorage(ObjectMapper om, MetricStorageConfig storageConfig) throws IOException {
+        String jsonType = String.format("{\"type\":\"%s\"}", storageConfig.getType());
         IMetricStorage storage = om.readValue(jsonType, IMetricStorage.class);
         storage.initialize();
         return storage;
     }
 
     @Bean
-    public IMetaStorage metaStorage(ObjectMapper om, @Value("${bithon.storage.meta}") String metaType) throws IOException {
-        String jsonType = String.format("{\"type\":\"%s\"}", metaType);
+    public IMetaStorage metaStorage(ObjectMapper om, MetricStorageConfig storageConfig) throws IOException {
+        String jsonType = String.format("{\"type\":\"%s\"}", storageConfig.getType());
         IMetaStorage storage = new CachableMetadataStorage(om.readValue(jsonType, IMetaStorage.class));
         storage.initialize();
         return storage;
     }
 
     @Bean
-    public ITraceStorage traceStorage(ObjectMapper om, @Value("${bithon.storage.tracing}") String tracingType) throws IOException {
-        String jsonType = String.format("{\"type\":\"%s\"}", tracingType);
+    public ITraceStorage traceStorage(ObjectMapper om, TraceStorageConfig storageConfig) throws IOException {
+        String jsonType = String.format("{\"type\":\"%s\"}", storageConfig.getType());
         ITraceStorage storage = om.readValue(jsonType, ITraceStorage.class);
         storage.initialize();
         return storage;
     }
 
     @Bean
-    public IEventStorage eventStorage(ObjectMapper om, @Value("${bithon.storage.event}") String eventType) throws IOException {
-        String jsonType = String.format("{\"type\":\"%s\"}", eventType);
+    public IEventStorage eventStorage(ObjectMapper om, EventStorageConfig storageConfig) throws IOException {
+        String jsonType = String.format("{\"type\":\"%s\"}", storageConfig.getType());
         IEventStorage storage = om.readValue(jsonType, IEventStorage.class);
         storage.initialize();
         return storage;
     }
 
     @Bean
-    public ISettingStorage settingStorage(ObjectMapper om, @Value("${bithon.storage.setting}") String type) throws IOException {
-        String jsonType = String.format("{\"type\":\"%s\"}", type);
+    public ISettingStorage settingStorage(ObjectMapper om, SettingStorageConfig storageConfig) throws IOException {
+        String jsonType = String.format("{\"type\":\"%s\"}", storageConfig.getType());
         ISettingStorage storage = om.readValue(jsonType, ISettingStorage.class);
         storage.initialize();
         return storage;

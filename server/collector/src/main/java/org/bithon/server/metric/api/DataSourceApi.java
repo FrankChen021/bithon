@@ -17,15 +17,14 @@
 package org.bithon.server.metric.api;
 
 import org.bithon.server.common.pojo.DisplayableText;
-import org.bithon.server.common.utils.datetime.Period;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.storage.GroupByQuery;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.Interval;
+import org.bithon.server.metric.storage.MetricStorageConfig;
 import org.bithon.server.metric.storage.TimeseriesQuery;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,7 +33,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -46,11 +44,14 @@ import java.util.stream.Collectors;
 @CrossOrigin
 @RestController
 public class DataSourceApi {
+    private final MetricStorageConfig storageConfig;
     private final IMetricStorage metricStorage;
     private final DataSourceSchemaManager schemaManager;
 
-    public DataSourceApi(IMetricStorage metricStorage,
+    public DataSourceApi(MetricStorageConfig storageConfig,
+                         IMetricStorage metricStorage,
                          DataSourceSchemaManager schemaManager) {
+        this.storageConfig = storageConfig;
         this.metricStorage = metricStorage;
         this.schemaManager = schemaManager;
     }
@@ -118,18 +119,7 @@ public class DataSourceApi {
     }
 
     @PostMapping("api/datasource/ttl/update")
-    public Map<String, Long> updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request) {
-        Map<String, Long> result = new HashMap<>();
-        schemaManager.getDataSources().forEach((name, datasource) -> {
-            Period ttl = request.getTtl();
-            if (!CollectionUtils.isEmpty(request.getTtls())) {
-                ttl = request.getTtls().getOrDefault(name, null);
-            }
-            if (ttl != null) {
-                datasource.setTtl(ttl);
-                result.put(name, ttl.getMilliseconds());
-            }
-        });
-        return result;
+    public void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request) {
+        this.storageConfig.setTtl(request.getTtl());
     }
 }

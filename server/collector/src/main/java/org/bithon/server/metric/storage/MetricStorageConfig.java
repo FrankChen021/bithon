@@ -1,5 +1,5 @@
 /*
- *    Copyright 2020 bithon.org
+ *    Copyright 2020 bithon.cn
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.tracing.storage;
+package org.bithon.server.metric.storage;
 
 import lombok.Data;
 import org.bithon.server.common.utils.datetime.Period;
@@ -23,12 +23,13 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Frank Chen
- * @date 17/10/21 10:44 am
+ * @date 5/11/21 1:19 pm
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "collector.trace")
-public class TraceConfig {
+@ConfigurationProperties(prefix = "bithon.storage.metric")
+public class MetricStorageConfig {
+    private String type;
     private Period ttl;
     private Period cleanPeriod;
 }

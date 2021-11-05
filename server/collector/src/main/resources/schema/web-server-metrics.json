@@ -1,7 +1,6 @@
 {
   "displayText": "Web Server",
   "name": "web-server-metrics",
-  "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"

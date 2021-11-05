@@ -14,19 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.api;
+package org.bithon.server.event.storage;
 
 import lombok.Data;
 import org.bithon.server.common.utils.datetime.Period;
-
-import javax.validation.constraints.NotNull;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 20201-09-30
+ * @author Frank Chen
+ * @date 16/10/21 11:44 pm
  */
 @Data
-public class UpdateTTLRequest {
-    @NotNull
+@Configuration
+@ConfigurationProperties(prefix = "bithon.storage.event")
+public class EventStorageConfig {
+    private String type;
     private Period ttl;
+    private Period cleanPeriod;
 }

@@ -1,7 +1,6 @@
 {
   "displayText": "MongoDb",
   "name": "mongodb-metrics",
-  "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"
