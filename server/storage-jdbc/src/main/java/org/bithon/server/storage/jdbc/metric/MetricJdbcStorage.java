@@ -49,7 +49,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     public IMetricWriter createMetricWriter(DataSourceSchema schema) {
         MetricTable table = new MetricTable(schema);
         initialize(schema, table);
-        return new MetricJdbcWriter(dslContext, schema, table);
+        return new MetricJdbcWriter(dslContext, table);
     }
 
     @Override

@@ -56,7 +56,7 @@ public class MetricTable extends TableImpl {
         super(DSL.name("bithon_" + schema.getName().replace('-', '_')));
 
         //noinspection unchecked
-        timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP(3));
+        timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP.precision(3));
 
         for (IDimensionSpec dimension : schema.getDimensionsSpec()) {
             dimensions.add(createField(dimension.getName(), dimension.getValueType()));
@@ -86,11 +86,14 @@ public class MetricTable extends TableImpl {
 
     private Field createField(String name, IValueType valueType) {
         if (valueType.equals(DoubleValueType.INSTANCE)) {
+            //noinspection unchecked
             return this.createField(DSL.name(name),
                                     SQLDataType.DECIMAL(18, 2).nullable(false).defaultValue(BigDecimal.valueOf(0)));
         } else if (valueType.equals(LongValueType.INSTANCE)) {
+            //noinspection unchecked
             return this.createField(DSL.name(name), SQLDataType.BIGINT.nullable(false).defaultValue(0L));
         } else if (valueType.equals(StringValueType.INSTANCE)) {
+            //noinspection unchecked
             return this.createField(DSL.name(name), SQLDataType.VARCHAR(128).nullable(false).defaultValue(""));
         } else {
             throw new RuntimeException("unknown type:" + valueType);

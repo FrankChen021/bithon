@@ -17,7 +17,6 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.input.InputRow;
 import org.bithon.server.metric.input.MetricSet;
 import org.bithon.server.metric.storage.IMetricWriter;
@@ -43,7 +42,7 @@ class MetricJdbcWriter implements IMetricWriter {
     private final DSLContext dsl;
     private final MetricTable table;
 
-    public MetricJdbcWriter(DSLContext dsl, DataSourceSchema schema, MetricTable table) {
+    public MetricJdbcWriter(DSLContext dsl, MetricTable table) {
         this.dsl = dsl;
         this.table = table;
     }
@@ -131,10 +130,12 @@ class MetricJdbcWriter implements IMetricWriter {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
                                        .set(table.timestampField, new Timestamp(inputRow.getColAsLong("timestamp")));
 
+        //noinspection DuplicatedCode,rawtypes
         for (Field dimension : table.getDimensions()) {
             Object value = inputRow.getCol(dimension.getName(), "");
             step.set(dimension, value);
         }
+        //noinspection rawtypes
         for (Field metric : table.getMetrics()) {
             Object value = inputRow.getCol(metric.getName(), 0);
             step.set(metric, value);
@@ -144,15 +145,17 @@ class MetricJdbcWriter implements IMetricWriter {
     }
 
     @SuppressWarnings("unchecked")
-    private InsertSetMoreStep toInsertSql(MetricSet metricSet) {
+    private InsertSetMoreStep<?> toInsertSql(MetricSet metricSet) {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
                                        .set(table.timestampField,
                                             new Timestamp(metricSet.getTimestamp()));
 
+        //noinspection rawtypes
         for (Field dimension : table.getDimensions()) {
             Object value = metricSet.getDimension(dimension.getName(), "");
             step.set(dimension, value);
         }
+        //noinspection rawtypes
         for (Field metric : table.getMetrics()) {
             Object value = metricSet.getMetric(metric.getName(), 0);
             step.set(metric, value);

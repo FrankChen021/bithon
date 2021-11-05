@@ -29,6 +29,7 @@ public class ClickHouseConfig implements InitializingBean {
     private String cluster;
     private String engine = "MergeTree";
     private String database;
+    private int ttlDays = 7;
 
     /**
      * a runtime property
@@ -48,6 +49,22 @@ public class ClickHouseConfig implements InitializingBean {
         }
         if (tableEngine.startsWith("ReplicatedMergeTree") && !StringUtils.hasText(cluster)) {
             throw new RuntimeException("ReplicatedMergeTree requires cluster to be given");
+        }
+    }
+
+    public String getLocalTableName(String tableName) {
+        if (StringUtils.hasText(this.cluster)) {
+            return tableName + "_local";
+        } else {
+            return tableName;
+        }
+    }
+
+    public String getClusterExpression() {
+        if (StringUtils.hasText(this.cluster)) {
+            return " on cluster " + this.cluster + " ";
+        } else {
+            return "";
         }
     }
 }

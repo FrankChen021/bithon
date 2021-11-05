@@ -27,6 +27,9 @@ import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.jooq.DSLContext;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:19 下午
@@ -35,26 +38,30 @@ import org.jooq.DSLContext;
 public class EventStorage extends EventJdbcStorage {
 
     private final ClickHouseConfig config;
-    private final ClickHouseSqlExpressionFormatter formatter;
 
     @JsonCreator
     public EventStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
-                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
-                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlExpressionFormatter formatter) {
+                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
         super(dslContext, objectMapper);
         this.config = config;
-        this.formatter = formatter;
     }
 
     @Override
     public void initialize() {
-        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_EVENT);
+        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_EVENT, config.getTtlDays());
     }
 
+    /**
+     * Since TTL expression does not allow DateTime64 type, we have to clean the data by ourselves.
+     * The data is partitioned by days, so we only clear the data before the day of given timestamp
+     */
     @Override
     public IEventCleaner createCleaner() {
-        return timestamp -> {
-        };
+        return beforeTimestamp -> dslContext.execute(String.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
+                                                                   config.getDatabase(),
+                                                                   config.getLocalTableName(Tables.BITHON_EVENT.getName()),
+                                                                   config.getClusterExpression(),
+                                                                   new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(beforeTimestamp))));
     }
 }

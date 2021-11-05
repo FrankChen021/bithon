@@ -32,19 +32,16 @@ import org.jooq.DSLContext;
 public class MetadataStorage extends MetadataJdbcStorage {
 
     private final ClickHouseConfig config;
-    private final ClickHouseSqlExpressionFormatter formatter;
 
     @JsonCreator
     public MetadataStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dsl,
-                           @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
-                           @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlExpressionFormatter formatter) {
+                           @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
         super(dsl);
         this.config = config;
-        this.formatter = formatter;
     }
 
     @Override
     public void initialize() {
-        new TableCreator(config, this.dslContext).createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE);
+        new TableCreator(config, this.dslContext).createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE, config.getTtlDays());
     }
 }

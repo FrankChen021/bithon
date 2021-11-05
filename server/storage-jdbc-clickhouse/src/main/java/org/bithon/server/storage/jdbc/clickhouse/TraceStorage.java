@@ -27,6 +27,9 @@ import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.jooq.DSLContext;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/10/27 9:34 下午
@@ -36,26 +39,26 @@ import org.jooq.DSLContext;
 public class TraceStorage extends TraceJdbcStorage {
 
     private final ClickHouseConfig config;
-    private final ClickHouseSqlExpressionFormatter formatter;
 
     @JsonCreator
     public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
-                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
-                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlExpressionFormatter formatter) {
+                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
         super(dslContext, objectMapper);
         this.config = config;
-        this.formatter = formatter;
     }
 
     @Override
     public void initialize() {
-        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_TRACE_SPAN);
+        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_TRACE_SPAN, config.getTtlDays());
     }
 
     @Override
     public ITraceCleaner createCleaner() {
-        return beforeTimestamp -> {
-        };
+        return beforeTimestamp -> dslContext.execute(String.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
+                                                                   config.getDatabase(),
+                                                                   config.getLocalTableName(Tables.BITHON_TRACE_SPAN.getName()),
+                                                                   config.getClusterExpression(),
+                                                                   new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(beforeTimestamp))));
     }
 }
