@@ -35,6 +35,11 @@ class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
         return false;
     }
 
+    @Override
+    public boolean allowSameAggregatorExpression() {
+        return false;
+    }
+
     /**
      * ClickHouse does not support ISO8601 very well, we treat it as timestamp, which only accepts timestamp in seconds not milli-seconds
      */
