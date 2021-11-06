@@ -16,6 +16,7 @@
 
 package org.bithon.server.metric.handler;
 
+import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.thrift.service.MessageHeader;
 import org.bithon.server.common.utils.ReflectionUtils;
@@ -73,11 +74,16 @@ public class MetricMessage extends HashMap<String, Object> {
         return (String) this.get("instanceName");
     }
 
+    public String getApplicationType() {
+        return ((ApplicationType) this.getOrDefault("appType", ApplicationType.UNRECOGNIZED)).name();
+    }
+
     public long getLong(String prop) {
         return ((Number) this.getOrDefault(prop, 0L)).longValue();
     }
 
     public <T> T getAs(String prop) {
+        //noinspection unchecked
         return (T) this.get(prop);
     }
 

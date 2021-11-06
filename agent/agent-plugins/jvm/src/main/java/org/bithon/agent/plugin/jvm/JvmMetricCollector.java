@@ -17,6 +17,7 @@
 package org.bithon.agent.plugin.jvm;
 
 import com.sun.management.UnixOperatingSystemMXBean;
+import org.bithon.agent.AgentBuildVersion;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
@@ -157,8 +158,7 @@ public class JvmMetricCollector {
             }
             args.put("runtime.classPath", om.writeValueAsString(JmxBeans.RUNTIME_BEAN.getClassPath().split(File.pathSeparator)));
             args.put("runtime.arguments", om.writeValueAsString(JmxBeans.RUNTIME_BEAN.getInputArguments()));
-            args.put("runtime.libraryPath",
-                     om.writeValueAsString(JmxBeans.RUNTIME_BEAN.getLibraryPath().split(File.pathSeparator)));
+            args.put("runtime.libraryPath", om.writeValueAsString(JmxBeans.RUNTIME_BEAN.getLibraryPath().split(File.pathSeparator)));
             args.put("runtime.systemProperties", om.writeValueAsString(JmxBeans.RUNTIME_BEAN.getSystemProperties()));
         } catch (IOException ignored) {
         }
@@ -174,6 +174,10 @@ public class JvmMetricCollector {
 
         args.put("mem.heap.initial", String.valueOf(JmxBeans.MEM_BEAN.getHeapMemoryUsage().getInit()));
         args.put("mem.heap.max", String.valueOf(JmxBeans.MEM_BEAN.getHeapMemoryUsage().getMax()));
+
+        args.put("agent.version", AgentBuildVersion.VERSION);
+        args.put("agent.build", AgentBuildVersion.SCM_REVISION);
+        args.put("agent.timestamp", AgentBuildVersion.TIMESTAMP);
 
         return new EventMessage("jvm.started", args);
     }

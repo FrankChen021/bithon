@@ -17,15 +17,15 @@
 package org.bithon.server.metric.handler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.db.dao.EndPointType;
 import org.bithon.server.common.service.UriNormalizer;
+import org.bithon.server.common.utils.EndPointType;
 import org.bithon.server.common.utils.NetworkUtils;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.input.MetricSet;
 import org.bithon.server.metric.storage.IMetricStorage;
-import org.jooq.tools.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -57,7 +57,7 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
             return false;
         }
 
-        URI uri = new URI(metricObject.getString("uri"));
+        URI uri = new URI(metricObject.getString("path"));
         UriNormalizer.NormalizedResult result = uriNormalizer.normalize(metricObject.getApplicationName(),
                                                                         NetworkUtils.formatUri(uri));
         if (result.getUri() == null) {
@@ -72,7 +72,7 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
 
         metricObject.set("targetHost", uri.getHost());
         metricObject.set("targetHostPort", targetHostPort);
-        metricObject.set("uri", result.getUri());
+        metricObject.set("path", result.getUri());
 
         return true;
     }
@@ -165,7 +165,7 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
     }
 
     private String toHostPort(String targetHost, int targetPort) {
-        if (StringUtils.isBlank(targetHost)) {
+        if (StringUtils.isEmpty(targetHost)) {
             return null;
         }
 

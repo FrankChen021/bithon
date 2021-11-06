@@ -30,7 +30,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author frank.chen021@outlook.com
  * @date 2021/3/25 4:37 下午
+ * @deprecated Will be replaced by {@link IntervalMetricCollector2}
  */
+@Deprecated
 public abstract class IntervalMetricCollector<T extends IMetric> implements IMetricCollector {
 
     private Map<List<String>, T> metricsMap = new ConcurrentHashMap<>();

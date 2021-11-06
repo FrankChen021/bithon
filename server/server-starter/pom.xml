@@ -40,6 +40,38 @@
       <groupId>org.bithon</groupId>
       <artifactId>bithon-server-collector</artifactId>
     </dependency>
+
+    <!-- Storage -->
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>bithon-storage-jdbc</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>jooq</artifactId>
+          <groupId>org.jooq</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency><!-- Use our version to Support more DBMS -->
+      <groupId>org.jooq</groupId>
+      <artifactId>jooq</artifactId>
+      <version>3.13.7</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>jaxb-api</artifactId>
+          <groupId>javax.xml.bind</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>javax.activation-api</artifactId>
+          <groupId>javax.activation</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>bithon-storage-jdbc-clickhouse</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>bithon-web-app</artifactId>
@@ -75,16 +107,6 @@
   <build>
     <finalName>${project.artifactId}</finalName>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-          <encoding>UTF-8</encoding>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>

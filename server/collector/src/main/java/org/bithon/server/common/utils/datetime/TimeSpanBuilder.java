@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author frankchen
- * @Date 2020-08-26 16:32:14
+ * @date 2020-08-26 16:32:14
  */
 
 public class TimeSpanBuilder {

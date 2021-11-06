@@ -17,8 +17,8 @@
 package org.bithon.server.metric.handler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.db.dao.EndPointType;
 import org.bithon.server.common.service.UriNormalizer;
+import org.bithon.server.common.utils.EndPointType;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.input.MetricSet;
@@ -88,7 +88,8 @@ public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandl
                                        .minResponseTime(message.getLong("minResponseTime"))
                                        .maxResponseTime(message.getLong("maxResponseTime"))
                                        .responseTime(message.getLong("responseTime"))
-                                       .callCount(message.getLong("callCount"))
+                                       .callCount(message.getLong("totalCount"))
+                                       .errorCount(message.getLong("errorCount"))
                                        .build();
     }
 }

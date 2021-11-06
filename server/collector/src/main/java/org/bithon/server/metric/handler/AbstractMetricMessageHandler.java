@@ -19,7 +19,6 @@ package org.bithon.server.metric.handler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.meta.MetadataType;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
@@ -60,6 +59,7 @@ public abstract class AbstractMetricMessageHandler {
         this.metricStorageWriter = metricStorage.createMetricWriter(schema);
 
         this.endpointSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
+        this.endpointSchema.setEnforceDuplicationCheck(false);
         this.endpointMetricStorageWriter = metricStorage.createMetricWriter(endpointSchema);
     }
 
@@ -133,8 +133,7 @@ public abstract class AbstractMetricMessageHandler {
         String appName = metric.getApplicationName();
         String instanceName = metric.getInstanceName();
         try {
-            long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
-            metaStorage.getOrCreateMetadataId(instanceName, MetadataType.APP_INSTANCE, appId);
+            metaStorage.saveApplicationInstance(appName, metric.getApplicationType(), instanceName);
         } catch (Exception e) {
             log.error("Failed to save app info[appName={}, instance={}] due to: {}",
                       appName,
@@ -143,6 +142,10 @@ public abstract class AbstractMetricMessageHandler {
         }
     }
 
+    /**
+     * key is dimensions
+     * value is metrics
+     */
     static class TimeSlot extends HashMap<Map<String, String>, Map<String, NumberAggregator>> {
         @Getter
         private final long timestamp;
@@ -161,6 +164,9 @@ public abstract class AbstractMetricMessageHandler {
             this.timeSlot = new TimeSlot[minutes];
         }
 
+        /**
+         * aggregate the input metrics to a specified time slot metrics
+         */
         public void aggregate(MetricSet metricSet) {
             if (metricSet == null) {
                 return;
@@ -199,10 +205,11 @@ public abstract class AbstractMetricMessageHandler {
         }
 
         private TimeSlot getSlot(long timestamp) {
-            int slotIndex = (int) ((timestamp / 1000 / 60) % timeSlot.length);
+            long minutes = timestamp / 60_000;
+            int slotIndex = (int) (minutes % timeSlot.length);
 
             if (timeSlot[slotIndex] == null) {
-                timeSlot[slotIndex] = new TimeSlot(timestamp);
+                timeSlot[slotIndex] = new TimeSlot(minutes * 60_000);
             }
             return timeSlot[slotIndex];
         }

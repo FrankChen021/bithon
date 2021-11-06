@@ -16,7 +16,9 @@
 
 package org.bithon.agent.plugin.spring.webflux;
 
+import org.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import org.bithon.agent.core.aop.descriptor.MatcherUtils;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.core.plugin.IPlugin;
 
@@ -32,6 +34,13 @@ import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.
 public class SpringWebFluxPlugin implements IPlugin {
 
     @Override
+    public BithonClassDescriptor getBithonClassDescriptor() {
+        return BithonClassDescriptor.of(
+            // use to store IO metrics
+            "reactor.netty.http.server.HttpServerOperations");
+    }
+
+    @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.springframework.http.server.reactive.ReactorHttpHandlerAdapter")
@@ -44,9 +53,15 @@ public class SpringWebFluxPlugin implements IPlugin {
             forClass("reactor.netty.http.server.HttpServerConfig$HttpServerChannelInitializer")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .debug()
                                                    .onAllMethods("onChannelInit")
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerChannelInitializer$OnChannelInit")
+                ),
+
+            forClass("reactor.netty.http.server.HttpServerOperations")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onConstructor(MatcherUtils.takesArguments(1).or(MatcherUtils.takesArguments(10)))
+                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
                 )
         );
     }

@@ -26,7 +26,8 @@
     <module>component/agent-rpc-brpc</module>
     <module>component/component-commons</module>
     <module>agent</module>
-    <module>server/component-db</module>
+    <module>server/storage-jdbc</module>
+    <module>server/storage-jdbc-clickhouse</module>
     <module>server/collector</module>
     <module>server/web-app</module>
     <module>server/server-starter</module>
@@ -41,8 +42,8 @@
   </licenses>
   <inceptionYear>2020</inceptionYear>
   <scm>
-    <connection>scm:git@github.com:FrankChen021/bithon.git</connection>
-    <developerConnection>scm:git@github.com:FrankChen021/bithon.git</developerConnection>
+    <connection>scm:git:ssh://github.com:FrankChen021/bithon.git</connection>
+    <developerConnection>scm:git:ssh://github.com:FrankChen021/bithon.git</developerConnection>
     <url>https://github.com/FrankChen021/bithon.git</url>
   </scm>
   <developers>
@@ -82,12 +83,17 @@
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>component-db</artifactId>
+        <artifactId>bithon-server-collector</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>bithon-server-collector</artifactId>
+        <artifactId>bithon-storage-jdbc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bithon</groupId>
+        <artifactId>bithon-storage-jdbc-clickhouse</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -99,7 +105,29 @@
   </dependencyManagement>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.1</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
     <plugins>
+      <!--default to 1.8 target, sub-module change override it-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+
       <!-- checkstyle -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -156,7 +184,8 @@
               <header>licenses/template.txt</header>
               <excludes>
                 <exclude>**/README</exclude>
-                <exclude>src/main/java/org/bithon/component/db/jooq/**</exclude>
+                <exclude>**/jOOQ/**</exclude>
+                <exclude>**/jooq/**</exclude>
                 <exclude>src/main/java/org/bithon/agent/rpc/thrift/**</exclude>
                 <exclude>src/test/java/org/bithon/component/brpc/example/protobuf</exclude>
                 <exclude>src/main/resources/static/**</exclude>
@@ -172,6 +201,7 @@
                 <exclude>**/*.css</exclude>
                 <exclude>**/*.txt</exclude>
                 <exclude>**/*.proto</exclude>
+                <exclude>**/*.g4</exclude>
               </excludes>
             </licenseSet>
           </licenseSets>
@@ -181,68 +211,86 @@
           </mapping>
         </configuration>
       </plugin>
-
-      <!-- the sonatype requires javadoc -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9.1</version>
-        <configuration>
-          <show>private</show>
-          <nohelp>true</nohelp>
-          <charset>UTF-8</charset>
-          <encoding>UTF-8</encoding>
-          <docencoding>UTF-8</docencoding>
-          <additionalparam>-Xdoclint:none</additionalparam>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- the sonatype requires source code-->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>3.2.1</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- GPG -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.6</version>
-        <executions>
-          <execution>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!--Release -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.1</version>
-      </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>dist</id>
+      <build>
+        <plugins>
+
+          <!-- sonatype requires javadoc -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.1.1</version>
+            <configuration>
+              <show>private</show>
+              <nohelp>true</nohelp>
+              <charset>UTF-8</charset>
+              <encoding>UTF-8</encoding>
+              <docencoding>UTF-8</docencoding>
+              <failOnWarnings>false</failOnWarnings>
+              <failOnError>false</failOnError>
+              <tags>
+                <tag>
+                  <name>date</name>
+                </tag>
+              </tags>
+              <quiet>true</quiet>
+              <old>true</old>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- the sonatype requires source code-->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.2.1</version>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- GPG -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!--Release -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-release-plugin</artifactId>
+            <version>2.5.1</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <!-- distribution -->
   <distributionManagement>

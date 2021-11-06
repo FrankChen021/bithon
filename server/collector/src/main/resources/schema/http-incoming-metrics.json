@@ -1,7 +1,6 @@
 {
   "displayText": "Incoming HTTP",
   "name": "http-incoming-metrics",
-  "ttl": "PT1H",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"
@@ -25,6 +24,11 @@
     {
       "name": "uri",
       "displayText": "Request URI",
+      "required": true
+    },
+    {
+      "name": "statusCode",
+      "displayText": "Status Code",
       "required": true
     }
   ],

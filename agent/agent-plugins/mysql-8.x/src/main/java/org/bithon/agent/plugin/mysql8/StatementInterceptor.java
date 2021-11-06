@@ -53,7 +53,7 @@ public class StatementInterceptor extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
+    public void onMethodLeave(AopContext aopContext) {
         String connectionString = aopContext.castUserContextAs();
 
         SqlCompositeMetric metric = sqlMetricCollector.getOrCreateMetric(connectionString);
@@ -62,9 +62,8 @@ public class StatementInterceptor extends AbstractInterceptor {
         if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName)
             || MySql8Plugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {
             isQuery = false;
-        } else if ((MySql8Plugin.METHOD_EXECUTE.equals(methodName) || MySql8Plugin.METHOD_EXECUTE_INTERNAL.equals(
-            methodName))) {
-            Object result = aopContext.castReturningAs();
+        } else if ((MySql8Plugin.METHOD_EXECUTE.equals(methodName) || MySql8Plugin.METHOD_EXECUTE_INTERNAL.equals(methodName))) {
+            Object result = aopContext.getReturning();
             if (result instanceof Boolean && !(boolean) result) {
                 isQuery = false;
             }

@@ -1,0 +1,3 @@
+[submodule "server/jOOQ"]
+	path = server/jOOQ
+	url = https://github.com/FrankChen021/jOOQ.git

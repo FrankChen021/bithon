@@ -36,4 +36,8 @@ public class LongSum implements IMetricValue {
     public long value() {
         return this.value.get();
     }
+
+    public void incr() {
+        this.value.incrementAndGet();
+    }
 }

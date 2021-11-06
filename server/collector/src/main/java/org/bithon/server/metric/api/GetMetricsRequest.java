@@ -22,6 +22,7 @@ import org.bithon.server.metric.storage.DimensionCondition;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -46,4 +47,6 @@ public class GetMetricsRequest {
 
     @Size(min = 1)
     private List<String> metrics;
+
+    private List<String> groups = Collections.emptyList();
 }

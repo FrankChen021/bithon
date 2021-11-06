@@ -21,19 +21,19 @@ import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector2;
 import org.bithon.agent.core.metric.collector.IMetricSet;
+import org.bithon.agent.core.metric.model.schema.IDimensionSpec;
+import org.bithon.agent.core.metric.model.schema.IMetricSpec;
+import org.bithon.agent.core.metric.model.schema.LongLastMetricSpec;
+import org.bithon.agent.core.metric.model.schema.LongMaxMetricSpec;
+import org.bithon.agent.core.metric.model.schema.LongMinMetricSpec;
+import org.bithon.agent.core.metric.model.schema.LongSumMetricSpec;
+import org.bithon.agent.core.metric.model.schema.Schema;
+import org.bithon.agent.core.metric.model.schema.StringDimensionSpec;
 import org.bithon.agent.sdk.expt.SdkException;
 import org.bithon.agent.sdk.metric.IMetricValueProvider;
 import org.bithon.agent.sdk.metric.aggregator.LongMax;
 import org.bithon.agent.sdk.metric.aggregator.LongMin;
 import org.bithon.agent.sdk.metric.aggregator.LongSum;
-import org.bithon.agent.sdk.metric.schema.IDimensionSpec;
-import org.bithon.agent.sdk.metric.schema.IMetricSpec;
-import org.bithon.agent.sdk.metric.schema.LongLastMetricSpec;
-import org.bithon.agent.sdk.metric.schema.LongMaxMetricSpec;
-import org.bithon.agent.sdk.metric.schema.LongMinMetricSpec;
-import org.bithon.agent.sdk.metric.schema.LongSumMetricSpec;
-import org.bithon.agent.sdk.metric.schema.Schema;
-import org.bithon.agent.sdk.metric.schema.StringDimensionSpec;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -85,40 +85,50 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         }
 
         @Override
-        public IMetricValueProvider[] getMetrics() {
-            IMetricValueProvider[] values = new IMetricValueProvider[metricFields.size()];
+        public int getMetricCount() {
+            return this.metricFields.size();
+        }
 
-            int i = 0;
-            for (Field field : metricFields) {
-                IMetricValueProvider provider = null;
+        @Override
+        public long getMetricValue(int index) {
+            if (index < this.metricFields.size()) {
+
+                Field field = this.metricFields.get(index);
                 try {
-                    provider = (IMetricValueProvider) field.get(metricProvider);
+                    IMetricValueProvider provider = (IMetricValueProvider) this.metricFields.get(index).get(metricProvider);
+                    return provider.value();
                 } catch (IllegalAccessException e) {
                     log.error("Can't get value of [{}] on class [{}]: {}",
                               field.getName(),
                               metricProvider.getClass().getName(),
                               e.getMessage());
+                    return Long.MAX_VALUE;
                 }
-                values[i++] = provider == null ? NullMetricValueProvider.INSTANCE : provider;
             }
-            return values;
+            return Long.MAX_VALUE;
         }
     }
 
     private final Supplier<Object> metricInstantiator;
     private final Schema schema;
     private Map<List<String>, IMetricSet> metricsMap = new ConcurrentHashMap<>();
-    private Map<List<String>, IMetricSet> retainedMetricsMap = new ConcurrentHashMap<>();
+
+    /**
+     * keep metrics that won't be cleared when they have been collected
+     */
+    private final Map<List<String>, IMetricSet> retainedMetricsMap = new ConcurrentHashMap<>();
     private final List<Field> metricField = new ArrayList<>();
 
+    @SuppressWarnings("unchecked")
     protected MetricsRegistryDelegate(String name,
                                       List<String> dimensionSpec,
                                       Class<?> metricClass) {
         final Constructor<?> defaultCtor = Arrays.stream(metricClass.getConstructors())
                                                  .filter(ctor -> ctor.getParameterCount() == 0)
                                                  .findFirst()
-                                                 .orElseThrow(() -> new SdkException(String.format("Class[%s] has no default ctor",
-                                                                                                   metricClass.getName())));
+                                                 .orElseThrow(() -> new SdkException(String.format(
+                                                     "Class[%s] has no default ctor",
+                                                     metricClass.getName())));
         defaultCtor.setAccessible(true);
         this.metricInstantiator = () -> {
             try {
@@ -128,10 +138,13 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
             }
         };
 
-        List<IDimensionSpec> dimensionSpecs = dimensionSpec.stream().map(StringDimensionSpec::new).collect(Collectors.toList());
+        List<IDimensionSpec> dimensionSpecs = dimensionSpec.stream()
+                                                           .map(StringDimensionSpec::new)
+                                                           .collect(Collectors.toList());
 
         List<IMetricSpec> metricsSpec = new ArrayList<>();
         for (Field field : metricClass.getDeclaredFields()) {
+            //noinspection rawtypes
             Class fieldClass = field.getType();
             if (fieldClass == LongMax.class) {
                 metricsSpec.add(new LongMaxMetricSpec(field.getName()));
@@ -162,7 +175,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
         String[] newDimensions = new String[dimensions.length + 2];
         newDimensions[0] = appInstance.getAppName();
-        newDimensions[1] = appInstance.getHostIp();
+        newDimensions[1] = appInstance.getHostAndPort();
         System.arraycopy(dimensions, 0, newDimensions, 2, dimensions.length);
 
         if (newDimensions.length != schema.getDimensionsSpec().size()) {
@@ -171,7 +184,9 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
         List<String> dimensionList = Arrays.asList(newDimensions);
 
+        //noinspection rawtypes
         Map map = retained ? retainedMetricsMap : metricsMap;
+        //noinspection unchecked
         return ((MetricSet) map.computeIfAbsent(dimensionList, key -> {
             Object metricProvider = metricInstantiator.get();
             return new MetricSet(metricProvider, dimensionList, metricField);

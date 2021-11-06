@@ -16,8 +16,6 @@
 
 package org.bithon.agent.core.metric.collector;
 
-import org.bithon.agent.sdk.metric.IMetricValueProvider;
-
 import java.util.List;
 
 /**
@@ -27,5 +25,6 @@ import java.util.List;
 public interface IMetricSet {
     List<String> getDimensions();
 
-    IMetricValueProvider[] getMetrics();
+    int getMetricCount();
+    long getMetricValue(int index);
 }

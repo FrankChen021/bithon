@@ -13,7 +13,7 @@ Following steps guides how to use this SDK
 1. Add Bithon SDK dependency to your application
    ```xml
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-sdk</artifactId>
       <version>1.0-SNAPSHOT</version>
       <scope>provided</scope>

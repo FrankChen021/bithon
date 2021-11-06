@@ -21,10 +21,8 @@ import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
 import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
 import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import shaded.net.bytebuddy.implementation.bind.annotation.This;
-import shaded.net.bytebuddy.pool.TypePool;
 
 import java.lang.reflect.Method;
-import java.util.Map;
 
 
 /**
@@ -33,7 +31,7 @@ import java.util.Map;
  */
 public class BootstrapMethodAop {
     /**
-     * assigned by {@link com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller#generateAopClass(Map, TypePool, String, String, com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor)}
+     * assigned by org.bithon.agent.core.aop.AopClassGenerator#generateAopClass
      */
     private static String INTERCEPTOR_CLASS_NAME;
 

@@ -18,8 +18,7 @@ package org.bithon.server.common.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.bithon.component.db.dao.EndPointType;
-import org.jooq.tools.StringUtils;
+import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,7 +38,7 @@ public class MiscUtils {
     }
 
     public static ConnectionString parseConnectionString(String connectionString) {
-        if (StringUtils.isBlank(connectionString)) {
+        if (StringUtils.isEmpty(connectionString)) {
             throw new RuntimeException(String.format("Connection String of SqlMetricMessage is blank: [%s]",
                                                      connectionString));
         }
@@ -57,6 +56,10 @@ public class MiscUtils {
                     return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
                                                 uri.getPath().substring(1),
                                                 EndPointType.DB_MYSQL);
+                case "clickhouse":
+                    return new ConnectionString(uri.getHost() + ":" + uri.getPort(),
+                                                uri.getPath().substring(1),
+                                                EndPointType.DB_CLICKHOUSE);
                 default:
                     throw new RuntimeException(String.format("Unknown schema of Connection String: [%s]",
                                                              connectionString));

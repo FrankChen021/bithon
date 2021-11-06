@@ -58,17 +58,19 @@ public class DruidSqlMetricCollector implements IMetricCollector {
         if (DruidPlugin.METHOD_EXECUTE_UPDATE.equals(methodName)
             || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
             isQuery = false;
-        } else if (DruidPlugin.METHOD_EXECUTE.equals(methodName) && !(boolean) aopContext.castReturningAs()) {
-            isQuery = false;
-        } else if (DruidPlugin.METHOD_EXECUTE_QUERY.equals(methodName) || (boolean) aopContext.castReturningAs()) {
+        } else if (DruidPlugin.METHOD_EXECUTE.equals(methodName)) {
+            /*
+             * execute method return true if the first result is a ResultSet
+             */
+            isQuery = aopContext.getReturning() == null ? null : (boolean) aopContext.castReturningAs();
+        } else if (DruidPlugin.METHOD_EXECUTE_QUERY.equals(methodName)) {
             isQuery = true;
         } else {
-            log.debug("unknown method intercepted by druid-sql-counter : {}", methodName);
+            //TODO: parse the SQL to check if it's a SELECT
+            log.warn("unknown method intercepted by druid-sql-counter : {}", methodName);
         }
 
-        if (isQuery != null) {
-            monitoredSource.getSqlMetric().update(isQuery, aopContext.hasException(), costTime);
-        }
+        monitoredSource.getSqlMetric().update(isQuery, aopContext.hasException(), costTime);
     }
 
     @Override

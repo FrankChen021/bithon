@@ -16,12 +16,22 @@
 
 package org.bithon.server.tracing.storage;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/4 8:27 下午
  */
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface ITraceStorage {
+    default void initialize() {
+
+    }
+
     ITraceWriter createWriter();
 
     ITraceReader createReader();
+
+    ITraceCleaner createCleaner();
 }

@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSet;
 import org.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcHttpOutgoingMetricMessage;
@@ -214,7 +215,6 @@ public class BrpcMetricCollector implements IMetricCollector {
                                                                   return null;
                                                               }).collect(Collectors.toList()),
                                                        null,
-                                                       null,
                                                        null);
 
         Iterator<BrpcGenericMetricSet> iterator = message.getMetricSetList().iterator();
@@ -253,6 +253,46 @@ public class BrpcMetricCollector implements IMetricCollector {
             }
         });
         schemaMetricSink.process(message.getSchema().getName(), schemaMetricMessage);
+    }
+
+    @Override
+    public void sendGenericMetricsV2(BrpcMessageHeader header, BrpcGenericMetricMessageV2 message) {
+        CloseableIterator<MetricMessage> mesageIterator = new CloseableIterator<MetricMessage>() {
+            final Iterator<BrpcGenericMetricSet> iterator = message.getMetricSetList().iterator();
+
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public MetricMessage next() {
+                MetricMessage metricMessage = new MetricMessage();
+                BrpcGenericMetricSet metricSet = iterator.next();
+
+                int i = 0;
+                for (String dimension : metricSet.getDimensionList()) {
+                    String dimensionSpec = message.getSchema().getDimensionsSpec(i++);
+                    metricMessage.put(dimensionSpec, dimension);
+                }
+
+                i = 0;
+                for (long metric : metricSet.getMetricList()) {
+                    String metricSpec = message.getSchema().getMetricsSpec(i++);
+                    metricMessage.put(metricSpec, metric);
+                }
+
+                metricMessage.put("interval", message.getInterval());
+                metricMessage.put("timestamp", message.getTimestamp());
+                ReflectionUtils.getFields(header, metricMessage);
+                return metricMessage;
+            }
+        };
+        metricSink.process(message.getSchema().getName(), mesageIterator);
     }
 
     private static class GenericMetricMessageIterator implements CloseableIterator<MetricMessage> {

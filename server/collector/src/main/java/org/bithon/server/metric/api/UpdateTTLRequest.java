@@ -19,7 +19,7 @@ package org.bithon.server.metric.api;
 import lombok.Data;
 import org.bithon.server.common.utils.datetime.Period;
 
-import java.util.Map;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
@@ -27,6 +27,6 @@ import java.util.Map;
  */
 @Data
 public class UpdateTTLRequest {
-    private Map<String, Period> ttls;
+    @NotNull
     private Period ttl;
 }

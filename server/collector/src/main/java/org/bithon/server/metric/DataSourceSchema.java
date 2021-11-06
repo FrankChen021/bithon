@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-import org.bithon.server.common.utils.datetime.Period;
 import org.bithon.server.metric.aggregator.spec.CountMetricSpec;
 import org.bithon.server.metric.aggregator.spec.IMetricSpec;
 import org.bithon.server.metric.dimension.IDimensionSpec;
@@ -70,10 +69,6 @@ public class DataSourceSchema {
     @JsonIgnore
     private final Map<String, IMetricSpec> metricsMap = new HashMap<>();
 
-    @Getter
-    @Setter
-    private Period ttl;
-
     /**
      * check a {timestamp, dimensions} are unique to help find out some internal wrong implementation
      */
@@ -88,9 +83,7 @@ public class DataSourceSchema {
                             @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
                             @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
                             @JsonProperty("filtersSpec") @Nullable List<IFilter> filtersSpec,
-                            @JsonProperty("flattenSpec") @Nullable List<IFlattener> flattenSpec,
-                            @JsonProperty("ttl") @Nullable Period ttl) {
-        this.ttl = ttl == null ? new Period("P1D") : ttl;
+                            @JsonProperty("flattenSpec") @Nullable List<IFlattener> flattenSpec) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
         this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;

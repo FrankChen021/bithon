@@ -86,7 +86,9 @@ public class Dispatcher {
     }
 
     private IMessageChannelFactory createDispatcherFactory(DispatcherConfig config) throws Exception {
-        return (IMessageChannelFactory) Class.forName(config.getClient().getFactory()).newInstance();
+        return (IMessageChannelFactory) Class.forName(config.getClient().getFactory())
+                                             .getDeclaredConstructor()
+                                             .newInstance();
     }
 
     private synchronized void startTask(int port) {

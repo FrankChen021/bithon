@@ -20,8 +20,8 @@ import io.netty.channel.Channel;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpBodySizeCollector;
-import org.bithon.agent.plugin.spring.webflux.metric.HttpIncomingRequestMetricCollector;
 import reactor.netty.NettyPipeline;
 
 /**
@@ -34,13 +34,13 @@ import reactor.netty.NettyPipeline;
  */
 public class HttpServerChannelInitializer$OnChannelInit extends AbstractInterceptor {
 
-    private HttpIncomingRequestMetricCollector metricCollector;
+    private HttpIncomingMetricsCollector metricCollector;
 
     @Override
     public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
                                                 .getOrRegister("webflux-request-metrics",
-                                                               HttpIncomingRequestMetricCollector.class);
+                                                               HttpIncomingMetricsCollector.class);
 
         return true;
     }

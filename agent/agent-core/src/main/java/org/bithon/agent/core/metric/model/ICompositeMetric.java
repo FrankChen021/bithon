@@ -21,4 +21,7 @@ package org.bithon.agent.core.metric.model;
  * @date 2021/3/25 7:34 下午
  */
 public interface ICompositeMetric extends IMetric {
+    default ISimpleMetric[] getMetrics() {
+        return new ISimpleMetric[0];
+    }
 }

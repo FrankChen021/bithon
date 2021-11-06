@@ -37,4 +37,9 @@ public class Delta implements ISimpleMetric {
         oldValue = newValue;
         return delta;
     }
+
+    @Override
+    public long get() {
+        return 0;
+    }
 }

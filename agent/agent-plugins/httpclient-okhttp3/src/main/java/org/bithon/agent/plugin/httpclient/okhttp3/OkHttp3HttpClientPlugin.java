@@ -26,7 +26,7 @@ import java.util.List;
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
- * OkHttp3 plugin, for version > 3.3
+ * OkHttp3 plugin, for version &gt; 3.3
  *
  * @author frankchen
  */

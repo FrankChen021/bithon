@@ -19,7 +19,6 @@ package org.bithon.agent.core.dispatcher;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMetricSet;
 import org.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
 import org.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
@@ -28,10 +27,10 @@ import org.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
 import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import org.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
+import org.bithon.agent.core.metric.model.schema.Schema;
+import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.sdk.metric.schema.Schema;
 
 import java.util.Collection;
 import java.util.List;
@@ -43,8 +42,6 @@ import java.util.Map;
  */
 public interface IMessageConverter {
 
-    Object from(long timestamp, int interval, List<String> dimensions, HttpOutgoingMetrics metric);
-
     Object from(long timestamp, int interval, JdbcPoolMetricSet metric);
 
     Object from(long timestamp, int interval, List<String> dimensions, SqlCompositeMetric metric);
@@ -53,8 +50,6 @@ public interface IMessageConverter {
                 int interval,
                 List<String> dimensions,
                 MongoDbCompositeMetric counter);
-
-    Object from(long timestamp, int interval, List<String> dimensions, HttpIncomingMetrics metric);
 
     Object from(long timestamp, int interval, JvmMetricSet metric);
 
@@ -78,4 +73,6 @@ public interface IMessageConverter {
     Object from(long timestamp, int interval, GcCompositeMetric gcMetricSet);
 
     Object from(Schema schema, Collection<IMetricSet> metricCollection, long timestamp, int interval);
+
+    Object from(Schema2 schema, Collection<IMetricSet> metricCollection, long timestamp, int interval);
 }

@@ -17,8 +17,11 @@
 package org.bithon.agent.core.metric.domain.web;
 
 import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.ISimpleMetric;
+import org.bithon.agent.core.metric.model.Max;
+import org.bithon.agent.core.metric.model.Min;
 import org.bithon.agent.core.metric.model.Sum;
-import org.bithon.agent.core.metric.model.Timer;
+
 
 /**
  * Web Request Counter
@@ -26,7 +29,9 @@ import org.bithon.agent.core.metric.model.Timer;
  * @author frankchen
  */
 public class HttpIncomingMetrics implements ICompositeMetric {
-    private final Timer responseTime = new Timer();
+    private final Sum responseTime = new Sum();
+    private final Max maxResponseTime = new Max();
+    private final Min minResponseTime = new Min();
     private final Sum totalCount = new Sum();
     private final Sum okCount = new Sum();
     private final Sum errorCount = new Sum();
@@ -39,6 +44,8 @@ public class HttpIncomingMetrics implements ICompositeMetric {
 
     private void updateRequest(long responseTime, boolean isError) {
         this.responseTime.update(responseTime);
+        this.maxResponseTime.update(responseTime);
+        this.minResponseTime.update(responseTime);
         if (isError) {
             this.errorCount.incr();
         } else {
@@ -47,23 +54,33 @@ public class HttpIncomingMetrics implements ICompositeMetric {
         this.totalCount.incr();
     }
 
-    public void updateRequest(long responseTime, int count4xx, int count5xx) {
+    public HttpIncomingMetrics updateRequest(long responseTime, int count4xx, int count5xx) {
         this.updateRequest(responseTime, count4xx > 0 || count5xx > 0);
         this.count4xx.update(count4xx);
         this.count5xx.update(count5xx);
+        return this;
     }
 
-    public void updateBytes(long requestByteSize, long responseByteSize) {
+    public HttpIncomingMetrics updateBytes(long requestByteSize, long responseByteSize) {
         if (requestByteSize > 0) {
             this.requestBytes.update(requestByteSize);
         }
         if (responseByteSize > 0) {
             this.responseBytes.update(responseByteSize);
         }
+        return this;
     }
 
-    public Timer getResponseTime() {
+    public Sum getResponseTime() {
         return responseTime;
+    }
+
+    public Max getMaxResponseTime() {
+        return maxResponseTime;
+    }
+
+    private Min getMinResponseTime() {
+        return minResponseTime;
     }
 
     public Sum getTotalCount() {
@@ -100,5 +117,23 @@ public class HttpIncomingMetrics implements ICompositeMetric {
 
     public Sum getDegradedCount() {
         return degradedCount;
+    }
+
+    @Override
+    public ISimpleMetric[] getMetrics() {
+        return new ISimpleMetric[]{
+            responseTime,
+            maxResponseTime,
+            minResponseTime,
+            totalCount,
+            okCount,
+            errorCount,
+            count4xx,
+            count5xx,
+            requestBytes,
+            responseBytes,
+            flowedCount,
+            degradedCount
+        };
     }
 }

@@ -21,10 +21,8 @@ import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
 import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
 import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import shaded.net.bytebuddy.implementation.bind.annotation.This;
-import shaded.net.bytebuddy.pool.TypePool;
 
 import java.lang.reflect.Constructor;
-import java.util.Map;
 
 
 /**
@@ -33,7 +31,7 @@ import java.util.Map;
  */
 public class BootstrapConstructorAop {
     /**
-     * assigned by {@link com.sbss.bithon.agent.core.plugin.loader.BootstrapInterceptorInstaller#generateAopClass(Map, TypePool, String, String, com.sbss.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor)}
+     * assigned by org.bithon.agent.core.aop.AopClassGenerator#generateAopClass
      */
     private static String INTERCEPTOR_CLASS_NAME;
 
@@ -70,7 +68,7 @@ public class BootstrapConstructorAop {
         log = BootstrapHelper.createAopLogger(BootstrapMethodAop.class);
 
         try {
-            // load class out of sync to eliminate potential dead lock
+            // load class out of sync to eliminate potential deadlock
             Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
                                                       true,
                                                       BootstrapHelper.getPluginClassLoader());
@@ -80,7 +78,7 @@ public class BootstrapConstructorAop {
                     return INTERCEPTOR;
                 }
 
-                INTERCEPTOR = (AbstractInterceptor) interceptorClass.newInstance();
+                INTERCEPTOR = (AbstractInterceptor) interceptorClass.getDeclaredConstructor().newInstance();
             }
             INTERCEPTOR.initialize();
         } catch (Exception e) {

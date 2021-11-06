@@ -63,6 +63,7 @@ public class ServiceDiscovery {
 
     /**
      * taken from {@link org.springframework.cloud.commons.util.InetUtils#findFirstNonLoopbackAddress()}
+     * @return non loopback ip address
      */
     private InetAddress findFirstNonLoopbackAddress() {
         InetAddress result = null;

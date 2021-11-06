@@ -31,6 +31,7 @@ import shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -206,10 +207,10 @@ public class Configuration {
                     //noinspection unchecked
                     return (T) Boolean.FALSE;
                 }
-                return clazz.newInstance();
+                return clazz.getDeclaredConstructor().newInstance();
             } catch (IllegalAccessException e) {
                 throw new AgentException("Unable create instance for [%s]: %s", clazz.getName(), e.getMessage());
-            } catch (InstantiationException e) {
+            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException e) {
                 throw new AgentException("Unable create instance for [%s]: %s",
                                          clazz.getName(),
                                          e.getCause().getMessage());

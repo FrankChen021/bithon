@@ -16,7 +16,6 @@
 
 package org.bithon.server.topo.service;
 
-import org.bithon.component.db.dao.MetadataDAO;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.springframework.stereotype.Service;
 
@@ -29,11 +28,6 @@ import javax.validation.constraints.Min;
  */
 @Service
 public class TopoService {
-
-    // TODO: topo仍然使用metric存储，而不使用meta进行存储
-    // 一分钟为单位进行聚合存储
-    private MetadataDAO metadataDAO;
-
 
     public Topo getCallee(TimeSpan startTime,
                           TimeSpan endTime,
