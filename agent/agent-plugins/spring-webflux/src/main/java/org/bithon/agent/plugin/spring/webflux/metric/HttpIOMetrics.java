@@ -14,14 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.plugin.spring.webflux.metric;
 
 /**
  * @author Frank Chen
- * @date 2021-10-02
+ * @date 6/11/21 7:55 pm
  */
-public interface IMetricSpec {
-    String getType();
-
-    String getName();
+public class HttpIOMetrics {
+    public long requestBytes = -1;
+    public long responseBytes = -1;
 }

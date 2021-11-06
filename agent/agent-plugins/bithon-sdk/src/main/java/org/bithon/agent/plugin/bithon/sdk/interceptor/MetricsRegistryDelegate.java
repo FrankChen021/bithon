@@ -21,19 +21,19 @@ import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector2;
 import org.bithon.agent.core.metric.collector.IMetricSet;
+import org.bithon.agent.core.metric.model.schema.IDimensionSpec;
+import org.bithon.agent.core.metric.model.schema.IMetricSpec;
+import org.bithon.agent.core.metric.model.schema.LongLastMetricSpec;
+import org.bithon.agent.core.metric.model.schema.LongMaxMetricSpec;
+import org.bithon.agent.core.metric.model.schema.LongMinMetricSpec;
+import org.bithon.agent.core.metric.model.schema.LongSumMetricSpec;
+import org.bithon.agent.core.metric.model.schema.Schema;
+import org.bithon.agent.core.metric.model.schema.StringDimensionSpec;
 import org.bithon.agent.sdk.expt.SdkException;
 import org.bithon.agent.sdk.metric.IMetricValueProvider;
 import org.bithon.agent.sdk.metric.aggregator.LongMax;
 import org.bithon.agent.sdk.metric.aggregator.LongMin;
 import org.bithon.agent.sdk.metric.aggregator.LongSum;
-import org.bithon.agent.sdk.metric.schema.IDimensionSpec;
-import org.bithon.agent.sdk.metric.schema.IMetricSpec;
-import org.bithon.agent.sdk.metric.schema.LongLastMetricSpec;
-import org.bithon.agent.sdk.metric.schema.LongMaxMetricSpec;
-import org.bithon.agent.sdk.metric.schema.LongMinMetricSpec;
-import org.bithon.agent.sdk.metric.schema.LongSumMetricSpec;
-import org.bithon.agent.sdk.metric.schema.Schema;
-import org.bithon.agent.sdk.metric.schema.StringDimensionSpec;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -85,29 +85,37 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         }
 
         @Override
-        public IMetricValueProvider[] getMetrics() {
-            IMetricValueProvider[] values = new IMetricValueProvider[metricFields.size()];
+        public int getMetricCount() {
+            return this.metricFields.size();
+        }
 
-            int i = 0;
-            for (Field field : metricFields) {
-                IMetricValueProvider provider = null;
+        @Override
+        public long getMetricValue(int index) {
+            if (index < this.metricFields.size()) {
+
+                Field field = this.metricFields.get(index);
                 try {
-                    provider = (IMetricValueProvider) field.get(metricProvider);
+                    IMetricValueProvider provider = (IMetricValueProvider) this.metricFields.get(index).get(metricProvider);
+                    return provider.value();
                 } catch (IllegalAccessException e) {
                     log.error("Can't get value of [{}] on class [{}]: {}",
                               field.getName(),
                               metricProvider.getClass().getName(),
                               e.getMessage());
+                    return Long.MAX_VALUE;
                 }
-                values[i++] = provider == null ? NullMetricValueProvider.INSTANCE : provider;
             }
-            return values;
+            return Long.MAX_VALUE;
         }
     }
 
     private final Supplier<Object> metricInstantiator;
     private final Schema schema;
     private Map<List<String>, IMetricSet> metricsMap = new ConcurrentHashMap<>();
+
+    /**
+     * keep metrics that won't be cleared when they have been collected
+     */
     private final Map<List<String>, IMetricSet> retainedMetricsMap = new ConcurrentHashMap<>();
     private final List<Field> metricField = new ArrayList<>();
 

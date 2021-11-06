@@ -22,4 +22,6 @@ package org.bithon.agent.core.metric.model;
  */
 public interface ISimpleMetric extends IMetric {
     long update(long value);
+
+    long get();
 }

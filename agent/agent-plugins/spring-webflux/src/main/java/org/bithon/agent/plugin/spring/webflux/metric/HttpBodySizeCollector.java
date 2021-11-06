@@ -25,10 +25,13 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import reactor.netty.channel.ChannelOperations;
 import reactor.netty.http.HttpInfos;
 import reactor.netty.http.server.HttpServerRequest;
+import reactor.netty.http.server.HttpServerResponse;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -40,13 +43,14 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpBodySizeCollector.class);
 
-    final HttpIncomingRequestMetricCollector collector;
+    final HttpIncomingMetricsCollector collector;
     long dataReceived;
     long dataSent;
 
     static Class<?> httpServerOperationClass = null;
 
     static {
+        // HttpServerOperations's visibility is defined as package-level
         try {
             httpServerOperationClass = Class.forName("reactor.netty.http.server.HttpServerOperations",
                                                      false,
@@ -56,7 +60,7 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
         }
     }
 
-    public HttpBodySizeCollector(HttpIncomingRequestMetricCollector collector) {
+    public HttpBodySizeCollector(HttpIncomingMetricsCollector collector) {
         this.collector = collector;
     }
 
@@ -120,19 +124,33 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
         ctx.fireChannelRead(msg);
     }
 
+    // TODO: use right statusCode
     private void recordRead(ChannelOperations<?, ?> channelOps, long dataReceived) {
-        try {
-            collector.getOrCreateMetric(this.getRequestHeaders(channelOps).get(ITracePropagator.BITHON_SRC_APPLICATION),
-                                        this.getHttOperationPath(channelOps)).updateBytes(dataReceived, 0);
-        } catch (Exception e) {
-            LOG.error("", e);
+        HttpIOMetrics metric = (HttpIOMetrics) ((IBithonObject) channelOps).getInjectedObject();
+        if (metric.responseBytes == -1) {
+            metric.requestBytes = dataReceived;
+            return;
         }
+
+        updateBytes(channelOps, dataReceived, metric.responseBytes);
     }
 
     private void recordWrite(ChannelOperations<?, ?> channelOps, long dataSent) {
+        HttpIOMetrics metric = (HttpIOMetrics) ((IBithonObject) channelOps).getInjectedObject();
+        if (metric.requestBytes == -1) {
+            metric.responseBytes = dataSent;
+            return;
+        }
+
+        updateBytes(channelOps, metric.requestBytes, dataSent);
+    }
+
+    private void updateBytes(ChannelOperations<?, ?> channelOps, long dataReceived, long dataSent) {
         try {
             collector.getOrCreateMetric(this.getRequestHeaders(channelOps).get(ITracePropagator.BITHON_SRC_APPLICATION),
-                                        this.getHttOperationPath(channelOps)).updateBytes(0, dataSent);
+                                        this.getHttOperationPath(channelOps),
+                                        ((HttpServerResponse) channelOps).status().code())
+                     .updateBytes(dataReceived, dataSent);
         } catch (Exception e) {
             LOG.error("", e);
         }

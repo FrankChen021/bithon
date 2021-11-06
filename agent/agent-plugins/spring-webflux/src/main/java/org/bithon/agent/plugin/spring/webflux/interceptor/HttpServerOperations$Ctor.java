@@ -14,26 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.plugin.spring.webflux.interceptor;
+
+import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
 
 /**
+ * Inject an object to HttpServerOperations to make the code in HttpBodySizeCollector a little easier
  * @author Frank Chen
- * @date 2021-10-01
+ * @date 6/11/21 9:05 pm
  */
-public abstract class AbstractMetricSpec implements IMetricSpec {
-    private final String name;
-
-    public AbstractMetricSpec(String name) {
-        this.name = name;
-    }
+public class HttpServerOperations$Ctor extends AbstractInterceptor {
 
     @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        return this.getType() + "(" + name + ")";
+    public void onConstruct(AopContext aopContext) {
+        IBithonObject obj = (IBithonObject) aopContext.getTarget();
+        obj.setInjectedObject(new HttpIOMetrics());
     }
 }

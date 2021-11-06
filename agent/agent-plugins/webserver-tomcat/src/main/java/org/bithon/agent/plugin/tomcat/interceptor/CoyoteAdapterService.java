@@ -23,20 +23,21 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
-import org.bithon.agent.plugin.tomcat.metric.WebRequestMetricCollector;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
+import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 
 /**
  * @author frankchen
  */
 public class CoyoteAdapterService extends AbstractInterceptor {
-    private WebRequestMetricCollector metricCollector;
+    private HttpIncomingMetricsCollector metricCollector;
     private HttpIncomingFilter requestFilter;
 
     @Override
     public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
                                                 .getOrRegister("tomcat-web-request-metrics",
-                                                               WebRequestMetricCollector.class);
+                                                               HttpIncomingMetricsCollector.class);
 
         requestFilter = new HttpIncomingFilter();
 
@@ -57,8 +58,27 @@ public class CoyoteAdapterService extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         Request request = (Request) aopContext.getArgs()[0];
 
-        metricCollector.update(request,
-                               (Response) aopContext.getArgs()[1],
-                               aopContext.getCostTime());
+        update(request,
+               (Response) aopContext.getArgs()[1],
+               aopContext.getCostTime());
+    }
+
+    private void update(Request request, Response response, long responseTime) {
+        String uri = request.requestURI().toString();
+        if (uri == null) {
+            return;
+        }
+
+        String srcApplication = request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION);
+
+        int httpStatus = response.getStatus();
+        int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
+        int count5xx = httpStatus >= 500 ? 1 : 0;
+        long requestByteSize = request.getBytesRead();
+        long responseByteSize = response.getBytesWritten(false);
+
+        this.metricCollector.getOrCreateMetric(srcApplication, uri, httpStatus)
+                            .updateRequest(responseTime, count4xx, count5xx)
+                            .updateBytes(requestByteSize, responseByteSize);
     }
 }

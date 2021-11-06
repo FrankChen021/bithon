@@ -274,3 +274,19 @@ message BrpcGenericMetricMessage {
     BrpcGenericMetricSchema schema = 3;
     repeated BrpcGenericMetricSet metricSet = 4;
 }
+
+/*************************************************************************************/
+/*******************************Generic Metric Message V2*****************************/
+/*************************************************************************************/
+message BrpcGenericMetricSchemaV2 {
+    string name = 1;
+    repeated string dimensionsSpec = 2;
+    repeated string metricsSpec = 3;
+}
+
+message BrpcGenericMetricMessageV2 {
+    int64 timestamp            =  1;
+    int64 interval             =  2;
+    BrpcGenericMetricSchemaV2 schema = 3;
+    repeated BrpcGenericMetricSet metricSet = 4;
+}

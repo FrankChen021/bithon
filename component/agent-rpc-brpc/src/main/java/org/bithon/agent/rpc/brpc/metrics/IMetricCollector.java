@@ -62,4 +62,7 @@ public interface IMetricCollector {
 
     @ServiceConfig(isOneway = true)
     void sendGenericMetrics(BrpcMessageHeader header, BrpcGenericMetricMessage message);
+
+    @ServiceConfig(isOneway = true)
+    void sendGenericMetricsV2(BrpcMessageHeader header, BrpcGenericMetricMessageV2 message);
 }

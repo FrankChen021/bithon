@@ -14,27 +14,36 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.core.metric.model.schema;
+
+import java.util.List;
 
 /**
  * @author Frank Chen
  * @date 2021-10-02
  */
-public abstract class AbstractDimensionSpec implements IDimensionSpec {
-
+public class Schema {
     private final String name;
+    private final List<IDimensionSpec> dimensionsSpec;
+    private final List<IMetricSpec> metricsSpec;
 
-    public AbstractDimensionSpec(String name) {
+    public Schema(String name,
+                  List<IDimensionSpec> dimensionsSpec,
+                  List<IMetricSpec> metricsSpec) {
         this.name = name;
+        this.dimensionsSpec = dimensionsSpec;
+        this.metricsSpec = metricsSpec;
     }
 
-    @Override
     public String getName() {
         return name;
     }
 
-    @Override
-    public String toString() {
-        return String.format("dimension(type=%s, name=%s)", getType(), name);
+    public List<IDimensionSpec> getDimensionsSpec() {
+        return dimensionsSpec;
+    }
+
+    public List<IMetricSpec> getMetricsSpec() {
+        return metricsSpec;
     }
 }

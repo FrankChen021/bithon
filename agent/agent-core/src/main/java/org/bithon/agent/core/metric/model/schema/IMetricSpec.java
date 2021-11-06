@@ -14,19 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.core.metric.model.schema;
 
 /**
  * @author Frank Chen
  * @date 2021-10-02
  */
-public class LongMinMetricSpec extends AbstractMetricSpec {
-    public LongMinMetricSpec(String name) {
-        super(name);
-    }
+public interface IMetricSpec {
+    String getType();
 
-    @Override
-    public String getType() {
-        return "longMin";
-    }
+    String getName();
 }

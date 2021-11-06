@@ -14,17 +14,36 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.metric.collector;
+package org.bithon.agent.core.metric.model.schema;
 
 import java.util.List;
 
 /**
  * @author Frank Chen
- * @date 3/10/21 11:40
+ * @date 2021-10-02
  */
-public interface IMetricSet {
-    List<String> getDimensions();
+public class Schema2 {
+    private final String name;
+    private final List<String> dimensionsSpec;
+    private final List<String> metricsSpec;
 
-    int getMetricCount();
-    long getMetricValue(int index);
+    public Schema2(String name,
+                   List<String> dimensionsSpec,
+                   List<String> metricsSpec) {
+        this.name = name;
+        this.dimensionsSpec = dimensionsSpec;
+        this.metricsSpec = metricsSpec;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public List<String> getDimensionsSpec() {
+        return dimensionsSpec;
+    }
+
+    public List<String> getMetricsSpec() {
+        return metricsSpec;
+    }
 }

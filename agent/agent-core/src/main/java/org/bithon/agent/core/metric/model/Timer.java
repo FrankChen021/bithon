@@ -35,6 +35,11 @@ public class Timer implements ISimpleMetric {
         return sum.update(value);
     }
 
+    @Override
+    public long get() {
+        return 0;
+    }
+
     public Sum getSum() {
         return sum;
     }

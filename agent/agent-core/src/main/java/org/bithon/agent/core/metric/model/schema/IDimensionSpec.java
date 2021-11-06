@@ -14,30 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sdk.metric.aggregator;
-
-import org.bithon.agent.sdk.metric.IMetricValue;
-
-import java.util.concurrent.atomic.AtomicLong;
+package org.bithon.agent.core.metric.model.schema;
 
 /**
  * @author Frank Chen
- * @date 2021-10-01
+ * @date 2021-10-02
  */
-public class LongSum implements IMetricValue {
-    private final AtomicLong value = new AtomicLong();
+public interface IDimensionSpec {
+    String getName();
 
-    @Override
-    public long update(long value) {
-        return this.value.addAndGet(value);
-    }
-
-    @Override
-    public long value() {
-        return this.value.get();
-    }
-
-    public void incr() {
-        this.value.incrementAndGet();
-    }
+    String getType();
 }

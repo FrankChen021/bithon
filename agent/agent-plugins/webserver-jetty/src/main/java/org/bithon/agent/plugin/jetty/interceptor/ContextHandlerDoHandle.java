@@ -22,13 +22,15 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.plugin.jetty.metric.WebRequestMetricCollector;
+import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,21 +41,21 @@ import javax.servlet.http.HttpServletResponse;
 public class ContextHandlerDoHandle extends AbstractInterceptor {
     private HttpIncomingFilter requestFilter;
 
-    private WebRequestMetricCollector requestMetricCollector;
+    private HttpIncomingMetricsCollector metricsCollector;
 
     @Override
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
 
-        requestMetricCollector = MetricCollectorManager.getInstance()
-                                                       .getOrRegister("jetty-web-request-metrics",
-                                                                      WebRequestMetricCollector.class);
+        metricsCollector = MetricCollectorManager.getInstance()
+                                                 .getOrRegister("jetty-web-request-metrics",
+                                                                HttpIncomingMetricsCollector.class);
 
         return true;
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
         Request request = (Request) aopContext.getArgs()[1];
         boolean filtered = this.requestFilter.shouldBeExcluded(request.getRequestURI(), request.getHeader("User-Agent"));
         if (filtered) {
@@ -83,10 +85,10 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         // update metric
-        requestMetricCollector.update((Request) aopContext.getArgs()[1],
-                                      (HttpServletRequest) aopContext.getArgs()[2],
-                                      (HttpServletResponse) aopContext.getArgs()[3],
-                                      aopContext.getCostTime());
+        update((Request) aopContext.getArgs()[1],
+               (HttpServletRequest) aopContext.getArgs()[2],
+               (HttpServletResponse) aopContext.getArgs()[3],
+               aopContext.getCostTime());
 
         //
         // trace
@@ -113,22 +115,39 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
                 span.tag("exception", aopContext.getException().toString());
             }
         } finally {
-            try {
-                if (span != null) {
-                    span.finish();
-                }
-            } catch (Exception ignored) {
+            if (span != null) {
+                span.finish();
             }
-            try {
-                if (traceContext != null) {
-                    traceContext.finish();
-                }
-            } catch (Exception ignored) {
+            if (traceContext != null) {
+                traceContext.finish();
             }
             try {
                 TraceContextHolder.remove();
             } catch (Exception ignored) {
             }
         }
+    }
+
+    private void update(Request request,
+                        HttpServletRequest httpServletRequest,
+                        HttpServletResponse response,
+                        long costTime) {
+        String srcApplication = request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION);
+        String uri = httpServletRequest.getRequestURI();
+        int httpStatus = response.getStatus();
+        int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
+        int count5xx = httpStatus >= 500 ? 1 : 0;
+        long requestByteSize = request.getContentRead();
+        long responseByteSize = 0;
+        if (response instanceof Response) {
+            Response jettyResponse = (Response) response;
+            responseByteSize = jettyResponse.getContentCount();
+        }
+
+        this.metricsCollector.getOrCreateMetric(srcApplication,
+                                                uri,
+                                                httpStatus)
+                             .updateRequest(costTime, count4xx, count5xx)
+                             .updateBytes(requestByteSize, responseByteSize);
     }
 }
