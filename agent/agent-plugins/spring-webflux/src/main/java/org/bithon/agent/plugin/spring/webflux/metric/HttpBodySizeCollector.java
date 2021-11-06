@@ -25,6 +25,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import reactor.netty.channel.ChannelOperations;
 import reactor.netty.http.HttpInfos;
@@ -40,7 +41,7 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpBodySizeCollector.class);
 
-    final HttpIncomingRequestMetricCollector collector;
+    final HttpIncomingMetricsCollector collector;
     long dataReceived;
     long dataSent;
 
@@ -56,7 +57,7 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
         }
     }
 
-    public HttpBodySizeCollector(HttpIncomingRequestMetricCollector collector) {
+    public HttpBodySizeCollector(HttpIncomingMetricsCollector collector) {
         this.collector = collector;
     }
 
@@ -120,10 +121,13 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
         ctx.fireChannelRead(msg);
     }
 
+    // TODO: use right statusCode
     private void recordRead(ChannelOperations<?, ?> channelOps, long dataReceived) {
         try {
             collector.getOrCreateMetric(this.getRequestHeaders(channelOps).get(ITracePropagator.BITHON_SRC_APPLICATION),
-                                        this.getHttOperationPath(channelOps)).updateBytes(dataReceived, 0);
+                                        this.getHttOperationPath(channelOps),
+                                        200)
+                     .updateBytes(dataReceived, 0);
         } catch (Exception e) {
             LOG.error("", e);
         }
@@ -132,7 +136,9 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
     private void recordWrite(ChannelOperations<?, ?> channelOps, long dataSent) {
         try {
             collector.getOrCreateMetric(this.getRequestHeaders(channelOps).get(ITracePropagator.BITHON_SRC_APPLICATION),
-                                        this.getHttOperationPath(channelOps)).updateBytes(0, dataSent);
+                                        this.getHttOperationPath(channelOps),
+                                        200)
+                     .updateBytes(0, dataSent);
         } catch (Exception e) {
             LOG.error("", e);
         }

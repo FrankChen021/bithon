@@ -108,6 +108,10 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
     private final Supplier<Object> metricInstantiator;
     private final Schema schema;
     private Map<List<String>, IMetricSet> metricsMap = new ConcurrentHashMap<>();
+
+    /**
+     * keep metrics that won't be cleared when they have been collected
+     */
     private final Map<List<String>, IMetricSet> retainedMetricsMap = new ConcurrentHashMap<>();
     private final List<Field> metricField = new ArrayList<>();
 

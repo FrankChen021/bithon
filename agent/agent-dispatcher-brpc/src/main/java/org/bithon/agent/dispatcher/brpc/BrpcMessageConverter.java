@@ -29,17 +29,17 @@ import org.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
 import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import org.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericDimensionSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchema;
+import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchemaV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSet;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
-import org.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcHttpOutgoingMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
@@ -50,6 +50,7 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.sdk.metric.IMetricValueProvider;
 import org.bithon.agent.sdk.metric.schema.Schema;
+import org.bithon.agent.sdk.metric.schema.Schema2;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -112,28 +113,6 @@ public class BrpcMessageConverter implements IMessageConverter {
     @Override
     public Object from(long timestamp, int interval, List<String> dimensions, MongoDbCompositeMetric counter) {
         return null;
-    }
-
-    @Override
-    public Object from(long timestamp, int interval, List<String> dimensions, HttpIncomingMetrics metric) {
-        return BrpcHttpIncomingMetricMessage.newBuilder()
-                                            .setTimestamp(timestamp)
-                                            .setInterval(interval)
-                                            .setSrcApplication(dimensions.get(0))
-                                            .setUri(dimensions.get(1))
-                                            .setResponseTime(metric.getResponseTime().getSum().get())
-                                            .setMaxResponseTime(metric.getResponseTime().getMax().get())
-                                            .setMinResponseTime(metric.getResponseTime().getMin().get())
-                                            .setTotalCount(metric.getTotalCount().get())
-                                            .setErrorCount(metric.getErrorCount().get())
-                                            .setOkCount(metric.getOkCount().get())
-                                            .setCount4Xx(metric.getCount4xx().get())
-                                            .setCount5Xx(metric.getCount5xx().get())
-                                            .setRequestBytes(metric.getRequestBytes().get())
-                                            .setResponseBytes(metric.getResponseBytes().get())
-                                            .setFlowedCount(metric.getFlowedCount().get())
-                                            .setDegradedCount(metric.getDegradedCount().get())
-                                            .build();
     }
 
     @Override
@@ -317,8 +296,40 @@ public class BrpcMessageConverter implements IMessageConverter {
 
         metricCollection.forEach(metricSet -> {
             BrpcGenericMetricSet.Builder set = BrpcGenericMetricSet.newBuilder();
-            for (String dimension : metricSet.getDimensions()) {
-                set.addDimension(dimension);
+            // although dimensions are defined as List<String>
+            // but it could also store Object
+            // we use Object.toString here to get right value
+            for (Object dimension : metricSet.getDimensions()) {
+                set.addDimension(dimension.toString());
+            }
+            for (IMetricValueProvider metricValue : metricSet.getMetrics()) {
+                set.addMetric(metricValue.value());
+            }
+            messageBuilder.addMetricSet(set.build());
+        });
+
+        return messageBuilder.build();
+    }
+
+    @Override
+    public Object from(Schema2 schema, Collection<IMetricSet> metricCollection, long timestamp, int interval) {
+        BrpcGenericMetricSchemaV2.Builder schemaBuilder = BrpcGenericMetricSchemaV2.newBuilder()
+                                                                                   .setName(schema.getName());
+        schema.getDimensionsSpec().forEach(schemaBuilder::addDimensionsSpec);
+        schema.getMetricsSpec().forEach(schemaBuilder::addMetricsSpec);
+
+        BrpcGenericMetricMessageV2.Builder messageBuilder = BrpcGenericMetricMessageV2.newBuilder();
+        messageBuilder.setSchema(schemaBuilder.build());
+        messageBuilder.setInterval(interval);
+        messageBuilder.setTimestamp(timestamp);
+
+        metricCollection.forEach(metricSet -> {
+            BrpcGenericMetricSet.Builder set = BrpcGenericMetricSet.newBuilder();
+            // although dimensions are defined as List<String>
+            // but it could also store Object
+            // we use Object.toString here to get right value
+            for (Object dimension : metricSet.getDimensions()) {
+                set.addDimension(dimension.toString());
             }
             for (IMetricValueProvider metricValue : metricSet.getMetrics()) {
                 set.addMetric(metricValue.value());

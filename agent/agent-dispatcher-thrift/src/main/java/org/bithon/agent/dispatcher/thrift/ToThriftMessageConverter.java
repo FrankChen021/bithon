@@ -29,12 +29,10 @@ import org.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
 import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import org.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
-import org.bithon.agent.rpc.thrift.service.metric.message.HttpIncomingMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.HttpOutgoingMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.JvmGcMetricMessage;
@@ -46,6 +44,7 @@ import org.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessag
 import org.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import org.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 import org.bithon.agent.sdk.metric.schema.Schema;
+import org.bithon.agent.sdk.metric.schema.Schema2;
 
 import java.util.Collection;
 import java.util.List;
@@ -138,31 +137,6 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setExceptionCount(metric.getExceptionCount().get());
         message.setRequestBytes(metric.getRequestBytes().get());
         message.setResponseBytes(metric.getResponseBytes().get());
-        return message;
-    }
-
-    @Override
-    public Object from(long timestamp,
-                       int interval,
-                       List<String> dimensions,
-                       HttpIncomingMetrics metric) {
-        HttpIncomingMetricMessage message = new HttpIncomingMetricMessage();
-        message.setInterval(interval);
-        message.setTimestamp(timestamp);
-        message.setSrcApplication(dimensions.get(0));
-        message.setUri(dimensions.get(1));
-        message.setResponseTime(metric.getResponseTime().getSum().get());
-        message.setMaxResponseTime(metric.getResponseTime().getMax().get());
-        message.setMinResponseTime(metric.getResponseTime().getMin().get());
-        message.setTotalCount(metric.getTotalCount().get());
-        message.setErrorCount(metric.getErrorCount().get());
-        message.setOkCount(metric.getOkCount().get());
-        message.setCount4xx(metric.getCount4xx().get());
-        message.setCount5xx(metric.getCount5xx().get());
-        message.setRequestBytes(metric.getRequestBytes().get());
-        message.setResponseBytes(metric.getResponseBytes().get());
-        message.setFlowedCount(metric.getFlowedCount().get());
-        message.setDegradedCount(metric.getDegradedCount().get());
         return message;
     }
 
@@ -319,6 +293,11 @@ public class ToThriftMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(Schema schema, Collection<IMetricSet> metricCollection, long timestamp, int interval) {
+        return null;
+    }
+
+    @Override
+    public Object from(Schema2 schema, Collection<IMetricSet> metricCollection, long timestamp, int interval) {
         return null;
     }
 

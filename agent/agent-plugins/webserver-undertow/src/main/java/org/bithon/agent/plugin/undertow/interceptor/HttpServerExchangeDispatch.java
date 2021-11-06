@@ -22,7 +22,8 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
-import org.bithon.agent.plugin.undertow.metric.WebRequestMetricCollector;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
+import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 
 /**
  * @author frankchen
@@ -30,13 +31,13 @@ import org.bithon.agent.plugin.undertow.metric.WebRequestMetricCollector;
 public class HttpServerExchangeDispatch extends AbstractInterceptor {
 
     private HttpIncomingFilter requestFilter;
-    private WebRequestMetricCollector metricCollector;
+    private HttpIncomingMetricsCollector metricCollector;
 
     @Override
     public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
                                                 .getOrRegister("undertow-web-request-metrics",
-                                                               WebRequestMetricCollector.class);
+                                                               HttpIncomingMetricsCollector.class);
 
         requestFilter = new HttpIncomingFilter();
 
@@ -53,9 +54,24 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
 
         final long startTime = System.nanoTime();
         exchange.addExchangeCompleteListener((listener, next) -> {
-            metricCollector.update(exchange, startTime);
+            update(exchange, startTime);
             next.proceed();
         });
         return InterceptionDecision.CONTINUE;
+    }
+
+    private void update(HttpServerExchange exchange, long startNano) {
+        String srcApplication = exchange.getRequestHeaders().getLast(ITracePropagator.BITHON_SRC_APPLICATION);
+        String uri = exchange.getRequestPath();
+        int httpStatus = exchange.getStatusCode();
+        int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
+        int count5xx = httpStatus >= 500 ? 1 : 0;
+        long requestByteSize = exchange.getRequestContentLength() < 0 ? 0 : exchange.getRequestContentLength();
+        long responseByteSize = exchange.getResponseBytesSent();
+        long costTime = System.nanoTime() - startNano;
+
+        this.metricCollector.getOrCreateMetric(srcApplication, uri, httpStatus)
+                            .updateRequest(costTime, count4xx, count5xx)
+                            .updateBytes(requestByteSize, responseByteSize);
     }
 }

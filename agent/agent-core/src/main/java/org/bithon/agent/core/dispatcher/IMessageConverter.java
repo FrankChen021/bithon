@@ -28,10 +28,10 @@ import org.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
 import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import org.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.sdk.metric.schema.Schema;
+import org.bithon.agent.sdk.metric.schema.Schema2;
 
 import java.util.Collection;
 import java.util.List;
@@ -53,8 +53,6 @@ public interface IMessageConverter {
                 int interval,
                 List<String> dimensions,
                 MongoDbCompositeMetric counter);
-
-    Object from(long timestamp, int interval, List<String> dimensions, HttpIncomingMetrics metric);
 
     Object from(long timestamp, int interval, JvmMetricSet metric);
 
@@ -78,4 +76,6 @@ public interface IMessageConverter {
     Object from(long timestamp, int interval, GcCompositeMetric gcMetricSet);
 
     Object from(Schema schema, Collection<IMetricSet> metricCollection, long timestamp, int interval);
+
+    Object from(Schema2 schema, Collection<IMetricSet> metricCollection, long timestamp, int interval);
 }

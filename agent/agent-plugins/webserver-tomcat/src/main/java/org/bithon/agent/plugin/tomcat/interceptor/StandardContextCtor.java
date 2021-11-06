@@ -20,7 +20,8 @@ import org.apache.catalina.core.StandardContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.plugin.tomcat.metric.WebRequestMetricCollector;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
+import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.sentinel.ISentinelListener;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import org.bithon.agent.sentinel.flow.FlowRuleDto;
@@ -64,23 +65,31 @@ public class StandardContextCtor extends AbstractInterceptor {
 
     static class SentinelListener implements ISentinelListener {
 
-        WebRequestMetricCollector counter;
+        HttpIncomingMetricsCollector collector;
 
         SentinelListener() {
-            counter = MetricCollectorManager.getInstance()
-                                            .getOrRegister("tomcat-web-request-metrics",
-                                                           WebRequestMetricCollector.class);
+            collector = MetricCollectorManager.getInstance()
+                                              .getOrRegister("tomcat-web-request-metrics",
+                                                             HttpIncomingMetricsCollector.class);
 
         }
 
         @Override
         public void onDegraded(HttpServletRequest request) {
-            counter.getOrCreate(request).getDegradedCount().incr();
+            collector.getOrCreateMetric(request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION),
+                                        request.getRequestURI(),
+                                        429)
+                     .getDegradedCount()
+                     .incr();
         }
 
         @Override
         public void onFlowControlled(HttpServletRequest request) {
-            counter.getOrCreate(request).getFlowedCount().incr();
+            collector.getOrCreateMetric(request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION),
+                                        request.getRequestURI(),
+                                        429)
+                     .getFlowedCount()
+                     .incr();
         }
 
         @Override

@@ -78,6 +78,8 @@ public class LocalMetricSink implements IMessageSink<CloseableIterator<MetricMes
                 Thread.currentThread().setName(oldName + "-" + messageType);
                 try {
                     handler.process(messages);
+                } catch (Exception e) {
+                    log.error("Exception when processing message[{}]: {}", messageType, e);
                 } finally {
                     Thread.currentThread().setName(oldName);
                 }
