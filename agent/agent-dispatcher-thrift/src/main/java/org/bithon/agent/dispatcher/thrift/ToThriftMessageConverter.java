@@ -20,7 +20,6 @@ import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMetricSet;
 import org.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
 import org.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
@@ -35,7 +34,6 @@ import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.ExceptionMetricMessage;
-import org.bithon.agent.rpc.thrift.service.metric.message.HttpOutgoingMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.JdbcPoolMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.JvmGcMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.JvmMetricMessage;
@@ -55,28 +53,6 @@ import java.util.Map;
  * @date 2021/1/6 11:39 下午
  */
 public class ToThriftMessageConverter implements IMessageConverter {
-
-    @Override
-    public Object from(long timestamp,
-                       int interval,
-                       List<String> dimensions,
-                       HttpOutgoingMetrics metric) {
-        HttpOutgoingMetricMessage message = new HttpOutgoingMetricMessage();
-        message.setInterval(interval);
-        message.setTimestamp(timestamp);
-        message.setUri(dimensions.get(0));
-        message.setMethod(dimensions.get(1));
-        message.setResponseTime(metric.getResponseTime().getSum().get());
-        message.setMinResponseTime(metric.getResponseTime().getMin().get());
-        message.setMaxResponseTime(metric.getResponseTime().getMax().get());
-        message.setCount4xx(metric.getCount4xx());
-        message.setCount5xx(metric.getCount5xx());
-        message.setRequestCount(metric.getRequestCount());
-        message.setRequestBytes(metric.getRequestBytes());
-        message.setResponseBytes(metric.getResponseBytes());
-        message.setExceptionCount(metric.getExceptionCount());
-        return message;
-    }
 
     @Override
     public Object from(long timestamp, int interval, JdbcPoolMetricSet metric) {

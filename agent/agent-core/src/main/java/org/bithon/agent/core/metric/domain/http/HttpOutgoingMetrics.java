@@ -17,17 +17,23 @@
 package org.bithon.agent.core.metric.domain.http;
 
 import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.ISimpleMetric;
+import org.bithon.agent.core.metric.model.Max;
+import org.bithon.agent.core.metric.model.Min;
 import org.bithon.agent.core.metric.model.Sum;
-import org.bithon.agent.core.metric.model.Timer;
 
 /**
+ * NOTE: the order of ALL fields in this class must be consistent with the order in getMetrics method
+ *
  * @author frankchen
  */
 public class HttpOutgoingMetrics implements ICompositeMetric {
     /**
      * total cost time in NANO second
      */
-    private final Timer responseTime = new Timer();
+    private final Sum responseTime = new Sum();
+    private final Max maxResponseTime = new Max();
+    private final Min minResponseTime = new Min();
 
     /**
      * count of all status code between 400(inclusive) and 500(exclusive)
@@ -45,6 +51,8 @@ public class HttpOutgoingMetrics implements ICompositeMetric {
 
     public void add(long responseTime, int count4xx, int count5xx) {
         this.responseTime.update(responseTime);
+        this.maxResponseTime.update(responseTime);
+        this.minResponseTime.update(responseTime);
         this.count4xx.update(count4xx);
         this.count5xx.update(count5xx);
         this.requestCount.incr();
@@ -52,6 +60,8 @@ public class HttpOutgoingMetrics implements ICompositeMetric {
 
     public void addException(long responseTime, int exceptionCount) {
         this.responseTime.update(responseTime);
+        this.maxResponseTime.update(responseTime);
+        this.minResponseTime.update(responseTime);
         this.countException.update(exceptionCount);
         this.requestCount.incr();
     }
@@ -61,31 +71,18 @@ public class HttpOutgoingMetrics implements ICompositeMetric {
         this.responseBytes.update(responseByteSize);
     }
 
-    public Timer getResponseTime() {
-        return responseTime;
-    }
-
-    public long getCount4xx() {
-        return count4xx.get();
-    }
-
-    public long getCount5xx() {
-        return count5xx.get();
-    }
-
-    public long getRequestCount() {
-        return requestCount.get();
-    }
-
-    public long getRequestBytes() {
-        return requestBytes.get();
-    }
-
-    public long getResponseBytes() {
-        return responseBytes.get();
-    }
-
-    public long getExceptionCount() {
-        return countException.get();
+    @Override
+    public ISimpleMetric[] getMetrics() {
+        return new ISimpleMetric[]{
+            responseTime,
+            maxResponseTime,
+            minResponseTime,
+            count4xx,
+            count5xx,
+            countException,
+            requestCount,
+            requestBytes,
+            responseBytes
+        };
     }
 }

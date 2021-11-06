@@ -57,7 +57,7 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
             return false;
         }
 
-        URI uri = new URI(metricObject.getString("uri"));
+        URI uri = new URI(metricObject.getString("path"));
         UriNormalizer.NormalizedResult result = uriNormalizer.normalize(metricObject.getApplicationName(),
                                                                         NetworkUtils.formatUri(uri));
         if (result.getUri() == null) {
@@ -72,7 +72,7 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
 
         metricObject.set("targetHost", uri.getHost());
         metricObject.set("targetHostPort", targetHostPort);
-        metricObject.set("uri", result.getUri());
+        metricObject.set("path", result.getUri());
 
         return true;
     }

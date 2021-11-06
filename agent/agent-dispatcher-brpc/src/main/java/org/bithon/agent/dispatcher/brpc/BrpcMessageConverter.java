@@ -20,7 +20,6 @@ import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMetricSet;
 import org.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
 import org.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
@@ -42,7 +41,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchema;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchemaV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSet;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
-import org.bithon.agent.rpc.brpc.metrics.BrpcHttpOutgoingMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
@@ -61,24 +59,6 @@ import java.util.Map;
  * @date 2021/6/27 20:13
  */
 public class BrpcMessageConverter implements IMessageConverter {
-    @Override
-    public Object from(long timestamp, int interval, List<String> dimensions, HttpOutgoingMetrics metric) {
-        return BrpcHttpOutgoingMetricMessage.newBuilder()
-                                            .setTimestamp(timestamp)
-                                            .setInterval(interval)
-                                            .setUri(dimensions.get(0))
-                                            .setMethod(dimensions.get(1))
-                                            .setMaxResponseTime(metric.getResponseTime().getMax().get())
-                                            .setMinResponseTime(metric.getResponseTime().getMin().get())
-                                            .setResponseTime(metric.getResponseTime().getSum().get())
-                                            .setCount4Xx(metric.getCount4xx())
-                                            .setCount5Xx(metric.getCount5xx())
-                                            .setExceptionCount(metric.getExceptionCount())
-                                            .setRequestCount(metric.getRequestCount())
-                                            .setRequestBytes(metric.getRequestBytes())
-                                            .setResponseBytes(metric.getResponseBytes())
-                                            .build();
-    }
 
     @Override
     public Object from(long timestamp, int interval, JdbcPoolMetricSet metric) {

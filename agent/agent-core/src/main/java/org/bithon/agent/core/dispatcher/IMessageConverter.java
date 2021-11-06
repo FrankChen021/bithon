@@ -19,7 +19,6 @@ package org.bithon.agent.core.dispatcher;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMetricSet;
 import org.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetrics;
 import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
 import org.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
@@ -42,8 +41,6 @@ import java.util.Map;
  * @date 2021/1/4 10:46 下午
  */
 public interface IMessageConverter {
-
-    Object from(long timestamp, int interval, List<String> dimensions, HttpOutgoingMetrics metric);
 
     Object from(long timestamp, int interval, JdbcPoolMetricSet metric);
 

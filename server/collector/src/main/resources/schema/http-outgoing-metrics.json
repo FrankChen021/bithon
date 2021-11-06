@@ -28,8 +28,8 @@
       "visible": false
     },
     {
-      "name": "uri",
-      "displayText": "URL",
+      "name": "path",
+      "displayText": "Path",
       "required": true
     },
     {
@@ -37,6 +37,12 @@
       "displayText": "Request Method",
       "required": true,
       "visible": false
+    },
+    {
+      "name": "statusCode",
+      "displayText": "Status Code",
+      "required": true,
+      "visible": true
     }
   ],
   "metricsSpec": [

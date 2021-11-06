@@ -16,65 +16,59 @@
 
 package org.bithon.agent.core.metric.domain.http;
 
-import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
+import org.bithon.agent.core.metric.collector.IntervalMetricCollector2;
 
-import java.util.List;
+import java.util.Arrays;
 
 /**
  * http client
  *
  * @author frankchen
  */
-public class HttpOutgoingMetricsCollector extends IntervalMetricCollector<HttpOutgoingMetrics> {
+public class HttpOutgoingMetricsCollector extends IntervalMetricCollector2<HttpOutgoingMetrics> {
 
-    private static final int HTTP_CODE_400 = 400;
-    private static final int HTTP_CODE_500 = 500;
+    public HttpOutgoingMetricsCollector() {
+        super("http-outgoing-metrics",
+              Arrays.asList("path", "method", "statusCode"),
+              HttpOutgoingMetrics.class);
+    }
 
     @Override
     protected HttpOutgoingMetrics newMetrics() {
         return new HttpOutgoingMetrics();
     }
 
-    @Override
-    protected Object toMessage(IMessageConverter messageConverter,
-                               int interval,
-                               long timestamp,
-                               List<String> dimensions,
-                               HttpOutgoingMetrics metric) {
-        return messageConverter.from(timestamp, interval, dimensions, metric);
-    }
-
-    public void addExceptionRequest(String requestUri,
-                                    String requestMethod,
+    public void addExceptionRequest(String uri,
+                                    String method,
                                     long responseTime) {
-        String uri = requestUri.split("\\?")[0];
-        getOrCreateMetric(uri, requestMethod).addException(responseTime, 1);
+        String path = uri.split("\\?")[0];
+        getOrCreateMetric(path, method, "-").addException(responseTime, 1);
     }
 
-    public void addRequest(String requestUri,
-                           String requestMethod,
+    public void addRequest(String uri,
+                           String method,
                            int statusCode,
                            long responseTime) {
-        String uri = requestUri.split("\\?")[0];
+        String path = uri.split("\\?")[0];
 
         int count4xx = 0, count5xx = 0;
-        if (statusCode >= HTTP_CODE_400) {
-            if (statusCode >= HTTP_CODE_500) {
+        if (statusCode >= 400) {
+            if (statusCode >= 500) {
                 count5xx++;
             } else {
                 count4xx++;
             }
         }
 
-        getOrCreateMetric(uri, requestMethod).add(responseTime, count4xx, count5xx);
+        getOrCreateMetric(path, method, String.valueOf(statusCode))
+            .add(responseTime, count4xx, count5xx);
     }
 
-    public void addBytes(String requestUri,
-                         String requestMethod,
+    public void addBytes(String uri,
+                         String method,
                          long requestBytes,
                          long responseBytes) {
-        String uri = requestUri.split("\\?")[0];
-        getOrCreateMetric(uri, requestMethod).addByteSize(requestBytes, responseBytes);
+        String path = uri.split("\\?")[0];
+        getOrCreateMetric(path, method, "-").addByteSize(requestBytes, responseBytes);
     }
 }
