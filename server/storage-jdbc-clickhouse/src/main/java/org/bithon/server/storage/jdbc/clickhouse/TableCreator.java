@@ -135,7 +135,7 @@ public class TableCreator {
         StringBuilder sb = new StringBuilder(128);
         for (Field<?> f : table.fields()) {
             if (f.getDataType().equals(SQLDataType.TIMESTAMP)) {
-                sb.append(String.format("`%s` %s ,\n",
+                sb.append(String.format("`%s` %s(3,0) ,\n",
                                         f.getName(),
                                         f.getDataType().getTypeName()));
                 continue;

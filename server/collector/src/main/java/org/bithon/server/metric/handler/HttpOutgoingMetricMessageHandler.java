@@ -24,8 +24,8 @@ import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.input.MetricSet;
 import org.bithon.server.metric.storage.IMetricStorage;
-import org.jooq.tools.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -165,7 +165,7 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
     }
 
     private String toHostPort(String targetHost, int targetPort) {
-        if (StringUtils.isBlank(targetHost)) {
+        if (StringUtils.isEmpty(targetHost)) {
             return null;
         }
 

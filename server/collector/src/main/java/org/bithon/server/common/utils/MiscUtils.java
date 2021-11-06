@@ -18,7 +18,7 @@ package org.bithon.server.common.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.jooq.tools.StringUtils;
+import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -38,7 +38,7 @@ public class MiscUtils {
     }
 
     public static ConnectionString parseConnectionString(String connectionString) {
-        if (StringUtils.isBlank(connectionString)) {
+        if (StringUtils.isEmpty(connectionString)) {
             throw new RuntimeException(String.format("Connection String of SqlMetricMessage is blank: [%s]",
                                                      connectionString));
         }

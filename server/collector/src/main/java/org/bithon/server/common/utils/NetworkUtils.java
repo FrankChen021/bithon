@@ -16,7 +16,7 @@
 
 package org.bithon.server.common.utils;
 
-import org.jooq.tools.StringUtils;
+import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.util.regex.Pattern;
@@ -46,6 +46,6 @@ public class NetworkUtils {
             .split(";")[0];
 
         formatUri = formatUri.endsWith(SINGLE_SLASH) ? formatUri.substring(0, formatUri.length() - 1) : formatUri;
-        return StringUtils.isBlank(formatUri) ? SINGLE_SLASH : formatUri;
+        return StringUtils.isEmpty(formatUri) ? SINGLE_SLASH : formatUri;
     }
 }

@@ -83,11 +83,6 @@
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>component-db</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bithon</groupId>
         <artifactId>bithon-server-collector</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -189,7 +184,8 @@
               <header>licenses/template.txt</header>
               <excludes>
                 <exclude>**/README</exclude>
-                <exclude>src/main/java/org/bithon/component/db/jooq/**</exclude>
+                <exclude>**/jOOQ/**</exclude>
+                <exclude>**/jooq/**</exclude>
                 <exclude>src/main/java/org/bithon/agent/rpc/thrift/**</exclude>
                 <exclude>src/test/java/org/bithon/component/brpc/example/protobuf</exclude>
                 <exclude>src/main/resources/static/**</exclude>
@@ -205,6 +201,7 @@
                 <exclude>**/*.css</exclude>
                 <exclude>**/*.txt</exclude>
                 <exclude>**/*.proto</exclude>
+                <exclude>**/*.g4</exclude>
               </excludes>
             </licenseSet>
           </licenseSets>

@@ -56,7 +56,7 @@ public class MetricTable extends TableImpl {
         super(DSL.name("bithon_" + schema.getName().replace('-', '_')));
 
         //noinspection unchecked
-        timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP.precision(3));
+        timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP);
 
         for (IDimensionSpec dimension : schema.getDimensionsSpec()) {
             dimensions.add(createField(dimension.getName(), dimension.getValueType()));
