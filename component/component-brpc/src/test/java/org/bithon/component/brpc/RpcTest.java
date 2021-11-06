@@ -107,8 +107,8 @@ public class RpcTest {
         try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
-            Assert.assertEquals("/1", exampleService.send(WebRequestMetrics.newBuilder().setUri("/1").build()));
-            Assert.assertEquals("/2", exampleService.send(WebRequestMetrics.newBuilder().setUri("/2").build()));
+            Assert.assertEquals("/1", exampleService.sendWebMetrics(WebRequestMetrics.newBuilder().setUri("/1").build()));
+            Assert.assertEquals("/2", exampleService.sendWebMetrics(WebRequestMetrics.newBuilder().setUri("/2").build()));
         }
     }
 
@@ -117,17 +117,17 @@ public class RpcTest {
         try (ClientChannel ch = new ClientChannel("127.0.0.1", 8070)) {
             IExampleService exampleService = ch.getRemoteService(IExampleService.class);
 
-            Assert.assertEquals("/1-/2", exampleService.send(
+            Assert.assertEquals("/1-/2", exampleService.sendWebMetrics1(
                 WebRequestMetrics.newBuilder().setUri("/1").build(),
                 WebRequestMetrics.newBuilder().setUri("/2").build()
             ));
 
-            Assert.assertEquals("/2-/3", exampleService.send(
+            Assert.assertEquals("/2-/3", exampleService.sendWebMetrics2(
                 "/2",
                 WebRequestMetrics.newBuilder().setUri("/3").build()
             ));
 
-            Assert.assertEquals("/4-/5", exampleService.send(
+            Assert.assertEquals("/4-/5", exampleService.sendWebMetrics3(
                 WebRequestMetrics.newBuilder().setUri("/4").build(),
                 "/5"
             ));

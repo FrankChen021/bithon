@@ -16,14 +16,13 @@
 
 package org.bithon.component.brpc.invocation;
 
-import org.bithon.component.brpc.ServiceConfig;
+import org.bithon.component.brpc.ServiceConfiguration;
 import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
 import org.bithon.component.brpc.exception.TimeoutException;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
-import org.bithon.component.brpc.message.serializer.Serializer;
 import shaded.io.netty.channel.Channel;
 import shaded.io.netty.util.internal.StringUtil;
 
@@ -45,7 +44,13 @@ public class ClientInvocationManager {
 
     private static final ClientInvocationManager INSTANCE = new ClientInvocationManager();
     private final AtomicLong transactionId = new AtomicLong(21515);
+
+    /**
+     * key is transaction id of the request
+     */
     private final Map<Long, InflightRequest> inflightRequests = new ConcurrentHashMap<>();
+
+    private final Map<Method, ServiceConfiguration> configurationMap = new ConcurrentHashMap<>();
 
     public static ClientInvocationManager getInstance() {
         return INSTANCE;
@@ -83,19 +88,15 @@ public class ClientInvocationManager {
                                           method.getName());
         }
 
-        // TODO: cache method.toString()
-        ServiceConfig serviceConfig = method.getAnnotation(ServiceConfig.class);
-        boolean isOneway = serviceConfig != null && serviceConfig.isOneway();
-        Serializer serializer = serviceConfig == null ? Serializer.BINARY : serviceConfig.serializer();
-        String name = serviceConfig != null && !StringUtil.isNullOrEmpty(serviceConfig.name()) ? serviceConfig.name() : method.toString();
+        ServiceConfiguration serviceConfiguration = configurationMap.computeIfAbsent(method, ServiceConfiguration::getServiceConfiguration);
+
         ServiceRequestMessageOut serviceRequest = ServiceRequestMessageOut.builder()
-                                                                          .serviceName(method.getDeclaringClass()
-                                                                                             .getSimpleName())
-                                                                          .methodName(name)
+                                                                          .serviceName(serviceConfiguration.getServiceName())
+                                                                          .methodName(serviceConfiguration.getMethodName())
                                                                           .transactionId(transactionId.incrementAndGet())
                                                                           .args(args)
-                                                                          .serializer(serializer)
-                                                                          .isOneway(isOneway)
+                                                                          .serializer(serviceConfiguration.getSerializer())
+                                                                          .isOneway(serviceConfiguration.isOneway())
                                                                           .applicationName(appName)
                                                                           .build();
 
