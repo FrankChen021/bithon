@@ -29,11 +29,7 @@ import java.util.List;
  */
 public interface IMetricWriter extends AutoCloseable {
 
-    void write(InputRow inputRow) throws IOException;
-
     void write(List<InputRow> inputRowList) throws IOException;
 
     void write(Collection<MetricSet> metricSetList) throws IOException;
-
-    void deleteBefore(long timestamp);
 }

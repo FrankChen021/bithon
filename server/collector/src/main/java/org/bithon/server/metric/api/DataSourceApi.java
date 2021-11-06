@@ -17,13 +17,14 @@
 package org.bithon.server.metric.api;
 
 import org.bithon.server.common.pojo.DisplayableText;
-import org.bithon.server.common.utils.datetime.Period;
 import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
+import org.bithon.server.metric.storage.GroupByQuery;
 import org.bithon.server.metric.storage.IMetricStorage;
-import org.springframework.util.CollectionUtils;
+import org.bithon.server.metric.storage.Interval;
+import org.bithon.server.metric.storage.MetricStorageConfig;
+import org.bithon.server.metric.storage.TimeseriesQuery;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,7 +33,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,12 +44,14 @@ import java.util.stream.Collectors;
 @CrossOrigin
 @RestController
 public class DataSourceApi {
+    private final MetricStorageConfig storageConfig;
     private final IMetricStorage metricStorage;
     private final DataSourceSchemaManager schemaManager;
 
-    public DataSourceApi(IMetaStorage metaStorage,
+    public DataSourceApi(MetricStorageConfig storageConfig,
                          IMetricStorage metricStorage,
                          DataSourceSchemaManager schemaManager) {
+        this.storageConfig = storageConfig;
         this.metricStorage = metricStorage;
         this.schemaManager = schemaManager;
     }
@@ -60,45 +62,28 @@ public class DataSourceApi {
 
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
-        int interval = getInterval(start, end);
-        return this.metricStorage.createMetricReader(schema).timeseries(
-            start,
-            end,
-            schema,
-            request.getDimensions().values(),
-            request.getMetrics(),
-            interval
-        );
+
+        return this.metricStorage.createMetricReader(schema)
+                                 .timeseries(new TimeseriesQuery(schema,
+                                                                 request.getMetrics(),
+                                                                 request.getDimensions().values(),
+                                                                 Interval.of(start, end),
+                                                                 request.getGroups()));
     }
 
-    /**
-     * TODO: interval should be consistent with retention rules
-     */
-    private int getInterval(TimeSpan start, TimeSpan end) {
-        long length = end.diff(start) / 1000;
-        if (length >= 7 * 24 * 3600) {
-            return 15 * 60;
-        }
-        if (length >= 3 * 24 * 3600) {
-            return 10 * 60;
-        }
-        if (length >= 24 * 3600) {
-            return 5 * 60;
-        }
-        if (length >= 12 * 3600) {
-            return 60;
-        }
-        if (length >= 6 * 3600) {
-            return 30;
-        }
-        return 10;
-    }
-
-    @PostMapping("/api/datasource/sql")
-    public List<Map<String, Object>> getMetricsBySql(@Valid @RequestBody GetMetricsBySqlRequest request) {
+    @PostMapping("/api/datasource/groupBy")
+    public List<Map<String, Object>> groupBy(@Valid @RequestBody GroupByQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        return this.metricStorage.createMetricReader(schema).executeSql(request.getSql());
+        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
+
+        return this.metricStorage.createMetricReader(schema).groupBy(new GroupByQuery(schema,
+                                                                                      request.getMetrics(),
+                                                                                      request.getAggregators(),
+                                                                                      request.getFilters().values(),
+                                                                                      Interval.of(start, end),
+                                                                                      request.getGroupBy()));
     }
 
     @PostMapping("/api/datasource/schemas")
@@ -134,18 +119,7 @@ public class DataSourceApi {
     }
 
     @PostMapping("api/datasource/ttl/update")
-    public Map<String, Long> updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request) {
-        Map<String, Long> result = new HashMap<>();
-        schemaManager.getDataSources().forEach((name, datasource) -> {
-            Period ttl = request.getTtl();
-            if (!CollectionUtils.isEmpty(request.getTtls())) {
-                ttl = request.getTtls().getOrDefault(name, null);
-            }
-            if (ttl != null) {
-                datasource.setTtl(ttl);
-                result.put(name, ttl.getMilliseconds());
-            }
-        });
-        return result;
+    public void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request) {
+        this.storageConfig.setTtl(request.getTtl());
     }
 }

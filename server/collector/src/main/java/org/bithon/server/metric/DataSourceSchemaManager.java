@@ -16,7 +16,6 @@
 
 package org.bithon.server.metric;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.SmartLifecycle;
@@ -38,6 +37,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DataSourceSchemaManager implements SmartLifecycle {
     private final List<IDataSourceSchemaListener> listeners = new ArrayList<>();
     private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
+
+    private final ObjectMapper objectMapper;
+
+    public DataSourceSchemaManager(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public boolean addDataSourceSchema(DataSourceSchema schema) {
         if (schemas.putIfAbsent(schema.getName(), schema) == null) {
@@ -73,9 +78,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
             try (InputStream is = this.getClass().getClassLoader()
                                       .getResourceAsStream(String.format("schema/%s.json", name))) {
                 if (is != null) {
-                    ObjectMapper om = new ObjectMapper();
-                    om.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
-                    DataSourceSchema dataSourceSchema = om.readValue(is, DataSourceSchema.class);
+                    DataSourceSchema dataSourceSchema = objectMapper.readValue(is, DataSourceSchema.class);
                     addDataSourceSchema(dataSourceSchema);
                     return dataSourceSchema;
                 }

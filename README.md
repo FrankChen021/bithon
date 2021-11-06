@@ -28,11 +28,24 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home
 
 ## 3. build & install dependencies
 
-Enter `shaded` directory, and execute the following command to build and install dependencies on your local.
+There some dependencies that are needed to be built out of the main project for the sake of faster build speed of the main project.
 
-```bash
-mvn clean install 
-```
+1. Enter `shaded` directory, and execute the following command to build and install dependencies on your local.
+
+    ```bash
+    cd shaded
+    mvn clean install 
+    ```
+   
+2. Build jOOQ. Execute following commands at the root module
+
+    ```bash
+    git submodule sync
+    git submodule update --init
+    cd server/jOOQ
+    mvn clean install 
+    ```
+
 
 ## 4. build project
 

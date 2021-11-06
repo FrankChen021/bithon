@@ -19,7 +19,6 @@ package org.bithon.server.metric.handler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.meta.MetadataType;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
@@ -134,8 +133,7 @@ public abstract class AbstractMetricMessageHandler {
         String appName = metric.getApplicationName();
         String instanceName = metric.getInstanceName();
         try {
-            long appId = metaStorage.getOrCreateMetadataId(appName, MetadataType.APPLICATION, 0L);
-            metaStorage.getOrCreateMetadataId(instanceName, MetadataType.APP_INSTANCE, appId);
+            metaStorage.saveApplicationInstance(appName, metric.getApplicationType(), instanceName);
         } catch (Exception e) {
             log.error("Failed to save app info[appName={}, instance={}] due to: {}",
                       appName,

@@ -214,7 +214,6 @@ public class BrpcMetricCollector implements IMetricCollector {
                                                                   return null;
                                                               }).collect(Collectors.toList()),
                                                        null,
-                                                       null,
                                                        null);
 
         Iterator<BrpcGenericMetricSet> iterator = message.getMetricSetList().iterator();

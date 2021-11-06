@@ -8,9 +8,9 @@ class AppSelector {
         new MetadataClient(apiHost).getApplications((appList)=>{
             $.each(appList, (index, app) => {
                 if ( appName === app.name) {
-                    $(this._control).append(`<option selected="true">${app.name}</option>`);
+                    $(this._control).append(`<option selected="true">${app.applicationName}</option>`);
                 } else {
-                    $(this._control).append(`<option>${app.name}</option>`);
+                    $(this._control).append(`<option>${app.applicationName}</option>`);
                 }
             });
         }, ()=>{});

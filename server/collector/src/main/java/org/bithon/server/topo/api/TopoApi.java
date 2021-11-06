@@ -16,15 +16,17 @@
 
 package org.bithon.server.topo.api;
 
-import org.bithon.component.db.dao.EndPointType;
 import org.bithon.server.common.matcher.EqualMatcher;
+import org.bithon.server.common.utils.EndPointType;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.input.InputRow;
 import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.GroupByQuery;
 import org.bithon.server.metric.storage.IMetricReader;
 import org.bithon.server.metric.storage.IMetricStorage;
+import org.bithon.server.metric.storage.Interval;
 import org.bithon.server.topo.service.EndpointBo;
 import org.bithon.server.topo.service.Link;
 import org.bithon.server.topo.service.Topo;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -61,18 +64,17 @@ public class TopoApi {
         // and notice that the 'end' parameter is inclusive, so the round down has no impact on the query range
         TimeSpan start = new TimeSpan(TimeSpan.fromISO8601(request.getStartTimeISO8601()).getMilliseconds() / 60_000 * 60_000);
         TimeSpan end = new TimeSpan((TimeSpan.fromISO8601(request.getEndTimeISO8601()).getMilliseconds()) / 60_000 * 60_000);
-        List<Map<String, Object>> callees = metricReader.groupBy(start,
-                                                                 end,
-                                                                 topoSchema,
-                                                                 Arrays.asList(new DimensionCondition("srcEndpoint",
-                                                                                                      new EqualMatcher(request.getApplication())),
-                                                                               new DimensionCondition("srcEndpointType",
-                                                                                                      new EqualMatcher(EndPointType.APPLICATION.name()))),
-                                                                 Arrays.asList("callCount",
-                                                                               "avgResponseTime",
-                                                                               "maxResponseTime",
-                                                                               "minResponseTime"),
-                                                                 Arrays.asList("dstEndpoint", "dstEndpointType"));
+
+        GroupByQuery calleeQuery = new GroupByQuery(topoSchema,
+                                                    Arrays.asList("callCount", "avgResponseTime", "maxResponseTime", "minResponseTime"),
+                                                    Collections.emptyList(),
+                                                    Arrays.asList(new DimensionCondition("srcEndpoint",
+                                                                                         new EqualMatcher(request.getApplication())),
+                                                                  new DimensionCondition("srcEndpointType",
+                                                                                         new EqualMatcher(EndPointType.APPLICATION.name()))),
+                                                    Interval.of(start, end),
+                                                    Arrays.asList("dstEndpoint", "dstEndpointType"));
+        List<Map<String, Object>> callees = metricReader.groupBy(calleeQuery);
 
         int x = 300;
         int y = 300;
@@ -103,21 +105,16 @@ public class TopoApi {
             y += nodeHeight;
         }
 
-        List<Map<String, Object>> callers = metricReader.groupBy(start,
-                                                                 end,
-                                                                 topoSchema,
-                                                                 Arrays.asList(new DimensionCondition("dstEndpoint",
-                                                                                                      new EqualMatcher(
-                                                                                                          request.getApplication())),
-                                                                               new DimensionCondition("dstEndpointType",
-                                                                                                      new EqualMatcher(
-                                                                                                          EndPointType.APPLICATION
-                                                                                                              .name()))),
-                                                                 Arrays.asList("callCount",
-                                                                               "avgResponseTime",
-                                                                               "maxResponseTime",
-                                                                               "minResponseTime"),
-                                                                 Arrays.asList("srcEndpoint", "srcEndpointType"));
+        GroupByQuery callerQuery = new GroupByQuery(topoSchema,
+                                                    Arrays.asList("callCount", "avgResponseTime", "maxResponseTime", "minResponseTime"),
+                                                    Collections.emptyList(),
+                                                    Arrays.asList(new DimensionCondition("dstEndpoint",
+                                                                                         new EqualMatcher(request.getApplication())),
+                                                                  new DimensionCondition("dstEndpointType",
+                                                                                         new EqualMatcher(EndPointType.APPLICATION.name()))),
+                                                    Interval.of(start, end),
+                                                    Arrays.asList("srcEndpoint", "srcEndpointType"));
+        List<Map<String, Object>> callers = metricReader.groupBy(callerQuery);
 
         y = 300;
         for (Map<String, Object> caller : callers) {

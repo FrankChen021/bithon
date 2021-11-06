@@ -69,13 +69,6 @@
       <version>1.0-SNAPSHOT</version>
     </dependency>
 
-    <!-- Bithon Storage -->
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>component-db</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-
     <!-- Caffeine Cache -->
     <dependency>
       <groupId>com.github.ben-manes.caffeine</groupId>
@@ -102,12 +95,6 @@
       <artifactId>annotations</artifactId>
       <version>RELEASE</version>
       <scope>compile</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>1.4.200</version>
     </dependency>
 
     <dependency>

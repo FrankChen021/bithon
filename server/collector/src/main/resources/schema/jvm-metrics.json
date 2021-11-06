@@ -1,7 +1,6 @@
 {
   "displayText": "JVM",
   "name": "jvm-metrics",
-  "ttl": "PT48H",
   "timestampSpec": {
     "column": "timestamp",
     "format": "auto"
@@ -38,7 +37,7 @@
       "unit": "%"
     },
     {
-      "type": "longLast",
+      "type": "longMin",
       "name": "instanceStartTime",
       "displayText": "Start Time",
       "unit": "Milli Second"

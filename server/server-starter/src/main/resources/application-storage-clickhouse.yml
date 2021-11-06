@@ -1,0 +1,29 @@
+bithon:
+  storage:
+    tracing:
+      type: clickhouse
+      ttl: P7D
+      cleanPeriod: PT30M
+    metric:
+      type: clickhouse
+      ttl: P7D
+      cleanPeriod: PT30M
+    event:
+      type: clickhouse
+      ttl: P7D
+      cleanPeriod: PT30M
+    meta:
+      type: clickhouse
+    setting:
+      type: clickhouse
+    provider:
+      type: clickhouse
+      parameters:
+        # data source parameters
+        url: jdbc:clickhouse://localhost:8123/bithon
+        driverClassName: ru.yandex.clickhouse.ClickHouseDriver
+        username: default
+        password:
+        # cluster parameters
+        cluster: test_cluster_two_shards_localhost
+        # engine: MergeTree

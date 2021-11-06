@@ -16,7 +16,8 @@
 
 package org.bithon.server.setting;
 
-import org.bithon.component.db.dao.SettingDAO;
+import org.bithon.server.setting.storage.ISettingReader;
+import org.bithon.server.setting.storage.ISettingStorage;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -28,13 +29,13 @@ import java.util.Map;
 @Service
 public class AgentSettingService {
 
-    private final SettingDAO dao;
+    private final ISettingReader settingReader;
 
-    public AgentSettingService(SettingDAO dao) {
-        this.dao = dao;
+    public AgentSettingService(ISettingStorage storage) {
+        this.settingReader = storage.createReader();
     }
 
     public Map<String, String> getSettings(String appName, String env, long since) {
-        return dao.getSettings(appName + "-" + env, since);
+        return settingReader.getSettings(appName + "-" + env, since);
     }
 }

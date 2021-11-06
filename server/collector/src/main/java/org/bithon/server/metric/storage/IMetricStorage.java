@@ -33,4 +33,10 @@ public interface IMetricStorage {
     IMetricWriter createMetricWriter(DataSourceSchema schema) throws IOException;
 
     IMetricReader createMetricReader(DataSourceSchema schema);
+
+    IMetricCleaner createMetricCleaner(DataSourceSchema schema);
+
+    default void initialize() {
+
+    }
 }

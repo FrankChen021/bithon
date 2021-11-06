@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -58,12 +59,12 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Event
         if (body.getType().equals("exception")) {
             // generate a metric
 
-            InputRow row = new InputRow(new HashMap<String, Object>(body.getArgs()));
+            InputRow row = new InputRow(new HashMap<>(body.getArgs()));
             row.updateColumn("appName", body.getAppName());
             row.updateColumn("instanceName", body.getInstanceName());
             row.updateColumn("timestamp", body.getTimestamp());
             row.updateColumn("exceptionCount", 1);
-            exceptionMetricWriter.write(row);
+            exceptionMetricWriter.write(Collections.singletonList(row));
         }
         eventWriter.write(body);
     }
