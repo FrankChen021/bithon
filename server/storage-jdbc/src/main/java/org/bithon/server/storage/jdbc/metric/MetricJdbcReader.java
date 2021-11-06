@@ -70,6 +70,11 @@ public class MetricJdbcReader implements IMetricReader {
         public boolean groupByUseRawExpression() {
             return false;
         }
+
+        @Override
+        public boolean allowSameAggregatorExpression() {
+            return true;
+        }
     }
 
     static class H2SqlExpressionFormatter implements ISqlExpressionFormatter {
@@ -77,6 +82,11 @@ public class MetricJdbcReader implements IMetricReader {
 
         @Override
         public boolean groupByUseRawExpression() {
+            return true;
+        }
+
+        @Override
+        public boolean allowSameAggregatorExpression() {
             return true;
         }
 
@@ -141,16 +151,28 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> groupBy(GroupByQuery query) {
         String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
 
-        MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(sqlTableName,
+        MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(this.sqlFormatter,
+                                                                                      sqlTableName,
                                                                                       "OUTER",
                                                                                       query.getDataSource(),
                                                                                       ImmutableMap.of("interval",
                                                                                                       query.getInterval()
                                                                                                            .getGranularity()));
+
+        // put non-post aggregator metrics before the post
         String metricList = query.getMetrics()
                                  .stream()
-                                 .map(m -> query.getDataSource().getMetricSpecByName(m).accept(metricFieldsBuilder))
-                                 .collect(Collectors.joining(", "));
+                                 .map(m -> query.getDataSource().getMetricSpecByName(m))
+                                 .filter(metricSpec -> !(metricSpec instanceof PostAggregatorMetricSpec))
+                                 .map(metricSpec -> ", " + metricSpec.accept(metricFieldsBuilder))
+                                 .collect(Collectors.joining());
+
+        String postAggregatorMetrics = query.getMetrics()
+                                            .stream()
+                                            .map(m -> query.getDataSource().getMetricSpecByName(m))
+                                            .filter(metricSpec -> (metricSpec instanceof PostAggregatorMetricSpec))
+                                            .map(metricSpec -> ", " + metricSpec.accept(metricFieldsBuilder))
+                                            .collect(Collectors.joining());
 
         String aggregatorList = query.getAggregators()
                                      .stream()
@@ -164,9 +186,10 @@ public class MetricJdbcReader implements IMetricReader {
         String groupByFields = query.getGroupBys().stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
 
         String sql = String.format(
-            "SELECT %s, %s %s FROM \"%s\" OUTER WHERE %s \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s",
+            "SELECT %s %s %s %s FROM \"%s\" OUTER WHERE %s \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s",
             groupByFields,
             metricList,
+            postAggregatorMetrics,
             aggregatorList,
             sqlTableName,
             filter,
@@ -295,19 +318,23 @@ public class MetricJdbcReader implements IMetricReader {
          * used to keep which metrics current SQL are using
          */
         private final Set<String> metrics;
+        private final ISqlExpressionFormatter sqlExpressionFormatter;
 
-        public MetricFieldsClauseBuilder(String sqlTableName,
+        public MetricFieldsClauseBuilder(ISqlExpressionFormatter sqlExpressionFormatter,
+                                         String sqlTableName,
                                          String tableAlias,
                                          DataSourceSchema dataSource,
                                          Map<String, Object> variables) {
-            this(sqlTableName, tableAlias, dataSource, variables, true);
+            this(sqlExpressionFormatter, sqlTableName, tableAlias, dataSource, variables, true);
         }
 
-        public MetricFieldsClauseBuilder(String sqlTableName,
+        public MetricFieldsClauseBuilder(ISqlExpressionFormatter sqlExpressionFormatter,
+                                         String sqlTableName,
                                          String tableAlias,
                                          DataSourceSchema dataSource,
                                          Map<String, Object> variables,
                                          boolean addAlias) {
+            this.sqlExpressionFormatter = sqlExpressionFormatter;
             this.sqlTableName = sqlTableName;
             this.tableAlias = tableAlias;
             this.dataSource = dataSource;
@@ -346,13 +373,14 @@ public class MetricJdbcReader implements IMetricReader {
             metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
                 @Override
                 public void visitMetric(IMetricSpec metricSpec) {
-                    if (metrics.contains(metricSpec.getName())) {
+                    if (!sqlExpressionFormatter.allowSameAggregatorExpression() && metrics.contains(metricSpec.getName())) {
                         // this metricSpec has been in the SQL,
                         // don't need to construct the aggregation expression for this post aggregator
                         // because some DBMS does not support duplicated aggregation expressions for one metric
                         sb.append(metricSpec.getName());
                     } else {
-                        sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(null,
+                        sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(sqlExpressionFormatter,
+                                                                                  null,
                                                                                   null,
                                                                                   dataSource,
                                                                                   variables,
@@ -522,7 +550,7 @@ public class MetricJdbcReader implements IMetricReader {
         private String groupBy = "";
 
         static class MetricClauseBuilder extends MetricSpecVisitor {
-            private final ISqlExpressionFormatter sqlProvider;
+            private final ISqlExpressionFormatter sqlFormatter;
             private final List<String> postExpressions;
             private final Set<String> rawExpressions;
             private final boolean addAlias;
@@ -530,12 +558,12 @@ public class MetricJdbcReader implements IMetricReader {
             private final Set<String> metrics;
             private boolean hasLast;
 
-            public MetricClauseBuilder(ISqlExpressionFormatter sqlProvider,
+            public MetricClauseBuilder(ISqlExpressionFormatter sqlFormatter,
                                        Map<String, Object> variables,
                                        boolean addAlias,
                                        List<String> postExpressions,
                                        Set<String> rawExpressions) {
-                this.sqlProvider = sqlProvider;
+                this.sqlFormatter = sqlFormatter;
                 this.variables = variables;
                 this.addAlias = addAlias;
                 this.postExpressions = postExpressions;
@@ -552,7 +580,7 @@ public class MetricJdbcReader implements IMetricReader {
                         metricSpec.accept(new MetricSpecVisitor() {
                             @Override
                             protected void visit(IMetricSpec metricSpec, String aggregator) {
-                                if (metrics.contains(metricSpec.getName())) {
+                                if (!sqlFormatter.allowSameAggregatorExpression() && metrics.contains(metricSpec.getName())) {
                                     sb.append(String.format("\"%s\"", metricSpec.getName()));
                                 } else {
                                     sb.append(String.format("%s(\"%s\")", aggregator, metricSpec.getName()));
@@ -634,7 +662,7 @@ public class MetricJdbcReader implements IMetricReader {
                 int interval = ((Number) this.variables.get("interval")).intValue();
                 rawExpressions.add(String.format("FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) \"%s\"",
                                                  metricName,
-                                                 sqlProvider.timeFloor("timestamp", interval),
+                                                 sqlFormatter.timeFloor("timestamp", interval),
                                                  metricName));
             }
         }

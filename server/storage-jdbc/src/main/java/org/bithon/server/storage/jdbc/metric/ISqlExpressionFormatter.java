@@ -50,6 +50,36 @@ public interface ISqlExpressionFormatter {
      */
     boolean groupByUseRawExpression();
 
+    /**
+     * Different DBMSs have different requirements on the aggregators
+     *
+     * Take the following SQL as an example,
+     * <p>
+     * SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 "timestamp",
+     *        sum("requestBytes")/10 "requestByteRate",
+     *        sum("requestBytes") AS "requestBytes"
+     * FROM "bithon_redis_metrics" OUTER
+     * WHERE "appName"='bithon-server-dev'
+     *   AND "timestamp" >= '2021-10-28T16:26:42+08:00' AND "timestamp" <= '2021-10-28T16:31:42+08:00'
+     * GROUP BY UNIX_TIMESTAMP("timestamp")/ 10 * 10
+     * </p>
+     *
+     * We can see that expression sum("requestBytes") appears on the SQL twice.
+     *
+     * Some DBMS allows it but some DO NOT.
+     *
+     * So, for those DBMs that DO NOT the same aggregator expresion, we need to rewrite the SQL as
+     *
+     * <p>
+     * SELECT UNIX_TIMESTAMP("timestamp")/ 10 * 10 "timestamp",
+     *        sum("requestBytes") AS "requestBytes",
+     *        requestBytes/10 "requestByteRate",
+     * ...
+     * </p>
+     *
+     */
+    boolean allowSameAggregatorExpression();
+
     default String formatTimestamp(TimeSpan timeSpan) {
         return "'" + timeSpan.toISO8601() + "'";
     }
