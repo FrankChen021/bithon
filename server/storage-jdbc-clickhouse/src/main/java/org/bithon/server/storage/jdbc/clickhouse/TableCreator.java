@@ -75,7 +75,8 @@ public class TableCreator {
                                     tableName,
                                     StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
             sb.append(getFieldText(table));
-            sb.append(String.format(") ENGINE=%s PARTITION BY toYYYYMMDD(timestamp) ", engine));
+            sb.append(String.format(") ENGINE=%s PARTITION BY toYYYYMMDD(timestamp) ", engine.replaceAll("\\{database\\}", config.getDatabase())
+                                                                                             .replaceAll("\\{table\\}", tableName)));
 
             //
             // Order by Clause
