@@ -22,13 +22,13 @@
       "required": true
     },
     {
-      "name": "statusCode",
-      "displayText": "Status Code",
+      "name": "uri",
+      "displayText": "Request URI",
       "required": true
     },
     {
-      "name": "uri",
-      "displayText": "Request URI",
+      "name": "statusCode",
+      "displayText": "Status Code",
       "required": true
     }
   ],

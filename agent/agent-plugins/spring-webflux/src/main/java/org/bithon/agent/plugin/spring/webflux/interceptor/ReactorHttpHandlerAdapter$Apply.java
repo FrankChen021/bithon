@@ -21,7 +21,6 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetrics;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import reactor.core.publisher.Mono;
@@ -63,7 +62,6 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         return shouldExclude ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
     }
 
-
     @Override
     public void onMethodLeave(AopContext aopContext) {
         final HttpServerRequest request = (HttpServerRequest) aopContext.getArgs()[0];
@@ -71,18 +69,14 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
         Mono<Void> mono = aopContext.castReturningAs();
         if (aopContext.hasException() || mono.equals(Mono.empty())) {
-            update(request,
-                   response,
-                   aopContext.getCostTime());
+            update(request, response, aopContext.getCostTime());
             return;
         }
 
         final long start = System.nanoTime();
-        aopContext.setReturning(mono.doOnSuccessOrError((sucecss, error) -> {
+        aopContext.setReturning(mono.doOnSuccessOrError((success, error) -> {
             try {
-                update(request,
-                       response,
-                       System.nanoTime() - start);
+                update(request, response, System.nanoTime() - start);
             } catch (Exception e) {
                 LOG.error("failed to record http incoming metrics", e);
             }
@@ -98,7 +92,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
         int count5xx = httpStatus >= 500 ? 1 : 0;
 
-        HttpIncomingMetrics metric = this.metricCollector.getOrCreateMetric(srcApplication, uri, httpStatus);
-        metric.updateRequest(responseTime, count4xx, count5xx);
+        this.metricCollector.getOrCreateMetric(srcApplication, uri, httpStatus)
+                            .updateRequest(responseTime, count4xx, count5xx);
     }
 }

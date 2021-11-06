@@ -14,14 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.metric.model;
+package org.bithon.agent.plugin.spring.webflux.metric;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/3/25 7:28 下午
+ * @author Frank Chen
+ * @date 6/11/21 7:55 pm
  */
-public interface ISimpleMetric extends IMetric {
-    long update(long value);
-
-    long get();
+public class HttpIOMetrics {
+    public long requestBytes = -1;
+    public long responseBytes = -1;
 }

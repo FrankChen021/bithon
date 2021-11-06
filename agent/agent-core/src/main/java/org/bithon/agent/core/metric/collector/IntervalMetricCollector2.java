@@ -59,7 +59,7 @@ public abstract class IntervalMetricCollector2<T extends ICompositeMetric> imple
 
         @Override
         public long getMetricValue(int index) {
-            return metrics.getMetrics()[index];
+            return metrics.getMetrics()[index].get();
         }
     }
 

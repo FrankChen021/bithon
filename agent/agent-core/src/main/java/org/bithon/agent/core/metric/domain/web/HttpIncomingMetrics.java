@@ -17,6 +17,7 @@
 package org.bithon.agent.core.metric.domain.web;
 
 import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.ISimpleMetric;
 import org.bithon.agent.core.metric.model.Max;
 import org.bithon.agent.core.metric.model.Min;
 import org.bithon.agent.core.metric.model.Sum;
@@ -119,20 +120,20 @@ public class HttpIncomingMetrics implements ICompositeMetric {
     }
 
     @Override
-    public long[] getMetrics() {
-        return new long[]{
-            responseTime.get(),
-            maxResponseTime.get(),
-            minResponseTime.get(),
-            totalCount.get(),
-            okCount.get(),
-            errorCount.get(),
-            count4xx.get(),
-            count5xx.get(),
-            requestBytes.get(),
-            responseBytes.get(),
-            flowedCount.get(),
-            degradedCount.get()
-            };
+    public ISimpleMetric[] getMetrics() {
+        return new ISimpleMetric[]{
+            responseTime,
+            maxResponseTime,
+            minResponseTime,
+            totalCount,
+            okCount,
+            errorCount,
+            count4xx,
+            count5xx,
+            requestBytes,
+            responseBytes,
+            flowedCount,
+            degradedCount
+        };
     }
 }
