@@ -29,9 +29,9 @@ import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import org.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
+import org.bithon.agent.core.metric.model.schema.Schema;
+import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.sdk.metric.schema.Schema;
-import org.bithon.agent.sdk.metric.schema.Schema2;
 
 import java.util.Collection;
 import java.util.List;

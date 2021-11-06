@@ -14,14 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.core.metric.model.schema;
 
 /**
  * @author Frank Chen
  * @date 2021-10-02
  */
-public interface IMetricSpec {
-    String getType();
+public class LongSumMetricSpec extends AbstractMetricSpec {
+    public LongSumMetricSpec(String name) {
+        super(name);
+    }
 
-    String getName();
+    @Override
+    public String getType() {
+        return "longSum";
+    }
 }

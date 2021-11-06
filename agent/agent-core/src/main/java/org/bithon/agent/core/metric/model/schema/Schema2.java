@@ -14,19 +14,36 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.core.metric.model.schema;
+
+import java.util.List;
 
 /**
  * @author Frank Chen
  * @date 2021-10-02
  */
-public class LongMinMetricSpec extends AbstractMetricSpec {
-    public LongMinMetricSpec(String name) {
-        super(name);
+public class Schema2 {
+    private final String name;
+    private final List<String> dimensionsSpec;
+    private final List<String> metricsSpec;
+
+    public Schema2(String name,
+                   List<String> dimensionsSpec,
+                   List<String> metricsSpec) {
+        this.name = name;
+        this.dimensionsSpec = dimensionsSpec;
+        this.metricsSpec = metricsSpec;
     }
 
-    @Override
-    public String getType() {
-        return "longMin";
+    public String getName() {
+        return name;
+    }
+
+    public List<String> getDimensionsSpec() {
+        return dimensionsSpec;
+    }
+
+    public List<String> getMetricsSpec() {
+        return metricsSpec;
     }
 }

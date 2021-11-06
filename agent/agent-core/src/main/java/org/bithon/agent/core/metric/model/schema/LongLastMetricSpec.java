@@ -14,27 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.core.metric.model.schema;
 
 /**
  * @author Frank Chen
- * @date 2021-10-02
+ * @date 6/10/21 1:08 pm
  */
-public abstract class AbstractDimensionSpec implements IDimensionSpec {
-
-    private final String name;
-
-    public AbstractDimensionSpec(String name) {
-        this.name = name;
+public class LongLastMetricSpec extends AbstractMetricSpec {
+    public LongLastMetricSpec(String name) {
+        super(name);
     }
 
     @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("dimension(type=%s, name=%s)", getType(), name);
+    public String getType() {
+        return "longLast";
     }
 }

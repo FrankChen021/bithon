@@ -18,11 +18,10 @@ package org.bithon.agent.core.metric.collector;
 
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.model.ICompositeMetric;
-import org.bithon.agent.sdk.metric.IMetricValueProvider;
-import org.bithon.agent.sdk.metric.aggregator.LongMax;
-import org.bithon.agent.sdk.metric.aggregator.LongMin;
-import org.bithon.agent.sdk.metric.aggregator.LongSum;
-import org.bithon.agent.sdk.metric.schema.Schema2;
+import org.bithon.agent.core.metric.model.Max;
+import org.bithon.agent.core.metric.model.Min;
+import org.bithon.agent.core.metric.model.Sum;
+import org.bithon.agent.core.metric.model.schema.Schema2;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -39,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class IntervalMetricCollector2<T extends ICompositeMetric> implements IMetricCollector2 {
 
-    static class MetricSet implements IMetricSet {
+    class MetricSet implements IMetricSet {
         private final List<String> dimensions;
         private final ICompositeMetric metrics;
 
@@ -54,8 +53,13 @@ public abstract class IntervalMetricCollector2<T extends ICompositeMetric> imple
         }
 
         @Override
-        public IMetricValueProvider[] getMetrics() {
-            return metrics.getMetrics();
+        public int getMetricCount() {
+            return schema.getMetricsSpec().size();
+        }
+
+        @Override
+        public long getMetricValue(int index) {
+            return metrics.getMetrics()[index];
         }
     }
 
@@ -67,13 +71,11 @@ public abstract class IntervalMetricCollector2<T extends ICompositeMetric> imple
         for (Field field : metricClass.getDeclaredFields()) {
             //noinspection rawtypes
             Class fieldClass = field.getType();
-            if (fieldClass == LongMax.class) {
+            if (fieldClass == Max.class) {
                 metricsSpec.add(field.getName());
-            } else if (fieldClass == LongMin.class) {
+            } else if (fieldClass == Min.class) {
                 metricsSpec.add(field.getName());
-            } else if (fieldClass == LongSum.class) {
-                metricsSpec.add(field.getName());
-            } else if (fieldClass.isAssignableFrom(IMetricValueProvider.class)) {
+            } else if (fieldClass == Sum.class) {
                 metricsSpec.add(field.getName());
             }
         }

@@ -14,16 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sdk.metric.schema;
+package org.bithon.agent.core.metric.model.schema;
 
 /**
  * @author Frank Chen
- * @date 2021-10-01
+ * @date 2021-10-02
  */
-public abstract class AbstractMetricSpec implements IMetricSpec {
+public abstract class AbstractDimensionSpec implements IDimensionSpec {
+
     private final String name;
 
-    public AbstractMetricSpec(String name) {
+    public AbstractDimensionSpec(String name) {
         this.name = name;
     }
 
@@ -34,6 +35,6 @@ public abstract class AbstractMetricSpec implements IMetricSpec {
 
     @Override
     public String toString() {
-        return this.getType() + "(" + name + ")";
+        return String.format("dimension(type=%s, name=%s)", getType(), name);
     }
 }

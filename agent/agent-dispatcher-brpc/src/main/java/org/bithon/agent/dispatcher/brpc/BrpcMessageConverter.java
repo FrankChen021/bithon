@@ -30,6 +30,8 @@ import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
 import org.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
 import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
+import org.bithon.agent.core.metric.model.schema.Schema;
+import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
@@ -48,9 +50,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
-import org.bithon.agent.sdk.metric.IMetricValueProvider;
-import org.bithon.agent.sdk.metric.schema.Schema;
-import org.bithon.agent.sdk.metric.schema.Schema2;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -302,8 +301,8 @@ public class BrpcMessageConverter implements IMessageConverter {
             for (Object dimension : metricSet.getDimensions()) {
                 set.addDimension(dimension.toString());
             }
-            for (IMetricValueProvider metricValue : metricSet.getMetrics()) {
-                set.addMetric(metricValue.value());
+            for (int i = 0, size = metricSet.getMetricCount(); i < size; i++) {
+                set.addMetric(metricSet.getMetricValue(i));
             }
             messageBuilder.addMetricSet(set.build());
         });
@@ -331,8 +330,8 @@ public class BrpcMessageConverter implements IMessageConverter {
             for (Object dimension : metricSet.getDimensions()) {
                 set.addDimension(dimension.toString());
             }
-            for (IMetricValueProvider metricValue : metricSet.getMetrics()) {
-                set.addMetric(metricValue.value());
+            for (int i = 0, size = metricSet.getMetricCount(); i < size; i++) {
+                set.addMetric(metricSet.getMetricValue(i));
             }
             messageBuilder.addMetricSet(set.build());
         });

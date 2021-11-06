@@ -17,10 +17,10 @@
 package org.bithon.agent.core.metric.domain.web;
 
 import org.bithon.agent.core.metric.model.ICompositeMetric;
-import org.bithon.agent.sdk.metric.IMetricValueProvider;
-import org.bithon.agent.sdk.metric.aggregator.LongMax;
-import org.bithon.agent.sdk.metric.aggregator.LongMin;
-import org.bithon.agent.sdk.metric.aggregator.LongSum;
+import org.bithon.agent.core.metric.model.Max;
+import org.bithon.agent.core.metric.model.Min;
+import org.bithon.agent.core.metric.model.Sum;
+
 
 /**
  * Web Request Counter
@@ -28,18 +28,18 @@ import org.bithon.agent.sdk.metric.aggregator.LongSum;
  * @author frankchen
  */
 public class HttpIncomingMetrics implements ICompositeMetric {
-    private final LongSum responseTime = new LongSum();
-    private final LongMax maxResponseTime = new LongMax();
-    private final LongMin minResponseTime = new LongMin();
-    private final LongSum totalCount = new LongSum();
-    private final LongSum okCount = new LongSum();
-    private final LongSum errorCount = new LongSum();
-    private final LongSum count4xx = new LongSum();
-    private final LongSum count5xx = new LongSum();
-    private final LongSum requestBytes = new LongSum();
-    private final LongSum responseBytes = new LongSum();
-    private final LongSum flowedCount = new LongSum();
-    private final LongSum degradedCount = new LongSum();
+    private final Sum responseTime = new Sum();
+    private final Max maxResponseTime = new Max();
+    private final Min minResponseTime = new Min();
+    private final Sum totalCount = new Sum();
+    private final Sum okCount = new Sum();
+    private final Sum errorCount = new Sum();
+    private final Sum count4xx = new Sum();
+    private final Sum count5xx = new Sum();
+    private final Sum requestBytes = new Sum();
+    private final Sum responseBytes = new Sum();
+    private final Sum flowedCount = new Sum();
+    private final Sum degradedCount = new Sum();
 
     private void updateRequest(long responseTime, boolean isError) {
         this.responseTime.update(responseTime);
@@ -70,69 +70,69 @@ public class HttpIncomingMetrics implements ICompositeMetric {
         return this;
     }
 
-    public LongSum getResponseTime() {
+    public Sum getResponseTime() {
         return responseTime;
     }
 
-    public LongMax getMaxResponseTime() {
+    public Max getMaxResponseTime() {
         return maxResponseTime;
     }
 
-    private LongMin getMinResponseTime() {
+    private Min getMinResponseTime() {
         return minResponseTime;
     }
 
-    public LongSum getTotalCount() {
+    public Sum getTotalCount() {
         return totalCount;
     }
 
-    public LongSum getErrorCount() {
+    public Sum getErrorCount() {
         return errorCount;
     }
 
-    public LongSum getOkCount() {
+    public Sum getOkCount() {
         return okCount;
     }
 
-    public LongSum getCount4xx() {
+    public Sum getCount4xx() {
         return count4xx;
     }
 
-    public LongSum getCount5xx() {
+    public Sum getCount5xx() {
         return count5xx;
     }
 
-    public LongSum getRequestBytes() {
+    public Sum getRequestBytes() {
         return requestBytes;
     }
 
-    public LongSum getResponseBytes() {
+    public Sum getResponseBytes() {
         return responseBytes;
     }
 
-    public LongSum getFlowedCount() {
+    public Sum getFlowedCount() {
         return flowedCount;
     }
 
-    public LongSum getDegradedCount() {
+    public Sum getDegradedCount() {
         return degradedCount;
     }
 
     @Override
-    public IMetricValueProvider[] getMetrics() {
-        return new IMetricValueProvider[]{
-            responseTime,
-            maxResponseTime,
-            minResponseTime,
-            totalCount,
-            okCount,
-            errorCount,
-            count4xx,
-            count5xx,
-            requestBytes,
-            responseBytes,
-            flowedCount,
-            degradedCount,
+    public long[] getMetrics() {
+        return new long[]{
+            responseTime.get(),
+            maxResponseTime.get(),
+            minResponseTime.get(),
+            totalCount.get(),
+            okCount.get(),
+            errorCount.get(),
+            count4xx.get(),
+            count5xx.get(),
+            requestBytes.get(),
+            responseBytes.get(),
+            flowedCount.get(),
+            degradedCount.get()
             };
     }
 }
