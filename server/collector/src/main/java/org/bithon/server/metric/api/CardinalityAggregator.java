@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotNull;
 
 /**
+ * count(distinct )
+ *
  * @author Frank Chen
  * @date 1/11/21 2:37 pm
  */

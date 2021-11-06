@@ -27,6 +27,6 @@ public class QuerableAggregatorSqlVisitor implements IQuerableAggregatorVisitor<
 
     @Override
     public String visit(CardinalityAggregator aggregator) {
-        return String.format("count(DISTINCT \"%s\") AS %s", aggregator.getDimension(), aggregator.getName());
+        return String.format("count(DISTINCT \"%s\") AS \"%s\"", aggregator.getDimension(), aggregator.getName());
     }
 }
