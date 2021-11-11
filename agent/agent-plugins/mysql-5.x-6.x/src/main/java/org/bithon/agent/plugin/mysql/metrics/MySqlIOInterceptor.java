@@ -36,7 +36,7 @@ import java.sql.SQLException;
  *
  * @author frankchen
  */
-public class MysqlIOInterceptor extends AbstractInterceptor {
+public class MySqlIOInterceptor extends AbstractInterceptor {
 
     SqlMetricCollector metricCollector;
 
