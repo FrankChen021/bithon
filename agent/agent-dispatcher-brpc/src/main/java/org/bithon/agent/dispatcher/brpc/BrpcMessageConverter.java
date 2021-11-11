@@ -18,28 +18,28 @@ package org.bithon.agent.dispatcher.brpc;
 
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.event.EventMessage;
-import org.bithon.agent.core.metric.collector.IMetricSet;
-import org.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
-import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
-import org.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
-import org.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbCompositeMetric;
-import org.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
-import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
-import org.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
-import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
-import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
+import org.bithon.agent.core.metric.collector.IMeasurement;
+import org.bithon.agent.core.metric.domain.exception.ExceptionMetrics;
+import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
+import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
+import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
+import org.bithon.agent.core.metric.domain.mongo.MongoDbMetrics;
+import org.bithon.agent.core.metric.domain.redis.RedisClientMetrics;
+import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
+import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
+import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
+import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericDimensionSpec;
+import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurement;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchema;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchemaV2;
-import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSet;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
@@ -61,148 +61,148 @@ import java.util.Map;
 public class BrpcMessageConverter implements IMessageConverter {
 
     @Override
-    public Object from(long timestamp, int interval, JdbcPoolMetricSet metric) {
+    public Object from(long timestamp, int interval, JdbcPoolMetrics metrics) {
         return BrpcJdbcPoolMetricMessage.newBuilder()
                                         .setTimestamp(timestamp)
                                         .setInterval(interval)
-                                        .setConnectionString(metric.getConnectionString())
-                                        .setDriverClass(metric.getDriverClass())
-                                        .setActiveCount(metric.activeCount.get())
-                                        .setActivePeak(metric.activePeak.get())
-                                        .setPoolingCount(metric.poolingCount.get())
-                                        .setPoolingPeak(metric.poolingPeak.get())
-                                        .setCreateCount(metric.createCount.get())
-                                        .setDestroyCount(metric.destroyCount.get())
-                                        .setLogicCloseCount(metric.logicCloseCount.get())
-                                        .setLogicCloseCount(metric.logicCloseCount.get())
-                                        .setCreateErrorCount(metric.createErrorCount.get())
-                                        .setExecuteCount(metric.executeCount.get())
-                                        .setCommitCount(metric.commitCount.get())
-                                        .setRollbackCount(metric.rollbackCount.get())
-                                        .setStartTransactionCount(metric.startTransactionCount.get())
-                                        .setWaitThreadCount(metric.waitThreadCount.get())
+                                        .setConnectionString(metrics.getConnectionString())
+                                        .setDriverClass(metrics.getDriverClass())
+                                        .setActiveCount(metrics.activeCount.get())
+                                        .setActivePeak(metrics.activePeak.get())
+                                        .setPoolingCount(metrics.poolingCount.get())
+                                        .setPoolingPeak(metrics.poolingPeak.get())
+                                        .setCreateCount(metrics.createCount.get())
+                                        .setDestroyCount(metrics.destroyCount.get())
+                                        .setLogicCloseCount(metrics.logicCloseCount.get())
+                                        .setLogicCloseCount(metrics.logicCloseCount.get())
+                                        .setCreateErrorCount(metrics.createErrorCount.get())
+                                        .setExecuteCount(metrics.executeCount.get())
+                                        .setCommitCount(metrics.commitCount.get())
+                                        .setRollbackCount(metrics.rollbackCount.get())
+                                        .setStartTransactionCount(metrics.startTransactionCount.get())
+                                        .setWaitThreadCount(metrics.waitThreadCount.get())
                                         .build();
     }
 
     @Override
-    public Object from(long timestamp, int interval, List<String> dimensions, SqlCompositeMetric metric) {
+    public Object from(long timestamp, int interval, List<String> dimensions, SQLMetrics metrics) {
         return null;
     }
 
     @Override
-    public Object from(long timestamp, int interval, List<String> dimensions, MongoDbCompositeMetric counter) {
+    public Object from(long timestamp, int interval, List<String> dimensions, MongoDbMetrics metrics) {
         return null;
     }
 
     @Override
-    public Object from(long timestamp, int interval, JvmMetricSet metric) {
+    public Object from(long timestamp, int interval, JvmMetrics metrics) {
         BrpcJvmMetricMessage.Builder builder = BrpcJvmMetricMessage.newBuilder();
         builder.setInterval(interval);
         builder.setTimestamp(timestamp);
-        builder.setInstanceStartTime(metric.startTime);
-        builder.setInstanceUpTime(metric.upTime);
-        builder.setProcessors(metric.cpuMetricSet.processorNumber);
-        builder.setProcessCpuLoad(metric.cpuMetricSet.processCpuLoad);
-        builder.setProcessCpuTime(metric.cpuMetricSet.processCpuTime);
-        builder.setSystemLoadAvg(metric.cpuMetricSet.avgSystemLoad);
-        builder.setTotalMemBytes(metric.memoryMetricSet.allocatedBytes);
-        builder.setFreeMemBytes(metric.memoryMetricSet.freeBytes);
-        builder.setHeapMax(metric.heapMetricSet.max);
-        builder.setHeapInit(metric.heapMetricSet.init);
-        builder.setHeapCommitted(metric.heapMetricSet.committed);
-        builder.setHeapUsed(metric.heapMetricSet.used);
-        builder.setNonHeapMax(metric.nonHeapMetricSet.max);
-        builder.setNonHeapInit(metric.nonHeapMetricSet.init);
-        builder.setNonHeapCommitted(metric.nonHeapMetricSet.committed);
-        builder.setNonHeapUsed(metric.nonHeapMetricSet.used);
-        builder.setPeakThreads(metric.threadMetricSet.peakActiveCount);
-        builder.setActiveThreads(metric.threadMetricSet.activeThreadsCount);
-        builder.setDaemonThreads(metric.threadMetricSet.activeDaemonCount);
-        builder.setTotalThreads(metric.threadMetricSet.totalCreatedCount);
-        builder.setClassLoaded(metric.classMetricSet.currentLoadedClasses);
-        builder.setClassUnloaded(metric.classMetricSet.totalUnloadedClasses);
-        builder.setMetaspaceCommitted(metric.metaspaceMetricSet.committed);
-        builder.setMetaspaceUsed(metric.metaspaceMetricSet.used);
-        builder.setMetaspaceInit(metric.metaspaceMetricSet.init);
-        builder.setMetaspaceMax(metric.metaspaceMetricSet.max);
-        builder.setDirectMax(metric.directMemMetricSet.max);
-        builder.setDirectUsed(metric.directMemMetricSet.used);
+        builder.setInstanceStartTime(metrics.startTime);
+        builder.setInstanceUpTime(metrics.upTime);
+        builder.setProcessors(metrics.cpu.processorNumber);
+        builder.setProcessCpuLoad(metrics.cpu.processCpuLoad);
+        builder.setProcessCpuTime(metrics.cpu.processCpuTime);
+        builder.setSystemLoadAvg(metrics.cpu.avgSystemLoad);
+        builder.setTotalMemBytes(metrics.memory.allocatedBytes);
+        builder.setFreeMemBytes(metrics.memory.freeBytes);
+        builder.setHeapMax(metrics.heap.max);
+        builder.setHeapInit(metrics.heap.init);
+        builder.setHeapCommitted(metrics.heap.committed);
+        builder.setHeapUsed(metrics.heap.used);
+        builder.setNonHeapMax(metrics.nonHeap.max);
+        builder.setNonHeapInit(metrics.nonHeap.init);
+        builder.setNonHeapCommitted(metrics.nonHeap.committed);
+        builder.setNonHeapUsed(metrics.nonHeap.used);
+        builder.setPeakThreads(metrics.thread.peakActiveCount);
+        builder.setActiveThreads(metrics.thread.activeThreadsCount);
+        builder.setDaemonThreads(metrics.thread.activeDaemonCount);
+        builder.setTotalThreads(metrics.thread.totalCreatedCount);
+        builder.setClassLoaded(metrics.clazz.currentLoadedClasses);
+        builder.setClassUnloaded(metrics.clazz.totalUnloadedClasses);
+        builder.setMetaspaceCommitted(metrics.metaspace.committed);
+        builder.setMetaspaceUsed(metrics.metaspace.used);
+        builder.setMetaspaceInit(metrics.metaspace.init);
+        builder.setMetaspaceMax(metrics.metaspace.max);
+        builder.setDirectMax(metrics.directMemory.max);
+        builder.setDirectUsed(metrics.directMemory.used);
         return builder.build();
     }
 
     @Override
-    public Object from(long timestamp, int interval, WebServerMetricSet metric) {
+    public Object from(long timestamp, int interval, WebServerMetrics metrics) {
         return BrpcWebServerMetricMessage.newBuilder()
                                          .setTimestamp(timestamp)
                                          .setInterval(interval)
-                                         .setActiveThreads(metric.getActiveThreads())
-                                         .setConnectionCount(metric.getConnectionCount())
-                                         .setMaxConnections(metric.getMaxConnections())
-                                         .setMaxThreads(metric.getMaxThreads())
-                                         .setType(metric.getServerType().toString())
+                                         .setActiveThreads(metrics.getActiveThreads())
+                                         .setConnectionCount(metrics.getConnectionCount())
+                                         .setMaxConnections(metrics.getMaxConnections())
+                                         .setMaxThreads(metrics.getMaxThreads())
+                                         .setType(metrics.getServerType().toString())
                                          .build();
     }
 
     @Override
-    public Object from(long timestamp, int interval, SqlStatementCompositeMetric counter) {
+    public Object from(long timestamp, int interval, SQLStatementMetrics metrics) {
         return null;
     }
 
     @Override
-    public Object from(long timestamp, int interval, List<String> dimensions, RedisClientCompositeMetric metric) {
+    public Object from(long timestamp, int interval, List<String> dimensions, RedisClientMetrics metrics) {
         return BrpcRedisMetricMessage.newBuilder()
                                      .setTimestamp(timestamp)
                                      .setInterval(interval)
                                      .setUri(dimensions.get(0))
                                      .setCommand(dimensions.get(1))
-                                     .setMinRequestTime(metric.getRequestTime().getMin().get())
-                                     .setRequestTime(metric.getRequestTime().getSum().get())
-                                     .setMaxRequestTime(metric.getRequestTime().getMax().get())
-                                     .setMinResponseTime(metric.getResponseTime().getMin().get())
-                                     .setResponseTime(metric.getResponseTime().getSum().get())
-                                     .setMaxResponseTime(metric.getResponseTime().getMax().get())
-                                     .setTotalCount(metric.getCallCount())
-                                     .setExceptionCount(metric.getExceptionCount())
-                                     .setRequestBytes(metric.getRequestBytes())
-                                     .setResponseBytes(metric.getResponseBytes())
+                                     .setMinRequestTime(metrics.getRequestTime().getMin().get())
+                                     .setRequestTime(metrics.getRequestTime().getSum().get())
+                                     .setMaxRequestTime(metrics.getRequestTime().getMax().get())
+                                     .setMinResponseTime(metrics.getResponseTime().getMin().get())
+                                     .setResponseTime(metrics.getResponseTime().getSum().get())
+                                     .setMaxResponseTime(metrics.getResponseTime().getMax().get())
+                                     .setTotalCount(metrics.getCallCount())
+                                     .setExceptionCount(metrics.getExceptionCount())
+                                     .setRequestBytes(metrics.getRequestBytes())
+                                     .setResponseBytes(metrics.getResponseBytes())
                                      .build();
     }
 
     @Override
-    public Object from(long timestamp, int interval, ExceptionMetricSet metric) {
+    public Object from(long timestamp, int interval, ExceptionMetrics metrics) {
         BrpcExceptionMetricMessage.Builder builder = BrpcExceptionMetricMessage.newBuilder()
                                                                                .setTimestamp(timestamp)
                                                                                .setInterval(interval);
-        if (metric.getUri() != null) {
-            builder.setUri(metric.getUri());
+        if (metrics.getUri() != null) {
+            builder.setUri(metrics.getUri());
         }
-        if (metric.getMessage() != null) {
-            builder.setMessage(metric.getMessage());
+        if (metrics.getMessage() != null) {
+            builder.setMessage(metrics.getMessage());
         }
-        return builder.setExceptionCount(metric.getCount())
-                      .setClassName(metric.getExceptionClass())
+        return builder.setExceptionCount(metrics.getCount())
+                      .setClassName(metrics.getExceptionClass())
                       .build();
     }
 
     @Override
-    public Object from(long timestamp, int interval, ThreadPoolCompositeMetric metric) {
+    public Object from(long timestamp, int interval, ThreadPoolMetrics metrics) {
         return BrpcThreadPoolMetricMessage.newBuilder().setTimestamp(timestamp)
                                           .setInterval(interval)
-                                          .setExecutorClass(metric.getExecutorClass())
-                                          .setPoolName(metric.getThreadPoolName())
+                                          .setExecutorClass(metrics.getExecutorClass())
+                                          .setPoolName(metrics.getThreadPoolName())
                                           // task
-                                          .setCallerRunTaskCount(metric.getCallerRunTaskCount())
-                                          .setAbortedTaskCount(metric.getAbortedTaskCount())
-                                          .setDiscardedOldestTaskCount(metric.getDiscardedOldestTaskCount())
-                                          .setDiscardedTaskCount(metric.getDiscardedTaskCount())
-                                          .setExceptionTaskCount(metric.getExceptionTaskCount())
-                                          .setSuccessfulTaskCount(metric.getSuccessfulTaskCount())
-                                          .setTotalTaskCount(metric.getTotalTaskCount())
+                                          .setCallerRunTaskCount(metrics.getCallerRunTaskCount())
+                                          .setAbortedTaskCount(metrics.getAbortedTaskCount())
+                                          .setDiscardedOldestTaskCount(metrics.getDiscardedOldestTaskCount())
+                                          .setDiscardedTaskCount(metrics.getDiscardedTaskCount())
+                                          .setExceptionTaskCount(metrics.getExceptionTaskCount())
+                                          .setSuccessfulTaskCount(metrics.getSuccessfulTaskCount())
+                                          .setTotalTaskCount(metrics.getTotalTaskCount())
                                           // thread pool
-                                          .setActiveThreads(metric.getActiveThreads())
-                                          .setCurrentPoolSize(metric.getCurrentPoolSize())
-                                          .setMaxPoolSize(metric.getMaxPoolSize())
-                                          .setLargestPoolSize(metric.getLargestPoolSize())
+                                          .setActiveThreads(metrics.getActiveThreads())
+                                          .setCurrentPoolSize(metrics.getCurrentPoolSize())
+                                          .setMaxPoolSize(metrics.getMaxPoolSize())
+                                          .setLargestPoolSize(metrics.getLargestPoolSize())
                                           .build();
     }
 
@@ -242,30 +242,33 @@ public class BrpcMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, GcCompositeMetric gcMetricSet) {
+    public Object from(long timestamp, int interval, GcMetrics metrics) {
         return BrpcJvmGcMetricMessage.newBuilder().setTimestamp(timestamp)
                                      .setInterval(interval)
-                                     .setGcName(gcMetricSet.getGcName())
-                                     .setGeneration(gcMetricSet.getGeneration())
-                                     .setGcTime(gcMetricSet.getGcTime())
-                                     .setGcCount(gcMetricSet.getGcCount())
+                                     .setGcName(metrics.getGcName())
+                                     .setGeneration(metrics.getGeneration())
+                                     .setGcTime(metrics.getGcTime())
+                                     .setGcCount(metrics.getGcCount())
                                      .build();
     }
 
     @Override
     public Object from(Schema schema,
-                       Collection<IMetricSet> metricCollection,
+                       Collection<IMeasurement> measurementList,
                        long timestamp,
                        int interval) {
         BrpcGenericMetricSchema.Builder schemaBuilder = BrpcGenericMetricSchema.newBuilder()
                                                                                .setName(schema.getName());
-        schema.getDimensionsSpec().forEach(dimensionSpec -> schemaBuilder.addDimensionsSpec(BrpcGenericDimensionSpec.newBuilder()
-                                                                                                                    .setName(dimensionSpec.getName())
-                                                                                                                    .setType(dimensionSpec.getType())
-                                                                                                                    .build()));
+        schema.getDimensionsSpec()
+              .forEach(dimensionSpec -> schemaBuilder.addDimensionsSpec(BrpcGenericDimensionSpec.newBuilder()
+                                                                                                .setName(dimensionSpec.getName())
+                                                                                                .setType(dimensionSpec.getType())
+                                                                                                .build()));
         schema.getMetricsSpec().forEach(metricSpec -> schemaBuilder.addMetricsSpec(BrpcGenericMetricSpec.newBuilder()
-                                                                                                        .setName(metricSpec.getName())
-                                                                                                        .setType(metricSpec.getType())
+                                                                                                        .setName(
+                                                                                                            metricSpec.getName())
+                                                                                                        .setType(
+                                                                                                            metricSpec.getType())
                                                                                                         .build()));
 
         BrpcGenericMetricMessage.Builder messageBuilder = BrpcGenericMetricMessage.newBuilder();
@@ -273,25 +276,25 @@ public class BrpcMessageConverter implements IMessageConverter {
         messageBuilder.setInterval(interval);
         messageBuilder.setTimestamp(timestamp);
 
-        metricCollection.forEach(metricSet -> {
-            BrpcGenericMetricSet.Builder set = BrpcGenericMetricSet.newBuilder();
+        measurementList.forEach(metricSet -> {
+            BrpcGenericMeasurement.Builder measurement = BrpcGenericMeasurement.newBuilder();
             // although dimensions are defined as List<String>
             // but it could also store Object
             // we use Object.toString here to get right value
             for (Object dimension : metricSet.getDimensions()) {
-                set.addDimension(dimension.toString());
+                measurement.addDimension(dimension.toString());
             }
             for (int i = 0, size = metricSet.getMetricCount(); i < size; i++) {
-                set.addMetric(metricSet.getMetricValue(i));
+                measurement.addMetric(metricSet.getMetricValue(i));
             }
-            messageBuilder.addMetricSet(set.build());
+            messageBuilder.addMeasurement(measurement.build());
         });
 
         return messageBuilder.build();
     }
 
     @Override
-    public Object from(Schema2 schema, Collection<IMetricSet> metricCollection, long timestamp, int interval) {
+    public Object from(Schema2 schema, Collection<IMeasurement> measurementList, long timestamp, int interval) {
         BrpcGenericMetricSchemaV2.Builder schemaBuilder = BrpcGenericMetricSchemaV2.newBuilder()
                                                                                    .setName(schema.getName());
         schema.getDimensionsSpec().forEach(schemaBuilder::addDimensionsSpec);
@@ -302,18 +305,18 @@ public class BrpcMessageConverter implements IMessageConverter {
         messageBuilder.setInterval(interval);
         messageBuilder.setTimestamp(timestamp);
 
-        metricCollection.forEach(metricSet -> {
-            BrpcGenericMetricSet.Builder set = BrpcGenericMetricSet.newBuilder();
+        measurementList.forEach(metricSet -> {
+            BrpcGenericMeasurement.Builder measurement = BrpcGenericMeasurement.newBuilder();
             // although dimensions are defined as List<String>
             // but it could also store Object
             // we use Object.toString here to get right value
             for (Object dimension : metricSet.getDimensions()) {
-                set.addDimension(dimension.toString());
+                measurement.addDimension(dimension.toString());
             }
             for (int i = 0, size = metricSet.getMetricCount(); i < size; i++) {
-                set.addMetric(metricSet.getMetricValue(i));
+                measurement.addMetric(metricSet.getMetricValue(i));
             }
-            messageBuilder.addMetricSet(set.build());
+            messageBuilder.addMeasurement(measurement.build());
         });
 
         return messageBuilder.build();

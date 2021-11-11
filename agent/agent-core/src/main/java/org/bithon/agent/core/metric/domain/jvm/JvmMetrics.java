@@ -21,7 +21,7 @@ package org.bithon.agent.core.metric.domain.jvm;
  * @author frank.chen021@outlook.com
  * @date 2020/10/27 2:17 下午
  */
-public class JvmMetricSet {
+public class JvmMetrics {
     /**
      * uptime of the Java virtual machine in milliseconds.
      */
@@ -33,16 +33,16 @@ public class JvmMetricSet {
      */
     public long startTime;
 
-    public CpuCompositeMetric cpuMetricSet;
-    public ClassCompositeMetric classMetricSet;
-    public ThreadCompositeMetric threadMetricSet;
-    public MemoryCompositeMetric memoryMetricSet;
-    public MemoryRegionCompositeMetric heapMetricSet;
-    public MemoryRegionCompositeMetric nonHeapMetricSet;
-    public MemoryRegionCompositeMetric metaspaceMetricSet;
-    public MemoryRegionCompositeMetric directMemMetricSet;
+    public CpuMetrics cpu;
+    public ClassMetrics clazz;
+    public ThreadMetrics thread;
+    public MemoryMetrics memory;
+    public MemoryRegionMetrics heap;
+    public MemoryRegionMetrics nonHeap;
+    public MemoryRegionMetrics metaspace;
+    public MemoryRegionMetrics directMemory;
 
-    public JvmMetricSet(long upTime, long startTime) {
+    public JvmMetrics(long upTime, long startTime) {
         this.upTime = upTime;
         this.startTime = startTime;
     }

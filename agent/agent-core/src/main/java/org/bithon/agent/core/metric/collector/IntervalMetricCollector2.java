@@ -38,11 +38,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class IntervalMetricCollector2<T extends ICompositeMetric> implements IMetricCollector2 {
 
-    class MetricSet implements IMetricSet {
+    class Measurement implements IMeasurement {
         private final List<String> dimensions;
         private final ICompositeMetric metrics;
 
-        MetricSet(List<String> dimensions, ICompositeMetric metrics) {
+        Measurement(List<String> dimensions, ICompositeMetric metrics) {
             this.dimensions = dimensions;
             this.metrics = metrics;
         }
@@ -64,7 +64,7 @@ public abstract class IntervalMetricCollector2<T extends ICompositeMetric> imple
     }
 
     private final Schema2 schema;
-    private Map<List<String>, IMetricSet> metricsMap = new ConcurrentHashMap<>();
+    private Map<List<String>, IMeasurement> metricsMap = new ConcurrentHashMap<>();
 
     protected IntervalMetricCollector2(String name, List<String> dimensionSpec, Class<T> metricClass) {
         List<String> metricsSpec = new ArrayList<>();
@@ -88,7 +88,7 @@ public abstract class IntervalMetricCollector2<T extends ICompositeMetric> imple
             // TODO: exception
         }
         List<String> dimensions = Arrays.asList(dimensionValues);
-        MetricSet metricSet = (MetricSet) metricsMap.computeIfAbsent(dimensions, key -> new MetricSet(dimensions, newMetrics()));
+        Measurement metricSet = (Measurement) metricsMap.computeIfAbsent(dimensions, key -> new Measurement(dimensions, newMetrics()));
         return (T) metricSet.metrics;
     }
 
@@ -100,7 +100,7 @@ public abstract class IntervalMetricCollector2<T extends ICompositeMetric> imple
     @Override
     public Object collect(IMessageConverter messageConverter, int interval, long timestamp) {
         //swap metrics
-        Map<List<String>, IMetricSet> metrics = metricsMap;
+        Map<List<String>, IMeasurement> metrics = metricsMap;
         metricsMap = new ConcurrentHashMap<>();
 
         return messageConverter.from(schema, metrics.values(), timestamp, interval);

@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.jetty.metric;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
+import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerType;
 import org.eclipse.jetty.server.AbstractNetworkConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -56,7 +56,7 @@ public class WebServerMetricCollector implements IMetricCollector {
                                 long timestamp) {
         return Collections.singletonList(messageConverter.from(timestamp,
                                                                interval,
-                                                               new WebServerMetricSet(
+                                                               new WebServerMetrics(
                                                                    WebServerType.JETTY,
                                                                    connector == null
                                                                    ? 0

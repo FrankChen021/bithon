@@ -22,7 +22,7 @@ import org.bithon.server.common.utils.EndPointType;
 import org.bithon.server.common.utils.NetworkUtils;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchemaManager;
-import org.bithon.server.metric.input.MetricSet;
+import org.bithon.server.metric.input.Measurement;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -78,7 +78,7 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
     }
 
     @Override
-    protected MetricSet extractEndpointLink(MetricMessage metricObject) {
+    protected Measurement extractEndpointLink(MetricMessage metricObject) {
         String targetHostPort = metricObject.getString("targetHostPort");
         if (NetworkUtils.isIpAddress(metricObject.getString("targetHost"))) {
 
@@ -89,19 +89,19 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
                 metricObject.set("targetHostPort", targetApplicationName);
                 metricObject.set("targetType", EndPointType.APPLICATION.getType());
 
-                return EndPointMetricSetBuilder.builder()
-                                               .timestamp(metricObject.getTimestamp())
-                                               .srcEndpointType(EndPointType.APPLICATION)
-                                               .srcEndpoint(metricObject.getApplicationName())
-                                               .dstEndpointType(EndPointType.APPLICATION)
-                                               .dstEndpoint(targetApplicationName)
-                                               .errorCount(metricObject.getLong("countException"))
-                                               .interval(metricObject.getLong("interval"))
-                                               .callCount(metricObject.getLong("requestCount"))
-                                               .responseTime(metricObject.getLong("responseTime"))
-                                               .minResponseTime(metricObject.getLong("minResponseTime"))
-                                               .maxResponseTime(metricObject.getLong("maxResponseTime"))
-                                               .build();
+                return EndPointMeasurementBuilder.builder()
+                                                 .timestamp(metricObject.getTimestamp())
+                                                 .srcEndpointType(EndPointType.APPLICATION)
+                                                 .srcEndpoint(metricObject.getApplicationName())
+                                                 .dstEndpointType(EndPointType.APPLICATION)
+                                                 .dstEndpoint(targetApplicationName)
+                                                 .errorCount(metricObject.getLong("countException"))
+                                                 .interval(metricObject.getLong("interval"))
+                                                 .callCount(metricObject.getLong("requestCount"))
+                                                 .responseTime(metricObject.getLong("responseTime"))
+                                                 .minResponseTime(metricObject.getLong("minResponseTime"))
+                                                 .maxResponseTime(metricObject.getLong("maxResponseTime"))
+                                                 .build();
             } else {
                 metricObject.set("targetType", EndPointType.WEB_SERVICE.getType());
 
@@ -110,56 +110,56 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
                 // it of course can't be found in the metadata storage
                 //
                 // TODO: This record should be fixed when a new instance is inserted into the metadata storage
-                return EndPointMetricSetBuilder.builder()
-                                               .timestamp(metricObject.getTimestamp())
-                                               .srcEndpointType(EndPointType.APPLICATION)
-                                               .srcEndpoint(metricObject.getApplicationName())
-                                               .dstEndpointType(EndPointType.WEB_SERVICE)
-                                               .dstEndpoint(targetHostPort)
-                                               .errorCount(metricObject.getLong("countException"))
-                                               .interval(metricObject.getLong("interval"))
-                                               .callCount(metricObject.getLong("requestCount"))
-                                               .responseTime(metricObject.getLong("responseTime"))
-                                               .minResponseTime(metricObject.getLong(
+                return EndPointMeasurementBuilder.builder()
+                                                 .timestamp(metricObject.getTimestamp())
+                                                 .srcEndpointType(EndPointType.APPLICATION)
+                                                 .srcEndpoint(metricObject.getApplicationName())
+                                                 .dstEndpointType(EndPointType.WEB_SERVICE)
+                                                 .dstEndpoint(targetHostPort)
+                                                 .errorCount(metricObject.getLong("countException"))
+                                                 .interval(metricObject.getLong("interval"))
+                                                 .callCount(metricObject.getLong("requestCount"))
+                                                 .responseTime(metricObject.getLong("responseTime"))
+                                                 .minResponseTime(metricObject.getLong(
                                                    "minResponseTime"))
-                                               .maxResponseTime(metricObject.getLong(
+                                                 .maxResponseTime(metricObject.getLong(
                                                    "maxResponseTime"))
-                                               .build();
+                                                 .build();
             }
         } else { // if uri.getHost is not IP address
             //TODO: targetHostPort may be an service name if it's a service call such as point to point via service auto discovery
             if (getMetaStorage().isApplicationExist(targetHostPort)) {
                 metricObject.set("targetType", EndPointType.APPLICATION.getType());
 
-                return EndPointMetricSetBuilder.builder()
-                                               .timestamp(metricObject.getTimestamp())
-                                               .srcEndpointType(EndPointType.APPLICATION)
-                                               .srcEndpoint(metricObject.getApplicationName())
-                                               .dstEndpointType(EndPointType.APPLICATION)
-                                               .dstEndpoint(targetHostPort)
-                                               .errorCount(metricObject.getLong("countException"))
-                                               .interval(metricObject.getLong("interval"))
-                                               .callCount(metricObject.getLong("requestCount"))
-                                               .responseTime(metricObject.getLong("responseTime"))
-                                               .minResponseTime(metricObject.getLong("minResponseTime"))
-                                               .maxResponseTime(metricObject.getLong("maxResponseTime"))
-                                               .build();
+                return EndPointMeasurementBuilder.builder()
+                                                 .timestamp(metricObject.getTimestamp())
+                                                 .srcEndpointType(EndPointType.APPLICATION)
+                                                 .srcEndpoint(metricObject.getApplicationName())
+                                                 .dstEndpointType(EndPointType.APPLICATION)
+                                                 .dstEndpoint(targetHostPort)
+                                                 .errorCount(metricObject.getLong("countException"))
+                                                 .interval(metricObject.getLong("interval"))
+                                                 .callCount(metricObject.getLong("requestCount"))
+                                                 .responseTime(metricObject.getLong("responseTime"))
+                                                 .minResponseTime(metricObject.getLong("minResponseTime"))
+                                                 .maxResponseTime(metricObject.getLong("maxResponseTime"))
+                                                 .build();
             } else {
                 metricObject.set("targetType", EndPointType.WEB_SERVICE.getType());
 
-                return EndPointMetricSetBuilder.builder()
-                                               .timestamp(metricObject.getTimestamp())
-                                               .srcEndpointType(EndPointType.APPLICATION)
-                                               .srcEndpoint(metricObject.getApplicationName())
-                                               .dstEndpointType(EndPointType.WEB_SERVICE)
-                                               .dstEndpoint(targetHostPort)
-                                               .errorCount(metricObject.getLong("countException"))
-                                               .interval(metricObject.getLong("interval"))
-                                               .callCount(metricObject.getLong("requestCount"))
-                                               .responseTime(metricObject.getLong("responseTime"))
-                                               .minResponseTime(metricObject.getLong("minResponseTime"))
-                                               .maxResponseTime(metricObject.getLong("maxResponseTime"))
-                                               .build();
+                return EndPointMeasurementBuilder.builder()
+                                                 .timestamp(metricObject.getTimestamp())
+                                                 .srcEndpointType(EndPointType.APPLICATION)
+                                                 .srcEndpoint(metricObject.getApplicationName())
+                                                 .dstEndpointType(EndPointType.WEB_SERVICE)
+                                                 .dstEndpoint(targetHostPort)
+                                                 .errorCount(metricObject.getLong("countException"))
+                                                 .interval(metricObject.getLong("interval"))
+                                                 .callCount(metricObject.getLong("requestCount"))
+                                                 .responseTime(metricObject.getLong("responseTime"))
+                                                 .minResponseTime(metricObject.getLong("minResponseTime"))
+                                                 .maxResponseTime(metricObject.getLong("maxResponseTime"))
+                                                 .build();
             }
         }
     }

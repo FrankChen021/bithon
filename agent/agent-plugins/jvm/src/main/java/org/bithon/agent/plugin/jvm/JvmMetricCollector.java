@@ -24,8 +24,8 @@ import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
-import org.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
+import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
+import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
 import org.bithon.agent.core.utils.time.DateTime;
 import org.bithon.agent.plugin.jvm.gc.GcMetricCollector;
 import org.bithon.agent.plugin.jvm.mem.ClassMetricCollector;
@@ -100,7 +100,7 @@ public class JvmMetricCollector {
             @Override
             public List<Object> collect(IMessageConverter messageConverter, int interval, long timestamp) {
                 List<Object> metricMessages = new ArrayList<>(2);
-                for (GcCompositeMetric gcMetricSet : gcCollector.collect()) {
+                for (GcMetrics gcMetricSet : gcCollector.collect()) {
                     metricMessages.add(messageConverter.from(timestamp,
                                                              interval,
                                                              gcMetricSet));
@@ -110,18 +110,18 @@ public class JvmMetricCollector {
         });
     }
 
-    private JvmMetricSet buildJvmMetrics() {
-        JvmMetricSet jvmMetricSet = new JvmMetricSet(JmxBeans.RUNTIME_BEAN.getUptime(),
-                                                     JmxBeans.RUNTIME_BEAN.getStartTime());
-        jvmMetricSet.cpuMetricSet = cpuMetricCollector.collect();
-        jvmMetricSet.memoryMetricSet = MemoryMetricCollector.collectTotal();
-        jvmMetricSet.heapMetricSet = MemoryMetricCollector.collectHeap();
-        jvmMetricSet.nonHeapMetricSet = MemoryMetricCollector.collectNonHeap();
-        jvmMetricSet.metaspaceMetricSet = MemoryMetricCollector.collectMetaSpace();
-        jvmMetricSet.directMemMetricSet = MemoryMetricCollector.collectDirectMemory();
-        jvmMetricSet.threadMetricSet = ThreadMetricCollector.collect();
-        jvmMetricSet.classMetricSet = ClassMetricCollector.collect();
-        return jvmMetricSet;
+    private JvmMetrics buildJvmMetrics() {
+        JvmMetrics jvmMetrics = new JvmMetrics(JmxBeans.RUNTIME_BEAN.getUptime(),
+                                               JmxBeans.RUNTIME_BEAN.getStartTime());
+        jvmMetrics.cpu = cpuMetricCollector.collect();
+        jvmMetrics.memory = MemoryMetricCollector.collectTotal();
+        jvmMetrics.heap = MemoryMetricCollector.collectHeap();
+        jvmMetrics.nonHeap = MemoryMetricCollector.collectNonHeap();
+        jvmMetrics.metaspace = MemoryMetricCollector.collectMetaSpace();
+        jvmMetrics.directMemory = MemoryMetricCollector.collectDirectMemory();
+        jvmMetrics.thread = ThreadMetricCollector.collect();
+        jvmMetrics.clazz = ClassMetricCollector.collect();
+        return jvmMetrics;
     }
 
     private boolean sendJvmStartedEvent() {

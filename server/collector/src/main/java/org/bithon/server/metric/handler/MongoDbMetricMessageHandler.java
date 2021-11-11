@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.EndPointType;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchemaManager;
-import org.bithon.server.metric.input.MetricSet;
+import org.bithon.server.metric.input.Measurement;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.springframework.stereotype.Service;
 
@@ -44,20 +44,20 @@ public class MongoDbMetricMessageHandler extends AbstractMetricMessageHandler {
     }
 
     @Override
-    protected MetricSet extractEndpointLink(MetricMessage metricObject) {
-        return EndPointMetricSetBuilder.builder()
-                                       .timestamp(metricObject.getTimestamp())
-                                       .srcEndpointType(EndPointType.APPLICATION)
-                                       .srcEndpoint(metricObject.getApplicationName())
-                                       .dstEndpointType(EndPointType.DB_MONGO)
-                                       .dstEndpoint(metricObject.getString("server"))
-                                       // metric
-                                       .interval(metricObject.getLong("interval"))
-                                       .errorCount(metricObject.getLong("exceptionCount"))
-                                       .callCount(metricObject.getLong("callCount"))
-                                       .responseTime(metricObject.getLong("responseTime"))
-                                       .minResponseTime(metricObject.getLong("minResponseTime"))
-                                       .maxResponseTime(metricObject.getLong("maxResponseTime"))
-                                       .build();
+    protected Measurement extractEndpointLink(MetricMessage metricObject) {
+        return EndPointMeasurementBuilder.builder()
+                                         .timestamp(metricObject.getTimestamp())
+                                         .srcEndpointType(EndPointType.APPLICATION)
+                                         .srcEndpoint(metricObject.getApplicationName())
+                                         .dstEndpointType(EndPointType.DB_MONGO)
+                                         .dstEndpoint(metricObject.getString("server"))
+                                         // metric
+                                         .interval(metricObject.getLong("interval"))
+                                         .errorCount(metricObject.getLong("exceptionCount"))
+                                         .callCount(metricObject.getLong("callCount"))
+                                         .responseTime(metricObject.getLong("responseTime"))
+                                         .minResponseTime(metricObject.getLong("minResponseTime"))
+                                         .maxResponseTime(metricObject.getLong("maxResponseTime"))
+                                         .build();
     }
 }

@@ -18,17 +18,17 @@ package org.bithon.agent.dispatcher.thrift;
 
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.event.EventMessage;
-import org.bithon.agent.core.metric.collector.IMetricSet;
-import org.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
-import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
-import org.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
-import org.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbCompositeMetric;
-import org.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
-import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
-import org.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
-import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
-import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
+import org.bithon.agent.core.metric.collector.IMeasurement;
+import org.bithon.agent.core.metric.domain.exception.ExceptionMetrics;
+import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
+import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
+import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
+import org.bithon.agent.core.metric.domain.mongo.MongoDbMetrics;
+import org.bithon.agent.core.metric.domain.redis.RedisClientMetrics;
+import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
+import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
+import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
+import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
@@ -55,42 +55,42 @@ import java.util.Map;
 public class ToThriftMessageConverter implements IMessageConverter {
 
     @Override
-    public Object from(long timestamp, int interval, JdbcPoolMetricSet metric) {
+    public Object from(long timestamp, int interval, JdbcPoolMetrics metrics) {
         JdbcPoolMetricMessage message = new JdbcPoolMetricMessage();
         message.setTimestamp(timestamp);
         message.setInterval(interval);
-        message.setConnectionString(metric.getConnectionString());
-        message.setDriverClass(metric.getDriverClass());
-        message.setActiveCount(metric.activeCount.get());
-        message.setCreateCount(metric.createCount.get());
-        message.setDestroyCount(metric.destroyCount.get());
-        message.setPoolingCount(metric.poolingCount.get());
-        message.setPoolingPeak(metric.poolingPeak.get());
-        message.setActivePeak(metric.activePeak.get());
-        message.setLogicConnectCount(metric.logicConnectionCount.get());
-        message.setLogicCloseCount(metric.logicCloseCount.get());
-        message.setCreateErrorCount(metric.createErrorCount.get());
-        message.setExecuteCount(metric.executeCount.get());
-        message.setCommitCount(metric.commitCount.get());
-        message.setRollbackCount(metric.rollbackCount.get());
-        message.setStartTransactionCount(metric.startTransactionCount.get());
-        message.setWaitThreadCount(metric.waitThreadCount.get());
+        message.setConnectionString(metrics.getConnectionString());
+        message.setDriverClass(metrics.getDriverClass());
+        message.setActiveCount(metrics.activeCount.get());
+        message.setCreateCount(metrics.createCount.get());
+        message.setDestroyCount(metrics.destroyCount.get());
+        message.setPoolingCount(metrics.poolingCount.get());
+        message.setPoolingPeak(metrics.poolingPeak.get());
+        message.setActivePeak(metrics.activePeak.get());
+        message.setLogicConnectCount(metrics.logicConnectionCount.get());
+        message.setLogicCloseCount(metrics.logicCloseCount.get());
+        message.setCreateErrorCount(metrics.createErrorCount.get());
+        message.setExecuteCount(metrics.executeCount.get());
+        message.setCommitCount(metrics.commitCount.get());
+        message.setRollbackCount(metrics.rollbackCount.get());
+        message.setStartTransactionCount(metrics.startTransactionCount.get());
+        message.setWaitThreadCount(metrics.waitThreadCount.get());
         return message;
     }
 
     @Override
-    public Object from(long timestamp, int interval, List<String> dimensions, SqlCompositeMetric metric) {
+    public Object from(long timestamp, int interval, List<String> dimensions, SQLMetrics metrics) {
         SqlMetricMessage message = new SqlMetricMessage();
         message.setTimestamp(timestamp);
         message.setConnectionString(dimensions.get(0));
         message.setInterval(interval);
-        message.setCallCount(metric.getCallCount().get());
-        message.setResponseTime(metric.getResponseTime().getSum().get());
-        message.setMinResponseTime(metric.getResponseTime().getMin().get());
-        message.setMaxResponseTime(metric.getResponseTime().getMax().get());
-        message.setErrorCount(metric.getErrorCount().get());
-        message.setQueryCount(metric.getQueryCount().get());
-        message.setUpdateCount(metric.getUpdateCount().get());
+        message.setCallCount(metrics.getCallCount().get());
+        message.setResponseTime(metrics.getResponseTime().getSum().get());
+        message.setMinResponseTime(metrics.getResponseTime().getMin().get());
+        message.setMaxResponseTime(metrics.getResponseTime().getMax().get());
+        message.setErrorCount(metrics.getErrorCount().get());
+        message.setQueryCount(metrics.getQueryCount().get());
+        message.setUpdateCount(metrics.getUpdateCount().get());
         return message;
     }
 
@@ -98,7 +98,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     public Object from(long timestamp,
                        int interval,
                        List<String> dimensions,
-                       MongoDbCompositeMetric metric) {
+                       MongoDbMetrics metrics) {
         MongoDbMetricMessage message = new MongoDbMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
@@ -106,78 +106,78 @@ public class ToThriftMessageConverter implements IMessageConverter {
         message.setDatabase(dimensions.get(1));
         message.setCollection(null);
         message.setCommand(null);
-        message.setResponseTime(metric.getResponseTime().getSum().get());
-        message.setMaxResponseTime(metric.getResponseTime().getMax().get());
-        message.setMinResponseTime(metric.getResponseTime().getMin().get());
-        message.setCallCount(metric.getCallCount().get());
-        message.setExceptionCount(metric.getExceptionCount().get());
-        message.setRequestBytes(metric.getRequestBytes().get());
-        message.setResponseBytes(metric.getResponseBytes().get());
+        message.setResponseTime(metrics.getResponseTime().getSum().get());
+        message.setMaxResponseTime(metrics.getResponseTime().getMax().get());
+        message.setMinResponseTime(metrics.getResponseTime().getMin().get());
+        message.setCallCount(metrics.getCallCount().get());
+        message.setExceptionCount(metrics.getExceptionCount().get());
+        message.setRequestBytes(metrics.getRequestBytes().get());
+        message.setResponseBytes(metrics.getResponseBytes().get());
         return message;
     }
 
     @Override
-    public Object from(long timestamp, int interval, JvmMetricSet metric) {
+    public Object from(long timestamp, int interval, JvmMetrics metrics) {
         JvmMetricMessage message = new JvmMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
 
-        message.instanceStartTime = metric.startTime;
-        message.instanceUpTime = metric.upTime;
+        message.instanceStartTime = metrics.startTime;
+        message.instanceUpTime = metrics.upTime;
 
-        message.processors = metric.cpuMetricSet.processorNumber;
-        message.processCpuLoad = metric.cpuMetricSet.processCpuLoad;
-        message.processCpuTime = metric.cpuMetricSet.processCpuTime;
-        message.systemLoadAvg = metric.cpuMetricSet.avgSystemLoad;
+        message.processors = metrics.cpu.processorNumber;
+        message.processCpuLoad = metrics.cpu.processCpuLoad;
+        message.processCpuTime = metrics.cpu.processCpuTime;
+        message.systemLoadAvg = metrics.cpu.avgSystemLoad;
 
-        message.totalMemBytes = metric.memoryMetricSet.allocatedBytes;
-        message.freeMemBytes = metric.memoryMetricSet.freeBytes;
+        message.totalMemBytes = metrics.memory.allocatedBytes;
+        message.freeMemBytes = metrics.memory.freeBytes;
 
-        message.heapMax = metric.heapMetricSet.max;
-        message.heapInit = metric.heapMetricSet.init;
-        message.heapCommitted = metric.heapMetricSet.committed;
-        message.heapUsed = metric.heapMetricSet.used;
+        message.heapMax = metrics.heap.max;
+        message.heapInit = metrics.heap.init;
+        message.heapCommitted = metrics.heap.committed;
+        message.heapUsed = metrics.heap.used;
 
-        message.nonHeapMax = metric.nonHeapMetricSet.max;
-        message.nonHeapInit = metric.nonHeapMetricSet.init;
-        message.nonHeapCommitted = metric.nonHeapMetricSet.committed;
-        message.nonHeapUsed = metric.nonHeapMetricSet.used;
+        message.nonHeapMax = metrics.nonHeap.max;
+        message.nonHeapInit = metrics.nonHeap.init;
+        message.nonHeapCommitted = metrics.nonHeap.committed;
+        message.nonHeapUsed = metrics.nonHeap.used;
 
-        message.peakThreads = metric.threadMetricSet.peakActiveCount;
-        message.activeThreads = metric.threadMetricSet.activeThreadsCount;
-        message.daemonThreads = metric.threadMetricSet.activeDaemonCount;
-        message.totalThreads = metric.threadMetricSet.totalCreatedCount;
+        message.peakThreads = metrics.thread.peakActiveCount;
+        message.activeThreads = metrics.thread.activeThreadsCount;
+        message.daemonThreads = metrics.thread.activeDaemonCount;
+        message.totalThreads = metrics.thread.totalCreatedCount;
 
-        message.classLoaded = metric.classMetricSet.currentLoadedClasses;
-        message.classUnloaded = metric.classMetricSet.totalUnloadedClasses;
+        message.classLoaded = metrics.clazz.currentLoadedClasses;
+        message.classUnloaded = metrics.clazz.totalUnloadedClasses;
 
-        message.metaspaceCommitted = metric.metaspaceMetricSet.committed;
-        message.metaspaceUsed = metric.metaspaceMetricSet.used;
-        message.metaspaceInit = metric.metaspaceMetricSet.init;
-        message.metaspaceMax = metric.metaspaceMetricSet.max;
+        message.metaspaceCommitted = metrics.metaspace.committed;
+        message.metaspaceUsed = metrics.metaspace.used;
+        message.metaspaceInit = metrics.metaspace.init;
+        message.metaspaceMax = metrics.metaspace.max;
 
-        message.directMax = metric.directMemMetricSet.max;
-        message.directUsed = metric.directMemMetricSet.used;
+        message.directMax = metrics.directMemory.max;
+        message.directUsed = metrics.directMemory.used;
         return message;
     }
 
     @Override
     public Object from(long timestamp,
                        int interval,
-                       WebServerMetricSet metric) {
+                       WebServerMetrics metrics) {
         WebServerMetricMessage message = new WebServerMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
-        message.setConnectionCount(metric.getConnectionCount());
-        message.setMaxConnections(metric.getMaxConnections());
-        message.setActiveThreads(metric.getActiveThreads());
-        message.setMaxThreads(metric.getMaxThreads());
-        message.setType(metric.getServerType().type());
+        message.setConnectionCount(metrics.getConnectionCount());
+        message.setMaxConnections(metrics.getMaxConnections());
+        message.setActiveThreads(metrics.getActiveThreads());
+        message.setMaxThreads(metrics.getMaxThreads());
+        message.setType(metrics.getServerType().type());
         return message;
     }
 
     @Override
-    public Object from(long timestamp, int interval, SqlStatementCompositeMetric counter) {
+    public Object from(long timestamp, int interval, SQLStatementMetrics metrics) {
         return null;
     }
 
@@ -185,40 +185,40 @@ public class ToThriftMessageConverter implements IMessageConverter {
     public Object from(long timestamp,
                        int interval,
                        List<String> dimensions,
-                       RedisClientCompositeMetric metric) {
+                       RedisClientMetrics metrics) {
         RedisMetricMessage message = new RedisMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
         message.setUri(dimensions.get(0));
         message.setCommand(dimensions.get(1));
-        message.setExceptionCount(metric.getExceptionCount());
-        message.setTotalCount(metric.getCallCount());
+        message.setExceptionCount(metrics.getExceptionCount());
+        message.setTotalCount(metrics.getCallCount());
 
-        message.setMinRequestTime(metric.getRequestTime().getMin().get());
-        message.setRequestTime(metric.getRequestTime().getSum().get());
-        message.setMaxRequestTime(metric.getRequestTime().getMax().get());
+        message.setMinRequestTime(metrics.getRequestTime().getMin().get());
+        message.setRequestTime(metrics.getRequestTime().getSum().get());
+        message.setMaxRequestTime(metrics.getRequestTime().getMax().get());
 
-        message.setMinResponseTime(metric.getResponseTime().getMin().get());
-        message.setResponseTime(metric.getResponseTime().getSum().get());
-        message.setMaxResponseTime(metric.getResponseTime().getMax().get());
+        message.setMinResponseTime(metrics.getResponseTime().getMin().get());
+        message.setResponseTime(metrics.getResponseTime().getSum().get());
+        message.setMaxResponseTime(metrics.getResponseTime().getMax().get());
 
-        message.setRequestBytes(metric.getRequestBytes());
-        message.setResponseBytes(metric.getResponseBytes());
+        message.setRequestBytes(metrics.getRequestBytes());
+        message.setResponseBytes(metrics.getResponseBytes());
         return message;
     }
 
     @Override
     public Object from(long timestamp,
                        int interval,
-                       ExceptionMetricSet metric) {
+                       ExceptionMetrics metrics) {
         ExceptionMetricMessage message = new ExceptionMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
-        message.setUri(metric.getUri());
-        message.setMessage(metric.getMessage());
-        message.setClassName(metric.getExceptionClass());
-        message.setStackTrace(metric.getStackTrace());
-        message.setExceptionCount(metric.getCount());
+        message.setUri(metrics.getUri());
+        message.setMessage(metrics.getMessage());
+        message.setClassName(metrics.getExceptionClass());
+        message.setStackTrace(metrics.getStackTrace());
+        message.setExceptionCount(metrics.getCount());
         return message;
     }
 
@@ -254,7 +254,7 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, GcCompositeMetric metrics) {
+    public Object from(long timestamp, int interval, GcMetrics metrics) {
         JvmGcMetricMessage message = new JvmGcMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
@@ -268,37 +268,37 @@ public class ToThriftMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(Schema schema, Collection<IMetricSet> metricCollection, long timestamp, int interval) {
+    public Object from(Schema schema, Collection<IMeasurement> measurementList, long timestamp, int interval) {
         return null;
     }
 
     @Override
-    public Object from(Schema2 schema, Collection<IMetricSet> metricCollection, long timestamp, int interval) {
+    public Object from(Schema2 schema, Collection<IMeasurement> measurementList, long timestamp, int interval) {
         return null;
     }
 
     @Override
     public Object from(long timestamp,
                        int interval,
-                       ThreadPoolCompositeMetric metric) {
+                       ThreadPoolMetrics metrics) {
         ThreadPoolMetricMessage message = new ThreadPoolMetricMessage();
         message.setInterval(interval);
         message.setTimestamp(timestamp);
-        message.setExecutorClass(metric.getExecutorClass());
-        message.setPoolName(metric.getThreadPoolName());
+        message.setExecutorClass(metrics.getExecutorClass());
+        message.setPoolName(metrics.getThreadPoolName());
 
-        message.setActiveThreads(metric.getActiveThreads());
-        message.setCurrentPoolSize(metric.getCurrentPoolSize());
-        message.setMaxPoolSize(metric.getMaxPoolSize());
-        message.setLargestPoolSize(metric.getLargestPoolSize());
-        message.setQueuedTaskCount(metric.getQueuedTaskCount());
-        message.setCallerRunTaskCount(metric.getCallerRunTaskCount());
-        message.setAbortedTaskCount(metric.getAbortedTaskCount());
-        message.setDiscardedTaskCount(metric.getDiscardedTaskCount());
-        message.setDiscardedOldestTaskCount(metric.getDiscardedOldestTaskCount());
-        message.setExceptionTaskCount(metric.getExceptionTaskCount());
-        message.setSuccessfulTaskCount(metric.getSuccessfulTaskCount());
-        message.setTotalTaskCount(metric.getTotalTaskCount());
+        message.setActiveThreads(metrics.getActiveThreads());
+        message.setCurrentPoolSize(metrics.getCurrentPoolSize());
+        message.setMaxPoolSize(metrics.getMaxPoolSize());
+        message.setLargestPoolSize(metrics.getLargestPoolSize());
+        message.setQueuedTaskCount(metrics.getQueuedTaskCount());
+        message.setCallerRunTaskCount(metrics.getCallerRunTaskCount());
+        message.setAbortedTaskCount(metrics.getAbortedTaskCount());
+        message.setDiscardedTaskCount(metrics.getDiscardedTaskCount());
+        message.setDiscardedOldestTaskCount(metrics.getDiscardedOldestTaskCount());
+        message.setExceptionTaskCount(metrics.getExceptionTaskCount());
+        message.setSuccessfulTaskCount(metrics.getSuccessfulTaskCount());
+        message.setTotalTaskCount(metrics.getTotalTaskCount());
 
         return message;
     }

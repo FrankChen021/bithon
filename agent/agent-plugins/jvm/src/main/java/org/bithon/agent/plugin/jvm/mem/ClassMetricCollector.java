@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.jvm.mem;
 
-import org.bithon.agent.core.metric.domain.jvm.ClassCompositeMetric;
+import org.bithon.agent.core.metric.domain.jvm.ClassMetrics;
 
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
@@ -26,11 +26,11 @@ import java.lang.management.ManagementFactory;
  * @date 2021/2/14 8:29 下午
  */
 public class ClassMetricCollector {
-    public static ClassCompositeMetric collect() {
+    public static ClassMetrics collect() {
         final ClassLoadingMXBean classLoadingMXBean = ManagementFactory.getClassLoadingMXBean();
-        return new ClassCompositeMetric(classLoadingMXBean.getTotalLoadedClassCount(),
-                                        classLoadingMXBean.getLoadedClassCount(),
-                                        classLoadingMXBean.getUnloadedClassCount());
+        return new ClassMetrics(classLoadingMXBean.getTotalLoadedClassCount(),
+                                classLoadingMXBean.getLoadedClassCount(),
+                                classLoadingMXBean.getUnloadedClassCount());
 
     }
 }

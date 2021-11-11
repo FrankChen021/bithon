@@ -21,7 +21,7 @@ import com.mysql.cj.conf.HostInfo;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
+import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SqlMetricCollector;
 import org.bithon.agent.core.utils.MiscUtils;
 import org.bithon.agent.core.utils.ReflectionUtils;
@@ -52,7 +52,7 @@ public class NativeProtocolInterceptor extends AbstractInterceptor {
         Object session = ReflectionUtils.getFieldValue(nativeProtocol, "session");
         HostInfo hostInfo = (HostInfo) ReflectionUtils.getFieldValue(session, "hostInfo");
 
-        SqlCompositeMetric metric = sqlMetricCollector.getOrCreateMetric(MiscUtils.cleanupConnectionString(hostInfo.getDatabaseUrl()));
+        SQLMetrics metric = sqlMetricCollector.getOrCreateMetric(MiscUtils.cleanupConnectionString(hostInfo.getDatabaseUrl()));
 
         if (MySql8Plugin.METHOD_SEND_COMMAND.equals(methodName)) {
             Object message = aopContext.getArgs()[0];

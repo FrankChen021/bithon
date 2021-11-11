@@ -21,7 +21,7 @@ import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
+import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerType;
 
 import java.lang.reflect.InvocationTargetException;
@@ -65,11 +65,11 @@ public class WebServerMetricCollector implements IMetricCollector {
 
         return Collections.singletonList(messageConverter.from(timestamp,
                                                                interval,
-                                                               new WebServerMetricSet(WebServerType.UNDERTOW,
-                                                                                      connectionCount,
-                                                                                      maxConnections,
-                                                                                      threadPoolAccessor.getActiveCount(),
-                                                                                      threadPoolAccessor.getMaximumPoolSize())));
+                                                               new WebServerMetrics(WebServerType.UNDERTOW,
+                                                                                    connectionCount,
+                                                                                    maxConnections,
+                                                                                    threadPoolAccessor.getActiveCount(),
+                                                                                    threadPoolAccessor.getMaximumPoolSize())));
     }
 
     public void setThreadPool(Object webRequestThreadPool) {

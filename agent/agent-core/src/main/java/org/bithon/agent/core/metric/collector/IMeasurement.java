@@ -22,7 +22,7 @@ import java.util.List;
  * @author Frank Chen
  * @date 3/10/21 11:40
  */
-public interface IMetricSet {
+public interface IMeasurement {
     List<String> getDimensions();
 
     int getMetricCount();

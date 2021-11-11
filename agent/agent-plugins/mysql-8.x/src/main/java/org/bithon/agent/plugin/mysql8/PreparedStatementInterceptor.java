@@ -20,7 +20,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
+import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SqlMetricCollector;
 import org.bithon.agent.core.utils.MiscUtils;
 
@@ -57,7 +57,7 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
         String methodName = aopContext.getMethod().getName();
         String connectionString = aopContext.castUserContextAs();
 
-        SqlCompositeMetric metric = sqlMetricCollector.getOrCreateMetric(connectionString);
+        SQLMetrics metric = sqlMetricCollector.getOrCreateMetric(connectionString);
         boolean isQuery = true;
         if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName)
             || MySql8Plugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {

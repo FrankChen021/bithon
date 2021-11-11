@@ -23,7 +23,7 @@ import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
+import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
 import org.bithon.agent.core.utils.MiscUtils;
 import shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
 import shaded.com.alibaba.druid.util.JdbcConstants;
@@ -48,7 +48,7 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
     static final SqlStatementMetricCollector INSTANCE = new SqlStatementMetricCollector();
     private static final Logger log = LoggerFactory.getLogger(SqlStatementMetricCollector.class);
     private static final String MYSQL_COUNTER_NAME = "mysql8_sql_stats";
-    private final Map<String, Map<String, SqlStatementCompositeMetric>> metricMap = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, SQLStatementMetrics>> metricMap = new ConcurrentHashMap<>();
     private int sqlTimeThreshold = 1000;
 
     private SqlStatementMetricCollector() {
@@ -100,7 +100,7 @@ public class SqlStatementMetricCollector implements IMetricCollector, IAgentSett
         sql = ParameterizedOutputVisitorUtils.parameterize(sql, JdbcConstants.MYSQL).replace("\n", "");
         metricMap.computeIfAbsent(connectionString,
                                   key -> new ConcurrentHashMap<>())
-                 .computeIfAbsent(sql, key -> new SqlStatementCompositeMetric("mysql"))
+                 .computeIfAbsent(sql, key -> new SQLStatementMetrics("mysql"))
                  .add(1, aopContext.hasException() ? 1 : 0, responseTime);
     }
 

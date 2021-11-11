@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.jvm;
 
-import org.bithon.agent.core.metric.domain.jvm.CpuCompositeMetric;
+import org.bithon.agent.core.metric.domain.jvm.CpuMetrics;
 import org.bithon.agent.core.metric.model.Delta;
 
 import java.util.concurrent.TimeUnit;
@@ -42,7 +42,7 @@ public class CpuMetricCollector {
      * https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8226575
      * https://github.com/alibaba/Sentinel/pull/1204
      */
-    public CpuCompositeMetric collect() {
+    public CpuMetrics collect() {
         long processCpuTimeDelta = processCpuTime.update(JmxBeans.OS_BEAN.getProcessCpuTime());
         long processUpTimeDelta = processUpTime.update(JmxBeans.RUNTIME_BEAN.getUptime());
         int cpuCores = JmxBeans.OS_BEAN.getAvailableProcessors();
@@ -51,9 +51,9 @@ public class CpuMetricCollector {
                                       / processUpTimeDelta
                                       / cpuCores * 100;
 
-        return new CpuCompositeMetric(cpuCores,
-                                      processCpuTimeDelta,
-                                      JmxBeans.OS_BEAN.getSystemLoadAverage(),
-                                      processCpuPercentage);
+        return new CpuMetrics(cpuCores,
+                              processCpuTimeDelta,
+                              JmxBeans.OS_BEAN.getSystemLoadAverage(),
+                              processCpuPercentage);
     }
 }

@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.jvm.mem;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
-import org.bithon.agent.core.metric.domain.jvm.MemoryCompositeMetric;
-import org.bithon.agent.core.metric.domain.jvm.MemoryRegionCompositeMetric;
+import org.bithon.agent.core.metric.domain.jvm.MemoryMetrics;
+import org.bithon.agent.core.metric.domain.jvm.MemoryRegionMetrics;
 import org.bithon.agent.core.plugin.PluginClassLoaderManager;
 import org.bithon.agent.plugin.jvm.JmxBeans;
 
@@ -69,24 +69,24 @@ public class MemoryMetricCollector {
         }
     }
 
-    public static MemoryCompositeMetric collectTotal() {
-        return new MemoryCompositeMetric(Runtime.getRuntime().totalMemory(),
-                                         Runtime.getRuntime().freeMemory());
+    public static MemoryMetrics collectTotal() {
+        return new MemoryMetrics(Runtime.getRuntime().totalMemory(),
+                                 Runtime.getRuntime().freeMemory());
     }
 
-    public static MemoryRegionCompositeMetric collectHeap() {
-        return new MemoryRegionCompositeMetric(JmxBeans.MEM_BEAN.getHeapMemoryUsage());
+    public static MemoryRegionMetrics collectHeap() {
+        return new MemoryRegionMetrics(JmxBeans.MEM_BEAN.getHeapMemoryUsage());
     }
 
-    public static MemoryRegionCompositeMetric collectNonHeap() {
-        return new MemoryRegionCompositeMetric(JmxBeans.MEM_BEAN.getNonHeapMemoryUsage());
+    public static MemoryRegionMetrics collectNonHeap() {
+        return new MemoryRegionMetrics(JmxBeans.MEM_BEAN.getNonHeapMemoryUsage());
     }
 
-    public static MemoryRegionCompositeMetric collectMetaSpace() {
-        return new MemoryRegionCompositeMetric(META_SPACE_BEAN.getUsage());
+    public static MemoryRegionMetrics collectMetaSpace() {
+        return new MemoryRegionMetrics(META_SPACE_BEAN.getUsage());
     }
 
-    public static MemoryRegionCompositeMetric collectDirectMemory() {
+    public static MemoryRegionMetrics collectDirectMemory() {
         return directMemoryCollector.collect();
     }
 }

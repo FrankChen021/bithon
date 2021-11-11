@@ -20,7 +20,7 @@ package org.bithon.agent.core.metric.domain.jvm;
  * @author frank.chen021@outlook.com
  * @date 2020/12/29 9:58 下午
  */
-public class GcCompositeMetric {
+public class GcMetrics {
     private String gcName;
 
     /**
@@ -55,7 +55,7 @@ public class GcCompositeMetric {
         return gcTime;
     }
 
-    public GcCompositeMetric(String gcName, String generation, long gcCount, long gcTime) {
+    public GcMetrics(String gcName, String generation, long gcCount, long gcTime) {
         this.gcName = gcName;
         this.generation = generation;
         this.gcCount = gcCount;

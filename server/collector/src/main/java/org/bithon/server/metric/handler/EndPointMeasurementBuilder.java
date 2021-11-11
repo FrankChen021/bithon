@@ -17,7 +17,7 @@
 package org.bithon.server.metric.handler;
 
 import org.bithon.server.common.utils.EndPointType;
-import org.bithon.server.metric.input.MetricSet;
+import org.bithon.server.metric.input.Measurement;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,77 +28,77 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/4/9 20:43
  */
-public class EndPointMetricSetBuilder {
+public class EndPointMeasurementBuilder {
 
     private final Map<String, Number> metrics = new HashMap<>(8);
     private final Map<String, String> dimensions = new HashMap<>(8);
     private long timestamp;
 
-    public static EndPointMetricSetBuilder builder() {
-        return new EndPointMetricSetBuilder();
+    public static EndPointMeasurementBuilder builder() {
+        return new EndPointMeasurementBuilder();
     }
 
-    public EndPointMetricSetBuilder timestamp(long timestamp) {
+    public EndPointMeasurementBuilder timestamp(long timestamp) {
         this.timestamp = timestamp;
         return this;
     }
 
-    public EndPointMetricSetBuilder srcEndpointType(EndPointType srcEndpointType) {
+    public EndPointMeasurementBuilder srcEndpointType(EndPointType srcEndpointType) {
         dimensions.put("srcEndpointType", srcEndpointType.name());
         return this;
     }
 
-    public EndPointMetricSetBuilder srcEndpoint(String srcEndpoint) {
+    public EndPointMeasurementBuilder srcEndpoint(String srcEndpoint) {
         dimensions.put("srcEndpoint", srcEndpoint);
         return this;
     }
 
-    public EndPointMetricSetBuilder dstEndpointType(EndPointType dstEndpointType) {
+    public EndPointMeasurementBuilder dstEndpointType(EndPointType dstEndpointType) {
         dimensions.put("dstEndpointType", dstEndpointType.name());
         return this;
     }
 
-    public EndPointMetricSetBuilder dstEndpointType(String dstEndpointType) {
+    public EndPointMeasurementBuilder dstEndpointType(String dstEndpointType) {
         dimensions.put("dstEndpointType", dstEndpointType);
         return this;
     }
 
-    public EndPointMetricSetBuilder dstEndpoint(String dstEndpoint) {
+    public EndPointMeasurementBuilder dstEndpoint(String dstEndpoint) {
         dimensions.put("dstEndpoint", dstEndpoint);
         return this;
     }
 
-    public EndPointMetricSetBuilder interval(long interval) {
+    public EndPointMeasurementBuilder interval(long interval) {
         metrics.put("interval", interval);
         return this;
     }
 
-    public EndPointMetricSetBuilder callCount(long callCount) {
+    public EndPointMeasurementBuilder callCount(long callCount) {
         metrics.put("callCount", callCount);
         return this;
     }
 
-    public EndPointMetricSetBuilder errorCount(long errorCount) {
+    public EndPointMeasurementBuilder errorCount(long errorCount) {
         metrics.put("errorCount", errorCount);
         return this;
     }
 
-    public EndPointMetricSetBuilder responseTime(long responseTime) {
+    public EndPointMeasurementBuilder responseTime(long responseTime) {
         metrics.put("responseTime", responseTime);
         return this;
     }
 
-    public EndPointMetricSetBuilder minResponseTime(long minResponseTime) {
+    public EndPointMeasurementBuilder minResponseTime(long minResponseTime) {
         metrics.put("minResponseTime", minResponseTime);
         return this;
     }
 
-    public EndPointMetricSetBuilder maxResponseTime(long maxResponseTime) {
+    public EndPointMeasurementBuilder maxResponseTime(long maxResponseTime) {
         metrics.put("maxResponseTime", maxResponseTime);
         return this;
     }
 
-    public MetricSet build() {
-        return new MetricSet(this.timestamp, this.dimensions, this.metrics);
+    public Measurement build() {
+        return new Measurement(this.timestamp, this.dimensions, this.metrics);
     }
 }

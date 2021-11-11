@@ -18,26 +18,19 @@ package org.bithon.agent.core.metric.domain.jvm;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/29 9:49 下午
+ * @date 2020/12/29 9:55 下午
  */
-public class CpuCompositeMetric {
-    public long processorNumber;
+public class ClassMetrics {
 
-    // CPU Time in nano seconds
-    public long processCpuTime;
+    public long currentLoadedClasses;
 
-    public double avgSystemLoad;
+    public long totalLoadedClasses;
 
-    // CPU usage (%)
-    public double processCpuLoad;
+    public long totalUnloadedClasses;
 
-    public CpuCompositeMetric(long processorNumber,
-                              long processCpuTime,
-                              double avgSystemLoad,
-                              double processCpuLoad) {
-        this.processorNumber = processorNumber;
-        this.processCpuTime = processCpuTime;
-        this.avgSystemLoad = avgSystemLoad;
-        this.processCpuLoad = processCpuLoad;
+    public ClassMetrics(long currentLoadedClasses, long totalLoadedClasses, long totalUnloadedClasses) {
+        this.currentLoadedClasses = currentLoadedClasses;
+        this.totalLoadedClasses = totalLoadedClasses;
+        this.totalUnloadedClasses = totalUnloadedClasses;
     }
 }

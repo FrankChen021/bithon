@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class RedisMetricCollector extends IntervalMetricCollector<RedisClientCompositeMetric> {
+public class RedisMetricCollector extends IntervalMetricCollector<RedisClientMetrics> {
 
     public void addWrite(String endpoint,
                          String command,
@@ -57,8 +57,8 @@ public class RedisMetricCollector extends IntervalMetricCollector<RedisClientCom
     }
 
     @Override
-    protected RedisClientCompositeMetric newMetrics() {
-        return new RedisClientCompositeMetric();
+    protected RedisClientMetrics newMetrics() {
+        return new RedisClientMetrics();
     }
 
     @Override
@@ -66,7 +66,7 @@ public class RedisMetricCollector extends IntervalMetricCollector<RedisClientCom
                                int interval,
                                long timestamp,
                                List<String> dimensions,
-                               RedisClientCompositeMetric metric) {
+                               RedisClientMetrics metric) {
         return messageConverter.from(timestamp, interval, dimensions, metric);
     }
 }

@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.jvm.jdk9;
 
-import org.bithon.agent.core.metric.domain.jvm.MemoryRegionCompositeMetric;
+import org.bithon.agent.core.metric.domain.jvm.MemoryRegionMetrics;
 import org.bithon.agent.plugin.jvm.mem.IDirectMemoryCollector;
 
 import java.lang.management.BufferPoolMXBean;
@@ -35,9 +35,9 @@ public class DirectMemoryCollector implements IDirectMemoryCollector {
                                                                                 .get();
 
     @Override
-    public MemoryRegionCompositeMetric collect() {
+    public MemoryRegionMetrics collect() {
         long max = jdk.internal.misc.VM.maxDirectMemory();
         long used = DIRECT_MEMORY_BEAN.getMemoryUsed();
-        return new MemoryRegionCompositeMetric(max, 0, used, max - used);
+        return new MemoryRegionMetrics(max, 0, used, max - used);
     }
 }

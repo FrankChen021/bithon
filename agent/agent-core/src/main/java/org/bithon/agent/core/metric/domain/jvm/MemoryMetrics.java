@@ -14,15 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm.mem;
-
-import org.bithon.agent.core.metric.domain.jvm.MemoryRegionMetrics;
+package org.bithon.agent.core.metric.domain.jvm;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/9 22:14
+ * @date 2020/12/29 9:52 下午
  */
-public interface IDirectMemoryCollector {
+public class MemoryMetrics {
 
-    MemoryRegionMetrics collect();
+    // memory in bytes that allocated to current application
+    public long allocatedBytes;
+    public long freeBytes;
+
+    public MemoryMetrics(long allocatedBytes, long freeBytes) {
+        this.allocatedBytes = allocatedBytes;
+        this.freeBytes = freeBytes;
+    }
 }

@@ -16,7 +16,7 @@
 
 package org.bithon.agent.plugin.jvm.gc;
 
-import org.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
+import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.model.Delta;
 
 import java.lang.management.GarbageCollectorMXBean;
@@ -43,12 +43,12 @@ public class GcMetricCollector {
             this.generation = getGeneration(bean.getName());
         }
 
-        public GcCompositeMetric collect() {
+        public GcMetrics collect() {
             long gcCount = this.gcCount.update(gcBean.getCollectionCount());
             long gcTime = this.gcTime.update(gcBean.getCollectionTime());
 
             if (gcCount > 0 && gcTime > 0) {
-                return new GcCompositeMetric(gcBean.getName(), generation, gcCount, gcTime);
+                return new GcMetrics(gcBean.getName(), generation, gcCount, gcTime);
             }
             return null;
         }
@@ -94,11 +94,11 @@ public class GcMetricCollector {
         }
     }
 
-    public List<GcCompositeMetric> collect() {
-        List<GcCompositeMetric> metrics = new ArrayList<>(collectors.size());
+    public List<GcMetrics> collect() {
+        List<GcMetrics> metrics = new ArrayList<>(collectors.size());
         for (GarbageCollector gcBean : collectors.values()) {
 
-            GcCompositeMetric metric = gcBean.collect();
+            GcMetrics metric = gcBean.collect();
             if (metric != null) {
                 metrics.add(metric);
             }

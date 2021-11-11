@@ -24,10 +24,10 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class SqlMetricCollector extends IntervalMetricCollector<SqlCompositeMetric> {
+public class SqlMetricCollector extends IntervalMetricCollector<SQLMetrics> {
     @Override
-    protected SqlCompositeMetric newMetrics() {
-        return new SqlCompositeMetric();
+    protected SQLMetrics newMetrics() {
+        return new SQLMetrics();
     }
 
     @Override
@@ -35,11 +35,11 @@ public class SqlMetricCollector extends IntervalMetricCollector<SqlCompositeMetr
                                int interval,
                                long timestamp,
                                List<String> dimensions,
-                               SqlCompositeMetric metric) {
+                               SQLMetrics metric) {
         return messageConverter.from(timestamp, interval, dimensions, metric);
     }
 
-    public SqlCompositeMetric getOrCreateMetric(String connectionString) {
+    public SQLMetrics getOrCreateMetric(String connectionString) {
         return super.getOrCreateMetric(connectionString);
     }
 }
