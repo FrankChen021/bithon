@@ -74,7 +74,7 @@ public class StatementInterceptor extends AbstractInterceptor {
             }
         }
 
-        sqlMetricCollector.getOrCreateMetric(connectionString)
+        sqlMetricCollector.getOrCreateMetrics(connectionString)
                           .update(isQuery, aopContext.hasException(), aopContext.getCostTime());
     }
 }

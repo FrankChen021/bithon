@@ -74,7 +74,7 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
                 isQuery = false;
             }
         }
-        sqlMetricCollector.getOrCreateMetric(connectionString)
+        sqlMetricCollector.getOrCreateMetrics(connectionString)
                           .update(isQuery, aopContext.hasException(), aopContext.getCostTime());
 
 

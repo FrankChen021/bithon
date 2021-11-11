@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class RedisMetricCollector extends IntervalMetricCollector<RedisClientCompositeMetric> {
+public class RedisMetricCollector extends IntervalMetricCollector<RedisClientMetrics> {
 
     public void addWrite(String endpoint,
                          String command,
@@ -32,7 +32,7 @@ public class RedisMetricCollector extends IntervalMetricCollector<RedisClientCom
                          boolean hasException) {
         int exceptionCount = hasException ? 1 : 0;
 
-        getOrCreateMetric(endpoint, command).addRequest(responseTime, exceptionCount);
+        getOrCreateMetrics(endpoint, command).addRequest(responseTime, exceptionCount);
     }
 
     public void addRead(String endpoint,
@@ -41,24 +41,24 @@ public class RedisMetricCollector extends IntervalMetricCollector<RedisClientCom
                         boolean hasException) {
         int exceptionCount = hasException ? 1 : 0;
 
-        getOrCreateMetric(endpoint, command).addResponse(responseTime, exceptionCount);
+        getOrCreateMetrics(endpoint, command).addResponse(responseTime, exceptionCount);
     }
 
     public void addOutputBytes(String endpoint,
                                String command,
                                int bytesOut) {
-        getOrCreateMetric(endpoint, command).addRequestBytes(bytesOut);
+        getOrCreateMetrics(endpoint, command).addRequestBytes(bytesOut);
     }
 
     public void addInputBytes(String endpoint,
                               String command,
                               int bytesIn) {
-        getOrCreateMetric(endpoint, command).addResponseBytes(bytesIn);
+        getOrCreateMetrics(endpoint, command).addResponseBytes(bytesIn);
     }
 
     @Override
-    protected RedisClientCompositeMetric newMetrics() {
-        return new RedisClientCompositeMetric();
+    protected RedisClientMetrics newMetrics() {
+        return new RedisClientMetrics();
     }
 
     @Override
@@ -66,7 +66,7 @@ public class RedisMetricCollector extends IntervalMetricCollector<RedisClientCom
                                int interval,
                                long timestamp,
                                List<String> dimensions,
-                               RedisClientCompositeMetric metric) {
+                               RedisClientMetrics metric) {
         return messageConverter.from(timestamp, interval, dimensions, metric);
     }
 }

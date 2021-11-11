@@ -23,7 +23,7 @@ import org.bithon.agent.core.metric.model.Timer;
 /**
  * @author frankchen
  */
-public class RedisClientCompositeMetric implements ICompositeMetric {
+public class RedisClientMetrics implements ICompositeMetric {
 
     private final Timer requestTime = new Timer();
     private final Timer responseTime = new Timer();

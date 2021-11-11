@@ -17,7 +17,7 @@
 package org.bithon.server.metric.storage;
 
 import org.bithon.server.metric.input.InputRow;
-import org.bithon.server.metric.input.MetricSet;
+import org.bithon.server.metric.input.Measurement;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -31,5 +31,5 @@ public interface IMetricWriter extends AutoCloseable {
 
     void write(List<InputRow> inputRowList) throws IOException;
 
-    void write(Collection<MetricSet> metricSetList) throws IOException;
+    void write(Collection<Measurement> measurementList) throws IOException;
 }

@@ -18,16 +18,26 @@ package org.bithon.agent.core.metric.domain.jvm;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/29 9:52 下午
+ * @date 2020/12/29 9:56 下午
  */
-public class MemoryCompositeMetric {
+public class ThreadMetrics {
 
-    // memory in bytes that allocated to current application
-    public long allocatedBytes;
-    public long freeBytes;
+    public long peakActiveCount;
+    public long activeDaemonCount;
+    public long totalCreatedCount;
 
-    public MemoryCompositeMetric(long allocatedBytes, long freeBytes) {
-        this.allocatedBytes = allocatedBytes;
-        this.freeBytes = freeBytes;
+    /**
+     * current count of active threads, including daemon and non-daemon threads
+     */
+    public long activeThreadsCount;
+
+    public ThreadMetrics(long peakActiveCount,
+                         long activeDaemonCount,
+                         long totalCreatedCount,
+                         long activeThreadsCount) {
+        this.peakActiveCount = peakActiveCount;
+        this.activeDaemonCount = activeDaemonCount;
+        this.totalCreatedCount = totalCreatedCount;
+        this.activeThreadsCount = activeThreadsCount;
     }
 }

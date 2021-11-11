@@ -21,7 +21,7 @@ import org.bithon.server.common.service.UriNormalizer;
 import org.bithon.server.common.utils.EndPointType;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchemaManager;
-import org.bithon.server.metric.input.MetricSet;
+import org.bithon.server.metric.input.Measurement;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -66,7 +66,7 @@ public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandl
     }
 
     @Override
-    protected MetricSet extractEndpointLink(MetricMessage message) {
+    protected Measurement extractEndpointLink(MetricMessage message) {
         String srcApplication;
         EndPointType srcEndPointType;
         if (StringUtils.isEmpty(message.getString("srcApplication"))) {
@@ -76,20 +76,20 @@ public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandl
             srcApplication = message.getString("srcApplication");
             srcEndPointType = EndPointType.APPLICATION;
         }
-        return EndPointMetricSetBuilder.builder()
-                                       .timestamp(message.getTimestamp())
-                                       // dimension
-                                       .srcEndpointType(srcEndPointType)
-                                       .srcEndpoint(srcApplication)
-                                       .dstEndpointType(EndPointType.APPLICATION)
-                                       .dstEndpoint(message.getApplicationName())
-                                       // metric
-                                       .interval(message.getLong("interval"))
-                                       .minResponseTime(message.getLong("minResponseTime"))
-                                       .maxResponseTime(message.getLong("maxResponseTime"))
-                                       .responseTime(message.getLong("responseTime"))
-                                       .callCount(message.getLong("totalCount"))
-                                       .errorCount(message.getLong("errorCount"))
-                                       .build();
+        return EndPointMeasurementBuilder.builder()
+                                         .timestamp(message.getTimestamp())
+                                         // dimension
+                                         .srcEndpointType(srcEndPointType)
+                                         .srcEndpoint(srcApplication)
+                                         .dstEndpointType(EndPointType.APPLICATION)
+                                         .dstEndpoint(message.getApplicationName())
+                                         // metric
+                                         .interval(message.getLong("interval"))
+                                         .minResponseTime(message.getLong("minResponseTime"))
+                                         .maxResponseTime(message.getLong("maxResponseTime"))
+                                         .responseTime(message.getLong("responseTime"))
+                                         .callCount(message.getLong("totalCount"))
+                                         .errorCount(message.getLong("errorCount"))
+                                         .build();
     }
 }

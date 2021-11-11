@@ -25,7 +25,7 @@ import java.security.MessageDigest;
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 8:21 下午
  */
-public class ExceptionMetricSet implements IMetric {
+public class ExceptionMetrics implements IMetric {
     // dimension
     private final String uri;
     private final String exceptionId;
@@ -35,10 +35,10 @@ public class ExceptionMetricSet implements IMetric {
     // counter
     private int count = 0;
 
-    public ExceptionMetricSet(String uri,
-                              String exceptionClass,
-                              String message,
-                              String stackTrace) {
+    public ExceptionMetrics(String uri,
+                            String exceptionClass,
+                            String message,
+                            String stackTrace) {
         this.uri = uri;
         this.exceptionId = md5(stackTrace) + md5(message);
         this.message = message;
@@ -46,11 +46,11 @@ public class ExceptionMetricSet implements IMetric {
         this.stackTrace = stackTrace;
     }
 
-    public static ExceptionMetricSet fromException(String uri, Throwable exception) {
-        return new ExceptionMetricSet(uri,
-                                      exception.getClass().getSimpleName(),
-                                      exception.getMessage(),
-                                      getFullStack(exception.getStackTrace()));
+    public static ExceptionMetrics fromException(String uri, Throwable exception) {
+        return new ExceptionMetrics(uri,
+                                    exception.getClass().getSimpleName(),
+                                    exception.getMessage(),
+                                    getFullStack(exception.getStackTrace()));
     }
 
     private static String md5(String stack) {

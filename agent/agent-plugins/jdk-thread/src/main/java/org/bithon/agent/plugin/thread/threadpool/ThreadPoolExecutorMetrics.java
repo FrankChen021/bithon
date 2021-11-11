@@ -16,48 +16,46 @@
 
 package org.bithon.agent.plugin.thread.threadpool;
 
-import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
-import org.bithon.agent.core.utils.ReflectionUtils;
+import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
 
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/25 11:26 下午
+ * @date 2021/2/25 10:48 下午
  */
-public class ForkJoinPoolCompositeMetric extends ThreadPoolCompositeMetric {
-    private final ForkJoinPool pool;
-    private long largestPoolSize = 0;
+class ThreadPoolExecutorMetrics extends ThreadPoolMetrics {
 
-    public ForkJoinPoolCompositeMetric(ForkJoinPool pool) {
-        super(pool.getClass().getName(),
-              ThreadPoolUtils.stripSuffix((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"));
-        this.pool = pool;
+    private final ThreadPoolExecutor executor;
+
+    ThreadPoolExecutorMetrics(ThreadPoolExecutor executor) {
+        super(executor.getThreadFactory().getClass().getName(),
+              ThreadPoolUtils.getThreadPoolName(executor.getThreadFactory()));
+        this.executor = executor;
     }
 
     @Override
     public long getActiveThreads() {
-        return pool.getActiveThreadCount();
+        return executor.getActiveCount();
     }
 
     @Override
     public long getCurrentPoolSize() {
-        return pool.getPoolSize();
+        return executor.getPoolSize();
     }
 
     @Override
     public long getMaxPoolSize() {
-        return pool.getParallelism();
+        return executor.getMaximumPoolSize();
     }
 
     @Override
     public long getLargestPoolSize() {
-        largestPoolSize = Math.max(pool.getPoolSize(), largestPoolSize);
-        return largestPoolSize;
+        return executor.getLargestPoolSize();
     }
 
     @Override
     public long getQueuedTaskCount() {
-        return pool.getQueuedTaskCount();
+        return executor.getQueue().size();
     }
 }

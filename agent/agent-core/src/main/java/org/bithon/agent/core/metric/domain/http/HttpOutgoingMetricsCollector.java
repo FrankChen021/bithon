@@ -42,7 +42,7 @@ public class HttpOutgoingMetricsCollector extends IntervalMetricCollector2<HttpO
                                     String method,
                                     long responseTime) {
         String path = uri.split("\\?")[0];
-        getOrCreateMetric(path, method, "-").addException(responseTime, 1);
+        getOrCreateMetrics(path, method, "-").addException(responseTime, 1);
     }
 
     public void addRequest(String uri,
@@ -60,7 +60,7 @@ public class HttpOutgoingMetricsCollector extends IntervalMetricCollector2<HttpO
             }
         }
 
-        getOrCreateMetric(path, method, String.valueOf(statusCode))
+        getOrCreateMetrics(path, method, String.valueOf(statusCode))
             .add(responseTime, count4xx, count5xx);
     }
 
@@ -69,6 +69,6 @@ public class HttpOutgoingMetricsCollector extends IntervalMetricCollector2<HttpO
                          long requestBytes,
                          long responseBytes) {
         String path = uri.split("\\?")[0];
-        getOrCreateMetric(path, method, "-").addByteSize(requestBytes, responseBytes);
+        getOrCreateMetrics(path, method, "-").addByteSize(requestBytes, responseBytes);
     }
 }

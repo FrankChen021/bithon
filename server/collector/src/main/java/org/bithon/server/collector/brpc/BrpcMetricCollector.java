@@ -20,9 +20,9 @@ package org.bithon.server.collector.brpc;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
+import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurement;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
-import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSet;
 import org.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcHttpOutgoingMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
@@ -217,7 +217,7 @@ public class BrpcMetricCollector implements IMetricCollector {
                                                        null,
                                                        null);
 
-        Iterator<BrpcGenericMetricSet> iterator = message.getMetricSetList().iterator();
+        Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
         schemaMetricMessage.setSchema(schema);
         schemaMetricMessage.setMetrics(new CloseableIterator<MetricMessage>() {
             @Override
@@ -232,7 +232,7 @@ public class BrpcMetricCollector implements IMetricCollector {
             @Override
             public MetricMessage next() {
                 MetricMessage metricMessage = new MetricMessage();
-                BrpcGenericMetricSet metricSet = iterator.next();
+                BrpcGenericMeasurement metricSet = iterator.next();
 
                 int i = 0;
                 for (String dimension : metricSet.getDimensionList()) {
@@ -258,7 +258,7 @@ public class BrpcMetricCollector implements IMetricCollector {
     @Override
     public void sendGenericMetricsV2(BrpcMessageHeader header, BrpcGenericMetricMessageV2 message) {
         CloseableIterator<MetricMessage> mesageIterator = new CloseableIterator<MetricMessage>() {
-            final Iterator<BrpcGenericMetricSet> iterator = message.getMetricSetList().iterator();
+            final Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
 
             @Override
             public void close() {
@@ -272,7 +272,7 @@ public class BrpcMetricCollector implements IMetricCollector {
             @Override
             public MetricMessage next() {
                 MetricMessage metricMessage = new MetricMessage();
-                BrpcGenericMetricSet metricSet = iterator.next();
+                BrpcGenericMeasurement metricSet = iterator.next();
 
                 int i = 0;
                 for (String dimension : metricSet.getDimensionList()) {

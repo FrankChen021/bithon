@@ -20,7 +20,7 @@ package org.bithon.agent.core.metric.domain.web;
  * @author frank.chen021@outlook.com
  * @date 2021/1/13 10:51 下午
  */
-public class WebServerMetricSet {
+public class WebServerMetrics {
 
     private final WebServerType serverType;
     private final long connectionCount;
@@ -28,11 +28,11 @@ public class WebServerMetricSet {
     private final long activeThreads;
     private final long maxThreads;
 
-    public WebServerMetricSet(WebServerType serverType,
-                              long connectionCount,
-                              long maxConnections,
-                              long activeThreads,
-                              long maxThreads) {
+    public WebServerMetrics(WebServerType serverType,
+                            long connectionCount,
+                            long maxConnections,
+                            long activeThreads,
+                            long maxThreads) {
         this.serverType = serverType;
         this.connectionCount = connectionCount;
         this.maxConnections = maxConnections;

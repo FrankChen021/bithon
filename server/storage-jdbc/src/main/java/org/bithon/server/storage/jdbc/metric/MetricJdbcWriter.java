@@ -18,7 +18,7 @@ package org.bithon.server.storage.jdbc.metric;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.metric.input.InputRow;
-import org.bithon.server.metric.input.MetricSet;
+import org.bithon.server.metric.input.Measurement;
 import org.bithon.server.metric.storage.IMetricWriter;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -51,8 +51,8 @@ class MetricJdbcWriter implements IMetricWriter {
     }
 
     @Override
-    public void write(Collection<MetricSet> metricSetList) {
-        writeRows(metricSetList.stream().map(this::toInsertSql).collect(Collectors.toList()));
+    public void write(Collection<Measurement> measurementList) {
+        writeRows(measurementList.stream().map(this::toInsertSql).collect(Collectors.toList()));
     }
 
     private void writeRows(List<Query> queries) {
@@ -88,19 +88,19 @@ class MetricJdbcWriter implements IMetricWriter {
     }
 
     @SuppressWarnings("unchecked")
-    private InsertSetMoreStep<?> toInsertSql(MetricSet metricSet) {
+    private InsertSetMoreStep<?> toInsertSql(Measurement measurement) {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
                                        .set(table.timestampField,
-                                            new Timestamp(metricSet.getTimestamp()));
+                                            new Timestamp(measurement.getTimestamp()));
 
         //noinspection rawtypes
         for (Field dimension : table.getDimensions()) {
-            Object value = metricSet.getDimension(dimension.getName(), "");
+            Object value = measurement.getDimension(dimension.getName(), "");
             step.set(dimension, value);
         }
         //noinspection rawtypes
         for (Field metric : table.getMetrics()) {
-            Object value = metricSet.getMetric(metric.getName(), 0);
+            Object value = measurement.getMetric(metric.getName(), 0);
             step.set(metric, value);
         }
 

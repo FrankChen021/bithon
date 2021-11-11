@@ -24,11 +24,11 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class MongoDbMetricCollector extends IntervalMetricCollector<MongoDbCompositeMetric> {
+public class MongoDbMetricCollector extends IntervalMetricCollector<MongoDbMetrics> {
 
     @Override
-    protected MongoDbCompositeMetric newMetrics() {
-        return new MongoDbCompositeMetric();
+    protected MongoDbMetrics newMetrics() {
+        return new MongoDbMetrics();
     }
 
     @Override
@@ -36,19 +36,19 @@ public class MongoDbMetricCollector extends IntervalMetricCollector<MongoDbCompo
                                int interval,
                                long timestamp,
                                List<String> dimensions,
-                               MongoDbCompositeMetric metric) {
+                               MongoDbMetrics metric) {
         return messageConverter.from(timestamp, interval, dimensions, metric);
     }
 
-    public MongoDbCompositeMetric getOrCreateMetric(String server, String database) {
-        return super.getOrCreateMetric(server, database);
+    public MongoDbMetrics getOrCreateMetric(String server, String database) {
+        return super.getOrCreateMetrics(server, database);
     }
 
     /**
      * a temp interafce to allow mongodb-3.8 plugin to compile OK
      */
     @Deprecated
-    public MongoDbCompositeMetric getOrCreateMetric(String server) {
-        return super.getOrCreateMetric(server);
+    public MongoDbMetrics getOrCreateMetric(String server) {
+        return super.getOrCreateMetrics(server);
     }
 }

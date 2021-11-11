@@ -16,21 +16,36 @@
 
 package org.bithon.agent.core.metric.domain.jvm;
 
+import java.lang.management.MemoryUsage;
+
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/29 9:55 下午
+ * @date 2020/12/29 9:54 下午
  */
-public class ClassCompositeMetric {
+public class MemoryRegionMetrics {
 
-    public long currentLoadedClasses;
+    // approximate to -XX:MaxPermSize
+    public long max = 0;
 
-    public long totalLoadedClasses;
+    // approximate to -XX:PermSize
+    public long init = 0;
 
-    public long totalUnloadedClasses;
+    public long used = 0;
 
-    public ClassCompositeMetric(long currentLoadedClasses, long totalLoadedClasses, long totalUnloadedClasses) {
-        this.currentLoadedClasses = currentLoadedClasses;
-        this.totalLoadedClasses = totalLoadedClasses;
-        this.totalUnloadedClasses = totalUnloadedClasses;
+    // available memory including used
+    public long committed = 0;
+
+    public MemoryRegionMetrics() {
+    }
+
+    public MemoryRegionMetrics(long max, long init, long used, long committed) {
+        this.max = Math.max(max, 0);
+        this.init = init;
+        this.used = used;
+        this.committed = committed;
+    }
+
+    public MemoryRegionMetrics(MemoryUsage usage) {
+        this(usage.getMax(), usage.getInit(), usage.getUsed(), usage.getCommitted());
     }
 }

@@ -24,7 +24,7 @@ import org.bithon.agent.core.metric.model.Timer;
  * @author frank.chen021@outlook.com
  * @date 2021/1/4 11:18 下午
  */
-public class SqlCompositeMetric implements ICompositeMetric {
+public class SQLMetrics implements ICompositeMetric {
     private final Timer responseTime = new Timer();
     private final Sum callCount = new Sum();
     private final Sum errorCount = new Sum();

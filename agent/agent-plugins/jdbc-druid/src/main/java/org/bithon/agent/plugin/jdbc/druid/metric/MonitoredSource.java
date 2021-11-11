@@ -17,8 +17,8 @@
 package org.bithon.agent.plugin.jdbc.druid.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
-import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
+import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
+import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 
 /**
  * @author frank.chen021@outlook.com
@@ -32,8 +32,8 @@ public class MonitoredSource {
     private final String connectionString;
 
     // metrics
-    private final JdbcPoolMetricSet jdbcPoolMetricSet;
-    private final SqlCompositeMetric sqlCompositeMetric;
+    private final JdbcPoolMetrics jdbcPoolMetrics;
+    private final SQLMetrics sqlMetrics;
 
     MonitoredSource(String driverClass,
                     String connectionString,
@@ -41,8 +41,8 @@ public class MonitoredSource {
         this.dataSource = dataSource;
         this.driverClass = driverClass;
         this.connectionString = connectionString;
-        this.jdbcPoolMetricSet = new JdbcPoolMetricSet(connectionString, driverClass);
-        this.sqlCompositeMetric = new SqlCompositeMetric();
+        this.jdbcPoolMetrics = new JdbcPoolMetrics(connectionString, driverClass);
+        this.sqlMetrics = new SQLMetrics();
     }
 
     public DruidDataSource getDataSource() {
@@ -57,11 +57,11 @@ public class MonitoredSource {
         return connectionString;
     }
 
-    public JdbcPoolMetricSet getJdbcMetric() {
-        return jdbcPoolMetricSet;
+    public JdbcPoolMetrics getJdbcMetric() {
+        return jdbcPoolMetrics;
     }
 
-    public SqlCompositeMetric getSqlMetric() {
-        return sqlCompositeMetric;
+    public SQLMetrics getSqlMetric() {
+        return sqlMetrics;
     }
 }

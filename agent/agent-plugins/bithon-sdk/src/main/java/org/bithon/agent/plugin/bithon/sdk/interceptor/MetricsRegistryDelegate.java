@@ -19,8 +19,8 @@ package org.bithon.agent.plugin.bithon.sdk.interceptor;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
+import org.bithon.agent.core.metric.collector.IMeasurement;
 import org.bithon.agent.core.metric.collector.IMetricCollector2;
-import org.bithon.agent.core.metric.collector.IMetricSet;
 import org.bithon.agent.core.metric.model.schema.IDimensionSpec;
 import org.bithon.agent.core.metric.model.schema.IMetricSpec;
 import org.bithon.agent.core.metric.model.schema.LongLastMetricSpec;
@@ -64,7 +64,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         }
     }
 
-    static class MetricSet implements IMetricSet {
+    static class Measurement implements IMeasurement {
         private final List<String> dimensions;
         private final Object metricProvider;
         private final List<Field> metricFields;
@@ -73,7 +73,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
             return metricProvider;
         }
 
-        MetricSet(Object metricProvider, List<String> dimensions, List<Field> metricFields) {
+        Measurement(Object metricProvider, List<String> dimensions, List<Field> metricFields) {
             this.dimensions = dimensions;
             this.metricProvider = metricProvider;
             this.metricFields = metricFields;
@@ -111,12 +111,12 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
     private final Supplier<Object> metricInstantiator;
     private final Schema schema;
-    private Map<List<String>, IMetricSet> metricsMap = new ConcurrentHashMap<>();
+    private Map<List<String>, IMeasurement> metricsMap = new ConcurrentHashMap<>();
 
     /**
      * keep metrics that won't be cleared when they have been collected
      */
-    private final Map<List<String>, IMetricSet> retainedMetricsMap = new ConcurrentHashMap<>();
+    private final Map<List<String>, IMeasurement> retainedMetricsMap = new ConcurrentHashMap<>();
     private final List<Field> metricField = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
@@ -187,9 +187,9 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         //noinspection rawtypes
         Map map = retained ? retainedMetricsMap : metricsMap;
         //noinspection unchecked
-        return ((MetricSet) map.computeIfAbsent(dimensionList, key -> {
+        return ((Measurement) map.computeIfAbsent(dimensionList, key -> {
             Object metricProvider = metricInstantiator.get();
-            return new MetricSet(metricProvider, dimensionList, metricField);
+            return new Measurement(metricProvider, dimensionList, metricField);
         })).getMetricProvider();
     }
 
@@ -206,7 +206,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
     @Override
     public Object collect(IMessageConverter messageConverter, int interval, long timestamp) {
-        Map<List<String>, IMetricSet> metricMap = this.metricsMap;
+        Map<List<String>, IMeasurement> metricMap = this.metricsMap;
         this.metricsMap = new ConcurrentHashMap<>();
         metricMap.putAll(retainedMetricsMap);
 

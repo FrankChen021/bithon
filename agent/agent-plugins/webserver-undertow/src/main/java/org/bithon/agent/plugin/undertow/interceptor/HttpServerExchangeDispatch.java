@@ -70,7 +70,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
         long responseByteSize = exchange.getResponseBytesSent();
         long costTime = System.nanoTime() - startNano;
 
-        this.metricCollector.getOrCreateMetric(srcApplication, uri, httpStatus)
+        this.metricCollector.getOrCreateMetrics(srcApplication, uri, httpStatus)
                             .updateRequest(costTime, count4xx, count5xx)
                             .updateBytes(requestByteSize, responseByteSize);
     }

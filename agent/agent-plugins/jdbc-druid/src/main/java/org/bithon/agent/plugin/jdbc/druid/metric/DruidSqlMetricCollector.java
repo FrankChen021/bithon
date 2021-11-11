@@ -20,7 +20,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
+import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.plugin.jdbc.druid.DruidPlugin;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -84,7 +84,7 @@ public class DruidSqlMetricCollector implements IMetricCollector {
                                 long timestamp) {
         List<Object> messages = new ArrayList<>();
         for (MonitoredSource source : MonitoredSourceManager.getInstance().getMonitoredSources()) {
-            SqlCompositeMetric metric = source.getSqlMetric();
+            SQLMetrics metric = source.getSqlMetric();
             if (metric.peekTotalCount() > 0) {
                 Object message = messageConverter.from(timestamp,
                                                        interval,

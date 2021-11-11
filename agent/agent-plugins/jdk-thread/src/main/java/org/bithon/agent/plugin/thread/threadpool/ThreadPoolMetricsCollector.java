@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.thread.threadpool;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
+import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,8 +36,8 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class ThreadPoolMetricsCollector implements IMetricCollector {
     static ThreadPoolMetricsCollector INSTANCE;
-    private final Map<AbstractExecutorService, ThreadPoolCompositeMetric> executorMetrics = new ConcurrentHashMap<>();
-    private Map<List<String>, ThreadPoolCompositeMetric> shutdownThreadMetrics = new ConcurrentHashMap<>();
+    private final Map<AbstractExecutorService, ThreadPoolMetrics> executorMetrics = new ConcurrentHashMap<>();
+    private Map<List<String>, ThreadPoolMetrics> shutdownThreadMetrics = new ConcurrentHashMap<>();
 
     private static final String[] POOL_CLASS_EXCLUDE_PREFIX_LIST = {
         // a lamda class in the following class. it's a helper class which has no meaning to monitor it
@@ -58,7 +58,7 @@ public class ThreadPoolMetricsCollector implements IMetricCollector {
         return INSTANCE;
     }
 
-    public void addThreadPool(AbstractExecutorService pool, ThreadPoolCompositeMetric metrics) {
+    public void addThreadPool(AbstractExecutorService pool, ThreadPoolMetrics metrics) {
         for (String excludePrefix : POOL_CLASS_EXCLUDE_PREFIX_LIST) {
             if (metrics.getExecutorClass().startsWith(excludePrefix)) {
                 return;
@@ -68,13 +68,13 @@ public class ThreadPoolMetricsCollector implements IMetricCollector {
     }
 
     public void deleteThreadPool(AbstractExecutorService executor) {
-        ThreadPoolCompositeMetric metrics = executorMetrics.remove(executor);
+        ThreadPoolMetrics metrics = executorMetrics.remove(executor);
         if (metrics == null) {
             return;
         }
 
         List<String> dimensions = Arrays.asList(metrics.getThreadPoolName(), metrics.getExecutorClass());
-        ThreadPoolCompositeMetric existMetrics = shutdownThreadMetrics.putIfAbsent(dimensions, metrics);
+        ThreadPoolMetrics existMetrics = shutdownThreadMetrics.putIfAbsent(dimensions, metrics);
         if (existMetrics == null) {
             return;
         }
@@ -89,7 +89,7 @@ public class ThreadPoolMetricsCollector implements IMetricCollector {
         existMetrics.totalTaskCount.update(metrics.totalTaskCount.get());
     }
 
-    private Optional<ThreadPoolCompositeMetric> getMetrics(AbstractExecutorService executor) {
+    private Optional<ThreadPoolMetrics> getMetrics(AbstractExecutorService executor) {
         return Optional.ofNullable(executorMetrics.get(executor));
     }
 
@@ -139,7 +139,7 @@ public class ThreadPoolMetricsCollector implements IMetricCollector {
 
         if (!this.shutdownThreadMetrics.isEmpty()) {
             //swap metrics
-            Map<List<String>, ThreadPoolCompositeMetric> tmpShutdownThreadsMetrics = this.shutdownThreadMetrics;
+            Map<List<String>, ThreadPoolMetrics> tmpShutdownThreadsMetrics = this.shutdownThreadMetrics;
             this.shutdownThreadMetrics = new ConcurrentHashMap<>();
 
             tmpShutdownThreadsMetrics.values().forEach((metricSet) -> messageList.add(messageConverter.from(timestamp,
@@ -147,7 +147,7 @@ public class ThreadPoolMetricsCollector implements IMetricCollector {
                                                                                                             metricSet)));
         }
 
-        for (ThreadPoolCompositeMetric threadPoolMetric : this.executorMetrics.values()) {
+        for (ThreadPoolMetrics threadPoolMetric : this.executorMetrics.values()) {
             messageList.add(messageConverter.from(timestamp,
                                                   interval,
                                                   threadPoolMetric));

@@ -22,7 +22,7 @@ import org.bithon.agent.core.metric.model.Sum;
 /**
  * @author frankchen
  */
-public class JdbcPoolMetricSet {
+public class JdbcPoolMetrics {
     // dimension
     private final String connectionString;
     private final String driverClass;
@@ -43,7 +43,7 @@ public class JdbcPoolMetricSet {
     public Sum startTransactionCount = new Sum();
     public Sum waitThreadCount = new Sum();
 
-    public JdbcPoolMetricSet(String connectionString, String driverClass) {
+    public JdbcPoolMetrics(String connectionString, String driverClass) {
         this.connectionString = connectionString;
         this.driverClass = driverClass;
     }

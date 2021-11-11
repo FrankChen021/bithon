@@ -37,7 +37,7 @@ public class ThreadPoolExecutorConstructor extends AbstractInterceptor {
         if (collector != null) {
             try {
                 ThreadPoolExecutor executor = aopContext.castTargetAs();
-                collector.addThreadPool(executor, new ThreadPoolExecutorCompositeMetric(executor));
+                collector.addThreadPool(executor, new ThreadPoolExecutorMetrics(executor));
             } catch (AgentException e) {
                 LOG.error(e.getMessage());
             }

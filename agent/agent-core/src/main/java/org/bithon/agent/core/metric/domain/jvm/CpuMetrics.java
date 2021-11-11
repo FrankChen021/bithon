@@ -14,15 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jvm.mem;
-
-import org.bithon.agent.core.metric.domain.jvm.MemoryRegionMetrics;
+package org.bithon.agent.core.metric.domain.jvm;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/9 22:14
+ * @date 2020/12/29 9:49 下午
  */
-public interface IDirectMemoryCollector {
+public class CpuMetrics {
+    public long processorNumber;
 
-    MemoryRegionMetrics collect();
+    // CPU Time in nano seconds
+    public long processCpuTime;
+
+    public double avgSystemLoad;
+
+    // CPU usage (%)
+    public double processCpuLoad;
+
+    public CpuMetrics(long processorNumber,
+                      long processCpuTime,
+                      double avgSystemLoad,
+                      double processCpuLoad) {
+        this.processorNumber = processorNumber;
+        this.processCpuTime = processCpuTime;
+        this.avgSystemLoad = avgSystemLoad;
+        this.processCpuLoad = processCpuLoad;
+    }
 }

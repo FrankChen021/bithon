@@ -26,7 +26,7 @@ import java.util.Map;
  * @date 2021/4/8 22:47
  */
 @AllArgsConstructor
-public class MetricSet {
+public class Measurement {
 
     @Getter
     private final long timestamp;

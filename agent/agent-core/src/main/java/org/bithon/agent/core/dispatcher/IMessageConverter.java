@@ -17,17 +17,17 @@
 package org.bithon.agent.core.dispatcher;
 
 import org.bithon.agent.core.event.EventMessage;
-import org.bithon.agent.core.metric.collector.IMetricSet;
-import org.bithon.agent.core.metric.domain.exception.ExceptionMetricSet;
-import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetricSet;
-import org.bithon.agent.core.metric.domain.jvm.GcCompositeMetric;
-import org.bithon.agent.core.metric.domain.jvm.JvmMetricSet;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbCompositeMetric;
-import org.bithon.agent.core.metric.domain.redis.RedisClientCompositeMetric;
-import org.bithon.agent.core.metric.domain.sql.SqlCompositeMetric;
-import org.bithon.agent.core.metric.domain.sql.SqlStatementCompositeMetric;
-import org.bithon.agent.core.metric.domain.thread.ThreadPoolCompositeMetric;
-import org.bithon.agent.core.metric.domain.web.WebServerMetricSet;
+import org.bithon.agent.core.metric.collector.IMeasurement;
+import org.bithon.agent.core.metric.domain.exception.ExceptionMetrics;
+import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
+import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
+import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
+import org.bithon.agent.core.metric.domain.mongo.MongoDbMetrics;
+import org.bithon.agent.core.metric.domain.redis.RedisClientMetrics;
+import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
+import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
+import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
+import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
@@ -42,26 +42,26 @@ import java.util.Map;
  */
 public interface IMessageConverter {
 
-    Object from(long timestamp, int interval, JdbcPoolMetricSet metric);
+    Object from(long timestamp, int interval, JdbcPoolMetrics metrics);
 
-    Object from(long timestamp, int interval, List<String> dimensions, SqlCompositeMetric metric);
+    Object from(long timestamp, int interval, List<String> dimensions, SQLMetrics metrics);
 
     Object from(long timestamp,
                 int interval,
                 List<String> dimensions,
-                MongoDbCompositeMetric counter);
+                MongoDbMetrics metrics);
 
-    Object from(long timestamp, int interval, JvmMetricSet metric);
+    Object from(long timestamp, int interval, JvmMetrics metrics);
 
-    Object from(long timestamp, int interval, WebServerMetricSet metric);
+    Object from(long timestamp, int interval, WebServerMetrics metrics);
 
-    Object from(long timestamp, int interval, SqlStatementCompositeMetric counter);
+    Object from(long timestamp, int interval, SQLStatementMetrics metrics);
 
-    Object from(long timestamp, int interval, List<String> dimensions, RedisClientCompositeMetric metric);
+    Object from(long timestamp, int interval, List<String> dimensions, RedisClientMetrics metrics);
 
-    Object from(long timestamp, int interval, ExceptionMetricSet metric);
+    Object from(long timestamp, int interval, ExceptionMetrics metrics);
 
-    Object from(long timestamp, int interval, ThreadPoolCompositeMetric metric);
+    Object from(long timestamp, int interval, ThreadPoolMetrics metrics);
 
     // tracing span message
     Object from(ITraceSpan span);
@@ -70,9 +70,9 @@ public interface IMessageConverter {
 
     Object from(Map<String, String> log);
 
-    Object from(long timestamp, int interval, GcCompositeMetric gcMetricSet);
+    Object from(long timestamp, int interval, GcMetrics metrics);
 
-    Object from(Schema schema, Collection<IMetricSet> metricCollection, long timestamp, int interval);
+    Object from(Schema schema, Collection<IMeasurement> measurementList, long timestamp, int interval);
 
-    Object from(Schema2 schema, Collection<IMetricSet> metricCollection, long timestamp, int interval);
+    Object from(Schema2 schema, Collection<IMeasurement> measurementList, long timestamp, int interval);
 }

@@ -25,7 +25,7 @@ import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.aggregator.NumberAggregator;
 import org.bithon.server.metric.aggregator.spec.IMetricSpec;
 import org.bithon.server.metric.input.InputRow;
-import org.bithon.server.metric.input.MetricSet;
+import org.bithon.server.metric.input.Measurement;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.IMetricWriter;
 
@@ -108,7 +108,7 @@ public abstract class AbstractMetricMessageHandler {
         // save endpoint metrics in batch
         //
         try {
-            this.endpointMetricStorageWriter.write(endpointDataSource.toMetricSetList());
+            this.endpointMetricStorageWriter.write(endpointDataSource.toMeasurementList());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -125,7 +125,7 @@ public abstract class AbstractMetricMessageHandler {
         }
     }
 
-    protected MetricSet extractEndpointLink(MetricMessage message) {
+    protected Measurement extractEndpointLink(MetricMessage message) {
         return null;
     }
 
@@ -167,15 +167,15 @@ public abstract class AbstractMetricMessageHandler {
         /**
          * aggregate the input metrics to a specified time slot metrics
          */
-        public void aggregate(MetricSet metricSet) {
-            if (metricSet == null) {
+        public void aggregate(Measurement measurement) {
+            if (measurement == null) {
                 return;
             }
 
-            TimeSlot slotStorage = getSlot(metricSet.getTimestamp());
+            TimeSlot slotStorage = getSlot(measurement.getTimestamp());
 
             // get or create metrics
-            Map<String, NumberAggregator> metrics = slotStorage.computeIfAbsent(metricSet.getDimensions(), dim -> {
+            Map<String, NumberAggregator> metrics = slotStorage.computeIfAbsent(measurement.getDimensions(), dim -> {
                 Map<String, NumberAggregator> metricMap = new HashMap<>();
                 schema.getMetricsSpec()
                       .forEach((metricSpec) -> {
@@ -187,7 +187,7 @@ public abstract class AbstractMetricMessageHandler {
                 return metricMap;
             });
 
-            Map<String, ? extends Number> inputMetrics = metricSet.getMetrics();
+            Map<String, ? extends Number> inputMetrics = measurement.getMetrics();
             inputMetrics.forEach((metricName, metricValue) -> {
                 NumberAggregator aggregator = metrics.computeIfAbsent(metricName,
                                                                       m -> {
@@ -199,7 +199,7 @@ public abstract class AbstractMetricMessageHandler {
                                                                           return null;
                                                                       });
                 if (aggregator != null) {
-                    aggregator.aggregate(metricSet.getTimestamp(), metricValue);
+                    aggregator.aggregate(measurement.getTimestamp(), metricValue);
                 }
             });
         }
@@ -214,16 +214,16 @@ public abstract class AbstractMetricMessageHandler {
             return timeSlot[slotIndex];
         }
 
-        public List<MetricSet> toMetricSetList() {
-            List<MetricSet> metricSetList = new ArrayList<>(8);
+        public List<Measurement> toMeasurementList() {
+            List<Measurement> measurementList = new ArrayList<>(8);
             for (TimeSlot slot : timeSlot) {
                 if (slot != null) {
-                    slot.forEach((dimensions, metrics) -> metricSetList.add(new MetricSet(slot.getTimestamp(),
-                                                                                          dimensions,
-                                                                                          metrics)));
+                    slot.forEach((dimensions, metrics) -> measurementList.add(new Measurement(slot.getTimestamp(),
+                                                                                              dimensions,
+                                                                                              metrics)));
                 }
             }
-            return metricSetList;
+            return measurementList;
         }
     }
 }
