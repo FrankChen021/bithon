@@ -83,7 +83,7 @@ public abstract class IntervalMetricCollector2<T extends ICompositeMetric> imple
     }
 
     @SuppressWarnings("unchecked")
-    protected T getOrCreateMetric(String... dimensionValues) {
+    protected T getOrCreateMetrics(String... dimensionValues) {
         if (dimensionValues.length != this.schema.getDimensionsSpec().size()) {
             // TODO: exception
         }

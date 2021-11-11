@@ -57,7 +57,7 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
         String methodName = aopContext.getMethod().getName();
         String connectionString = aopContext.castUserContextAs();
 
-        SQLMetrics metric = sqlMetricCollector.getOrCreateMetric(connectionString);
+        SQLMetrics metric = sqlMetricCollector.getOrCreateMetrics(connectionString);
         boolean isQuery = true;
         if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName)
             || MySql8Plugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {

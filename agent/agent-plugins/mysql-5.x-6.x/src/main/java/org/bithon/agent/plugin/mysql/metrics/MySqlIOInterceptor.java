@@ -54,7 +54,7 @@ public class MySqlIOInterceptor extends AbstractInterceptor {
 
         MySQLConnection connection = (MySQLConnection) ReflectionUtils.getFieldValue(mysqlIO, "connection");
 
-        SQLMetrics metric = metricCollector.getOrCreateMetric(MiscUtils.cleanupConnectionString(connection.getURL()));
+        SQLMetrics metric = metricCollector.getOrCreateMetrics(MiscUtils.cleanupConnectionString(connection.getURL()));
 
         if (MySqlPlugin.METHOD_SEND_COMMAND.equals(methodName)) {
             Buffer queryPacket = (Buffer) aopContext.getArgs()[2];

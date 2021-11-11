@@ -41,7 +41,7 @@ public class MongoDbMetricCollector extends IntervalMetricCollector<MongoDbMetri
     }
 
     public MongoDbMetrics getOrCreateMetric(String server, String database) {
-        return super.getOrCreateMetric(server, database);
+        return super.getOrCreateMetrics(server, database);
     }
 
     /**
@@ -49,6 +49,6 @@ public class MongoDbMetricCollector extends IntervalMetricCollector<MongoDbMetri
      */
     @Deprecated
     public MongoDbMetrics getOrCreateMetric(String server) {
-        return super.getOrCreateMetric(server);
+        return super.getOrCreateMetrics(server);
     }
 }

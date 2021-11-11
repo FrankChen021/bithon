@@ -76,18 +76,18 @@ public class StandardContextCtor extends AbstractInterceptor {
 
         @Override
         public void onDegraded(HttpServletRequest request) {
-            collector.getOrCreateMetric(request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION),
-                                        request.getRequestURI(),
-                                        429)
+            collector.getOrCreateMetrics(request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION),
+                                         request.getRequestURI(),
+                                         429)
                      .getDegradedCount()
                      .incr();
         }
 
         @Override
         public void onFlowControlled(HttpServletRequest request) {
-            collector.getOrCreateMetric(request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION),
-                                        request.getRequestURI(),
-                                        429)
+            collector.getOrCreateMetrics(request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION),
+                                         request.getRequestURI(),
+                                         429)
                      .getFlowedCount()
                      .incr();
         }

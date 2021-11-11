@@ -56,7 +56,7 @@ public class StatementInterceptor extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         String connectionString = aopContext.castUserContextAs();
 
-        SQLMetrics metric = sqlMetricCollector.getOrCreateMetric(connectionString);
+        SQLMetrics metric = sqlMetricCollector.getOrCreateMetrics(connectionString);
         boolean isQuery = true;
         String methodName = aopContext.getMethod().getName();
         if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName)

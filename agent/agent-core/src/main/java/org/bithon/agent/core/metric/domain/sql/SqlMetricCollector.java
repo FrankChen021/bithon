@@ -39,7 +39,7 @@ public class SqlMetricCollector extends IntervalMetricCollector<SQLMetrics> {
         return messageConverter.from(timestamp, interval, dimensions, metric);
     }
 
-    public SQLMetrics getOrCreateMetric(String connectionString) {
-        return super.getOrCreateMetric(connectionString);
+    public SQLMetrics getOrCreateMetrics(String connectionString) {
+        return super.getOrCreateMetrics(connectionString);
     }
 }

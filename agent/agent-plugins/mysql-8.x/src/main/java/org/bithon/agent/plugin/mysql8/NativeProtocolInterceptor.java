@@ -52,7 +52,7 @@ public class NativeProtocolInterceptor extends AbstractInterceptor {
         Object session = ReflectionUtils.getFieldValue(nativeProtocol, "session");
         HostInfo hostInfo = (HostInfo) ReflectionUtils.getFieldValue(session, "hostInfo");
 
-        SQLMetrics metric = sqlMetricCollector.getOrCreateMetric(MiscUtils.cleanupConnectionString(hostInfo.getDatabaseUrl()));
+        SQLMetrics metric = sqlMetricCollector.getOrCreateMetrics(MiscUtils.cleanupConnectionString(hostInfo.getDatabaseUrl()));
 
         if (MySql8Plugin.METHOD_SEND_COMMAND.equals(methodName)) {
             Object message = aopContext.getArgs()[0];

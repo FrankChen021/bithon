@@ -144,9 +144,9 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
             responseByteSize = jettyResponse.getContentCount();
         }
 
-        this.metricsCollector.getOrCreateMetric(srcApplication,
-                                                uri,
-                                                httpStatus)
+        this.metricsCollector.getOrCreateMetrics(srcApplication,
+                                                 uri,
+                                                 httpStatus)
                              .updateRequest(costTime, count4xx, count5xx)
                              .updateBytes(requestByteSize, responseByteSize);
     }

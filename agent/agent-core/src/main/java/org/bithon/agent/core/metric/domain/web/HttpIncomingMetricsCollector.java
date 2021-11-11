@@ -32,8 +32,8 @@ public class HttpIncomingMetricsCollector extends IntervalMetricCollector2<HttpI
               HttpIncomingMetrics.class);
     }
 
-    public HttpIncomingMetrics getOrCreateMetric(String srcApplication, String uri, int statusCode) {
-        return super.getOrCreateMetric(srcApplication == null ? "" : srcApplication, uri, String.valueOf(statusCode));
+    public HttpIncomingMetrics getOrCreateMetrics(String srcApplication, String uri, int statusCode) {
+        return super.getOrCreateMetrics(srcApplication == null ? "" : srcApplication, uri, String.valueOf(statusCode));
     }
 
     @Override

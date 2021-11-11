@@ -32,7 +32,7 @@ public class RedisMetricCollector extends IntervalMetricCollector<RedisClientMet
                          boolean hasException) {
         int exceptionCount = hasException ? 1 : 0;
 
-        getOrCreateMetric(endpoint, command).addRequest(responseTime, exceptionCount);
+        getOrCreateMetrics(endpoint, command).addRequest(responseTime, exceptionCount);
     }
 
     public void addRead(String endpoint,
@@ -41,19 +41,19 @@ public class RedisMetricCollector extends IntervalMetricCollector<RedisClientMet
                         boolean hasException) {
         int exceptionCount = hasException ? 1 : 0;
 
-        getOrCreateMetric(endpoint, command).addResponse(responseTime, exceptionCount);
+        getOrCreateMetrics(endpoint, command).addResponse(responseTime, exceptionCount);
     }
 
     public void addOutputBytes(String endpoint,
                                String command,
                                int bytesOut) {
-        getOrCreateMetric(endpoint, command).addRequestBytes(bytesOut);
+        getOrCreateMetrics(endpoint, command).addRequestBytes(bytesOut);
     }
 
     public void addInputBytes(String endpoint,
                               String command,
                               int bytesIn) {
-        getOrCreateMetric(endpoint, command).addResponseBytes(bytesIn);
+        getOrCreateMetrics(endpoint, command).addResponseBytes(bytesIn);
     }
 
     @Override

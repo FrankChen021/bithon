@@ -37,7 +37,7 @@ public abstract class IntervalMetricCollector<T extends IMetric> implements IMet
 
     private Map<List<String>, T> metricsMap = new ConcurrentHashMap<>();
 
-    protected T getOrCreateMetric(String... dimensionValues) {
+    protected T getOrCreateMetrics(String... dimensionValues) {
         List<String> dimensions = Arrays.asList(dimensionValues);
         return metricsMap.computeIfAbsent(dimensions, key -> newMetrics());
     }

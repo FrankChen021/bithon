@@ -77,7 +77,7 @@ public class CoyoteAdapterService extends AbstractInterceptor {
         long requestByteSize = request.getBytesRead();
         long responseByteSize = response.getBytesWritten(false);
 
-        this.metricCollector.getOrCreateMetric(srcApplication, uri, httpStatus)
+        this.metricCollector.getOrCreateMetrics(srcApplication, uri, httpStatus)
                             .updateRequest(responseTime, count4xx, count5xx)
                             .updateBytes(requestByteSize, responseByteSize);
     }
