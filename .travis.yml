@@ -50,9 +50,8 @@ jobs:
     # The building speed of travis on Free Plan is slow, it's better to put all jobs in one to speed up
     - name: "checks"
       stage: Tests - phase 1
-      install: skip
       jdk: openjdk8
-      script: ${MVN} clean install --activate-profiles all -Dmaven.javadoc.skip=true -DskipTests animal-sniffer:check checkstyle:checkstyle spotbugs:check
+      script: ${MVN} animal-sniffer:check checkstyle:checkstyle spotbugs:check
 
 
     # forbidden check is enabled on project by default, there's no need to check in CI
@@ -62,9 +61,11 @@ jobs:
     - name: "(openjdk9) packaging check"
       stage: Tests - phase 1
       jdK: openjdk9
-      script: ${MVN} clean install --activate-profiles all -Dmaven.javadoc.skip=true -DskipTests animal-sniffer:check checkstyle:checkstyle spotbugs:check
+      install: skip
+      script: ${MVN} clean install --activate-profiles all -Dmaven.javadoc.skip=true -DskipTests
 
     - name: "(openjdk17) packaging check"
       stage: Tests - phase 1
       jdk: openjdk17
-      script: ${MVN} clean install --activate-profiles all -Dmaven.javadoc.skip=true -DskipTests animal-sniffer:check checkstyle:checkstyle spotbugs:check
+      install: skip
+      script: ${MVN} clean install --activate-profiles all -Dmaven.javadoc.skip=true -DskipTests
