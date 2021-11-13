@@ -35,7 +35,7 @@ import java.util.Map;
 public class LoggerCallAppenders extends AbstractInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
         ILoggingEvent iLoggingEvent = (ILoggingEvent) aopContext.getArgs()[0];
         if (iLoggingEvent.getLevel().toInt() != Level.ERROR.toInt()) {
             return InterceptionDecision.SKIP_LEAVE;
@@ -55,7 +55,7 @@ public class LoggerCallAppenders extends AbstractInterceptor {
 
         Map<String, String> exceptionArgs = new HashMap<>();
         exceptionArgs.put("exceptionClass", exception.getClassName());
-        exceptionArgs.put("message", exception.getMessage());
+        exceptionArgs.put("message", exception.getMessage() == null ? "" : exception.getMessage());
         exceptionArgs.put("stack", exception.toString());
         EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
         Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
