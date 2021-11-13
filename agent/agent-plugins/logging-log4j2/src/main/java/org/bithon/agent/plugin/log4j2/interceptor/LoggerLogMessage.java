@@ -47,7 +47,7 @@ public class LoggerLogMessage extends AbstractInterceptor {
 
         Map<String, String> exceptionArgs = new HashMap<>();
         exceptionArgs.put("exceptionClass", exception.getClass().getName());
-        exceptionArgs.put("message", exception.getMessage());
+        exceptionArgs.put("message", exception.getMessage() == null ? "" : exception.getMessage());
         exceptionArgs.put("stack", exception.toString());
         EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
         Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
