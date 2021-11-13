@@ -31,6 +31,7 @@ import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.zip.ZipFile;
@@ -107,7 +108,8 @@ public class PluginInterceptorInstaller {
                                                                                                 pluginClassLoader);
 
                 Boolean isPluginDisabled = PluginConfigurationManager.load(pluginClass)
-                                                                     .getConfig(PluginConfigurationManager.getPluginConfigurationPrefixName(pluginClassName) + "disabled", Boolean.class);
+                                                                     .getConfig(PluginConfigurationManager.getPluginConfigurationPrefixName(pluginClassName)
+                                                                                + "disabled", Boolean.class);
                 if (isPluginDisabled != null && isPluginDisabled) {
                     log.info("Found plugin {}, but it's DISABLED by configuration", jarFileName);
                     continue;
@@ -117,7 +119,8 @@ public class PluginInterceptorInstaller {
                 plugins.add(pluginClass.getDeclaredConstructor().newInstance());
             } catch (Throwable e) {
                 LoggerFactory.getLogger(PluginInterceptorInstaller.class)
-                             .error(String.format("Failed to add plugin from jar %s",
+                             .error(String.format(Locale.ENGLISH,
+                                                  "Failed to add plugin from jar %s",
                                                   new File(jar.getName()).getName()),
                                     e);
             }

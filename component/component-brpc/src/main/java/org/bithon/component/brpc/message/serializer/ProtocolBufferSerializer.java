@@ -45,6 +45,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
@@ -409,7 +410,8 @@ public class ProtocolBufferSerializer {
                 try {
                     collection = (Collection) rawClass.getDeclaredConstructor().newInstance();
                 } catch (Exception e) {
-                    throw new IllegalStateException(String.format("Failed to create instance of [%s]:%s",
+                    throw new IllegalStateException(String.format(Locale.ENGLISH,
+                                                                  "Failed to create instance of [%s]:%s",
                                                                   rawClass.getName(),
                                                                   e.getMessage()));
                 }

@@ -18,11 +18,12 @@ package org.bithon.server.common.utils.datetime;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.joda.time.DateTime;
+import org.bithon.server.metric.parser.DateTimes;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -40,7 +41,7 @@ public class TimeSpan {
     }
 
     public static TimeSpan fromISO8601(String time) {
-        return new TimeSpan(DateTime.parse(time).getMillis());
+        return new TimeSpan(DateTimes.ISO_DATE_TIME.parse(time).getMillis());
     }
 
     public TimeSpan before(long value, TimeUnit timeUnit) {
@@ -60,7 +61,7 @@ public class TimeSpan {
     }
 
     public String toString(String format) {
-        return new SimpleDateFormat(format).format(new Date(milliseconds));
+        return new SimpleDateFormat(format, Locale.ENGLISH).format(new Date(milliseconds));
     }
 
     public String toISO8601() {

@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -70,7 +71,7 @@ public class MetricTTLManager implements SmartLifecycle {
             cleanDataSource(schema);
         }
         log.info("Metrics clean up ends, next round is about at {}",
-                 new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date(start + storageConfig.getCleanPeriod().getMilliseconds())));
+                 new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH).format(new Date(start + storageConfig.getCleanPeriod().getMilliseconds())));
     }
 
     private void cleanDataSource(DataSourceSchema schema) {

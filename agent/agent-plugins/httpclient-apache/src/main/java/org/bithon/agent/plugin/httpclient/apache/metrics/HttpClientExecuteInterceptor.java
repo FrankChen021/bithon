@@ -33,6 +33,7 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -47,7 +48,7 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
     private boolean isNewVersion = true;
 
     public static boolean filter(String uri) {
-        String suffix = uri.substring(uri.lastIndexOf(".") + 1).toLowerCase();
+        String suffix = uri.substring(uri.lastIndexOf(".") + 1).toLowerCase(Locale.ENGLISH);
         return IGNORED_SUFFIXES.contains(suffix);
     }
 

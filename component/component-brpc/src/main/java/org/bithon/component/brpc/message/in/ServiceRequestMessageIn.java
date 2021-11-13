@@ -24,6 +24,7 @@ import shaded.com.google.protobuf.CodedInputStream;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Locale;
 
 public class ServiceRequestMessageIn extends ServiceMessageIn {
 
@@ -77,7 +78,8 @@ public class ServiceRequestMessageIn extends ServiceMessageIn {
     public Object[] getArgs(Type[] parameterTypes) throws BadRequestException, IOException {
         int argLength = this.args.readInt32();
         if (argLength != parameterTypes.length) {
-            throw new BadRequestException(String.format("Argument size not match. Expected %d, but given %d",
+            throw new BadRequestException(String.format(Locale.ENGLISH,
+                                                        "Argument size not match. Expected %d, but given %d",
                                                         parameterTypes.length,
                                                         argLength));
         }

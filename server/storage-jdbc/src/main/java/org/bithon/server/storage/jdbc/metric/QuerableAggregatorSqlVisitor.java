@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.metric.api.CardinalityAggregator;
 import org.bithon.server.metric.api.IQuerableAggregatorVisitor;
 
@@ -27,6 +28,6 @@ public class QuerableAggregatorSqlVisitor implements IQuerableAggregatorVisitor<
 
     @Override
     public String visit(CardinalityAggregator aggregator) {
-        return String.format("count(DISTINCT \"%s\") AS \"%s\"", aggregator.getDimension(), aggregator.getName());
+        return StringUtils.format("count(DISTINCT \"%s\") AS \"%s\"", aggregator.getDimension(), aggregator.getName());
     }
 }

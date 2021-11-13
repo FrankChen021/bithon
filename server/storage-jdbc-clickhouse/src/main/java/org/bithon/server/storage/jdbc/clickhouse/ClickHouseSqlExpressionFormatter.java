@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.clickhouse;
 
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
 
@@ -27,7 +28,7 @@ class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
 
     @Override
     public String timeFloor(String field, long interval) {
-        return String.format("CAST(toUnixTimestamp(\"%s\")/ %d AS Int64) * %d", field, interval, interval);
+        return StringUtils.format("CAST(toUnixTimestamp(\"%s\")/ %d AS Int64) * %d", field, interval, interval);
     }
 
     @Override
@@ -45,7 +46,7 @@ class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
      */
     @Override
     public String formatTimestamp(TimeSpan timeSpan) {
-        return String.format("fromUnixTimestamp(%d)", timeSpan.getMilliseconds() / 1000);
+        return StringUtils.format("fromUnixTimestamp(%d)", timeSpan.getMilliseconds() / 1000);
     }
 
     @Override

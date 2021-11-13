@@ -17,9 +17,11 @@
 package org.bithon.agent.sentinel.expt;
 
 
+import java.util.Locale;
+
 public class ParamInvalidException extends SentinelCommandException {
     public ParamInvalidException(String param, Object value) {
-        super(String.format("invalid value [%s] for %s", value.toString(), param));
+        super(String.format(Locale.ENGLISH, "invalid value [%s] for %s", value.toString(), param));
     }
 
     public static void throwIf(boolean expr, String objName, Object value) {

@@ -110,7 +110,7 @@ public abstract class AbstractMetricMessageHandler {
         try {
             this.endpointMetricStorageWriter.write(endpointDataSource.toMeasurementList());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("save metrics", e);
         }
 
         //

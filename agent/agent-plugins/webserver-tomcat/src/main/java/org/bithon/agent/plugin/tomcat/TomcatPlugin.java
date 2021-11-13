@@ -60,7 +60,7 @@ public class TomcatPlugin implements IPlugin {
                                                    .onArgs("org.apache.catalina.connector.Request",
                                                            "org.apache.catalina.connector.Response",
                                                            "java.lang.Throwable")
-                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.StandardWrapperValveException")
+                                                   .to("org.bithon.agent.plugin.tomcat.interceptor.StandardWrapperValve$Exception")
                 ),
 
             //trace

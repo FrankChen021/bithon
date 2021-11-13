@@ -49,6 +49,7 @@ import shaded.org.slf4j.LoggerFactory;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
 import java.util.List;
+import java.util.Locale;
 
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
@@ -203,7 +204,8 @@ public class InterceptorInstaller {
                     break;
             }
         } catch (Exception e) {
-            log.error(String.format("Failed to load interceptor[%s] due to [%s]",
+            log.error(String.format(Locale.ENGLISH,
+                                    "Failed to load interceptor[%s] due to [%s]",
                                     interceptorClassName,
                                     e.getMessage()),
                       e);
@@ -247,7 +249,7 @@ public class InterceptorInstaller {
                 return null;
             }
         } catch (Exception e) {
-            log.error(String.format("Failed to load interceptor[%s] due to %s", interceptorName, e.getMessage()), e);
+            log.error(String.format(Locale.ENGLISH, "Failed to load interceptor[%s] due to %s", interceptorName, e.getMessage()), e);
             return null;
         }
 

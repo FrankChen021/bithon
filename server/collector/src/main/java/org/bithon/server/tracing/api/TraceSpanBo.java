@@ -21,6 +21,7 @@ import org.bithon.server.tracing.handler.TraceSpan;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,4 +31,24 @@ import java.util.List;
 public class TraceSpanBo extends TraceSpan {
 
     public List<TraceSpanBo> children = new ArrayList<>();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        TraceSpanBo that = (TraceSpanBo) o;
+        return Objects.equals(children, that.children);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), children);
+    }
 }

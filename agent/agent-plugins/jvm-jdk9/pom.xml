@@ -10,8 +10,8 @@
   <artifactId>agent-plugin-jvm-jdk9</artifactId>
 
   <properties>
-    <maven.compiler.source>1.9</maven.compiler.source>
-    <maven.compiler.target>1.9</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
   <dependencies>
@@ -61,22 +61,6 @@
                 </configuration>
               </execution>
             </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <encoding>UTF-8</encoding>
-              <compilerVersion>1.9</compilerVersion>
-              <source>1.9</source>
-              <target>1.9</target>
-              <compilerArgs>
-                <arg>--add-exports</arg>
-                <arg>java.base/jdk.internal.misc=ALL-UNNAMED</arg>
-                <arg>--add-exports</arg>
-                <arg>java.base/jdk.internal.access=ALL-UNNAMED</arg>
-              </compilerArgs>
-            </configuration>
           </plugin>
         </plugins>
       </build>

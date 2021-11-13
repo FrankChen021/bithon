@@ -44,6 +44,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -124,9 +125,9 @@ public class ThriftCollectorStarter implements SmartLifecycle, ApplicationContex
 
                 TThreadedSelectorServer thriftServer = new TThreadedSelectorServer(args);
                 if (thriftServer.isServing()) {
-                    throw new RuntimeException(String.format(
-                        "Failed to start thrift server on port [%d]: The port is already in used",
-                        port));
+                    throw new RuntimeException(String.format(Locale.ENGLISH,
+                                                             "Failed to start thrift server on port [%d]: The port is already in used",
+                                                             port));
                 }
 
                 thriftServers.add(thriftServer);
@@ -136,7 +137,8 @@ public class ThriftCollectorStarter implements SmartLifecycle, ApplicationContex
                     log.info("Thrift server[{}] stopped", serviceName);
                 }, "thrift-server-" + serviceName).start();
             } catch (TTransportException e) {
-                throw new RuntimeException(String.format("Failed to start thrift server[%s] on port [%d]: %s",
+                throw new RuntimeException(String.format(Locale.ENGLISH,
+                                                         "Failed to start thrift server[%s] on port [%d]: %s",
                                                          serviceName,
                                                          port,
                                                          e.getMessage()), e);

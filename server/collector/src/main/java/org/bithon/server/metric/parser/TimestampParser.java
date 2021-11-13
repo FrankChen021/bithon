@@ -26,6 +26,7 @@ import org.joda.time.format.DateTimeFormatterBuilder;
 import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.ISODateTimeFormat;
 
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -87,7 +88,7 @@ public class TimestampParser {
                     return formatter.parse(ParserUtils.stripQuotes(input));
                 };
             } catch (Exception e) {
-                throw new RuntimeException(String.format("Unable to parse timestamps with format [%s]", format));
+                throw new RuntimeException(String.format(Locale.ENGLISH, "Unable to parse timestamps with format [%s]", format));
             }
         }
     }

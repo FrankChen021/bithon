@@ -18,6 +18,7 @@ package org.bithon.server.storage.jdbc.metric;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.common.matcher.AntPathMatcher;
 import org.bithon.server.common.matcher.ContainsMatcher;
 import org.bithon.server.common.matcher.EndwithMatcher;
@@ -185,7 +186,7 @@ public class MetricJdbcReader implements IMetricReader {
 
         String groupByFields = query.getGroupBys().stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
 
-        String sql = String.format(
+        String sql = StringUtils.format(
             "SELECT %s %s %s %s FROM \"%s\" OUTER WHERE %s \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s",
             groupByFields,
             metricList,
@@ -227,7 +228,7 @@ public class MetricJdbcReader implements IMetricReader {
         String condition = conditions.stream()
                                      .map(d -> d.getMatcher().accept(new SQLFilterBuilder(d.getDimension())))
                                      .collect(Collectors.joining(" AND "));
-        String sql = String.format(
+        String sql = StringUtils.format(
             "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s ",
             dimension,
             dimension,
@@ -348,9 +349,9 @@ public class MetricJdbcReader implements IMetricReader {
             this.metrics.add(metricSpec.getName());
 
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("sum(\"%s\")", metricSpec.getName()));
+            sb.append(StringUtils.format("sum(\"%s\")", metricSpec.getName()));
             if (addAlias) {
-                sb.append(String.format(" AS \"%s\"", metricSpec.getName()));
+                sb.append(StringUtils.format(" AS \"%s\"", metricSpec.getName()));
             }
             return sb.toString();
         }
@@ -360,9 +361,9 @@ public class MetricJdbcReader implements IMetricReader {
             this.metrics.add(metricSpec.getName());
 
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("sum(\"%s\")", metricSpec.getName()));
+            sb.append(StringUtils.format("sum(\"%s\")", metricSpec.getName()));
             if (addAlias) {
-                sb.append(String.format(" \"%s\"", metricSpec.getName()));
+                sb.append(StringUtils.format(" \"%s\"", metricSpec.getName()));
             }
             return sb.toString();
         }
@@ -412,12 +413,12 @@ public class MetricJdbcReader implements IMetricReader {
                 public void visitVariable(String variable) {
                     Object variableValue = variables.get(variable);
                     if (variableValue == null) {
-                        throw new RuntimeException(String.format("variable (%s) not provided in context", variable));
+                        throw new RuntimeException(StringUtils.format("variable (%s) not provided in context", variable));
                     }
                     sb.append(variableValue);
                 }
             });
-            sb.append(String.format(" \"%s\"", metricSpec.getName()));
+            sb.append(StringUtils.format(" \"%s\"", metricSpec.getName()));
             return sb.toString();
         }
 
@@ -426,9 +427,9 @@ public class MetricJdbcReader implements IMetricReader {
             this.metrics.add(metricSpec.getName());
 
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("sum(\"%s\")", metricSpec.getName()));
+            sb.append(StringUtils.format("sum(\"%s\")", metricSpec.getName()));
             if (addAlias) {
-                sb.append(String.format(" AS \"%s\"", metricSpec.getName()));
+                sb.append(StringUtils.format(" AS \"%s\"", metricSpec.getName()));
             }
             return sb.toString();
         }
@@ -450,9 +451,9 @@ public class MetricJdbcReader implements IMetricReader {
         @Override
         public String visit(LongMinMetricSpec metricSpec) {
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("min(\"%s\")", metricSpec.getName()));
+            sb.append(StringUtils.format("min(\"%s\")", metricSpec.getName()));
             if (addAlias) {
-                sb.append(String.format(" \"%s\"", metricSpec.getName()));
+                sb.append(StringUtils.format(" \"%s\"", metricSpec.getName()));
             }
             return sb.toString();
         }
@@ -460,16 +461,16 @@ public class MetricJdbcReader implements IMetricReader {
         @Override
         public String visit(LongMaxMetricSpec metricSpec) {
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("max(\"%s\")", metricSpec.getName()));
+            sb.append(StringUtils.format("max(\"%s\")", metricSpec.getName()));
             if (addAlias) {
-                sb.append(String.format(" \"%s\"", metricSpec.getName()));
+                sb.append(StringUtils.format(" \"%s\"", metricSpec.getName()));
             }
             return sb.toString();
         }
 
         private String visitLast(String metricName) {
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format(
+            sb.append(StringUtils.format(
                 "(SELECT \"%s\" FROM \"%s\" B WHERE B.\"timestamp\" = \"%s\".\"timestamp\" ORDER BY \"timestamp\" DESC LIMIT 1)",
                 metricName,
                 sqlTableName,
@@ -581,11 +582,11 @@ public class MetricJdbcReader implements IMetricReader {
                             @Override
                             protected void visit(IMetricSpec metricSpec, String aggregator) {
                                 if (!sqlFormatter.allowSameAggregatorExpression() && metrics.contains(metricSpec.getName())) {
-                                    sb.append(String.format("\"%s\"", metricSpec.getName()));
+                                    sb.append(StringUtils.format("\"%s\"", metricSpec.getName()));
                                 } else {
-                                    sb.append(String.format("%s(\"%s\")", aggregator, metricSpec.getName()));
+                                    sb.append(StringUtils.format("%s(\"%s\")", aggregator, metricSpec.getName()));
                                 }
-                                rawExpressions.add(String.format("\"%s\"", metricSpec.getName()));
+                                rawExpressions.add(StringUtils.format("\"%s\"", metricSpec.getName()));
                             }
 
                             @Override
@@ -595,7 +596,7 @@ public class MetricJdbcReader implements IMetricReader {
 
                             @Override
                             public Void visit(PostAggregatorMetricSpec metricSpec) {
-                                throw new RuntimeException(String.format(
+                                throw new RuntimeException(StringUtils.format(
                                     "postAggregators [%s] can't be used on post aggregators [%s]",
                                     metricSpec.getName(),
                                     postMetricSpec.getName()));
@@ -627,13 +628,13 @@ public class MetricJdbcReader implements IMetricReader {
                     public void visitVariable(String variable) {
                         Object variableValue = variables.get(variable);
                         if (variableValue == null) {
-                            throw new RuntimeException(String.format("variable (%s) not provided in context",
-                                                                     variable));
+                            throw new RuntimeException(StringUtils.format("variable (%s) not provided in context",
+                                                                          variable));
                         }
                         sb.append(variableValue);
                     }
                 });
-                sb.append(String.format(" AS \"%s\"", postMetricSpec.getName()));
+                sb.append(StringUtils.format(" AS \"%s\"", postMetricSpec.getName()));
 
                 postExpressions.add(sb.toString());
 
@@ -643,27 +644,27 @@ public class MetricJdbcReader implements IMetricReader {
             @Override
             protected void visit(IMetricSpec metricSpec, String aggregator) {
                 this.metrics.add(metricSpec.getName());
-                postExpressions.add(String.format("%s(\"%s\")%s",
-                                                  aggregator,
-                                                  metricSpec.getName(),
-                                                  addAlias ? String.format(" AS \"%s\"", metricSpec.getName()) : ""));
-                rawExpressions.add(String.format(" \"%s\"", metricSpec.getName()));
+                postExpressions.add(StringUtils.format("%s(\"%s\")%s",
+                                                       aggregator,
+                                                       metricSpec.getName(),
+                                                       addAlias ? StringUtils.format(" AS \"%s\"", metricSpec.getName()) : ""));
+                rawExpressions.add(StringUtils.format(" \"%s\"", metricSpec.getName()));
             }
 
             @Override
             protected void visitLast(String metricName) {
                 this.hasLast = true;
 
-                //postExpressions.add(String.format(" \"%s\"", metricName));
-                postExpressions.add(String.format("sum(\"%s\")%s",
-                                                  metricName,
-                                                  addAlias ? String.format(" AS \"%s\"", metricName) : ""));
+                //postExpressions.add(StringUtils.format(" \"%s\"", metricName));
+                postExpressions.add(StringUtils.format("sum(\"%s\")%s",
+                                                       metricName,
+                                                       addAlias ? StringUtils.format(" AS \"%s\"", metricName) : ""));
 
                 int interval = ((Number) this.variables.get("interval")).intValue();
-                rawExpressions.add(String.format("FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) \"%s\"",
-                                                 metricName,
-                                                 sqlFormatter.timeFloor("timestamp", interval),
-                                                 metricName));
+                rawExpressions.add(StringUtils.format("FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) \"%s\"",
+                                                      metricName,
+                                                      sqlFormatter.timeFloor("timestamp", interval),
+                                                      metricName));
             }
         }
 
@@ -693,7 +694,7 @@ public class MetricJdbcReader implements IMetricReader {
             for (String metricName : metrics) {
                 IMetricSpec metricSpec = schema.getMetricSpecByName(metricName);
                 if (metricSpec == null) {
-                    throw new RuntimeException(String.format("[%s] not defined", metricName));
+                    throw new RuntimeException(StringUtils.format("[%s] not defined", metricName));
                 }
 
                 if (metricSpec instanceof PostAggregatorMetricSpec) {
@@ -735,7 +736,7 @@ public class MetricJdbcReader implements IMetricReader {
         String build() {
             String timestampExpression = sqlFormatter.timeFloor("timestamp", interval);
             if (rawExpressions.isEmpty()) {
-                return String.format(
+                return StringUtils.format(
                     "SELECT %s \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s %s %s",
                     timestampExpression,
                     String.join(",", postExpressions),
@@ -748,7 +749,7 @@ public class MetricJdbcReader implements IMetricReader {
                     sqlFormatter.orderByTimestamp("timestamp")
                 );
             } else {
-                return String.format(
+                return StringUtils.format(
                     "SELECT \"timestamp\" %s ,%s FROM "
                     + "("
                     + "     SELECT %s, %s \"timestamp\" %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s"

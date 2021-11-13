@@ -16,6 +16,8 @@
 
 package org.bithon.agent.core.metric.model.schema;
 
+import java.util.Locale;
+
 /**
  * @author Frank Chen
  * @date 2021-10-02
@@ -35,6 +37,6 @@ public abstract class AbstractDimensionSpec implements IDimensionSpec {
 
     @Override
     public String toString() {
-        return String.format("dimension(type=%s, name=%s)", getType(), name);
+        return String.format(Locale.ENGLISH, "dimension(type=%s, name=%s)", getType(), name);
     }
 }

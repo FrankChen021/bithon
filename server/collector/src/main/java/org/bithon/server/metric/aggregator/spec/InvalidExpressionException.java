@@ -17,6 +17,7 @@
 package org.bithon.server.metric.aggregator.spec;
 
 import javax.validation.constraints.NotNull;
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -24,6 +25,6 @@ import javax.validation.constraints.NotNull;
  */
 public class InvalidExpressionException extends RuntimeException {
     public InvalidExpressionException(@NotNull String expression, int charPos, String parseExceptionMessage) {
-        super(String.format("Invalid expression [%s] at position %d, %s", expression, charPos, parseExceptionMessage));
+        super(String.format(Locale.ENGLISH, "Invalid expression [%s] at position %d, %s", expression, charPos, parseExceptionMessage));
     }
 }

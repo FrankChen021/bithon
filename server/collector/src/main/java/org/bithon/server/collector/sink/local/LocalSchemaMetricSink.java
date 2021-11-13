@@ -117,7 +117,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
                     handlers.put(message.getSchema().getName(), handler);
                     return handler;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("error", e);
                     return null;
                 }
             }

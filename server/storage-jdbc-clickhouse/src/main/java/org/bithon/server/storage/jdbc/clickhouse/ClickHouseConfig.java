@@ -17,8 +17,8 @@
 package org.bithon.server.storage.jdbc.clickhouse;
 
 import lombok.Data;
+import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Frank Chen
@@ -45,7 +45,7 @@ public class ClickHouseConfig implements InitializingBean {
         int spaceIndex = engine.indexOf(' ');
         tableEngine = spaceIndex == -1 ? engine : engine.substring(0, spaceIndex);
         if (!tableEngine.endsWith("MergeTree")) {
-            throw new RuntimeException(String.format("engine[%s] is not a member of MergeTree family", tableEngine));
+            throw new RuntimeException(StringUtils.format("engine[%s] is not a member of MergeTree family", tableEngine));
         }
         if (tableEngine.startsWith("ReplicatedMergeTree") && !StringUtils.hasText(cluster)) {
             throw new RuntimeException("ReplicatedMergeTree requires cluster to be given");

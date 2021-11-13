@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -95,7 +96,7 @@ public class HttpIncomingFilter {
             if (!dotSuffix.isEmpty()) {
                 int dotIndex = uri.lastIndexOf(".");
                 if (dotIndex >= 0) {
-                    String suffix = uri.substring(dotIndex).toLowerCase();
+                    String suffix = uri.substring(dotIndex).toLowerCase(Locale.ENGLISH);
                     if (dotSuffix.contains(suffix)) {
                         return true;
                     }

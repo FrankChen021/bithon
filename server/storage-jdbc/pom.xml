@@ -58,6 +58,11 @@
       <artifactId>h2</artifactId>
       <version>1.4.200</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>component-commons</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

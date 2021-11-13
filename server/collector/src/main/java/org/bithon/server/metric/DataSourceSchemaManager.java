@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -76,7 +77,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         }
         synchronized (this) {
             try (InputStream is = this.getClass().getClassLoader()
-                                      .getResourceAsStream(String.format("schema/%s.json", name))) {
+                                      .getResourceAsStream(String.format(Locale.ENGLISH, "schema/%s.json", name))) {
                 if (is != null) {
                     DataSourceSchema dataSourceSchema = objectMapper.readValue(is, DataSourceSchema.class);
                     addDataSourceSchema(dataSourceSchema);

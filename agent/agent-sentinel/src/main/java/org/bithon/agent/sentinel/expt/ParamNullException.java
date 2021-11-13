@@ -16,9 +16,11 @@
 
 package org.bithon.agent.sentinel.expt;
 
+import java.util.Locale;
+
 public class ParamNullException extends SentinelCommandException {
     public ParamNullException(String param) {
-        super(String.format("%s should not be null", param));
+        super(String.format(Locale.ENGLISH, "%s should not be null", param));
     }
 
     public static void throwIf(boolean expr, String objName) {

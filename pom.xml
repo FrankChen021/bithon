@@ -21,10 +21,10 @@
   </properties>
 
   <modules>
+    <module>component/component-commons</module>
     <module>component/component-brpc</module>
     <module>component/agent-rpc-thrift</module>
     <module>component/agent-rpc-brpc</module>
-    <module>component/component-commons</module>
     <module>agent</module>
     <module>server/storage-jdbc</module>
     <module>server/storage-jdbc-clickhouse</module>
@@ -211,10 +211,87 @@
           </mapping>
         </configuration>
       </plugin>
+
+      <!--spotbug-->
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.2.0</version>
+        <dependencies>
+          <!-- overwrite dependency on spotbugs if you want to specify the version of spotbugs -->
+          <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs</artifactId>
+            <version>4.2.2</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <excludeFilterFile>dev/spotbugs-exclude.xml</excludeFilterFile>
+        </configuration>
+      </plugin>
+
+      <!-- forbidden apis -->
+      <plugin>
+        <groupId>de.thetaphi</groupId>
+        <artifactId>forbiddenapis</artifactId>
+        <version>3.2</version>
+        <configuration>
+          <failOnUnresolvableSignatures>false</failOnUnresolvableSignatures>
+          <!--
+          <bundledSignatures>
+              This will automatically choose the right
+              signatures based on 'maven.compiler.target':
+              NOTE: this fails on openjdk9
+            <bundledSignature>jdk-unsafe</bundledSignature>
+          </bundledSignatures>
+          -->
+          <signaturesFiles>
+            <signaturesFile>${project.parent.basedir}/dev/forbidden-apis-joda-time.txt</signaturesFile>
+            <signaturesFile>${project.parent.basedir}/dev/forbidden-apis-bithon.txt</signaturesFile>
+          </signaturesFiles>
+          <excludes>
+            <exclude>**/SomeAvroDatum.class</exclude>
+          </excludes>
+          <suppressAnnotations>
+            <annotation>**.SuppressForbidden</annotation>
+          </suppressAnnotations>
+        </configuration>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <bundledSignatures>
+                <!-- Check jdk-system-out only for production code, but not in test code -->
+                <bundledSignature>jdk-unsafe</bundledSignature>
+                <bundledSignature>jdk-system-out</bundledSignature>
+              </bundledSignatures>
+            </configuration>
+          </execution>
+          <execution>
+            <id>testCompile</id>
+            <phase>test-compile</phase>
+            <goals>
+              <goal>testCheck</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 
   <profiles>
+    <profile>
+      <id>all</id>
+      <modules>
+        <module>shaded</module>
+        <module>server/jOOQ</module>
+      </modules>
+    </profile>
     <profile>
       <id>dist</id>
       <build>

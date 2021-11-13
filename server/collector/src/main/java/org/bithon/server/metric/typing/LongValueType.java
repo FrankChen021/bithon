@@ -17,6 +17,8 @@
 package org.bithon.server.metric.typing;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -28,7 +30,8 @@ public class LongValueType implements IValueType {
 
     @Override
     public String format(Number value) {
-        return new DecimalFormat("#,###").format(value.longValue());
+        return new DecimalFormat("#,###",
+                                 DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(value.longValue());
     }
 
     @Override

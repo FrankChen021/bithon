@@ -61,8 +61,7 @@ public class KafkaMetricSink implements IMessageSink<CloseableIterator<MetricMes
             // deserialization
             try {
                 messageText.append(objectMapper.writeValueAsString(metricMessage));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+            } catch (JsonProcessingException ignored) {
             }
 
             //it's not necessary, only used to improve readability of text when debugging

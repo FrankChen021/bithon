@@ -12,6 +12,12 @@ A preview demo is hosted [here](https://www.bithon.org:9897/web/home).
 
 ## 1. clone source code
 
+After clone this project, remember to clone the submodules.
+
+```bash
+git submodule update --init
+```
+
 ## 2. choose a right JDK
 
 It's highly recommended that JDK that is used to compile bithon is the same as the JRE that runs your applications.
@@ -25,35 +31,15 @@ For example
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home
 ```
 
+## 3. build project
 
-## 3. build & install dependencies
-
-There some dependencies that are needed to be built out of the main project for the sake of faster build speed of the main project.
-
-1. Enter `shaded` directory, and execute the following command to build and install dependencies on your local.
-
-    ```bash
-    cd shaded
-    mvn clean install 
-    ```
-   
-2. Build jOOQ. Execute following commands at the root module
-
-    ```bash
-    git submodule sync
-    git submodule update --init
-    cd server/jOOQ
-    mvn clean install 
-    ```
-
-
-## 4. build project
-
-After step 2, to build the project, run the following command on root directory of project.
+For the first time to build this project, use following command to build all modules including its dependencies. 
 
 ```bash
-mvn clean package
+mvn clean install --activate-profiles all
 ```
+
+After the first build, we can remove the `--activate-profiles all` to speed up the following build.
 
 # Run
 

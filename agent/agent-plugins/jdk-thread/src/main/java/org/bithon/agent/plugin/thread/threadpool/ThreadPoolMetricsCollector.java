@@ -50,11 +50,13 @@ public class ThreadPoolMetricsCollector implements IMetricCollector {
             return null;
         }
 
-        if (INSTANCE != null) {
-            return INSTANCE;
+        if (INSTANCE == null) {
+            synchronized (ThreadPoolMetricsCollector.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = MetricCollectorManager.getInstance().getOrRegister("thread-pool", ThreadPoolMetricsCollector.class);
+                }
+            }
         }
-        
-        INSTANCE = MetricCollectorManager.getInstance().getOrRegister("thread-pool", ThreadPoolMetricsCollector.class);
         return INSTANCE;
     }
 

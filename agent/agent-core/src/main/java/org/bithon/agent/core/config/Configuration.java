@@ -43,7 +43,7 @@ import java.util.function.Supplier;
  */
 public class Configuration {
 
-    public static Configuration EMPTY = new Configuration(null);
+    public static final Configuration EMPTY = new Configuration(null);
 
     private final JsonNode configurationNode;
 

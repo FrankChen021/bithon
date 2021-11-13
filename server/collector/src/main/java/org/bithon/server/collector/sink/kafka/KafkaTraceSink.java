@@ -61,8 +61,7 @@ public class KafkaTraceSink implements IMessageSink<CloseableIterator<TraceSpan>
 
             try {
                 messageText.append(objectMapper.writeValueAsString(span));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+            } catch (JsonProcessingException ignored) {
             }
 
             //it's not necessary, only used to improve readability of text when debugging

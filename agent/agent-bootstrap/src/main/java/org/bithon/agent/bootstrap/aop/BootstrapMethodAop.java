@@ -23,6 +23,7 @@ import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import shaded.net.bytebuddy.implementation.bind.annotation.This;
 
 import java.lang.reflect.Method;
+import java.util.Locale;
 
 
 /**
@@ -81,7 +82,7 @@ public class BootstrapMethodAop {
             INTERCEPTOR.initialize();
 
         } catch (Exception e) {
-            log.error(String.format("Failed to instantiate interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
+            log.error(String.format(Locale.ENGLISH, "Failed to instantiate interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
         }
         return INTERCEPTOR;
     }

@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -47,7 +48,7 @@ public class ReflectionUtils {
                     fieldName = fieldName.substring(0, fieldName.length() - 1);
                 }
 
-                String methodName = "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                String methodName = "get" + fieldName.substring(0, 1).toUpperCase(Locale.ENGLISH) + fieldName.substring(1);
                 Method method = null;
                 try {
                     method = object.getClass().getMethod(methodName);

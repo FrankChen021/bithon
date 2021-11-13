@@ -25,6 +25,7 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -106,7 +107,6 @@ public class MetricCollectorManager {
      * call of this method in plugins' initialization might return NULL
      * This is because this class is still being constructing and the construction triggers some classes to be load,
      * and these classes are transformed to be delegated to plugins' interceptors
-     *
      */
     public static MetricCollectorManager getInstance() {
         return INSTANCE;
@@ -123,7 +123,7 @@ public class MetricCollectorManager {
 
     public synchronized <T extends IMetricCollectorBase> T register(String collectorName, T collector) {
         if (collectors.containsKey(collectorName)) {
-            throw new RuntimeException(String.format("Metrics Local Storage(%s) already registered!", collectorName));
+            throw new RuntimeException(String.format(Locale.ENGLISH, "Metrics Local Storage(%s) already registered!", collectorName));
         }
 
         //noinspection unchecked

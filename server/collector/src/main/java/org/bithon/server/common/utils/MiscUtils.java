@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,12 +40,13 @@ public class MiscUtils {
 
     public static ConnectionString parseConnectionString(String connectionString) {
         if (StringUtils.isEmpty(connectionString)) {
-            throw new RuntimeException(String.format("Connection String of SqlMetricMessage is blank: [%s]",
+            throw new RuntimeException(String.format(Locale.ENGLISH,
+                                                     "Connection String of SqlMetricMessage is blank: [%s]",
                                                      connectionString));
         }
 
         if (!connectionString.startsWith("jdbc:")) {
-            throw new RuntimeException(String.format("Unknown format of Connection String: [%s]", connectionString));
+            throw new RuntimeException(String.format(Locale.ENGLISH, "Unknown format of Connection String: [%s]", connectionString));
         }
 
         try {
@@ -61,11 +63,11 @@ public class MiscUtils {
                                                 uri.getPath().substring(1),
                                                 EndPointType.DB_CLICKHOUSE);
                 default:
-                    throw new RuntimeException(String.format("Unknown schema of Connection String: [%s]",
+                    throw new RuntimeException(String.format(Locale.ENGLISH, "Unknown schema of Connection String: [%s]",
                                                              connectionString));
             }
         } catch (URISyntaxException e) {
-            throw new RuntimeException(String.format("Invalid format of Connection String: [%s]", connectionString));
+            throw new RuntimeException(String.format(Locale.ENGLISH, "Invalid format of Connection String: [%s]", connectionString));
         }
     }
 }

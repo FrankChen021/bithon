@@ -16,6 +16,8 @@
 
 package org.bithon.agent.bootstrap.expt;
 
+import java.util.Locale;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/18 8:42 下午
@@ -30,11 +32,11 @@ public class AgentException extends RuntimeException {
     }
 
     public AgentException(String format, Object... args) {
-        super(String.format(format, args));
+        super(String.format(Locale.ENGLISH, format, args));
     }
 
     public AgentException(Throwable e, String format, Object... args) {
-        super(String.format(format, args), e);
+        super(String.format(Locale.ENGLISH, format, args), e);
     }
 
     public AgentException(Throwable e) {

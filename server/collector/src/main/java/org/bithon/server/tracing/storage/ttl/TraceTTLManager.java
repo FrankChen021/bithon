@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -68,7 +69,7 @@ public class TraceTTLManager implements SmartLifecycle {
             log.error("Failed to clean events", e);
         }
         log.info("Trace clean up ends, next round is about at {}",
-                 new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date(start + storageConfig.getCleanPeriod().getMilliseconds())));
+                 new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH).format(new Date(start + storageConfig.getCleanPeriod().getMilliseconds())));
     }
 
     @Override

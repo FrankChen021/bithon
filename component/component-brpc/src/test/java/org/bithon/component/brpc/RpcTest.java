@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -193,7 +194,7 @@ public class RpcTest {
                     if (val != divisor) {
                         v.incrementAndGet();
                     }
-                    System.out.printf("%s:%d, ret=%s\n", Thread.currentThread().getName(), idx, val == divisor);
+                    System.out.printf(Locale.ENGLISH, "%s:%d, ret=%s\n", Thread.currentThread().getName(), idx, val == divisor);
                 } catch (ServiceInvocationException e) {
                     System.out.println(e.getMessage());
                     v.incrementAndGet();

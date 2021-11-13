@@ -45,8 +45,6 @@ public class CreateBeanInstanceInterceptor extends AbstractInterceptor {
         }
 
         String beanName = aopContext.getArgAs(0);
-        RootBeanDefinition beanDef = aopContext.getArgAs(1);
-        Object[] args = aopContext.getArgAs(2);
 
         BeanWrapper result = aopContext.castReturningAs();
         Object bean = result.getWrappedInstance();

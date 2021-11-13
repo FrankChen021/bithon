@@ -25,6 +25,11 @@
       <artifactId>clickhouse-jdbc</artifactId>
       <version>0.3.1-patch</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>component-commons</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

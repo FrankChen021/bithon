@@ -22,6 +22,7 @@ import org.bithon.agent.core.utils.lang.StringUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -88,7 +89,7 @@ public class Validator {
             name = field.getName();
         }
 
-        return String.format(violationMessagePattern, name);
+        return String.format(Locale.ENGLISH, violationMessagePattern, name);
     }
 
     interface IValueValidator {
@@ -122,7 +123,7 @@ public class Validator {
                 if (v >= min && v <= max) {
                     return null;
                 }
-                return "%s " + String.format("should be in the range of [%d, %d], but is %d", min, max, v);
+                return "%s " + String.format(Locale.ENGLISH, "should be in the range of [%d, %d], but is %d", min, max, v);
             }
             return "Type of [%s] is not Number, but " + objectType.getSimpleName();
         }

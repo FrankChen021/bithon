@@ -16,6 +16,8 @@
 
 package org.bithon.agent.sdk.expt;
 
+import java.util.Locale;
+
 /**
  * @author Frank Chen
  * @date 3/10/21 16:33
@@ -26,6 +28,6 @@ public class SdkException extends RuntimeException {
     }
 
     public SdkException(String format, Object... args) {
-        super(String.format(format, args));
+        super(String.format(Locale.ENGLISH, format, args));
     }
 }

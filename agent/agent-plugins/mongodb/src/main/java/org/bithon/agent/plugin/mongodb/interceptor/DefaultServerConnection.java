@@ -136,11 +136,12 @@ public class DefaultServerConnection {
                 return InterceptionDecision.SKIP_LEAVE;
             }
 
-            IBithonObject bithonObject = (IBithonObject) protocol;
-            MongoCommand command = (MongoCommand) bithonObject.getInjectedObject();
-
             //TODO: wrap callback and exception callback
-            SingleResultCallback callback = (SingleResultCallback) aopContext.getArgs()[1];
+            /*
+             * IBithonObject bithonObject = (IBithonObject) protocol;
+             * MongoCommand command = (MongoCommand) bithonObject.getInjectedObject();
+             * SingleResultCallback callback = (SingleResultCallback) aopContext.getArgs()[1];
+             */
 
             return super.onMethodEnter(aopContext);
         }
