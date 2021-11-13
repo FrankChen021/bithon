@@ -237,14 +237,14 @@
         <version>3.1</version>
         <configuration>
           <failOnUnresolvableSignatures>false</failOnUnresolvableSignatures>
+          <!--
           <bundledSignatures>
-            <!--
               This will automatically choose the right
               signatures based on 'maven.compiler.target':
               NOTE: this fails on openjdk9
             <bundledSignature>jdk-unsafe</bundledSignature>
-            -->
           </bundledSignatures>
+          -->
           <signaturesFiles>
             <signaturesFile>${project.parent.basedir}/dev/forbidden-apis-joda-time.txt</signaturesFile>
             <signaturesFile>${project.parent.basedir}/dev/forbidden-apis-bithon.txt</signaturesFile>
