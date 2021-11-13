@@ -31,15 +31,15 @@ cache:
 
 env:
   global:
-    - MVN="mvn -B --activate-profiles 3rd"
-    - > # Various options to make execution of maven goals faster (e.g., mvn install)
-      MAVEN_SKIP="-Dmaven.javadoc.skip=true"
+    - MVN="mvn -B"
 
 addons:
   apt:
     packages:
       - maven
       - python3
+
+install: ${MVN} clean install --activate-profiles 3rd -Dmaven.javadoc.skip=true -DskipTests
 
 stages:
   - name: Tests - phase 1
