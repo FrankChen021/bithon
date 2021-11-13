@@ -184,7 +184,6 @@ public class ClientInvocationManager {
 
     static class InflightRequest {
         long requestAt;
-        long responseAt;
         Type returnObjType;
         Object response;
         /**

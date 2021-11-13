@@ -22,7 +22,7 @@ package org.bithon.server.metric.typing;
  */
 public class StringValueType implements IValueType {
 
-    public static StringValueType INSTANCE = new StringValueType();
+    public static final StringValueType INSTANCE = new StringValueType();
 
     @Override
     public String format(Number value) {

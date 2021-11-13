@@ -77,7 +77,7 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, Me
                 }
             };
         } catch (IOException e) {
-            throw new RuntimeException(String.format("Can't parse text into %s.\n%s",
+            throw new RuntimeException(String.format("Can't parse text into %s.%n%s",
                                                      clazz.getSimpleName(),
                                                      record.value()));
         }

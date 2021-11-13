@@ -46,7 +46,7 @@ public class BeanMethodInterceptorFactory {
             Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
                                                       true,
                                                       BootstrapHelper.getPluginClassLoader());
-            synchronized (INTERCEPTOR_CLASS_NAME) {
+            synchronized (BeanMethodInterceptorFactory.class) {
                 //double check
                 if (interceptorInstance != null) {
                     return interceptorInstance;

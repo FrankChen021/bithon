@@ -70,7 +70,7 @@ public class TableCreator {
             StringBuilder sb = new StringBuilder();
 
             String tableName = StringUtils.hasText(config.getCluster()) ? table.getName() + "_local" : table.getName();
-            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (\n",
+            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
                                     config.getDatabase(),
                                     tableName,
                                     StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
@@ -116,7 +116,7 @@ public class TableCreator {
             // create distributed table
             //
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (\n",
+            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
                                     config.getDatabase(),
                                     table.getName(),
                                     StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
@@ -136,19 +136,19 @@ public class TableCreator {
         StringBuilder sb = new StringBuilder(128);
         for (Field<?> f : table.fields()) {
             if (f.getDataType().equals(SQLDataType.TIMESTAMP)) {
-                sb.append(String.format("`%s` %s(3,0) ,\n",
+                sb.append(String.format("`%s` %s(3,0) ,%n",
                                         f.getName(),
                                         f.getDataType().getTypeName()));
                 continue;
             }
             if (f.getDataType().hasPrecision()) {
-                sb.append(String.format("`%s` %s(%d, %d) ,\n",
+                sb.append(String.format("`%s` %s(%d, %d) ,%n",
                                         f.getName(),
                                         f.getDataType().getTypeName(),
                                         f.getDataType().precision(),
                                         f.getDataType().scale()));
             } else {
-                sb.append(String.format("`%s` %s ,\n", f.getName(), f.getDataType().getTypeName()));
+                sb.append(String.format("`%s` %s ,%n", f.getName(), f.getDataType().getTypeName()));
             }
         }
         sb.delete(sb.length() - 2, sb.length());

@@ -33,7 +33,7 @@ import javax.validation.constraints.NotNull;
  */
 public class CountMetricSpec implements IMetricSpec {
 
-    public static IMetricSpec INSTANCE = new CountMetricSpec("count");
+    public static final IMetricSpec INSTANCE = new CountMetricSpec("count");
 
     @Getter
     private final String name;

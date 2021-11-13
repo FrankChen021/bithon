@@ -123,7 +123,7 @@ public class AgentSettingManager {
                 try {
                     listener.onRefresh(om, configNode);
                 } catch (Exception e) {
-                    log.warn(String.format("Exception when refresh setting %s.\n%s", sectionName, settingString), e);
+                    log.warn(String.format("Exception when refresh setting %s.%n%s", sectionName, settingString), e);
                 }
             }
         });

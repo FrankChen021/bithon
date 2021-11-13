@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frankchen
  */
 public class StatementMetricCollector implements IMetricCollector, IAgentSettingRefreshListener {
-    static final StatementMetricCollector INSTANCE = new StatementMetricCollector();
+    private static StatementMetricCollector INSTANCE;
     private static final Logger log = LoggerFactory.getLogger(StatementMetricCollector.class);
     private static final String MYSQL_COUNTER_NAME = "sql_stats";
     private final Map<String, Map<String, SQLStatementMetrics>> metricMap = new ConcurrentHashMap<>();
@@ -58,6 +58,13 @@ public class StatementMetricCollector implements IMetricCollector, IAgentSetting
     }
 
     static StatementMetricCollector getInstance() {
+        if (INSTANCE == null) {
+            synchronized (StatementMetricCollector.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new StatementMetricCollector();
+                }
+            }
+        }
         return INSTANCE;
     }
 

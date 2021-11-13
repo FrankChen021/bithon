@@ -114,12 +114,9 @@ public class Channels$Write extends AbstractInterceptor {
             //
             // tracing
             //
-            try {
-                span.tag(channelFuture.getCause());
-                span.finish();
-                span.context().finish();
-            } catch (Exception ignored) {
-            }
+            span.tag(channelFuture.getCause());
+            span.finish();
+            span.context().finish();
         });
     }
 }

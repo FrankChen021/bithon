@@ -98,11 +98,12 @@ public class WebServerMetricCollector implements IMetricCollector {
         }
 
         Method getMethod(Class<?> clazz, String name) {
-            while (clazz != null) {
+            Class thisClass = clazz;
+            while (thisClass != null) {
                 try {
-                    return clazz.getDeclaredMethod(name);
+                    return thisClass.getDeclaredMethod(name);
                 } catch (NoSuchMethodException e) {
-                    clazz = clazz.getSuperclass();
+                    thisClass = thisClass.getSuperclass();
                 }
             }
             throw new AgentException("can't find [%s] in [%s]", name, clazz.getName());

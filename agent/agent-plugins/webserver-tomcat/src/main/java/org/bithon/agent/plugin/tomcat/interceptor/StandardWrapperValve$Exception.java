@@ -26,7 +26,7 @@ import org.bithon.agent.plugin.tomcat.metric.ExceptionMetricCollector;
  *
  * @author frankchen
  */
-public class StandardWrapperValveException extends AbstractInterceptor {
+public class StandardWrapperValve$Exception extends AbstractInterceptor {
 
     private ExceptionMetricCollector metricCollector;
 

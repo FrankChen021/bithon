@@ -40,16 +40,16 @@ public class BootstrapHelper {
             Method getLoggerMethod = loggerClass.getDeclaredMethod("getLogger", Class.class);
             return (IAopLogger) getLoggerMethod.invoke(null, logClass);
         } catch (ClassNotFoundException e) {
-            System.out.printf("[%s] could not be found, AopLogger falls back to Console Logger\n", loggerName);
+            System.out.printf("[%s] could not be found, AopLogger falls back to Console Logger%n", loggerName);
             return new IAopLogger() {
                 @Override
                 public void warn(String message, Throwable e) {
-                    System.out.printf("[WARN] %s: %s\n", message, e.toString());
+                    System.out.printf("[WARN] %s: %s%n", message, e.toString());
                 }
 
                 @Override
                 public void error(String message, Throwable e) {
-                    System.out.printf("[ERROR] %s: %s\n", message, e.toString());
+                    System.out.printf("[ERROR] %s: %s%n", message, e.toString());
                 }
             };
         } catch (Exception e) {
