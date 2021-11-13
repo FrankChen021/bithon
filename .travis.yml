@@ -39,10 +39,11 @@ addons:
       - maven
       - python3
 
-install: ${MVN} clean install --activate-profiles 3rd -Dmaven.javadoc.skip=true -DskipTests
+install: ${MVN} clean install --activate-profiles all -Dmaven.javadoc.skip=true -DskipTests
 
 stages:
   - name: Tests - phase 1
+  - name: Tests - phase 2
 
 jobs:
   include:
@@ -59,3 +60,12 @@ jobs:
     - name: "spotbugs checks"
       script: ${MVN} spotbugs:check --fail-at-end
 
+    - &package
+      name: "(openjdk9) packaging check"
+      stage: Tests - phase 2
+      jdK: openjdk9
+
+    - <<: *package
+      name: "(openjdk17) packaging check"
+      stage: Tests - phase 2
+      jdk: openjdk17

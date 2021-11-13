@@ -285,7 +285,7 @@
 
   <profiles>
     <profile>
-      <id>3rd</id>
+      <id>all</id>
       <modules>
         <module>shaded</module>
         <module>server/jOOQ</module>
