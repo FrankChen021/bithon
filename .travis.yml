@@ -51,8 +51,7 @@ jobs:
     - name: "checks"
       stage: Tests - phase 1
       jdk: openjdk8
-      script: ${MVN} animal-sniffer:check checkstyle:checkstyle spotbugs:check
-
+      script: ${MVN} -T 1C animal-sniffer:check checkstyle:checkstyle spotbugs:check
 
     # forbidden check is enabled on project by default, there's no need to check in CI
     #- name: "forbidden api checks"

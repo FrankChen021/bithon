@@ -78,6 +78,49 @@
               </compilerArgs>
             </configuration>
           </plugin>
+
+          <plugin>
+            <groupId>de.thetaphi</groupId>
+            <artifactId>forbiddenapis</artifactId>
+            <version>3.1</version>
+            <configuration>
+              <failOnUnresolvableSignatures>false</failOnUnresolvableSignatures>
+              <bundledSignatures>
+                <!--
+                  This will automatically choose the right
+                  signatures based on 'maven.compiler.target':
+                  -->
+                <bundledSignature>jdk-unsafe</bundledSignature>
+              </bundledSignatures>
+              <signaturesFiles>
+                <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-joda-time.txt</signaturesFile>
+                <signaturesFile>${project.parent.basedir}/../dev/forbidden-apis-bithon.txt</signaturesFile>
+              </signaturesFiles>
+              <excludes>
+                <exclude>**/SomeAvroDatum.class</exclude>
+              </excludes>
+              <suppressAnnotations>
+                <annotation>**.SuppressForbidden</annotation>
+              </suppressAnnotations>
+            </configuration>
+            <executions>
+              <execution>
+                <id>compile</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+                <!-- override the bundledSignature because openjdk9+ does not recognized it -->
+              </execution>
+              <execution>
+                <id>testCompile</id>
+                <phase>test-compile</phase>
+                <goals>
+                  <goal>testCheck</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
     </profile>
