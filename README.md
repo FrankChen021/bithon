@@ -1,3 +1,7 @@
+[![Build Status](https://app.travis-ci.com/FrankChen021/bithon.svg?branch=master)](https://app.travis-ci.com/github/FrankChen021/bithon)
+
+---
+
 # What's Bithon
 
 Bithon is a word combining binocular together with python.
