@@ -53,19 +53,16 @@ jobs:
 
     - name: "checkstyle"
       script: ${MVN} checkstyle:checkstyle --fail-at-end
-
-    - name: "forbidden api checks"
-      script: ${MVN} forbiddenapis:check forbiddenapis:testCheck --fail-at-end
+    #- name: "forbidden api checks"
+    #  script: ${MVN} forbiddenapis:check forbiddenapis:testCheck --fail-at-end
 
     - name: "spotbugs checks"
       script: ${MVN} spotbugs:check --fail-at-end
 
-    - &package
-      name: "(openjdk9) packaging check"
+    - name: "(openjdk9) packaging check"
       stage: Tests - phase 2
       jdK: openjdk9
 
-    - <<: *package
-      name: "(openjdk17) packaging check"
+    - name: "(openjdk17) packaging check"
       stage: Tests - phase 2
       jdk: openjdk17
