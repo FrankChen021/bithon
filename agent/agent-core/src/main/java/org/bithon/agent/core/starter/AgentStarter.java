@@ -26,6 +26,7 @@ import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
+import java.util.Locale;
 import java.util.ServiceLoader;
 
 import static java.io.File.separator;
@@ -36,7 +37,11 @@ import static java.io.File.separator;
 public class AgentStarter {
 
     public void start(String agentPath, Instrumentation inst) throws Exception {
-        System.out.printf("Version: %s, %s, Build time:%s%n%n", AgentBuildVersion.VERSION, AgentBuildVersion.SCM_REVISION, AgentBuildVersion.TIMESTAMP);
+        System.out.printf(Locale.ENGLISH,
+                          "Version: %s, %s, Build time:%s%n%n",
+                          AgentBuildVersion.VERSION,
+                          AgentBuildVersion.SCM_REVISION,
+                          AgentBuildVersion.TIMESTAMP);
 
         InstrumentationHelper.setInstance(inst);
 

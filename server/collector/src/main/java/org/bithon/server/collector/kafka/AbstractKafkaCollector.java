@@ -29,6 +29,7 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListener;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -77,7 +78,8 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, Me
                 }
             };
         } catch (IOException e) {
-            throw new RuntimeException(String.format("Can't parse text into %s.%n%s",
+            throw new RuntimeException(String.format(Locale.ENGLISH,
+                                                     "Can't parse text into %s.%n%s",
                                                      clazz.getSimpleName(),
                                                      record.value()));
         }

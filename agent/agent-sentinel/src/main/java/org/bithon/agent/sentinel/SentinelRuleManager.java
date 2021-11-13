@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -292,7 +293,7 @@ public class SentinelRuleManager {
 
     public void updateFlowRule(String source, FlowRuleDto newRule, boolean loadRules) {
         if (!flowId2Rules.containsKey(newRule.getRuleId())) {
-            throw new SentinelCommandException(String.format("flow rule[%s] not exist", newRule.getRuleId()));
+            throw new SentinelCommandException(String.format(Locale.ENGLISH, "flow rule[%s] not exist", newRule.getRuleId()));
         }
         deleteFlowRule(source, Collections.singletonList(newRule.getRuleId()), loadRules);
         addFlowControlRule(source, newRule, loadRules);
@@ -372,7 +373,7 @@ public class SentinelRuleManager {
 
     public void updateDegradingRule(String source, DegradingRuleDto newRule, boolean loadRules) {
         if (!degradeId2Rules.containsKey(newRule.getRuleId())) {
-            throw new SentinelCommandException(String.format("degrade rule [%s] not exist", newRule.getRuleId()));
+            throw new SentinelCommandException(String.format(Locale.ENGLISH, "degrade rule [%s] not exist", newRule.getRuleId()));
         }
         deleteDegradingRule(source, Collections.singletonList(newRule.getRuleId()), loadRules);
         addDegradingRule(source, newRule, loadRules);

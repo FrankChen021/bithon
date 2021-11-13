@@ -41,18 +41,6 @@ addons:
       - maven
       - python3
 
-
-# There are 3 stages of tests
-# 1. Tests - phase 1
-# 2. Tests - phase 2
-# 3. cron
-#
-# The cron type only runs jobs that are marked with stage cron.
-# The test type is split into 2 stages. This is done so that more PRs can run their validation
-# in parallel. The first phase is meant to include sanity test jobs. The jobs in this phase are
-# meant to be fast. The second phase is meant to run all other tests.
-# Jobs with known flaky tests should be put in the second phase since the second phase will not
-# start if there are any failures in the second stage.
 stages:
   - name: Tests - phase 1
 
@@ -60,20 +48,14 @@ jobs:
   include:
     - name: "animal sniffer checks"
       stage: Tests - phase 1
-      script: ${MVN} animal-sniffer:check --fail-at-end
+      script: ${MVN} animal-sniffer:check --fail-at-end --activate-profiles 3rd
 
     - name: "checkstyle"
-      script: ${MVN} checkstyle:checkstyle --fail-at-end
-
-    - name: "enforcer checks"
-      script: ${MVN} enforcer:enforce --fail-at-end
+      script: ${MVN} checkstyle:checkstyle --fail-at-end --activate-profiles 3rd
 
     - name: "forbidden api checks"
-      script: ${MVN} forbiddenapis:check forbiddenapis:testCheck --fail-at-end
-
-    - name: "pmd checks"
-      script: ${MVN} pmd:check --fail-at-end
+      script: ${MVN} forbiddenapis:check forbiddenapis:testCheck --fail-at-end --activate-profiles 3rd
 
     - name: "spotbugs checks"
-      script: ${MVN} spotbugs:check --fail-at-end
+      script: ${MVN} spotbugs:check --fail-at-end --activate-profiles 3rd
 

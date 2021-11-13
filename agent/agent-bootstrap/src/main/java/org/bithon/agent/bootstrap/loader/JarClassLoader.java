@@ -23,6 +23,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -109,7 +110,8 @@ public class JarClassLoader extends ClassLoader {
             } catch (ClassNotFoundException ignored) {
             }
         }
-        throw new ClassNotFoundException(String.format("%s not found in %s, parents:%s",
+        throw new ClassNotFoundException(String.format(Locale.ENGLISH,
+                                                       "%s not found in %s, parents:%s",
                                                        name,
                                                        this.name,
                                                        Arrays.stream(this.parents)

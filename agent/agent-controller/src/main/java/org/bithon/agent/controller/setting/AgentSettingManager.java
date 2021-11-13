@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -123,7 +124,7 @@ public class AgentSettingManager {
                 try {
                     listener.onRefresh(om, configNode);
                 } catch (Exception e) {
-                    log.warn(String.format("Exception when refresh setting %s.%n%s", sectionName, settingString), e);
+                    log.warn(String.format(Locale.ENGLISH, "Exception when refresh setting %s.%n%s", sectionName, settingString), e);
                 }
             }
         });

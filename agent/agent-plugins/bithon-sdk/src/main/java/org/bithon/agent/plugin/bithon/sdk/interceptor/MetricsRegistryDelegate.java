@@ -126,9 +126,8 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         final Constructor<?> defaultCtor = Arrays.stream(metricClass.getConstructors())
                                                  .filter(ctor -> ctor.getParameterCount() == 0)
                                                  .findFirst()
-                                                 .orElseThrow(() -> new SdkException(String.format(
-                                                     "Class[%s] has no default ctor",
-                                                     metricClass.getName())));
+                                                 .orElseThrow(() -> new SdkException("Class[%s] has no default ctor",
+                                                                                     metricClass.getName()));
         defaultCtor.setAccessible(true);
         this.metricInstantiator = () -> {
             try {

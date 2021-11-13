@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 
 /**
@@ -28,7 +29,7 @@ public interface ISqlExpressionFormatter {
      * different DBMS has different functions to support time_floor semantics
      */
     default String timeFloor(String field, long interval) {
-        return String.format("UNIX_TIMESTAMP(\"%s\")/ %d * %d", field, interval, interval);
+        return StringUtils.format("UNIX_TIMESTAMP(\"%s\")/ %d * %d", field, interval, interval);
     }
 
     /**

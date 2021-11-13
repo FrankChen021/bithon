@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.Locale;
 
 import static java.io.File.separator;
 
@@ -100,7 +101,7 @@ public class AopDebugger extends AgentBuilder.Listener.Adapter {
                         JavaModule javaModule,
                         boolean b,
                         Throwable throwable) {
-        log.error(String.format("Failed to transform %s", s), throwable);
+        log.error(String.format(Locale.ENGLISH, "Failed to transform %s", s), throwable);
     }
 
     private void cleanup() {

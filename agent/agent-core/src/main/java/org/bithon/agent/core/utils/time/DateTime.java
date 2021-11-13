@@ -18,6 +18,7 @@ package org.bithon.agent.core.utils.time;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,6 +27,6 @@ import java.util.Date;
 public class DateTime {
 
     public static String toISO8601(long milliSeconds) {
-        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(new Date(milliSeconds));
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ENGLISH).format(new Date(milliSeconds));
     }
 }

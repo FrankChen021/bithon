@@ -20,15 +20,13 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.storage.IMetricCleaner;
 import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.jooq.DSLContext;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * @author frank.chen021@outlook.com
@@ -62,10 +60,10 @@ public class MetricStorage extends MetricJdbcStorage {
     @Override
     public IMetricCleaner createMetricCleaner(DataSourceSchema schema) {
         String table = "bithon_" + schema.getName().replace('-', '_');
-        return beforeTimestamp -> dslContext.execute(String.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                                   config.getDatabase(),
-                                                                   config.getLocalTableName(table),
-                                                                   config.getClusterExpression(),
-                                                                   new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(beforeTimestamp))));
+        return beforeTimestamp -> dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
+                                                                        config.getDatabase(),
+                                                                        config.getLocalTableName(table),
+                                                                        config.getClusterExpression(),
+                                                                        StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", (beforeTimestamp))));
     }
 }

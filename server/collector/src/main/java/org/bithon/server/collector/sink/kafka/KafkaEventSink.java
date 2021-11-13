@@ -18,6 +18,7 @@ package org.bithon.server.collector.sink.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.collector.sink.IMessageSink;
 import org.bithon.server.event.handler.EventMessage;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -26,6 +27,7 @@ import org.springframework.kafka.core.KafkaTemplate;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
+@Slf4j
 public class KafkaEventSink implements IMessageSink<EventMessage> {
 
     private final KafkaTemplate<String, String> producer;
@@ -43,8 +45,7 @@ public class KafkaEventSink implements IMessageSink<EventMessage> {
                           event.getInstanceName(),
                           objectMapper.writeValueAsString(event));
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            //TODO: log here
+            log.error("error", e);
         }
     }
 }

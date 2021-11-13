@@ -16,17 +16,21 @@
 
 package org.bithon.server.webapp.utils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/12 9:34 下午
  */
+@Slf4j
 public class ReflectionUtils {
 
     public static Map<String, Object> getFields(Object object) {
@@ -43,14 +47,14 @@ public class ReflectionUtils {
                     }
 
                     String fieldName = field.getName();
-                    String methodName = "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                    String methodName = "get" + fieldName.substring(0, 1).toUpperCase(Locale.ENGLISH) + fieldName.substring(1);
                     Method method = object.getClass().getMethod(methodName);
                     Object value = method.invoke(object);
 
                     map.put(fieldName, value);
                 }
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
+                log.error("Exception when get field", e);
             }
         }
         return map;

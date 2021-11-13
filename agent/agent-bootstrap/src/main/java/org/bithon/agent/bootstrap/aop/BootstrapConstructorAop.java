@@ -23,6 +23,7 @@ import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import shaded.net.bytebuddy.implementation.bind.annotation.This;
 
 import java.lang.reflect.Constructor;
+import java.util.Locale;
 
 
 /**
@@ -51,7 +52,8 @@ public class BootstrapConstructorAop {
             interceptor.onConstruct(new AopContext(targetClass, constructor, targetObject, args));
         } catch (Throwable e) {
             if (log != null) {
-                log.error(String.format("Failed to invoke onConstruct interceptor[%s]",
+                log.error(String.format(Locale.ENGLISH,
+                                        "Failed to invoke onConstruct interceptor[%s]",
                                         INTERCEPTOR_CLASS_NAME),
                           e);
             } else {
@@ -82,7 +84,7 @@ public class BootstrapConstructorAop {
             }
             INTERCEPTOR.initialize();
         } catch (Exception e) {
-            log.error(String.format("Failed to instantiate interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
+            log.error(String.format(Locale.ENGLISH, "Failed to instantiate interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
         }
         return INTERCEPTOR;
     }

@@ -22,6 +22,8 @@ import org.bithon.agent.rpc.thrift.service.setting.FetchRequest;
 import org.bithon.agent.rpc.thrift.service.setting.FetchResponse;
 import org.bithon.agent.rpc.thrift.service.setting.SettingService;
 
+import java.util.Locale;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/16 7:03 下午
@@ -45,7 +47,7 @@ public class SettingServiceThriftImpl implements SettingService.Iface {
                                                          request.getEnvName(),
                                                          request.getSince()));
         } catch (Exception e) {
-            log.error(String.format("fetch setting for {}-{} failed", request.getAppName(), request.getEnvName()), e);
+            log.error(String.format(Locale.ENGLISH, "fetch setting for {}-{} failed", request.getAppName(), request.getEnvName()), e);
             return new FetchResponse(500, e.getMessage(), null);
         }
 

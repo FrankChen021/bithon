@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
@@ -88,7 +89,7 @@ public class ParserUtils {
     public static void validateFields(Iterable<String> fieldNames) {
         Set<String> duplicates = findDuplicates(fieldNames);
         if (!duplicates.isEmpty()) {
-            throw new RuntimeException(String.format("Duplicate column entries found : %s", duplicates.toString()));
+            throw new RuntimeException(String.format(Locale.ENGLISH, "Duplicate column entries found : %s", duplicates.toString()));
         }
     }
 

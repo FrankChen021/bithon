@@ -28,6 +28,7 @@ import shaded.org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -79,7 +80,7 @@ public class MatcherUtils {
 
             @Override
             public String toString() {
-                return String.format("(arg%d is %s)", index, typeName);
+                return String.format(Locale.ENGLISH, "(arg%d is %s)", index, typeName);
             }
         };
     }
@@ -103,7 +104,7 @@ public class MatcherUtils {
 
             @Override
             public String toString() {
-                return String.format("(lastArg is %s)", typeName);
+                return String.format(Locale.ENGLISH, "(lastArg is %s)", typeName);
             }
         };
     }
@@ -124,7 +125,7 @@ public class MatcherUtils {
 
             @Override
             public String toString() {
-                return String.format("(annotations: %s)", annotationSet);
+                return String.format(Locale.ENGLISH, "(annotations: %s)", annotationSet);
             }
         };
     }

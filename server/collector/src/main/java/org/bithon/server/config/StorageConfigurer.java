@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -41,7 +42,7 @@ public class StorageConfigurer {
 
     @Bean
     public IMetricStorage createMetricStorage(ObjectMapper om, MetricStorageConfig storageConfig) throws IOException {
-        String jsonType = String.format("{\"type\":\"%s\"}", storageConfig.getType());
+        String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         IMetricStorage storage = om.readValue(jsonType, IMetricStorage.class);
         storage.initialize();
         return storage;
@@ -49,7 +50,7 @@ public class StorageConfigurer {
 
     @Bean
     public IMetaStorage metaStorage(ObjectMapper om, MetricStorageConfig storageConfig) throws IOException {
-        String jsonType = String.format("{\"type\":\"%s\"}", storageConfig.getType());
+        String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         IMetaStorage storage = new CachableMetadataStorage(om.readValue(jsonType, IMetaStorage.class));
         storage.initialize();
         return storage;
@@ -57,7 +58,7 @@ public class StorageConfigurer {
 
     @Bean
     public ITraceStorage traceStorage(ObjectMapper om, TraceStorageConfig storageConfig) throws IOException {
-        String jsonType = String.format("{\"type\":\"%s\"}", storageConfig.getType());
+        String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         ITraceStorage storage = om.readValue(jsonType, ITraceStorage.class);
         storage.initialize();
         return storage;
@@ -65,7 +66,7 @@ public class StorageConfigurer {
 
     @Bean
     public IEventStorage eventStorage(ObjectMapper om, EventStorageConfig storageConfig) throws IOException {
-        String jsonType = String.format("{\"type\":\"%s\"}", storageConfig.getType());
+        String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         IEventStorage storage = om.readValue(jsonType, IEventStorage.class);
         storage.initialize();
         return storage;
@@ -73,7 +74,7 @@ public class StorageConfigurer {
 
     @Bean
     public ISettingStorage settingStorage(ObjectMapper om, SettingStorageConfig storageConfig) throws IOException {
-        String jsonType = String.format("{\"type\":\"%s\"}", storageConfig.getType());
+        String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         ISettingStorage storage = om.readValue(jsonType, ISettingStorage.class);
         storage.initialize();
         return storage;

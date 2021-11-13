@@ -22,13 +22,11 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.jooq.DSLContext;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * @author frank.chen021@outlook.com
@@ -55,10 +53,10 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public ITraceCleaner createCleaner() {
-        return beforeTimestamp -> dslContext.execute(String.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                                   config.getDatabase(),
-                                                                   config.getLocalTableName(Tables.BITHON_TRACE_SPAN.getName()),
-                                                                   config.getClusterExpression(),
-                                                                   new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(beforeTimestamp))));
+        return beforeTimestamp -> dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
+                                                                        config.getDatabase(),
+                                                                        config.getLocalTableName(Tables.BITHON_TRACE_SPAN.getName()),
+                                                                        config.getClusterExpression(),
+                                                                        StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", beforeTimestamp)));
     }
 }

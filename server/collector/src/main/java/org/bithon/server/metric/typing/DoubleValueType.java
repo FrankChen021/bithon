@@ -19,6 +19,8 @@ package org.bithon.server.metric.typing;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 /**
  * @author Frank Chen
@@ -29,7 +31,7 @@ public class DoubleValueType implements IValueType {
 
     @Override
     public String format(Number value) {
-        return new DecimalFormat("#,###.00").format(value.doubleValue());
+        return new DecimalFormat("#,###.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH)).format(value.doubleValue());
     }
 
     @Override

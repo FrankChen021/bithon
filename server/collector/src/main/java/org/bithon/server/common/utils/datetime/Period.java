@@ -19,6 +19,8 @@ package org.bithon.server.common.utils.datetime;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 
+import java.util.Locale;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/4/11 18:33
@@ -41,6 +43,6 @@ public class Period {
     }
 
     public static Period years(int i) {
-        return new Period(String.format("P%dY", i));
+        return new Period(String.format(Locale.ENGLISH, "P%dY", i));
     }
 }

@@ -152,8 +152,7 @@ public class ClientInvocationManager {
 
         try {
             inflightRequest.response = response.getReturning(inflightRequest.returnObjType);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
 
         if (!StringUtil.isNullOrEmpty(response.getException())) {

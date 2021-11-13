@@ -27,6 +27,7 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -54,7 +55,7 @@ public class ServiceDiscovery {
             throw new IllegalStateException("-Dbithon.api.host not specified for web-app");
         }
 
-        apiHost = String.format("http://%s:%s", addr.getHostAddress(), env.getProperty("server.port"));
+        apiHost = String.format(Locale.ENGLISH, "http://%s:%s", addr.getHostAddress(), env.getProperty("server.port"));
     }
 
     public String getApiHost() {
@@ -63,6 +64,7 @@ public class ServiceDiscovery {
 
     /**
      * taken from {@link org.springframework.cloud.commons.util.InetUtils#findFirstNonLoopbackAddress()}
+     *
      * @return non loopback ip address
      */
     private InetAddress findFirstNonLoopbackAddress() {

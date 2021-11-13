@@ -22,6 +22,7 @@ import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import shaded.net.bytebuddy.implementation.bind.annotation.This;
 
 import java.lang.reflect.Constructor;
+import java.util.Locale;
 
 /**
  * @author frankchen
@@ -44,7 +45,8 @@ public class ConstructorAop {
         try {
             interceptor.onConstruct(new AopContext(targetClass, constructor, targetObject, args));
         } catch (Exception e) {
-            log.error(String.format("Error occurred during invoking %s.onConstruct()",
+            log.error(String.format(Locale.ENGLISH,
+                                    "Error occurred during invoking %s.onConstruct()",
                                     interceptor.getClass().getSimpleName()),
                       e);
         }

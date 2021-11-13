@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
+import java.util.Locale;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/13 9:44 下午
@@ -31,12 +33,12 @@ public class IContainsMatcher implements IStringMatcher {
 
     @JsonCreator
     public IContainsMatcher(@JsonProperty("pattern") String pattern) {
-        this.pattern = pattern.toLowerCase();
+        this.pattern = pattern.toLowerCase(Locale.ENGLISH);
     }
 
     @Override
     public boolean matches(String input) {
-        return input.toLowerCase().contains(pattern);
+        return input.toLowerCase(Locale.ENGLISH).contains(pattern);
     }
 
     @Override

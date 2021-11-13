@@ -37,6 +37,7 @@ import org.bithon.server.metric.typing.LongValueType;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
+import java.util.Locale;
 
 /**
  * @author frankchen
@@ -116,7 +117,8 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                 public Void visitTerminal(TerminalNode node) {
                     if (node.getSymbol().getType() == PostAggregatorExpressionParser.ID) {
                         if (!owner.containsMetric(node.getText())) {
-                            throw new IllegalStateException(String.format("[%s] in [%s] not found in dataSchema",
+                            throw new IllegalStateException(String.format(Locale.ENGLISH,
+                                                                          "[%s] in [%s] not found in dataSchema",
                                                                           node.getText(),
                                                                           name));
                         }

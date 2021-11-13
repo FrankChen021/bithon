@@ -17,6 +17,7 @@
 package org.bithon.agent.bootstrap.aop;
 
 import java.lang.reflect.Method;
+import java.util.Locale;
 
 /**
  * @author frankchen
@@ -41,7 +42,8 @@ public final class AroundMethodAopImpl {
             try {
                 decision = interceptor.onMethodEnter(context);
             } catch (Throwable e) {
-                log.warn(String.format("Error occurred during invoking %s.before()",
+                log.warn(String.format(Locale.ENGLISH,
+                                       "Error occurred during invoking %s.before()",
                                        interceptor.getClass().getSimpleName()),
                          e);
 
@@ -78,7 +80,8 @@ public final class AroundMethodAopImpl {
                 context.setReturning(returning);
                 interceptor.onMethodLeave(context);
             } catch (Throwable e) {
-                log.warn(String.format("Error occurred during invoking %s.after()",
+                log.warn(String.format(Locale.ENGLISH,
+                                       "Error occurred during invoking %s.after()",
                                        interceptor.getClass().getSimpleName()),
                          e);
             }

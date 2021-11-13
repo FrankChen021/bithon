@@ -33,6 +33,7 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,7 +52,7 @@ public class OkHttp32Interceptor extends AbstractInterceptor {
     public boolean initialize() {
         ignoredSuffixes = Arrays.stream("html, js, css, jpg, gif, png, swf, ttf, ico, woff, woff2, json, eot, svg".split(
             ","))
-                                .map(x -> x.trim().toLowerCase())
+                                .map(x -> x.trim().toLowerCase(Locale.ENGLISH))
                                 .collect(Collectors.toSet());
 
         metricCollector = MetricCollectorManager.getInstance()
@@ -74,7 +75,7 @@ public class OkHttp32Interceptor extends AbstractInterceptor {
         Request originRequest = realCall.request();
 
         String requestUri = originRequest.url().uri().toString();
-        String requestMethod = originRequest.method().toUpperCase();
+        String requestMethod = originRequest.method().toUpperCase(Locale.ENGLISH);
 
         if (aopContext.getException() != null) {
             metricCollector.addExceptionRequest(requestUri,
@@ -89,7 +90,7 @@ public class OkHttp32Interceptor extends AbstractInterceptor {
     }
 
     private boolean needIgnore(String uri) {
-        String suffix = uri.substring(uri.lastIndexOf(".") + 1).toLowerCase();
+        String suffix = uri.substring(uri.lastIndexOf(".") + 1).toLowerCase(Locale.ENGLISH);
         return ignoredSuffixes.contains(suffix);
     }
 

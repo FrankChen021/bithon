@@ -16,6 +16,8 @@
 
 package org.bithon.component.brpc.exception;
 
+import java.util.Locale;
+
 /**
  * This is the exception representing errors at the caller side(usually refers to client side)
  *
@@ -28,6 +30,6 @@ public class CallerSideException extends ServiceInvocationException {
     }
 
     public CallerSideException(String messageFormat, Object... args) {
-        super(String.format(messageFormat, args));
+        super(String.format(Locale.ENGLISH, messageFormat, args));
     }
 }

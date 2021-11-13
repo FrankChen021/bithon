@@ -17,13 +17,13 @@
 package org.bithon.server.storage.jdbc.clickhouse;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Index;
 import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Frank Chen
@@ -70,12 +70,12 @@ public class TableCreator {
             StringBuilder sb = new StringBuilder();
 
             String tableName = StringUtils.hasText(config.getCluster()) ? table.getName() + "_local" : table.getName();
-            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
+            sb.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
                                     config.getDatabase(),
                                     tableName,
                                     StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
             sb.append(getFieldText(table));
-            sb.append(String.format(") ENGINE=%s PARTITION BY toYYYYMMDD(timestamp) ", engine.replaceAll("\\{database\\}", config.getDatabase())
+            sb.append(StringUtils.format(") ENGINE=%s PARTITION BY toYYYYMMDD(timestamp) ", engine.replaceAll("\\{database\\}", config.getDatabase())
                                                                                              .replaceAll("\\{table\\}", tableName)));
 
             //
@@ -85,7 +85,7 @@ public class TableCreator {
                 sb.append("ORDER BY(");
                 for (Index idx : table.getIndexes()) {
                     for (SortField<?> f : idx.getFields()) {
-                        sb.append(String.format("`%s`,", f.getName()));
+                        sb.append(StringUtils.format("`%s`,", f.getName()));
                     }
                 }
                 sb.delete(sb.length() - 1, sb.length());
@@ -100,7 +100,7 @@ public class TableCreator {
                 // NOTE: the timestamp type we're using is DateTime64 which is not supported as TTL expression by now
                 // So, we have to use ALTER command to delete partitions by ourselves
                 //
-                //sb.append(String.format("TTL timestamp + INTERVAL %d DAY", ttlDays));
+                //sb.append(StringUtils.format("TTL timestamp + INTERVAL %d DAY", ttlDays));
             }
             sb.append(";");
 
@@ -116,12 +116,12 @@ public class TableCreator {
             // create distributed table
             //
             StringBuilder sb = new StringBuilder();
-            sb.append(String.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
+            sb.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
                                     config.getDatabase(),
                                     table.getName(),
                                     StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
             sb.append(getFieldText(table));
-            sb.append(String.format(") ENGINE=Distributed('%s', '%s', '%s', murmurHash2_64(%s));",
+            sb.append(StringUtils.format(") ENGINE=Distributed('%s', '%s', '%s', murmurHash2_64(%s));",
                                     config.getCluster(),
                                     config.getDatabase(),
                                     table.getName() + "_local",
@@ -136,19 +136,19 @@ public class TableCreator {
         StringBuilder sb = new StringBuilder(128);
         for (Field<?> f : table.fields()) {
             if (f.getDataType().equals(SQLDataType.TIMESTAMP)) {
-                sb.append(String.format("`%s` %s(3,0) ,%n",
+                sb.append(StringUtils.format("`%s` %s(3,0) ,%n",
                                         f.getName(),
                                         f.getDataType().getTypeName()));
                 continue;
             }
             if (f.getDataType().hasPrecision()) {
-                sb.append(String.format("`%s` %s(%d, %d) ,%n",
+                sb.append(StringUtils.format("`%s` %s(%d, %d) ,%n",
                                         f.getName(),
                                         f.getDataType().getTypeName(),
                                         f.getDataType().precision(),
                                         f.getDataType().scale()));
             } else {
-                sb.append(String.format("`%s` %s ,%n", f.getName(), f.getDataType().getTypeName()));
+                sb.append(StringUtils.format("`%s` %s ,%n", f.getName(), f.getDataType().getTypeName()));
             }
         }
         sb.delete(sb.length() - 2, sb.length());

@@ -22,13 +22,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.jooq.DSLContext;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * @author frank.chen021@outlook.com
@@ -58,10 +56,10 @@ public class EventStorage extends EventJdbcStorage {
      */
     @Override
     public IEventCleaner createCleaner() {
-        return beforeTimestamp -> dslContext.execute(String.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                                   config.getDatabase(),
-                                                                   config.getLocalTableName(Tables.BITHON_EVENT.getName()),
-                                                                   config.getClusterExpression(),
-                                                                   new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(beforeTimestamp))));
+        return beforeTimestamp -> dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
+                                                                        config.getDatabase(),
+                                                                        config.getLocalTableName(Tables.BITHON_EVENT.getName()),
+                                                                        config.getClusterExpression(),
+                                                                        StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", beforeTimestamp)));
     }
 }

@@ -31,6 +31,7 @@ import shaded.org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -85,14 +86,14 @@ public abstract class AbstractThriftClient<T extends TServiceClient> {
                               e.getCause().getMessage());
                 }
             } else if (e.getCause() instanceof TApplicationException) {
-                log.error(String.format("Application exception occurred when sending for [%s]", this.clientName),
+                log.error(String.format(Locale.ENGLISH, "Application exception occurred when sending for [%s]", this.clientName),
                           e.getCause());
             } else {
-                log.error(String.format("Unexpected exception occurred when sending for [%s]", this.clientName), e);
+                log.error(String.format(Locale.ENGLISH, "Unexpected exception occurred when sending for [%s]", this.clientName), e);
             }
         } catch (Exception e) {
             closeClient();
-            log.error(String.format("Unexpected exception occurred when sending for [%s]", this.clientName), e);
+            log.error(String.format(Locale.ENGLISH, "Unexpected exception occurred when sending for [%s]", this.clientName), e);
         }
         return null;
     }

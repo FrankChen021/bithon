@@ -24,7 +24,6 @@ import org.joda.time.chrono.ISOChronology;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 public final class DateTimes {
@@ -52,15 +51,6 @@ public final class DateTimes {
     );
 
     private DateTimes() {
-    }
-
-    public static DateTimeZone inferTzFromString(String tzId) {
-        try {
-            return DateTimeZone.forID(tzId);
-        } catch (IllegalArgumentException e) {
-            // also support Java timezone strings
-            return DateTimeZone.forTimeZone(TimeZone.getTimeZone(tzId));
-        }
     }
 
     /**

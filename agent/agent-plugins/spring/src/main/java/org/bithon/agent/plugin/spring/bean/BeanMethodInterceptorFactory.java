@@ -19,6 +19,8 @@ package org.bithon.agent.plugin.spring.bean;
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
 import shaded.net.bytebuddy.asm.Advice;
 
+import java.util.Locale;
+
 /**
  * Classes of spring beans are re-transformed after these classes are loaded,
  * so we have to use {@link Advice} to intercept methods
@@ -57,7 +59,7 @@ public class BeanMethodInterceptorFactory {
 
         } catch (Exception e) {
             BootstrapHelper.createAopLogger(BeanMethodInterceptorFactory.class)
-                           .error(String.format("Failed to create interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
+                           .error(String.format(Locale.ENGLISH, "Failed to create interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
         }
         return interceptorInstance;
     }

@@ -20,6 +20,7 @@ import org.bithon.component.brpc.example.protobuf.WebRequestMetrics;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class ExampleServiceImpl implements IExampleService {
@@ -80,7 +81,7 @@ public class ExampleServiceImpl implements IExampleService {
 
     @Override
     public String sendWebMetrics(WebRequestMetrics metrics) {
-        System.out.printf("Receiving metrics: %s\n", metrics);
+        System.out.printf(Locale.ENGLISH, "Receiving metrics: %s\n", metrics);
         return metrics.getUri();
     }
 

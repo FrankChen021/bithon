@@ -40,8 +40,7 @@ public class ServiceStubFactory {
             setTimeoutMethod = IServiceController.class.getMethod("setTimeout", long.class);
             rstTimeoutMethod = IServiceController.class.getMethod("rstTimeout");
             getPeerMethod = IServiceController.class.getMethod("getPeer");
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+        } catch (NoSuchMethodException ignored) {
         }
     }
 
