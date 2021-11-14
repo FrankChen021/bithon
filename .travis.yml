@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#branches:
-#  only:
-#  - master
-#  - /^\d+\.\d+\.\d+(-\S*)?$/ # release branches
+branches:
+  only:
+  - master
+  - /^\d+\.\d+\.\d+(-\S*)?$/ # release branches
 
 language: java
 
