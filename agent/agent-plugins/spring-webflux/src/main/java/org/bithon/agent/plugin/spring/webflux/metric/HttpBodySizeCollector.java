@@ -147,7 +147,7 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
 
     private void updateBytes(ChannelOperations<?, ?> channelOps, long dataReceived, long dataSent) {
         try {
-            collector.getOrCreateMetrics(this.getRequestHeaders(channelOps).get(ITracePropagator.BITHON_SRC_APPLICATION),
+            collector.getOrCreateMetrics(this.getRequestHeaders(channelOps).get(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
                                          this.getHttOperationPath(channelOps),
                                          ((HttpServerResponse) channelOps).status().code())
                      .updateBytes(dataReceived, dataSent);

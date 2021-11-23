@@ -132,7 +132,7 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
                         HttpServletRequest httpServletRequest,
                         HttpServletResponse response,
                         long costTime) {
-        String srcApplication = request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION);
+        String srcApplication = request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION);
         String uri = httpServletRequest.getRequestURI();
         int httpStatus = response.getStatus();
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;

@@ -20,8 +20,8 @@ import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.propagation.extractor.ChainedTraceContextExtractor;
 import org.bithon.agent.core.tracing.propagation.extractor.ITraceContextExtractor;
 import org.bithon.agent.core.tracing.propagation.extractor.PropagationGetter;
-import org.bithon.agent.core.tracing.propagation.injector.DefaultTraceContextInjector;
 import org.bithon.agent.core.tracing.propagation.injector.ITraceContextInjector;
+import org.bithon.agent.core.tracing.propagation.injector.OpenTelemetryInjector;
 import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 
 /**
@@ -30,7 +30,7 @@ import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
  */
 public class DefaultPropagator implements ITracePropagator {
 
-    private final ITraceContextInjector injector = new DefaultTraceContextInjector();
+    private final ITraceContextInjector injector = new OpenTelemetryInjector();
     private final ITraceContextExtractor extractor = new ChainedTraceContextExtractor();
 
     @Override

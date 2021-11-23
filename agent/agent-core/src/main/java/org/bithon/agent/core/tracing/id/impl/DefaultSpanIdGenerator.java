@@ -30,7 +30,7 @@ public class DefaultSpanIdGenerator implements ISpanIdGenerator {
     private final AtomicInteger counter;
 
     public DefaultSpanIdGenerator() {
-        long processId = Integer.valueOf(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+        long processId = Integer.parseInt(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
         base = (System.nanoTime() << 48) | (processId << 32);
         counter = new AtomicInteger(1);
     }

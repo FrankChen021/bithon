@@ -27,6 +27,6 @@ import java.util.UUID;
 public class UUIDGenerator implements ITraceIdGenerator {
     @Override
     public String newTraceId() {
-        return UUID.randomUUID().toString();
+        return UUID.randomUUID().toString().replace("-", "");
     }
 }

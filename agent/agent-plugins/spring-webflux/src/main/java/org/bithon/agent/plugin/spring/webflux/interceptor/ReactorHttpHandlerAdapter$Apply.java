@@ -86,7 +86,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
     private void update(HttpServerRequest request, HttpServerResponse response, long responseTime) {
         String uri = request.fullPath();
 
-        String srcApplication = request.requestHeaders().get(ITracePropagator.BITHON_SRC_APPLICATION);
+        String srcApplication = request.requestHeaders().get(ITracePropagator.TRACE_HEADER_SRC_APPLICATION);
 
         int httpStatus = response.status().code();
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;

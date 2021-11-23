@@ -25,7 +25,9 @@ import org.bithon.agent.core.tracing.propagation.TraceMode;
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 10:00 上午
  */
-public class BithonExtractor implements ITraceContextExtractor {
+public class OpenTelemetryExtractor implements ITraceContextExtractor {
+
+    private static final int SAMPLED_FLAG = 0x1;
 
     @Override
     public <R> ITraceContext extract(R request, PropagationGetter<R> getter) {
@@ -33,35 +35,49 @@ public class BithonExtractor implements ITraceContextExtractor {
             return null;
         }
 
-        String traceId = getter.get(request, ITracePropagator.BITHON_TRACE_ID);
-        if (traceId == null) {
+        String traceParent = getter.get(request, ITracePropagator.TRACE_HEADER_PARENT);
+        if (traceParent == null) {
             return null;
         }
 
-        String spanIds = getter.get(request, ITracePropagator.BITHON_SPAN_IDS);
-        if (spanIds == null) {
+        String[] ids = traceParent.split("-");
+        if (ids.length != 4) {
             return null;
         }
 
-        String[] ids = spanIds.split(ITracePropagator.BITHON_ID_SEPARATOR);
-        if (ids.length != 2) {
+        // version
+        if (ids[0].length() != 2) {
             return null;
         }
 
-        ITraceContext context;
-        if (traceId.startsWith("P-")) {
-            // propagation mode
-            context = TraceContextFactory.create(TraceMode.PROPAGATION, traceId, ids[0], ids[1]);
-        } else {
-            // default to trace mode
-            context = TraceContextFactory.create(TraceMode.TRACE,
-                                                 traceId,
-                                                 ids[0],
-                                                 ids[1]);
+        // traceId
+        if (ids[1].length() != 32) {
+            return null;
         }
+
+        // parent span id
+        if (ids[2].length() != 16) {
+            return null;
+        }
+
+        // trace flags
+        if (ids[3].length() != 2) {
+            return null;
+        }
+
+        ITraceContext context = TraceContextFactory.create(toTraceMode(ids[3]), ids[1], ids[2]);
 
         context.currentSpan()
-               .parentApplication(getter.get(request, ITracePropagator.BITHON_SRC_APPLICATION));
+               .parentApplication(getter.get(request, ITracePropagator.TRACE_HEADER_SRC_APPLICATION));
         return context;
+    }
+
+    private TraceMode toTraceMode(String id) {
+        int flag = id.charAt(0) - '0' * 16 + (id.charAt(1) - '0');
+        if ((flag & SAMPLED_FLAG) == SAMPLED_FLAG) {
+            return TraceMode.TRACE;
+        } else {
+            return TraceMode.PROPAGATION;
+        }
     }
 }

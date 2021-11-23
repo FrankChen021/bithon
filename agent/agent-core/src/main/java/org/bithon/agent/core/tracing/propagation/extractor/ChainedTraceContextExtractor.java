@@ -31,7 +31,7 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
 
     private final ITraceContextExtractor[] extractors = new ITraceContextExtractor[]{
         new B3Extractor(),
-        new BithonExtractor(),
+        new OpenTelemetryExtractor(),
         };
 
     @Override
@@ -63,7 +63,7 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
         }
 
         context.currentSpan()
-               .parentApplication(getter.get(request, ITracePropagator.BITHON_SRC_APPLICATION));
+               .parentApplication(getter.get(request, ITracePropagator.TRACE_HEADER_SRC_APPLICATION));
         return context;
     }
 

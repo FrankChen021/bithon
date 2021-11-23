@@ -26,8 +26,14 @@ import org.bithon.agent.core.tracing.propagation.TraceMode;
  * @date 2021/8/5 18:04
  */
 public class TraceContextFactory {
-    public static ITraceContext create(TraceMode traceMode, String traceId, String parentSpanId, String spanId) {
+    public static ITraceContext create(TraceMode traceMode, String traceId, String parentSpanId) {
         ITraceContext ctx = createTraceContext(traceMode, traceId);
+        ctx.newSpan(parentSpanId, ctx.spanIdGenerator().newSpanId());
+        return ctx;
+    }
+
+    public static ITraceContext create(TraceMode mode, String traceId, String parentSpanId, String spanId) {
+        ITraceContext ctx = createTraceContext(mode, traceId);
         ctx.newSpan(parentSpanId, spanId);
         return ctx;
     }
@@ -39,7 +45,6 @@ public class TraceContextFactory {
     }
 
     private static ITraceContext createTraceContext(TraceMode traceMode, String traceId) {
-        ITraceContext ctx;
         switch (traceMode) {
             case TRACE:
                 return new TraceContext(traceId, new DefaultSpanIdGenerator()).reporter(Tracer.get().reporter());
