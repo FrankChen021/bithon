@@ -19,32 +19,38 @@ package org.bithon.agent.core.tracing.propagation.injector;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
+import org.bithon.agent.core.tracing.propagation.TraceMode;
 import shaded.org.slf4j.LoggerFactory;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/6 12:27 上午
  */
-public class DefaultTraceContextInjector implements ITraceContextInjector {
+public class OpenTelemetryInjector implements ITraceContextInjector {
 
     @Override
     public <R> void inject(ITraceContext context, R request, PropagationSetter<R> setter) {
         try {
-            setter.put(request, ITracePropagator.BITHON_TRACE_ID, context.traceId());
-
-            // propagate currentSpanId(parent for the next):nextSpanId
             setter.put(request,
-                       ITracePropagator.BITHON_SPAN_IDS,
-                       context.currentSpan().spanId()
-                       + ITracePropagator.BITHON_ID_SEPARATOR
-                       + context.spanIdGenerator().newSpanId()
-            );
+                       ITracePropagator.TRACE_HEADER_PARENT,
+                       formatTraceParent(context.traceMode(), context.traceId(), context.currentSpan().spanId()));
 
             setter.put(request,
-                       ITracePropagator.BITHON_SRC_APPLICATION,
+                       ITracePropagator.TRACE_HEADER_SRC_APPLICATION,
                        Tracer.get().appName());
         } catch (Exception e) {
-            LoggerFactory.getLogger(DefaultTraceContextInjector.class).error("Exception when propagating trace", e);
+            LoggerFactory.getLogger(OpenTelemetryInjector.class).error("Exception when propagating trace", e);
         }
+    }
+
+    /**
+     * https://www.w3.org/TR/trace-context/#trace-id
+     * version-format   = trace-id "-" parent-id "-" trace-flags
+     * trace-id         = 32HEXDIGLC  ; 16 bytes array identifier. All zeroes forbidden
+     * parent-id        = 16HEXDIGLC  ; 8 bytes array identifier. All zeroes forbidden
+     * trace-flags      = 2HEXDIGLC   ; 8 bit flags. 1 for sampled
+     */
+    private String formatTraceParent(TraceMode traceMode, String traceId, String parentId) {
+        return "00-" + traceId + "-" + parentId + (traceMode == TraceMode.TRACE ? "-01" : "-10");
     }
 }

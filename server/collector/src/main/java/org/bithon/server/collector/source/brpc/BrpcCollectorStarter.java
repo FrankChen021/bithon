@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.brpc;
+package org.bithon.server.collector.source.brpc;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

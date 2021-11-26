@@ -22,5 +22,9 @@ package org.bithon.agent.core.tracing.propagation;
  */
 public enum TraceMode {
     TRACE,
+
+    /**
+     * Propagation the application information only
+     */
     PROPAGATION
 }

@@ -11,6 +11,8 @@
     <script th:src="@{/lib/jquery-treegrid-0.2/js/jquery-treegrid.min.js}"></script>
     <script th:src="@{/lib/bootstrap-table/extensions/treegrid/bootstrap-table-treegrid.min.js}"></script>
 
+    <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
+    <script th:src="@{/js/chart-component.js}"></script>
 </head>
 <body>
 <div style="padding:20px;" layout:fragment="content">
@@ -18,11 +20,27 @@
         <!-- Navbar content -->
         <a class="navbar-brand" href="#">Bithon</a>
     </nav>
-    <div class="container" style="padding-top:50px">
-        <table id="table"></table>
+    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist" style="padding-top:50px">
+        <li class="nav-item">
+            <a class="nav-link active" id="pills-trace-tab" data-toggle="tab" href="#pills-trace" role="tab"
+               aria-controls="pills-trace" aria-selected="true">Trace</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="pills-map-tab" data-toggle="tab" href="#pills-map" role="tab"
+               aria-controls="pills-map" aria-selected="false">Map</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane show active" id="pills-trace" role="tabpanel" aria-labelledby="pills-trace-tab">
+            <table id="table"></table>
+        </div>
+        <div class="tab-pane fade" id="pills-map" role="tabpanel" aria-labelledby="pills-map-tab">
+        </div>
     </div>
+
     <script th:inline="javascript">
         let traceId = [[${traceId}]];
+        let traceData = [];
     </script>
     <script>
         const table = $('#table');
@@ -49,6 +67,10 @@
                     })
                 }
             },
+            responseHandler: (data) => {
+                traceData = data;
+                return data.spans;
+            },
 
             queryParamsType: '',
             queryParams: function (params) {
@@ -60,7 +82,7 @@
             uniqueId: 'spanId',
             columns: [{
                 field: 'appName',
-                title: 'Application'
+                title: 'Application',
             }, {
                 field: 'instanceName',
                 title: 'instance'
@@ -93,6 +115,81 @@
                 }
             }]
         });
+
+        function toTraceMapOption(map) {
+            return {
+                animationDurationUpdate: 1000,
+                animationEasingUpdate: 'quinticInOut',
+                series: [
+                    {
+                        type: 'graph',
+                        layout: 'none',
+                        symbolSize: 50,
+                        roam: true,
+                        label: {
+                            show: true,
+                            position: 'bottom'
+                        },
+                        edgeSymbol: ['circle', 'arrow'],
+                        edgeSymbolSize: [4, 10],
+                        edgeLabel: {
+                            fontSize: 20
+                        },
+                        data: map.nodes.map(node => {
+                            return {
+                                name: node.name,
+                                x: 50 * (node.level + 1),
+                                y: 50 * (node.levelIndex + 1),
+                                //symbol: `image:///images/nodes/${node.type.toLowerCase()}.png`
+                            };
+                        }),
+                        links: map.links.map(link => {
+                            return {
+                                // minRT: link.minResponseTime,
+                                // maxRT: link.maxResponseTime,
+                                // avgRT: link.avgResponseTime,
+                                callCount: link.count,
+                                source: link.source,
+                                target: link.target,
+                                label: {
+                                    show: true,
+                                    formatter: (val) => {
+                                        return `${val.data.callCount}`;
+                                        //, Min:${nanoFormat(val.data.minRT)}, Max:${nanoFormat(val.data.maxRT)}, Avg:${nanoFormat(val.data.avgRT)}`;
+                                    },
+                                    fontSize: 10
+                                },
+                                lineStyle: {
+                                    curveness: 0
+                                }
+                            };
+                        }),
+                        lineStyle: {
+                            opacity: 0.9,
+                            width: 2,
+                            curveness: 0
+                        }
+                    }
+                ]
+            };
+        }
+
+        let chartLoaded = false;
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            if (!e.target.href.endsWith('-map')) {
+                return;
+            }
+            if (chartLoaded) {
+                return;
+            }
+
+            let mapComponent = new ChartComponent({
+                containerId: 'pills-map',
+                height: '600px'
+            }).header('Trace Map');
+            mapComponent.setChartOption(toTraceMapOption(traceData.map));
+            chartLoaded = true;
+        })
     </script>
 </div>
 </body>

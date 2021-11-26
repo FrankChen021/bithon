@@ -69,7 +69,7 @@ public class CoyoteAdapterService extends AbstractInterceptor {
             return;
         }
 
-        String srcApplication = request.getHeader(ITracePropagator.BITHON_SRC_APPLICATION);
+        String srcApplication = request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION);
 
         int httpStatus = response.getStatus();
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;

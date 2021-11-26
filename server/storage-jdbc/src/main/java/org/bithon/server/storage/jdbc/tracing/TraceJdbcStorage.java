@@ -166,10 +166,10 @@ public class TraceJdbcStorage implements ITraceStorage {
                 spanRecord.setSpanid(span.spanId);
                 spanRecord.setParentspanid(span.parentSpanId);
                 spanRecord.setCosttime(span.costTime);
-                spanRecord.setName(span.name);
+                spanRecord.setName(span.name == null ? "" : span.name);
                 spanRecord.setClazz(span.clazz == null ? "" : span.clazz);
                 spanRecord.setMethod(span.method == null ? "" : span.method);
-                spanRecord.setKind(span.kind);
+                spanRecord.setKind(span.kind == null ? "" : span.kind);
                 try {
                     spanRecord.setTags(span.tags == null ? "{}" : objectMapper.writeValueAsString(span.tags));
                 } catch (IOException ignored) {

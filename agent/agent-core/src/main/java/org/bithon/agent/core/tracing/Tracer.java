@@ -22,7 +22,9 @@ import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.core.tracing.id.ISpanIdGenerator;
 import org.bithon.agent.core.tracing.id.ITraceIdGenerator;
+import org.bithon.agent.core.tracing.id.impl.DefaultSpanIdGenerator;
 import org.bithon.agent.core.tracing.id.impl.UUIDGenerator;
 import org.bithon.agent.core.tracing.propagation.DefaultPropagator;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
@@ -48,6 +50,7 @@ public class Tracer {
     private ITraceReporter reporter;
     private ITracePropagator propagator;
     private ISampler sampler;
+    private ISpanIdGenerator spanIdGenerator;
 
     public Tracer(String appName, String instanceName) {
         this.appName = appName;
@@ -91,6 +94,7 @@ public class Tracer {
                         INSTANCE = new Tracer(appInstance.getAppName(), appInstance.getHostAndPort())
                             .propagator(new DefaultPropagator())
                             .traceIdGenerator(new UUIDGenerator())
+                            .spanIdGenerator(new DefaultSpanIdGenerator())
                             .reporter(traceConfig.isDisabled() ? new NoopReporter() : new DefaultReporter())
                             .sampler(SamplerFactory.createSampler(traceConfig));
                     } catch (Exception e) {
@@ -111,6 +115,15 @@ public class Tracer {
         return this.traceIdGenerator;
     }
 
+    public Tracer spanIdGenerator(ISpanIdGenerator spanIdGenerator) {
+        this.spanIdGenerator = spanIdGenerator;
+        return this;
+    }
+    
+    public ISpanIdGenerator spanIdGenerator() {
+        return spanIdGenerator;
+    }
+    
     public Tracer reporter(ITraceReporter reporter) {
         this.reporter = reporter;
         return this;

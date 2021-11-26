@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.thrift;
+package org.bithon.server.collector.source.thrift;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

@@ -70,8 +70,8 @@ public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandl
         String srcApplication;
         EndPointType srcEndPointType;
         if (StringUtils.isEmpty(message.getString("srcApplication"))) {
-            srcApplication = "Bithon-Unknown";
-            srcEndPointType = EndPointType.UNKNOWN;
+            srcApplication = "User";
+            srcEndPointType = EndPointType.USER;
         } else {
             srcApplication = message.getString("srcApplication");
             srcEndPointType = EndPointType.APPLICATION;

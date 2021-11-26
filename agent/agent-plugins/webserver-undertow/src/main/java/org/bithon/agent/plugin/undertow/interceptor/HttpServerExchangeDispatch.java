@@ -61,7 +61,7 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
     }
 
     private void update(HttpServerExchange exchange, long startNano) {
-        String srcApplication = exchange.getRequestHeaders().getLast(ITracePropagator.BITHON_SRC_APPLICATION);
+        String srcApplication = exchange.getRequestHeaders().getLast(ITracePropagator.TRACE_HEADER_SRC_APPLICATION);
         String uri = exchange.getRequestPath();
         int httpStatus = exchange.getStatusCode();
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
