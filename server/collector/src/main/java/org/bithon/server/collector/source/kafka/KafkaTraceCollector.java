@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.kafka;
+package org.bithon.server.collector.source.kafka;
 
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.tracing.handler.TraceMessageHandler;

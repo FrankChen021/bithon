@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.brpc;
+package org.bithon.server.collector.source.thrift;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -26,12 +26,10 @@ import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
 import org.bithon.server.collector.sink.kafka.KafkaTraceSink;
 import org.bithon.server.collector.sink.local.LocalEventSink;
 import org.bithon.server.collector.sink.local.LocalMetricSink;
-import org.bithon.server.collector.sink.local.LocalSchemaMetricSink;
 import org.bithon.server.collector.sink.local.LocalTraceSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.event.handler.EventsMessageHandler;
 import org.bithon.server.metric.handler.MetricMessage;
-import org.bithon.server.metric.handler.SchemaMetricMessage;
 import org.bithon.server.tracing.handler.TraceMessageHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -49,9 +47,9 @@ import java.util.Map;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "collector-brpc")
-@ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true", matchIfMissing = false)
-public class BrpcCollectorConfig {
+@ConfigurationProperties(prefix = "collector-thrift")
+@ConditionalOnProperty(value = "collector-thrift.enabled", havingValue = "true", matchIfMissing = false)
+public class ThriftCollectorConfig {
     private Map<String, Integer> port;
     private SinkConfig sink;
 
@@ -61,19 +59,8 @@ public class BrpcCollectorConfig {
         private Map<String, Object> props;
     }
 
-    @Bean("schemaMetricSink")
-    public IMessageSink<SchemaMetricMessage> metricSink(BrpcCollectorConfig config,
-                                                        ApplicationContext applicationContext) {
-        if ("local".equals(config.getSink().getType())) {
-            return new LocalSchemaMetricSink(applicationContext);
-        } else {
-            // TODO
-            return null;
-        }
-    }
-
     @Bean("metricSink")
-    public IMessageSink<CloseableIterator<MetricMessage>> metricSink(BrpcCollectorConfig config,
+    public IMessageSink<CloseableIterator<MetricMessage>> metricSink(ThriftCollectorConfig config,
                                                                      ObjectMapper om,
                                                                      ApplicationContext applicationContext) {
         if ("local".equals(config.getSink().getType())) {
@@ -89,7 +76,7 @@ public class BrpcCollectorConfig {
     }
 
     @Bean("eventSink")
-    public IMessageSink<?> eventSink(BrpcCollectorConfig config,
+    public IMessageSink<?> eventSink(ThriftCollectorConfig config,
                                      EventsMessageHandler handler,
                                      ObjectMapper om) {
         if ("local".equals(config.getSink().getType())) {
@@ -104,7 +91,7 @@ public class BrpcCollectorConfig {
     }
 
     @Bean("traceSink")
-    public IMessageSink<?> traceSink(BrpcCollectorConfig config,
+    public IMessageSink<?> traceSink(ThriftCollectorConfig config,
                                      TraceMessageHandler traceMessageHandler,
                                      ObjectMapper om) {
 
