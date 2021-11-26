@@ -99,6 +99,10 @@ public class TraceHttpCollector {
         public TraceSpan next() {
             TraceSpan span = delete.next();
             span.setTraceId(toNetworkOrder(span.getTraceId()));
+            if ("00".equals(span.getParentSpanId())) {
+                span.setParentSpanId("");
+                span.setKind("SERVER");
+            }
             return span;
         }
 
