@@ -19,6 +19,7 @@ package org.bithon.agent.core.tracing.id.impl;
 import org.bithon.agent.core.tracing.id.ISpanIdGenerator;
 
 import java.lang.management.ManagementFactory;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -37,6 +38,6 @@ public class DefaultSpanIdGenerator implements ISpanIdGenerator {
 
     @Override
     public String newSpanId() {
-        return Long.toHexString(base | counter.getAndIncrement());
+        return String.format(Locale.ENGLISH, "%16x", base | counter.getAndIncrement());
     }
 }

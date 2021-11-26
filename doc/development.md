@@ -12,5 +12,5 @@ You should either copy the license from licenses/template.txt to the newly added
 or execute the following command to add license header automatically.
 
 ```bash
-mvn com.mycila:license-maven-plugin:format
+mvn com.mycila:license-maven-plugin:format -T 1C
 ```
