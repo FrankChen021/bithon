@@ -18,7 +18,6 @@ package org.bithon.agent.core.tracing.context;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.tracing.Tracer;
-import org.bithon.agent.core.tracing.id.impl.DefaultSpanIdGenerator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 
 /**
@@ -47,10 +46,9 @@ public class TraceContextFactory {
     private static ITraceContext createTraceContext(TraceMode traceMode, String traceId) {
         switch (traceMode) {
             case TRACE:
-                return new TraceContext(traceId, new DefaultSpanIdGenerator()).reporter(Tracer.get().reporter());
+                return new TraceContext(traceId, Tracer.get().spanIdGenerator()).reporter(Tracer.get().reporter());
             case PROPAGATION:
-                return new PropagationTraceContext(traceId,
-                                                   new DefaultSpanIdGenerator());
+                return new PropagationTraceContext(traceId, Tracer.get().spanIdGenerator());
             default:
                 throw new AgentException("Unknown trace mode:%s", traceMode);
         }

@@ -27,17 +27,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @date 2021/2/7 10:37 下午
  */
 public class DefaultSpanIdGenerator implements ISpanIdGenerator {
-    private final long base;
+    private final long processId;
     private final AtomicInteger counter;
 
     public DefaultSpanIdGenerator() {
-        long processId = Integer.parseInt(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
-        base = (System.nanoTime() << 48) | (processId << 32);
-        counter = new AtomicInteger(1);
+        processId = Integer.parseInt(ManagementFactory.getRuntimeMXBean().getName().split("@")[0]);
+        counter = new AtomicInteger(0);
     }
 
     @Override
     public String newSpanId() {
-        return String.format(Locale.ENGLISH, "%16x", base | counter.getAndIncrement());
+        return String.format(Locale.ENGLISH, "%16x", (processId << 48) | (((System.nanoTime() & 0xFFFF) << 32)) | counter.getAndIncrement());
     }
 }
