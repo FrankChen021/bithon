@@ -1,0 +1,90 @@
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package org.bithon.agent.plugin.spring.webflux.interceptor;
+
+import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.tracing.context.ITraceContext;
+import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.TraceContextHolder;
+import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
+import org.reactivestreams.Publisher;
+import reactor.netty.NettyOutbound;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.http.client.HttpClientRequest;
+
+import java.util.function.BiFunction;
+
+/**
+ * see reactor.netty.http.client.HttpClientFinalizer#send
+ *
+ * @author Frank Chen
+ * @date 27/11/21 1:57 pm
+ */
+public class HttpClientFinalizer$Send extends AbstractInterceptor {
+
+    @Override
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        ITraceContext traceContext = TraceContextHolder.current();
+        if (traceContext == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        HttpClient client = aopContext.castTargetAs();
+        String uri = client.configuration().uri();
+
+        // span will be finished in ResponseConnection interceptor
+        IBithonObject bithonObject = aopContext.castTargetAs();
+        bithonObject.setInjectedObject(new HttpClientContext(traceContext,
+                                                             traceContext.currentSpan()
+                                                                         .newChildSpan("webflux-httpClient")
+                                                                         .kind(SpanKind.CLIENT)
+                                                                         .method(aopContext.getMethod())
+                                                                         .tag("uri", uri)
+                                                                         .start()));
+
+        //noinspection unchecked
+        BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>> originalSender
+            = (BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>>) aopContext.getArgs()[0];
+
+        //replace the Publisher to propagate trace
+        aopContext.getArgs()[0] = (BiFunction<HttpClientRequest, NettyOutbound, Publisher<Void>>) (httpClientRequest, nettyOutbound) -> {
+            Publisher<Void> publisher = originalSender.apply(httpClientRequest, nettyOutbound);
+
+            // propagate trace along this HTTP
+            traceContext.propagate(httpClientRequest, (request, key, value) -> {
+                request.requestHeaders().set(key, value);
+            });
+
+            return publisher;
+        };
+
+        return InterceptionDecision.CONTINUE;
+    }
+
+    /**
+     * target method returns a new copy, so we have to pass the trace span to the new copy for further processing(such as ResponseConnection)
+     */
+    @Override
+    public void onMethodLeave(AopContext aopContext) {
+        IBithonObject currObj = aopContext.castTargetAs();
+        IBithonObject newCopy = aopContext.castReturningAs();
+        newCopy.setInjectedObject(currObj.getInjectedObject());
+    }
+}

@@ -36,8 +36,9 @@ public class SpringWebFluxPlugin implements IPlugin {
     @Override
     public BithonClassDescriptor getBithonClassDescriptor() {
         return BithonClassDescriptor.of(
-            // use to store IO metrics
-            "reactor.netty.http.server.HttpServerOperations");
+            // used to store HttpServerContext
+            "reactor.netty.http.server.HttpServerOperations"
+        );
     }
 
     @Override
@@ -50,6 +51,22 @@ public class SpringWebFluxPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
                 ),
 
+            /*
+            forClass("org.springframework.web.server.adapter.HttpWebHandlerAdapter")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("createExchange")
+                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpWebHandlerAdapter$CreateExchange")
+                ),
+
+            forClass("org.springframework.cloud.gateway.filter.NettyRoutingFilter")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(MatcherUtils.takesArguments(2)
+                                                                         .and(MatcherUtils.named("getHttpClient")))
+                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.NettyRoutingFilter$GetHttpClient")
+                ),*/
+
             forClass("reactor.netty.http.server.HttpServerConfig$HttpServerChannelInitializer")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
@@ -60,8 +77,21 @@ public class SpringWebFluxPlugin implements IPlugin {
             forClass("reactor.netty.http.server.HttpServerOperations")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor(MatcherUtils.takesArguments(1).or(MatcherUtils.takesArguments(10)))
+                                                   .onConstructor(MatcherUtils.takesArguments(1)
+                                                                              .or(MatcherUtils.takesArguments(10)))
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
+                ),
+
+            forClass("reactor.netty.http.client.HttpClientFinalizer")
+                .debug()
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("send")
+                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$Send"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("responseConnection")
+                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$ResponseConnection")
                 )
         );
     }

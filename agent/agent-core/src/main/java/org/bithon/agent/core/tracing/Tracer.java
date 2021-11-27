@@ -31,6 +31,7 @@ import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.core.tracing.reporter.ITraceReporter;
 import org.bithon.agent.core.tracing.sampler.ISampler;
 import org.bithon.agent.core.tracing.sampler.SamplerFactory;
+import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.util.List;
@@ -42,6 +43,8 @@ import java.util.stream.Collectors;
  * @date 2021/2/5 9:42 下午
  */
 public class Tracer {
+    private static final Logger log = LoggerFactory.getLogger(Tracer.class);
+
     private static volatile Tracer INSTANCE;
 
     private final String appName;
@@ -55,29 +58,6 @@ public class Tracer {
     public Tracer(String appName, String instanceName) {
         this.appName = appName;
         this.instanceName = instanceName;
-    }
-
-    static class NoopReporter implements ITraceReporter {
-        @Override
-        public void report(List<ITraceSpan> spans) {
-        }
-    }
-
-    static class DefaultReporter implements ITraceReporter {
-        private final Dispatcher traceDispatcher;
-
-        public DefaultReporter() {
-            traceDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_TRACING);
-        }
-
-        @Override
-        public void report(List<ITraceSpan> spans) {
-            List<Object> traceMessages = spans.stream()
-                                              .map(span -> traceDispatcher.getMessageConverter().from(span))
-                                              .filter(Objects::nonNull)
-                                              .collect(Collectors.toList());
-            traceDispatcher.sendMessage(traceMessages);
-        }
     }
 
     public static Tracer get() {
@@ -119,11 +99,11 @@ public class Tracer {
         this.spanIdGenerator = spanIdGenerator;
         return this;
     }
-    
+
     public ISpanIdGenerator spanIdGenerator() {
         return spanIdGenerator;
     }
-    
+
     public Tracer reporter(ITraceReporter reporter) {
         this.reporter = reporter;
         return this;
@@ -157,5 +137,32 @@ public class Tracer {
     public Tracer sampler(ISampler sampler) {
         this.sampler = sampler;
         return this;
+    }
+
+    static class NoopReporter implements ITraceReporter {
+        @Override
+        public void report(List<ITraceSpan> spans) {
+        }
+    }
+
+    static class DefaultReporter implements ITraceReporter {
+        private final Dispatcher traceDispatcher;
+
+        public DefaultReporter() {
+            traceDispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_TRACING);
+        }
+
+        @Override
+        public void report(List<ITraceSpan> spans) {
+            List<Object> traceMessages = spans.stream()
+                                              .map(span -> traceDispatcher.getMessageConverter().from(span))
+                                              .filter(Objects::nonNull)
+                                              .collect(Collectors.toList());
+            try {
+                traceDispatcher.sendMessage(traceMessages);
+            } catch (Exception e) {
+                log.error("exception when sending trace messages.", e);
+            }
+        }
     }
 }

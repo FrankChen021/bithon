@@ -20,6 +20,7 @@ import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 
 import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.namedOneOf;
 
 /**
  * Defines which class should be transformed into IBithonObject subclasses
@@ -49,6 +50,10 @@ public class BithonClassDescriptor {
      */
     public static BithonClassDescriptor of(String clazz) {
         return new BithonClassDescriptor(named(clazz), false);
+    }
+
+    public static BithonClassDescriptor of(String... clazz) {
+        return new BithonClassDescriptor(namedOneOf(clazz), false);
     }
 
     public static BithonClassDescriptor of(String clazz, boolean debug) {

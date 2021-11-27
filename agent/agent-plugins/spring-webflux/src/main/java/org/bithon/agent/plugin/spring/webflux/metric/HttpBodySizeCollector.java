@@ -28,6 +28,7 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
+import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import reactor.netty.channel.ChannelOperations;
 import reactor.netty.http.HttpInfos;
 import reactor.netty.http.server.HttpServerRequest;
@@ -42,11 +43,6 @@ import shaded.org.slf4j.LoggerFactory;
 public class HttpBodySizeCollector extends ChannelDuplexHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpBodySizeCollector.class);
-
-    final HttpIncomingMetricsCollector collector;
-    long dataReceived;
-    long dataSent;
-
     static Class<?> httpServerOperationClass = null;
 
     static {
@@ -59,6 +55,10 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
             LOG.error("Unable to find HttpServerOperations. HTTP metrics may not work as expected.");
         }
     }
+
+    final HttpIncomingMetricsCollector collector;
+    long dataReceived;
+    long dataSent;
 
     public HttpBodySizeCollector(HttpIncomingMetricsCollector collector) {
         this.collector = collector;
@@ -92,7 +92,8 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
         if (msg instanceof LastHttpContent) {
             promise.addListener(future -> {
                 ChannelOperations<?, ?> channelOps = ChannelOperations.get(ctx.channel());
-                if (httpServerOperationClass != null && channelOps.getClass().isAssignableFrom(httpServerOperationClass)) {
+                if (httpServerOperationClass != null && channelOps.getClass()
+                                                                  .isAssignableFrom(httpServerOperationClass)) {
                     recordWrite(channelOps, dataSent);
                 }
 
@@ -126,7 +127,7 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
 
     // TODO: use right statusCode
     private void recordRead(ChannelOperations<?, ?> channelOps, long dataReceived) {
-        HttpIOMetrics metric = (HttpIOMetrics) ((IBithonObject) channelOps).getInjectedObject();
+        HttpIOMetrics metric = ((HttpServerContext) ((IBithonObject) channelOps).getInjectedObject()).getMetrics();
         if (metric.responseBytes == -1) {
             metric.requestBytes = dataReceived;
             return;
@@ -136,7 +137,7 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
     }
 
     private void recordWrite(ChannelOperations<?, ?> channelOps, long dataSent) {
-        HttpIOMetrics metric = (HttpIOMetrics) ((IBithonObject) channelOps).getInjectedObject();
+        HttpIOMetrics metric = ((HttpServerContext) ((IBithonObject) channelOps).getInjectedObject()).getMetrics();
         if (metric.requestBytes == -1) {
             metric.responseBytes = dataSent;
             return;
@@ -147,7 +148,8 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
 
     private void updateBytes(ChannelOperations<?, ?> channelOps, long dataReceived, long dataSent) {
         try {
-            collector.getOrCreateMetrics(this.getRequestHeaders(channelOps).get(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
+            collector.getOrCreateMetrics(this.getRequestHeaders(channelOps)
+                                             .get(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
                                          this.getHttOperationPath(channelOps),
                                          ((HttpServerResponse) channelOps).status().code())
                      .updateBytes(dataReceived, dataSent);
