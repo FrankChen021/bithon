@@ -102,6 +102,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         public List<TraceSpan> getTraceByTraceId(String traceId) {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
                              .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId))
+                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc())
                              .fetch(this::toTraceSpan);
         }
 
