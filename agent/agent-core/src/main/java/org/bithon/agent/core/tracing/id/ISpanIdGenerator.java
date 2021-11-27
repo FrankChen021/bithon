@@ -21,5 +21,8 @@ package org.bithon.agent.core.tracing.id;
  * @date 2021/2/7 10:36 下午
  */
 public interface ISpanIdGenerator {
+    /**
+     * @return an id which can be represented in HEX with a length of 16
+     */
     String newSpanId();
 }
