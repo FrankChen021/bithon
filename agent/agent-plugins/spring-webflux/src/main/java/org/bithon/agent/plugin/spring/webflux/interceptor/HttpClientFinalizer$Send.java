@@ -46,7 +46,7 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
         HttpClient httpClient = aopContext.castTargetAs();
         String uri = httpClient.configuration().uri();
 
-        HttpClientContext httpClientContext = new HttpClientContext(uri);
+        HttpClientContext httpClientContext = new HttpClientContext();
 
         // span will be finished in ResponseConnection interceptor
         IBithonObject bithonObject = aopContext.castTargetAs();
@@ -78,8 +78,6 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
                     request.requestHeaders().set(key, value);
                 });
             }
-
-            httpClientContext.setMethod(httpClientRequest.method().name());
 
             return publisher;
         };

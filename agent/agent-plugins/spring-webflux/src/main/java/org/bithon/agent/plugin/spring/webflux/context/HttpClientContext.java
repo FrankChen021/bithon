@@ -28,36 +28,17 @@ public class HttpClientContext {
     private final long startTimeNs;
 
     /**
-     * URI including host,port,path
-     */
-    private final String uri;
-    private String method;
-
-    /**
      * available when tracing is enabled on this request
      */
     private ITraceContext traceContext;
     private ITraceSpan span;
 
-    public HttpClientContext(String uri) {
+    public HttpClientContext() {
         this.startTimeNs = System.nanoTime();
-        this.uri = uri;
-    }
-
-    public String getMethod() {
-        return method;
-    }
-
-    public void setMethod(String method) {
-        this.method = method;
     }
 
     public long getStartTimeNs() {
         return startTimeNs;
-    }
-
-    public String getUri() {
-        return uri;
     }
 
     public ITraceContext getTraceContext() {
