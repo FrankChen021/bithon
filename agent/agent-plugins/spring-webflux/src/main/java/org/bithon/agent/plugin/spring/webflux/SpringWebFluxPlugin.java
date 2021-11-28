@@ -16,7 +16,6 @@
 
 package org.bithon.agent.plugin.spring.webflux;
 
-import org.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MatcherUtils;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
@@ -34,14 +33,6 @@ import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.
 public class SpringWebFluxPlugin implements IPlugin {
 
     @Override
-    public BithonClassDescriptor getBithonClassDescriptor() {
-        return BithonClassDescriptor.of(
-            // used to store HttpServerContext
-            "reactor.netty.http.server.HttpServerOperations"
-        );
-    }
-
-    @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.springframework.http.server.reactive.ReactorHttpHandlerAdapter")
@@ -50,22 +41,6 @@ public class SpringWebFluxPlugin implements IPlugin {
                                                    .onAllMethods("apply")
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
                 ),
-
-            /*
-            forClass("org.springframework.web.server.adapter.HttpWebHandlerAdapter")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onAllMethods("createExchange")
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpWebHandlerAdapter$CreateExchange")
-                ),
-
-            forClass("org.springframework.cloud.gateway.filter.NettyRoutingFilter")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(MatcherUtils.takesArguments(2)
-                                                                         .and(MatcherUtils.named("getHttpClient")))
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.NettyRoutingFilter$GetHttpClient")
-                ),*/
 
             forClass("reactor.netty.http.server.HttpServerConfig$HttpServerChannelInitializer")
                 .methods(
