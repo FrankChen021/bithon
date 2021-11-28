@@ -40,8 +40,11 @@ public class MethodPointCutDescriptorBuilder {
     }
 
     public MethodPointCutDescriptor to(String interceptorQualifiedClassName) {
-
-        ElementMatcher.Junction<? super MethodDescription> methodMatcher = MatcherUtils.debuggableMatcher(debug, method);
+        if (method == null) {
+            throw new AgentException("Failed to configure interceptor for 'method' has not been set.");
+        }
+        ElementMatcher.Junction<? super MethodDescription> methodMatcher = MatcherUtils.debuggableMatcher(debug,
+                                                                                                          method);
         if (argsMatcher != null) {
             methodMatcher = methodMatcher.and(argsMatcher);
         }

@@ -58,7 +58,6 @@ public class SpringWebFluxPlugin implements IPlugin {
                 ),
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")
-                .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("send")
@@ -67,7 +66,21 @@ public class SpringWebFluxPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("responseConnection")
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientFinalizer$ResponseConnection")
+                ),
+
+            forClass("reactor.netty.http.client.HttpClientConfig$HttpClientChannelInitializer")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("onChannelInit")
+                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientChannelInitializer$OnChannelInit")
+                ),
+            forClass("reactor.netty.http.client.HttpClientOperations")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpClientOperations$Ctor")
                 )
+
         );
     }
 }

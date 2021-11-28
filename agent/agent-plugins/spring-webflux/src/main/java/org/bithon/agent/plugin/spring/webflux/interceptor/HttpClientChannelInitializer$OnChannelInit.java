@@ -22,34 +22,31 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
-import org.bithon.agent.core.tracing.propagation.ITracePropagator;
-import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpBodySizeCollector;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
 import reactor.netty.NettyPipeline;
 import reactor.netty.channel.ChannelOperations;
-import reactor.netty.http.HttpInfos;
-import reactor.netty.http.server.HttpServerRequest;
-import reactor.netty.http.server.HttpServerResponse;
+import reactor.netty.http.client.HttpClientInfos;
+import reactor.netty.http.client.HttpClientRequest;
 
 /**
  * get body size of HttpRequest and HttpResponse
  * <p>
- * {@link reactor.netty.http.server.HttpServerConfig.HttpServerChannelInitializer#onChannelInit}
+ * {@link reactor.netty.http.client.HttpClientConfig.HttpClientChannelInitializer#OnChannelInit}
  *
  * @author Frank Chen
  * @date 7/10/21 4:15 pm
  */
-public class HttpServerChannelInitializer$OnChannelInit extends AbstractInterceptor {
+public class HttpClientChannelInitializer$OnChannelInit extends AbstractInterceptor {
 
-    private HttpIncomingMetricsCollector metricCollector;
+    private HttpOutgoingMetricsCollector metricsCollector;
 
     @Override
     public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("webflux-request-metrics",
-                                                               HttpIncomingMetricsCollector.class);
+        metricsCollector = MetricCollectorManager.getInstance()
+                                                 .getOrRegister("http-outgoing-metrics",
+                                                                HttpOutgoingMetricsCollector.class);
 
         return true;
     }
@@ -69,54 +66,51 @@ public class HttpServerChannelInitializer$OnChannelInit extends AbstractIntercep
         //
         Channel channel = aopContext.getArgAs(1);
         channel.pipeline()
-               .addAfter(NettyPipeline.HttpTrafficHandler,
-                         NettyPipeline.HttpMetricsHandler,
-                         new HttpServerBodySizeCollector(metricCollector));
+               .addBefore(NettyPipeline.ReactiveBridge,
+                          NettyPipeline.HttpMetricsHandler,
+                          new HttpClientBodySizeCollector(metricsCollector));
     }
 
-    private static class HttpServerBodySizeCollector extends HttpBodySizeCollector {
-        private static Class<?> httpServerOperationClass;
+    private static class HttpClientBodySizeCollector extends HttpBodySizeCollector {
+        private static Class<?> httpClientOperationClass;
 
         static {
-            // HttpServerOperations's visibility is defined as package-level
+            // HttpClientOperations's visibility is defined as package-level
             try {
-                httpServerOperationClass = Class.forName("reactor.netty.http.server.HttpServerOperations",
+                httpClientOperationClass = Class.forName("reactor.netty.http.client.HttpClientOperations",
                                                          false,
                                                          ChannelHandlerContext.class.getClassLoader());
             } catch (ClassNotFoundException ignored) {
-                LOG.error("Unable to find HttpServerOperations. HTTP metrics may not work as expected.");
+                LOG.error("Unable to find HttpClientOperations. HTTP metrics may not work as expected.");
             }
         }
 
-        private final HttpIncomingMetricsCollector metricCollector;
+        private final HttpOutgoingMetricsCollector metricsCollector;
 
-        private HttpServerBodySizeCollector(HttpIncomingMetricsCollector metricCollector) {
-            this.metricCollector = metricCollector;
+        private HttpClientBodySizeCollector(HttpOutgoingMetricsCollector metricsCollector) {
+            this.metricsCollector = metricsCollector;
         }
 
         @Override
         protected void updateBytes(ChannelOperations<?, ?> channelOps,
                                    long dataReceived,
                                    long dataSent) {
-            try {
-                metricCollector.getOrCreateMetrics(((HttpServerRequest) channelOps).requestHeaders()
-                                                                                   .get(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
-                                                   ((HttpInfos) channelOps).fullPath(),
-                                                   ((HttpServerResponse) channelOps).status().code())
-                               .updateBytes(dataReceived, dataSent);
-            } catch (Exception ignored) {
-            }
+            // resource url is the fully qualified URL
+            metricsCollector.addBytes(((HttpClientInfos) channelOps).resourceUrl(),
+                                      ((HttpClientRequest) channelOps).method().name(),
+                                      dataSent,
+                                      dataReceived);
         }
 
         @Override
         protected HttpIOMetrics getMetricContext(IBithonObject bithonObject) {
-            // raw type is HttpServerOperations
-            return ((HttpServerContext) (bithonObject).getInjectedObject()).getMetrics();
+            // raw type is HttpClientOperations
+            return (HttpIOMetrics) bithonObject.getInjectedObject();
         }
 
         @Override
         protected Class<?> getTargetClass() {
-            return httpServerOperationClass;
+            return httpClientOperationClass;
         }
     }
 }

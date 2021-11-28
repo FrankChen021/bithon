@@ -46,7 +46,7 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
     @Override
     public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("webflux-http-client",
+                                                .getOrRegister("http-outgoing-metrics",
                                                                HttpOutgoingMetricsCollector.class);
         return true;
     }
@@ -57,9 +57,8 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
         String uri = httpClient.configuration().uri();
         String method = httpClient.configuration().method().name();
 
-        IBithonObject bithonObject = aopContext.castTargetAs();
-
         // injected by HttpClientFinalizer$Send's onMethodLeave
+        IBithonObject bithonObject = aopContext.castTargetAs();
         HttpClientContext httpClientContext = (HttpClientContext) bithonObject.getInjectedObject();
 
         //noinspection unchecked,rawtypes
