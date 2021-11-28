@@ -31,6 +31,8 @@ import reactor.netty.http.client.HttpClientRequest;
 
 import java.util.function.BiFunction;
 
+//TODO: exception test on tracing, including retry, exception
+
 /**
  * see reactor.netty.http.client.HttpClientFinalizer#send
  *
@@ -41,23 +43,26 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
+        HttpClient httpClient = aopContext.castTargetAs();
+        String uri = httpClient.configuration().uri();
 
-        HttpClient client = aopContext.castTargetAs();
-        String uri = client.configuration().uri();
+        HttpClientContext httpClientContext = new HttpClientContext(uri);
 
         // span will be finished in ResponseConnection interceptor
         IBithonObject bithonObject = aopContext.castTargetAs();
-        bithonObject.setInjectedObject(new HttpClientContext(traceContext,
-                                                             traceContext.currentSpan()
-                                                                         .newChildSpan("webflux-httpClient")
-                                                                         .kind(SpanKind.CLIENT)
-                                                                         .method(aopContext.getMethod())
-                                                                         .tag("uri", uri)
-                                                                         .start()));
+        bithonObject.setInjectedObject(httpClientContext);
+
+        ITraceContext traceContext = TraceContextHolder.current();
+        if (traceContext != null) {
+            // span will be finished in ResponseConnection interceptor
+            httpClientContext.setTraceContext(traceContext);
+            httpClientContext.setSpan(traceContext.currentSpan()
+                                                  .newChildSpan("webflux-httpClient")
+                                                  .kind(SpanKind.CLIENT)
+                                                  .method(aopContext.getMethod())
+                                                  .tag("uri", uri)
+                                                  .start());
+        }
 
         //noinspection unchecked
         BiFunction<? super HttpClientRequest, ? super NettyOutbound, ? extends Publisher<Void>> originalSender
@@ -68,9 +73,13 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
             Publisher<Void> publisher = originalSender.apply(httpClientRequest, nettyOutbound);
 
             // propagate trace along this HTTP
-            traceContext.propagate(httpClientRequest, (request, key, value) -> {
-                request.requestHeaders().set(key, value);
-            });
+            if (traceContext != null) {
+                traceContext.propagate(httpClientRequest, (request, key, value) -> {
+                    request.requestHeaders().set(key, value);
+                });
+            }
+
+            httpClientContext.setMethod(httpClientRequest.method().name());
 
             return publisher;
         };

@@ -20,6 +20,8 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.metric.collector.MetricCollectorManager;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
 import org.reactivestreams.Publisher;
@@ -36,17 +38,23 @@ import java.util.function.BiFunction;
  */
 public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor {
 
+    private HttpOutgoingMetricsCollector metricCollector;
+
+    @Override
+    public boolean initialize() {
+        metricCollector = MetricCollectorManager.getInstance()
+                                                .getOrRegister("webflux-http-client",
+                                                               HttpOutgoingMetricsCollector.class);
+        return true;
+    }
+
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         IBithonObject bithonObject = aopContext.castTargetAs();
 
         // injected by HttpClientFinalizer$Send's onMethodLeave
-        HttpClientContext clientContext = (HttpClientContext) bithonObject.getInjectedObject();
-        if (clientContext == null) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
+        HttpClientContext httpClientContext = (HttpClientContext) bithonObject.getInjectedObject();
 
-        final ITraceSpan httpClientSpan = clientContext.getSpan();
 
         //noinspection unchecked,rawtypes
         BiFunction<? super HttpClientResponse, ? super Connection, ? extends Publisher> originalReceiver
@@ -60,8 +68,18 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
             //noinspection rawtypes
             Publisher publisher = originalReceiver.apply(httpClientResponse, connection);
 
-            httpClientSpan.tag("status", String.valueOf(httpClientResponse.status().code()))
-                          .finish();
+            // tracing
+            final ITraceSpan httpClientSpan = httpClientContext.getSpan();
+            if (httpClientSpan != null) {
+                httpClientSpan.tag("status", String.valueOf(httpClientResponse.status().code()))
+                              .finish();
+            }
+
+            // metrics
+            metricCollector.addRequest(httpClientContext.getUri(),
+                                       httpClientContext.getMethod(),
+                                       httpClientResponse.status().code(),
+                                       System.nanoTime() - httpClientContext.getStartTimeNs());
 
             return publisher;
         };
