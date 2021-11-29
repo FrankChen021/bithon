@@ -53,10 +53,6 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
 
     @Override
     protected boolean beforeProcess(MetricMessage metricObject) throws Exception {
-        if (metricObject.getLong("requestCount") <= 0) {
-            return false;
-        }
-
         URI uri = new URI(metricObject.getString("path"));
         UriNormalizer.NormalizedResult result = uriNormalizer.normalize(metricObject.getApplicationName(),
                                                                         NetworkUtils.formatUri(uri));
@@ -79,6 +75,10 @@ public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandl
 
     @Override
     protected Measurement extractEndpointLink(MetricMessage metricObject) {
+        if (metricObject.getLong("requestCount") <= 0) {
+            return null;
+        }
+
         String targetHostPort = metricObject.getString("targetHostPort");
         if (NetworkUtils.isIpAddress(metricObject.getString("targetHost"))) {
 

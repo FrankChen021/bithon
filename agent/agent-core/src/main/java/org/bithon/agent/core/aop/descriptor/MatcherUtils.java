@@ -22,6 +22,7 @@ import shaded.net.bytebuddy.description.annotation.AnnotationList;
 import shaded.net.bytebuddy.description.annotation.AnnotationSource;
 import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.description.method.ParameterList;
+import shaded.net.bytebuddy.description.modifier.Visibility;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -126,6 +127,20 @@ public class MatcherUtils {
             @Override
             public String toString() {
                 return String.format(Locale.ENGLISH, "(annotations: %s)", annotationSet);
+            }
+        };
+    }
+
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> visibility(Visibility visibility) {
+        return new ElementMatcher.Junction.AbstractBase<T>() {
+            @Override
+            public boolean matches(T target) {
+                return target.getVisibility().equals(visibility);
+            }
+
+            @Override
+            public String toString() {
+                return String.format(Locale.ENGLISH, "(visible: %s)", visibility);
             }
         };
     }

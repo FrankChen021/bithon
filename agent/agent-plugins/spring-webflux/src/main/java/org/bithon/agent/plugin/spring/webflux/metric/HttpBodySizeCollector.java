@@ -21,17 +21,11 @@ import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
-import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import reactor.netty.channel.ChannelOperations;
-import reactor.netty.http.HttpInfos;
-import reactor.netty.http.server.HttpServerRequest;
-import reactor.netty.http.server.HttpServerResponse;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -39,38 +33,12 @@ import shaded.org.slf4j.LoggerFactory;
  * @author Frank ChenØ
  * @date 7/10/21 4:20 pm
  */
-public class HttpBodySizeCollector extends ChannelDuplexHandler {
+public abstract class HttpBodySizeCollector extends ChannelDuplexHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HttpBodySizeCollector.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(HttpBodySizeCollector.class);
 
-    final HttpIncomingMetricsCollector collector;
     long dataReceived;
     long dataSent;
-
-    static Class<?> httpServerOperationClass = null;
-
-    static {
-        // HttpServerOperations's visibility is defined as package-level
-        try {
-            httpServerOperationClass = Class.forName("reactor.netty.http.server.HttpServerOperations",
-                                                     false,
-                                                     ChannelHandlerContext.class.getClassLoader());
-        } catch (ClassNotFoundException ignored) {
-            LOG.error("Unable to find HttpServerOperations. HTTP metrics may not work as expected.");
-        }
-    }
-
-    public HttpBodySizeCollector(HttpIncomingMetricsCollector collector) {
-        this.collector = collector;
-    }
-
-    private String getHttOperationPath(Object obj) {
-        return ((HttpInfos) obj).fullPath();
-    }
-
-    private HttpHeaders getRequestHeaders(Object obj) {
-        return ((HttpServerRequest) obj).requestHeaders();
-    }
 
     @Override
     @SuppressWarnings("FutureReturnValueIgnored")
@@ -92,7 +60,7 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
         if (msg instanceof LastHttpContent) {
             promise.addListener(future -> {
                 ChannelOperations<?, ?> channelOps = ChannelOperations.get(ctx.channel());
-                if (httpServerOperationClass != null && channelOps.getClass().isAssignableFrom(httpServerOperationClass)) {
+                if (getTargetClass() != null && channelOps.getClass().isAssignableFrom(getTargetClass())) {
                     recordWrite(channelOps, dataSent);
                 }
 
@@ -114,7 +82,7 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
 
         if (msg instanceof LastHttpContent) {
             ChannelOperations<?, ?> channelOps = ChannelOperations.get(ctx.channel());
-            if (httpServerOperationClass != null && channelOps.getClass().isAssignableFrom(httpServerOperationClass)) {
+            if (getTargetClass() != null && channelOps.getClass().isAssignableFrom(getTargetClass())) {
                 recordRead(channelOps, dataReceived);
             }
 
@@ -126,7 +94,7 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
 
     // TODO: use right statusCode
     private void recordRead(ChannelOperations<?, ?> channelOps, long dataReceived) {
-        HttpIOMetrics metric = (HttpIOMetrics) ((IBithonObject) channelOps).getInjectedObject();
+        HttpIOMetrics metric = getMetricContext((IBithonObject) channelOps);
         if (metric.responseBytes == -1) {
             metric.requestBytes = dataReceived;
             return;
@@ -136,7 +104,7 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
     }
 
     private void recordWrite(ChannelOperations<?, ?> channelOps, long dataSent) {
-        HttpIOMetrics metric = (HttpIOMetrics) ((IBithonObject) channelOps).getInjectedObject();
+        HttpIOMetrics metric = getMetricContext((IBithonObject) channelOps);
         if (metric.requestBytes == -1) {
             metric.responseBytes = dataSent;
             return;
@@ -145,14 +113,9 @@ public class HttpBodySizeCollector extends ChannelDuplexHandler {
         updateBytes(channelOps, metric.requestBytes, dataSent);
     }
 
-    private void updateBytes(ChannelOperations<?, ?> channelOps, long dataReceived, long dataSent) {
-        try {
-            collector.getOrCreateMetrics(this.getRequestHeaders(channelOps).get(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
-                                         this.getHttOperationPath(channelOps),
-                                         ((HttpServerResponse) channelOps).status().code())
-                     .updateBytes(dataReceived, dataSent);
-        } catch (Exception e) {
-            LOG.error("", e);
-        }
-    }
+    protected abstract void updateBytes(ChannelOperations<?, ?> channelOps, long dataReceived, long dataSent);
+
+    protected abstract HttpIOMetrics getMetricContext(IBithonObject bithonObject);
+
+    protected abstract Class<?> getTargetClass();
 }

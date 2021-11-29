@@ -19,19 +19,19 @@ package org.bithon.agent.plugin.spring.webflux.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
+import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
 
 /**
- * Inject an object to HttpServerOperations to make the code in HttpBodySizeCollector a little easier
+ * Inject an object to HttpClientOperations to make the code in HttpBodySizeCollector a little easier
  *
  * @author Frank Chen
- * @date 6/11/21 9:05 pm
+ * @date 28/11/21 9:05 pm
  */
-public class HttpServerOperations$Ctor extends AbstractInterceptor {
+public class HttpClientOperations$Ctor extends AbstractInterceptor {
 
     @Override
     public void onConstruct(AopContext aopContext) {
         IBithonObject obj = (IBithonObject) aopContext.getTarget();
-        obj.setInjectedObject(new HttpServerContext());
+        obj.setInjectedObject(new HttpIOMetrics());
     }
 }
