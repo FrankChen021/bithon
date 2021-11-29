@@ -71,7 +71,7 @@ public class Tracer {
 
                     AppInstance appInstance = AgentContext.getInstance().getAppInstance();
                     try {
-                        INSTANCE = new Tracer(appInstance.getAppName(), appInstance.getHostAndPort())
+                        INSTANCE = new Tracer(appInstance.getQualifiedAppName(), appInstance.getHostAndPort())
                             .propagator(new DefaultPropagator())
                             .traceIdGenerator(new UUIDGenerator())
                             .spanIdGenerator(new DefaultSpanIdGenerator())

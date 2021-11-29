@@ -57,7 +57,7 @@ public class BrpcAgentController implements IAgentController {
         }).collect(Collectors.toList());
 
         channel = new ClientChannel(new RoundRobinEndPointProvider(endpoints), 2)
-            .applicationName(AgentContext.getInstance().getAppInstance().getAppName())
+            .applicationName(AgentContext.getInstance().getAppInstance().getQualifiedAppName())
             .configureRetry(3, Duration.ofSeconds(2));
 
         fetcher = channel.getRemoteService(ISettingFetcher.class);
@@ -67,7 +67,7 @@ public class BrpcAgentController implements IAgentController {
     public Map<String, String> fetch(String appName, String env, long lastModifiedSince) {
         AppInstance appInstance = AgentContext.getInstance().getAppInstance();
         BrpcMessageHeader header = BrpcMessageHeader.newBuilder()
-                                                    .setAppName(appInstance.getRawAppName())
+                                                    .setAppName(appInstance.getAppName())
                                                     .setEnv(appInstance.getEnv())
                                                     .setInstanceName(appInstance.getHostAndPort())
                                                     .setHostIp(appInstance.getHostIp())

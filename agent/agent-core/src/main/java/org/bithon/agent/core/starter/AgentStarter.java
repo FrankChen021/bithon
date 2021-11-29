@@ -97,7 +97,7 @@ public class AgentStarter {
 
     private void ensureApplicationTempDirectory(AgentContext context) {
         File tmpDir = new File(context.getAgentDirectory() + separator + AgentContext.TMP_DIR + separator +
-                               context.getAppInstance().getAppName());
+                               context.getAppInstance().getQualifiedAppName());
 
         if (!tmpDir.exists()) {
             tmpDir.mkdirs();

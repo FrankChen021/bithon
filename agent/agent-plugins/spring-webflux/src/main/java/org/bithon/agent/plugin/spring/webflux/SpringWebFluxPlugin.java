@@ -36,6 +36,7 @@ public class SpringWebFluxPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
             forClass("org.springframework.http.server.reactive.ReactorHttpHandlerAdapter")
+                .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("apply")

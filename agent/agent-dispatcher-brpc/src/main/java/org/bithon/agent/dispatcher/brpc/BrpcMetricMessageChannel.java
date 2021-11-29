@@ -95,7 +95,7 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
 
         AppInstance appInstance = AgentContext.getInstance().getAppInstance();
         this.header = BrpcMessageHeader.newBuilder()
-                                       .setAppName(appInstance.getAppName())
+                                       .setAppName(appInstance.getQualifiedAppName())
                                        .setEnv(appInstance.getEnv())
                                        .setInstanceName(appInstance.getHostAndPort())
                                        .setHostIp(appInstance.getHostIp())
@@ -103,7 +103,7 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
                                        .setAppType(ApplicationType.JAVA)
                                        .build();
         appInstance.addListener(port -> this.header = BrpcMessageHeader.newBuilder()
-                                                                       .setAppName(appInstance.getAppName())
+                                                                       .setAppName(appInstance.getQualifiedAppName())
                                                                        .setEnv(appInstance.getEnv())
                                                                        .setInstanceName(appInstance.getHostAndPort())
                                                                        .setHostIp(appInstance.getHostIp())
