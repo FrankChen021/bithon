@@ -39,7 +39,7 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
 
     @Override
     public boolean initialize() throws Exception {
-        srcApplication = AgentContext.getInstance().getAppInstance().getAppName();
+        srcApplication = AgentContext.getInstance().getAppInstance().getQualifiedAppName();
         return super.initialize();
     }
 

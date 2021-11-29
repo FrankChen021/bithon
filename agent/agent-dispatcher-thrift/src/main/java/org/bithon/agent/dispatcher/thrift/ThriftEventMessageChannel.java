@@ -49,7 +49,7 @@ public class ThriftEventMessageChannel implements IMessageChannel {
 
         AppInstance appInstance = AgentContext.getInstance().getAppInstance();
         this.header = new MessageHeader();
-        this.header.setAppName(appInstance.getAppName());
+        this.header.setAppName(appInstance.getQualifiedAppName());
         this.header.setEnv(appInstance.getEnv());
         this.header.setInstanceName(appInstance.getHostAndPort());
         this.header.setHostIp(appInstance.getHostIp());

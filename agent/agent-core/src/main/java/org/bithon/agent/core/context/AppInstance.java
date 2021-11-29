@@ -31,8 +31,8 @@ import java.util.List;
 public class AppInstance {
     private static final Logger log = LoggerFactory.getLogger(AppInstance.class);
 
-    private final String rawAppName;
     private final String appName;
+    private final String qualifiedAppName;
     private final String hostIp;
     private final String env;
     private final List<IAppInstanceChangedListener> listeners = new ArrayList<>();
@@ -40,19 +40,21 @@ public class AppInstance {
     private String hostAndPort;
 
     AppInstance(String appName, String env) {
-        this.rawAppName = appName;
-        this.appName = appName + "-" + env;
+        this.appName = appName;
+        this.qualifiedAppName = appName + "-" + env;
         this.env = env;
         this.port = 0;
 
         NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
-        InetAddress address = null != ipAddress.getInetAddress() ? ipAddress.getInetAddress() : ipAddress.getLocalInetAddress();
+        InetAddress address = null != ipAddress.getInetAddress()
+                              ? ipAddress.getInetAddress()
+                              : ipAddress.getLocalInetAddress();
         this.hostIp = address.getHostAddress();
         this.hostAndPort = hostIp;
     }
 
-    public String getAppName() {
-        return appName;
+    public String getQualifiedAppName() {
+        return qualifiedAppName;
     }
 
     public int getPort() {
@@ -71,8 +73,8 @@ public class AppInstance {
         }
     }
 
-    public String getRawAppName() {
-        return rawAppName;
+    public String getAppName() {
+        return appName;
     }
 
     public String getHostIp() {

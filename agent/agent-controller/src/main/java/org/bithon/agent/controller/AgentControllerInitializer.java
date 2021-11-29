@@ -64,7 +64,7 @@ public class AgentControllerInitializer implements IAgentInitializer {
         //
         // start fetcher
         //
-        AgentSettingManager.createInstance(context.getAppInstance().getRawAppName(),
+        AgentSettingManager.createInstance(context.getAppInstance().getAppName(),
                                            context.getAppInstance().getEnv(),
                                            controller);
     }

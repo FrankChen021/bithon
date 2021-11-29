@@ -173,7 +173,7 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         AppInstance appInstance = AgentContext.getInstance().getAppInstance();
 
         String[] newDimensions = new String[dimensions.length + 2];
-        newDimensions[0] = appInstance.getAppName();
+        newDimensions[0] = appInstance.getQualifiedAppName();
         newDimensions[1] = appInstance.getHostAndPort();
         System.arraycopy(dimensions, 0, newDimensions, 2, dimensions.length);
 
