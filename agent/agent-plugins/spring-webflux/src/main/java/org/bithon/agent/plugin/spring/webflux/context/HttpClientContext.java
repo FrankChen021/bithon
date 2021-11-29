@@ -16,7 +16,6 @@
 
 package org.bithon.agent.plugin.spring.webflux.context;
 
-import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 
 /**
@@ -30,7 +29,6 @@ public class HttpClientContext {
     /**
      * available when tracing is enabled on this request
      */
-    private ITraceContext traceContext;
     private ITraceSpan span;
 
     public HttpClientContext() {
@@ -39,14 +37,6 @@ public class HttpClientContext {
 
     public long getStartTimeNs() {
         return startTimeNs;
-    }
-
-    public ITraceContext getTraceContext() {
-        return traceContext;
-    }
-
-    public void setTraceContext(ITraceContext traceContext) {
-        this.traceContext = traceContext;
     }
 
     public ITraceSpan getSpan() {

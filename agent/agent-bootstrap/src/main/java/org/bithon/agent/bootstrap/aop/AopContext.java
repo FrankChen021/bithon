@@ -159,4 +159,9 @@ public class AopContext {
     public void setEndTimestamp(long timestamp) {
         this.endTimestamp = timestamp;
     }
+
+    public <T> T castInjectedOnTargetAs() {
+        //noinspection unchecked
+        return (T) ((IBithonObject) this.target).getInjectedObject();
+    }
 }

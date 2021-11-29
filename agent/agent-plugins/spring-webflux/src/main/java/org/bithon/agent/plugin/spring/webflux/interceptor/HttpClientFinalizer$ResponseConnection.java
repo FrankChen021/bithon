@@ -106,14 +106,14 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
 
         Flux<?> responseFlux = aopContext.castReturningAs();
 
-        /*
+        /**
          * Hook on exception
          *
          * NOTE:
          *  we don't hook on complete instead we do the final thing in the replaced response handler injected above
          *  because the runtime reports the response on the doOnNext is illegal accessed
          */
-        aopContext.setReturning(responseFlux.doOnError((throwable -> {
+        Flux<?> replacedReturning = responseFlux.doOnError((throwable -> {
             Integer statusCode = null;
             if (throwable instanceof ResponseStatusException) {
                 statusCode = ((ResponseStatusException) throwable).getStatus().value();
@@ -141,6 +141,21 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
                                            statusCode,
                                            System.nanoTime() - httpClientContext.getStartTimeNs());
             }
-        })));
+        }));
+
+        ((IBithonObject) replacedReturning).setInjectedObject((Runnable) () -> {
+            // tracing
+            final ITraceSpan httpClientSpan = httpClientContext.getSpan();
+            if (httpClientSpan != null) {
+                httpClientSpan.tag("exception", "Timeout")
+                              .tag("uri", uri)
+                              .finish();
+            }
+
+            metricCollector.addExceptionRequest(uri,
+                                                method,
+                                                System.nanoTime() - httpClientContext.getStartTimeNs());
+        });
+        aopContext.setReturning(replacedReturning);
     }
 }

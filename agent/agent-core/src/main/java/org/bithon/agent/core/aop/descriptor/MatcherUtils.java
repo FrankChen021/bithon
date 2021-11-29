@@ -177,57 +177,77 @@ public class MatcherUtils {
     }
 
     public static ElementMatcher<MethodDescription> createArgumentsMatcher(boolean debug, String... args) {
-        return new ElementMatcher.Junction<MethodDescription>() {
-            @Override
-            public <U extends MethodDescription> Junction<U> and(ElementMatcher<? super U> elementMatcher) {
-                return new Conjunction<>(this, elementMatcher);
-            }
+        return new ArgumentsMatcher(debug, false, args);
+    }
 
-            @Override
-            public <U extends MethodDescription> Junction<U> or(ElementMatcher<? super U> elementMatcher) {
-                return new Disjunction<>(this, elementMatcher);
-            }
+    public static ElementMatcher<MethodDescription> createArgumentsMatcher(boolean debug,
+                                                                           boolean matchRawArgType,
+                                                                           String... args) {
+        return new ArgumentsMatcher(debug, matchRawArgType, args);
+    }
 
-            @Override
-            public boolean matches(MethodDescription methodDescription) {
-                ParameterList<?> parameterList = methodDescription.getParameters();
-                if (parameterList.size() != args.length) {
-                    if (debug) {
-                        log.info("matching [{}]: argument size not match", methodDescription);
-                    }
-                    return false;
-                } else {
-                    for (int i = 0; i < args.length; i++) {
-                        String paramType = parameterList.get(i).getType().getTypeName();
-                        if (!paramType.equals(args[i])) {
-                            if (debug) {
-                                log.info("matching [{}]: type of parameter {} not match. Given is {}, actual is {}",
-                                         methodDescription,
-                                         i,
-                                         args[i],
-                                         paramType);
-                            }
-                            return false;
+    private static class ArgumentsMatcher implements ElementMatcher.Junction<MethodDescription> {
+        private final boolean debug;
+        private final boolean matchRawArgType;
+        private final String[] args;
+
+        public ArgumentsMatcher(boolean debug, boolean matchRawArgType, String... args) {
+            this.debug = debug;
+            this.matchRawArgType = matchRawArgType;
+            this.args = args;
+        }
+
+        @Override
+        public <U extends MethodDescription> Junction<U> and(ElementMatcher<? super U> elementMatcher) {
+            return new Conjunction<>(this, elementMatcher);
+        }
+
+        @Override
+        public <U extends MethodDescription> Junction<U> or(ElementMatcher<? super U> elementMatcher) {
+            return new Disjunction<>(this, elementMatcher);
+        }
+
+        @Override
+        public boolean matches(MethodDescription methodDescription) {
+            ParameterList<?> parameterList = methodDescription.getParameters();
+            if (parameterList.size() != args.length) {
+                if (debug) {
+                    log.info("matching [{}]: argument size not match", methodDescription);
+                }
+                return false;
+            } else {
+                for (int i = 0; i < args.length; i++) {
+                    String paramType = matchRawArgType
+                                       ? parameterList.get(i).getType().asRawType().getTypeName()
+                                       : parameterList.get(i).getType().getTypeName();
+                    if (!paramType.equals(args[i])) {
+                        if (debug) {
+                            log.info("matching [{}]: type of parameter {} not match. Given is {}, actual is {}",
+                                     methodDescription,
+                                     i,
+                                     args[i],
+                                     paramType);
                         }
+                        return false;
                     }
-                    if (debug) {
-                        log.info("matching [{}]: Matched", methodDescription);
-                    }
-                    return true;
                 }
+                if (debug) {
+                    log.info("matching [{}]: Matched", methodDescription);
+                }
+                return true;
             }
+        }
 
-            @Override
-            public String toString() {
-                StringBuilder sb = new StringBuilder("args=[");
-                for (String arg : args) {
-                    sb.append(arg);
-                    sb.append(',');
-                }
-                sb.delete(sb.length() - 1, sb.length());
-                sb.append("]");
-                return sb.toString();
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("args=[");
+            for (String arg : args) {
+                sb.append(arg);
+                sb.append(',');
             }
-        };
+            sb.delete(sb.length() - 1, sb.length());
+            sb.append("]");
+            return sb.toString();
+        }
     }
 }

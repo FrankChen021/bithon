@@ -5,8 +5,10 @@
 graph 
     ReactorHttpHandlerAdapter 
     ---> filters 
+    ---> NettyRoutingFilter 
     ---> HttpClientFinializer#send
     ---> HttpClientFinializer#responseConnection
+    ---> Flux#timeout
 ```
 
 1. TraceContext is created on `ReactorHttpHandlerAdapter`

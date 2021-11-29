@@ -76,6 +76,13 @@ public class MethodPointCutDescriptorBuilder {
         return this;
     }
 
+    public MethodPointCutDescriptorBuilder onMethodAndRawArgs(String method, String... args) {
+        this.method = MatcherUtils.named(method);
+        this.argsMatcher = MatcherUtils.createArgumentsMatcher(debug, true, args);
+        this.methodType = MethodType.NON_CONSTRUCTOR;
+        return this;
+    }
+
     public MethodPointCutDescriptorBuilder onMethodAndNoArgs(String method) {
         this.method = MatcherUtils.named(method);
         this.argsMatcher = takesNoArguments();

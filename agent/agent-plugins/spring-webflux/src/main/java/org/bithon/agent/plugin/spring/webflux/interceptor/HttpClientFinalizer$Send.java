@@ -31,8 +31,6 @@ import reactor.netty.http.client.HttpClientRequest;
 
 import java.util.function.BiFunction;
 
-//TODO: exception test on tracing, including retry, exception
-
 /**
  * see reactor.netty.http.client.HttpClientFinalizer#send
  *
@@ -55,7 +53,6 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
         ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext != null) {
             // span will be finished in ResponseConnection interceptor
-            httpClientContext.setTraceContext(traceContext);
             httpClientContext.setSpan(traceContext.currentSpan()
                                                   .newChildSpan("webflux-httpClient")
                                                   .kind(SpanKind.CLIENT)
