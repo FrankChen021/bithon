@@ -104,7 +104,8 @@ public class HttpServerChannelInitializer$OnChannelInit extends AbstractIntercep
                                                    ((HttpInfos) channelOps).fullPath(),
                                                    ((HttpServerResponse) channelOps).status().code())
                                .updateBytes(dataReceived, dataSent);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                LOG.error("exception when update io metrics", e);
             }
         }
 
