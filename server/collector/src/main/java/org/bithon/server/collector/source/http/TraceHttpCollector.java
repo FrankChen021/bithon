@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -99,10 +101,38 @@ public class TraceHttpCollector {
         public TraceSpan next() {
             TraceSpan span = delete.next();
             span.setTraceId(toNetworkOrder(span.getTraceId()));
+
+            // update parentSpanId
             if ("00".equals(span.getParentSpanId())) {
                 span.setParentSpanId("");
                 span.setKind("SERVER");
             }
+
+            // split full qualified method name into clazz and method
+            String fullQualifiedName = span.getMethod();
+            if (fullQualifiedName.endsWith("()")) {
+                // remove the ending parenthesis
+                fullQualifiedName = fullQualifiedName.substring(0, fullQualifiedName.length() - 2);
+            }
+            int idx = span.getMethod().lastIndexOf("::");
+            if (idx >= 0) {
+                span.setClazz(fullQualifiedName.substring(0, idx));
+                span.setMethod(fullQualifiedName.substring(idx + 2));
+            }
+
+            // tidy tags
+            Map<String, String> tags = new HashMap<>();
+            for (Map.Entry<String, String> entry : span.getTags().entrySet()) {
+                String key = entry.getKey();
+                String val = entry.getValue();
+
+                if (key.startsWith("clickhouse.")) {
+                    key = key.substring("clickhouse.".length());
+                }
+                tags.put(key, val);
+            }
+            span.setTags(tags);
+
             return span;
         }
 
