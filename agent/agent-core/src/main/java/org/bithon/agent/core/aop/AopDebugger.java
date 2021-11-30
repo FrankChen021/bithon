@@ -61,6 +61,8 @@ public class AopDebugger extends AgentBuilder.Listener.Adapter {
                                           + separator
                                           + AgentContext.TMP_DIR
                                           + separator
+                                          + AgentContext.getInstance().getAppInstance().getQualifiedAppName()
+                                          + separator
                                           + "classes");
 
             // clean up directories before startup
