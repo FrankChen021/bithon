@@ -30,7 +30,8 @@ Bithon can be used to collect span logs generated in ClickHouse nodes.
    </opentelemetry_span_log>
    ```
 2. create a materialized view to export span logs from ClickHouse to Bithon
-    ```sql
+   
+   ```sql
    CREATE MATERIALIZED VIEW span_logs_view
     (
         `appName` String,
@@ -49,15 +50,14 @@ Bithon can be used to collect span logs generated in ClickHouse nodes.
     SELECT
         'clickhouse' AS appName,
         concat(FQDN(), ':8123') AS instanceName,
-        lower(hex(reinterpretAsFixedString(trace_id))) AS traceId,
-        lower(hex(parent_span_id)) AS parentSpanId,
+        lower(hex(reverse(reinterpretAsFixedString(trace_id)))) AS traceId,
+        case when parent_span_id = 0 then '' else lower(hex(parent_span_id)) end AS parentSpanId,
         lower(hex(span_id)) AS spanId,
         operation_name AS method,
         start_time_us AS startTime,
         finish_time_us AS endTime,
         finish_time_us - start_time_us AS costTime,
-        CAST(tuple('clickhouse'), 'Tuple(serviceName text)') AS localEndpoint,
         attribute AS tags
     FROM 
         system.opentelemetry_span_log
-    ```
+   ```

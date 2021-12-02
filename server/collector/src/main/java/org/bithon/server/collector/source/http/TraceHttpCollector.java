@@ -29,8 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author Frank Chen
@@ -51,9 +51,10 @@ public class TraceHttpCollector {
 
     @PostMapping("/api/collector/trace")
     public void span(HttpServletRequest request) throws IOException {
-        String s = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
-        log.trace("receive spans:{}", s);
-        final TraceSpan[] spans = om.readValue(s, TraceSpan[].class);
+        String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
+        log.trace("receive spans:{}", body);
+
+        final TraceSpan[] spans = om.readValue(body, TraceSpan[].class);
         if (spans.length == 0) {
             return;
         }
@@ -100,7 +101,6 @@ public class TraceHttpCollector {
         @Override
         public TraceSpan next() {
             TraceSpan span = delete.next();
-            span.setTraceId(toNetworkOrder(span.getTraceId()));
 
             // update parentSpanId
             if ("00".equals(span.getParentSpanId())) {
@@ -121,28 +121,20 @@ public class TraceHttpCollector {
             }
 
             // tidy tags
-            Map<String, String> tags = new HashMap<>();
+            Map<String, String> tags = new TreeMap<>();
             for (Map.Entry<String, String> entry : span.getTags().entrySet()) {
                 String key = entry.getKey();
                 String val = entry.getValue();
 
-                if (key.startsWith("clickhouse.")) {
-                    key = key.substring("clickhouse.".length());
+                int dotIndex = key.lastIndexOf('.');
+                if (dotIndex >= 0) {
+                    key = key.substring(dotIndex + 1);
                 }
                 tags.put(key, val);
             }
             span.setTags(tags);
 
             return span;
-        }
-
-        private String toNetworkOrder(String hostOrderString) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = hostOrderString.length() - 1 - 1; i >= 0; i -= 2) {
-                sb.append(hostOrderString.charAt(i));
-                sb.append(hostOrderString.charAt(i + 1));
-            }
-            return sb.toString();
         }
     }
 }
