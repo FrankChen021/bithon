@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author Frank Chen
@@ -49,9 +51,10 @@ public class TraceHttpCollector {
 
     @PostMapping("/api/collector/trace")
     public void span(HttpServletRequest request) throws IOException {
-        String s = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
-        log.trace("receive spans:{}", s);
-        final TraceSpan[] spans = om.readValue(s, TraceSpan[].class);
+        String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
+        log.trace("receive spans:{}", body);
+
+        final TraceSpan[] spans = om.readValue(body, TraceSpan[].class);
         if (spans.length == 0) {
             return;
         }
@@ -98,21 +101,40 @@ public class TraceHttpCollector {
         @Override
         public TraceSpan next() {
             TraceSpan span = delete.next();
-            span.setTraceId(toNetworkOrder(span.getTraceId()));
+
+            // update parentSpanId
             if ("00".equals(span.getParentSpanId())) {
                 span.setParentSpanId("");
                 span.setKind("SERVER");
             }
-            return span;
-        }
 
-        private String toNetworkOrder(String hostOrderString) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = hostOrderString.length() - 1 - 1; i >= 0; i -= 2) {
-                sb.append(hostOrderString.charAt(i));
-                sb.append(hostOrderString.charAt(i + 1));
+            // split full qualified method name into clazz and method
+            String fullQualifiedName = span.getMethod();
+            if (fullQualifiedName.endsWith("()")) {
+                // remove the ending parenthesis
+                fullQualifiedName = fullQualifiedName.substring(0, fullQualifiedName.length() - 2);
             }
-            return sb.toString();
+            int idx = span.getMethod().lastIndexOf("::");
+            if (idx >= 0) {
+                span.setClazz(fullQualifiedName.substring(0, idx));
+                span.setMethod(fullQualifiedName.substring(idx + 2));
+            }
+
+            // tidy tags
+            Map<String, String> tags = new TreeMap<>();
+            for (Map.Entry<String, String> entry : span.getTags().entrySet()) {
+                String key = entry.getKey();
+                String val = entry.getValue();
+
+                int dotIndex = key.lastIndexOf('.');
+                if (dotIndex >= 0) {
+                    key = key.substring(dotIndex + 1);
+                }
+                tags.put(key, val);
+            }
+            span.setTags(tags);
+
+            return span;
         }
     }
 }
