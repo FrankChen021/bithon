@@ -71,12 +71,13 @@ public class TableCreator {
 
             String tableName = StringUtils.hasText(config.getCluster()) ? table.getName() + "_local" : table.getName();
             sb.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
-                                    config.getDatabase(),
-                                    tableName,
-                                    StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
+                                         config.getDatabase(),
+                                         tableName,
+                                         StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
             sb.append(getFieldText(table));
-            sb.append(StringUtils.format(") ENGINE=%s PARTITION BY toYYYYMMDD(timestamp) ", engine.replaceAll("\\{database\\}", config.getDatabase())
-                                                                                             .replaceAll("\\{table\\}", tableName)));
+            sb.append(StringUtils.format(") ENGINE=%s PARTITION BY toYYYYMMDD(timestamp) ",
+                                         engine.replaceAll("\\{database\\}", config.getDatabase())
+                                               .replaceAll("\\{table\\}", tableName)));
 
             //
             // Order by Clause
@@ -117,15 +118,15 @@ public class TableCreator {
             //
             StringBuilder sb = new StringBuilder();
             sb.append(StringUtils.format("CREATE TABLE IF NOT EXISTS `%s`.`%s` %s (%n",
-                                    config.getDatabase(),
-                                    table.getName(),
-                                    StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
+                                         config.getDatabase(),
+                                         table.getName(),
+                                         StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
             sb.append(getFieldText(table));
             sb.append(StringUtils.format(") ENGINE=Distributed('%s', '%s', '%s', murmurHash2_64(%s));",
-                                    config.getCluster(),
-                                    config.getDatabase(),
-                                    table.getName() + "_local",
-                                    "bithon_topo_metrics".equals(table.getName()) ? "srcEndpoint" : "appName"));
+                                         config.getCluster(),
+                                         config.getDatabase(),
+                                         table.getName() + "_local",
+                                         "bithon_topo_metrics".equals(table.getName()) ? "srcEndpoint" : "appName"));
 
             log.info("CreateIfNotExists {}", table.getName());
             dslContext.execute(sb.toString());
@@ -137,16 +138,16 @@ public class TableCreator {
         for (Field<?> f : table.fields()) {
             if (f.getDataType().equals(SQLDataType.TIMESTAMP)) {
                 sb.append(StringUtils.format("`%s` %s(3,0) ,%n",
-                                        f.getName(),
-                                        f.getDataType().getTypeName()));
+                                             f.getName(),
+                                             f.getDataType().getTypeName()));
                 continue;
             }
             if (f.getDataType().hasPrecision()) {
                 sb.append(StringUtils.format("`%s` %s(%d, %d) ,%n",
-                                        f.getName(),
-                                        f.getDataType().getTypeName(),
-                                        f.getDataType().precision(),
-                                        f.getDataType().scale()));
+                                             f.getName(),
+                                             f.getDataType().getTypeName(),
+                                             f.getDataType().precision(),
+                                             f.getDataType().scale()));
             } else {
                 sb.append(StringUtils.format("`%s` %s ,%n", f.getName(), f.getDataType().getTypeName()));
             }

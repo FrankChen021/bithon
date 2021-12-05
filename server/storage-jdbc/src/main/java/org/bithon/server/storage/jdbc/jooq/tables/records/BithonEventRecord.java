@@ -4,13 +4,13 @@
 package org.bithon.server.storage.jdbc.jooq.tables.records;
 
 
+import java.sql.Timestamp;
+
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
 import org.jooq.Field;
 import org.jooq.Record5;
 import org.jooq.Row5;
 import org.jooq.impl.TableRecordImpl;
-
-import java.sql.Timestamp;
 
 
 /**
@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonEventRecord extends TableRecordImpl<BithonEventRecord> implements Record5<Timestamp, String, String, String, String> {
 
-    private static final long serialVersionUID = 567754116;
+    private static final long serialVersionUID = -1478880134;
 
     /**
      * Setter for <code>bithon_event.timestamp</code>. reported Timestamp

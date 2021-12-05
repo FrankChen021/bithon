@@ -108,16 +108,26 @@ public class TraceHttpCollector {
                 span.setKind("SERVER");
             }
 
+            //
             // split full qualified method name into clazz and method
-            String fullQualifiedName = span.getMethod();
+            //
+            // first change to dot-separated calling style
+            String fullQualifiedName = span.getMethod().replaceAll("::", ".");
             if (fullQualifiedName.endsWith("()")) {
                 // remove the ending parenthesis
                 fullQualifiedName = fullQualifiedName.substring(0, fullQualifiedName.length() - 2);
             }
-            int idx = span.getMethod().lastIndexOf("::");
+            int idx = fullQualifiedName.lastIndexOf(' ');
             if (idx >= 0) {
+                // discard the return-type
+                fullQualifiedName = fullQualifiedName.substring(idx + 1);
+            }
+
+            idx = fullQualifiedName.lastIndexOf(".");
+            if (idx >= 0) {
+                // split the class the method
                 span.setClazz(fullQualifiedName.substring(0, idx));
-                span.setMethod(fullQualifiedName.substring(idx + 2));
+                span.setMethod(fullQualifiedName.substring(idx + 1));
             }
 
             // tidy tags

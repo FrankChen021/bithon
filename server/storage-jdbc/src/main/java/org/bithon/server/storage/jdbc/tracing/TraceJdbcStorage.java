@@ -24,7 +24,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.storage.jdbc.jooq.Indexes;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.bithon.server.tracing.handler.TraceSpan;
@@ -62,19 +61,8 @@ public class TraceJdbcStorage implements ITraceStorage {
     @Override
     public void initialize() {
         dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN)
-                  .columns(Tables.BITHON_TRACE_SPAN.TIMESTAMP,
-                           Tables.BITHON_TRACE_SPAN.APPNAME,
-                           Tables.BITHON_TRACE_SPAN.INSTANCENAME,
-                           Tables.BITHON_TRACE_SPAN.NAME,
-                           Tables.BITHON_TRACE_SPAN.CLAZZ,
-                           Tables.BITHON_TRACE_SPAN.METHOD,
-                           Tables.BITHON_TRACE_SPAN.KIND,
-                           Tables.BITHON_TRACE_SPAN.TRACEID,
-                           Tables.BITHON_TRACE_SPAN.SPANID,
-                           Tables.BITHON_TRACE_SPAN.COSTTIME,
-                           Tables.BITHON_TRACE_SPAN.PARENTSPANID,
-                           Tables.BITHON_TRACE_SPAN.TAGS)
-                  .indexes(Indexes.BITHON_TRACE_SPAN_IDX_KEY)
+                  .columns(Tables.BITHON_TRACE_SPAN.fields())
+                  .indexes(Tables.BITHON_TRACE_SPAN.getIndexes())
                   .execute();
     }
 
@@ -102,7 +90,8 @@ public class TraceJdbcStorage implements ITraceStorage {
         public List<TraceSpan> getTraceByTraceId(String traceId) {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
                              .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId))
-                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc())
+                             // for spans coming from a same application instance, sort them by the start time
+                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(), Tables.BITHON_TRACE_SPAN.INSTANCENAME, Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
                              .fetch(this::toTraceSpan);
         }
 
@@ -128,7 +117,8 @@ public class TraceJdbcStorage implements ITraceStorage {
         public List<TraceSpan> getTraceByParentSpanId(String parentSpanId) {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
                              .where(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(parentSpanId))
-                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc())
+                             // for spans coming from a same application instance, sort them by the start time
+                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(), Tables.BITHON_TRACE_SPAN.INSTANCENAME, Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
                              .fetch(this::toTraceSpan);
         }
 
@@ -139,8 +129,9 @@ public class TraceJdbcStorage implements ITraceStorage {
             span.traceId = record.getTraceid();
             span.spanId = record.getSpanid();
             span.parentSpanId = record.getParentspanid();
-            span.startTime = record.getTimestamp().getTime();
-            span.costTime = record.getCosttime();
+            span.startTime = record.getStarttimeus();
+            span.costTime = record.getCosttimems();
+            span.endTime = record.getEndtimeus();
             span.name = record.getName();
             span.kind = record.getKind();
             span.method = record.getMethod();
@@ -166,7 +157,9 @@ public class TraceJdbcStorage implements ITraceStorage {
                 spanRecord.setTraceid(span.traceId);
                 spanRecord.setSpanid(span.spanId);
                 spanRecord.setParentspanid(span.parentSpanId);
-                spanRecord.setCosttime(span.costTime);
+                spanRecord.setCosttimems(span.costTime);
+                spanRecord.setStarttimeus(span.startTime);
+                spanRecord.setEndtimeus(span.endTime);
                 spanRecord.setName(span.name == null ? "" : span.name);
                 spanRecord.setClazz(span.clazz == null ? "" : span.clazz);
                 spanRecord.setMethod(span.method == null ? "" : span.method);

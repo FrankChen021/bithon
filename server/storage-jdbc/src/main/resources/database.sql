@@ -28,7 +28,7 @@ CREATE TABLE `bithon_application_instance`
     `appType` varchar(64)  NOT NULL,
     `instanceName`    varchar(64)  NOT NULL,
     KEY `idx_app_instance_timestamp` (`timestamp`), # Use a unique index name because some db like H2 rejects duplicated name
-    KEY `idx_app_name` (`appName`)
+    KEY `idx_app_instance_name` (`appName`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='应用';
 
@@ -57,13 +57,16 @@ CREATE TABLE `bithon_trace_span`
     `spanId`        VARCHAR(64) DEFAULT '' NOT NULL COMMENT '',
     `parentSpanId`  VARCHAR(64) DEFAULT '' NOT NULL COMMENT '',
     `kind`          VARCHAR(64)            NOT NULL DEFAULT '' COMMENT '',
-    `costTime`      BIGINT                 NOT NULL DEFAULT 0 COMMENT '',
+    `costTimeMs`    BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Milli Second',
+    `startTimeUs`   BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Micro Second',
+    `endTimeUs`     BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Micro Second',
     `tags`          TEXT COMMENT '',
     KEY `idx_timestamp` (`timestamp`),
     KEY `idx_app_name` (`appName`),
     KEY `idx_instanceName` (`instanceName`),
     UNIQUE `idx_key` (`traceId`, `spanId`),
-    KEY `idx_parentSpanId` (`parentSpanId`)
+    KEY `idx_parentSpanId` (`parentSpanId`),
+    KEY `idx_start_time` (`startTimeUs`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -75,9 +78,9 @@ CREATE TABLE `bithon_event`
     `instanceName` VARCHAR(64)  NOT NULL COMMENT '',
     `type`          VARCHAR(64)  NOT NULL COMMENT 'type of event',
     `arguments`     TEXT COMMENT 'JSON formatted Map<String, String>',
-    KEY `idx_timestamp` (`timestamp`),
-    KEY `idx_appName` (`appName`),
-    KEY `idx_instanceName` (`instanceName`),
-    KEY `idx_type` (`type`)
+    KEY `idx_event_timestamp` (`timestamp`),
+    KEY `idx_event_appName` (`appName`),
+    KEY `idx_event_instanceName` (`instanceName`),
+    KEY `idx_event_type` (`type`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='';
