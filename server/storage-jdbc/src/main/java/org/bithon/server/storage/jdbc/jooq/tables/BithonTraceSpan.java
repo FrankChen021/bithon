@@ -4,6 +4,10 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
+import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.List;
+
 import org.bithon.server.storage.jdbc.jooq.DefaultSchema;
 import org.bithon.server.storage.jdbc.jooq.Indexes;
 import org.bithon.server.storage.jdbc.jooq.Keys;
@@ -13,17 +17,13 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row12;
+import org.jooq.Row14;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
-
-import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.List;
 
 
 /**
@@ -32,7 +32,7 @@ import java.util.List;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
-    private static final long serialVersionUID = 1896040278;
+    private static final long serialVersionUID = 1057791463;
 
     /**
      * The reference instance of <code>bithon_trace_span</code>
@@ -98,9 +98,19 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     public final TableField<BithonTraceSpanRecord, String> KIND = createField(DSL.name("kind"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
-     * The column <code>bithon_trace_span.costTime</code>.
+     * The column <code>bithon_trace_span.costTimeMs</code>. Milli Second
      */
-    public final TableField<BithonTraceSpanRecord, Long> COSTTIME = createField(DSL.name("costTime"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BIGINT)), this, "");
+    public final TableField<BithonTraceSpanRecord, Long> COSTTIMEMS = createField(DSL.name("costTimeMs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BIGINT)), this, "Milli Second");
+
+    /**
+     * The column <code>bithon_trace_span.startTimeUs</code>. Micro Second
+     */
+    public final TableField<BithonTraceSpanRecord, Long> STARTTIMEUS = createField(DSL.name("startTimeUs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BIGINT)), this, "Micro Second");
+
+    /**
+     * The column <code>bithon_trace_span.endTimeUs</code>. Micro Second
+     */
+    public final TableField<BithonTraceSpanRecord, Long> ENDTIMEUS = createField(DSL.name("endTimeUs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BIGINT)), this, "Micro Second");
 
     /**
      * The column <code>bithon_trace_span.tags</code>.
@@ -147,7 +157,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_APP_NAME, Indexes.BITHON_TRACE_SPAN_IDX_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_KEY, Indexes.BITHON_TRACE_SPAN_IDX_PARENTSPANID, Indexes.BITHON_TRACE_SPAN_IDX_TIMESTAMP);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_APP_NAME, Indexes.BITHON_TRACE_SPAN_IDX_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_KEY, Indexes.BITHON_TRACE_SPAN_IDX_PARENTSPANID, Indexes.BITHON_TRACE_SPAN_IDX_START_TIME, Indexes.BITHON_TRACE_SPAN_IDX_TIMESTAMP);
     }
 
     @Override
@@ -182,11 +192,11 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row12 type methods
+    // Row14 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row12<Timestamp, String, String, String, String, String, String, String, String, String, Long, String> fieldsRow() {
-        return (Row12) super.fieldsRow();
+    public Row14<Timestamp, String, String, String, String, String, String, String, String, String, Long, Long, Long, String> fieldsRow() {
+        return (Row14) super.fieldsRow();
     }
 }

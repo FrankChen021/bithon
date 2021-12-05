@@ -14,7 +14,7 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan implements Serializable {
 
-    private static final long serialVersionUID = 35278513;
+    private static final long serialVersionUID = -1658225902;
 
     private Timestamp timestamp;
     private String    appname;
@@ -26,7 +26,9 @@ public class BithonTraceSpan implements Serializable {
     private String    spanid;
     private String    parentspanid;
     private String    kind;
-    private Long      costtime;
+    private Long      costtimems;
+    private Long      starttimeus;
+    private Long      endtimeus;
     private String    tags;
 
     public BithonTraceSpan() {}
@@ -42,7 +44,9 @@ public class BithonTraceSpan implements Serializable {
         this.spanid = value.spanid;
         this.parentspanid = value.parentspanid;
         this.kind = value.kind;
-        this.costtime = value.costtime;
+        this.costtimems = value.costtimems;
+        this.starttimeus = value.starttimeus;
+        this.endtimeus = value.endtimeus;
         this.tags = value.tags;
     }
 
@@ -57,7 +61,9 @@ public class BithonTraceSpan implements Serializable {
         String    spanid,
         String    parentspanid,
         String    kind,
-        Long      costtime,
+        Long      costtimems,
+        Long      starttimeus,
+        Long      endtimeus,
         String    tags
     ) {
         this.timestamp = timestamp;
@@ -70,7 +76,9 @@ public class BithonTraceSpan implements Serializable {
         this.spanid = spanid;
         this.parentspanid = parentspanid;
         this.kind = kind;
-        this.costtime = costtime;
+        this.costtimems = costtimems;
+        this.starttimeus = starttimeus;
+        this.endtimeus = endtimeus;
         this.tags = tags;
     }
 
@@ -154,12 +162,28 @@ public class BithonTraceSpan implements Serializable {
         this.kind = kind;
     }
 
-    public Long getCosttime() {
-        return this.costtime;
+    public Long getCosttimems() {
+        return this.costtimems;
     }
 
-    public void setCosttime(Long costtime) {
-        this.costtime = costtime;
+    public void setCosttimems(Long costtimems) {
+        this.costtimems = costtimems;
+    }
+
+    public Long getStarttimeus() {
+        return this.starttimeus;
+    }
+
+    public void setStarttimeus(Long starttimeus) {
+        this.starttimeus = starttimeus;
+    }
+
+    public Long getEndtimeus() {
+        return this.endtimeus;
+    }
+
+    public void setEndtimeus(Long endtimeus) {
+        this.endtimeus = endtimeus;
     }
 
     public String getTags() {
@@ -184,7 +208,9 @@ public class BithonTraceSpan implements Serializable {
         sb.append(", ").append(spanid);
         sb.append(", ").append(parentspanid);
         sb.append(", ").append(kind);
-        sb.append(", ").append(costtime);
+        sb.append(", ").append(costtimems);
+        sb.append(", ").append(starttimeus);
+        sb.append(", ").append(endtimeus);
         sb.append(", ").append(tags);
 
         sb.append(")");

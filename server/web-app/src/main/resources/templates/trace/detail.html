@@ -85,7 +85,7 @@
                 title: 'Application',
             }, {
                 field: 'instanceName',
-                title: 'instance'
+                title: 'Instance'
             }, {
                 field: 'name',
                 title: 'Component'
@@ -93,19 +93,23 @@
                 field: 'clazz',
                 title: 'Method',
                 formatter: function (value, row) {
-                    return row.clazz.split('.').pop() + '.' + row.method;
+                    return row.clazz === "" ? row.method
+                        // clazz holds the full qualified class name
+                        // here, display the simple class name
+                        : row.clazz.split('.').pop() + '.' + row.method;
                 }
             }, {
                 field: 'costTime',
                 title: 'Duration',
                 formatter: function (value, row) {
-                    return nanoFormat(value * 1000);
+                    return microFormat(value);
                 }
             }, {
                 field: 'startTime',
                 title: 'Start Time',
                 formatter: function (value, row) {
-                    return new Date(value).format('yyyy-MM-dd hh:mm:ss');
+                    // start time is in micro-second
+                    return new Date(value / 1000).format('yyyy-MM-dd hh:mm:ss');
                 }
             }, {
                 field: 'tags',

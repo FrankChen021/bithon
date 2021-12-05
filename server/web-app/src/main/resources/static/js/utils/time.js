@@ -38,5 +38,10 @@ function timeFormat(time, fractionDigits, units) {
         index += 1;
         val = time / (1000 ** index);
     }
-    return val.toFixed(fractionDigits === undefined ? 2 : fractionDigits) + units[index];
+    if (index == 0) {
+        // no need to toFixed(), since it always adds fraction part to the string even if the value is integer
+        return val.valueOf() + units[index];
+    } else {
+        return val.toFixed(fractionDigits === undefined ? 2 : fractionDigits) + units[index];
+    }
 }

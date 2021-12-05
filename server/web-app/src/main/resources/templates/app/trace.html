@@ -86,7 +86,7 @@
                 field: 'startTime',
                 title: 'Time',
                 formatter: function (value) {
-                    return new Date(value).format('yyyy-MM-dd hh:mm:ss');
+                    return new Date(value/1000).format('yyyy-MM-dd hh:mm:ss');
                 }
             }, {
                 field: 'costTime',
