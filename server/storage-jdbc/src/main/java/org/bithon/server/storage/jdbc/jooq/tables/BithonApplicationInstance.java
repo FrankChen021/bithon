@@ -4,6 +4,10 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
+import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.List;
+
 import org.bithon.server.storage.jdbc.jooq.DefaultSchema;
 import org.bithon.server.storage.jdbc.jooq.Indexes;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonApplicationInstanceRecord;
@@ -19,10 +23,6 @@ import org.jooq.TableField;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
-import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.List;
-
 
 /**
  * 应用
@@ -30,7 +30,7 @@ import java.util.List;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonApplicationInstance extends TableImpl<BithonApplicationInstanceRecord> {
 
-    private static final long serialVersionUID = -1498053259;
+    private static final long serialVersionUID = -1314576785;
 
     /**
      * The reference instance of <code>bithon_application_instance</code>
@@ -105,7 +105,7 @@ public class BithonApplicationInstance extends TableImpl<BithonApplicationInstan
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_APPLICATION_INSTANCE_IDX_APP_INSTANCE_TIMESTAMP, Indexes.BITHON_APPLICATION_INSTANCE_IDX_APP_NAME);
+        return Arrays.<Index>asList(Indexes.BITHON_APPLICATION_INSTANCE_IDX_APP_INSTANCE_NAME, Indexes.BITHON_APPLICATION_INSTANCE_IDX_APP_INSTANCE_TIMESTAMP);
     }
 
     @Override

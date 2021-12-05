@@ -14,7 +14,7 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonApplicationInstance implements Serializable {
 
-    private static final long serialVersionUID = 1397583482;
+    private static final long serialVersionUID = 1556528010;
 
     private Timestamp timestamp;
     private String    appname;

@@ -4,13 +4,13 @@
 package org.bithon.server.storage.jdbc.jooq.tables.records;
 
 
+import java.sql.Timestamp;
+
 import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.jooq.Field;
 import org.jooq.Record4;
 import org.jooq.Row4;
 import org.jooq.impl.TableRecordImpl;
-
-import java.sql.Timestamp;
 
 
 /**
@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonApplicationInstanceRecord extends TableRecordImpl<BithonApplicationInstanceRecord> implements Record4<Timestamp, String, String, String> {
 
-    private static final long serialVersionUID = 464754213;
+    private static final long serialVersionUID = 1324963995;
 
     /**
      * Setter for <code>bithon_application_instance.timestamp</code>. update time

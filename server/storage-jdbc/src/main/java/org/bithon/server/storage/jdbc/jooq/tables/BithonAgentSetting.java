@@ -4,6 +4,10 @@
 package org.bithon.server.storage.jdbc.jooq.tables;
 
 
+import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.List;
+
 import org.bithon.server.storage.jdbc.jooq.DefaultSchema;
 import org.bithon.server.storage.jdbc.jooq.Indexes;
 import org.bithon.server.storage.jdbc.jooq.Keys;
@@ -21,10 +25,6 @@ import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
-import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.List;
-
 
 /**
  * 配置
@@ -32,7 +32,7 @@ import java.util.List;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSetting extends TableImpl<BithonAgentSettingRecord> {
 
-    private static final long serialVersionUID = 850252921;
+    private static final long serialVersionUID = -94942047;
 
     /**
      * The reference instance of <code>bithon_agent_setting</code>

@@ -4,13 +4,13 @@
 package org.bithon.server.storage.jdbc.jooq.tables.records;
 
 
+import java.sql.Timestamp;
+
 import org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting;
 import org.jooq.Field;
 import org.jooq.Record5;
 import org.jooq.Row5;
 import org.jooq.impl.TableRecordImpl;
-
-import java.sql.Timestamp;
 
 
 /**
@@ -19,7 +19,7 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonAgentSettingRecord extends TableRecordImpl<BithonAgentSettingRecord> implements Record5<Timestamp, String, String, String, Timestamp> {
 
-    private static final long serialVersionUID = 1204662596;
+    private static final long serialVersionUID = -2142607942;
 
     /**
      * Setter for <code>bithon_agent_setting.timestamp</code>. Created Timestamp
