@@ -21,9 +21,11 @@ import org.apache.catalina.connector.Response;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.tracing.Tracer;
+import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
@@ -37,10 +39,15 @@ import org.bithon.agent.core.tracing.context.TraceContextHolder;
 public class StandardHostValveInvoke extends AbstractInterceptor {
 
     private HttpIncomingFilter requestFilter;
+    private TraceConfig traceConfig;
 
     @Override
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
+        traceConfig = AgentContext.getInstance()
+                                  .getAgentConfiguration()
+                                  .getConfig(TraceConfig.class);
+
         return true;
     }
 
@@ -62,6 +69,7 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
         traceContext.currentSpan()
                     .component("tomcat")
                     .tag("uri", request.getRequestURI())
+                    .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.getHeader(header))))
                     .method(aopContext.getMethod())
                     .kind(SpanKind.SERVER)
                     .start();
