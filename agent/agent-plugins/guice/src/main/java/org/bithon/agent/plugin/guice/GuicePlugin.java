@@ -39,8 +39,12 @@ public class GuicePlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("toInstance")
-                                                   .to("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$ToInstance")
-                )
+                                                   .to("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$ToInstance"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndRawArgs("to", "java.lang.Class")
+                                                   .to("org.bithon.agent.plugin.guice.interceptor.BindingBuilder$To")
+                    )
         );
     }
 }
