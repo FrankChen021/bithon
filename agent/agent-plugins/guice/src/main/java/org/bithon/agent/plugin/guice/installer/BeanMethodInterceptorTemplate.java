@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.bean;
+package org.bithon.agent.plugin.guice.installer;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
 import shaded.net.bytebuddy.asm.Advice;
@@ -32,9 +32,9 @@ import java.util.Locale;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 16:45
  */
-public class BeanMethodInterceptorFactory {
+public class BeanMethodInterceptorTemplate {
 
-    private static final String INTERCEPTOR_CLASS_NAME = "org.bithon.agent.plugin.spring.bean.BeanMethodInterceptorImpl";
+    private static final String INTERCEPTOR_CLASS_NAME = "org.bithon.agent.plugin.guice.installer.BeanMethodInterceptorImpl";
 
     private static BeanMethodInterceptorIntf interceptorInstance;
 
@@ -48,7 +48,7 @@ public class BeanMethodInterceptorFactory {
             Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
                                                       true,
                                                       BootstrapHelper.getPluginClassLoader());
-            synchronized (BeanMethodInterceptorFactory.class) {
+            synchronized (BeanMethodInterceptorTemplate.class) {
                 //double check
                 if (interceptorInstance != null) {
                     return interceptorInstance;
@@ -58,7 +58,7 @@ public class BeanMethodInterceptorFactory {
             }
 
         } catch (Exception e) {
-            BootstrapHelper.createAopLogger(BeanMethodInterceptorFactory.class)
+            BootstrapHelper.createAopLogger(BeanMethodInterceptorTemplate.class)
                            .error(String.format(Locale.ENGLISH, "Failed to create interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
         }
         return interceptorInstance;

@@ -16,6 +16,7 @@
 
   <modules>
     <module>bithon-sdk</module>
+    <module>guice</module>
     <module>jdbc-druid</module>
     <module>jvm</module>
     <module>jvm-jdk8</module>
@@ -49,6 +50,13 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-bithon-sdk</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Google Guice -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-guice</artifactId>
       <version>${project.version}</version>
     </dependency>
 
