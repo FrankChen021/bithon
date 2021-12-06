@@ -20,6 +20,7 @@ import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 
 import java.lang.reflect.Executable;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author frank.chen021@outlook.com
@@ -50,6 +51,11 @@ public interface ITraceSpan {
     ITraceSpan tag(String name, String value);
 
     ITraceSpan tag(Throwable exception);
+
+    default ITraceSpan tag(Consumer<ITraceSpan> config) {
+        config.accept(this);
+        return this;
+    }
 
     ITraceSpan arg(String name, String value);
 

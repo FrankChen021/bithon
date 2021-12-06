@@ -20,7 +20,6 @@ import org.bithon.agent.core.config.ConfigurationProperties;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.utils.filter.IMatcher;
 import org.bithon.agent.core.utils.filter.StringSuffixMatcher;
-import org.bithon.agent.core.utils.lang.StringUtils;
 import shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
@@ -40,7 +39,7 @@ public class HttpIncomingFilter {
     @ConfigurationProperties(prefix = "agent.plugin.http.incoming.filter.uri")
     public static class UriFilterConfiguration {
         @JsonProperty
-        private String suffixes;
+        private String suffixes = ".html,.js,.css,.jpg,.gif,.png,.swf,.ttf,.ico,.woff,.woff2,.eot,.svg";
 
         public String getSuffixes() {
             return suffixes;
@@ -72,9 +71,6 @@ public class HttpIncomingFilter {
                                                                  .getAgentConfiguration()
                                                                  .getConfig(UriFilterConfiguration.class);
 
-            if (StringUtils.isBlank(uriFilterConfig.getSuffixes())) {
-                uriFilterConfig.setSuffixes(".html,.js,.css,.jpg,.gif,.png,.swf,.ttf,.ico,.woff,.woff2,.eot,.svg");
-            }
             dotSuffix = new HashSet<>();
             for (String suffix : uriFilterConfig.getSuffixes().split(",")) {
                 if (suffix.startsWith(".")) {

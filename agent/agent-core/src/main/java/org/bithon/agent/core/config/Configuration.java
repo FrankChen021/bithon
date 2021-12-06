@@ -244,9 +244,9 @@ public class Configuration {
         T value;
         try {
             value = mapper.convertValue(configurationNode, clazz);
-        } catch (
-            IllegalArgumentException e) {
-            throw new AgentException("Unable to read type of [%s] from configuration: %s",
+        } catch (IllegalArgumentException e) {
+            throw new AgentException(e,
+                                     "Unable to read type of [%s] from configuration: %s",
                                      clazz.getSimpleName(),
                                      e.getMessage());
         }

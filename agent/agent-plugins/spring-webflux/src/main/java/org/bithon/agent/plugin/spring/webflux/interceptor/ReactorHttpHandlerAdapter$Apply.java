@@ -20,10 +20,12 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
 import org.bithon.agent.core.tracing.Tracer;
+import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
@@ -47,6 +49,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
     private HttpIncomingMetricsCollector metricCollector;
     private HttpIncomingFilter requestFilter;
+    private TraceConfig traceConfig;
 
     @Override
     public boolean initialize() {
@@ -55,6 +58,10 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         metricCollector = MetricCollectorManager.getInstance()
                                                 .getOrRegister("webflux-request-metrics",
                                                                HttpIncomingMetricsCollector.class);
+
+        traceConfig = AgentContext.getInstance()
+                                  .getAgentConfiguration()
+                                  .getConfig(TraceConfig.class);
 
         return true;
     }
@@ -86,6 +93,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
                 traceContext.currentSpan()
                             .component("webflux")
                             .tag("uri", request.fullPath())
+                            .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.requestHeaders().get(header))))
                             .method(aopContext.getMethod())
                             .kind(SpanKind.SERVER)
                             .start();

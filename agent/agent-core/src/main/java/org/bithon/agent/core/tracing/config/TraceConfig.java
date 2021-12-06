@@ -19,6 +19,9 @@ package org.bithon.agent.core.tracing.config;
 import org.bithon.agent.core.config.ConfigurationProperties;
 import org.bithon.agent.core.config.validation.Range;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/8/5 21:33
@@ -32,6 +35,15 @@ public class TraceConfig {
     @Range(min = 0, max = 100)
     private int samplingRate = 0;
 
+    public List<String> getHeaders() {
+        return headers;
+    }
+
+    /**
+     * headers that should be recorded in trace span
+     */
+    private List<String> headers = Collections.emptyList();
+
     public boolean isDisabled() {
         return samplingRate == 0;
     }
@@ -43,4 +55,6 @@ public class TraceConfig {
     public void setSamplingRate(int samplingRate) {
         this.samplingRate = samplingRate;
     }
+
+
 }

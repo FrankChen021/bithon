@@ -19,11 +19,13 @@ package org.bithon.agent.plugin.jetty.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
 import org.bithon.agent.core.tracing.Tracer;
+import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
@@ -42,6 +44,8 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
     private HttpIncomingFilter requestFilter;
 
     private HttpIncomingMetricsCollector metricsCollector;
+    private TraceConfig traceConfig;
+
 
     @Override
     public boolean initialize() {
@@ -50,6 +54,10 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
         metricsCollector = MetricCollectorManager.getInstance()
                                                  .getOrRegister("jetty-web-request-metrics",
                                                                 HttpIncomingMetricsCollector.class);
+
+        traceConfig = AgentContext.getInstance()
+                                  .getAgentConfiguration()
+                                  .getConfig(TraceConfig.class);
 
         return true;
     }
@@ -74,6 +82,7 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
             traceContext.currentSpan()
                         .component("jetty")
                         .tag("uri", request.getRequestURI())
+                        .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.getHeader(header))))
                         .method(aopContext.getMethod())
                         .kind(SpanKind.SERVER)
                         .start();
