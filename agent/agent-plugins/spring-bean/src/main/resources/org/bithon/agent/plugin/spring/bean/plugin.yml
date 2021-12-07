@@ -1,0 +1,42 @@
+agent:
+  plugin:
+    spring:
+      bean:
+#        includedClasses:
+#          - matcher:
+#              type: endwith
+#              suffix:
+#            excludedMethods:
+#              - type: endwith
+#                suffix:
+        excludedClasses:
+          - type: endwith
+            suffix: Properties
+          - type: endwith
+            suffix: Configuration
+          - type: endwith
+            suffix: Configurer
+          - type: endwith
+            suffix: BeanPostProcessor
+          - type: startwith
+            prefix: org.springframework.boot.context.properties.
+          - type: startwith
+            prefix: org.springframework.boot.autoconfigure.
+          - type: startwith
+            prefix: org.springframework.boot.annotation.
+          - type: startwith
+            prefix: org.springframework.context.annotation.
+          - type: startwith
+            prefix: org.springframework.cloud.bootstrap.
+          - type: startwith
+            prefix: org.springframework.cloud.context.properties.
+          - type: startwith
+            prefix: io.micrometer.
+          - type: contains
+            pattern: .autoconfigure.
+          - type: endwith
+            suffix: UrlPathHelper
+          - type: endwith
+            suffix: AntPathMatcher
+          - type: endwith
+            suffix: ObjectMapper
