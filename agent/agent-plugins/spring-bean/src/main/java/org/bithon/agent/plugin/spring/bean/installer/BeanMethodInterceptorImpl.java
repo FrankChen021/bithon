@@ -14,11 +14,16 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.guice.installer;
+package org.bithon.agent.plugin.spring.bean.installer;
 
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -47,7 +52,23 @@ public class BeanMethodInterceptorImpl implements IBeanMethodInterceptor {
             return null;
         }
 
-        return span.component("bean")
+        String component = componentNames.computeIfAbsent(method.getDeclaringClass(), beanClass -> {
+            if (beanClass.isAnnotationPresent(RestController.class)) {
+                return "restController";
+            } else if (beanClass.isAnnotationPresent(Controller.class)) {
+                return "controller";
+            } else if (beanClass.isAnnotationPresent(Service.class)) {
+                return "springService";
+            } else if (beanClass.isAnnotationPresent(Repository.class)) {
+                return "springRepository";
+            } else if (beanClass.isAnnotationPresent(Component.class)) {
+                return "springComponent";
+            } else {
+                return "springBean";
+            }
+        });
+
+        return span.component(component)
                    .kind(SpanKind.CLIENT)
                    .method(method)
                    .start();

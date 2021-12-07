@@ -115,7 +115,11 @@
                 field: 'tags',
                 title: 'Tags',
                 formatter: function (value, row) {
-                    return '<pre>' + JSON.stringify(value, null, 2) + '</pre>';
+                    let text = JSON.stringify(value, null, 2);
+                    if (text === '{}')
+                        return '';
+                    else
+                        return '<pre>' + text + '</pre>';
                 }
             }]
         });

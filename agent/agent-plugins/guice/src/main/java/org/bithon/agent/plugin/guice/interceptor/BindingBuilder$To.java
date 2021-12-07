@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.guice.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.plugin.guice.installer.BeanMethodAopInstaller;
+import org.bithon.agent.plugin.guice.installer.BeanMethodAopInstallerHelper;
 
 /**
  * {@link com.google.inject.internal.BindingBuilder#to(Class)}
@@ -30,7 +30,7 @@ public class BindingBuilder$To extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        BeanMethodAopInstaller.initialize();
+        BeanMethodAopInstallerHelper.initialize();
         return true;
     }
 
@@ -41,7 +41,7 @@ public class BindingBuilder$To extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         Class<?> clazz = aopContext.getArgAs(0);
         if (clazz != null) {
-            BeanMethodAopInstaller.install(clazz);
+            BeanMethodAopInstallerHelper.install(clazz);
         }
     }
 }

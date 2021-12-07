@@ -37,7 +37,8 @@
     <module>mongodb-3.8</module>
     <module>logging-log4j2</module>
     <module>logging-logback</module>
-    <module>spring</module>
+    <module>spring-mvc</module>
+    <module>spring-bean</module>
     <module>spring-webflux</module>
     <module>webserver-tomcat</module>
     <module>webserver-undertow</module>
@@ -176,7 +177,12 @@
     <!-- Spring -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-spring</artifactId>
+      <artifactId>agent-plugin-spring-bean</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-spring-mvc</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

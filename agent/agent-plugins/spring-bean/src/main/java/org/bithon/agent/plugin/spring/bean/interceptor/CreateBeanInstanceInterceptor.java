@@ -14,19 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.guice.interceptor;
+package org.bithon.agent.plugin.spring.bean.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.plugin.guice.installer.BeanMethodAopInstallerHelper;
+import org.bithon.agent.plugin.spring.bean.installer.BeanMethodAopInstallerHelper;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 
 /**
- * {@link com.google.inject.internal.BindingBuilder#toInstance(Object)}
+ * {@link org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory#createBeanInstance(String, RootBeanDefinition, Object[])}
  *
  * @author frank.chen021@outlook.com
  * @date 2021/4/11 20:48
  */
-public class BindingBuilder$ToInstance extends AbstractInterceptor {
+public class CreateBeanInstanceInterceptor extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
@@ -39,11 +41,21 @@ public class BindingBuilder$ToInstance extends AbstractInterceptor {
      */
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        Object obj = aopContext.getArgAs(0);
-        if (obj instanceof Class) {
-            BeanMethodAopInstallerHelper.install((Class) obj);
-        } else {
-
+        if (aopContext.getReturning() == null || aopContext.hasException()) {
+            return;
         }
+
+        String beanName = aopContext.getArgAs(0);
+        if (beanName == null) {
+            return;
+        }
+
+        BeanWrapper result = aopContext.castReturningAs();
+        Object beanInstance = result.getWrappedInstance();
+        if (beanInstance == null) {
+            return;
+        }
+
+        BeanMethodAopInstallerHelper.install(beanInstance.getClass());
     }
 }
