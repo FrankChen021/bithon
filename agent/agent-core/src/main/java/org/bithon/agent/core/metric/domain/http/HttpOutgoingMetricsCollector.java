@@ -38,6 +38,9 @@ public class HttpOutgoingMetricsCollector extends IntervalMetricCollector2<HttpO
         return new HttpOutgoingMetrics();
     }
 
+    /**
+     * @param responseTime in nano-time
+     */
     public void addExceptionRequest(String uri,
                                     String method,
                                     long responseTime) {
@@ -45,6 +48,9 @@ public class HttpOutgoingMetricsCollector extends IntervalMetricCollector2<HttpO
         getOrCreateMetrics(path, method, "-").addException(responseTime, 1);
     }
 
+    /**
+     * @param responseTime in nano-time
+     */
     public void addRequest(String uri,
                            String method,
                            int statusCode,

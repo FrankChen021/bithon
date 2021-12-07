@@ -57,6 +57,7 @@ public class Channels$Write extends AbstractInterceptor {
                                                 .method(aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
                                                 .tag("uri", httpRequest.getUri())
+                                                .tag("method", httpRequest.getMethod().getName())
                                                 .start();
         //
         // propagate tracing after span creation
