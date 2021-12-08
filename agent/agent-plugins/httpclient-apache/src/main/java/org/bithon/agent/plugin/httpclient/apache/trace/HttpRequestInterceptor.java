@@ -22,26 +22,14 @@ import org.apache.http.HttpResponse;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 /**
  * @author frankchen
  */
 public class HttpRequestInterceptor extends AbstractInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(HttpRequestInterceptor.class);
-
-    private String srcApplication;
-
-    @Override
-    public boolean initialize() throws Exception {
-        srcApplication = AgentContext.getInstance().getAppInstance().getQualifiedAppName();
-        return super.initialize();
-    }
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -59,8 +47,8 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       .tag("uri", httpRequest.getRequestLine().getUri())
-                                      .propagate(httpRequest,
-                                                 (request, key, value) -> request.setHeader(key, value))
+                                      .tag("method", httpRequest.getRequestLine().getMethod())
+                                      .propagate(httpRequest, (request, key, value) -> request.setHeader(key, value))
                                       .start());
 
         return InterceptionDecision.CONTINUE;
@@ -73,18 +61,8 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
             return;
         }
 
-        try {
-            HttpResponse response = context.castReturningAs();
-            thisSpan.tag("status", Integer.toString(response.getStatusLine().getStatusCode()));
-            if (context.hasException()) {
-                thisSpan.tag("exception", context.getException().getClass().getSimpleName());
-            }
-        } finally {
-            try {
-                thisSpan.finish();
-            } catch (Exception e) {
-                log.warn("error to finish span", e);
-            }
-        }
+        HttpResponse response = context.castReturningAs();
+        String status = response.getStatusLine() == null ? "-1" : Integer.toString(response.getStatusLine().getStatusCode());
+        thisSpan.tag("status", status).tag(context.getException()).finish();
     }
 }

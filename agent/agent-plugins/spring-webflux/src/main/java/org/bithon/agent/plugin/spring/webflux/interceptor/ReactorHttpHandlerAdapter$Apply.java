@@ -93,6 +93,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
                 traceContext.currentSpan()
                             .component("webflux")
                             .tag("uri", request.fullPath())
+                            .tag("method", request.method().name())
                             .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.requestHeaders().get(header))))
                             .method(aopContext.getMethod())
                             .kind(SpanKind.SERVER)

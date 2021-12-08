@@ -58,6 +58,7 @@ public class HttpRequest$Send extends AbstractInterceptor {
                                                 .method(aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
                                                 .tag("uri", httpRequest.getURI().getPath())
+                                                .tag("method", httpRequest.getMethod())
                                                 .start();
 
         //
@@ -69,9 +70,9 @@ public class HttpRequest$Send extends AbstractInterceptor {
             });
         }
 
-        final long startAt = aopContext.getStartTimestamp();
+        final long startAt = System.nanoTime();
 
-        // replace listener
+        // replace listener to record metrics
         final Object rawListener = aopContext.getArgs()[0];
         aopContext.getArgs()[0] = new Response.Listener() {
             @Override
@@ -116,11 +117,11 @@ public class HttpRequest$Send extends AbstractInterceptor {
                 // metrics
                 //
                 if (result.isFailed()) {
-                    metricCollector.addExceptionRequest(result.getRequest().getURI().getPath(),
+                    metricCollector.addExceptionRequest(result.getRequest().getURI().toString(),
                                                         result.getRequest().getMethod(),
                                                         System.nanoTime() - startAt);
                 } else {
-                    metricCollector.addRequest(result.getRequest().getURI().getPath(),
+                    metricCollector.addRequest(result.getRequest().getURI().toString(),
                                                result.getRequest().getMethod(),
                                                result.getResponse().getStatus(),
                                                System.nanoTime() - startAt);
