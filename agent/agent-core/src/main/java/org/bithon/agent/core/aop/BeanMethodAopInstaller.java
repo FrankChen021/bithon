@@ -16,6 +16,7 @@
 
 package org.bithon.agent.core.aop;
 
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.utils.filter.IMatcher;
 import org.bithon.agent.core.utils.filter.InCollectionMatcher;
 import org.bithon.agent.core.utils.filter.StringEqualMatcher;
@@ -30,6 +31,7 @@ import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,6 +47,19 @@ public class BeanMethodAopInstaller {
     private static final Logger log = LoggerFactory.getLogger(BeanMethodAopInstaller.class);
 
     private static final Set<String> INSTRUMENTED = new ConcurrentSkipListSet<>();
+    private static List<InstallerTask> PENDING_TASKS = Collections.synchronizedList(new ArrayList<>());
+
+    static {
+        AgentContext.getInstance().getAppInstance().addListener(port -> {
+            InstallerTask[] tasks = BeanMethodAopInstaller.PENDING_TASKS.toArray(new InstallerTask[0]);
+            for (InstallerTask task : tasks) {
+                task.run();
+            }
+
+            // clear the list
+            BeanMethodAopInstaller.PENDING_TASKS = null;
+        });
+    }
 
     /**
      * @param toAdviceClass must be in bootstrap class loader
@@ -54,7 +69,7 @@ public class BeanMethodAopInstaller {
                                BeanTransformationConfig transformationConfig) {
         if (targetClass.isSynthetic()) {
             /*
-              eg: org.springframework.boot.actuate.autoconfigure.metrics.KafkaMetricsAutoConfiguration$$Lambda$709/829537923
+             * eg: org.springframework.boot.actuate.autoconfigure.metrics.KafkaMetricsAutoConfiguration$$Lambda$709/829537923
              */
             return;
         }
@@ -63,63 +78,94 @@ public class BeanMethodAopInstaller {
             return;
         }
 
-        final MatcherList excludedMethods = new MatcherList();
-        excludedMethods.addAll(transformationConfig.excludedMethods);
+        InstallerTask task = new InstallerTask(targetClass, toAdviceClass, transformationConfig);
 
-        IncludedClassConfig includedClassConfig = null;
-        if (!transformationConfig.includedClasses.isEmpty()) {
-            for (IncludedClassConfig includedClass : transformationConfig.includedClasses) {
-                if (includedClass.matcher.matches(targetClass.getName())) {
-                    includedClassConfig = includedClass;
-                    if (includedClassConfig.excludedMethods != null) {
-                        excludedMethods.addAll(includedClassConfig.excludedMethods);
+        if (AgentContext.getInstance().getAppInstance().getPort() == 0) {
+            //
+            // If the target class's public method's parameters have the same class which are being instrumented
+            // the instrumentation will not take effect. This might be a bug of bytebuddy or wrong use of bytebuddy's API
+            //
+            // Since I don't have enough time to take a look at this problem,
+            // I use a workaround that by deferring the installation until the application's web service is working
+            // This may not solve the problem from the root or completely, but I think such problems have been eased a lot.
+            //
+            PENDING_TASKS.add(task);
+        } else {
+            task.run();
+        }
+    }
+
+    private static class InstallerTask {
+        private final Class<?> targetClass;
+        private final Class<?> toAdviceClass;
+        private final BeanTransformationConfig transformationConfig;
+
+        public InstallerTask(Class<?> targetClass, Class<?> toAdviceClass, BeanTransformationConfig config) {
+            this.targetClass = targetClass;
+            this.toAdviceClass = toAdviceClass;
+            this.transformationConfig = config;
+        }
+
+        public void run() {
+
+            final MatcherList excludedMethods = new MatcherList();
+            excludedMethods.addAll(transformationConfig.excludedMethods);
+
+            IncludedClassConfig includedClassConfig = null;
+            if (!transformationConfig.includedClasses.isEmpty()) {
+                for (IncludedClassConfig includedClass : transformationConfig.includedClasses) {
+                    if (includedClass.matcher.matches(targetClass.getName())) {
+                        includedClassConfig = includedClass;
+                        if (includedClassConfig.excludedMethods != null) {
+                            excludedMethods.addAll(includedClassConfig.excludedMethods);
+                        }
+                        break;
                     }
-                    break;
+                }
+                if (includedClassConfig == null) {
+                    return;
                 }
             }
-            if (includedClassConfig == null) {
-                return;
+            if (includedClassConfig == null || !(includedClassConfig.matcher instanceof StringEqualMatcher)) {
+                //execute excluding rules for non-exact matcher
+                if (transformationConfig.excludedClasses.matches(targetClass.getName())) {
+                    return;
+                }
             }
+
+            log.info("Setup AOP for class [{}]", targetClass.getName());
+
+            new AgentBuilder.Default().ignore(ElementMatchers.none())
+                                      .disableClassFormatChanges()
+                                      .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
+                                      .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                                      .type(ElementMatchers.is(targetClass))
+                                      .transform((builder, typeDescription, classLoader, javaModule) -> {
+
+                                          //
+                                          // infer property methods
+                                          //
+                                          Set<String> propertyMethods = new HashSet<>();
+                                          for (FieldDescription field : typeDescription.getDeclaredFields()) {
+                                              String name = field.getName();
+                                              char[] chr = name.toCharArray();
+                                              chr[0] = Character.toUpperCase(chr[0]);
+                                              name = new String(chr);
+                                              propertyMethods.add("get" + name);
+                                              propertyMethods.add("set" + name);
+                                              propertyMethods.add("is" + name);
+                                          }
+
+                                          //
+                                          // inject on corresponding methods
+                                          //
+                                          return builder.visit(Advice.to(toAdviceClass)
+                                                                     .on(new BeanMethodModifierMatcher().and((method -> !propertyMethods.contains(method.getName())
+                                                                                                                        && !excludedMethods.matches(method.getName())))));
+                                      })
+                                      .with(AopDebugger.INSTANCE)
+                                      .installOn(InstrumentationHelper.getInstance());
         }
-        if (includedClassConfig == null || !(includedClassConfig.matcher instanceof StringEqualMatcher)) {
-            //execute excluding rules for non-exact matcher
-            if (transformationConfig.excludedClasses.matches(targetClass.getName())) {
-                return;
-            }
-        }
-
-        log.info("Setup AOP for class [{}]", targetClass.getName());
-
-        new AgentBuilder.Default().ignore(ElementMatchers.none())
-                                  .disableClassFormatChanges()
-                                  .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
-                                  .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                                  .type(ElementMatchers.is(targetClass))
-                                  .transform((builder, typeDescription, classLoader, javaModule) -> {
-
-                                      //
-                                      // infer property methods
-                                      //
-                                      Set<String> propertyMethods = new HashSet<>();
-                                      for (FieldDescription field : typeDescription.getDeclaredFields()) {
-                                          String name = field.getName();
-                                          char[] chr = name.toCharArray();
-                                          chr[0] = Character.toUpperCase(chr[0]);
-                                          name = new String(chr);
-                                          propertyMethods.add("get" + name);
-                                          propertyMethods.add("set" + name);
-                                          propertyMethods.add("is" + name);
-                                      }
-
-                                      //
-                                      // inject on corresponding methods
-                                      //
-                                      return builder.visit(Advice.to(toAdviceClass)
-                                                                 .on(new BeanMethodModifierMatcher().and((method -> !propertyMethods.contains(method.getName())
-                                                                                                                    && !excludedMethods.matches(method.getName())))));
-                                  })
-                                  .with(AopDebugger.INSTANCE)
-                                  .installOn(InstrumentationHelper.getInstance());
     }
 
     public static class BeanTransformationConfig {
@@ -213,10 +259,7 @@ public class BeanMethodAopInstaller {
             if (!matched) {
                 return matched;
             }
-            if (target.getName().startsWith("is") || target.getName().startsWith("set") || target.getName().startsWith("can")) {
-                return false;
-            }
-            return true;
+            return !target.getName().startsWith("is") && !target.getName().startsWith("set") && !target.getName().startsWith("can");
         }
     }
 }

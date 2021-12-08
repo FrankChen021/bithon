@@ -131,8 +131,9 @@ public class HttpRequest$Send extends AbstractInterceptor {
                 // trace
                 //
                 try {
-                    span.tag(result.getFailure());
-                    span.finish();
+                    span.tag(result.getFailure())
+                        .tag("status", String.valueOf(result.getResponse().getStatus()))
+                        .finish();
                     span.context().finish();
                 } catch (Throwable ignored) {
                 }

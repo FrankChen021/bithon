@@ -42,8 +42,6 @@ public class BindingBuilder$ToInstance extends AbstractInterceptor {
         Object obj = aopContext.getArgAs(0);
         if (obj instanceof Class) {
             BeanMethodAopInstallerHelper.install((Class) obj);
-        } else {
-
         }
     }
 }
