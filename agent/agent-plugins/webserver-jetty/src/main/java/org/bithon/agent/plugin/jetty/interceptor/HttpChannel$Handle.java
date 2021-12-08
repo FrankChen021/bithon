@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.jetty.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.InterceptorContext;
@@ -77,10 +78,11 @@ public class HttpChannel$Handle extends AbstractInterceptor {
                             .start();
             }
 
-            httpChannel.getRequest().setAttribute("bithon.context", new RequestContext(System.nanoTime(), traceContext));
+            ((IBithonObject) request).setInjectedObject(new RequestContext(System.nanoTime(), traceContext));
         }
 
-        RequestContext requestContext = (RequestContext) (httpChannel.getRequest().getAttribute("bithon.context"));
+
+        RequestContext requestContext = (RequestContext) ((IBithonObject) request).getInjectedObject();
 
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
         if (requestContext != null) {

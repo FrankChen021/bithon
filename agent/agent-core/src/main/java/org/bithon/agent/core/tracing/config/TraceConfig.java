@@ -44,6 +44,8 @@ public class TraceConfig {
      */
     private List<String> headers = Collections.emptyList();
 
+    // TODO: separated disable from samplingRate value
+    // because even when samplingRate is zero, it can be traced if upstream application passes related headers
     public boolean isDisabled() {
         return samplingRate == 0;
     }

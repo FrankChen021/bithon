@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugin.jetty;
 
+import org.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.core.plugin.IPlugin;
@@ -29,12 +30,12 @@ import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.
  * @author frankchen
  */
 public class JettyPlugin implements IPlugin {
-/*
+
     @Override
     public BithonClassDescriptor getBithonClassDescriptor() {
         return BithonClassDescriptor.of("org.eclipse.jetty.server.Request", true);
     }
-*/
+
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
@@ -51,17 +52,7 @@ public class JettyPlugin implements IPlugin {
                                                    .onMethodAndNoArgs("doStart")
                                                    .to("org.bithon.agent.plugin.jetty.interceptor.QueuedThreadPoolDoStart")
                 ),
-/*
-            forClass("org.eclipse.jetty.server.handler.ContextHandler")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndArgs("doHandle",
-                                                                    "java.lang.String",
-                                                                    "org.eclipse.jetty.server.Request",
-                                                                    "javax.servlet.http.HttpServletRequest",
-                                                                    "javax.servlet.http.HttpServletResponse")
-                                                   .to("org.bithon.agent.plugin.jetty.interceptor.ContextHandlerDoHandle")
-                ),*/
+
             forClass("org.eclipse.jetty.server.HttpChannel")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()

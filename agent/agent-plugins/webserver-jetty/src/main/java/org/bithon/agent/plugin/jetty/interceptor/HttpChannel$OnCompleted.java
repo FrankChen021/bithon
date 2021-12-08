@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.jetty.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
@@ -54,15 +55,15 @@ public class HttpChannel$OnCompleted extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         HttpChannel httpChannel = aopContext.castTargetAs();
+        Request request = httpChannel.getRequest();
 
-        RequestContext requestContext = (RequestContext) (httpChannel.getRequest().getAttribute("bithon.context"));
+        RequestContext requestContext = (RequestContext) ((IBithonObject) request).getInjectedObject();
         if (requestContext == null) {
             // unknown error
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         // update metric
-        Request request = httpChannel.getRequest();
         Response response = httpChannel.getResponse();
         update(request, request, response, System.nanoTime() - requestContext.getStartNanoTime());
 
@@ -79,7 +80,7 @@ public class HttpChannel$OnCompleted extends AbstractInterceptor {
         }
 
         // clear object reference
-        httpChannel.getRequest().removeAttribute("bithon.context");
+        ((IBithonObject) request).setInjectedObject(null);
 
         return InterceptionDecision.CONTINUE;
     }
