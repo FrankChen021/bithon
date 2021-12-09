@@ -17,6 +17,7 @@
 package org.bithon.server.metric.storage.ttl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.common.ttl.TTLConfig;
 import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.DateTimeUtils;
 import org.bithon.server.metric.DataSourceSchema;
@@ -24,6 +25,7 @@ import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.storage.IMetricCleaner;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.MetricStorageConfig;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
@@ -39,19 +41,20 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
+@ConditionalOnProperty(value = "bithon.storage.metric.ttl.enabled", havingValue = "true", matchIfMissing = false)
 public class MetricTTLManager implements SmartLifecycle {
 
     private final DataSourceSchemaManager schemaManager;
     private final IMetricStorage metricStorage;
     private ScheduledThreadPoolExecutor executor;
-    private final MetricStorageConfig storageConfig;
+    private final TTLConfig ttlConfig;
 
     public MetricTTLManager(DataSourceSchemaManager schemaManager,
                             IMetricStorage metricStorage,
                             MetricStorageConfig storageConfig) {
         this.schemaManager = schemaManager;
         this.metricStorage = metricStorage;
-        this.storageConfig = storageConfig;
+        this.ttlConfig = storageConfig.getTtl();
     }
 
     @Override
@@ -60,7 +63,7 @@ public class MetricTTLManager implements SmartLifecycle {
         this.executor = new ScheduledThreadPoolExecutor(1, new ThreadUtils.NamedThreadFactory("metrics-ttl-manager"));
         this.executor.scheduleAtFixedRate(this::clean,
                                           3,
-                                          storageConfig.getCleanPeriod().getMilliseconds(),
+                                          ttlConfig.getCleanPeriod().getMilliseconds(),
                                           TimeUnit.MILLISECONDS);
     }
 
@@ -71,11 +74,11 @@ public class MetricTTLManager implements SmartLifecycle {
             cleanDataSource(schema);
         }
         log.info("Metrics clean up ends, next round is about at {}",
-                 new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH).format(new Date(start + storageConfig.getCleanPeriod().getMilliseconds())));
+                 new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH).format(new Date(start + ttlConfig.getCleanPeriod().getMilliseconds())));
     }
 
     private void cleanDataSource(DataSourceSchema schema) {
-        long older = System.currentTimeMillis() - storageConfig.getTtl().getMilliseconds();
+        long older = System.currentTimeMillis() - ttlConfig.getTtl().getMilliseconds();
 
         log.info("Clean [{}] before {}", schema.getName(), DateTimeUtils.toISO8601(older));
         try (IMetricCleaner cleaner = metricStorage.createMetricCleaner(schema)) {

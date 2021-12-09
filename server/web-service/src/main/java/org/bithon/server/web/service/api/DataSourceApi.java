@@ -17,6 +17,7 @@
 package org.bithon.server.web.service.api;
 
 import org.bithon.server.common.pojo.DisplayableText;
+import org.bithon.server.common.ttl.TTLConfig;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
@@ -120,6 +121,7 @@ public class DataSourceApi {
 
     @PostMapping("api/datasource/ttl/update")
     public void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request) {
-        this.storageConfig.setTtl(request.getTtl());
+        TTLConfig ttlConfig = this.storageConfig.getTtl();
+        ttlConfig.setTtl(request.getTtl());
     }
 }

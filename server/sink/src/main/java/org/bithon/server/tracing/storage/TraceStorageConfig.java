@@ -17,7 +17,7 @@
 package org.bithon.server.tracing.storage;
 
 import lombok.Data;
-import org.bithon.server.common.utils.datetime.Period;
+import org.bithon.server.common.ttl.TTLConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,6 +30,5 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "bithon.storage.tracing")
 public class TraceStorageConfig {
     private String type;
-    private Period ttl;
-    private Period cleanPeriod;
+    private TTLConfig ttl;
 }

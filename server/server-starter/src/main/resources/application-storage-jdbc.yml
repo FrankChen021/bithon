@@ -2,16 +2,22 @@ bithon:
   storage:
     tracing:
       type: jdbc
-      ttl: P1D
-      cleanPeriod: PT3M
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT3M
     metric:
       type: jdbc
-      ttl: P1D
-      cleanPeriod: PT3M
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT3M
     event:
       type: jdbc
-      ttl: P1D
-      cleanPeriod: PT3M
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT3M
     meta:
       type: jdbc
     setting:

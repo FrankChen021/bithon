@@ -17,11 +17,13 @@
 package org.bithon.server.event.storage.ttl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.common.ttl.TTLConfig;
 import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.DateTimeUtils;
 import org.bithon.server.event.storage.EventStorageConfig;
 import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.event.storage.IEventStorage;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
@@ -37,31 +39,32 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
+@ConditionalOnProperty(value = "bithon.storage.event.ttl.enabled", havingValue = "true", matchIfMissing = false)
 public class EventTTLManager implements SmartLifecycle {
 
     private final IEventStorage eventStorage;
-    private final EventStorageConfig eventStorageConfig;
+    private final TTLConfig ttlConfig;
     private ScheduledThreadPoolExecutor executor;
 
     public EventTTLManager(IEventStorage eventStorage, EventStorageConfig eventStorageConfig) {
         this.eventStorage = eventStorage;
-        this.eventStorageConfig = eventStorageConfig;
+        this.ttlConfig = eventStorageConfig.getTtl();
     }
 
     @Override
     public void start() {
-        log.info("Starting Event ttl manager and schedule cleanup task for every {}", eventStorageConfig.getCleanPeriod());
+        log.info("Starting Event ttl manager and schedule cleanup task for every {}", ttlConfig.getCleanPeriod());
         this.executor = new ScheduledThreadPoolExecutor(1, new ThreadUtils.NamedThreadFactory("event-ttl-manager"));
         this.executor.scheduleAtFixedRate(this::clean,
                                           3,
-                                          eventStorageConfig.getCleanPeriod().getMilliseconds(),
+                                          ttlConfig.getCleanPeriod().getMilliseconds(),
                                           TimeUnit.MILLISECONDS);
     }
 
     private void clean() {
         log.info("Event clean up starts...");
         long start = System.currentTimeMillis();
-        long older = start - eventStorageConfig.getTtl().getMilliseconds();
+        long older = start - ttlConfig.getTtl().getMilliseconds();
         log.info("Clean events before {}", DateTimeUtils.toISO8601(older));
         try (IEventCleaner cleaner = eventStorage.createCleaner()) {
             cleaner.clean(older);
@@ -69,7 +72,7 @@ public class EventTTLManager implements SmartLifecycle {
             log.error("Failed to clean events", e);
         }
         log.info("Event clean up ends, next round is about at {}",
-                 new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH).format(new Date(start + eventStorageConfig.getCleanPeriod().getMilliseconds())));
+                 new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ENGLISH).format(new Date(start + ttlConfig.getCleanPeriod().getMilliseconds())));
     }
 
     @Override
