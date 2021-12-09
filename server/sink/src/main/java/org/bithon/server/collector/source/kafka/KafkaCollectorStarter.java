@@ -16,6 +16,7 @@
 
 package org.bithon.server.collector.source.kafka;
 
+import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.bithon.server.event.sink.LocalEventSink;
@@ -48,6 +49,7 @@ public class KafkaCollectorStarter implements SmartLifecycle, ApplicationContext
         this.context = applicationContext;
     }
 
+    @SneakyThrows
     @Override
     public void start() {
         KafkaCollectorConfig config = this.context.getBean(KafkaCollectorConfig.class);

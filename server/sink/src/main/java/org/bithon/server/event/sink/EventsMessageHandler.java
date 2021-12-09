@@ -26,7 +26,7 @@ import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.input.InputRow;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.IMetricWriter;
-import org.springframework.stereotype.Component;
+import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -39,21 +39,18 @@ import java.util.List;
  * @date 2021/2/14 4:01 下午
  */
 @Slf4j
-@Component
 public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<CloseableIterator<EventMessage>> {
 
     final IEventWriter eventWriter;
     final IMetricWriter exceptionMetricWriter;
 
-    public EventsMessageHandler(IEventStorage eventStorage,
-                                IMetricStorage metricStorage,
-                                DataSourceSchemaManager schemaManager) throws IOException {
+    public EventsMessageHandler(ApplicationContext applicationContext) throws IOException {
         super("event", 1, 5, Duration.ofMinutes(3), 1024);
-        this.eventWriter = eventStorage.createWriter();
+        this.eventWriter = applicationContext.getBean(IEventStorage.class).createWriter();
 
-        DataSourceSchema schema = schemaManager.getDataSourceSchema("exception-metrics");
+        DataSourceSchema schema = applicationContext.getBean(DataSourceSchemaManager.class).getDataSourceSchema("exception-metrics");
         schema.setEnforceDuplicationCheck(false);
-        this.exceptionMetricWriter = metricStorage.createMetricWriter(schema);
+        this.exceptionMetricWriter = applicationContext.getBean(IMetricStorage.class).createMetricWriter(schema);
     }
 
     @Override

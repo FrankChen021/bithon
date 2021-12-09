@@ -30,7 +30,7 @@ public class LocalTraceSink implements ITraceMessageSink {
     private final TraceMessageHandler traceMessageHandler;
 
     public LocalTraceSink(ApplicationContext applicationContext) {
-        this.traceMessageHandler = applicationContext.getBean(TraceMessageHandler.class);
+        this.traceMessageHandler = new TraceMessageHandler(applicationContext);
     }
 
     @Override

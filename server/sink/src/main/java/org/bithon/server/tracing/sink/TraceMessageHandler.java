@@ -21,6 +21,7 @@ import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -30,19 +31,18 @@ import java.time.Duration;
  * @author frank.chen021@outlook.com
  * @date 2021/2/4 8:21 下午
  */
-@Component
 public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<CloseableIterator<TraceSpan>> {
 
     final ITraceWriter traceWriter;
 
-    public TraceMessageHandler(ITraceStorage traceStorage) {
+    public TraceMessageHandler(ApplicationContext applicationContext) {
         super("trace",
               2,
               10,
               Duration.ofMinutes(1),
               2048);
 
-        this.traceWriter = traceStorage.createWriter();
+        this.traceWriter = applicationContext.getBean(ITraceStorage.class).createWriter();
     }
 
     @Override

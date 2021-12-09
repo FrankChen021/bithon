@@ -40,6 +40,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -90,7 +91,7 @@ public class BrpcCollectorConfig {
     @Bean("eventSink")
     public IEventMessageSink eventSink(BrpcCollectorConfig config,
                                        ApplicationContext applicationContext,
-                                       ObjectMapper om) {
+                                       ObjectMapper om) throws IOException {
         if ("local".equals(config.getSink().getType())) {
             return new LocalEventSink(applicationContext);
         } else {

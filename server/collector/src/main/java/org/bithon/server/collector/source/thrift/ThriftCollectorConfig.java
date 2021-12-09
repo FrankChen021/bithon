@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -70,7 +71,7 @@ public class ThriftCollectorConfig {
     @Bean("eventSink")
     public IEventMessageSink eventSink(ThriftCollectorConfig config,
                                        ApplicationContext applicationContext,
-                                       ObjectMapper om) {
+                                       ObjectMapper om) throws IOException {
         if ("local".equals(config.getSink().getType())) {
             return new LocalEventSink(applicationContext);
         } else {

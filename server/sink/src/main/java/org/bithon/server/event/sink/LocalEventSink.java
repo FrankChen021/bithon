@@ -19,6 +19,8 @@ package org.bithon.server.event.sink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.springframework.context.ApplicationContext;
 
+import java.io.IOException;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
@@ -27,8 +29,8 @@ public class LocalEventSink implements IEventMessageSink {
 
     private final EventsMessageHandler handler;
 
-    public LocalEventSink(ApplicationContext applicationContext) {
-        this.handler = applicationContext.getBean(EventsMessageHandler.class);
+    public LocalEventSink(ApplicationContext applicationContext) throws IOException {
+        this.handler = new EventsMessageHandler(applicationContext);
     }
 
     @Override
