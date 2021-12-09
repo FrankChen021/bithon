@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
-import org.bithon.server.collector.sink.IMessageSink;
+import org.bithon.server.tracing.handler.ITraceMessageSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.tracing.handler.TraceSpan;
 import org.springframework.util.CollectionUtils;
@@ -36,9 +36,9 @@ import java.util.List;
 @Slf4j
 public class BrpcTraceCollector implements ITraceCollector {
 
-    private final IMessageSink<CloseableIterator<TraceSpan>> traceSink;
+    private final ITraceMessageSink traceSink;
 
-    public BrpcTraceCollector(IMessageSink<CloseableIterator<TraceSpan>> traceSink) {
+    public BrpcTraceCollector(ITraceMessageSink traceSink) {
         this.traceSink = traceSink;
     }
 

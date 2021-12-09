@@ -18,7 +18,6 @@ package org.bithon.server.collector.source.brpc;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurement;
@@ -35,7 +34,8 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
-import org.bithon.server.collector.sink.IMessageSink;
+import org.bithon.server.metric.handler.IMessageSink;
+import org.bithon.server.metric.handler.IMetricMessageSink;
 import org.bithon.server.common.utils.ReflectionUtils;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.metric.DataSourceSchema;
@@ -63,10 +63,10 @@ import java.util.stream.Collectors;
 public class BrpcMetricCollector implements IMetricCollector {
 
     private final IMessageSink<SchemaMetricMessage> schemaMetricSink;
-    private final IMessageSink<CloseableIterator<MetricMessage>> metricSink;
+    private final IMetricMessageSink metricSink;
 
     public BrpcMetricCollector(IMessageSink<SchemaMetricMessage> schemaMetricSink,
-                               IMessageSink<CloseableIterator<MetricMessage>> metricSink) {
+                               IMetricMessageSink metricSink) {
         this.schemaMetricSink = schemaMetricSink;
         this.metricSink = metricSink;
     }

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.header.Header;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -37,10 +38,9 @@ import java.util.Map;
  * @date 2021/3/18
  */
 public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, MessageListener<String, String> {
-    ConcurrentMessageListenerContainer<String, String> consumerContainer;
-
     protected final ObjectMapper objectMapper;
     private final Class<MSG> clazz;
+    ConcurrentMessageListenerContainer<String, String> consumerContainer;
 
     public AbstractKafkaCollector(Class<MSG> clazz) {
         this.clazz = clazz;
@@ -53,15 +53,15 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, Me
 
     protected abstract String getTopic();
 
-    protected abstract void onMessage(CloseableIterator<MSG> msg);
+    protected abstract void onMessage(String s, CloseableIterator<MSG> msg);
 
     @Override
     public final void onMessage(ConsumerRecord<String, String> record) {
-        CloseableIterator<MSG> metricIterator;
+        CloseableIterator<MSG> iterator;
         try {
             final JsonParser parser = new JsonFactory().createParser(record.value());
             final MappingIterator<MSG> delegate = objectMapper.readValues(parser, clazz);
-            metricIterator = new CloseableIterator<MSG>() {
+            iterator = new CloseableIterator<MSG>() {
                 @Override
                 public boolean hasNext() {
                     return delegate.hasNext();
@@ -84,7 +84,11 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, Me
                                                      record.value()));
         }
 
-        onMessage(metricIterator);
+        Header type = record.headers().lastHeader("type");
+        if (type != null) {
+            onMessage(new String(type.value()), iterator);
+        } else {
+        }
     }
 
     @Override

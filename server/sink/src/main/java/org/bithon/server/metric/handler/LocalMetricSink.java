@@ -14,14 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.sink.local;
+package org.bithon.server.metric.handler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.collector.sink.IMessageSink;
 import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.metric.handler.AbstractMetricMessageHandler;
-import org.bithon.server.metric.handler.MetricMessage;
 import org.springframework.context.ApplicationContext;
 
 import java.util.HashMap;
@@ -38,11 +35,10 @@ import java.util.concurrent.TimeUnit;
  * @date 2021/3/15
  */
 @Slf4j
-public class LocalMetricSink implements IMessageSink<CloseableIterator<MetricMessage>> {
+public class LocalMetricSink implements IMetricMessageSink {
 
     private final Map<String, AbstractMetricMessageHandler> handlers = new HashMap<>();
     private final ThreadPoolExecutor executor;
-
 
     public LocalMetricSink(ApplicationContext applicationContext) {
         applicationContext.getBeansOfType(AbstractMetricMessageHandler.class).values().forEach(this::add);

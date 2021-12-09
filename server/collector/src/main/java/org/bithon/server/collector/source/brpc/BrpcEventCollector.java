@@ -20,8 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
-import org.bithon.server.collector.sink.IMessageSink;
+import org.bithon.server.event.handler.IEventMessageSink;
+import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.event.handler.EventMessage;
+
+import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,20 +34,36 @@ import org.bithon.server.event.handler.EventMessage;
 @Slf4j
 public class BrpcEventCollector implements IEventCollector {
 
-    private final IMessageSink<EventMessage> eventSink;
+    private final IEventMessageSink eventSink;
 
-    public BrpcEventCollector(IMessageSink<EventMessage> eventSink) {
+    public BrpcEventCollector(IEventMessageSink eventSink) {
         this.eventSink = eventSink;
     }
 
     @Override
     public void sendEvent(BrpcMessageHeader header, BrpcEventMessage message) {
-        EventMessage eventMessage = EventMessage.builder().appName(header.getAppName())
+        EventMessage eventMessage = EventMessage.builder()
+                                                .appName(header.getAppName())
                                                 .instanceName(header.getInstanceName())
                                                 .timestamp(message.getTimestamp())
                                                 .type(message.getEventType())
                                                 .args(message.getArgumentsMap())
                                                 .build();
-        eventSink.process("event", eventMessage);
+        Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
+        eventSink.process("event", new CloseableIterator<EventMessage>() {
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public boolean hasNext() {
+                return delegate.hasNext();
+            }
+
+            @Override
+            public EventMessage next() {
+                return delegate.next();
+            }
+        });
     }
 }

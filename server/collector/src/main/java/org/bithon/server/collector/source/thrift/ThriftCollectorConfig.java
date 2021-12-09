@@ -20,17 +20,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import lombok.Data;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.bithon.server.collector.sink.IMessageSink;
+import org.bithon.server.event.handler.IEventMessageSink;
+import org.bithon.server.metric.handler.IMetricMessageSink;
+import org.bithon.server.tracing.handler.ITraceMessageSink;
 import org.bithon.server.collector.sink.kafka.KafkaEventSink;
 import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
 import org.bithon.server.collector.sink.kafka.KafkaTraceSink;
-import org.bithon.server.collector.sink.local.LocalEventSink;
-import org.bithon.server.collector.sink.local.LocalMetricSink;
-import org.bithon.server.collector.sink.local.LocalTraceSink;
-import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.event.handler.EventsMessageHandler;
-import org.bithon.server.metric.handler.MetricMessage;
-import org.bithon.server.tracing.handler.TraceMessageHandler;
+import org.bithon.server.event.handler.LocalEventSink;
+import org.bithon.server.metric.handler.LocalMetricSink;
+import org.bithon.server.tracing.handler.LocalTraceSink;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -53,16 +51,10 @@ public class ThriftCollectorConfig {
     private Map<String, Integer> port;
     private SinkConfig sink;
 
-    @Data
-    static class SinkConfig {
-        private String type;
-        private Map<String, Object> props;
-    }
-
     @Bean("metricSink")
-    public IMessageSink<CloseableIterator<MetricMessage>> metricSink(ThriftCollectorConfig config,
-                                                                     ObjectMapper om,
-                                                                     ApplicationContext applicationContext) {
+    public IMetricMessageSink metricSink(ThriftCollectorConfig config,
+                                         ObjectMapper om,
+                                         ApplicationContext applicationContext) {
         if ("local".equals(config.getSink().getType())) {
             return new LocalMetricSink(applicationContext);
         } else {
@@ -76,9 +68,9 @@ public class ThriftCollectorConfig {
     }
 
     @Bean("eventSink")
-    public IMessageSink<?> eventSink(ThriftCollectorConfig config,
-                                     ApplicationContext applicationContext,
-                                     ObjectMapper om) {
+    public IEventMessageSink eventSink(ThriftCollectorConfig config,
+                                       ApplicationContext applicationContext,
+                                       ObjectMapper om) {
         if ("local".equals(config.getSink().getType())) {
             return new LocalEventSink(applicationContext);
         } else {
@@ -91,9 +83,9 @@ public class ThriftCollectorConfig {
     }
 
     @Bean("traceSink")
-    public IMessageSink<?> traceSink(ThriftCollectorConfig config,
-                                     ApplicationContext applicationContext,
-                                     ObjectMapper om) {
+    public ITraceMessageSink traceSink(ThriftCollectorConfig config,
+                                       ApplicationContext applicationContext,
+                                       ObjectMapper om) {
 
         if ("local".equals(config.getSink().getType())) {
             return new LocalTraceSink(applicationContext);
@@ -104,5 +96,11 @@ public class ThriftCollectorConfig {
                                                           ImmutableMap.of("client.id", "trace")),
                                       om);
         }
+    }
+
+    @Data
+    static class SinkConfig {
+        private String type;
+        private Map<String, Object> props;
     }
 }

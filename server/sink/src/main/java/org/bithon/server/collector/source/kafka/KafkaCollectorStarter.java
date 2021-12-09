@@ -18,9 +18,9 @@ package org.bithon.server.collector.source.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.bithon.server.event.handler.EventsMessageHandler;
-import org.bithon.server.metric.handler.AbstractMetricMessageHandler;
-import org.bithon.server.tracing.handler.TraceMessageHandler;
+import org.bithon.server.event.handler.LocalEventSink;
+import org.bithon.server.metric.handler.LocalMetricSink;
+import org.bithon.server.tracing.handler.LocalTraceSink;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
@@ -55,12 +55,9 @@ public class KafkaCollectorStarter implements SmartLifecycle, ApplicationContext
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 
-        collectors.add(new KafkaTraceCollector(context.getBean(TraceMessageHandler.class)).start(consumerProps));
-        collectors.add(new KafkaEventCollector(context.getBean(EventsMessageHandler.class)).start(consumerProps));
-
-        context.getBeansOfType(AbstractMetricMessageHandler.class).values().forEach(metricHandler -> {
-            collectors.add(new KafkaMetricCollector(metricHandler).start(consumerProps));
-        });
+        collectors.add(new KafkaTraceCollector(new LocalTraceSink(this.context)).start(consumerProps));
+        collectors.add(new KafkaEventCollector(new LocalEventSink(this.context)).start(consumerProps));
+        collectors.add(new KafkaMetricCollector(new LocalMetricSink(this.context)).start(consumerProps));
     }
 
     @Override

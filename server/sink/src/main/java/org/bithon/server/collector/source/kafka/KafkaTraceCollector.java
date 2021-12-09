@@ -16,8 +16,8 @@
 
 package org.bithon.server.collector.source.kafka;
 
+import org.bithon.server.tracing.handler.LocalTraceSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.tracing.handler.TraceMessageHandler;
 import org.bithon.server.tracing.handler.TraceSpan;
 
 /**
@@ -25,12 +25,12 @@ import org.bithon.server.tracing.handler.TraceSpan;
  * @date 2021/3/18
  */
 public class KafkaTraceCollector extends AbstractKafkaCollector<TraceSpan> {
-    private final TraceMessageHandler traceHandler;
+    private final LocalTraceSink localSink;
 
-    public KafkaTraceCollector(TraceMessageHandler traceHandler) {
+    public KafkaTraceCollector(LocalTraceSink localSink) {
         super(TraceSpan.class);
 
-        this.traceHandler = traceHandler;
+        this.localSink = localSink;
     }
 
     @Override
@@ -40,11 +40,11 @@ public class KafkaTraceCollector extends AbstractKafkaCollector<TraceSpan> {
 
     @Override
     protected String getTopic() {
-        return "trace";
+        return "bithon-trace";
     }
 
     @Override
-    protected void onMessage(CloseableIterator<TraceSpan> traceMessages) {
-        traceHandler.submit(traceMessages);
+    protected void onMessage(String type, CloseableIterator<TraceSpan> traceMessages) {
+        localSink.process(getTopic(), traceMessages);
     }
 }

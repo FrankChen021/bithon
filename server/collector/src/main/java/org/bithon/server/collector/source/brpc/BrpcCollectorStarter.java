@@ -27,7 +27,10 @@ import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.server.collector.cmd.api.CommandService;
 import org.bithon.server.collector.setting.AgentSettingService;
 import org.bithon.server.collector.setting.BrpcSettingFetcher;
-import org.bithon.server.collector.sink.IMessageSink;
+import org.bithon.server.event.handler.IEventMessageSink;
+import org.bithon.server.metric.handler.IMessageSink;
+import org.bithon.server.metric.handler.IMetricMessageSink;
+import org.bithon.server.tracing.handler.ITraceMessageSink;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
@@ -86,19 +89,17 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
                 case "metric":
                     clazz = IMetricCollector.class;
                     serviceProvider = new BrpcMetricCollector(applicationContext.getBean("schemaMetricSink", IMessageSink.class),
-                                                              applicationContext.getBean("metricSink", IMessageSink.class));
+                                                              applicationContext.getBean(IMetricMessageSink.class));
                     break;
 
                 case "event":
                     clazz = IEventCollector.class;
-                    serviceProvider = new BrpcEventCollector(applicationContext.getBean("eventSink",
-                                                                                        IMessageSink.class));
+                    serviceProvider = new BrpcEventCollector(applicationContext.getBean(IEventMessageSink.class));
                     break;
 
                 case "tracing":
                     clazz = ITraceCollector.class;
-                    serviceProvider = new BrpcTraceCollector(applicationContext.getBean("traceSink",
-                                                                                        IMessageSink.class));
+                    serviceProvider = new BrpcTraceCollector(applicationContext.getBean(ITraceMessageSink.class));
                     break;
 
                 case "ctrl":

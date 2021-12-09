@@ -14,10 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.sink.local;
+package org.bithon.server.metric.handler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.collector.sink.IMessageSink;
 import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchemaManager;

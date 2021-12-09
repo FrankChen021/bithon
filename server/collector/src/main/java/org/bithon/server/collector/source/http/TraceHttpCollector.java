@@ -19,10 +19,9 @@ package org.bithon.server.collector.source.http;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.bithon.server.collector.sink.IMessageSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.tracing.handler.ITraceMessageSink;
 import org.bithon.server.tracing.handler.TraceSpan;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,10 +40,10 @@ import java.util.TreeMap;
 public class TraceHttpCollector {
 
     private final ObjectMapper om;
-    private final IMessageSink<CloseableIterator<TraceSpan>> traceSink;
+    private final ITraceMessageSink traceSink;
 
     public TraceHttpCollector(ObjectMapper om,
-                              @Qualifier("traceSink") IMessageSink<CloseableIterator<TraceSpan>> traceSink) {
+                              ITraceMessageSink traceSink) {
         this.om = om;
         this.traceSink = traceSink;
     }

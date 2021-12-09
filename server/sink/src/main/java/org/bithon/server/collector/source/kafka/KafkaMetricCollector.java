@@ -16,8 +16,8 @@
 
 package org.bithon.server.collector.source.kafka;
 
+import org.bithon.server.metric.handler.LocalMetricSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.metric.handler.AbstractMetricMessageHandler;
 import org.bithon.server.metric.handler.MetricMessage;
 
 /**
@@ -28,25 +28,25 @@ import org.bithon.server.metric.handler.MetricMessage;
  */
 public class KafkaMetricCollector extends AbstractKafkaCollector<MetricMessage> {
 
-    private final AbstractMetricMessageHandler messageHandler;
+    private final LocalMetricSink metricSink;
 
-    public KafkaMetricCollector(AbstractMetricMessageHandler messageHandler) {
+    public KafkaMetricCollector(LocalMetricSink metricSink) {
         super(MetricMessage.class);
-        this.messageHandler = messageHandler;
+        this.metricSink = metricSink;
     }
 
     @Override
     protected String getGroupId() {
-        return "bithon-metric-consumer-" + this.messageHandler.getType();
+        return "bithon-metric-consumer";
     }
 
     @Override
     protected String getTopic() {
-        return this.messageHandler.getType();
+        return "bithon-metrics";
     }
 
     @Override
-    protected void onMessage(CloseableIterator<MetricMessage> msg) {
-        messageHandler.process(msg);
+    protected void onMessage(String type, CloseableIterator<MetricMessage> msg) {
+        metricSink.process(type, msg);
     }
 }

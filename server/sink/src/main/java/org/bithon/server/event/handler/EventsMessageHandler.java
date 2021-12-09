@@ -18,6 +18,7 @@ package org.bithon.server.event.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
+import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.event.storage.IEventStorage;
 import org.bithon.server.event.storage.IEventWriter;
 import org.bithon.server.metric.DataSourceSchema;
@@ -29,8 +30,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,7 +40,7 @@ import java.util.HashMap;
  */
 @Slf4j
 @Component
-public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<EventMessage> {
+public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<CloseableIterator<EventMessage>> {
 
     final IEventWriter eventWriter;
     final IMetricWriter exceptionMetricWriter;
@@ -55,18 +57,26 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Event
     }
 
     @Override
-    protected void onMessage(EventMessage body) throws IOException {
-        if ("exception".equals(body.getType())) {
-            // generate a metric
-
-            InputRow row = new InputRow(new HashMap<>(body.getArgs()));
-            row.updateColumn("appName", body.getAppName());
-            row.updateColumn("instanceName", body.getInstanceName());
-            row.updateColumn("timestamp", body.getTimestamp());
-            row.updateColumn("exceptionCount", 1);
-            exceptionMetricWriter.write(Collections.singletonList(row));
+    protected void onMessage(CloseableIterator<EventMessage> iterator) throws IOException {
+        List<EventMessage> messages = new ArrayList<>();
+        List<InputRow> metrics = new ArrayList<>();
+        while (iterator.hasNext()) {
+            EventMessage message = iterator.next();
+            if ("exception".equals(message.getType())) {
+                // generate a metric
+                InputRow row = new InputRow(new HashMap<>(message.getArgs()));
+                row.updateColumn("appName", message.getAppName());
+                row.updateColumn("instanceName", message.getInstanceName());
+                row.updateColumn("timestamp", message.getTimestamp());
+                row.updateColumn("exceptionCount", 1);
+                metrics.add(row);
+            }
+            messages.add(message);
         }
-        eventWriter.write(body);
+        if (!metrics.isEmpty()) {
+            exceptionMetricWriter.write(metrics);
+        }
+        eventWriter.write(messages);
     }
 
     @Override

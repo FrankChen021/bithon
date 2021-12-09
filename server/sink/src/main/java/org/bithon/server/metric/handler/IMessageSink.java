@@ -14,18 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.storage;
-
-import org.bithon.server.event.handler.EventMessage;
-
-import java.io.IOException;
-import java.util.List;
+package org.bithon.server.metric.handler;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * @author frankchen
  */
-public interface IEventWriter extends AutoCloseable {
-
-    void write(List<EventMessage> eventMessage) throws IOException;
+public interface IMessageSink<MSG> {
+    void process(String messageType, MSG message);
 }

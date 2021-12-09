@@ -20,16 +20,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import lombok.Data;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.bithon.server.collector.sink.IMessageSink;
+import org.bithon.server.event.handler.IEventMessageSink;
+import org.bithon.server.metric.handler.IMessageSink;
+import org.bithon.server.metric.handler.IMetricMessageSink;
+import org.bithon.server.tracing.handler.ITraceMessageSink;
 import org.bithon.server.collector.sink.kafka.KafkaEventSink;
 import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
 import org.bithon.server.collector.sink.kafka.KafkaTraceSink;
-import org.bithon.server.collector.sink.local.LocalEventSink;
-import org.bithon.server.collector.sink.local.LocalMetricSink;
-import org.bithon.server.collector.sink.local.LocalSchemaMetricSink;
-import org.bithon.server.collector.sink.local.LocalTraceSink;
-import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.metric.handler.MetricMessage;
+import org.bithon.server.event.handler.LocalEventSink;
+import org.bithon.server.metric.handler.LocalMetricSink;
+import org.bithon.server.metric.handler.LocalSchemaMetricSink;
+import org.bithon.server.tracing.handler.LocalTraceSink;
 import org.bithon.server.metric.handler.SchemaMetricMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -71,9 +72,9 @@ public class BrpcCollectorConfig {
     }
 
     @Bean("metricSink")
-    public IMessageSink<CloseableIterator<MetricMessage>> metricSink(BrpcCollectorConfig config,
-                                                                     ObjectMapper om,
-                                                                     ApplicationContext applicationContext) {
+    public IMetricMessageSink metricSink(BrpcCollectorConfig config,
+                                         ObjectMapper om,
+                                         ApplicationContext applicationContext) {
         if ("local".equals(config.getSink().getType())) {
             return new LocalMetricSink(applicationContext);
         } else {
@@ -87,9 +88,9 @@ public class BrpcCollectorConfig {
     }
 
     @Bean("eventSink")
-    public IMessageSink<?> eventSink(BrpcCollectorConfig config,
-                                     ApplicationContext applicationContext,
-                                     ObjectMapper om) {
+    public IEventMessageSink eventSink(BrpcCollectorConfig config,
+                                       ApplicationContext applicationContext,
+                                       ObjectMapper om) {
         if ("local".equals(config.getSink().getType())) {
             return new LocalEventSink(applicationContext);
         } else {
@@ -102,9 +103,9 @@ public class BrpcCollectorConfig {
     }
 
     @Bean("traceSink")
-    public IMessageSink<?> traceSink(BrpcCollectorConfig config,
-                                     ApplicationContext applicationContext,
-                                     ObjectMapper om) {
+    public ITraceMessageSink traceSink(BrpcCollectorConfig config,
+                                       ApplicationContext applicationContext,
+                                       ObjectMapper om) {
 
         if ("local".equals(config.getSink().getType())) {
             return new LocalTraceSink(applicationContext);

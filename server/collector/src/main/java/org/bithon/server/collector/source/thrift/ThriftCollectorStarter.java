@@ -33,7 +33,9 @@ import org.bithon.agent.rpc.thrift.service.setting.SettingService;
 import org.bithon.agent.rpc.thrift.service.trace.ITraceCollector;
 import org.bithon.server.collector.setting.AgentSettingService;
 import org.bithon.server.collector.setting.SettingServiceThriftImpl;
-import org.bithon.server.collector.sink.IMessageSink;
+import org.bithon.server.event.handler.IEventMessageSink;
+import org.bithon.server.metric.handler.IMetricMessageSink;
+import org.bithon.server.tracing.handler.ITraceMessageSink;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
@@ -82,20 +84,17 @@ public class ThriftCollectorStarter implements SmartLifecycle, ApplicationContex
             switch (service) {
                 case "metric":
                     processor = new IMetricCollector.Processor<>(new ThriftMetricCollector(applicationContext.getBean(
-                        "metricSink",
-                        IMessageSink.class)));
+                        IMetricMessageSink.class)));
                     break;
 
                 case "event":
                     processor = new IEventCollector.Processor<>(new ThriftEventCollector(applicationContext.getBean(
-                        "eventSink",
-                        IMessageSink.class)));
+                        IEventMessageSink.class)));
                     break;
 
                 case "tracing":
                     processor = new ITraceCollector.Processor<>(new ThriftTraceCollector(applicationContext.getBean(
-                        "traceSink",
-                        IMessageSink.class)));
+                        ITraceMessageSink.class)));
                     break;
 
                 case "ctrl":

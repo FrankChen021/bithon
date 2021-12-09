@@ -18,16 +18,19 @@ package org.bithon.server.collector.sink.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.collector.sink.IMessageSink;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.bithon.server.metric.handler.IMetricMessageSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.metric.handler.MetricMessage;
 import org.springframework.kafka.core.KafkaTemplate;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class KafkaMetricSink implements IMessageSink<CloseableIterator<MetricMessage>> {
+public class KafkaMetricSink implements IMetricMessageSink {
 
     private final KafkaTemplate<String, String> producer;
     private final ObjectMapper objectMapper;
@@ -68,6 +71,9 @@ public class KafkaMetricSink implements IMessageSink<CloseableIterator<MetricMes
             messageText.append('\n');
         }
 
-        producer.send(messageType, key, messageText.toString());
+        ProducerRecord<String, String> record = new ProducerRecord<>("bithon-metrics", key, messageText.toString());
+        record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
+
+        this.producer.send(record);
     }
 }

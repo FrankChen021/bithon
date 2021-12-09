@@ -30,9 +30,9 @@ import org.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
-import org.bithon.server.collector.sink.IMessageSink;
 import org.bithon.server.common.utils.ReflectionUtils;
 import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.metric.handler.IMetricMessageSink;
 import org.bithon.server.metric.handler.MetricMessage;
 import org.springframework.util.CollectionUtils;
 
@@ -46,9 +46,9 @@ import java.util.List;
 @Slf4j
 public class ThriftMetricCollector implements IMetricCollector.Iface {
 
-    private final IMessageSink<CloseableIterator<MetricMessage>> metricSink;
+    private final IMetricMessageSink metricSink;
 
-    public ThriftMetricCollector(IMessageSink<CloseableIterator<MetricMessage>> metricSink) {
+    public ThriftMetricCollector(IMetricMessageSink metricSink) {
         this.metricSink = metricSink;
     }
 

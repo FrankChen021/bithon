@@ -14,20 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.sink.local;
+package org.bithon.server.tracing.handler;
 
 import lombok.Getter;
-import org.bithon.server.collector.sink.IMessageSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.tracing.handler.TraceMessageHandler;
-import org.bithon.server.tracing.handler.TraceSpan;
 import org.springframework.context.ApplicationContext;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
  */
-public class LocalTraceSink implements IMessageSink<CloseableIterator<TraceSpan>> {
+public class LocalTraceSink implements ITraceMessageSink {
 
     @Getter
     private final TraceMessageHandler traceMessageHandler;
