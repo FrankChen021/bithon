@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.config;
+package org.bithon.server.starter.config;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.core.JsonParser;
@@ -49,9 +49,15 @@ public class ObjectMapperConfigurer {
                                                             Object beanInstance) {
                               JacksonInject inject = forProperty.getAnnotation(JacksonInject.class);
                               if (!StringUtils.isEmpty(inject.value())) {
+                                  // use JacksonInject annotation's value() as bean name
                                   return applicationContext.getBean(inject.value());
                               } else {
-                                  return applicationContext.getBean(forProperty.getType().getRawClass());
+                                  Class<?> targetClass = forProperty.getType().getRawClass();
+                                  if (targetClass.isAssignableFrom(applicationContext.getClass())) {
+                                      return applicationContext;
+                                  } else {
+                                      return applicationContext.getBean(targetClass);
+                                  }
                               }
                           }
                       })

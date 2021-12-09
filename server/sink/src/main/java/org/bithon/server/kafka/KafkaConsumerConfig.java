@@ -14,20 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.kafka;
+package org.bithon.server.kafka;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 
 /**
- * A Kafka Collector is a connector connecting to a KafkaSink
- *
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public interface IKafkaCollector {
-    IKafkaCollector start(Map<String, Object> consumerProps);
-
-    void stop();
-
-    boolean isRunning();
+@Data
+@Configuration
+@ConfigurationProperties(prefix = "collector-kafka")
+public class KafkaConsumerConfig {
+    private Map<String, Object> consumer;
 }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.kafka;
+package org.bithon.server.kafka;
 
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.metric.sink.LocalMetricSink;
@@ -26,11 +26,11 @@ import org.bithon.server.metric.sink.MetricMessage;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaMetricCollector extends AbstractKafkaCollector<MetricMessage> {
+public class KafkaMetricConsumer extends AbstractKafkaConsumer<MetricMessage> {
 
     private final LocalMetricSink metricSink;
 
-    public KafkaMetricCollector(LocalMetricSink metricSink) {
+    public KafkaMetricConsumer(LocalMetricSink metricSink) {
         super(MetricMessage.class);
         this.metricSink = metricSink;
     }

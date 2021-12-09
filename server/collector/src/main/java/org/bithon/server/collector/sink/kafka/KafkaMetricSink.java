@@ -16,27 +16,43 @@
 
 package org.bithon.server.collector.sink.kafka;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.metric.sink.IMetricMessageSink;
 import org.bithon.server.metric.sink.MetricMessage;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
+@JsonTypeName("kafka")
 public class KafkaMetricSink implements IMetricMessageSink {
 
     private final KafkaTemplate<String, String> producer;
     private final ObjectMapper objectMapper;
 
-    public KafkaMetricSink(KafkaTemplate<String, String> producer, ObjectMapper objectMapper) {
-        this.producer = producer;
+    @JsonCreator
+    public KafkaMetricSink(@JsonProperty("props") Map<String, Object> props,
+                           @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
+                                                                              new StringSerializer(),
+                                                                              new StringSerializer()),
+                                            ImmutableMap.of("client.id", "metric"));
+
         this.objectMapper = objectMapper;
     }
 

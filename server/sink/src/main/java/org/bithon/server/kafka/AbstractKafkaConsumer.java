@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.kafka;
+package org.bithon.server.kafka;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
@@ -40,12 +40,12 @@ import java.util.Map;
  * @date 2021/3/18
  */
 @Slf4j
-public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, MessageListener<String, String> {
+public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, MessageListener<String, String> {
     protected final ObjectMapper objectMapper;
     private final Class<MSG> clazz;
     ConcurrentMessageListenerContainer<String, String> consumerContainer;
 
-    public AbstractKafkaCollector(Class<MSG> clazz) {
+    public AbstractKafkaConsumer(Class<MSG> clazz) {
         this.clazz = clazz;
         objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
@@ -96,7 +96,7 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, Me
     }
 
     @Override
-    public IKafkaCollector start(Map<String, Object> consumerProps) {
+    public IKafkaConsumer start(Map<String, Object> consumerProps) {
 
         ContainerProperties containerProperties = new ContainerProperties(getTopic());
         containerProperties.setAckMode(ContainerProperties.AckMode.TIME);

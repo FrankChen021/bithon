@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.kafka;
+package org.bithon.server.kafka;
 
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -38,11 +38,11 @@ import java.util.Map;
  * @date 2021/3/18
  */
 @Component
-@ConditionalOnProperty(value = "collector-kafka.enabled", havingValue = "true", matchIfMissing = false)
-public class KafkaCollectorStarter implements SmartLifecycle, ApplicationContextAware {
+@ConditionalOnProperty(value = "consumer-kafka.enabled", havingValue = "true", matchIfMissing = false)
+public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextAware {
     ApplicationContext context;
 
-    private final List<IKafkaCollector> collectors = new ArrayList<>();
+    private final List<IKafkaConsumer> collectors = new ArrayList<>();
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -52,25 +52,25 @@ public class KafkaCollectorStarter implements SmartLifecycle, ApplicationContext
     @SneakyThrows
     @Override
     public void start() {
-        KafkaCollectorConfig config = this.context.getBean(KafkaCollectorConfig.class);
+        KafkaConsumerConfig config = this.context.getBean(KafkaConsumerConfig.class);
         Map<String, Object> consumerProps = config.getConsumer();
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 
-        collectors.add(new KafkaTraceCollector(new LocalTraceSink(this.context)).start(consumerProps));
-        collectors.add(new KafkaEventCollector(new LocalEventSink(this.context)).start(consumerProps));
-        collectors.add(new KafkaMetricCollector(new LocalMetricSink(this.context)).start(consumerProps));
+        collectors.add(new KafkaTraceConsumer(new LocalTraceSink(this.context)).start(consumerProps));
+        collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context)).start(consumerProps));
+        collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context)).start(consumerProps));
     }
 
     @Override
     public void stop() {
-        for (IKafkaCollector collector : collectors) {
+        for (IKafkaConsumer collector : collectors) {
             collector.stop();
         }
     }
 
     @Override
     public boolean isRunning() {
-        return collectors.stream().anyMatch(IKafkaCollector::isRunning);
+        return collectors.stream().anyMatch(IKafkaConsumer::isRunning);
     }
 }

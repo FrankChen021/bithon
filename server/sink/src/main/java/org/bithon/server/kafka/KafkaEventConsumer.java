@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.kafka;
+package org.bithon.server.kafka;
 
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.event.sink.EventMessage;
@@ -24,10 +24,10 @@ import org.bithon.server.event.sink.LocalEventSink;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaEventCollector extends AbstractKafkaCollector<EventMessage> {
+public class KafkaEventConsumer extends AbstractKafkaConsumer<EventMessage> {
     private final LocalEventSink eventSink;
 
-    public KafkaEventCollector(LocalEventSink eventSink) {
+    public KafkaEventConsumer(LocalEventSink eventSink) {
         super(EventMessage.class);
         this.eventSink = eventSink;
     }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.source.kafka;
+package org.bithon.server.kafka;
 
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.tracing.sink.LocalTraceSink;
@@ -24,10 +24,10 @@ import org.bithon.server.tracing.sink.TraceSpan;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
-public class KafkaTraceCollector extends AbstractKafkaCollector<TraceSpan> {
+public class KafkaTraceConsumer extends AbstractKafkaConsumer<TraceSpan> {
     private final LocalTraceSink localSink;
 
-    public KafkaTraceCollector(LocalTraceSink localSink) {
+    public KafkaTraceConsumer(LocalTraceSink localSink) {
         super(TraceSpan.class);
 
         this.localSink = localSink;
