@@ -32,15 +32,20 @@ import org.springframework.context.ApplicationContext;
 public class LocalTraceSink implements ITraceMessageSink {
 
     @Getter
-    private final TraceMessageHandler traceMessageHandler;
+    private final TraceMessageHandler handler;
 
     @JsonCreator
-    public LocalTraceSink(@JacksonInject(useInput = OptBoolean.FALSE)ApplicationContext applicationContext) {
-        this.traceMessageHandler = new TraceMessageHandler(applicationContext);
+    public LocalTraceSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
+        this.handler = new TraceMessageHandler(applicationContext);
     }
 
     @Override
     public void process(String messageType, CloseableIterator<TraceSpan> messages) {
-        traceMessageHandler.submit(messages);
+        handler.submit(messages);
+    }
+
+    @Override
+    public void close() throws Exception {
+        handler.close();
     }
 }

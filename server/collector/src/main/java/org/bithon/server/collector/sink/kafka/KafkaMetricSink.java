@@ -92,4 +92,9 @@ public class KafkaMetricSink implements IMetricMessageSink {
 
         this.producer.send(record);
     }
+
+    @Override
+    public void close() throws Exception {
+        this.producer.destroy();
+    }
 }

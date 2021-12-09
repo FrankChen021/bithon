@@ -58,13 +58,6 @@ public class LocalMetricSink implements IMetricMessageSink {
                                           new ThreadUtils.NamedThreadFactory(name),
                                           new ThreadPoolExecutor.DiscardPolicy());
         log.info("Starting executor [{}]", name);
-
-        Thread shutdownThread = new Thread(() -> {
-            log.info("Shutting down executor [{}]", name);
-            executor.shutdown();
-        });
-        shutdownThread.setName(name + "-shutdown");
-        Runtime.getRuntime().addShutdownHook(shutdownThread);
     }
 
     private void add(AbstractMetricMessageHandler handler) {
@@ -89,5 +82,11 @@ public class LocalMetricSink implements IMetricMessageSink {
         } else {
             log.error("No Handler for message [{}]", messageType);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        log.info("Shutting down executor [{}]", "metric-sink");
+        executor.shutdown();
     }
 }

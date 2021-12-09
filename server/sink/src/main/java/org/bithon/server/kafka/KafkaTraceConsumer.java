@@ -25,12 +25,12 @@ import org.bithon.server.tracing.sink.TraceSpan;
  * @date 2021/3/18
  */
 public class KafkaTraceConsumer extends AbstractKafkaConsumer<TraceSpan> {
-    private final LocalTraceSink localSink;
+    private final LocalTraceSink traceSink;
 
-    public KafkaTraceConsumer(LocalTraceSink localSink) {
+    public KafkaTraceConsumer(LocalTraceSink traceSink) {
         super(TraceSpan.class);
 
-        this.localSink = localSink;
+        this.traceSink = traceSink;
     }
 
     @Override
@@ -45,6 +45,20 @@ public class KafkaTraceConsumer extends AbstractKafkaConsumer<TraceSpan> {
 
     @Override
     protected void onMessage(String type, CloseableIterator<TraceSpan> traceMessages) {
-        localSink.process(getTopic(), traceMessages);
+        traceSink.process(getTopic(), traceMessages);
+    }
+
+    @Override
+    public void stop() {
+        // stop receiving
+        try {
+            super.stop();
+        } catch (Exception ignored) {
+        }
+
+        try {
+            traceSink.close();
+        } catch (Exception ignored) {
+        }
     }
 }

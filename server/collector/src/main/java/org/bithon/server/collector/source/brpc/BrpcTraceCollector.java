@@ -34,7 +34,7 @@ import java.util.List;
  * @date 2021/1/23 11:19 下午
  */
 @Slf4j
-public class BrpcTraceCollector implements ITraceCollector {
+public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
 
     private final ITraceMessageSink traceSink;
 
@@ -89,5 +89,10 @@ public class BrpcTraceCollector implements ITraceCollector {
                 return traceSpan;
             }
         };
+    }
+
+    @Override
+    public void close() throws Exception {
+        traceSink.close();
     }
 }

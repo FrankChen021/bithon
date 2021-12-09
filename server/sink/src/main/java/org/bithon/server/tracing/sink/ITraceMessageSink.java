@@ -28,6 +28,6 @@ import org.bithon.server.common.utils.collection.CloseableIterator;
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "local", value = LocalTraceSink.class),
 })
-public interface ITraceMessageSink {
+public interface ITraceMessageSink extends AutoCloseable {
     void process(String messageType, CloseableIterator<TraceSpan> messages);
 }

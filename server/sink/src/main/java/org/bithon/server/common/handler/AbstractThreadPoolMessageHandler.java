@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2021/1/10 4:55 下午
  */
 @Slf4j
-public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageHandler<MSG> {
+public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageHandler<MSG>, AutoCloseable {
     protected final ThreadPoolExecutor executor;
 
     public AbstractThreadPoolMessageHandler(String name,
@@ -37,6 +37,7 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
                                             int maxPoolSize,
                                             Duration keepAliveTime,
                                             int queueSize) {
+        log.info("Starting executor [{}]", name);
         executor = new ThreadPoolExecutor(corePoolSize,
                                           maxPoolSize,
                                           keepAliveTime.getSeconds(),
@@ -44,14 +45,6 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
                                           new LinkedBlockingQueue<>(queueSize),
                                           new ThreadUtils.NamedThreadFactory(name),
                                           new ThreadPoolExecutor.DiscardPolicy());
-        log.info("Starting executor [{}]", name);
-
-        Thread shutdownThread = new Thread(() -> {
-            log.info("Shutting down executor [{}]", this.getType());
-            executor.shutdown();
-        });
-        shutdownThread.setName(name + "-shutdown");
-        Runtime.getRuntime().addShutdownHook(shutdownThread);
     }
 
     @Override
@@ -66,4 +59,10 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
     }
 
     protected abstract void onMessage(MSG msg) throws Exception;
+
+    @Override
+    public void close() throws Exception {
+        log.info("Shutting down executor [{}]", this.getType());
+        executor.shutdown();
+    }
 }

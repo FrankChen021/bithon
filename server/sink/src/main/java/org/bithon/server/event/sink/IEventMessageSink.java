@@ -28,7 +28,8 @@ import org.bithon.server.common.utils.collection.CloseableIterator;
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "local", value = LocalEventSink.class),
 })
-public interface IEventMessageSink {
+public interface IEventMessageSink extends AutoCloseable {
 
     void process(String messageType, CloseableIterator<EventMessage> messages);
+
 }

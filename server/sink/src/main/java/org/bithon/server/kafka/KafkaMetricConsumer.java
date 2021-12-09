@@ -49,4 +49,18 @@ public class KafkaMetricConsumer extends AbstractKafkaConsumer<MetricMessage> {
     protected void onMessage(String type, CloseableIterator<MetricMessage> msg) {
         metricSink.process(type, msg);
     }
+
+    @Override
+    public void stop() {
+        // stop receiving
+        try {
+            super.stop();
+        } catch (Exception ignored) {
+        }
+
+        try {
+            metricSink.close();
+        } catch (Exception ignored) {
+        }
+    }
 }

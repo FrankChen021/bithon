@@ -82,4 +82,9 @@ public class KafkaEventSink implements IEventMessageSink {
             producer.send(record);
         }
     }
+
+    @Override
+    public void close() throws Exception {
+        producer.destroy();
+    }
 }

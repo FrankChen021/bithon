@@ -32,7 +32,7 @@ import java.util.Iterator;
  * @date 2021/2/14 3:59 下午
  */
 @Slf4j
-public class BrpcEventCollector implements IEventCollector {
+public class BrpcEventCollector implements IEventCollector, AutoCloseable {
 
     private final IEventMessageSink eventSink;
 
@@ -65,5 +65,10 @@ public class BrpcEventCollector implements IEventCollector {
                 return delegate.next();
             }
         });
+    }
+
+    @Override
+    public void close() throws Exception {
+        eventSink.close();
     }
 }

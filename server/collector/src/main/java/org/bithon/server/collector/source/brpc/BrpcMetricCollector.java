@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
  * @date 2021/1/10 2:37 下午
  */
 @Slf4j
-public class BrpcMetricCollector implements IMetricCollector {
+public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     private final IMessageSink<SchemaMetricMessage> schemaMetricSink;
     private final IMetricMessageSink metricSink;
@@ -294,6 +294,11 @@ public class BrpcMetricCollector implements IMetricCollector {
             }
         };
         metricSink.process(message.getSchema().getName(), mesageIterator);
+    }
+
+    @Override
+    public void close() throws Exception {
+        metricSink.close();
     }
 
     private static class GenericMetricMessageIterator implements CloseableIterator<MetricMessage> {

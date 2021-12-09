@@ -114,6 +114,7 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
 
     @Override
     public void stop() {
+        log.info("Stopping Kafka consumer for {}", getTopic());
         if (consumerContainer != null) {
             consumerContainer.stop(true);
         }

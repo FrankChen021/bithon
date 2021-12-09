@@ -28,6 +28,6 @@ import org.bithon.server.common.utils.collection.CloseableIterator;
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "local", value = LocalMetricSink.class),
 })
-public interface IMetricMessageSink {
+public interface IMetricMessageSink extends AutoCloseable {
     void process(String messageType, CloseableIterator<MetricMessage> message);
 }

@@ -43,4 +43,9 @@ public class LocalEventSink implements IEventMessageSink {
     public void process(String messageType, CloseableIterator<EventMessage> message) {
         this.handler.submit(message);
     }
+
+    @Override
+    public void close() throws Exception {
+        handler.close();
+    }
 }

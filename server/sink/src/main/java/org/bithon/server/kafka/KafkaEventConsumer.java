@@ -46,4 +46,18 @@ public class KafkaEventConsumer extends AbstractKafkaConsumer<EventMessage> {
     protected void onMessage(String type, CloseableIterator<EventMessage> messages) {
         eventSink.process(getTopic(), messages);
     }
+
+    @Override
+    public void stop() {
+        // stop receiving
+        try {
+            super.stop();
+        } catch (Exception ignored) {
+        }
+
+        try {
+            eventSink.close();
+        } catch (Exception ignored) {
+        }
+    }
 }

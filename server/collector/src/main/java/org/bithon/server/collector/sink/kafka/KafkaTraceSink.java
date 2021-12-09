@@ -90,4 +90,9 @@ public class KafkaTraceSink implements ITraceMessageSink {
         record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
         producer.send(record);
     }
+
+    @Override
+    public void close() throws Exception {
+        producer.destroy();
+    }
 }
