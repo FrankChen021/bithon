@@ -14,14 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.handler;
+package org.bithon.server.metric.sink;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchemaManager;
-import org.bithon.server.metric.handler.AbstractMetricMessageHandler;
-import org.bithon.server.metric.handler.SchemaMetricMessage;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.springframework.context.ApplicationContext;
 

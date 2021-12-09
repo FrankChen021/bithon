@@ -1,8 +1,7 @@
-package org.bithon.server.tracing.handler;
+package org.bithon.server.tracing.sink;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.tracing.handler.TraceSpan;
 
 /**
  * @author Frank Chen

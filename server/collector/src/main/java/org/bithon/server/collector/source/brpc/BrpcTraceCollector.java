@@ -20,9 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
-import org.bithon.server.tracing.handler.ITraceMessageSink;
+import org.bithon.server.tracing.sink.ITraceMessageSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.tracing.handler.TraceSpan;
+import org.bithon.server.tracing.sink.TraceSpan;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 

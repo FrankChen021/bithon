@@ -14,18 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.handler;
+package org.bithon.server.tracing.sink;
 
-import lombok.Data;
+import lombok.Getter;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.metric.DataSourceSchema;
+import org.springframework.context.ApplicationContext;
 
 /**
- * @author Frank Chen
- * @date 3/10/21 14:07
+ * @author frank.chen021@outlook.com
+ * @date 2021/3/16
  */
-@Data
-public class SchemaMetricMessage {
-    private DataSourceSchema schema;
-    private CloseableIterator<MetricMessage> metrics;
+public class LocalTraceSink implements ITraceMessageSink {
+
+    @Getter
+    private final TraceMessageHandler traceMessageHandler;
+
+    public LocalTraceSink(ApplicationContext applicationContext) {
+        this.traceMessageHandler = applicationContext.getBean(TraceMessageHandler.class);
+    }
+
+    @Override
+    public void process(String messageType, CloseableIterator<TraceSpan> messages) {
+        traceMessageHandler.submit(messages);
+    }
 }

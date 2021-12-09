@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.handler;
+package org.bithon.server.event.sink;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;

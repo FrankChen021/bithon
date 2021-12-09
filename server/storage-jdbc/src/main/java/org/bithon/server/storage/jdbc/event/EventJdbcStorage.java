@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.event.handler.EventMessage;
+import org.bithon.server.event.sink.EventMessage;
 import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.event.storage.IEventReader;
 import org.bithon.server.event.storage.IEventStorage;

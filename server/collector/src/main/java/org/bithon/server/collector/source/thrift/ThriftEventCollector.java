@@ -21,9 +21,8 @@ import org.bithon.agent.rpc.thrift.service.MessageHeader;
 import org.bithon.agent.rpc.thrift.service.event.IEventCollector;
 import org.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.event.handler.EventMessage;
-import org.bithon.server.event.handler.IEventMessageSink;
-import org.bithon.server.metric.handler.IMessageSink;
+import org.bithon.server.event.sink.EventMessage;
+import org.bithon.server.event.sink.IEventMessageSink;
 
 import java.util.Collections;
 import java.util.Iterator;

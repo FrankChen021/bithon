@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.handler;
+package org.bithon.server.metric.sink;
 
 import org.bithon.server.common.utils.EndPointType;
 import org.bithon.server.metric.input.Measurement;

@@ -16,7 +16,7 @@
 
 package org.bithon.server.web.service.tracing.api;
 
-import org.bithon.server.tracing.handler.TraceSpan;
+import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;

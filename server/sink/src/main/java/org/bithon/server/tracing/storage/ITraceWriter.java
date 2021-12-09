@@ -16,7 +16,7 @@
 
 package org.bithon.server.tracing.storage;
 
-import org.bithon.server.tracing.handler.TraceSpan;
+import org.bithon.server.tracing.sink.TraceSpan;
 
 import java.io.IOException;
 import java.util.List;

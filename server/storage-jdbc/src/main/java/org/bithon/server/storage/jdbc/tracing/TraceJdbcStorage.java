@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
-import org.bithon.server.tracing.handler.TraceSpan;
+import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.tracing.storage.ITraceStorage;

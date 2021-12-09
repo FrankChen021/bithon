@@ -14,11 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.handler;
+package org.bithon.server.metric.sink;
+
+import lombok.Data;
+import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.metric.DataSourceSchema;
 
 /**
- * @author frankchen
+ * @author Frank Chen
+ * @date 3/10/21 14:07
  */
-public interface IMessageSink<MSG> {
-    void process(String messageType, MSG message);
+@Data
+public class SchemaMetricMessage {
+    private DataSourceSchema schema;
+    private CloseableIterator<MetricMessage> metrics;
 }

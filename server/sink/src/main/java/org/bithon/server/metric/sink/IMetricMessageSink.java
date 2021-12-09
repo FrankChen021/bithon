@@ -1,8 +1,7 @@
-package org.bithon.server.metric.handler;
+package org.bithon.server.metric.sink;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.metric.handler.MetricMessage;
 
 /**
  * @author Frank Chen

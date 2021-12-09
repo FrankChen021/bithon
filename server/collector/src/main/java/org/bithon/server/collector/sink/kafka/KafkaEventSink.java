@@ -20,9 +20,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.bithon.server.event.handler.IEventMessageSink;
+import org.bithon.server.event.sink.IEventMessageSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.event.handler.EventMessage;
+import org.bithon.server.event.sink.EventMessage;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.nio.charset.StandardCharsets;

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.handler;
+package org.bithon.server.metric.sink;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.EndPointType;
@@ -28,16 +28,16 @@ import java.io.IOException;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/28 12:36
+ * @date 2021/1/10 4:31 下午
  */
 @Slf4j
 @Service
-public class MongoDbMetricMessageHandler extends AbstractMetricMessageHandler {
+public class RedisMetricMessageHandler extends AbstractMetricMessageHandler {
 
-    public MongoDbMetricMessageHandler(IMetaStorage metaStorage,
-                                       IMetricStorage metricStorage,
-                                       DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
-        super("mongodb-metrics",
+    public RedisMetricMessageHandler(IMetaStorage metaStorage,
+                                     IMetricStorage metricStorage,
+                                     DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("redis-metrics",
               metaStorage,
               metricStorage,
               dataSourceSchemaManager);
@@ -49,12 +49,12 @@ public class MongoDbMetricMessageHandler extends AbstractMetricMessageHandler {
                                          .timestamp(metricObject.getTimestamp())
                                          .srcEndpointType(EndPointType.APPLICATION)
                                          .srcEndpoint(metricObject.getApplicationName())
-                                         .dstEndpointType(EndPointType.DB_MONGO)
-                                         .dstEndpoint(metricObject.getString("server"))
+                                         .dstEndpointType(EndPointType.REDIS)
+                                         .dstEndpoint(metricObject.getString("uri"))
                                          // metric
                                          .interval(metricObject.getLong("interval"))
                                          .errorCount(metricObject.getLong("exceptionCount"))
-                                         .callCount(metricObject.getLong("callCount"))
+                                         .callCount(metricObject.getLong("totalCount"))
                                          .responseTime(metricObject.getLong("responseTime"))
                                          .minResponseTime(metricObject.getLong("minResponseTime"))
                                          .maxResponseTime(metricObject.getLong("maxResponseTime"))

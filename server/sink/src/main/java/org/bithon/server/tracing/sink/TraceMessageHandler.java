@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.tracing.handler;
+package org.bithon.server.tracing.sink;
 
 import com.google.common.collect.ImmutableList;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;

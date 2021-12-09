@@ -21,8 +21,8 @@ import org.bithon.agent.rpc.thrift.service.MessageHeader;
 import org.bithon.agent.rpc.thrift.service.trace.ITraceCollector;
 import org.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.tracing.handler.ITraceMessageSink;
-import org.bithon.server.tracing.handler.TraceSpan;
+import org.bithon.server.tracing.sink.ITraceMessageSink;
+import org.bithon.server.tracing.sink.TraceSpan;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Iterator;

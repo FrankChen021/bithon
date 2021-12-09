@@ -14,25 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.handler;
+package org.bithon.server.event.sink;
 
-import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.springframework.context.ApplicationContext;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/16
+ * @date 2021/2/14 4:11 下午
  */
-public class LocalEventSink implements IEventMessageSink {
-
-    private final EventsMessageHandler handler;
-
-    public LocalEventSink(ApplicationContext applicationContext) {
-        this.handler = applicationContext.getBean(EventsMessageHandler.class);
-    }
-
-    @Override
-    public void process(String messageType, CloseableIterator<EventMessage> message) {
-        this.handler.submit(message);
-    }
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class EventMessage {
+    private String appName;
+    private String instanceName;
+    private Long timestamp;
+    private String type;
+    private Map<String, String> args;
 }

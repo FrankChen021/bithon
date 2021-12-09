@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.handler;
+package org.bithon.server.metric.sink;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.meta.storage.IMetaStorage;
@@ -30,12 +30,12 @@ import java.io.IOException;
  */
 @Slf4j
 @Service
-public class ThreadPoolMetricMessageHandler extends AbstractMetricMessageHandler {
+public class JvmGcMetricMessageHandler extends AbstractMetricMessageHandler {
 
-    public ThreadPoolMetricMessageHandler(IMetaStorage metaStorage,
-                                          DataSourceSchemaManager dataSourceSchemaManager,
-                                          IMetricStorage metricStorage) throws IOException {
-        super("thread-pool-metrics",
+    public JvmGcMetricMessageHandler(IMetaStorage metaStorage,
+                                     IMetricStorage metricStorage,
+                                     DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("jvm-gc-metrics",
               metaStorage,
               metricStorage,
               dataSourceSchemaManager);

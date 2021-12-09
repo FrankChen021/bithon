@@ -16,7 +16,7 @@
 
 package org.bithon.server.event.storage;
 
-import org.bithon.server.event.handler.EventMessage;
+import org.bithon.server.event.sink.EventMessage;
 
 import java.io.IOException;
 import java.util.List;

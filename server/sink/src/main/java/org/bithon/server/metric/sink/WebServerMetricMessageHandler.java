@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.handler;
+package org.bithon.server.metric.sink;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.meta.storage.IMetaStorage;
@@ -26,16 +26,16 @@ import java.io.IOException;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/10 4:31 下午
+ * @date 2021/1/13 11:06 下午
  */
 @Slf4j
 @Service
-public class JvmGcMetricMessageHandler extends AbstractMetricMessageHandler {
+public class WebServerMetricMessageHandler extends AbstractMetricMessageHandler {
 
-    public JvmGcMetricMessageHandler(IMetaStorage metaStorage,
-                                     IMetricStorage metricStorage,
-                                     DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
-        super("jvm-gc-metrics",
+    public WebServerMetricMessageHandler(IMetaStorage metaStorage,
+                                         IMetricStorage metricStorage,
+                                         DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        super("web-server-metrics",
               metaStorage,
               metricStorage,
               dataSourceSchemaManager);

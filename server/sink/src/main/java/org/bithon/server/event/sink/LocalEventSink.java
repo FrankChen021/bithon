@@ -14,30 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.tracing.handler;
+package org.bithon.server.event.sink;
 
-import lombok.Data;
-
-import java.util.Map;
+import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/4 8:28 下午
+ * @date 2021/3/16
  */
-@Data
-public class TraceSpan {
-    public String appName;
-    public String instanceName;
-    public String traceId;
-    public String spanId;
-    public String kind;
-    public String parentSpanId;
-    public String parentApplication;
-    public Map<String, String> tags;
-    public long costTime;
-    public long startTime;
-    public long endTime;
-    public String name;
-    public String clazz;
-    public String method;
+public class LocalEventSink implements IEventMessageSink {
+
+    private final EventsMessageHandler handler;
+
+    public LocalEventSink(ApplicationContext applicationContext) {
+        this.handler = applicationContext.getBean(EventsMessageHandler.class);
+    }
+
+    @Override
+    public void process(String messageType, CloseableIterator<EventMessage> message) {
+        this.handler.submit(message);
+    }
 }

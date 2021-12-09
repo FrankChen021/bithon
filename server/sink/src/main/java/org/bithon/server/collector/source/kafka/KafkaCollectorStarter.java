@@ -18,9 +18,9 @@ package org.bithon.server.collector.source.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.bithon.server.event.handler.LocalEventSink;
-import org.bithon.server.metric.handler.LocalMetricSink;
-import org.bithon.server.tracing.handler.LocalTraceSink;
+import org.bithon.server.event.sink.LocalEventSink;
+import org.bithon.server.metric.sink.LocalMetricSink;
+import org.bithon.server.tracing.sink.LocalTraceSink;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;

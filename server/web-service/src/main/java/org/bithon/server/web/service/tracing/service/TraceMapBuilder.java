@@ -19,7 +19,7 @@ package org.bithon.server.web.service.tracing.service;
 import lombok.Data;
 import org.bithon.server.web.service.tracing.api.TraceMap;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
-import org.bithon.server.tracing.handler.TraceSpan;
+import org.bithon.server.tracing.sink.TraceSpan;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 
