@@ -30,9 +30,10 @@ import org.bithon.agent.rpc.thrift.service.metric.message.RedisMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
-import org.bithon.server.collector.sink.IMessageSink;
+import org.bithon.server.common.utils.ReflectionUtils;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.metric.handler.MetricMessage;
+import org.bithon.server.metric.sink.IMetricMessageSink;
+import org.bithon.server.metric.sink.MetricMessage;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Iterator;
@@ -45,9 +46,9 @@ import java.util.List;
 @Slf4j
 public class ThriftMetricCollector implements IMetricCollector.Iface {
 
-    private final IMessageSink<CloseableIterator<MetricMessage>> metricSink;
+    private final IMetricMessageSink metricSink;
 
-    public ThriftMetricCollector(IMessageSink<CloseableIterator<MetricMessage>> metricSink) {
+    public ThriftMetricCollector(IMetricMessageSink metricSink) {
         this.metricSink = metricSink;
     }
 
@@ -170,7 +171,14 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
 
         @Override
         public MetricMessage next() {
-            return MetricMessage.of(header, iterator.next());
+            return toMetricMessage(header, iterator.next());
+        }
+
+        private MetricMessage toMetricMessage(MessageHeader header, Object message) {
+            MetricMessage metricMessage = new MetricMessage();
+            ReflectionUtils.getFields(header, metricMessage);
+            ReflectionUtils.getFields(message, metricMessage);
+            return metricMessage;
         }
     }
 }

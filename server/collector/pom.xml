@@ -45,28 +45,24 @@
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>agent-rpc-thrift</artifactId>
-      <version>1.0-SNAPSHOT</version>
     </dependency>
 
     <!-- BRPC -->
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>agent-rpc-brpc</artifactId>
-      <version>1.0-SNAPSHOT</version>
     </dependency>
 
-    <!-- Sentinel -->
+    <!-- BRPC -->
     <dependency>
-      <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-sentinel</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <groupId>org.bithon</groupId>
+      <artifactId>bithon-sink</artifactId>
     </dependency>
 
     <!-- Bithon Commons -->
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>component-commons</artifactId>
-      <version>1.0-SNAPSHOT</version>
     </dependency>
 
     <!-- Caffeine Cache -->

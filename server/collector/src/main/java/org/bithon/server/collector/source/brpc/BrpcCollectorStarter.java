@@ -24,10 +24,13 @@ import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.brpc.channel.ServerChannel;
-import org.bithon.server.cmd.CommandService;
-import org.bithon.server.collector.sink.IMessageSink;
-import org.bithon.server.setting.AgentSettingService;
-import org.bithon.server.setting.BrpcSettingFetcher;
+import org.bithon.server.collector.cmd.api.CommandService;
+import org.bithon.server.collector.setting.AgentSettingService;
+import org.bithon.server.collector.setting.BrpcSettingFetcher;
+import org.bithon.server.event.sink.IEventMessageSink;
+import org.bithon.server.metric.sink.IMessageSink;
+import org.bithon.server.metric.sink.IMetricMessageSink;
+import org.bithon.server.tracing.sink.ITraceMessageSink;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
@@ -49,28 +52,14 @@ import java.util.Map;
 @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true", matchIfMissing = false)
 public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextAware {
 
-    private final List<ServerChannel> servers = new ArrayList<>();
+    private final Map<Integer, ServiceGroup> serviceGroups = new HashMap<>();
     private ApplicationContext applicationContext;
     private boolean isRunning;
-
-    @Getter
-    @AllArgsConstructor
-    static class ServiceImpl {
-        private final Class<?> clazz;
-        private final Object impl;
-    }
-
-    @Getter
-    static class ServiceGroup {
-        private final List<ServiceImpl> services = new ArrayList<>();
-        private boolean isCtrl;
-    }
 
     @SuppressWarnings("unchecked")
     @Override
     public void start() {
         BrpcCollectorConfig config = applicationContext.getBean(BrpcCollectorConfig.class);
-        Map<Integer, ServiceGroup> serviceGroups = new HashMap<>();
 
         //
         // group services by their listening ports
@@ -86,19 +75,17 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
                 case "metric":
                     clazz = IMetricCollector.class;
                     serviceProvider = new BrpcMetricCollector(applicationContext.getBean("schemaMetricSink", IMessageSink.class),
-                                                              applicationContext.getBean("metricSink", IMessageSink.class));
+                                                              applicationContext.getBean(IMetricMessageSink.class));
                     break;
 
                 case "event":
                     clazz = IEventCollector.class;
-                    serviceProvider = new BrpcEventCollector(applicationContext.getBean("eventSink",
-                                                                                        IMessageSink.class));
+                    serviceProvider = new BrpcEventCollector(applicationContext.getBean(IEventMessageSink.class));
                     break;
 
                 case "tracing":
                     clazz = ITraceCollector.class;
-                    serviceProvider = new BrpcTraceCollector(applicationContext.getBean("traceSink",
-                                                                                        IMessageSink.class));
+                    serviceProvider = new BrpcTraceCollector(applicationContext.getBean(ITraceMessageSink.class));
                     break;
 
                 case "ctrl":
@@ -113,7 +100,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
             if (serviceProvider != null) {
                 ServiceGroup serviceGroup = serviceGroups.computeIfAbsent(port, key -> new ServiceGroup());
                 serviceGroup.isCtrl = isCtrl;
-                serviceGroup.getServices().add(new ServiceImpl(clazz, serviceProvider));
+                serviceGroup.getServices().add(new ServiceProvider(service, clazz, serviceProvider));
             }
         }
 
@@ -122,8 +109,8 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
             if (serviceGroup.isCtrl) {
                 applicationContext.getBean(CommandService.class).setServerChannel(channel);
             }
-            serviceGroup.getServices().forEach((service) -> channel.bindService(service.getImpl()));
-            channel.start(port);
+            serviceGroup.channel = new ServerChannel();
+            serviceGroup.start(port);
         });
 
         isRunning = true;
@@ -131,7 +118,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
 
     @Override
     public void stop() {
-        servers.forEach(ServerChannel::close);
+        serviceGroups.values().forEach((ServiceGroup::close));
         isRunning = false;
     }
 
@@ -143,5 +130,55 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    /**
+     * Collector should be shutdown at first
+     */
+    @Override
+    public int getPhase() {
+        return DEFAULT_PHASE - 1;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    static class ServiceProvider {
+        private final String name;
+        private final Class<?> service;
+        private final Object implementation;
+    }
+
+    @Getter
+    static class ServiceGroup {
+        private final List<ServiceProvider> services = new ArrayList<>();
+        private boolean isCtrl;
+        private ServerChannel channel;
+
+        public void start(Integer port) {
+            for (ServiceProvider service : services) {
+                channel.bindService(service.getImplementation());
+            }
+            channel.start(port);
+        }
+
+        public void close() {
+            // close channel first
+            try {
+                channel.close();
+            } catch (Exception ignored) {
+            }
+
+            // close collector processing
+            for (ServiceProvider serviceProvider : services) {
+                log.info("Closing collector services: {}", serviceProvider.name);
+
+                if (serviceProvider.implementation instanceof AutoCloseable) {
+                    try {
+                        ((AutoCloseable) serviceProvider.implementation).close();
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        }
     }
 }

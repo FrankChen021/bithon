@@ -20,8 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.thrift.service.MessageHeader;
 import org.bithon.agent.rpc.thrift.service.event.IEventCollector;
 import org.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
-import org.bithon.server.collector.sink.IMessageSink;
-import org.bithon.server.event.handler.EventMessage;
+import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.event.sink.EventMessage;
+import org.bithon.server.event.sink.IEventMessageSink;
+
+import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,9 +34,9 @@ import org.bithon.server.event.handler.EventMessage;
 @Slf4j
 public class ThriftEventCollector implements IEventCollector.Iface {
 
-    private final IMessageSink<EventMessage> eventSink;
+    private final IEventMessageSink eventSink;
 
-    public ThriftEventCollector(IMessageSink<EventMessage> eventSink) {
+    public ThriftEventCollector(IEventMessageSink eventSink) {
         this.eventSink = eventSink;
     }
 
@@ -44,6 +48,23 @@ public class ThriftEventCollector implements IEventCollector.Iface {
                                                 .type(message.getEventType())
                                                 .args(message.getArguments())
                                                 .build();
-        eventSink.process("event", eventMessage);
+        Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
+        CloseableIterator<EventMessage> ii = new CloseableIterator<EventMessage>() {
+            @Override
+            public void close() {
+
+            }
+
+            @Override
+            public boolean hasNext() {
+                return delegate.hasNext();
+            }
+
+            @Override
+            public EventMessage next() {
+                return delegate.next();
+            }
+        };
+        eventSink.process("event", ii);
     }
 }

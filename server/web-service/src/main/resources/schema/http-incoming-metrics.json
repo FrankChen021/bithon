@@ -1,0 +1,161 @@
+{
+  "displayText": "Incoming HTTP",
+  "name": "http-incoming-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application Name",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance Name",
+      "required": true
+    },
+    {
+      "name": "srcApplication",
+      "displayText": "Source Application",
+      "required": true
+    },
+    {
+      "name": "uri",
+      "displayText": "Request URI",
+      "required": true
+    },
+    {
+      "name": "statusCode",
+      "displayText": "Status Code",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "responseTime",
+      "displayText": "Accumulative Response Time",
+      "unit": "nanosecond",
+      "visible": false
+    },
+    {
+      "type": "longMin",
+      "name": "minResponseTime",
+      "displayText": "Min Response time",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longMax",
+      "name": "maxResponseTime",
+      "displayText": "Max Response time",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "longSum",
+      "name": "totalCount",
+      "displayText": "count of requests",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "okCount",
+      "displayText": "OK Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "errorCount",
+      "displayText": "Error Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "count4xx",
+      "displayText": "4xx Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "count5xx",
+      "displayText": "5xx Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "flowedCount",
+      "displayText": "Flowed Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "degradedCount",
+      "displayText": "Degraded Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "requestBytes",
+      "displayText": "Bytes of Requests",
+      "unit": "byte"
+    },
+    {
+      "type": "longSum",
+      "name": "responseBytes",
+      "displayText": "Bytes of Responses",
+      "unit": "byte"
+    },
+    {
+      "type": "post",
+      "name": "avgResponseTime",
+      "expression": "responseTime/1000.0/1000/totalCount",
+      "displayText": "Avg cost time",
+      "unit": "millisecond",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "qps",
+      "expression": "totalCount/{interval}",
+      "displayText": "QPS",
+      "unit": "",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "okQPS",
+      "expression": "okCount/{interval}",
+      "displayText": "QPS",
+      "unit": "",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "instanceQPS",
+      "expression": "totalCount/{interval}/{instanceCount}",
+      "displayText": "Avg QPS per instance",
+      "unit": "",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "requestByteRate",
+      "expression": "requestBytes/{interval}",
+      "displayText": "Avg Request Byte Rate",
+      "unit": "Bps",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "responseByteRate",
+      "expression": "responseBytes/{interval}",
+      "displayText": "Avg Response Byte Rate",
+      "unit": "Bps",
+      "valueType": "double"
+    }
+  ]
+}
+
+
+

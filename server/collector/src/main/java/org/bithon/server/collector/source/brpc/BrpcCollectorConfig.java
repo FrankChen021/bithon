@@ -17,30 +17,21 @@
 package org.bithon.server.collector.source.brpc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import lombok.Data;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.bithon.server.collector.sink.IMessageSink;
-import org.bithon.server.collector.sink.kafka.KafkaEventSink;
-import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
-import org.bithon.server.collector.sink.kafka.KafkaTraceSink;
-import org.bithon.server.collector.sink.local.LocalEventSink;
-import org.bithon.server.collector.sink.local.LocalMetricSink;
-import org.bithon.server.collector.sink.local.LocalSchemaMetricSink;
-import org.bithon.server.collector.sink.local.LocalTraceSink;
-import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.event.handler.EventsMessageHandler;
-import org.bithon.server.metric.handler.MetricMessage;
-import org.bithon.server.metric.handler.SchemaMetricMessage;
-import org.bithon.server.tracing.handler.TraceMessageHandler;
+import org.bithon.server.collector.sink.SinkConfig;
+import org.bithon.server.event.sink.IEventMessageSink;
+import org.bithon.server.metric.sink.IMessageSink;
+import org.bithon.server.metric.sink.IMetricMessageSink;
+import org.bithon.server.metric.sink.LocalSchemaMetricSink;
+import org.bithon.server.metric.sink.SchemaMetricMessage;
+import org.bithon.server.tracing.sink.ITraceMessageSink;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -55,12 +46,6 @@ public class BrpcCollectorConfig {
     private Map<String, Integer> port;
     private SinkConfig sink;
 
-    @Data
-    static class SinkConfig {
-        private String type;
-        private Map<String, Object> props;
-    }
-
     @Bean("schemaMetricSink")
     public IMessageSink<SchemaMetricMessage> metricSink(BrpcCollectorConfig config,
                                                         ApplicationContext applicationContext) {
@@ -72,50 +57,21 @@ public class BrpcCollectorConfig {
         }
     }
 
-    @Bean("metricSink")
-    public IMessageSink<CloseableIterator<MetricMessage>> metricSink(BrpcCollectorConfig config,
-                                                                     ObjectMapper om,
-                                                                     ApplicationContext applicationContext) {
-        if ("local".equals(config.getSink().getType())) {
-            return new LocalMetricSink(applicationContext);
-        } else {
-            return new KafkaMetricSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink()
-                                                                                                   .getProps(),
-                                                                                             new StringSerializer(),
-                                                                                             new StringSerializer()),
-                                                           ImmutableMap.of("client.id", "metric")),
-                                       om);
-        }
+    @Bean
+    public IMetricMessageSink metricSink(BrpcCollectorConfig config,
+                                         ObjectMapper om) throws IOException {
+        return SinkConfig.createSink(config.getSink(), om, IMetricMessageSink.class);
     }
 
-    @Bean("eventSink")
-    public IMessageSink<?> eventSink(BrpcCollectorConfig config,
-                                     EventsMessageHandler handler,
-                                     ObjectMapper om) {
-        if ("local".equals(config.getSink().getType())) {
-            return new LocalEventSink(handler);
-        } else {
-            return new KafkaEventSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink().getProps(),
-                                                                                            new StringSerializer(),
-                                                                                            new StringSerializer()),
-                                                          ImmutableMap.of("client.id", "event")),
-                                      om);
-        }
+    @Bean
+    public IEventMessageSink eventSink(BrpcCollectorConfig config,
+                                       ObjectMapper om) throws IOException {
+        return SinkConfig.createSink(config.getSink(), om, IEventMessageSink.class);
     }
 
-    @Bean("traceSink")
-    public IMessageSink<?> traceSink(BrpcCollectorConfig config,
-                                     TraceMessageHandler traceMessageHandler,
-                                     ObjectMapper om) {
-
-        if ("local".equals(config.getSink().getType())) {
-            return new LocalTraceSink(traceMessageHandler);
-        } else {
-            return new KafkaTraceSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink().getProps(),
-                                                                                            new StringSerializer(),
-                                                                                            new StringSerializer()),
-                                                          ImmutableMap.of("client.id", "trace")),
-                                      om);
-        }
+    @Bean
+    public ITraceMessageSink traceSink(BrpcCollectorConfig config,
+                                       ObjectMapper om) throws IOException {
+        return SinkConfig.createSink(config.getSink(), om, ITraceMessageSink.class);
     }
 }

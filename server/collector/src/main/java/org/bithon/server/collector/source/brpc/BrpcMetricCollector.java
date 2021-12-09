@@ -34,7 +34,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
-import org.bithon.server.collector.sink.IMessageSink;
 import org.bithon.server.common.utils.ReflectionUtils;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.metric.DataSourceSchema;
@@ -46,8 +45,10 @@ import org.bithon.server.metric.aggregator.spec.LongMinMetricSpec;
 import org.bithon.server.metric.aggregator.spec.LongSumMetricSpec;
 import org.bithon.server.metric.dimension.IDimensionSpec;
 import org.bithon.server.metric.dimension.StringDimensionSpec;
-import org.bithon.server.metric.handler.MetricMessage;
-import org.bithon.server.metric.handler.SchemaMetricMessage;
+import org.bithon.server.metric.sink.IMessageSink;
+import org.bithon.server.metric.sink.IMetricMessageSink;
+import org.bithon.server.metric.sink.MetricMessage;
+import org.bithon.server.metric.sink.SchemaMetricMessage;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Iterator;
@@ -59,13 +60,13 @@ import java.util.stream.Collectors;
  * @date 2021/1/10 2:37 下午
  */
 @Slf4j
-public class BrpcMetricCollector implements IMetricCollector {
+public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     private final IMessageSink<SchemaMetricMessage> schemaMetricSink;
-    private final IMessageSink<CloseableIterator<MetricMessage>> metricSink;
+    private final IMetricMessageSink metricSink;
 
     public BrpcMetricCollector(IMessageSink<SchemaMetricMessage> schemaMetricSink,
-                               IMessageSink<CloseableIterator<MetricMessage>> metricSink) {
+                               IMetricMessageSink metricSink) {
         this.schemaMetricSink = schemaMetricSink;
         this.metricSink = metricSink;
     }
@@ -295,6 +296,11 @@ public class BrpcMetricCollector implements IMetricCollector {
         metricSink.process(message.getSchema().getName(), mesageIterator);
     }
 
+    @Override
+    public void close() throws Exception {
+        metricSink.close();
+    }
+
     private static class GenericMetricMessageIterator implements CloseableIterator<MetricMessage> {
         private final Iterator<?> iterator;
         private final BrpcMessageHeader header;
@@ -315,7 +321,27 @@ public class BrpcMetricCollector implements IMetricCollector {
 
         @Override
         public MetricMessage next() {
-            return MetricMessage.of(header, iterator.next());
+            return toMetricMessage(header, iterator.next());
+        }
+
+        private MetricMessage toMetricMessage(BrpcMessageHeader header, Object message) {
+            MetricMessage metricMessage = new MetricMessage();
+            ReflectionUtils.getFields(header, metricMessage);
+            ReflectionUtils.getFields(message, metricMessage);
+
+            // adaptor
+            // protobuf turns the name 'count4xx' in .proto file to 'count4Xx'
+            // we have to convert it back to make it compatible with existing name style
+            Object count4xx = metricMessage.remove("count4Xx");
+            if (count4xx != null) {
+                metricMessage.put("count4xx", count4xx);
+            }
+            Object count5xx = metricMessage.remove("count5Xx");
+            if (count5xx != null) {
+                metricMessage.put("count5xx", count5xx);
+            }
+
+            return metricMessage;
         }
     }
 }
