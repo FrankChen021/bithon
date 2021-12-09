@@ -24,7 +24,9 @@ import org.bithon.server.collector.sink.IMessageSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.tracing.handler.TraceSpan;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -48,6 +50,44 @@ public class BrpcTraceCollector implements ITraceCollector {
         }
 
         log.debug("Receiving trace message:{}", spans);
-        traceSink.process("trace", TraceSpan.of(header, spans));
+        traceSink.process("trace", toSpan(header, spans));
+    }
+
+    private CloseableIterator<TraceSpan> toSpan(BrpcMessageHeader header, List<BrpcTraceSpanMessage> messages) {
+
+        Iterator<BrpcTraceSpanMessage> delegate = messages.iterator();
+        return new CloseableIterator<TraceSpan>() {
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public boolean hasNext() {
+                return delegate.hasNext();
+            }
+
+            @Override
+            public TraceSpan next() {
+                BrpcTraceSpanMessage spanMessage = delegate.next();
+
+                TraceSpan traceSpan = new TraceSpan();
+                traceSpan.appName = header.getAppName();
+                traceSpan.instanceName = header.getInstanceName();
+                traceSpan.kind = spanMessage.getKind();
+                traceSpan.name = spanMessage.getName();
+                traceSpan.traceId = spanMessage.getTraceId();
+                traceSpan.spanId = spanMessage.getSpanId();
+                traceSpan.parentSpanId = StringUtils.isEmpty(spanMessage.getParentSpanId()) ? "" : spanMessage.getParentSpanId();
+                traceSpan.parentApplication = spanMessage.getParentAppName();
+                traceSpan.startTime = spanMessage.getStartTime();
+                traceSpan.endTime = spanMessage.getEndTime();
+                traceSpan.costTime = spanMessage.getEndTime() - spanMessage.getStartTime();
+                traceSpan.tags = spanMessage.getTagsMap();
+                traceSpan.clazz = spanMessage.getClazz();
+                traceSpan.method = spanMessage.getMethod();
+
+                return traceSpan;
+            }
+        };
     }
 }

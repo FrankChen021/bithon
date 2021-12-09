@@ -14,26 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.collector.sink.local;
+package org.bithon.server.tracing.handler;
 
-import org.bithon.server.collector.sink.IMessageSink;
-import org.bithon.server.event.handler.EventMessage;
-import org.bithon.server.event.handler.EventsMessageHandler;
+import lombok.Data;
+
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/16
+ * @date 2021/2/4 8:28 下午
  */
-public class LocalEventSink implements IMessageSink<EventMessage> {
-
-    private final EventsMessageHandler handler;
-
-    public LocalEventSink(EventsMessageHandler handler) {
-        this.handler = handler;
-    }
-
-    @Override
-    public void process(String messageType, EventMessage message) {
-        this.handler.submit(message);
-    }
+@Data
+public class TraceSpan {
+    public String appName;
+    public String instanceName;
+    public String traceId;
+    public String spanId;
+    public String kind;
+    public String parentSpanId;
+    public String parentApplication;
+    public Map<String, String> tags;
+    public long costTime;
+    public long startTime;
+    public long endTime;
+    public String name;
+    public String clazz;
+    public String method;
 }

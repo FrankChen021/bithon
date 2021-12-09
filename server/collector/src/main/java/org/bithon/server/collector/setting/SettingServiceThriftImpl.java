@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.setting;
+package org.bithon.server.collector.setting;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;

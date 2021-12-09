@@ -77,10 +77,10 @@ public class ThriftCollectorConfig {
 
     @Bean("eventSink")
     public IMessageSink<?> eventSink(ThriftCollectorConfig config,
-                                     EventsMessageHandler handler,
+                                     ApplicationContext applicationContext,
                                      ObjectMapper om) {
         if ("local".equals(config.getSink().getType())) {
-            return new LocalEventSink(handler);
+            return new LocalEventSink(applicationContext);
         } else {
             return new KafkaEventSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink().getProps(),
                                                                                             new StringSerializer(),
@@ -92,11 +92,11 @@ public class ThriftCollectorConfig {
 
     @Bean("traceSink")
     public IMessageSink<?> traceSink(ThriftCollectorConfig config,
-                                     TraceMessageHandler traceMessageHandler,
+                                     ApplicationContext applicationContext,
                                      ObjectMapper om) {
 
         if ("local".equals(config.getSink().getType())) {
-            return new LocalTraceSink(traceMessageHandler);
+            return new LocalTraceSink(applicationContext);
         } else {
             return new KafkaTraceSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink().getProps(),
                                                                                             new StringSerializer(),

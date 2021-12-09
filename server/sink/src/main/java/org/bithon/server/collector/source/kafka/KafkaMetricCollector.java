@@ -16,13 +16,12 @@
 
 package org.bithon.server.collector.source.kafka;
 
-import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.metric.handler.AbstractMetricMessageHandler;
 import org.bithon.server.metric.handler.MetricMessage;
 
 /**
- * Kafka collector that is connecting to {@link KafkaMetricSink}
+ * Kafka collector that is connecting to KafkaMetricSink
  *
  * @author frank.chen021@outlook.com
  * @date 2021/3/18

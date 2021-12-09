@@ -16,11 +16,6 @@
 
 package org.bithon.server.metric.handler;
 
-import org.bithon.agent.rpc.brpc.ApplicationType;
-import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import org.bithon.agent.rpc.thrift.service.MessageHeader;
-import org.bithon.server.common.utils.ReflectionUtils;
-
 import java.util.HashMap;
 
 /**
@@ -30,33 +25,6 @@ import java.util.HashMap;
  * @date 2021/3/15
  */
 public class MetricMessage extends HashMap<String, Object> {
-
-    public static MetricMessage of(BrpcMessageHeader header, Object message) {
-        MetricMessage metricMessage = new MetricMessage();
-        ReflectionUtils.getFields(header, metricMessage);
-        ReflectionUtils.getFields(message, metricMessage);
-
-        // adaptor
-        // protobuf turns the name 'count4xx' in .proto file to 'count4Xx'
-        // we have to convert it back to make it compatible with existing name style
-        Object count4xx = metricMessage.remove("count4Xx");
-        if (count4xx != null) {
-            metricMessage.put("count4xx", count4xx);
-        }
-        Object count5xx = metricMessage.remove("count5Xx");
-        if (count5xx != null) {
-            metricMessage.put("count5xx", count5xx);
-        }
-
-        return metricMessage;
-    }
-
-    public static MetricMessage of(MessageHeader header, Object message) {
-        MetricMessage metricMessage = new MetricMessage();
-        ReflectionUtils.getFields(header, metricMessage);
-        ReflectionUtils.getFields(message, metricMessage);
-        return metricMessage;
-    }
 
     public long getTimestamp() {
         return (long) this.get("timestamp");
@@ -75,7 +43,7 @@ public class MetricMessage extends HashMap<String, Object> {
     }
 
     public String getApplicationType() {
-        return ((ApplicationType) this.getOrDefault("appType", ApplicationType.UNRECOGNIZED)).name();
+        return this.getOrDefault("appType", "Unknown").toString();
     }
 
     public long getLong(String prop) {

@@ -31,6 +31,7 @@ import org.bithon.agent.rpc.thrift.service.metric.message.SqlMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.ThreadPoolMetricMessage;
 import org.bithon.agent.rpc.thrift.service.metric.message.WebServerMetricMessage;
 import org.bithon.server.collector.sink.IMessageSink;
+import org.bithon.server.common.utils.ReflectionUtils;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.metric.handler.MetricMessage;
 import org.springframework.util.CollectionUtils;
@@ -170,7 +171,14 @@ public class ThriftMetricCollector implements IMetricCollector.Iface {
 
         @Override
         public MetricMessage next() {
-            return MetricMessage.of(header, iterator.next());
+            return toMetricMessage(header, iterator.next());
+        }
+
+        private MetricMessage toMetricMessage(MessageHeader header, Object message) {
+            MetricMessage metricMessage = new MetricMessage();
+            ReflectionUtils.getFields(header, metricMessage);
+            ReflectionUtils.getFields(message, metricMessage);
+            return metricMessage;
         }
     }
 }

@@ -29,10 +29,8 @@ import org.bithon.server.collector.sink.local.LocalMetricSink;
 import org.bithon.server.collector.sink.local.LocalSchemaMetricSink;
 import org.bithon.server.collector.sink.local.LocalTraceSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.event.handler.EventsMessageHandler;
 import org.bithon.server.metric.handler.MetricMessage;
 import org.bithon.server.metric.handler.SchemaMetricMessage;
-import org.bithon.server.tracing.handler.TraceMessageHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -90,10 +88,10 @@ public class BrpcCollectorConfig {
 
     @Bean("eventSink")
     public IMessageSink<?> eventSink(BrpcCollectorConfig config,
-                                     EventsMessageHandler handler,
+                                     ApplicationContext applicationContext,
                                      ObjectMapper om) {
         if ("local".equals(config.getSink().getType())) {
-            return new LocalEventSink(handler);
+            return new LocalEventSink(applicationContext);
         } else {
             return new KafkaEventSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink().getProps(),
                                                                                             new StringSerializer(),
@@ -105,11 +103,11 @@ public class BrpcCollectorConfig {
 
     @Bean("traceSink")
     public IMessageSink<?> traceSink(BrpcCollectorConfig config,
-                                     TraceMessageHandler traceMessageHandler,
+                                     ApplicationContext applicationContext,
                                      ObjectMapper om) {
 
         if ("local".equals(config.getSink().getType())) {
-            return new LocalTraceSink(traceMessageHandler);
+            return new LocalTraceSink(applicationContext);
         } else {
             return new KafkaTraceSink(new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config.getSink().getProps(),
                                                                                             new StringSerializer(),

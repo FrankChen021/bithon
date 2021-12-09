@@ -9,9 +9,9 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>bithon-server-collector</artifactId>
-  <name>server-collector</name>
-  <description>Bithon Collector</description>
+  <artifactId>bithon-sink</artifactId>
+  <name>bithon-sink</name>
+  <description>Bithon Sink</description>
 
   <properties>
     <java.version>1.8</java.version>
@@ -41,28 +41,11 @@
       <artifactId>lombok</artifactId>
     </dependency>
 
-    <!-- Thrift RPC -->
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>agent-rpc-thrift</artifactId>
-    </dependency>
-
-    <!-- BRPC -->
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>agent-rpc-brpc</artifactId>
-    </dependency>
-
-    <!-- BRPC -->
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>bithon-sink</artifactId>
-    </dependency>
-
     <!-- Bithon Commons -->
     <dependency>
       <groupId>org.bithon</groupId>
       <artifactId>component-commons</artifactId>
+      <version>1.0-SNAPSHOT</version>
     </dependency>
 
     <!-- Caffeine Cache -->

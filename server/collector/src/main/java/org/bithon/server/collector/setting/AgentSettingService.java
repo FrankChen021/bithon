@@ -14,25 +14,28 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.cmd;
+package org.bithon.server.collector.setting;
 
-import org.bithon.component.brpc.channel.ServerChannel;
+import org.bithon.server.setting.storage.ISettingReader;
+import org.bithon.server.setting.storage.ISettingStorage;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/2 5:20 下午
+ * @date 2021/1/16 7:37 下午
  */
 @Service
-public class CommandService {
+public class AgentSettingService {
 
-    private ServerChannel serverChannel;
+    private final ISettingReader settingReader;
 
-    public ServerChannel getServerChannel() {
-        return serverChannel;
+    public AgentSettingService(ISettingStorage storage) {
+        this.settingReader = storage.createReader();
     }
 
-    public void setServerChannel(ServerChannel serverChannel) {
-        this.serverChannel = serverChannel;
+    public Map<String, String> getSettings(String appName, String env, long since) {
+        return settingReader.getSettings(appName + "-" + env, since);
     }
 }

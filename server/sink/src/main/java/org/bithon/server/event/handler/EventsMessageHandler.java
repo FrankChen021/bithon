@@ -56,7 +56,7 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Event
 
     @Override
     protected void onMessage(EventMessage body) throws IOException {
-        if (body.getType().equals("exception")) {
+        if ("exception".equals(body.getType())) {
             // generate a metric
 
             InputRow row = new InputRow(new HashMap<>(body.getArgs()));

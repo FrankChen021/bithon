@@ -25,6 +25,7 @@ import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.tracing.handler.TraceSpan;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -47,6 +48,44 @@ public class ThriftTraceCollector implements ITraceCollector.Iface {
         }
 
         log.info("Receiving trace message:{}", spans);
-        traceSink.process("trace", TraceSpan.from(header, spans));
+        traceSink.process("trace", from(header, spans));
+    }
+
+    private CloseableIterator<TraceSpan> from(MessageHeader header, List<TraceSpanMessage> messages) {
+
+        Iterator<TraceSpanMessage> delegate = messages.iterator();
+        return new CloseableIterator<TraceSpan>() {
+            @Override
+            public void close() {
+            }
+
+            @Override
+            public boolean hasNext() {
+                return delegate.hasNext();
+            }
+
+            @Override
+            public TraceSpan next() {
+                TraceSpanMessage spanMessage = delegate.next();
+
+                TraceSpan traceSpan = new TraceSpan();
+                traceSpan.appName = header.appName;
+                traceSpan.instanceName = header.instanceName;
+                traceSpan.kind = spanMessage.kind;
+                traceSpan.name = spanMessage.name;
+                traceSpan.traceId = spanMessage.traceId;
+                traceSpan.spanId = spanMessage.spanId;
+                traceSpan.parentSpanId = spanMessage.parentSpanId == null ? "" : spanMessage.parentSpanId;
+                traceSpan.parentApplication = spanMessage.parentAppName;
+                traceSpan.startTime = spanMessage.startTime;
+                traceSpan.endTime = spanMessage.endTime;
+                traceSpan.costTime = spanMessage.endTime - spanMessage.startTime;
+                traceSpan.tags = spanMessage.tags;
+                traceSpan.clazz = spanMessage.clazz;
+                traceSpan.method = spanMessage.method;
+
+                return traceSpan;
+            }
+        };
     }
 }

@@ -21,6 +21,7 @@ import org.bithon.server.collector.sink.IMessageSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.tracing.handler.TraceMessageHandler;
 import org.bithon.server.tracing.handler.TraceSpan;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author frank.chen021@outlook.com
@@ -31,8 +32,8 @@ public class LocalTraceSink implements IMessageSink<CloseableIterator<TraceSpan>
     @Getter
     private final TraceMessageHandler traceMessageHandler;
 
-    public LocalTraceSink(TraceMessageHandler traceMessageHandler) {
-        this.traceMessageHandler = traceMessageHandler;
+    public LocalTraceSink(ApplicationContext applicationContext) {
+        this.traceMessageHandler = applicationContext.getBean(TraceMessageHandler.class);
     }
 
     @Override
