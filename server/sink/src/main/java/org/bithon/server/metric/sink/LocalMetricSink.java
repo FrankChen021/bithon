@@ -16,6 +16,10 @@
 
 package org.bithon.server.metric.sink;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.collection.CloseableIterator;
@@ -35,12 +39,14 @@ import java.util.concurrent.TimeUnit;
  * @date 2021/3/15
  */
 @Slf4j
+@JsonTypeName("local")
 public class LocalMetricSink implements IMetricMessageSink {
 
     private final Map<String, AbstractMetricMessageHandler> handlers = new HashMap<>();
     private final ThreadPoolExecutor executor;
 
-    public LocalMetricSink(ApplicationContext applicationContext) {
+    @JsonCreator
+    public LocalMetricSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         applicationContext.getBeansOfType(AbstractMetricMessageHandler.class).values().forEach(this::add);
 
         final String name = "metric-sink";

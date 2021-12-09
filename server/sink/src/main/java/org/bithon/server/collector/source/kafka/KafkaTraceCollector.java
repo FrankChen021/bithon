@@ -16,8 +16,8 @@
 
 package org.bithon.server.collector.source.kafka;
 
-import org.bithon.server.tracing.sink.LocalTraceSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.tracing.sink.LocalTraceSink;
 import org.bithon.server.tracing.sink.TraceSpan;
 
 /**

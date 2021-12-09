@@ -19,8 +19,8 @@ package org.bithon.server.collector.sink.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.bithon.server.metric.sink.IMetricMessageSink;
 import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.metric.sink.IMetricMessageSink;
 import org.bithon.server.metric.sink.MetricMessage;
 import org.springframework.kafka.core.KafkaTemplate;
 

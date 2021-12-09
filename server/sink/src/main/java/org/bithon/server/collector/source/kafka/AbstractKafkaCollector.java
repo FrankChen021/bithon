@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.bithon.server.common.utils.collection.CloseableIterator;
@@ -30,6 +31,7 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListener;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Map;
 
@@ -37,6 +39,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18
  */
+@Slf4j
 public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, MessageListener<String, String> {
     protected final ObjectMapper objectMapper;
     private final Class<MSG> clazz;
@@ -86,8 +89,9 @@ public abstract class AbstractKafkaCollector<MSG> implements IKafkaCollector, Me
 
         Header type = record.headers().lastHeader("type");
         if (type != null) {
-            onMessage(new String(type.value()), iterator);
+            onMessage(new String(type.value(), StandardCharsets.UTF_8), iterator);
         } else {
+            log.error("No header in message from topic: {}", this.getTopic());
         }
     }
 

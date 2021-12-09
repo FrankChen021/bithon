@@ -16,6 +16,10 @@
 
 package org.bithon.server.tracing.sink;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.springframework.context.ApplicationContext;
@@ -24,12 +28,14 @@ import org.springframework.context.ApplicationContext;
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
  */
+@JsonTypeName("local")
 public class LocalTraceSink implements ITraceMessageSink {
 
     @Getter
     private final TraceMessageHandler traceMessageHandler;
 
-    public LocalTraceSink(ApplicationContext applicationContext) {
+    @JsonCreator
+    public LocalTraceSink(@JacksonInject(useInput = OptBoolean.FALSE)ApplicationContext applicationContext) {
         this.traceMessageHandler = new TraceMessageHandler(applicationContext);
     }
 

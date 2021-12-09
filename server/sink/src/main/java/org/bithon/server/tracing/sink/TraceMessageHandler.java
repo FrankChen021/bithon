@@ -22,7 +22,6 @@ import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.Duration;

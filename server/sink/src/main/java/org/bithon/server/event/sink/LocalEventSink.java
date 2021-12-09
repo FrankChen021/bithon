@@ -16,6 +16,10 @@
 
 package org.bithon.server.event.sink;
 
+import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.springframework.context.ApplicationContext;
 
@@ -25,11 +29,13 @@ import java.io.IOException;
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
  */
+@JsonTypeName("local")
 public class LocalEventSink implements IEventMessageSink {
 
     private final EventsMessageHandler handler;
 
-    public LocalEventSink(ApplicationContext applicationContext) throws IOException {
+    @JsonCreator
+    public LocalEventSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) throws IOException {
         this.handler = new EventsMessageHandler(applicationContext);
     }
 
