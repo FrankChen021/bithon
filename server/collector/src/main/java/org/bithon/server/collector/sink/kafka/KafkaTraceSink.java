@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.sink.ITraceMessageSink;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -56,7 +56,7 @@ public class KafkaTraceSink implements ITraceMessageSink {
     }
 
     @Override
-    public void process(String messageType, CloseableIterator<TraceSpan> spans) {
+    public void process(String messageType, IteratorableCollection<TraceSpan> spans) {
         if (!spans.hasNext()) {
             return;
         }
@@ -71,10 +71,8 @@ public class KafkaTraceSink implements ITraceMessageSink {
         //
         StringBuilder messageText = new StringBuilder();
         while (spans.hasNext()) {
-
             TraceSpan span = spans.next();
 
-            // Sink receives messages from an agent, it's safe to use instance name of first item
             key = span.getTraceId();
 
             try {

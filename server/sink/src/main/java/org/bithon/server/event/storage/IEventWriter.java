@@ -19,6 +19,7 @@ package org.bithon.server.event.storage;
 import org.bithon.server.event.sink.EventMessage;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -27,5 +28,5 @@ import java.util.List;
  */
 public interface IEventWriter extends AutoCloseable {
 
-    void write(List<EventMessage> eventMessage) throws IOException;
+    void write(Collection<EventMessage> eventMessage) throws IOException;
 }

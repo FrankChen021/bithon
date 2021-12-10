@@ -16,5 +16,5 @@ import java.util.Map;
 @Data
 public class TraceMappingConfig {
     private String type;
-    private Map<String, Object> params;
+    private Map<String, Object> args;
 }

@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.metric.sink.IMetricMessageSink;
 import org.bithon.server.metric.sink.MetricMessage;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -57,7 +57,7 @@ public class KafkaMetricSink implements IMetricMessageSink {
     }
 
     @Override
-    public void process(String messageType, CloseableIterator<MetricMessage> messages) {
+    public void process(String messageType, IteratorableCollection<MetricMessage> messages) {
         if (!messages.hasNext()) {
             return;
         }

@@ -35,7 +35,7 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.server.common.utils.ReflectionUtils;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.TimestampSpec;
 import org.bithon.server.metric.aggregator.spec.IMetricSpec;
@@ -77,7 +77,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("http-incoming-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("http-incoming-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -86,7 +86,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("jvm-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("jvm-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -95,7 +95,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("jvm-gc-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("jvm-gc-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -104,7 +104,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("web-server-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("web-server-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -113,7 +113,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("exception-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("exception-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -122,7 +122,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("http-outgoing-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("http-outgoing-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -131,7 +131,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("thread-pool-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("thread-pool-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -140,7 +140,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("jdbc-pool-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("jdbc-pool-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -149,7 +149,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("redis-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("redis-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -158,7 +158,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("sql-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("sql-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -167,7 +167,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("mongodb-metrics", new GenericMetricMessageIterator(header, messages));
+        metricSink.process("mongodb-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -220,11 +220,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
         Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
         schemaMetricMessage.setSchema(schema);
-        schemaMetricMessage.setMetrics(new CloseableIterator<MetricMessage>() {
-            @Override
-            public void close() {
-            }
-
+        schemaMetricMessage.setMetrics(IteratorableCollection.of(new Iterator<MetricMessage>() {
             @Override
             public boolean hasNext() {
                 return iterator.hasNext();
@@ -252,18 +248,14 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                 ReflectionUtils.getFields(header, metricMessage);
                 return metricMessage;
             }
-        });
+        }));
         schemaMetricSink.process(message.getSchema().getName(), schemaMetricMessage);
     }
 
     @Override
     public void sendGenericMetricsV2(BrpcMessageHeader header, BrpcGenericMetricMessageV2 message) {
-        CloseableIterator<MetricMessage> mesageIterator = new CloseableIterator<MetricMessage>() {
+        Iterator<MetricMessage> mesageIterator = new Iterator<MetricMessage>() {
             final Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
-
-            @Override
-            public void close() {
-            }
 
             @Override
             public boolean hasNext() {
@@ -293,7 +285,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                 return metricMessage;
             }
         };
-        metricSink.process(message.getSchema().getName(), mesageIterator);
+        metricSink.process(message.getSchema().getName(), IteratorableCollection.of(mesageIterator));
     }
 
     @Override
@@ -301,17 +293,13 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         metricSink.close();
     }
 
-    private static class GenericMetricMessageIterator implements CloseableIterator<MetricMessage> {
+    private static class GenericMetricMessageIterator implements Iterator<MetricMessage> {
         private final Iterator<?> iterator;
         private final BrpcMessageHeader header;
 
         public GenericMetricMessageIterator(BrpcMessageHeader header, List<?> messages) {
             this.header = header;
             this.iterator = messages.iterator();
-        }
-
-        @Override
-        public void close() {
         }
 
         @Override

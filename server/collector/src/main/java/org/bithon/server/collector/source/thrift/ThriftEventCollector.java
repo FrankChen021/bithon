@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.thrift.service.MessageHeader;
 import org.bithon.agent.rpc.thrift.service.event.IEventCollector;
 import org.bithon.agent.rpc.thrift.service.event.ThriftEventMessage;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.event.sink.EventMessage;
 import org.bithon.server.event.sink.IEventMessageSink;
 
@@ -49,22 +49,6 @@ public class ThriftEventCollector implements IEventCollector.Iface {
                                                 .args(message.getArguments())
                                                 .build();
         Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
-        CloseableIterator<EventMessage> ii = new CloseableIterator<EventMessage>() {
-            @Override
-            public void close() {
-
-            }
-
-            @Override
-            public boolean hasNext() {
-                return delegate.hasNext();
-            }
-
-            @Override
-            public EventMessage next() {
-                return delegate.next();
-            }
-        };
-        eventSink.process("event", ii);
+        eventSink.process("event", IteratorableCollection.of(delegate));
     }
 }

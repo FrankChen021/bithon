@@ -2,10 +2,9 @@ package org.bithon.server.tracing.mapping;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.metric.dimension.transformer.MappingTransformer;
 import org.bithon.server.tracing.sink.TraceSpan;
 
-import java.util.List;
+import java.util.function.BiConsumer;
 
 /**
  * @author Frank Chen
@@ -13,8 +12,9 @@ import java.util.List;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "uri", value = MappingTransformer.class)
+    @JsonSubTypes.Type(name = "uri", value = URIParameterExtractor.class),
+    @JsonSubTypes.Type(name = "name", value = NameValueExtractor.class),
 })
 public interface ITraceMappingExtractor {
-    List<TraceMapping> extract(TraceSpan span);
+    void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback);
 }

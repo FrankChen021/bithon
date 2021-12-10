@@ -2,36 +2,45 @@ package org.bithon.server.tracing.mapping;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.tracing.sink.TraceSpan;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * @author Frank Chen
  * @date 10/12/21 3:13 PM
  */
-public class URLParameterExtractor implements ITraceMappingExtractor {
+@Slf4j
+public class URIParameterExtractor implements ITraceMappingExtractor {
 
-    private final List<String> parameters;
+    private final Collection<String> parameters;
 
-    @JsonCreator
-    public URLParameterExtractor(@JsonProperty("parameters") List<String> parameters) {
+    public URIParameterExtractor(@JsonProperty("parameters") Collection<String> parameters) {
         this.parameters = parameters;
     }
 
-    @Override
-    public List<TraceMapping> extract(TraceSpan span) {
-        List<TraceMapping> mappings = new ArrayList<>();
+    /**
+     * yaml deserialize the value of args parameter on {@link TraceMappingConfig} into a Map instead of an expected array
+     */
+    @JsonCreator
+    public URIParameterExtractor(@JsonProperty("parameters") Map<String, String> parameters) {
+        this(new ArrayList<>(parameters.values()));
+    }
 
+    @Override
+    public void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback) {
         String uriText = span.getTags().get("uri");
         if (!StringUtils.hasText(uriText)) {
-            return mappings;
+            return;
         }
 
         try {
@@ -41,23 +50,21 @@ public class URLParameterExtractor implements ITraceMappingExtractor {
 
             for (String parameter : this.parameters) {
                 String userTxId = variables.get(parameter);
-                if (!StringUtils.hasText(userTxId)) {
-                    continue;
+                if (StringUtils.hasText(userTxId)) {
+                    callback.accept(span, userTxId);
                 }
-
-                mappings.add(new TraceMapping(span.getStartTime() / 1000, //to milli second
-                                              userTxId,
-                                              span.getTraceId()));
             }
 
         } catch (URISyntaxException e) {
-            return mappings;
+            log.warn("Invalid URI[{}] to extract trace mapping: {}", uriText, e.getMessage());
         }
-
-        return mappings;
     }
 
     private Map<String, String> parseQuery(String query) {
+        if (!StringUtils.hasText(query)) {
+            return Collections.emptyMap();
+        }
+
         Map<String, String> variables = new HashMap<>();
         int fromIndex = 0;
         int toIndex = 0;

@@ -18,12 +18,16 @@ package org.bithon.server.tracing.storage;
 
 import lombok.Data;
 import org.bithon.server.common.ttl.TTLConfig;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Frank Chen
  * @date 17/10/21 10:44 am
  */
 @Data
+@Configuration
+@ConfigurationProperties(prefix = "bithon.storage.tracing")
 public class TraceStorageConfig {
     private String type;
     private TTLConfig ttl;

@@ -17,6 +17,7 @@
 package org.bithon.server.kafka;
 
 import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.event.sink.EventMessage;
 import org.bithon.server.event.sink.LocalEventSink;
 
@@ -43,7 +44,7 @@ public class KafkaEventConsumer extends AbstractKafkaConsumer<EventMessage> {
     }
 
     @Override
-    protected void onMessage(String type, CloseableIterator<EventMessage> messages) {
+    protected void onMessage(String type, IteratorableCollection<EventMessage> messages) {
         eventSink.process(getTopic(), messages);
     }
 

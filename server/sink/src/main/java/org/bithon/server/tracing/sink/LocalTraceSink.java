@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -40,7 +40,7 @@ public class LocalTraceSink implements ITraceMessageSink {
     }
 
     @Override
-    public void process(String messageType, CloseableIterator<TraceSpan> messages) {
+    public void process(String messageType, IteratorableCollection<TraceSpan> messages) {
         handler.submit(messages);
     }
 

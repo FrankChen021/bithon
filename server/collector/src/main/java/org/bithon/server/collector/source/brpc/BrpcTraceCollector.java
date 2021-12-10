@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.sink.ITraceMessageSink;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.springframework.util.CollectionUtils;
@@ -53,14 +53,10 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
         traceSink.process("trace", toSpan(header, spans));
     }
 
-    private CloseableIterator<TraceSpan> toSpan(BrpcMessageHeader header, List<BrpcTraceSpanMessage> messages) {
+    private IteratorableCollection<TraceSpan> toSpan(BrpcMessageHeader header, List<BrpcTraceSpanMessage> messages) {
 
         Iterator<BrpcTraceSpanMessage> delegate = messages.iterator();
-        return new CloseableIterator<TraceSpan>() {
-            @Override
-            public void close() {
-            }
-
+        return IteratorableCollection.of(new Iterator<TraceSpan>() {
             @Override
             public boolean hasNext() {
                 return delegate.hasNext();
@@ -77,7 +73,9 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
                 traceSpan.name = spanMessage.getName();
                 traceSpan.traceId = spanMessage.getTraceId();
                 traceSpan.spanId = spanMessage.getSpanId();
-                traceSpan.parentSpanId = StringUtils.isEmpty(spanMessage.getParentSpanId()) ? "" : spanMessage.getParentSpanId();
+                traceSpan.parentSpanId = StringUtils.isEmpty(spanMessage.getParentSpanId())
+                                         ? ""
+                                         : spanMessage.getParentSpanId();
                 traceSpan.parentApplication = spanMessage.getParentAppName();
                 traceSpan.startTime = spanMessage.getStartTime();
                 traceSpan.endTime = spanMessage.getEndTime();
@@ -88,7 +86,7 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
 
                 return traceSpan;
             }
-        };
+        });
     }
 
     @Override

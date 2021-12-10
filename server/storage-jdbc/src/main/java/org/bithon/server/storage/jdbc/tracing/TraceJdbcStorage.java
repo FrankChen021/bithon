@@ -39,6 +39,7 @@ import org.springframework.dao.DuplicateKeyException;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -167,7 +168,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     private class TraceJdbcWriter implements ITraceWriter {
         @Override
-        public void writeSpans(List<TraceSpan> traceSpans) {
+        public void writeSpans(Collection<TraceSpan> traceSpans) {
             List<BithonTraceSpanRecord> records = traceSpans.stream().map((span) -> {
                 BithonTraceSpanRecord spanRecord = new BithonTraceSpanRecord();
                 spanRecord.setAppname(span.appName);
@@ -197,7 +198,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         }
 
         @Override
-        public void writeMappings(List<TraceMapping> mappings) throws IOException {
+        public void writeMappings(Collection<TraceMapping> mappings) {
             List<Query> queries = new ArrayList<>();
             for (TraceMapping mapping : mappings) {
                 Query q = dslContext.insertInto(Tables.BITHON_TRACE_MAPPING)
@@ -206,7 +207,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                                     .set(Tables.BITHON_TRACE_SPAN.TIMESTAMP, new Timestamp(mapping.getTimestamp()));
                 queries.add(q);
             }
-            dslContext.batch(queries);
+            dslContext.batch(queries).execute();
         }
     }
 }

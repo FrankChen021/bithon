@@ -20,6 +20,7 @@ import org.bithon.server.tracing.mapping.TraceMapping;
 import org.bithon.server.tracing.sink.TraceSpan;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -28,9 +29,10 @@ import java.util.List;
  */
 public interface ITraceWriter extends AutoCloseable {
 
+    @Override
     default void close() {
     }
 
-    void writeSpans(List<TraceSpan> traceSpans) throws IOException;
-    void writeMappings(List<TraceMapping> mappings) throws IOException;
+    void writeSpans(Collection<TraceSpan> traceSpans) throws IOException;
+    void writeMappings(Collection<TraceMapping> mappings) throws IOException;
 }

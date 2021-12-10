@@ -18,7 +18,7 @@ package org.bithon.server.tracing.sink;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 
 /**
  * @author Frank Chen
@@ -29,5 +29,5 @@ import org.bithon.server.common.utils.collection.CloseableIterator;
     @JsonSubTypes.Type(name = "local", value = LocalTraceSink.class),
 })
 public interface ITraceMessageSink extends AutoCloseable {
-    void process(String messageType, CloseableIterator<TraceSpan> messages);
+    void process(String messageType, IteratorableCollection<TraceSpan> messages);
 }

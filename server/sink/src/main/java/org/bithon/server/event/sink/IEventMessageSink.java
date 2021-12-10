@@ -19,6 +19,7 @@ package org.bithon.server.event.sink;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 
 /**
  * @author Frank Chen
@@ -30,6 +31,6 @@ import org.bithon.server.common.utils.collection.CloseableIterator;
 })
 public interface IEventMessageSink extends AutoCloseable {
 
-    void process(String messageType, CloseableIterator<EventMessage> messages);
+    void process(String messageType, IteratorableCollection<EventMessage> messages);
 
 }

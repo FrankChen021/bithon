@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.event.sink.EventMessage;
 import org.bithon.server.event.sink.IEventMessageSink;
 
@@ -50,11 +50,7 @@ public class BrpcEventCollector implements IEventCollector, AutoCloseable {
                                                 .args(message.getArgumentsMap())
                                                 .build();
         Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
-        eventSink.process("event", new CloseableIterator<EventMessage>() {
-            @Override
-            public void close() {
-            }
-
+        eventSink.process("event", IteratorableCollection.of(new Iterator<EventMessage>() {
             @Override
             public boolean hasNext() {
                 return delegate.hasNext();
@@ -64,7 +60,7 @@ public class BrpcEventCollector implements IEventCollector, AutoCloseable {
             public EventMessage next() {
                 return delegate.next();
             }
-        });
+        }));
     }
 
     @Override

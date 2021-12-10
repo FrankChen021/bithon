@@ -16,94 +16,42 @@
 
 package org.bithon.server.tracing.sink;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
-import org.bithon.server.common.utils.collection.CloseableIterator;
-import org.bithon.server.tracing.TraceConfig;
-import org.bithon.server.tracing.mapping.ITraceMappingExtractor;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.mapping.TraceMapping;
-import org.bithon.server.tracing.mapping.TraceMappingConfig;
+import org.bithon.server.tracing.mapping.TraceMappingFactory;
 import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.springframework.context.ApplicationContext;
-import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/4 8:21 下午
  */
 @Slf4j
-public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<CloseableIterator<TraceSpan>> {
+public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<IteratorableCollection<TraceSpan>> {
 
     private final ITraceWriter traceWriter;
-    private final List<ITraceMappingExtractor> extractorList;
+    private final Function<Collection<TraceSpan>, List<TraceMapping>> extractor;
 
     public TraceMessageHandler(ApplicationContext applicationContext) {
         super("trace", 2, 10, Duration.ofMinutes(1), 2048);
         this.traceWriter = applicationContext.getBean(ITraceStorage.class).createWriter();
 
-        //
-        // instantiate mapping extractors
-        //
-        TraceConfig config = applicationContext.getBean(TraceConfig.class);
-        if (CollectionUtils.isEmpty(config.getMapping())) {
-            extractorList = Collections.emptyList();
-            return;
-        }
-
-        extractorList = new ArrayList<>();
-        ObjectMapper mapper = applicationContext.getBean(ObjectMapper.class);
-        for (TraceMappingConfig mappingConfig : config.getMapping()) {
-            try {
-                String json = mapper.writeValueAsString(mappingConfig);
-                extractorList.add(mapper.readValue(json, ITraceMappingExtractor.class));
-            } catch (IOException e) {
-                log.error("Unable to create extractor for type " + mappingConfig.getType(), e);
-            }
-        }
+        this.extractor = TraceMappingFactory.create(applicationContext);
     }
 
     @Override
-    protected void onMessage(CloseableIterator<TraceSpan> traceSpans) throws IOException {
-
-        //
-        // extract mappings
-        //
-        List<TraceSpan> spanList = new ArrayList<>();
-        List<TraceMapping> mappingList = new ArrayList<>();
-        Set<String> userTxIds = new HashSet<>();
-        while (traceSpans.hasNext()) {
-            TraceSpan span = traceSpans.next();
-            spanList.add(span);
-
-            if (CollectionUtils.isEmpty(span.getTags())) {
-                continue;
-            }
-
-            for (ITraceMappingExtractor extractor : this.extractorList) {
-                List<TraceMapping> mappings = extractor.extract(span);
-
-                // remove duplication
-                for (TraceMapping mapping : mappings) {
-                    if (userTxIds.add(mapping.getUserId())) {
-                        mappingList.add(mapping);
-                    }
-                }
-            }
-        }
-        if (!spanList.isEmpty()) {
-            traceWriter.writeSpans(spanList);
-            traceWriter.writeMappings(mappingList);
-        }
+    protected void onMessage(IteratorableCollection<TraceSpan> traceSpans) throws IOException {
+        traceWriter.writeSpans(traceSpans.toCollection());
+        traceWriter.writeMappings(extractor.apply(traceSpans.toCollection()));
     }
 
     @Override
