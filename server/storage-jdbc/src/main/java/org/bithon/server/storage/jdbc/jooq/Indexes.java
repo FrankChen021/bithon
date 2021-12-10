@@ -7,6 +7,7 @@ package org.bithon.server.storage.jdbc.jooq;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 import org.jooq.Index;
 import org.jooq.OrderField;
@@ -30,6 +31,7 @@ public class Indexes {
     public static final Index BITHON_EVENT_IDX_EVENT_INSTANCENAME = Indexes0.BITHON_EVENT_IDX_EVENT_INSTANCENAME;
     public static final Index BITHON_EVENT_IDX_EVENT_TIMESTAMP = Indexes0.BITHON_EVENT_IDX_EVENT_TIMESTAMP;
     public static final Index BITHON_EVENT_IDX_EVENT_TYPE = Indexes0.BITHON_EVENT_IDX_EVENT_TYPE;
+    public static final Index BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_ID = Indexes0.BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_ID;
     public static final Index BITHON_TRACE_SPAN_IDX_APP_NAME = Indexes0.BITHON_TRACE_SPAN_IDX_APP_NAME;
     public static final Index BITHON_TRACE_SPAN_IDX_INSTANCENAME = Indexes0.BITHON_TRACE_SPAN_IDX_INSTANCENAME;
     public static final Index BITHON_TRACE_SPAN_IDX_KEY = Indexes0.BITHON_TRACE_SPAN_IDX_KEY;
@@ -49,6 +51,7 @@ public class Indexes {
         public static Index BITHON_EVENT_IDX_EVENT_INSTANCENAME = Internal.createIndex("idx_event_instanceName", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.INSTANCENAME }, false);
         public static Index BITHON_EVENT_IDX_EVENT_TIMESTAMP = Internal.createIndex("idx_event_timestamp", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.TIMESTAMP }, false);
         public static Index BITHON_EVENT_IDX_EVENT_TYPE = Internal.createIndex("idx_event_type", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.TYPE }, false);
+        public static Index BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_ID = Internal.createIndex("idx_trace_mapping_id", BithonTraceMapping.BITHON_TRACE_MAPPING, new OrderField[] { BithonTraceMapping.BITHON_TRACE_MAPPING.USER_TX_ID, BithonTraceMapping.BITHON_TRACE_MAPPING.TRACE_ID }, false);
         public static Index BITHON_TRACE_SPAN_IDX_APP_NAME = Internal.createIndex("idx_app_name", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.APPNAME }, false);
         public static Index BITHON_TRACE_SPAN_IDX_INSTANCENAME = Internal.createIndex("idx_instanceName", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.INSTANCENAME }, false);
         public static Index BITHON_TRACE_SPAN_IDX_KEY = Internal.createIndex("idx_key", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.TRACEID, BithonTraceSpan.BITHON_TRACE_SPAN.SPANID }, true);

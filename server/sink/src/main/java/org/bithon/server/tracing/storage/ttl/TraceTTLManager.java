@@ -20,9 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.ttl.TTLConfig;
 import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.DateTimeUtils;
+import org.bithon.server.tracing.TraceConfig;
 import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceStorage;
-import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
@@ -39,16 +39,16 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
-@ConditionalOnProperty(value = "bithon.storage.tracing.ttl.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(value = "bithon.tracing.storage.ttl.enabled", havingValue = "true", matchIfMissing = false)
 public class TraceTTLManager implements SmartLifecycle {
 
     private final ITraceStorage traceStorage;
     private final TTLConfig ttlConfig;
     private ScheduledThreadPoolExecutor executor;
 
-    public TraceTTLManager(ITraceStorage traceStorage, TraceStorageConfig storageConfig) {
+    public TraceTTLManager(ITraceStorage traceStorage, TraceConfig traceConfig) {
         this.traceStorage = traceStorage;
-        this.ttlConfig = storageConfig.getTtl();
+        this.ttlConfig = traceConfig.getStorage().getTtl();
     }
 
     @Override
