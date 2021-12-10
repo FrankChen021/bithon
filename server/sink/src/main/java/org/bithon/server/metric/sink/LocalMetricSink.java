@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.ThreadUtils;
-import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.springframework.context.ApplicationContext;
 

@@ -1,5 +1,3 @@
-package org.bithon.server.tracing.mapping;
-
 /*
  *    Copyright 2020 bithon.org
  *
@@ -15,6 +13,8 @@ package org.bithon.server.tracing.mapping;
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+package org.bithon.server.tracing.mapping;
 
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.tracing.sink.TraceSpan;

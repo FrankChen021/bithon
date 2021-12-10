@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.springframework.context.ApplicationContext;
 

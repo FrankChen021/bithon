@@ -16,7 +16,6 @@
 
 package org.bithon.server.kafka;
 
-import org.bithon.server.common.utils.collection.CloseableIterator;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.metric.sink.LocalMetricSink;
 import org.bithon.server.metric.sink.MetricMessage;
