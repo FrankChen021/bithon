@@ -21,10 +21,13 @@ import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.plugin.PluginInterceptorInstaller;
-import shaded.org.apache.log4j.xml.DOMConfigurator;
+import shaded.org.apache.logging.log4j.core.config.ConfigurationSource;
+import shaded.org.apache.logging.log4j.core.config.Configurator;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.util.Locale;
 import java.util.ServiceLoader;
@@ -70,22 +73,18 @@ public class AgentStarter {
         }
     }
 
-    private void initAgentLogger(String agentPath) {
-        String logConfigName = "log4j.configuration";
-        String logConfigFile = agentPath + separator + AgentContext.CONF_DIR + separator + "log4j.xml";
+    private void initAgentLogger(String agentPath) throws IOException {
+        String logConfigName = "log4j.configurationFile";
+        String logConfigFile = agentPath + separator + AgentContext.CONF_DIR + separator + "log4j2.xml";
         String oldLogConfig = System.getProperty(logConfigName);
 
         // replace original property
         System.setProperty(logConfigName, logConfigFile);
 
         // log config
-        ClassLoader ctxLoader = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader(AgentClassLoader.getClassLoader());
-            DOMConfigurator.configure(logConfigFile);
-        } finally {
-            Thread.currentThread().setContextClassLoader(ctxLoader);
-        }
+        Configurator.initialize(null,
+                                new ConfigurationSource(new FileInputStream(logConfigFile),
+                                                        new File(logConfigFile).toURI().toURL()));
 
         // restore original property
         if (oldLogConfig != null) {

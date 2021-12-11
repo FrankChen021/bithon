@@ -19,7 +19,7 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.shaded</groupId>
-      <artifactId>shaded-log4j</artifactId>
+      <artifactId>shaded-log4j2</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
