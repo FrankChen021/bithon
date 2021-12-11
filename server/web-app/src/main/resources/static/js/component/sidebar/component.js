@@ -1,4 +1,3 @@
-
 class MetricSidebar {
     constructor(containerId, appName) {
         this._container = $('#' + containerId);
@@ -6,28 +5,28 @@ class MetricSidebar {
     }
 
     load() {
-        $.ajax({
-            type: 'POST',
-            url: apiHost + "/api/datasource/name",
-            data: JSON.stringify({}),
-            async: true,
-            dataType: "json",
-            contentType: "application/json",
-            success: (data) => {
-                $.each(data, (index, item)=>{
-                    this.addMetricItem(item);
+        g_DashboardApi.getDashboardList(
+            (data) => {
+                $.each(data, (index, item) => {
+                    this.addDashboardItem({id: item.value, text: item.text});
                 });
             },
-            error: (data) => {
-            }
-        });
+            (data) => {
+            });
     }
 
     select() {
     }
 
     // PRIVATE
-    addMetricItem(item) {
-        this._container.append(`<a href="/ui/app/metric/${appName}/${item.value}">${item.text}</a>`);
+    addDashboardItem(item) {
+        const i = $(`<a href="#">${item.text}</a>`).click(() => {
+            let url = `/web/app/metric/${this._appName}/${item.id}?interval=${g_MetricSelectedInterval}`;
+            if ( g_SelectedInstance != null ) {
+                url += `&instance=${g_SelectedInstance}`;
+            }
+            window.location = url;
+        });
+        this._container.append(i);
     }
 }

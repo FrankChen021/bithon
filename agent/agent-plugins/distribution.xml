@@ -7,7 +7,7 @@
   <dependencySets>
     <dependencySet>
       <useTransitiveDependencies>false</useTransitiveDependencies>
-      <outputDirectory>/plugins</outputDirectory>
+      <outputDirectory>/</outputDirectory>
     </dependencySet>
   </dependencySets>
 </assembly>

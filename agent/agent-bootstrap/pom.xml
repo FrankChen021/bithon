@@ -1,124 +1,76 @@
-<?xml version="1.0"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0">
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.sbss.bithon.agent</groupId>
+    <groupId>org.bithon.agent</groupId>
     <artifactId>agent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-
-  <modelVersion>4.0.0</modelVersion>
   <artifactId>agent-bootstrap</artifactId>
 
   <dependencies>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-dispatcher-thrift</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>httpclient</artifactId>
-          <groupId>org.apache.httpcomponents</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>httpcore</artifactId>
-          <groupId>org.apache.httpcomponents</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-dependencies</artifactId>
+      <groupId>org.bithon.shaded</groupId>
+      <artifactId>shaded-bytebuddy</artifactId>
       <version>1.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
-      <artifactId>agent-boot</artifactId>
-      <version>${project.version}</version>
     </dependency>
   </dependencies>
 
+  <!--    <scm>&lt;!&ndash; buildnumber插件需要先设置为空 &ndash;&gt;-->
+  <!--        <connection>scm:git:ssh://</connection>-->
+  <!--        <developerConnection>scm:git:ssh://</developerConnection>-->
+  <!--        <url>http://</url>-->
+  <!--    </scm>-->
+
   <build>
     <finalName>${project.artifactId}</finalName>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <excludes>
-            <exclude>*.xml</exclude>
-            <exclude>*.yml</exclude>
-          </excludes>
-          <archive>
-<!--            <manifest>-->
-<!--              <addClasspath>true</addClasspath>-->
-<!--              <classpathPrefix>./lib/</classpathPrefix>-->
-<!--            </manifest>-->
-            <manifestEntries>
-              <!-- See: https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/compact3-package-summary.html -->
-              <Premain-Class>com.sbss.bithon.agent.bootstrap.Main</Premain-Class>
-              <Can-Redefine-Classes>true</Can-Redefine-Classes>
-              <Boot-Class-Path>./boot/agent-boot-${project.version}.jar</Boot-Class-Path>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
+    <sourceDirectory>src/main/java</sourceDirectory>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <descriptors>
-            <descriptor>distribution.xml</descriptor>
-          </descriptors>
-          <appendAssemblyId>false</appendAssemblyId>
-        </configuration>
-        <executions>
-          <execution>
-            <id>make-distribution</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+    <!-- 打包版本号 -->
+    <!--        <plugins>-->
+    <!--            <plugin>-->
+    <!--                <groupId>org.codehaus.mojo</groupId>-->
+    <!--                <artifactId>buildnumber-maven-plugin</artifactId>-->
+    <!--                <version>1.4</version>-->
+    <!--                <executions>-->
+    <!--                    <execution>-->
+    <!--                        <id>bn1</id>-->
+    <!--                        <goals>-->
+    <!--                            &lt;!&ndash; 创建${buildNumber} &ndash;&gt;-->
+    <!--                            <goal>create</goal>-->
+    <!--                        </goals>-->
+    <!--                    </execution>-->
+    <!--                    <execution>-->
+    <!--                        <id>bn2</id>-->
+    <!--                        <goals>-->
+    <!--                            &lt;!&ndash; 创建时间戳${buildtimestamp} &ndash;&gt;-->
+    <!--                            <goal>create-timestamp</goal>-->
+    <!--                        </goals>-->
+    <!--                        <configuration>-->
+    <!--                            &lt;!&ndash; 指定时间戳变量名 &ndash;&gt;-->
+    <!--                            <timestampPropertyName>buildtimestamp</timestampPropertyName>-->
+    <!--                            &lt;!&ndash; 指定日期格式 &ndash;&gt;-->
+    <!--                            <timestampFormat>yyyy-MM-dd HH:mm:ss</timestampFormat>-->
+    <!--                        </configuration>-->
+    <!--                    </execution>-->
+    <!--                </executions>-->
+    <!--            </plugin>-->
+    <!--            <plugin>-->
+    <!--                <groupId>org.codehaus.mojo</groupId>-->
+    <!--                <artifactId>templating-maven-plugin</artifactId>-->
+    <!--                <version>1.0.0</version>-->
+    <!--                <executions>-->
+    <!--                    <execution>-->
+    <!--                        <id>filtering-java-templates</id>-->
+    <!--                        <goals>-->
+    <!--                            <goal>filter-sources</goal>-->
+    <!--                        </goals>-->
+    <!--                    </execution>-->
+    <!--                </executions>-->
+    <!--            </plugin>-->
+    <!--        </plugins>-->
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <move file="${project.build.directory}/${project.name}/"
-                      tofile="../${project.distribution.dir}" overwrite="true"/>
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>3.2.1</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
   </build>
 </project>

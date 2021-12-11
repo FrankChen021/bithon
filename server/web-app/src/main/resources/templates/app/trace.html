@@ -60,7 +60,7 @@
                     pageSize: params.pageSize,
                     pageNumber: params.pageNumber - 1,
                     traceId: params.searchText,
-                    appName: appName,
+                    appName: g_SelectedApp,
                     orderBy: params.sortName,
                     order: params.sortOrder
                 };
@@ -80,13 +80,13 @@
                 field: 'traceId',
                 title: 'Trace Id',
                 formatter: function (value, row) {
-                    return '<a target="_blank" href="/ui/trace/detail/' + row.traceId + '">' + value + '</a>';
+                    return '<a target="_blank" href="/web/trace/detail/' + row.traceId + '">' + value + '</a>';
                 }
             }, {
                 field: 'startTime',
                 title: 'Time',
                 formatter: function (value) {
-                    return new Date(value).format('yyyy-MM-dd hh:mm:ss');
+                    return new Date(value/1000).format('yyyy-MM-dd hh:mm:ss');
                 }
             }, {
                 field: 'costTime',

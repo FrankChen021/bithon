@@ -42,6 +42,8 @@
     <link rel="stylesheet" th:href="@{/lib/select2-4.0.13/css/select2.min.css}">
     <link rel="stylesheet" th:href="@{/lib/select2-4.0.13/css/select2-bootstrap4.min.css}">
 
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+
     <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
     <script th:src="@{/js/card-component.js}"></script>
     <script th:src="@{/js/chart-component.js}"></script>
@@ -50,27 +52,23 @@
 
     <script th:inline="javascript">
         const apiHost = [[${apiHost}]];
-        const appName = [[${appName}]];
+        const g_SelectedApp = [[${appName}]];
+        var g_SelectedInstance = [[${instance}]];
+        var g_MetricSelectedInterval = [[${interval} ?: '5m']];
     </script>
+    <script th:src="@{/js/api-client/schema-api.js}"></script>
     <script th:src="@{/js/component/dashboard/component.js}"></script>
 </head>
 <body>
 
 <div class="page-wrapper cool-theme sidebar-bg bg1 toggled">
-    <nav class="navbar navbar-dark bg-dark fixed-top">
-        <!-- Navbar content -->
-        <a class="navbar-brand" href="/ui/home">Bithon</a>
-    </nav>
     <nav id="sidebar" class="sidebar-wrapper cool-theme" style="padding-top:57px">
         <div class="sidebar-content">
             <!-- sidebar-menu  -->
             <div class=" sidebar-item sidebar-menu">
                 <ul>
-                    <li class="header-menu">
-                        <span>Application Monitor</span>
-                    </li>
                     <li class="sidebar">
-                        <a th:href="@{'/ui/app/topo/' + ${appName}}">
+                        <a th:href="@{'/web/app/topo/' + ${appName}}">
                             <i class="fa fa-tachometer-alt"></i>
                             <span class="menu-text">Topo</span>
                         </a>
@@ -79,7 +77,7 @@
                         <a href="#">
                             <i class="fa fa-tachometer-alt"></i>
                             <span class="menu-text">Metrics</span>
-                            <span class="badge badge-pill badge-warning">New</span>
+                            <!--                            <span class="badge badge-pill badge-warning">New</span>-->
                         </a>
                         <div class="sidebar-submenu" style="display:block">
                             <ul>
@@ -92,18 +90,12 @@
                         <a href="#">
                             <i class="fa fa-shopping-cart"></i>
                             <span class="menu-text">Trace</span>
-                            <span class="badge badge-pill badge-danger">3</span>
+                            <!--                            <span class="badge badge-pill badge-danger">3</span>-->
                         </a>
                         <div class="sidebar-submenu">
                             <ul>
                                 <li>
-                                    <a th:href="@{'/ui/app/trace/' + ${appName}}">Request List</a>
-                                </li>
-                                <li>
-                                    <a href="#">Orders</a>
-                                </li>
-                                <li>
-                                    <a href="#">Credit cart</a>
+                                    <a th:href="@{'/web/app/trace/' + ${appName}}">Request List</a>
                                 </li>
                             </ul>
                         </div>
@@ -118,18 +110,6 @@
                                 <li>
                                     <a href="#">General</a>
                                 </li>
-                                <li>
-                                    <a href="#">Panels</a>
-                                </li>
-                                <li>
-                                    <a href="#">Tables</a>
-                                </li>
-                                <li>
-                                    <a href="#">Icons</a>
-                                </li>
-                                <li>
-                                    <a href="#">Forms</a>
-                                </li>
                             </ul>
                         </div>
                     </li>
@@ -143,15 +123,6 @@
                                 <li>
                                     <a href="#">Pie chart</a>
                                 </li>
-                                <li>
-                                    <a href="#">Line chart</a>
-                                </li>
-                                <li>
-                                    <a href="#">Bar chart</a>
-                                </li>
-                                <li>
-                                    <a href="#">Histogram</a>
-                                </li>
                             </ul>
                         </div>
                     </li>
@@ -159,157 +130,161 @@
             </div>
             <!-- sidebar-menu  -->
         </div>
-        <!-- sidebar-footer  -->
+        <!--         sidebar-footer-->
         <div class="sidebar-footer">
-            <div class="dropdown">
+            <!--                    <div class="dropdown">-->
 
-                <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fa fa-bell"></i>
-                    <span class="badge badge-pill badge-warning notification">3</span>
-                </a>
-                <div class="dropdown-menu notifications" aria-labelledby="dropdownMenuMessage">
-                    <div class="notifications-header">
-                        <i class="fa fa-bell"></i>
-                        Notifications
-                    </div>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#">
-                        <div class="notification-content">
-                            <div class="icon">
-                                <i class="fas fa-check text-success border border-success"></i>
-                            </div>
-                            <div class="content">
-                                <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing
-                                    elit. In totam explicabo
-                                </div>
-                                <div class="notification-time">
-                                    6 minutes ago
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                    <a class="dropdown-item" href="#">
-                        <div class="notification-content">
-                            <div class="icon">
-                                <i class="fas fa-exclamation text-info border border-info"></i>
-                            </div>
-                            <div class="content">
-                                <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing
-                                    elit. In totam explicabo
-                                </div>
-                                <div class="notification-time">
-                                    Today
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                    <a class="dropdown-item" href="#">
-                        <div class="notification-content">
-                            <div class="icon">
-                                <i class="fas fa-exclamation-triangle text-warning border border-warning"></i>
-                            </div>
-                            <div class="content">
-                                <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing
-                                    elit. In totam explicabo
-                                </div>
-                                <div class="notification-time">
-                                    Yesterday
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item text-center" href="#">View all notifications</a>
-                </div>
-            </div>
-            <div class="dropdown">
-                <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fa fa-envelope"></i>
-                    <span class="badge badge-pill badge-success notification">7</span>
-                </a>
-                <div class="dropdown-menu messages" aria-labelledby="dropdownMenuMessage">
-                    <div class="messages-header">
-                        <i class="fa fa-envelope"></i>
-                        Messages
-                    </div>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#">
-                        <div class="message-content">
-                            <div class="pic">
-                                <img src="img/user.jpg" alt="">
-                            </div>
-                            <div class="content">
-                                <div class="message-title">
-                                    <strong> Jhon doe</strong>
-                                </div>
-                                <div class="message-detail">Lorem ipsum dolor sit amet consectetur adipisicing
-                                    elit. In totam explicabo
-                                </div>
-                            </div>
-                        </div>
+            <!--                        <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">-->
+            <!--                            <i class="fa fa-bell"></i>-->
+            <!--                            <span class="badge badge-pill badge-warning notification">3</span>-->
+            <!--                        </a>-->
+            <!--                        <div class="dropdown-menu notifications" aria-labelledby="dropdownMenuMessage">-->
+            <!--                            <div class="notifications-header">-->
+            <!--                                <i class="fa fa-bell"></i>-->
+            <!--                                Notifications-->
+            <!--                            </div>-->
+            <!--                            <div class="dropdown-divider"></div>-->
+            <!--                            <a class="dropdown-item" href="#">-->
+            <!--                                <div class="notification-content">-->
+            <!--                                    <div class="icon">-->
+            <!--                                        <i class="fas fa-check text-success border border-success"></i>-->
+            <!--                                    </div>-->
+            <!--                                    <div class="content">-->
+            <!--                                        <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing-->
+            <!--                                            elit. In totam explicabo-->
+            <!--                                        </div>-->
+            <!--                                        <div class="notification-time">-->
+            <!--                                            6 minutes ago-->
+            <!--                                        </div>-->
+            <!--                                    </div>-->
+            <!--                                </div>-->
+            <!--                            </a>-->
+            <!--                            <a class="dropdown-item" href="#">-->
+            <!--                                <div class="notification-content">-->
+            <!--                                    <div class="icon">-->
+            <!--                                        <i class="fas fa-exclamation text-info border border-info"></i>-->
+            <!--                                    </div>-->
+            <!--                                    <div class="content">-->
+            <!--                                        <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing-->
+            <!--                                            elit. In totam explicabo-->
+            <!--                                        </div>-->
+            <!--                                        <div class="notification-time">-->
+            <!--                                            Today-->
+            <!--                                        </div>-->
+            <!--                                    </div>-->
+            <!--                                </div>-->
+            <!--                            </a>-->
+            <!--                            <a class="dropdown-item" href="#">-->
+            <!--                                <div class="notification-content">-->
+            <!--                                    <div class="icon">-->
+            <!--                                        <i class="fas fa-exclamation-triangle text-warning border border-warning"></i>-->
+            <!--                                    </div>-->
+            <!--                                    <div class="content">-->
+            <!--                                        <div class="notification-detail">Lorem ipsum dolor sit amet consectetur adipisicing-->
+            <!--                                            elit. In totam explicabo-->
+            <!--                                        </div>-->
+            <!--                                        <div class="notification-time">-->
+            <!--                                            Yesterday-->
+            <!--                                        </div>-->
+            <!--                                    </div>-->
+            <!--                                </div>-->
+            <!--                            </a>-->
+            <!--                            <div class="dropdown-divider"></div>-->
+            <!--                            <a class="dropdown-item text-center" href="#">View all notifications</a>-->
+            <!--                        </div>-->
+            <!--                    </div>-->
+            <!--                    <div class="dropdown">-->
+            <!--                        <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">-->
+            <!--                            <i class="fa fa-envelope"></i>-->
+            <!--                            <span class="badge badge-pill badge-success notification">7</span>-->
+            <!--                        </a>-->
+            <!--                        <div class="dropdown-menu messages" aria-labelledby="dropdownMenuMessage">-->
+            <!--                            <div class="messages-header">-->
+            <!--                                <i class="fa fa-envelope"></i>-->
+            <!--                                Messages-->
+            <!--                            </div>-->
+            <!--                            <div class="dropdown-divider"></div>-->
+            <!--                            <a class="dropdown-item" href="#">-->
+            <!--                                <div class="message-content">-->
+            <!--                                    <div class="pic">-->
+            <!--                                        <img src="img/user.jpg" alt="">-->
+            <!--                                    </div>-->
+            <!--                                    <div class="content">-->
+            <!--                                        <div class="message-title">-->
+            <!--                                            <strong> Jhon doe</strong>-->
+            <!--                                        </div>-->
+            <!--                                        <div class="message-detail">Lorem ipsum dolor sit amet consectetur adipisicing-->
+            <!--                                            elit. In totam explicabo-->
+            <!--                                        </div>-->
+            <!--                                    </div>-->
+            <!--                                </div>-->
 
-                    </a>
-                    <a class="dropdown-item" href="#">
-                        <div class="message-content">
-                            <div class="pic">
-                                <img src="img/user.jpg" alt="">
-                            </div>
-                            <div class="content">
-                                <div class="message-title">
-                                    <strong> Jhon doe</strong>
-                                </div>
-                                <div class="message-detail">Lorem ipsum dolor sit amet consectetur adipisicing
-                                    elit. In totam explicabo
-                                </div>
-                            </div>
-                        </div>
+            <!--                            </a>-->
+            <!--                            <a class="dropdown-item" href="#">-->
+            <!--                                <div class="message-content">-->
+            <!--                                    <div class="pic">-->
+            <!--                                        <img src="img/user.jpg" alt="">-->
+            <!--                                    </div>-->
+            <!--                                    <div class="content">-->
+            <!--                                        <div class="message-title">-->
+            <!--                                            <strong> Jhon doe</strong>-->
+            <!--                                        </div>-->
+            <!--                                        <div class="message-detail">Lorem ipsum dolor sit amet consectetur adipisicing-->
+            <!--                                            elit. In totam explicabo-->
+            <!--                                        </div>-->
+            <!--                                    </div>-->
+            <!--                                </div>-->
 
-                    </a>
-                    <a class="dropdown-item" href="#">
-                        <div class="message-content">
-                            <div class="pic">
-                                <img src="img/user.jpg" alt="">
-                            </div>
-                            <div class="content">
-                                <div class="message-title">
-                                    <strong> Jhon doe</strong>
-                                </div>
-                                <div class="message-detail">Lorem ipsum dolor sit amet consectetur adipisicing
-                                    elit. In totam explicabo
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item text-center" href="#">View all messages</a>
+            <!--                            </a>-->
+            <!--                            <a class="dropdown-item" href="#">-->
+            <!--                                <div class="message-content">-->
+            <!--                                    <div class="pic">-->
+            <!--                                        <img src="img/user.jpg" alt="">-->
+            <!--                                    </div>-->
+            <!--                                    <div class="content">-->
+            <!--                                        <div class="message-title">-->
+            <!--                                            <strong> Jhon doe</strong>-->
+            <!--                                        </div>-->
+            <!--                                        <div class="message-detail">Lorem ipsum dolor sit amet consectetur adipisicing-->
+            <!--                                            elit. In totam explicabo-->
+            <!--                                        </div>-->
+            <!--                                    </div>-->
+            <!--                                </div>-->
+            <!--                            </a>-->
+            <!--                            <div class="dropdown-divider"></div>-->
+            <!--                            <a class="dropdown-item text-center" href="#">View all messages</a>-->
 
-                </div>
-            </div>
-            <div class="dropdown">
-                <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fa fa-cog"></i>
-                    <span class="badge-sonar"></span>
-                </a>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenuMessage">
-                    <a class="dropdown-item" href="#">My profile</a>
-                    <a class="dropdown-item" href="#">Help</a>
-                    <a class="dropdown-item" href="#">Setting</a>
-                </div>
-            </div>
+            <!--                        </div>-->
+            <!--                    </div>-->
+            <!--                    <div class="dropdown">-->
+            <!--                        <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">-->
+            <!--                            <i class="fa fa-cog"></i>-->
+            <!--                            <span class="badge-sonar"></span>-->
+            <!--                        </a>-->
+            <!--                        <div class="dropdown-menu" aria-labelledby="dropdownMenuMessage">-->
+            <!--                            <a class="dropdown-item" href="#">My profile</a>-->
+            <!--                            <a class="dropdown-item" href="#">Help</a>-->
+            <!--                            <a class="dropdown-item" href="#">Setting</a>-->
+            <!--                        </div>-->
+            <!--                    </div>-->
             <div>
-                <a href="#">
-                    <i class="fa fa-power-off"></i>
+                <a href="#" id="pin-sidebar">
+                    <i class="fas fa-thumbtack"></i>
                 </a>
             </div>
             <div class="pinned-footer">
                 <a href="#">
-                    <i class="fas fa-ellipsis-h"></i>
+                    <i class="fas fa-thumbtack"></i>
                 </a>
             </div>
         </div>
     </nav>
     <!-- page-content  -->
-    <main class="page-content pt-2" style="padding-top:57px!important">
+    <main class="page-content" style="padding-top:57px!important">
+        <nav class="navbar navbar-dark bg-dark fixed-top">
+            <!-- Navbar content -->
+            <a class="navbar-brand" href="/web/home">Bithon</a>
+        </nav>
         <div id="overlay" class="overlay"></div>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
 
@@ -338,6 +313,7 @@
     <script th:src="@{/lib/custom-scrollbar/jquery.mCustomScrollbar.concat.min.js}"></script>
     <script th:src="@{/lib/pro-sidebar/src/js/main.js}"></script>
     <script th:src="@{/js/api-client/metadata-client.js}"></script>
+    <script th:src="@{/js/api-client/dashboard-api.js}"></script>
     <script th:src="@{/js/component/sidebar/component.js}"></script>
     <script th:src="@{/js/component/auto-refresher/component.js}"></script>
     <script th:src="@{/js/component/time-interval/component.js}"></script>
@@ -346,8 +322,18 @@
 </body>
 <script th:inline="javascript">
     $(document).ready(() => {
-        const metricSidebar = new MetricSidebar("metricSidebar", appName);
-        metricSidebar.load();
+        $('.page-wrapper').bind('pinned', () => {
+            const handler = window.setInterval(() => {
+                $(window).trigger('resize');
+                window.clearInterval(handler);
+            }, 300);
+        }).bind('unpinned', () => {
+            const handler = window.setInterval(() => {
+                $(window).trigger('resize');
+                window.clearInterval(handler);
+            }, 300);
+        })
+        new MetricSidebar("metricSidebar", g_SelectedApp).load();
     });
 </script>
 </html>

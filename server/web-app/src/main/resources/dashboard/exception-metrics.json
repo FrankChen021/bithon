@@ -1,0 +1,18 @@
+{
+  "title": "Exceptions",
+  "charts": [
+    {
+      "dataSource": "exception-metrics",
+      "title": "Exceptions",
+      "width": 4,
+      "yAxis": [
+        {}
+      ],
+      "metrics": [
+        {
+          "name": "exceptionCount"
+        }
+      ]
+    }
+  ]
+}

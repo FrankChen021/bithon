@@ -1,0 +1,195 @@
+{
+  "displayText": "JVM",
+  "name": "jvm-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longLast",
+      "name": "processors",
+      "displayText": "Processors",
+      "unit": "count"
+    },
+    {
+      "type": "longLast",
+      "name": "processCpuTime",
+      "displayText": "Processors",
+      "unit": "nanosecond"
+    },
+    {
+      "type": "doubleLast",
+      "name": "processCpuLoad",
+      "displayText": "CPU Load",
+      "unit": "%"
+    },
+    {
+      "type": "longMin",
+      "name": "instanceStartTime",
+      "displayText": "Start Time",
+      "unit": "Milli Second"
+    },
+    {
+      "type": "longLast",
+      "name": "instanceUpTime",
+      "displayText": "Running Time",
+      "unit": "millisecond"
+    },
+
+    {
+      "type": "longLast",
+      "name": "heapMax",
+      "displayText": "Heap(-Xmx)",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "heapInit",
+      "displayText": "Init Heap Size(-Xms)",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "heapUsed",
+      "displayText": "Heap Used",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "heapCommitted",
+      "displayText": "Available Heap",
+      "unit": "byte"
+    },
+
+    {
+      "type": "longLast",
+      "name": "nonHeapMax",
+      "displayText": "-XX:MaxPermSize",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "nonHeapInit",
+      "displayText": "Init nonHeap Size",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "nonHeapUsed",
+      "displayText": "nonHeap Used",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "nonHeapCommitted",
+      "displayText": "Available non-Heap",
+      "unit": "byte"
+    },
+
+    {
+      "type": "longLast",
+      "name": "classLoaded",
+      "displayText": "Loaded Classes",
+      "unit": "count"
+    },
+    {
+      "type": "longLast",
+      "name": "classUnloaded",
+      "displayText": "Unloaded Classes",
+      "unit": "count"
+    },
+
+    {
+      "type": "longLast",
+      "name": "metaspaceMax",
+      "displayText": "Max Metaspace",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "metaspaceInit",
+      "displayText": "Init Metaspace",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "metaspaceCommitted",
+      "displayText": "Available Metaspace",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "metaspaceUsed",
+      "displayText": "Used Metaspace",
+      "unit": "byte"
+    },
+
+    {
+      "type": "longLast",
+      "name": "directUsed",
+      "displayText": "Used Direct Mem",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "directMax",
+      "displayText": "Max Direct Mem",
+      "unit": "byte"
+    },
+
+    {
+      "type": "longLast",
+      "name": "totalMemBytes",
+      "displayText": "Total Memory",
+      "unit": "byte"
+    },
+    {
+      "type": "longLast",
+      "name": "freeMemBytes",
+      "displayText": "Free Memory",
+      "unit": "byte"
+    },
+
+    {
+      "type": "longLast",
+      "name": "peakThreads",
+      "displayText": "Peek Threads",
+      "unit": "count"
+    },
+    {
+      "type": "longLast",
+      "name": "daemonThreads",
+      "displayText": "Daemon Threads",
+      "unit": "count"
+    },
+    {
+      "type": "longLast",
+      "name": "totalThreads",
+      "displayText": "Total Threads",
+      "unit": "count"
+    },
+    {
+      "type": "longLast",
+      "name": "activeThreads",
+      "displayText": "Active Threads",
+      "unit": "count"
+    }
+
+  ]
+}
+
+
+

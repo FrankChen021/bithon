@@ -4,4 +4,4 @@ spring:
   application:
     name: server
   profiles:
-    active: dev, collector, webapp
+    include: dev, storage-jdbc, collector, webapp

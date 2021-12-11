@@ -1,0 +1,9 @@
+agent:
+  plugin:
+    guice:
+      disabled: false
+      bean:
+        excludedClasses:
+          - type: endwith
+            suffix: DruidAvaticaJsonHandler
+

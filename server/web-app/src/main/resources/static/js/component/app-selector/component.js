@@ -1,19 +1,23 @@
 
 class AppSelector {
 
-    constructor() {
+    constructor(appName) {
         this._listeners = [];
         this._control = $('<select class="form-control"></select>');
 
         new MetadataClient(apiHost).getApplications((appList)=>{
             $.each(appList, (index, app) => {
-                $(this._control).append(`<option>${app.name}</option>`);
+                if ( appName === app.name) {
+                    $(this._control).append(`<option selected="true">${app.applicationName}</option>`);
+                } else {
+                    $(this._control).append(`<option>${app.applicationName}</option>`);
+                }
             });
         }, ()=>{});
 
         this._control.change((e)=>{
-            var text = e.target.selectedOptions[0].text;
-            var value = e.target.selectedOptions[0].value;
+            const text = e.target.selectedOptions[0].text;
+            const value = e.target.selectedOptions[0].value;
             $.each(this._listeners, (index, listener)=>{
                 listener(text, value);
             });

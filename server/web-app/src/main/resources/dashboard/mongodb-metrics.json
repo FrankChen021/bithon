@@ -1,0 +1,71 @@
+{
+  "title": "MongoDb",
+  "charts": [
+    {
+      "dataSource": "mongodb-metrics",
+      "title": "Commands",
+      "width": 4,
+      "yAxis": [
+        {},
+        {}
+      ],
+      "metrics": [
+        {
+          "name": "callCount"
+        },
+        {
+          "name": "tps",
+          "yAxis": 1
+        }
+      ]
+    },
+    {
+      "dataSource": "mongodb-metrics",
+      "title": "Time",
+      "width": 4,
+      "yAxis": [
+        {
+          "format": "nanoFormatter"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "avgResponseTime"
+        },
+        {
+          "name": "minResponseTime"
+        },
+        {
+          "name": "maxResponseTime"
+        }
+      ]
+    },
+    {
+      "dataSource": "mongodb-metrics",
+      "title": "IO",
+      "width": 4,
+      "yAxis": [
+        {},
+        {
+          "format": "binary_byte"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "requestByteRate"
+        },
+        {
+          "name": "responseByteRate"
+        },
+        {
+          "name": "requestBytes",
+          "yAxis": 1
+        },
+        {
+          "name": "responseBytes",
+          "yAxis": 1
+        }
+      ]
+    }
+  ]
+}

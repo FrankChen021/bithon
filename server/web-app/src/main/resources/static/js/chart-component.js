@@ -7,7 +7,7 @@ class ChartComponent {
 
         this._chartId = option.containerId + '_chart';
         this._card = $('#' + option.containerId).append(
-            '    <div class="card card-block">                             ' +
+            '    <div class="card card-block" style="border-radius: .0em !important;">                             ' +
             '        <div class="card-body" style="padding: 0.25em">                    ' +
             '            <div class="card-chart"></div> ' +
             '        </div>                                     ' +
@@ -19,34 +19,30 @@ class ChartComponent {
         window.addEventListener("resize", () => {
             this._chart.resize();
         });
+
+        this._openHandler = null;
+        this._chartSeries = {};
     }
 
     header(text) {
-        if (this._header == null) {
-            var rnd = Math.random();
-            this._header = $(this._card).prepend(
+        let headerText = $(this._card).find('.header-text');
+        if (headerText.length === 0) {
+            const header = $(this._card).prepend(
                 '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
                 '<span class="header-text btn-sm"></span>' +
-                //            '<div id="intervalSelector" class="dropdown ml-auto">                                                                                         ' +
-                //            '<button class="btn btn-sm"><span class="far fa-bell"></span></button>' +
-                //            '    <button class="btn btn-sm dropdown-toggle" id="dropdownMenuButton-"' + rnd + ' type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> ' +
-                //            '        Time Interval                                                                                                                ' +
-                //            '    </button>                                                                                                                        ' +
-                //            '    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton-' + rnd + '">                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">5 min</a>                                                                                  ' +
-                //            '        <a class="dropdown-item" href="#">15 min</a>                                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">30 min</a>                                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">1 hour</a>                                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">3 hour</a>                                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">6 hour</a>                                                                                 ' +
-                //            '        <a class="dropdown-item" href="#">12 hour</a>                                                                                ' +
-                //            '        <a class="dropdown-item" href="#">24 hour</a>                                                                                ' +
-                //            '        <a class="dropdown-item" href="#">Today</a>                                                                                  ' +
-                //            '    </div>      ' +
-                //            '</div></div>          ' +
-                '</div>').find('.header-text');
+                '<div class="tools ml-auto">' +
+                //'    <button class="btn btn-sm btn-alert"><span class="far fa-bell" title="alert"></span></button>' +
+                '</div>' +
+                '</div>');
+
+            headerText = header.find('.header-text');
         }
-        $(this._header).html(text);
+        $(headerText).html(text);
+        return this;
+    }
+
+    height(height) {
+        $(this._card).find('.card-chart').height(height);
         return this;
     }
 
@@ -62,12 +58,23 @@ class ChartComponent {
         return this.option;
     }
 
+    /**
+     * {
+     *     ajaxType: 'POST',
+     *     processResult: function (data){
+     *         return echarts_option;
+     *     },
+     *     url: url,
+     *     ajaxData: {},
+     *     operation: merge | replace
+     * }
+     */
     load(option) {
         option = $.extend({
             ajaxType: 'POST',
             processResult: function (data) {
                 return data;
-            }
+            },
         }, option);
 
         this._chart.showLoading({text: 'Loading...'});
@@ -81,14 +88,84 @@ class ChartComponent {
             contentType: "application/json",
             success: (data) => {
                 this._chart.hideLoading();
-                //this.showLines(option, option.processResult(data));
-                this._chart.setOption(option.processResult(data));
+                const returnedOption = option.processResult(data);
+                if (returnedOption.series != null) {
+                    //
+                    // merge series
+                    //
+                    $.each(returnedOption.series, (index, s) => {
+                        this._chartSeries[s.name] = s;
+                    });
+                    const series = [];
+                    for (const name in this._chartSeries) {
+                        series.push(this._chartSeries[name]);
+                    }
+                    returnedOption.series = series;
+                }
+
+                if (!this.hasUserSelection()) {
+                    let legend = {
+                        data: [],
+                        selected: {}
+                    };
+                    returnedOption.series.forEach(s => {
+                        legend.data.push({
+                            name: s.name,
+                            icon: 'circle'
+                        });
+                        legend.selected[s.name] = s.selected;
+                    });
+                    returnedOption.legend = legend;
+                }
+                this.setChartOption(returnedOption);
             },
             error: (data) => {
                 this._chart.hideLoading();
                 console.log(data);
             }
         });
+    }
+
+    clearLines(name) {
+        if (name == null) {
+            this._chartSeries = [];
+            this.setChartOption({
+                legend: {
+                    data: []
+                },
+                series: []
+            });
+        } else {
+            const currentOption = this.getChartOption();
+            const newSeries = [];
+            const newList = [];
+            for (let i = 0; i < currentOption.legend[0].data.length; i++) {
+                const legend = currentOption.legend[0].data[i];
+
+                if (legend.name.startsWith(name)) {
+                    delete this._chartSeries[legend.name];
+                    currentOption.series[i].data = [];
+                } else {
+                    newList.push(legend);
+                }
+                newSeries.push(currentOption.series[i]);
+            }
+            this.setChartOption({
+                legend: {
+                    data: newList
+                },
+                series: newSeries
+            });
+        }
+    }
+
+    containsLine(name) {
+        for (const s in this._chartSeries) {
+            if (s.name === name) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -155,5 +232,47 @@ class ChartComponent {
 
     hideLoading() {
         this._chart.hideLoading();
+    }
+
+    resize() {
+        this._chart.resize();
+    }
+
+    dispose() {
+        this._chart.dispose();
+        this._chartSeries = {};
+    }
+
+    setOpenHandler(openHandler) {
+        if ($(this._card).find('btn-open').length === 0) {
+            const ctrl = $(this._card).find('.tools').append('<button class="btn btn-sm btn-open"><span class="far fa-square" title="open"></span></button>');
+            ctrl.find(".btn-open").click(() => {
+                if (this._openHandler != null)
+                    this._openHandler.apply();
+            });
+        }
+
+        this._openHandler = openHandler;
+        return this;
+    }
+
+    //PRIVATE
+    hasUserSelection() {
+        const chartOption = this.getChartOption();
+        if (chartOption === undefined) {
+            return false;
+        }
+        const oldLegend = chartOption.legend;
+        if (oldLegend === undefined || oldLegend.length === 0) {
+            return false;
+        }
+        if (oldLegend[0].selected === undefined)
+            return false;
+
+        for (const prop in oldLegend[0].selected) {
+            // the 'selected' object has a property
+            return true;
+        }
+        return false;
     }
 }

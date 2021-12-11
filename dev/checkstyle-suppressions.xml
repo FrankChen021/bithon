@@ -26,8 +26,10 @@
 <suppressions>
   <!-- See http://checkstyle.sourceforge.net/config_filters.html#SuppressionFilter for examples -->
 
+  <suppress files="[\\/]brpc[\\/]example[\\/]protobuf[\\/]" checks=".*"/>
   <suppress files="[/\\]agent-rpc-thrift[/\\]" checks=".*"/>
   <suppress files="[/\\]jooq[/\\]" checks=".*"/>
+  <suppress files="[/\\]generated-sources[/\\]" checks=".*"/>
 
   <!-- Code copied from TestNG to apply a bugfix -->
   <suppress checks="AvoidStaticImport" files="[\\/]org[\\/]testng[\\/]" />

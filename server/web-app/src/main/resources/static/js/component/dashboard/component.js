@@ -1,7 +1,9 @@
 class Dashboard {
-    constructor(containerId, appName, schemaApi) {
-        this._appName = appName;
+    constructor(containerId, appName, dashboardName, defaultInterval, schemaApi) {
         this._schemaApi = schemaApi;
+        this._appName = appName;
+        this._dashboardName = dashboardName;
+        this._defaultInterval = defaultInterval;
 
         // View
         this._containerId = containerId;
@@ -11,39 +13,48 @@ class Dashboard {
         this._container.append(this._stackLayoutRow);
 
         // Model
+        this._schema = {};
         this._chartComponents = {};
         this._chartDescriptors = {};
-        this._dimensions = {};
+        this._selectedDimensions = {};
         this.addDimension('appName', appName);
 
-        this._intervalFn = () => {
-            return {
-                start: moment().utc().subtract(5, 'minute').local().toISOString(),
-                end: moment().utc().local().toISOString()
-            };
-        };
+        // UI Component
+        this._timeSelector = null;
+
+        // Y Axis Formatter
+        this._formatters = {};
+        this._formatters['binary_byte'] = binaryByteFormat;
+        this._formatters['compact_number'] = compactFormat;
+        this._formatters['percentage'] = (v) => v + '%';
+        this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 0);
+        this._formatters['millisecond'] = (v) => milliFormat(v, 0);
+        this._formatters['microsecond'] = (v) => microFormat(v, 0);
     }
 
     // PUBLIC
     load(dashboard) {
         this._dashboard = dashboard;
+
         //
         // App Filter
         //
-        new AppSelector().childOf('appSelector').registerAppChangedListener((text, value) => {
+        new AppSelector(this._appName).childOf('appSelector').registerAppChangedListener((text, value) => {
+            window.location = `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`;
+
             // update appName for dimension filters
-            this._appName = value;
+            //this._appName = value;
 
             // update dimensions for dashboard chart
-            this.addDimension('appName', value);
+            //this.addDimension('appName', value);
 
-            this.refreshDashboard();
+            //this.refreshDashboard();
         });
 
         //
         // dataSource --> Charts
         //
-        var dataSource2Charts = {};
+        const dataSource2Charts = {};
         $.each(this._dashboard.charts, (index, chartDescriptor) => {
             const chartId = 'chart_' + index;
             chartDescriptor['id'] = chartId;
@@ -60,41 +71,33 @@ class Dashboard {
         //
         // Loaded Dimension Filter
         //
-        for (var dataSourceName in dataSource2Charts) {
+        for (const dataSourceName in dataSource2Charts) {
             this._schemaApi.getSchema(
                 dataSourceName,
                 (schema) => {
+                    let index;
                     if (schema.name === dataSourceFilter) {
+                        this._schema = schema;
+
                         // create dimension filter
                         // Note: first two dimensions MUST be app/instance
-                        var filterBar = $('#filterBar');
-                        for (var index = 1; index < schema.dimensionsSpec.length; index++) {
-                            var dimension = schema.dimensionsSpec[index];
+                        const filterBar = $('#filterBar');
+                        for (index = 1; index < schema.dimensionsSpec.length; index++) {
+                            const dimension = schema.dimensionsSpec[index];
                             if (!dimension.visible)
                                 continue;
 
-                            this.createDimensionFilter(filterBar, dimension.name, dimension.displayText);
+                            this.createDimensionFilter(filterBar, index, dimension.name, dimension.displayText);
                         }
                     }
 
                     //
                     // This should be changed in future
-                    // converts dimensionSpec from Array to Map
-                    //
-                    var dimensionMap = {};
-                    for (var index = 0; index < schema.dimensionsSpec.length; index++) {
-                        var dimension = schema.dimensionsSpec[index];
-                        dimensionMap[dimension.name] = dimension;
-                    }
-                    schema.dimensionsSpec = dimensionMap;
-
-                    //
-                    // This should be changed in future
                     // converts metricsSpec from Array to Map
                     //
-                    var metricMap = {};
-                    for (var index = 0; index < schema.metricsSpec.length; index++) {
-                        var metric = schema.metricsSpec[index];
+                    const metricMap = {};
+                    for (index = 0; index < schema.metricsSpec.length; index++) {
+                        const metric = schema.metricsSpec[index];
                         metricMap[metric.name] = metric;
                     }
                     schema.metricsSpec = metricMap;
@@ -106,10 +109,12 @@ class Dashboard {
 
                     // refresh dashboard after schema has been retrieved
                     // because there may be value transformers on different units
-                    var charts = dataSource2Charts[schema.name];
+                    const charts = dataSource2Charts[schema.name];
                     $.each(charts, (index, chartId) => {
-                        this.refreshChart(chartId);
-                    })
+                        this.refreshChart(this._chartDescriptors[chartId],
+                            this._chartComponents[chartId],
+                            this.getSelectedTimeInterval());
+                    });
                 },
                 (error) => {
                 }
@@ -129,63 +134,76 @@ class Dashboard {
         //
         // Create TimeInterval
         //
-        new TimeInterval().childOf(parent).registerIntervalChangedListener((fn) => {
-            this.setInterval(fn);
+        this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
+            g_MetricSelectedInterval = selectedModel.id;
+            this.refreshDashboard();
         });
 
-        $.each(dashboard.charts, (index, chart) => {
-            this.createChartComponent(index, chart);
+        $.each(dashboard.charts, (index, chartDescriptor) => {
+
+            this.layout(chartDescriptor.id, chartDescriptor.width * 3);
+
+            this.createChartComponent(chartDescriptor.id, chartDescriptor)
+                .setOpenHandler(() => {
+                    this.openChart(chartDescriptor.id);
+                });
+
+            this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
         });
     }
 
     // PRIVATE
-    createDimensionFilter(filterBar, dimensionName, displayText) {
+    createDimensionFilter(filterBar, dimensionIndex, dimensionName, displayText) {
         const appendedSelect = filterBar.append(`<li class="nav-item"><select style="width:150px"></select></li>`).find('select').last();
+        if (dimensionIndex === 1 && g_SelectedInstance != null) {
+            appendedSelect.append(`<option value="${g_SelectedInstance}">${g_SelectedInstance}</option>`);
+        }
         appendedSelect.select2({
             theme: 'bootstrap4',
             allowClear: true,
             dropdownAutoWidth: true,
             placeholder: displayText,
-            //TODO: must be a function to support dynamic change
-            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionName)
+            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionIndex, dimensionName),
         }).on('change', (event) => {
             if (event.target.selectedIndex == null || event.target.selectedIndex < 0) {
+                if (dimensionIndex === 1) {
+                    g_SelectedInstance = null;
+                }
                 this.rmvDimension(dimensionName);
                 return;
             }
 
             // get selected dimension
             const dimensionValue = event.target.selectedOptions[0].value;
+
+            if (dimensionIndex === 1) {
+                g_SelectedInstance = dimensionValue;
+            }
             this.addDimension(dimensionName, dimensionValue);
         });
+
+        if (dimensionIndex === 1 && g_SelectedInstance != null) {
+            appendedSelect.change();
+        }
     }
 
     // PRIVATE
-    getDimensionAjaxOptions(dataSourceName, dimensionName) {
-        const filters = [{
-            dimension: 'appName',
-            matcher: {
-                type: 'equal',
-                pattern: this._appName
-            }
-        }];
-//                for(var p = 0; p < dimensionIndex; p++) {
-//                    var dim = dataSource.dimensions[p];
-//                    filters.push({
-//                        type: '==',
-//                        dimension: dim.name,
-//                        expected: {
-//                            value: gEditingConditions[rowId].dimensions[dim.name].expected.value
-//                        }
-//                    });
-//                }
-
+    getDimensionAjaxOptions(dataSourceName, dimensionIndex, dimensionName) {
         return {
             cache: true,
             type: 'POST',
             url: apiHost + '/api/datasource/dimensions',
             data: () => {
-                var interval = this._intervalFn.apply();
+                const filters = [];
+
+                for (let p = 0; p < dimensionIndex; p++) {
+                    const dim = this._schema.dimensionsSpec[p];
+                    if (this._selectedDimensions[dim.name] != null) {
+                        filters.push(this._selectedDimensions[dim.name]);
+                    }
+                }
+
+                const interval = this.getSelectedTimeInterval();
                 return JSON.stringify({
                     dataSource: dataSourceName,
                     dimension: dimensionName,
@@ -210,9 +228,7 @@ class Dashboard {
     }
 
     // PRIVATE
-    createChartComponent(index, chartDescriptor) {
-        const chartId = chartDescriptor.id;
-        const chartContainer = this.layout(chartDescriptor.id, chartDescriptor.width * 3);
+    createChartComponent(chartId, chartDescriptor) {
 
         const chartOption = this.getDefaultChartOption();
         chartOption.legend.data = chartDescriptor.metrics.map(metric => {
@@ -222,17 +238,17 @@ class Dashboard {
             }
         });
         if (chartDescriptor.yAxis != null) {
-            const formatterFns = chartDescriptor.yAxis.map(y => this.getFormatter(y.unit));
-            for (var i = 1; i < formatterFns.length; i++) {
+            const formatterFns = chartDescriptor.yAxis.map(y => this.getFormatter(y.format));
+            for (let i = 1; i < formatterFns.length; i++) {
                 if (formatterFns[i] == null)
                     formatterFns[i] = formatterFns[i - 1]; //default to prev config
             }
             chartOption.tooltip.formatter = params => {
-                var currentChartOption = this.getChartCurrentOption(chartId);
+                const currentChartOption = this.getChartCurrentOption(chartId);
                 let result = (params[0] || params).axisValue;
                 params.forEach(p => {
-                    var yAxisIndex = currentChartOption.series[p.seriesIndex].yAxisIndex;
-                    var formatterFn = formatterFns[yAxisIndex];
+                    const yAxisIndex = currentChartOption.series[p.seriesIndex].yAxisIndex;
+                    const formatterFn = formatterFns[yAxisIndex];
                     const s = formatterFn != null ? formatterFn(p.data) : p.data;
                     result += `<br />${p.marker}${p.seriesName}: ${s}`;
                 });
@@ -274,13 +290,14 @@ class Dashboard {
         }
 
         const chartComponent = new ChartComponent({
-            containerId: chartDescriptor.id,
+            containerId: chartId,
             metrics: chartDescriptor.metrics.map(metric => metric.name),
         }).header('<b>' + chartDescriptor.title + '</b>')
             .setChartOption(chartOption);
 
-        this._chartComponents[chartDescriptor.id] = chartComponent;
-        this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
+        this._chartComponents[chartId] = chartComponent;
+
+        return chartComponent;
     }
 
     // PRIVATE
@@ -293,14 +310,7 @@ class Dashboard {
         }
         this._stackLayoutRowFill += width;
 
-        return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}"></div>`);
-    }
-
-    //
-    setInterval(intervalFn) {
-        this._intervalFn = intervalFn;
-
-        this.refreshDashboard();
+        return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}" style="margin-bottom: 0;padding-bottom: 10px;padding-left: 5px;padding-right: 5px"></div>`);
     }
 
     // PUBLIC
@@ -310,8 +320,9 @@ class Dashboard {
         }
 
         // refresh each chart
-        for (var id in this._chartComponents) {
-            this.refreshChart(id);
+        const interval = this.getSelectedTimeInterval();
+        for (const id in this._chartComponents) {
+            this.refreshChart(this._chartDescriptors[id], this._chartComponents[id], interval);
         }
     }
 
@@ -326,7 +337,7 @@ class Dashboard {
      * }
      */
     addDimension(dimensionName, dimensionValue) {
-        this._dimensions[dimensionName] = {
+        this._selectedDimensions[dimensionName] = {
             dimension: dimensionName,
             matcher: {
                 type: 'equal',
@@ -337,38 +348,47 @@ class Dashboard {
     }
 
     rmvDimension(dimensionName) {
-        delete this._dimensions[dimensionName];
+        delete this._selectedDimensions[dimensionName];
         this.refreshDashboard();
     }
 
-    refreshChart(chartId) {
-        var interval = this._intervalFn.apply();
-
-        var chartDescriptor = this._chartDescriptors[chartId];
-        var chartComponent = this._chartComponents[chartId];
+    refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix) {
+        if (metricNamePrefix == null) {
+            metricNamePrefix = '';
+        }
+        var dimensions = {};
+        if ( chartDescriptor.dimensions === undefined) {
+            dimensions = this._selectedDimensions;
+        } else {
+            Object.assign(dimensions, this._selectedDimensions);
+            Object.assign(dimensions, chartDescriptor.dimensions);
+        }
         chartComponent.load({
             url: apiHost + "/api/datasource/metrics",
             ajaxData: JSON.stringify({
                 dataSource: chartDescriptor.dataSource,
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                dimensions: this._dimensions,
-                metrics: chartComponent.getOption().metrics,
+                dimensions: dimensions,
+                metrics: chartComponent.getOption().metrics
             }),
             processResult: (data) => {
-                const chartDescriptor = this._chartDescriptors[chartId];
-
                 const timeLabels = data.map(d => moment(d.timestamp).local().format('HH:mm:ss'));
 
                 const series = chartDescriptor.metrics.map(metric => {
+
                     return {
-                        name: metric.name,
+                        name: metricNamePrefix + (metric.displayName === undefined ? metric.name : metric.displayName),
                         type: metric.chartType || 'line',
                         areaStyle: {opacity: 0.3},
                         data: data.map(d => metric.transformer(d, metric.name)),
                         lineStyle: {width: 1},
                         itemStyle: {opacity: 0},
-                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis
+                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
+
+                        // selected is not a property of series
+                        // this is used to render default selected state of legend by chart-component
+                        selected: metric.selected === undefined ? true : metric.selected
                     }
                 });
 
@@ -401,9 +421,9 @@ class Dashboard {
             const yIndex = metricDescriptor.yAxis == null ? 0 : metricDescriptor.yAxis;
             if (yIndex < chartDescriptor.yAxis.length) {
                 const yAxis = chartDescriptor.yAxis[yIndex];
-                if (yAxis.unit === 'millisecond' && schema.metricsSpec[metricName].unit === 'nanosecond') {
+                if (yAxis.format === 'millisecond' && schema.metricsSpec[metricName].unit === 'nanosecond') {
                     return function (data, metricName) {
-                        var val = data[metricName];
+                        const val = data[metricName];
                         return val == null ? 0 : (val / 1000 / 1000).toFixed(2);
                     }
                 }
@@ -469,30 +489,155 @@ class Dashboard {
     }
 
     //PRIVATE
-    getFormatter(unit) {
-        switch (unit) {
-            case 'binary_byte':
-                return function (v) {
-                    return binaryByteFormat(v);
-                };
-            case 'percentage':
-                return function (v) {
-                    return v + '%';
-                };
-            case 'nano2Millisecond':
-                return function (v) {
-                    return (v / 1000 / 1000).toFixed(0) + 'ms';
-                }
-            case 'millisecond':
-                return function (v) {
-                    return v + 'ms';
-                }
-            case 'microsecond':
-                return function (v) {
-                    return v + 'µs';
-                }
-            default:
-                return null;
+    getFormatter(format) {
+        return this._formatters[format];
+    }
+
+    resize() {
+        for (const id in this._chartComponents) {
+            this._chartComponents[id].resize();
+        }
+    }
+
+    //PRIVATE
+    openChart(chartId) {
+        const chartDescriptor = this._chartDescriptors[chartId];
+
+        const dialogContent =
+            '<ul class="nav nav-tabs">' +
+            '  <li class="nav-item">' +
+            '    <a class="nav-link active" data-toggle="tab" href="#nav-current" role="tab" aria-controls="nav-current" aria-selected="true">Latest</a>' +
+            '  </li>' +
+            '  <li class="nav-item">' +
+            '    <a class="nav-link" data-toggle="tab" href="#nav-compare" role="tab" aria-controls="nav-compare" aria-selected="true">Comparison</a>' +
+            '  </li>' +
+            '</ul>' +
+            '<div class="tab-content">' +
+            '   <div class="tab-pane fade show active" id="nav-current" role="tabpanel" aria-labelledby="nav-current-tab">' +
+            '       <div class="btn-group btn-group-sm" role="group" aria-label="..." style="padding-top:5px">' +
+            '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="1">1h</button>' +
+            '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="3">3h</button>' +
+            '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="6">6h</button>' +
+            '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="12">12h</button>' +
+            '           <button class="btn btn-popup-latest" style="border-color: #ced4da" data-value="24">24h</button>' +
+            '       </div>' +
+            '       <div id="latest_charts" style="padding-top:5px;height:470px;width:100%"></div>' +
+            '   </div>' +
+            '   <div class="tab-pane fade" id="nav-compare" role="tabpanel" aria-labelledby="nav-compare-tab">' +
+            '       <div class="btn-group btn-group-sm" id="btn-remove-buttons" role="group" aria-label="..." style="padding-top:5px">' +
+            '       </div>' +
+            '       <div class="btn-group btn-group-sm dropright" role="group" aria-label="..." style="padding-top:5px">' +
+            '           <button class="btn btn-compare-remove-add dropdown-toggle" style="border-color: #ced4da" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Adds</button>' +
+            '           <div class="dropdown-menu" style="min-width: 0">      ' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-value="0">today</a>' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-value="1">-1d</a>' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-value="3">-3d</a>     ' +
+            '               <a class="dropdown-item btn-compare-add" href="#" data-value="7">-7d</a>     ' +
+            '           </div>' +
+            '       </div>' +
+            '       <div id="compare_charts" style="padding-top:5px;height:470px;width:100%"></div>' +
+            '   </div>' +
+
+            '</div>';
+
+        bootbox.dialog({
+            centerVertical: true,
+            size: 'xl',
+            onEscape: true,
+            backdrop: true,
+            message: dialogContent,
+            onShown: () => {
+                const latestCharts = this.createChartComponent('latest_charts', chartDescriptor).height('400px');
+                const compareChart = this.createChartComponent('compare_charts', chartDescriptor).height('400px');
+
+                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                    latestCharts.resize();
+                    compareChart.resize();
+                })
+
+                const latestButtons = $('.btn-popup-latest');
+                latestButtons.click((e) => {
+                    const target = $(e.target);
+                    if (target.hasClass('btn-primary'))
+                        return;
+
+                    $('.btn-popup-latest').removeClass('btn-primary');
+                    target.addClass('btn-primary');
+
+                    const hour = parseInt(target.attr('data-value'));
+                    this.refreshChart(chartDescriptor, latestCharts, this.getLatestInterval(hour, 'hour'));
+                });
+
+                // Add line
+                $('.btn-compare-add').click((e) => {
+                    const day = $(e.target).attr('data-value');
+                    const removeButtonId = 'btn-popup-compare-' + day;
+                    if ($('#btn-remove-buttons').find('#' + removeButtonId).length > 0) {
+                        return;
+                    }
+
+                    // remove line
+                    const text = $(e.target).text();
+                    const removeButton = $(`<button id="${removeButtonId}" class="btn btn-compare-remove" style="border-color: #ced4da" data-value="${day}" data-label="today">${text}&nbsp;&nbsp;<span aria-hidden="true">×</span></button>`)
+                        .click((e) => {
+                            // remove button from UI
+                            let button = e.target;
+                            if (e.target.nodeName === 'SPAN')
+                                button = button.parentElement;
+                            $(button).remove();
+
+                            // remove lines from chart
+                            compareChart.clearLines(text + '-');
+                        });
+                    $('#btn-remove-buttons').append(removeButton);
+
+                    const todayStart = moment().startOf('day');
+                    const baseStart = todayStart.clone().subtract(day, 'day');
+                    const baseEnd = baseStart.clone().add(1, 'day');
+
+                    this.refreshChart(chartDescriptor,
+                        compareChart,
+                        {
+                            start: baseStart.toISOString(true),
+                            end: baseEnd.toISOString(true)
+                        },
+                        text + '-');
+                });
+
+                latestButtons[0].click();
+            },
+            onHidden: () => {
+                this._chartComponents['latest_charts'].dispose();
+                this._chartComponents['compare_charts'].dispose();
+
+                delete this._chartComponents['latest_charts'];
+                delete this._chartComponents['compare_charts'];
+            }
+        });
+    }
+
+    getSelectedTimeInterval() {
+        return this._timeSelector.getInterval();
+    }
+
+    //PRIVATE
+    /**
+     * "year" | "years" | "y" |
+     * "month" | "months" | "M" |
+     * "week" | "weeks" | "w" |
+     * "day" | "days" | "d" |
+     * "hour" | "hours" | "h" |
+     * "minute" | "minutes" | "m" |
+     * "second" | "seconds" | "s" |
+     * millisecond" | "milliseconds" | "ms"
+     *  @param value
+     * @param unit
+     * @returns {{start: string, end: string}}
+     */
+    getLatestInterval(value, unit) {
+        return {
+            start: moment().subtract(value, unit).toISOString(true),
+            end: moment().toISOString(true)
         }
     }
 }

@@ -18,15 +18,30 @@ Date.prototype.format = function (fmt) { //author: meizz
     return fmt;
 }
 
-function nanoFormat(nanoTime) {
-    const formatter = ['ns', 'us', 'ms', 's'];
-    let time = nanoTime;
+function nanoFormat(nanoTime, fractionDigits) {
+    return timeFormat(nanoTime, fractionDigits, ['ns', 'us', 'ms', 's']);
+}
+
+function microFormat(milliTime, fractionDigits) {
+    return timeFormat(milliTime, fractionDigits, ['us', 'ms', 's'])
+}
+
+function milliFormat(milliTime, fractionDigits) {
+    return timeFormat(milliTime, fractionDigits, ['ms', 's'])
+}
+
+function timeFormat(time, fractionDigits, units) {
     let val = +time || 0;
     let index = 0;
     if (val <= 0) return '0';
-    while (val >= 1000 && index < formatter.length - 1) {
+    while (val >= 1000 && index < units.length - 1) {
         index += 1;
         val = time / (1000 ** index);
     }
-    return val.toFixed(2) + formatter[index];
-};
+    if (index == 0) {
+        // no need to toFixed(), since it always adds fraction part to the string even if the value is integer
+        return val.valueOf() + units[index];
+    } else {
+        return val.toFixed(fractionDigits === undefined ? 2 : fractionDigits) + units[index];
+    }
+}

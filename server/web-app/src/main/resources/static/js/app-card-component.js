@@ -18,7 +18,7 @@ class AppCardComponent {
                 console.log(this._appList);
 
                 $.each(data, (index, app) => {
-                    this.getOrCreateAppCard(app.name);
+                    this.getOrCreateAppCard(app.applicationName);
                 });
 
                 this.loadAppOverview();
@@ -44,7 +44,7 @@ class AppCardComponent {
 
         card.find('.card').attr('id', appName);
         card.find('.app-name').html('<a href="#">' + appName + '</a>').click(() => {
-            window.location.href = '/ui/app/metric/' + appName + '/jvm-metrics';
+            window.location.href = '/web/app/metric/' + appName + '/jvm-metrics';
         });
         this._container.append(card);
     }
@@ -52,11 +52,20 @@ class AppCardComponent {
     // private
     loadAppOverview() {
         $.ajax({
-            url: this._apiHost + "/api/datasource/sql",
+            url: this._apiHost + "/api/datasource/groupBy",
             data: JSON.stringify({
                 dataSource: 'jvm-metrics',
-                sql: 'SELECT "appName", COUNT(DISTINCT "instanceName") "instanceCount", min("instanceStartTime") "instanceStartTime"' +
-                    ' FROM "bithon_jvm_metrics" WHERE "timestamp" >= \'' + moment().utc().subtract(5, 'hour').local().toISOString() + '\' AND "timestamp" < \'' + moment().utc().local().toISOString() + '\' GROUP BY "appName"'
+                metrics: ["instanceStartTime"],
+                aggregators: [
+                    {
+                        type: "cardinality",
+                        name: "instanceCount",
+                        dimension: "instanceName"
+                    }
+                ],
+                startTimeISO8601: moment().utc().subtract(5, 'hour').local().toISOString(),
+                endTimeISO8601: moment().utc().local().toISOString(),
+                groupBy: ["appName"]
             }),
             type: "POST",
             async: true,

@@ -3,7 +3,7 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <groupId>com.sbss.bithon.agent</groupId>
+    <groupId>org.bithon.agent</groupId>
     <artifactId>agent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
@@ -13,7 +13,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.sbss.bithon</groupId>
+      <groupId>org.bithon</groupId>
       <artifactId>agent-rpc-thrift</artifactId>
       <version>${project.version}</version>
       <exclusions>
@@ -24,26 +24,18 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.sbss.bithon.agent</groupId>
+      <groupId>org.bithon.agent</groupId>
       <artifactId>agent-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-controller</artifactId>
     </dependency>
   </dependencies>
 
   <build>
     <finalName>${project.artifactId}</finalName>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <DispatcherFactory>com.sbss.bithon.agent.dispatcher.thrift.MessageChannelFactory
-              </DispatcherFactory>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
 
       <!--            <plugin>-->
       <!--                <groupId>org.apache.thrift.tools</groupId>-->
@@ -64,19 +56,6 @@
       <!--                    </execution>-->
       <!--                </executions>-->
       <!--            </plugin>-->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>3.2.1</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 </project>

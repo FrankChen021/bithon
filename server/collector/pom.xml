@@ -2,15 +2,15 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <groupId>com.sbss.bithon.server</groupId>
-    <artifactId>server</artifactId>
+    <groupId>org.bithon</groupId>
+    <artifactId>bithon</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>collector</artifactId>
-  <name>collector</name>
+  <artifactId>bithon-server-collector</artifactId>
+  <name>server-collector</name>
   <description>Bithon Collector</description>
 
   <properties>
@@ -39,28 +39,30 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.14</version>
     </dependency>
 
     <!-- Thrift RPC -->
     <dependency>
-      <groupId>com.sbss.bithon</groupId>
+      <groupId>org.bithon</groupId>
       <artifactId>agent-rpc-thrift</artifactId>
-      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <!-- BRPC -->
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>agent-rpc-brpc</artifactId>
+    </dependency>
+
+    <!-- BRPC -->
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>bithon-sink</artifactId>
     </dependency>
 
     <!-- Bithon Commons -->
     <dependency>
-      <groupId>com.sbss.bithon</groupId>
+      <groupId>org.bithon</groupId>
       <artifactId>component-commons</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-
-    <!-- Bithon Storage -->
-    <dependency>
-      <groupId>com.sbss.bithon</groupId>
-      <artifactId>component-db</artifactId>
-      <version>1.0-SNAPSHOT</version>
     </dependency>
 
     <!-- Caffeine Cache -->
@@ -92,12 +94,6 @@
     </dependency>
 
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>1.4.200</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.antlr</groupId>
       <artifactId>antlr4-runtime</artifactId>
       <version>4.9</version>
@@ -107,6 +103,11 @@
       <artifactId>junit</artifactId>
       <version>4.13.1</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
     </dependency>
 
   </dependencies>
@@ -149,29 +150,6 @@
           <visitor>true</visitor>
           <!--<treatWarningsAsErrors>true</treatWarningsAsErrors>-->
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-          <encoding>UTF-8</encoding>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>3.2.1</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

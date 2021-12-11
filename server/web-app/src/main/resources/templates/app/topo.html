@@ -6,13 +6,9 @@
 <head>
     <title>Bithon</title>
     <script th:src="@{/lib/bootstrap-table/extensions/treegrid/bootstrap-table-treegrid.min.js}"></script>
-    <script th:inline="javascript">
-        var appName = [[${appName}]];
-
-    </script>
 </head>
 <body>
-<div class="container" layout:fragment="content">
+<div layout:fragment="content">
     <div id="topo"></div>
 <script>
 
@@ -21,17 +17,15 @@ class TopoComponent {
         //
         // App Filter
         //
-        new AppSelector().childOf('appSelector').registerAppChangedListener((text, value)=>{
-            window.appName = value;
-            this.refreshTopo();
+        new AppSelector('[[${appName}]]').childOf('appSelector').registerAppChangedListener((text, value)=>{
+            window.location = `/web/app/topo/${value}`;
         });
 
         //
         // Create TimeInterval
         //
-        var parent = $('#filterBarForm');
-        new TimeInterval().childOf(parent).registerIntervalChangedListener((fn)=>{
-            this._intervalGetter = fn;
+        const parent = $('#filterBarForm');
+        this._timeSelector = new TimeInterval().childOf(parent).registerIntervalChangedListener((selectedModel)=>{
             this.refreshTopo();
         });
 
@@ -40,26 +34,19 @@ class TopoComponent {
             height: '600px'
        })
        .header('Application Topo');
-
-       this._intervalGetter = ()=>{
-            return {
-                start: moment().utc().subtract(5, 'minute').local().toISOString(),
-                end: moment().utc().local().toISOString()
-            };
-        };
     }
 
     refreshTopo() {
-        var interval = this._intervalGetter.apply();
+        const interval = this._timeSelector.getInterval();
         this._chart.load({
             url: apiHost + '/api/topo/getApplicationTopo',
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                application: appName
+                application: g_SelectedApp
             }),
             processResult: (topo)=>{
-                var chartOption = {
+                return {
                     animationDurationUpdate: 1500,
                     animationEasingUpdate: 'quinticInOut',
                     series: [
@@ -77,7 +64,7 @@ class TopoComponent {
                             edgeLabel: {
                                 fontSize: 20
                             },
-                            data: topo.endpoints.map(endpoint=>{
+                            data: topo.endpoints.map(endpoint => {
                                 return {
                                     name: endpoint.name,
                                     x: endpoint.x,
@@ -85,7 +72,7 @@ class TopoComponent {
                                     symbol: `image:///images/nodes/${endpoint.type.toLowerCase()}.png`
                                 };
                             }),
-                            links: topo.links.map(link=>{
+                            links: topo.links.map(link => {
                                 return {
                                     minRT: link.minResponseTime,
                                     maxRT: link.maxResponseTime,
@@ -95,7 +82,7 @@ class TopoComponent {
                                     target: link.dstEndpoint,
                                     label: {
                                         show: true,
-                                        formatter: (val)=>{
+                                        formatter: (val) => {
                                             return `${val.data.callCount}, Min:${nanoFormat(val.data.minRT)}, Max:${nanoFormat(val.data.maxRT)}, Avg:${nanoFormat(val.data.avgRT)}`;
                                         },
                                         fontSize: 10
@@ -113,7 +100,6 @@ class TopoComponent {
                         }
                     ]
                 };
-                return chartOption;
             }
        });
     }

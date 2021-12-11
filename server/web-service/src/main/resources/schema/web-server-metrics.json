@@ -1,0 +1,49 @@
+{
+  "displayText": "Web Server",
+  "name": "web-server-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "connectionCount",
+      "displayText": "Connection Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "maxConnections",
+      "displayText": "count of max connections",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "activeThreads",
+      "displayText": "Active Threads",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "maxThreads",
+      "displayText": "Max Threads",
+      "unit": ""
+    }
+  ]
+}
+
+
+

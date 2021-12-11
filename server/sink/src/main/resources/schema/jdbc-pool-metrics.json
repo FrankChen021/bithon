@@ -1,0 +1,119 @@
+{
+  "displayText": "JDBC Pool",
+  "name": "jdbc-pool-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application Name",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance Name",
+      "required": true
+    },
+    {
+      "name": "server",
+      "displayText": "Database Server",
+      "required": true
+    },
+    {
+      "name": "database",
+      "displayText": "Database",
+      "required": true
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longLast",
+      "name": "activeCount",
+      "displayText": "Active Count",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "poolingCount",
+      "displayText": "Pooling Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "createCount",
+      "displayText": "Created Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "destroyCount",
+      "displayText": "Destroyed Count",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "poolingPeak",
+      "displayText": "Peek in pool",
+      "unit": ""
+    },
+    {
+      "type": "longLast",
+      "name": "activePeak",
+      "displayText": "Active Peek",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "logicConnectionCount",
+      "displayText": "Logic Connection Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "logicCloseCount",
+      "displayText": "Logic Close Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "createErrorCount",
+      "displayText": "Create Error Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "executeCount",
+      "displayText": "Execution Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "commitCount",
+      "displayText": "Committed Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "rollbackCount",
+      "displayText": "Rollback Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "startTransactionCount",
+      "displayText": "Transaction Count",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "waitThreadCount",
+      "displayText": "Wait Thread Count",
+      "unit": ""
+    }
+  ]
+}
+
+
+

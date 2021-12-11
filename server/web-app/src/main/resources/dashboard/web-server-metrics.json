@@ -1,0 +1,18 @@
+{
+  "title": "Web Server",
+  "charts": [
+    {
+      "dataSource": "web-server-metrics",
+      "title": "Web Server",
+      "width": 4,
+      "metrics": [
+        {
+          "name": "connectionCount"
+        },
+        {
+          "name": "activeThreads"
+        }
+      ]
+    }
+  ]
+}

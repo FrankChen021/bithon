@@ -1,0 +1,37 @@
+bithon:
+  storage:
+    tracing:
+      type: jdbc
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT3M
+    metric:
+      type: jdbc
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT3M
+    event:
+      type: jdbc
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT3M
+    meta:
+      type: jdbc
+    setting:
+      type: jdbc
+    provider:
+      type: jdbc
+      parameters:
+        url: jdbc:h2:mem:bithon;MODE=mysql;
+        username: sa
+
+spring:
+  h2:
+    console:
+      enabled: true
+      path: /h2-ui
+      settings:
+        web-allow-others: true
