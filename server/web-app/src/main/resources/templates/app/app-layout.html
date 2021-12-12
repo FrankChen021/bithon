@@ -44,6 +44,7 @@
 
     <link rel="stylesheet" th:href="@{/css/site.css}">
 
+    <script th:src="@{/js/component/searchbar/component.js}"></script>
     <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
     <script th:src="@{/js/card-component.js}"></script>
     <script th:src="@{/js/chart-component.js}"></script>
@@ -53,8 +54,8 @@
     <script th:inline="javascript">
         const apiHost = [[${apiHost}]];
         const g_SelectedApp = [[${appName}]];
-        var g_SelectedInstance = [[${instance}]];
-        var g_MetricSelectedInterval = [[${interval} ?: '5m']];
+        let g_SelectedInstance = [[${instance}]];
+        let g_MetricSelectedInterval = [[${interval} ?: '5m']];
     </script>
     <script th:src="@{/js/api-client/schema-api.js}"></script>
     <script th:src="@{/js/component/dashboard/component.js}"></script>
@@ -281,7 +282,7 @@
     </nav>
     <!-- page-content  -->
     <main class="page-content" style="padding-top:57px!important">
-        <nav class="navbar navbar-dark bg-dark fixed-top">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
             <!-- Navbar content -->
             <a class="navbar-brand" href="/web/home">Bithon</a>
         </nav>
@@ -318,6 +319,9 @@
     <script th:src="@{/js/component/auto-refresher/component.js}"></script>
     <script th:src="@{/js/component/time-interval/component.js}"></script>
     <script th:src="@{/js/component/app-selector/component.js}"></script>
+    <script>
+        new SearchBar();
+    </script>
 </div>
 </body>
 <script th:inline="javascript">

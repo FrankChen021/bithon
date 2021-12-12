@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,10 +56,11 @@ public class TraceService {
                                              boolean asTree) {
         if (!"trace".equals(type)) {
             // check if the id has a user mapping
-            txId = traceReader.getTraceIdByMapping(txId);
-            if (txId == null) {
-                return Collections.emptyList();
+            String traceId = traceReader.getTraceIdByMapping(txId);
+            if (traceId != null) {
+                txId = traceId;
             }
+            // if there's no mapping, try to search this id as trace id
         }
 
         List<TraceSpan> spans = traceReader.getTraceByTraceId(txId);
