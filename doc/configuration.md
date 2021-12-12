@@ -5,6 +5,5 @@ See [Here](configuration-agent.md)
 
 ## Server Configuration
 
-### Server storage Configuration
-
-See [Here](configuration-storage.md)
+- [Storage](configuration-storage.md)
+- [Tracing](configuration-tracing.md)
