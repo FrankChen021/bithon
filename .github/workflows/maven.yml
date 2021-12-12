@@ -19,7 +19,6 @@ jobs:
       with:
         java-version: '8'
         distribution: 'adopt'
-        cache: maven
     - name: Build with Maven
       run: mvn clean install -T 1C --activate-profiles all -Dmaven.javadoc.skip=true -DskipTests animal-sniffer:check checkstyle:checkstyle spotbugs:check
     - name: build-jdk9
@@ -27,7 +26,6 @@ jobs:
       with:
         java-version: '9'
         distribution: 'adopt'
-        cache: maven
     - name: Build with Maven
       run: mvn clean install -T 1C --activate-profiles all -Dmaven.javadoc.skip=true -DskipTests
     - name: build-jd17
@@ -35,7 +33,6 @@ jobs:
       with:
         java-version: '17'
         distribution: 'adopt'
-        cache: maven
     - name: Build with Maven
       run: mvn clean install -T 1C --activate-profiles all -Dmaven.javadoc.skip=true -DskipTests
 
