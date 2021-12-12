@@ -50,17 +50,7 @@ public class BrpcEventCollector implements IEventCollector, AutoCloseable {
                                                 .args(message.getArgumentsMap())
                                                 .build();
         Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
-        eventSink.process("event", IteratorableCollection.of(new Iterator<EventMessage>() {
-            @Override
-            public boolean hasNext() {
-                return delegate.hasNext();
-            }
-
-            @Override
-            public EventMessage next() {
-                return delegate.next();
-            }
-        }));
+        eventSink.process("event", IteratorableCollection.of(delegate));
     }
 
     @Override
