@@ -14,18 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.storage;
+package org.bithon.server.tracing.mapping;
 
-import org.bithon.server.event.sink.EventMessage;
-
-import java.io.IOException;
-import java.util.Collection;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * @author Frank Chen
+ * @date 10/12/21 3:27 PM
  */
-public interface IEventWriter extends AutoCloseable {
-
-    void write(Collection<EventMessage> eventMessage) throws IOException;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TraceMapping {
+    private long timestamp;
+    private String userId;
+    private String traceId;
 }

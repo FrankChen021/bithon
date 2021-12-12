@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.event.sink.EventMessage;
 import org.bithon.server.event.sink.IEventMessageSink;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -58,7 +58,7 @@ public class KafkaEventSink implements IEventMessageSink {
     }
 
     @Override
-    public void process(String messageType, CloseableIterator<EventMessage> messages) {
+    public void process(String messageType, IteratorableCollection<EventMessage> messages) {
         String key = null;
         StringBuilder messageText = new StringBuilder();
         while (messages.hasNext()) {

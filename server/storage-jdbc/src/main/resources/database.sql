@@ -70,6 +70,16 @@ CREATE TABLE `bithon_trace_span`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
+DROP TABLE IF EXISTS `bithon_trace_mapping`;
+CREATE TABLE `bithon_trace_mapping`
+(
+    `timestamp`     TIMESTAMP             NOT NULL COMMENT 'Milli Seconds',
+    `user_tx_id`    VARCHAR(64)           NOT NULL COMMENT 'user side transaction id',
+    `trace_id`      VARCHAR(64)           NOT NULL COMMENT 'trace id in bithon',
+    KEY `idx_trace_mapping_id` (`user_tx_id`, `trace_id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
 DROP TABLE IF EXISTS `bithon_event`;
 CREATE TABLE `bithon_event`
 (

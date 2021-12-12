@@ -7,6 +7,7 @@ package org.bithon.server.storage.jdbc.jooq;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 
 
@@ -30,6 +31,11 @@ public class Tables {
      * The table <code>bithon_event</code>.
      */
     public static final BithonEvent BITHON_EVENT = BithonEvent.BITHON_EVENT;
+
+    /**
+     * The table <code>bithon_trace_mapping</code>.
+     */
+    public static final BithonTraceMapping BITHON_TRACE_MAPPING = BithonTraceMapping.BITHON_TRACE_MAPPING;
 
     /**
      * The table <code>bithon_trace_span</code>.

@@ -14,18 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.storage;
+package org.bithon.server.tracing.mapping;
 
-import org.bithon.server.event.sink.EventMessage;
+import lombok.Data;
 
-import java.io.IOException;
-import java.util.Collection;
+import java.util.Map;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * Extract a user-defined transaction id on a given parameter to trace id
+ *
+ * - type: xxx
+ * - params:
+ *
+ * @author Frank Chen
+ * @date 10/12/21 3:08 PM
  */
-public interface IEventWriter extends AutoCloseable {
-
-    void write(Collection<EventMessage> eventMessage) throws IOException;
+@Data
+public class TraceMappingConfig {
+    private String type;
+    private Map<String, Object> args;
 }

@@ -16,37 +16,42 @@
 
 package org.bithon.server.tracing.sink;
 
-import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.server.tracing.mapping.TraceMapping;
+import org.bithon.server.tracing.mapping.TraceMappingFactory;
 import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/4 8:21 下午
  */
-public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<CloseableIterator<TraceSpan>> {
+@Slf4j
+public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<IteratorableCollection<TraceSpan>> {
 
-    final ITraceWriter traceWriter;
+    private final ITraceWriter traceWriter;
+    private final Function<Collection<TraceSpan>, List<TraceMapping>> extractor;
 
     public TraceMessageHandler(ApplicationContext applicationContext) {
-        super("trace",
-              2,
-              10,
-              Duration.ofMinutes(1),
-              2048);
-
+        super("trace", 2, 10, Duration.ofMinutes(1), 2048);
         this.traceWriter = applicationContext.getBean(ITraceStorage.class).createWriter();
+
+        this.extractor = TraceMappingFactory.create(applicationContext);
     }
 
     @Override
-    protected void onMessage(CloseableIterator<TraceSpan> traceSpans) throws IOException {
-        traceWriter.write(ImmutableList.copyOf(traceSpans));
+    protected void onMessage(IteratorableCollection<TraceSpan> traceSpans) throws IOException {
+        traceWriter.writeSpans(traceSpans.toCollection());
+        traceWriter.writeMappings(extractor.apply(traceSpans.toCollection()));
     }
 
     @Override

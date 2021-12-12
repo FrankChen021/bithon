@@ -17,7 +17,7 @@
 package org.bithon.server.metric.sink;
 
 import lombok.Data;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.metric.DataSourceSchema;
 
 /**
@@ -27,5 +27,5 @@ import org.bithon.server.metric.DataSourceSchema;
 @Data
 public class SchemaMetricMessage {
     private DataSourceSchema schema;
-    private CloseableIterator<MetricMessage> metrics;
+    private IteratorableCollection<MetricMessage> metrics;
 }

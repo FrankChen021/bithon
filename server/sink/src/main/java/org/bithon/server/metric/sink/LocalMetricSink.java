@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.ThreadUtils;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.springframework.context.ApplicationContext;
 
 import java.util.HashMap;
@@ -65,7 +65,7 @@ public class LocalMetricSink implements IMetricMessageSink {
     }
 
     @Override
-    public void process(String messageType, CloseableIterator<MetricMessage> messages) {
+    public void process(String messageType, IteratorableCollection<MetricMessage> messages) {
         AbstractMetricMessageHandler handler = handlers.get(messageType);
         if (handler != null) {
             executor.submit(() -> {

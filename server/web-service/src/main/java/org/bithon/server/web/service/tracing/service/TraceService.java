@@ -51,8 +51,19 @@ public class TraceService {
         return traceReader.getTraceByParentSpanId(parentSpanId);
     }
 
-    public List<TraceSpan> getTraceByTraceId(String traceId, boolean asTree) {
-        List<TraceSpan> spans = traceReader.getTraceByTraceId(traceId);
+    public List<TraceSpan> getTraceByTraceId(String txId,
+                                             String type,
+                                             boolean asTree) {
+        if (!"trace".equals(type)) {
+            // check if the id has a user mapping
+            String traceId = traceReader.getTraceIdByMapping(txId);
+            if (traceId != null) {
+                txId = traceId;
+            }
+            // if there's no mapping, try to search this id as trace id
+        }
+
+        List<TraceSpan> spans = traceReader.getTraceByTraceId(txId);
 
         if (!asTree) {
             return spans;
@@ -62,12 +73,12 @@ public class TraceService {
         // build as tree
         //
         Map<String, TraceSpanBo> boMap = spans.stream()
-                .collect(Collectors.toMap(span -> span.spanId,
-                        val -> {
-                            TraceSpanBo bo = new TraceSpanBo();
-                            BeanUtils.copyProperties(val, bo);
-                            return bo;
-                        }));
+                                              .collect(Collectors.toMap(span -> span.spanId,
+                                                                        val -> {
+                                                                            TraceSpanBo bo = new TraceSpanBo();
+                                                                            BeanUtils.copyProperties(val, bo);
+                                                                            return bo;
+                                                                        }));
 
         List<TraceSpan> rootSpans = new ArrayList<>();
         for (TraceSpan span : spans) {

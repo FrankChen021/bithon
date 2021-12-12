@@ -14,18 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.storage;
+package org.bithon.server.tracing.mapping;
 
-import org.bithon.server.event.sink.EventMessage;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.tracing.sink.TraceSpan;
 
-import java.io.IOException;
-import java.util.Collection;
+import java.util.function.BiConsumer;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * @author Frank Chen
+ * @date 10/12/21 3:12 PM
  */
-public interface IEventWriter extends AutoCloseable {
-
-    void write(Collection<EventMessage> eventMessage) throws IOException;
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(name = "uri", value = URIParameterExtractor.class),
+    @JsonSubTypes.Type(name = "name", value = NameValueExtractor.class),
+})
+public interface ITraceMappingExtractor {
+    void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback);
 }

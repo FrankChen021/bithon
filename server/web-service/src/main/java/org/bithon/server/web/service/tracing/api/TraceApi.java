@@ -42,7 +42,7 @@ public class TraceApi {
 
     @PostMapping("/api/trace/getTraceById")
     public GetTraceByIdResponse getTraceById(@Valid @RequestBody GetTraceByIdRequest request) {
-        List<TraceSpan> spanList = traceService.getTraceByTraceId(request.getTraceId(), request.isHierachy());
+        List<TraceSpan> spanList = traceService.getTraceByTraceId(request.getId(), request.getType(), request.isHierachy());
 
         return new GetTraceByIdResponse(spanList, traceService.buildMap(spanList));
     }

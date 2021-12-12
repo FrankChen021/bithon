@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;
@@ -40,7 +40,7 @@ public class LocalEventSink implements IEventMessageSink {
     }
 
     @Override
-    public void process(String messageType, CloseableIterator<EventMessage> message) {
+    public void process(String messageType, IteratorableCollection<EventMessage> message) {
         this.handler.submit(message);
     }
 

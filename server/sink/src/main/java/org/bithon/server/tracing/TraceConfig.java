@@ -14,18 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.storage;
+package org.bithon.server.tracing;
 
-import org.bithon.server.event.sink.EventMessage;
+import lombok.Data;
+import org.bithon.server.tracing.mapping.TraceMappingConfig;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * @author Frank Chen
+ * @date 10/12/21 3:33 PM
  */
-public interface IEventWriter extends AutoCloseable {
-
-    void write(Collection<EventMessage> eventMessage) throws IOException;
+@Data
+@Configuration
+@ConfigurationProperties(prefix = "bithon.tracing")
+public class TraceConfig {
+    private List<TraceMappingConfig> mapping;
 }

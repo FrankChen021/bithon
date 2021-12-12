@@ -31,4 +31,6 @@ public interface ITraceReader {
     int getTraceListSize(String appName);
 
     List<TraceSpan> getTraceByParentSpanId(String parentSpanId);
+
+    String getTraceIdByMapping(String id);
 }

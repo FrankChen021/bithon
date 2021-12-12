@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.thrift.service.MessageHeader;
 import org.bithon.agent.rpc.thrift.service.trace.ITraceCollector;
 import org.bithon.agent.rpc.thrift.service.trace.TraceSpanMessage;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.sink.ITraceMessageSink;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.springframework.util.CollectionUtils;
@@ -51,14 +51,10 @@ public class ThriftTraceCollector implements ITraceCollector.Iface {
         traceSink.process("trace", from(header, spans));
     }
 
-    private CloseableIterator<TraceSpan> from(MessageHeader header, List<TraceSpanMessage> messages) {
+    private IteratorableCollection<TraceSpan> from(MessageHeader header, List<TraceSpanMessage> messages) {
 
         Iterator<TraceSpanMessage> delegate = messages.iterator();
-        return new CloseableIterator<TraceSpan>() {
-            @Override
-            public void close() {
-            }
-
+        return IteratorableCollection.of(new Iterator<TraceSpan>() {
             @Override
             public boolean hasNext() {
                 return delegate.hasNext();
@@ -86,6 +82,6 @@ public class ThriftTraceCollector implements ITraceCollector.Iface {
 
                 return traceSpan;
             }
-        };
+        });
     }
 }

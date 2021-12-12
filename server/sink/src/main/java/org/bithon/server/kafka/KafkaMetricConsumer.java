@@ -16,7 +16,7 @@
 
 package org.bithon.server.kafka;
 
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.metric.sink.LocalMetricSink;
 import org.bithon.server.metric.sink.MetricMessage;
 
@@ -46,7 +46,7 @@ public class KafkaMetricConsumer extends AbstractKafkaConsumer<MetricMessage> {
     }
 
     @Override
-    protected void onMessage(String type, CloseableIterator<MetricMessage> msg) {
+    protected void onMessage(String type, IteratorableCollection<MetricMessage> msg) {
         metricSink.process(type, msg);
     }
 

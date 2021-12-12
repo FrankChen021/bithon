@@ -48,15 +48,25 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public void initialize() {
-        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_TRACE_SPAN, config.getTtlDays());
+        TableCreator tableCreator = new TableCreator(config, dslContext);
+        tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN, config.getTtlDays());
+        tableCreator.createIfNotExist(Tables.BITHON_TRACE_MAPPING, config.getTtlDays(), true);
     }
 
     @Override
     public ITraceCleaner createCleaner() {
-        return beforeTimestamp -> dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                                        config.getDatabase(),
-                                                                        config.getLocalTableName(Tables.BITHON_TRACE_SPAN.getName()),
-                                                                        config.getClusterExpression(),
-                                                                        StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", beforeTimestamp)));
+        return beforeTimestamp -> {
+            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
+                                                  config.getDatabase(),
+                                                  config.getLocalTableName(Tables.BITHON_TRACE_SPAN.getName()),
+                                                  config.getClusterExpression(),
+                                                  StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", beforeTimestamp)));
+
+            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
+                                                  config.getDatabase(),
+                                                  config.getLocalTableName(Tables.BITHON_TRACE_MAPPING.getName()),
+                                                  config.getClusterExpression(),
+                                                  StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", beforeTimestamp)));
+        };
     }
 }

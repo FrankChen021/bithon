@@ -26,16 +26,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
+import org.bithon.server.tracing.mapping.TraceMapping;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.jooq.DSLContext;
+import org.jooq.Query;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -64,6 +68,10 @@ public class TraceJdbcStorage implements ITraceStorage {
                   .columns(Tables.BITHON_TRACE_SPAN.fields())
                   .indexes(Tables.BITHON_TRACE_SPAN.getIndexes())
                   .execute();
+        dslContext.createTableIfNotExists(Tables.BITHON_TRACE_MAPPING)
+                  .columns(Tables.BITHON_TRACE_MAPPING.fields())
+                  .indexes(Tables.BITHON_TRACE_MAPPING.getIndexes())
+                  .execute();
     }
 
     @Override
@@ -78,11 +86,19 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public ITraceCleaner createCleaner() {
-        return beforeTimestamp -> dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
-                                            .where(Tables.BITHON_TRACE_SPAN.TRACEID
-                                                       .in(dslContext.selectDistinct(Tables.BITHON_TRACE_SPAN.TRACEID)
-                                                                     .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(new Timestamp(
-                                                                         beforeTimestamp)))));
+        return beforeTimestamp -> {
+            Timestamp before = new Timestamp(beforeTimestamp);
+
+            dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
+                      .where(Tables.BITHON_TRACE_SPAN.TRACEID
+                                 .in(dslContext.selectDistinct(Tables.BITHON_TRACE_SPAN.TRACEID)
+                                               .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(before))))
+                      .execute();
+
+            dslContext.deleteFrom(Tables.BITHON_TRACE_MAPPING)
+                      .where(Tables.BITHON_TRACE_MAPPING.TIMESTAMP.le(before))
+                      .execute();
+        };
     }
 
     private class TraceJdbcReader implements ITraceReader {
@@ -91,7 +107,9 @@ public class TraceJdbcStorage implements ITraceStorage {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
                              .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId))
                              // for spans coming from a same application instance, sort them by the start time
-                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(), Tables.BITHON_TRACE_SPAN.INSTANCENAME, Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
+                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
+                                      Tables.BITHON_TRACE_SPAN.INSTANCENAME,
+                                      Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
                              .fetch(this::toTraceSpan);
         }
 
@@ -118,8 +136,19 @@ public class TraceJdbcStorage implements ITraceStorage {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
                              .where(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(parentSpanId))
                              // for spans coming from a same application instance, sort them by the start time
-                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(), Tables.BITHON_TRACE_SPAN.INSTANCENAME, Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
+                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
+                                      Tables.BITHON_TRACE_SPAN.INSTANCENAME,
+                                      Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
                              .fetch(this::toTraceSpan);
+        }
+
+        @Override
+        public String getTraceIdByMapping(String id) {
+            return dslContext.select(Tables.BITHON_TRACE_MAPPING.TRACE_ID)
+                             .from(Tables.BITHON_TRACE_MAPPING)
+                             .where(Tables.BITHON_TRACE_MAPPING.USER_TX_ID.eq(id))
+                             .limit(1)
+                             .fetchOne(Tables.BITHON_TRACE_MAPPING.TRACE_ID);
         }
 
         private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {
@@ -148,7 +177,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     private class TraceJdbcWriter implements ITraceWriter {
         @Override
-        public void write(List<TraceSpan> traceSpans) {
+        public void writeSpans(Collection<TraceSpan> traceSpans) {
             List<BithonTraceSpanRecord> records = traceSpans.stream().map((span) -> {
                 BithonTraceSpanRecord spanRecord = new BithonTraceSpanRecord();
                 spanRecord.setAppname(span.appName);
@@ -175,6 +204,19 @@ public class TraceJdbcStorage implements ITraceStorage {
             } catch (DuplicateKeyException e) {
                 log.error("Duplicated Span Records: {}", records);
             }
+        }
+
+        @Override
+        public void writeMappings(Collection<TraceMapping> mappings) {
+            List<Query> queries = new ArrayList<>();
+            for (TraceMapping mapping : mappings) {
+                Query q = dslContext.insertInto(Tables.BITHON_TRACE_MAPPING)
+                                    .set(Tables.BITHON_TRACE_MAPPING.TRACE_ID, mapping.getTraceId())
+                                    .set(Tables.BITHON_TRACE_MAPPING.USER_TX_ID, mapping.getUserId())
+                                    .set(Tables.BITHON_TRACE_SPAN.TIMESTAMP, new Timestamp(mapping.getTimestamp()));
+                queries.add(q);
+            }
+            dslContext.batch(queries).execute();
         }
     }
 }

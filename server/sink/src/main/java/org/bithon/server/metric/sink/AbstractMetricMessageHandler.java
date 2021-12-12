@@ -18,7 +18,7 @@ package org.bithon.server.metric.sink;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
@@ -71,7 +71,7 @@ public abstract class AbstractMetricMessageHandler {
         return true;
     }
 
-    public final void process(CloseableIterator<MetricMessage> metricMessages) {
+    public final void process(IteratorableCollection<MetricMessage> metricMessages) {
         if (!metricMessages.hasNext()) {
             return;
         }

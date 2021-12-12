@@ -16,10 +16,11 @@
 
 package org.bithon.server.collector.source.http;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.sink.ITraceMessageSink;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +29,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -53,43 +57,21 @@ public class TraceHttpCollector {
         String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         log.trace("receive spans:{}", body);
 
-        final TraceSpan[] spans = om.readValue(body, TraceSpan[].class);
-        if (spans.length == 0) {
-            return;
-        }
-        CloseableIterator<TraceSpan> iterator = new CloseableIterator<TraceSpan>() {
-            int index = 0;
+        final List<TraceSpan> spans = om.readValue(body, new TypeReference<ArrayList<TraceSpan>>() {
+        });
 
-            @Override
-            public void close() {
-            }
-
-            @Override
-            public boolean hasNext() {
-                return index < spans.length;
-            }
-
-            @Override
-            public TraceSpan next() {
-                return spans[index++];
-            }
-        };
-        if ("clickhouse".equals(spans[0].appName)) {
+        Iterator<TraceSpan> iterator = spans.iterator();
+        if ("clickhouse".equals(spans.get(0).appName)) {
             iterator = new ClickHouseAdaptor(iterator);
         }
-        this.traceSink.process("trace", iterator);
+        this.traceSink.process("trace", IteratorableCollection.of(iterator));
     }
 
-    static class ClickHouseAdaptor implements CloseableIterator<TraceSpan> {
-        private final CloseableIterator<TraceSpan> delete;
+    static class ClickHouseAdaptor implements Iterator<TraceSpan> {
+        private final Iterator<TraceSpan> delete;
 
-        ClickHouseAdaptor(CloseableIterator<TraceSpan> delete) {
+        ClickHouseAdaptor(Iterator<TraceSpan> delete) {
             this.delete = delete;
-        }
-
-        @Override
-        public void close() throws IOException {
-            delete.close();
         }
 
         @Override

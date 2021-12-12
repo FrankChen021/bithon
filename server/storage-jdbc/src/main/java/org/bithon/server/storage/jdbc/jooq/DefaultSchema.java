@@ -11,6 +11,7 @@ import java.util.List;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 import org.jooq.Catalog;
 import org.jooq.Table;
@@ -23,7 +24,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = -379209173;
+    private static final long serialVersionUID = 1916041216;
 
     /**
      * The reference instance of <code></code>
@@ -44,6 +45,11 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>bithon_event</code>.
      */
     public final BithonEvent BITHON_EVENT = org.bithon.server.storage.jdbc.jooq.tables.BithonEvent.BITHON_EVENT;
+
+    /**
+     * The table <code>bithon_trace_mapping</code>.
+     */
+    public final BithonTraceMapping BITHON_TRACE_MAPPING = org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping.BITHON_TRACE_MAPPING;
 
     /**
      * The table <code>bithon_trace_span</code>.
@@ -75,6 +81,7 @@ public class DefaultSchema extends SchemaImpl {
             BithonAgentSetting.BITHON_AGENT_SETTING,
             BithonApplicationInstance.BITHON_APPLICATION_INSTANCE,
             BithonEvent.BITHON_EVENT,
+            BithonTraceMapping.BITHON_TRACE_MAPPING,
             BithonTraceSpan.BITHON_TRACE_SPAN);
     }
 }

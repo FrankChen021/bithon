@@ -18,7 +18,7 @@ package org.bithon.server.event.sink;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
-import org.bithon.server.common.utils.collection.CloseableIterator;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.event.storage.IEventStorage;
 import org.bithon.server.event.storage.IEventWriter;
 import org.bithon.server.metric.DataSourceSchema;
@@ -39,7 +39,7 @@ import java.util.List;
  * @date 2021/2/14 4:01 下午
  */
 @Slf4j
-public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<CloseableIterator<EventMessage>> {
+public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<IteratorableCollection<EventMessage>> {
 
     final IEventWriter eventWriter;
     final IMetricWriter exceptionMetricWriter;
@@ -54,8 +54,7 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Close
     }
 
     @Override
-    protected void onMessage(CloseableIterator<EventMessage> iterator) throws IOException {
-        List<EventMessage> messages = new ArrayList<>();
+    protected void onMessage(IteratorableCollection<EventMessage> iterator) throws IOException {
         List<InputRow> metrics = new ArrayList<>();
         while (iterator.hasNext()) {
             EventMessage message = iterator.next();
@@ -68,12 +67,11 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Close
                 row.updateColumn("exceptionCount", 1);
                 metrics.add(row);
             }
-            messages.add(message);
         }
         if (!metrics.isEmpty()) {
             exceptionMetricWriter.write(metrics);
         }
-        eventWriter.write(messages);
+        eventWriter.write(iterator.toCollection());
     }
 
     @Override

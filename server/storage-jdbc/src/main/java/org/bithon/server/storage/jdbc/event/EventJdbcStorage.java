@@ -35,6 +35,7 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.ThreadLocalTransactionProvider;
 
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -98,7 +99,7 @@ public class EventJdbcStorage implements IEventStorage {
         }
 
         @Override
-        public void write(List<EventMessage> eventMessage) {
+        public void write(Collection<EventMessage> eventMessage) {
             List<Query> queries = eventMessage.stream().map(message -> {
                 String args;
                 try {

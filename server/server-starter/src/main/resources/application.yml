@@ -5,3 +5,13 @@ spring:
     name: server
   profiles:
     include: dev, storage-jdbc, collector, webapp
+
+bithon:
+  tracing:
+    mapping:
+      - type: uri
+        args:
+          parameters: ["query_id"]
+      - type: name
+        args:
+          names: ["query_id"]

@@ -18,7 +18,7 @@ package org.bithon.server.web.service.tracing.api;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,8 +26,17 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 public class GetTraceByIdRequest {
-    @NotNull
-    private String traceId;
+    /**
+     * a trace id or a user transaction id
+     */
+    @NotEmpty
+    private String id;
+
+    /**
+     * trace - the value of id field is a trace id
+     * auto  - the value of id field may be a user transaction id or a trace id
+     */
+    private String type = "trace";
 
     private boolean hierachy = false;
 }

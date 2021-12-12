@@ -46,9 +46,9 @@ public class TraceTTLManager implements SmartLifecycle {
     private final TTLConfig ttlConfig;
     private ScheduledThreadPoolExecutor executor;
 
-    public TraceTTLManager(ITraceStorage traceStorage, TraceStorageConfig storageConfig) {
+    public TraceTTLManager(ITraceStorage traceStorage, TraceStorageConfig traceConfig) {
         this.traceStorage = traceStorage;
-        this.ttlConfig = storageConfig.getTtl();
+        this.ttlConfig = traceConfig.getTtl();
     }
 
     @Override
