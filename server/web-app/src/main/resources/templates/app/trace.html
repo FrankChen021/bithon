@@ -49,11 +49,6 @@
             sortName: 'lastAlertAt',
             sortOrder: 'desc',
 
-//      treeEnable: true,
-//	  treeShowField: 'name',
-//      idField: 'spanId',
-//      parentIdField: 'parentSpanId',
-
             queryParamsType: '',
             queryParams: function (params) {
                 return {
@@ -80,7 +75,7 @@
                 field: 'traceId',
                 title: 'Trace Id',
                 formatter: function (value, row) {
-                    return '<a target="_blank" href="/web/trace/detail/' + row.traceId + '">' + value + '</a>';
+                    return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}">${value}</a>`;
                 }
             }, {
                 field: 'startTime',

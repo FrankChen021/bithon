@@ -93,7 +93,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                       .where(Tables.BITHON_TRACE_SPAN.TRACEID
                                  .in(dslContext.selectDistinct(Tables.BITHON_TRACE_SPAN.TRACEID)
                                                .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(before))))
-                          .execute();
+                      .execute();
 
             dslContext.deleteFrom(Tables.BITHON_TRACE_MAPPING)
                       .where(Tables.BITHON_TRACE_MAPPING.TIMESTAMP.le(before))
@@ -140,6 +140,15 @@ public class TraceJdbcStorage implements ITraceStorage {
                                       Tables.BITHON_TRACE_SPAN.INSTANCENAME,
                                       Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
                              .fetch(this::toTraceSpan);
+        }
+
+        @Override
+        public String getTraceIdByMapping(String id) {
+            return dslContext.select(Tables.BITHON_TRACE_MAPPING.TRACE_ID)
+                             .from(Tables.BITHON_TRACE_MAPPING)
+                             .where(Tables.BITHON_TRACE_MAPPING.USER_TX_ID.eq(id))
+                             .limit(1)
+                             .fetchOne(Tables.BITHON_TRACE_MAPPING.TRACE_ID);
         }
 
         private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {

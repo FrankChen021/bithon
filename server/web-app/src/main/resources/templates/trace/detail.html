@@ -39,7 +39,8 @@
     </div>
 
     <script th:inline="javascript">
-        let traceId = [[${traceId}]];
+        let id = [[${id}]];
+        let type = [[${type}]];
         let traceData = [];
     </script>
     <script>
@@ -75,7 +76,8 @@
             queryParamsType: '',
             queryParams: function (params) {
                 return {
-                    traceId: traceId,
+                    id: id,
+                    type: type
                 };
             },
 

@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,8 +52,18 @@ public class TraceService {
         return traceReader.getTraceByParentSpanId(parentSpanId);
     }
 
-    public List<TraceSpan> getTraceByTraceId(String traceId, boolean asTree) {
-        List<TraceSpan> spans = traceReader.getTraceByTraceId(traceId);
+    public List<TraceSpan> getTraceByTraceId(String txId,
+                                             String type,
+                                             boolean asTree) {
+        if (!"trace".equals(type)) {
+            // check if the id has a user mapping
+            txId = traceReader.getTraceIdByMapping(txId);
+            if (txId == null) {
+                return Collections.emptyList();
+            }
+        }
+
+        List<TraceSpan> spans = traceReader.getTraceByTraceId(txId);
 
         if (!asTree) {
             return spans;
@@ -62,12 +73,12 @@ public class TraceService {
         // build as tree
         //
         Map<String, TraceSpanBo> boMap = spans.stream()
-                .collect(Collectors.toMap(span -> span.spanId,
-                        val -> {
-                            TraceSpanBo bo = new TraceSpanBo();
-                            BeanUtils.copyProperties(val, bo);
-                            return bo;
-                        }));
+                                              .collect(Collectors.toMap(span -> span.spanId,
+                                                                        val -> {
+                                                                            TraceSpanBo bo = new TraceSpanBo();
+                                                                            BeanUtils.copyProperties(val, bo);
+                                                                            return bo;
+                                                                        }));
 
         List<TraceSpan> rootSpans = new ArrayList<>();
         for (TraceSpan span : spans) {
