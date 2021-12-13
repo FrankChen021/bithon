@@ -9,6 +9,7 @@
   <packaging>pom</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>Bithon</name>
+  <description>Bithon - An observability platform</description>
   <url>https://bithon.org</url>
 
   <properties>
