@@ -29,7 +29,7 @@ Upload your key to [opengpg](https://keys.openpgp.org/upload/)
 
 ```bash
 export GPG_TTY=$(tty)
-mvn clean deploy -Pdist
+mvn clean deploy -DskipTests -Pdist
 ```
 
 # Step 4.
