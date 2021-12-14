@@ -42,12 +42,19 @@ RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; th
     ; fi
 
 FROM amd64/busybox:1.30.0-glibc as busybox
-FROM bithon/agent:$AGENT
-
+FROM gcr.io/distroless/java:8
 COPY --from=builder /src/server/server-starter/target/bithon-server-starter.jar /opt/bithon-server-starter.jar
-#COPY server/server-starter/target/bithon-server-starter.jar /opt/bithon-server-starter.jar
 
 COPY --from=busybox /bin/busybox /busybox/busybox
 RUN ["/busybox/busybox", "--install", "/bin"]
+RUN ["/busybox/busybox", "--install", "/wget"]
+RUN ["/busybox/busybox", "--install", "/unzip"]
 
-ENTRYPOINT java -javaagent:/opt/agent-distribution/agent-main.jar -Dbithon.application.name=bithon-server -Dbithon.application.env=dev -jar /opt/bithon-server-starter.jar
+COPY docker/startup.sh /startup.sh
+RUN chmod +x /startup.sh
+
+ENV JAVA_OPTS ""
+ENV AGENT_URI https://repo1.maven.org/maven2/org/bithon/agent/agent-distribution/1.1.0-RELEASE/agent-distribution-1.1.0-RELEASE.zip
+
+WORKDIR /opt
+ENTRYPOINT ["/startup.sh"]
