@@ -21,17 +21,30 @@
 From the root of the repo, run 
 
 ```bash
-DOCKER_BUILDKIT=1 docker build -t bithon/agent:{AGENT_TAG} -f docker/Dockerfile-agent .
-DOCKER_BUILDKIT=1 docker build -t bithon/server:{TAG} -f docker/Dockerfile-server --build-arg AGENT={AGENT_TAG} .
+DOCKER_BUILDKIT=1 docker build -t bithon/server:{TAG} -f docker/Dockerfile-server .
 ```
 
 For the 2nd time to build the docker file, build argument `BUILD_FROM_SOURCE` could be added to the command to speed up the build process.
 ```bash
-DOCKER_BUILDKIT=1 docker build -t bithon/server:{TAG} -f docker/Dockerfile-server --build-arg AGENT={AGENT_TAG} --build-arg BUILD_FROM_SOURCE=false .
+DOCKER_BUILDKIT=1 docker build -t bithon/server:{TAG} -f docker/Dockerfile-server --build-arg BUILD_FROM_SOURCE=false .
 ```
 
 ## Run
 
-```bash
-docker run -itd bithon/server:{TAG}
-```
+- Normal run.
+    ```bash
+    docker run -p 9895:9895 -p 9896:9896 -p 9897:9897 -p 9898:9898 -p 9899:9899 -itd bithon/server:{TAG} 
+    ```
+
+- Run with extra JVM arguments.
+    ```bash
+    docker run -p 9895:9895 -p 9896:9896 -p 9897:9897 -p 9898:9898 -p 9899:9899 -e JAVA_OPTS="-Xmx4g" -itd bithon/server:{TAG} 
+    ```
+
+- Run with customized agent download URL.
+  
+    By default, the process inside the docker will first download agent from [https://repo1.maven.org/](https://repo1.maven.org/).
+    If this site is not available for you, you can change this site by specifying an extra environment argument when starting the docker as follows 
+    ```bash
+    docker run -p 9895:9895 -p 9896:9896 -p 9897:9897 -p 9898:9898 -p 9899:9899 -e AGENT_URI="YOUR_AGENT_URI" -itd bithon/server:{TAG} 
+    ```

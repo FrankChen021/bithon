@@ -32,6 +32,12 @@ export GPG_TTY=$(tty)
 mvn clean deploy -DskipTests -Pdist
 ```
 
+To deploy agent only, use following command:
+```bash
+export GPG_TTY=$(tty)
+mvn clean deploy -pl agent -amd
+```
+
 # Step 4.
 
 close the project at [staging repository](https://s01.oss.sonatype.org), and then release it if it passes all the check.
