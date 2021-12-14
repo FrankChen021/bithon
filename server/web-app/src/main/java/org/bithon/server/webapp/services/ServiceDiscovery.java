@@ -20,14 +20,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.UnknownHostException;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
@@ -50,62 +43,13 @@ public class ServiceDiscovery {
             throw new IllegalStateException("-Dbithon.api.host not specified for web-app");
         }
 
-        InetAddress addr = findFirstNonLoopbackAddress();
-        if (addr == null) {
-            throw new IllegalStateException("-Dbithon.api.host not specified for web-app");
-        }
-
-        apiHost = String.format(Locale.ENGLISH, "http://%s:%s", addr.getHostAddress(), env.getProperty("server.port"));
+        // if this service is deployed in docker, the IP we get from the current interface is an internal IP
+        // So, we don't need to set the apiHost
+        apiHost = "";
     }
 
     public String getApiHost() {
         return apiHost;
     }
 
-    /**
-     * taken from {@link org.springframework.cloud.commons.util.InetUtils#findFirstNonLoopbackAddress()}
-     *
-     * @return non loopback ip address
-     */
-    private InetAddress findFirstNonLoopbackAddress() {
-        InetAddress result = null;
-        try {
-            int lowest = Integer.MAX_VALUE;
-            for (Enumeration<NetworkInterface> nics = NetworkInterface
-                .getNetworkInterfaces(); nics.hasMoreElements(); ) {
-                NetworkInterface ifc = nics.nextElement();
-                if (!ifc.isUp()) {
-                    continue;
-                }
-
-                if (ifc.getIndex() < lowest || result == null) {
-                    lowest = ifc.getIndex();
-                } else if (result != null) {
-                    continue;
-                }
-
-                for (Enumeration<InetAddress> addrs = ifc
-                    .getInetAddresses(); addrs.hasMoreElements(); ) {
-                    InetAddress address = addrs.nextElement();
-                    if (address instanceof Inet4Address
-                        && !address.isLoopbackAddress()) {
-                        result = address;
-                    }
-                }
-            }
-
-        } catch (IOException ignored) {
-        }
-
-        if (result != null) {
-            return result;
-        }
-
-        try {
-            return InetAddress.getLocalHost();
-        } catch (UnknownHostException ignored) {
-        }
-
-        return null;
-    }
 }
