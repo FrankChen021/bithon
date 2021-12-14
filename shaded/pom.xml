@@ -21,7 +21,6 @@
         <module>shaded-netty</module>
         <module>shaded-protobuf</module>
         <module>shaded-slf4j</module>
-        <module>shaded-snakeyaml</module>
     </modules>
     <build>
         <pluginManagement>
