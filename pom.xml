@@ -18,7 +18,8 @@
     <java.version>8</java.version>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
-    <spring.boot.version>2.3.7.RELEASE</spring.boot.version>
+    <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
+    <spring-cloud.version>Hoxton.SR12</spring-cloud.version>
   </properties>
 
   <modules>
@@ -126,6 +127,24 @@
         <groupId>org.bithon</groupId>
         <artifactId>bithon-web-app</artifactId>
         <version>${project.version}</version>
+      </dependency>
+
+      <!-- Spring Cloud -->
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${spring-cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- Spring Boot -->
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -27,7 +27,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jooq</artifactId>
-      <version>${spring.boot.version}</version>
+      <version>${spring-boot.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.tomcat</groupId>
@@ -49,7 +49,7 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>
-      <version>${spring.boot.version}</version>
+      <version>${spring-boot.version}</version>
     </dependency>
 
     <!-- Built in H2 Database -->
