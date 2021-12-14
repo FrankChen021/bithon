@@ -20,12 +20,16 @@ class SearchBar {
             '            </form>\n' +
             '        </div>');
         const input = navbar.find("input");
-        navbar.find("button").click(() => SearchBar.#search(input.val().trim()));
+        navbar.find("button").click(() => this.#search(input.val().trim()));
 
+        this._id = "";
         const uri = decodeURI(window.location.href);
         const paramPos = uri.indexOf('?') + 1;
-        if (paramPos > 0) {
-            const idPos = uri.indexOf("id=", paramPos);
+        if (paramPos <= 0) {
+            return;
+        }
+        const idPos = uri.indexOf("id=", paramPos);
+        if (idPos > 0) {
             const nextParamPos = uri.indexOf("&", idPos);
 
             if (nextParamPos !== -1) {
@@ -34,8 +38,6 @@ class SearchBar {
                 this._id = uri.substring(idPos + 3);
             }
             input.val(this._id);
-        } else {
-            this._id = "";
         }
     }
 
