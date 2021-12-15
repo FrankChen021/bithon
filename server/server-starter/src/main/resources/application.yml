@@ -1,10 +1,5 @@
 server:
   port: 9897
-spring:
-  application:
-    name: server
-  profiles:
-    include: dev, storage-jdbc, collector, webapp
 
 bithon:
   tracing:

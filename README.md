@@ -54,7 +54,7 @@ Once the project has been built, you could run the project in a standalone mode 
 To launch server in evaluation mode, execute the following command:
 
 ```bash
-java -jar server/server-starter/target/bithon-server-starter.jar
+java -Dspring.profiles.include=dev,storage-jdbc,collector,webapp -jar server/server-starter/target/bithon-server-starter.jar
 ```
 
 By default, the application opens and listens on following ports at local
@@ -68,6 +68,13 @@ By default, the application opens and listens on following ports at local
 | web | 9897 |
 
 Once the application has started, visit [http://localhost:9897/web/home](http://localhost:9897/web/home) to view the monitor.
+
+> Note:
+> `-Dspring.profiles.include` parameter here is just for demo.
+> 
+> You can make changes to `server/server-starter/src/main/resources/application.yml` to reflect your own settings.
+> 
+> You can also use enable [Alibaba Nacos](doc/configuration-nacos.md) as your configuration storage center.
 
 ## 2. Attach agent to your java application
 

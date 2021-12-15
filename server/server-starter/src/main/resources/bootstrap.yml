@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: bithon-server
+  cloud:
+    nacos:
+      config:
+        enabled: false
+        file-extension: yaml
+        server-addr: nacos.server:80
+        namespace: ffffffff-d350-4755-ab1a-28721fc79cfa
+        refresh-enabled: true
+        group: DEFAULT_GROUP
