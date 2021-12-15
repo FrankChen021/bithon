@@ -13,10 +13,18 @@ else
   echo "Failed to downloading agent..."
 fi
 
-if [ -f /opt/agent-distribution/agent-main.jar ] ; then
-  echo "Starting application with agent..."
-  exec java -javaagent:/opt/agent-distribution/agent-main.jar "${JAVA_OPTS}" -Dbithon.application.name=bithon-server -Dbithon.application.env=dev -jar /opt/bithon-server-starter.jar
-else
-  echo "Starting application WITHOUT agent..."
-  exec java "${JAVA_OPTS}" -Dbithon.application.name=bithon-server -Dbithon.application.env=dev -jar /opt/bithon-server-starter.jar
+if [ -f /opt/shared/conf/jvm.config ] ; then
+  echo "Reading customer jvm configurations..."
+  JAVA_OPTS="$(cat /opt/shared/conf/jvm.config | xargs) $JAVA_OPTS"
 fi
+
+JAVA_OPTS="-Dbithon.application.name=bithon-server $JAVA_OPTS"
+
+if [ -f /opt/agent-distribution/agent-main.jar ] ; then
+  JAVA_OPTS="-javaagent:/opt/agent-distribution/agent-main.jar $JAVA_OPTS"
+  echo "Starting application with agent: $JAVA_OPTS"
+else
+  echo "Starting application WITHOUT agent: $JAVA_OPTS"
+fi
+
+exec java ${JAVA_OPTS} -jar /opt/bithon-server-starter.jar
