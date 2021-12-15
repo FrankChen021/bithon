@@ -16,11 +16,9 @@
 
 package org.bithon.server.webapp.services;
 
-import org.springframework.core.env.Environment;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
-import java.util.Arrays;
 
 /**
  * @author frank.chen021@outlook.com
@@ -30,15 +28,14 @@ import java.util.Arrays;
 public class ServiceDiscovery {
     private String apiHost;
 
-    public ServiceDiscovery(Environment env) {
+    public ServiceDiscovery(ApplicationContext context) {
         apiHost = System.getProperty("bithon.api.host");
         if (!StringUtils.isEmpty(apiHost)) {
             return;
         }
 
-        // check if webapp is running together with collector for standalone mode
-        boolean isApiHost = Arrays.asList(env.getActiveProfiles()).contains("collector");
-        if (!isApiHost) {
+        // check if webapp is running together with web-service
+        if (!context.containsBean("dataSourceApi")) {
             //TODO: use service discovery
             throw new IllegalStateException("-Dbithon.api.host not specified for web-app");
         }
