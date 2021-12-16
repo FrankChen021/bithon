@@ -44,7 +44,6 @@ public class SpringBeanPlugin implements IPlugin {
 
         return Collections.singletonList(
             forClass("org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory")
-                .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("createBeanInstance")
