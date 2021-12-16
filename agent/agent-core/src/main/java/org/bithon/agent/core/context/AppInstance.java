@@ -17,6 +17,7 @@
 package org.bithon.agent.core.context;
 
 import org.bithon.agent.core.utils.NetworkUtils;
+import org.bithon.agent.core.utils.lang.StringUtils;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
@@ -39,17 +40,22 @@ public class AppInstance {
     private int port;
     private String hostAndPort;
 
-    AppInstance(String appName, String env) {
-        this.appName = appName;
-        this.qualifiedAppName = appName + "-" + env;
-        this.env = env;
+    AppInstance(AgentContext.AppConfiguration appConfiguration) {
+        this.appName = appConfiguration.getName();
+        this.qualifiedAppName = appName + "-" + appConfiguration.getEnv();
+        this.env = appConfiguration.getEnv();
         this.port = 0;
 
-        NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
-        InetAddress address = null != ipAddress.getInetAddress()
-                              ? ipAddress.getInetAddress()
-                              : ipAddress.getLocalInetAddress();
-        this.hostIp = address.getHostAddress();
+        if (StringUtils.isEmpty(appConfiguration.getInstance())) {
+            NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
+            InetAddress address = null != ipAddress.getInetAddress()
+                                  ? ipAddress.getInetAddress()
+                                  : ipAddress.getLocalInetAddress();
+            this.hostIp = address.getHostAddress();
+        } else {
+            this.hostIp = appConfiguration.getInstance();
+        }
+
         this.hostAndPort = hostIp;
     }
 

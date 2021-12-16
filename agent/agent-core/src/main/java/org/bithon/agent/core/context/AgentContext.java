@@ -43,6 +43,14 @@ public class AgentContext {
         @NotBlank(message = "[%s] is blank")
         private String name;
 
+        /**
+         * This is not for configuration.
+         * In most cases, this field is automatically retrieved by the agent.
+         * But if the applications is deployed in Docker on different host, the container ip may be the same.
+         * In such case, user can use this configuration to override the automatically retrieved instance name.
+         */
+        private String instance;
+
         public String getName() {
             return name;
         }
@@ -57,6 +65,14 @@ public class AgentContext {
 
         public void setEnv(String env) {
             this.env = env;
+        }
+
+        public String getInstance() {
+            return instance;
+        }
+
+        public void setInstance(String instance) {
+            this.instance = instance;
         }
     }
 
@@ -78,7 +94,7 @@ public class AgentContext {
         INSTANCE = new AgentContext();
         INSTANCE.agentDirectory = agentPath;
         INSTANCE.agentConfiguration = configuration;
-        INSTANCE.appInstance = new AppInstance(appConfiguration.getName(), appConfiguration.getEnv());
+        INSTANCE.appInstance = new AppInstance(appConfiguration);
         return INSTANCE;
     }
 
