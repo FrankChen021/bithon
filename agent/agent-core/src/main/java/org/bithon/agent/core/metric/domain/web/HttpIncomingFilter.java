@@ -39,7 +39,7 @@ public class HttpIncomingFilter {
     @ConfigurationProperties(prefix = "agent.plugin.http.incoming.filter.uri")
     public static class UriFilterConfiguration {
         @JsonProperty
-        private String suffixes = ".html,.js,.css,.jpg,.gif,.png,.swf,.ttf,.ico,.woff,.woff2,.eot,.svg";
+        private String suffixes = ".html,.js,.css,.jpg,.gif,.png,.swf,.ttf,.ico,.woff,.woff2,.eot,.svg,.map";
 
         public String getSuffixes() {
             return suffixes;
