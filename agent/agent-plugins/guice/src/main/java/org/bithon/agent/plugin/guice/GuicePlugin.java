@@ -43,7 +43,6 @@ public class GuicePlugin implements IPlugin {
 
         return Collections.singletonList(
             forClass("com.google.inject.internal.BindingBuilder")
-                .debug()
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("toInstance")

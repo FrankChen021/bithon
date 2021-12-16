@@ -31,6 +31,8 @@ import shaded.io.netty.handler.codec.DecoderException;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 @ChannelHandler.Sharable
 public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
     private static final Logger log = LoggerFactory.getLogger(ServiceMessageChannelHandler.class);
@@ -86,7 +88,14 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
             }
             return;
         }
-        log.error("Exception occurred when processing message", cause);
+        if (cause instanceof IOException) {
+            // do not log stack trace for known exceptions
+            log.error("Exception({}) occurred when processing message: {}",
+                      cause.getClass().getName(),
+                      cause.getMessage());
+        } else {
+            log.error("Exception occurred when processing message", cause);
+        }
     }
 
     public boolean isChannelDebugEnabled() {

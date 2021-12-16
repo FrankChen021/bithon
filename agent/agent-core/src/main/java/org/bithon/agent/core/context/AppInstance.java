@@ -17,11 +17,13 @@
 package org.bithon.agent.core.context;
 
 import org.bithon.agent.core.utils.NetworkUtils;
+import org.bithon.agent.core.utils.lang.StringUtils;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,21 +37,26 @@ public class AppInstance {
     private final String qualifiedAppName;
     private final String hostIp;
     private final String env;
-    private final List<IAppInstanceChangedListener> listeners = new ArrayList<>();
+    private final List<IAppInstanceChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
     private int port;
     private String hostAndPort;
 
-    AppInstance(String appName, String env) {
-        this.appName = appName;
-        this.qualifiedAppName = appName + "-" + env;
-        this.env = env;
+    AppInstance(AgentContext.AppConfiguration appConfiguration) {
+        this.appName = appConfiguration.getName();
+        this.qualifiedAppName = appName + "-" + appConfiguration.getEnv();
+        this.env = appConfiguration.getEnv();
         this.port = 0;
 
-        NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
-        InetAddress address = null != ipAddress.getInetAddress()
-                              ? ipAddress.getInetAddress()
-                              : ipAddress.getLocalInetAddress();
-        this.hostIp = address.getHostAddress();
+        if (StringUtils.isEmpty(appConfiguration.getInstance())) {
+            NetworkUtils.IpAddress ipAddress = NetworkUtils.getIpAddress();
+            InetAddress address = null != ipAddress.getInetAddress()
+                                  ? ipAddress.getInetAddress()
+                                  : ipAddress.getLocalInetAddress();
+            this.hostIp = address.getHostAddress();
+        } else {
+            this.hostIp = appConfiguration.getInstance();
+        }
+
         this.hostAndPort = hostIp;
     }
 
@@ -64,7 +71,10 @@ public class AppInstance {
     public void setPort(int port) {
         this.port = port;
         this.hostAndPort = this.hostIp + ":" + this.port;
-        for (IAppInstanceChangedListener listener : listeners) {
+
+        // get the listeners first to avoid race condition
+        IAppInstanceChangedListener[] currentListeners = listeners.toArray(new IAppInstanceChangedListener[0]);
+        for (IAppInstanceChangedListener listener : currentListeners) {
             try {
                 listener.onPortChanged(port);
             } catch (Exception e) {
