@@ -48,7 +48,7 @@ public class ChainedTraceContextExtractor implements ITraceContextExtractor {
 
         //
         // no trace context,
-        // then handle to sampling decision maker to decide whether or not this request should be sampled
+        // then handle to sampling decision maker to decide whether this request should be sampled
         //
         ITraceContext context;
         SamplingMode mode = Tracer.get().sampler().decideSamplingMode(request);
