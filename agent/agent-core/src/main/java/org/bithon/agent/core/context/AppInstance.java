@@ -23,6 +23,7 @@ import shaded.org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,7 +37,7 @@ public class AppInstance {
     private final String qualifiedAppName;
     private final String hostIp;
     private final String env;
-    private final List<IAppInstanceChangedListener> listeners = new ArrayList<>();
+    private final List<IAppInstanceChangedListener> listeners = Collections.synchronizedList(new ArrayList<>());
     private int port;
     private String hostAndPort;
 
@@ -70,7 +71,10 @@ public class AppInstance {
     public void setPort(int port) {
         this.port = port;
         this.hostAndPort = this.hostIp + ":" + this.port;
-        for (IAppInstanceChangedListener listener : listeners) {
+
+        // get the listeners first to avoid race condition
+        IAppInstanceChangedListener[] currentListeners = listeners.toArray(new IAppInstanceChangedListener[0]);
+        for (IAppInstanceChangedListener listener : currentListeners) {
             try {
                 listener.onPortChanged(port);
             } catch (Exception e) {
