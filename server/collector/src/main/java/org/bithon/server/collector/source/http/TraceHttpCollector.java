@@ -59,9 +59,18 @@ public class TraceHttpCollector {
 
         final List<TraceSpan> spans = om.readValue(body, new TypeReference<ArrayList<TraceSpan>>() {
         });
+        if (spans.isEmpty()) {
+            return;
+        }
+
+        String unqualifiedName = spans.get(0).getAppName();
+        int idx = unqualifiedName.lastIndexOf('-');
+        if (idx > 0) {
+            unqualifiedName = unqualifiedName.substring(0, idx);
+        }
 
         Iterator<TraceSpan> iterator = spans.iterator();
-        if ("clickhouse".equals(spans.get(0).appName)) {
+        if ("clickhouse".equals(unqualifiedName)) {
             iterator = new ClickHouseAdaptor(iterator);
         }
         this.traceSink.process("trace", IteratorableCollection.of(iterator));
