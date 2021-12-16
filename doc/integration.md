@@ -61,3 +61,6 @@ Bithon can be used to collect span logs generated in ClickHouse nodes.
     FROM 
         system.opentelemetry_span_log
    ```
+
+> NOTE: the `appName` field must be either as 'clickhouse' or as a qualified name such as 'clickhouse-{namespace}' 
+> where {namespace} could be a string without the '-' character.
