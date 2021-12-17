@@ -17,6 +17,7 @@
 package org.bithon.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.event.storage.EventStorageConfig;
 import org.bithon.server.event.storage.IEventStorage;
 import org.bithon.server.meta.storage.CachableMetadataStorage;
@@ -42,6 +43,11 @@ public class StorageConfigurer {
 
     @Bean
     public IMetricStorage createMetricStorage(ObjectMapper om, MetricStorageConfig storageConfig) throws IOException {
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+                                              "[%s] can't be blank",
+                                              storageConfig.getClass(),
+                                              "type");
+
         String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         IMetricStorage storage = om.readValue(jsonType, IMetricStorage.class);
         storage.initialize();
@@ -50,6 +56,11 @@ public class StorageConfigurer {
 
     @Bean
     public IMetaStorage metaStorage(ObjectMapper om, MetricStorageConfig storageConfig) throws IOException {
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+                                              "[%s] can't be blank",
+                                              storageConfig.getClass(),
+                                              "type");
+
         String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         IMetaStorage storage = new CachableMetadataStorage(om.readValue(jsonType, IMetaStorage.class));
         storage.initialize();
@@ -58,6 +69,11 @@ public class StorageConfigurer {
 
     @Bean
     public ITraceStorage traceStorage(ObjectMapper om, TraceStorageConfig storageConfig) throws IOException {
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+                                              "[%s] can't be blank",
+                                              storageConfig.getClass(),
+                                              "type");
+
         String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         ITraceStorage storage = om.readValue(jsonType, ITraceStorage.class);
         storage.initialize();
@@ -66,6 +82,11 @@ public class StorageConfigurer {
 
     @Bean
     public IEventStorage eventStorage(ObjectMapper om, EventStorageConfig storageConfig) throws IOException {
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+                                              "[%s] can't be blank",
+                                              storageConfig.getClass(),
+                                              "type");
+
         String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         IEventStorage storage = om.readValue(jsonType, IEventStorage.class);
         storage.initialize();
@@ -74,6 +95,11 @@ public class StorageConfigurer {
 
     @Bean
     public ISettingStorage settingStorage(ObjectMapper om, SettingStorageConfig storageConfig) throws IOException {
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+                                              "[%s] can't be blank",
+                                              storageConfig.getClass(),
+                                              "type");
+
         String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         ISettingStorage storage = om.readValue(jsonType, ISettingStorage.class);
         storage.initialize();
