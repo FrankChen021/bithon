@@ -37,10 +37,10 @@ public class AgentContext {
     @ConfigurationProperties(prefix = "application")
     public static class AppConfiguration {
 
-        @NotBlank(message = "[%s] is blank")
+        @NotBlank(message = "'bithon.application.env' should not be blank")
         private String env;
 
-        @NotBlank(message = "[%s] is blank")
+        @NotBlank(message = "'bithon.application.name' should not be blank")
         private String name;
 
         /**
