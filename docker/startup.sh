@@ -1,14 +1,14 @@
 #!/bin/sh
 
-echo "Downloading agent compressed file..."
-wget -T 10 "${AGENT_URI}"
+echo "Downloading agent from ${AGENT_URI}"
+wget -T 10 -O agent.zip "${AGENT_URI}"
 
-if [ -f agent-distribution-1.1.0-RELEASE.zip ] ; then
+if [ -f agent.zip ] ; then
   echo "Cleaning up agent..."
   rm -fr /opt/agent-distribution
 
   echo "Unzip agent compress file..."
-  unzip agent-distribution-1.1.0-RELEASE.zip
+  unzip agent.zip
 else
   echo "Failed to downloading agent..."
 fi

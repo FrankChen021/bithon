@@ -39,4 +39,9 @@ public class HomeController {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         return "home/index";
     }
+
+    @GetMapping("/")
+    public String index() {
+        return "redirect:web/home";
+    }
 }
