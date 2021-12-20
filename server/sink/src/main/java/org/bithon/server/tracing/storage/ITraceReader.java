@@ -40,6 +40,4 @@ public interface ITraceReader {
     List<TraceSpan> getTraceByParentSpanId(String parentSpanId);
 
     String getTraceIdByMapping(String id);
-
-    void getTraceDistribution(String application, TimeSpan start, TimeSpan end);
 }
