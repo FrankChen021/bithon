@@ -21,6 +21,12 @@ class TracePage {
 
         // View
         const parent = $('#filterBarForm');
+        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0px;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
+              .find("button").click(()=>{
+                  this.#refreshPage();
+        });
+
+        // View
         this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
             this._interval = null;
             this.#refreshPage();
