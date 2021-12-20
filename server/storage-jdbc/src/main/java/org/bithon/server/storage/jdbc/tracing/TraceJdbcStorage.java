@@ -131,7 +131,8 @@ public class TraceJdbcStorage implements ITraceStorage {
                                             int pageSize) {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
                              .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
-                             .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.between(start, end))
+                             .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
+                             .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
                              .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""))
                              .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc())
                              .offset(pageNumber * pageSize)
@@ -143,10 +144,13 @@ public class TraceJdbcStorage implements ITraceStorage {
         public int getTraceListSize(String application,
                                     Timestamp start,
                                     Timestamp end) {
-            return dslContext.fetchCount(dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                   .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
-                                                   .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.between(start, end))
-                                                   .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq("")));
+            return (int) dslContext.select(DSL.count(Tables.BITHON_TRACE_SPAN.TRACEID))
+                                   .from(Tables.BITHON_TRACE_SPAN)
+                                   .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
+                                   .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
+                                   .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
+                                   .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""))
+                                   .fetchOne(0);
         }
 
         @Override
@@ -167,16 +171,6 @@ public class TraceJdbcStorage implements ITraceStorage {
                              .where(Tables.BITHON_TRACE_MAPPING.USER_TX_ID.eq(id))
                              .limit(1)
                              .fetchOne(Tables.BITHON_TRACE_MAPPING.TRACE_ID);
-        }
-
-        @Override
-        public void getTraceDistribution(String application, TimeSpan start, TimeSpan end) {
-            dslContext.select(DSL.count(Tables.BITHON_TRACE_SPAN.TRACEID))
-                      .from(Tables.BITHON_TRACE_SPAN)
-                      .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.between(start.toTimestamp(), end.toTimestamp()))
-                      .and(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
-                      .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""))
-                      .fetch();
         }
 
         private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {
