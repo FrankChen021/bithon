@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MetricJdbcReader implements IMetricReader {
 
-    private final static String TIMESTAMP_QUERY_NAME = "_timestamp";
+    private static final String TIMESTAMP_QUERY_NAME = "_timestamp";
 
     private final DSLContext dsl;
     private final ISqlExpressionFormatter sqlFormatter;
