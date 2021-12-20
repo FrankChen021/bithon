@@ -21,6 +21,11 @@ class SearchBar {
             '        </div>');
         const input = navbar.find("input");
         navbar.find("button").click(() => this.#search(input.val().trim()));
+        navbar.find("form").submit((event) => {
+                this.#search(input.val().trim());
+                event.preventDefault();
+            }
+        );
 
         this._id = "";
         const uri = decodeURI(window.location.href);
