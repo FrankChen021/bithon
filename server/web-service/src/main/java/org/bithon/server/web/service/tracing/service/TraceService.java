@@ -16,16 +16,30 @@
 
 package org.bithon.server.web.service.tracing.service;
 
+import org.bithon.server.common.matcher.EqualMatcher;
+import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.metric.DataSourceSchema;
+import org.bithon.server.metric.TimestampSpec;
+import org.bithon.server.metric.aggregator.spec.CountMetricSpec;
+import org.bithon.server.metric.dimension.StringDimensionSpec;
+import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IMetricStorage;
+import org.bithon.server.metric.storage.Interval;
+import org.bithon.server.metric.storage.TimeseriesQuery;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.tracing.storage.ITraceStorage;
+import org.bithon.server.web.service.tracing.api.GetTraceDistributionResponse;
 import org.bithon.server.web.service.tracing.api.TraceMap;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,9 +52,41 @@ import java.util.stream.Collectors;
 public class TraceService {
 
     private final ITraceReader traceReader;
+    private final IMetricStorage metricStorage;
 
-    public TraceService(ITraceStorage traceStorage) {
+    public TraceService(ITraceStorage traceStorage, IMetricStorage metricStorage) {
         this.traceReader = traceStorage.createReader();
+        this.metricStorage = metricStorage;
+    }
+
+    /**
+     * Requirement
+     * 1. At most 60 buckets
+     * 2. The minimal length of each bucket is 1 minute
+     * <p>
+     *
+     * @param startTimestamp in millisecond
+     * @param endTimestamp   in millisecond
+     * @return the length of a bucket in second
+     */
+    static Bucket getTimeBucket(long startTimestamp, long endTimestamp) {
+        int seconds = (int) ((endTimestamp - startTimestamp) / 1000);
+        if (seconds <= 60) {
+            return new Bucket(1, 60);
+        }
+
+        int minute = (int) ((endTimestamp - startTimestamp) / 1000 / 60);
+        int hour = (int) Math.ceil(minute / 60.0);
+
+        // after 3 hour, the step is 6 hour
+        int step = hour <= 3 ? 1 : 6;
+
+        int m = hour % step;
+        int hourPerStep = (hour / step + (m > 0 ? 1 : 0));
+
+        int length = hourPerStep * step * 3600 / 60; // the last 60 is the max bucket number
+        int mod = seconds % length;
+        return new Bucket(seconds / length + (mod > 0 ? 1 : 0), length);
     }
 
     public TraceMap buildMap(List<TraceSpan> spans) {
@@ -51,9 +97,7 @@ public class TraceService {
         return traceReader.getTraceByParentSpanId(parentSpanId);
     }
 
-    public List<TraceSpan> getTraceByTraceId(String txId,
-                                             String type,
-                                             boolean asTree) {
+    public List<TraceSpan> getTraceByTraceId(String txId, String type, boolean asTree) {
         if (!"trace".equals(type)) {
             // check if the id has a user mapping
             String traceId = traceReader.getTraceIdByMapping(txId);
@@ -72,13 +116,11 @@ public class TraceService {
         //
         // build as tree
         //
-        Map<String, TraceSpanBo> boMap = spans.stream()
-                                              .collect(Collectors.toMap(span -> span.spanId,
-                                                                        val -> {
-                                                                            TraceSpanBo bo = new TraceSpanBo();
-                                                                            BeanUtils.copyProperties(val, bo);
-                                                                            return bo;
-                                                                        }));
+        Map<String, TraceSpanBo> boMap = spans.stream().collect(Collectors.toMap(span -> span.spanId, val -> {
+            TraceSpanBo bo = new TraceSpanBo();
+            BeanUtils.copyProperties(val, bo);
+            return bo;
+        }));
 
         List<TraceSpan> rootSpans = new ArrayList<>();
         for (TraceSpan span : spans) {
@@ -97,11 +139,77 @@ public class TraceService {
         return rootSpans;
     }
 
-    public int getTraceListSize(String appName) {
-        return traceReader.getTraceListSize(appName);
+    public int getTraceListSize(String application, Timestamp start, Timestamp end) {
+        return traceReader.getTraceListSize(application, start, end);
     }
 
-    public List<TraceSpan> getTraceList(String appName, int pageNumber, int pageSize) {
-        return traceReader.getTraceList(appName, pageNumber, pageSize);
+    public List<TraceSpan> getTraceList(String application,
+                                        Timestamp start,
+                                        Timestamp end,
+                                        int pageNumber,
+                                        int pageSize) {
+        return traceReader.getTraceList(application, start, end, pageNumber, pageSize);
+    }
+
+    public GetTraceDistributionResponse getTraceDistribution(String application,
+                                                             String startTimeISO8601,
+                                                             String endTimeISO8601) {
+        TimeSpan start = TimeSpan.fromISO8601(startTimeISO8601);
+        TimeSpan end = TimeSpan.fromISO8601(endTimeISO8601);
+        Interval interval = Interval.of(start, end, getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).getLength());
+
+        // create a virtual data source to use current metric API to query
+        DataSourceSchema schema = new DataSourceSchema("trace_span",
+                                                       "trace_span",
+                                                       new TimestampSpec("timestamp", null, null),
+                                                       Arrays.asList(new StringDimensionSpec("appName",
+                                                                                             "appName",
+                                                                                             true,
+                                                                                             null,
+                                                                                             null),
+                                                                     new StringDimensionSpec("instanceName",
+                                                                                             "instanceName",
+                                                                                             false,
+                                                                                             null,
+                                                                                             null)),
+                                                       Collections.singletonList(CountMetricSpec.INSTANCE),
+                                                       null,
+                                                       null);
+
+        TimeseriesQuery query = new TimeseriesQuery(schema,
+                                                    Collections.singletonList("count"),
+                                                    Collections.singletonList(new DimensionCondition("appName",
+                                                                                                     new EqualMatcher(
+                                                                                                         application))),
+                                                    interval,
+                                                    Collections.emptyList());
+
+        return new GetTraceDistributionResponse(metricStorage.createMetricReader(schema).timeseries(query),
+                                                interval.getGranularity());
+    }
+
+    static class Bucket {
+        /**
+         * number of buckets
+         */
+        final int nums;
+
+        /**
+         * length of bucket in second
+         */
+        final int length;
+
+        public Bucket(int nums, int length) {
+            this.nums = nums;
+            this.length = length;
+        }
+
+        public int getNums() {
+            return nums;
+        }
+
+        public int getLength() {
+            return length;
+        }
     }
 }

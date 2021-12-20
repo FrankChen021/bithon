@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.bithon.server.tracing.mapping.TraceMapping;
@@ -34,6 +35,7 @@ import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.jooq.DSLContext;
 import org.jooq.Query;
+import org.jooq.impl.DSL;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.io.IOException;
@@ -114,9 +116,14 @@ public class TraceJdbcStorage implements ITraceStorage {
         }
 
         @Override
-        public List<TraceSpan> getTraceList(String applicationName, int pageNumber, int pageSize) {
+        public List<TraceSpan> getTraceList(String application,
+                                            Timestamp start,
+                                            Timestamp end,
+                                            int pageNumber,
+                                            int pageSize) {
             return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                             .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(applicationName))
+                             .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
+                             .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.between(start, end))
                              .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""))
                              .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc())
                              .offset(pageNumber * pageSize)
@@ -125,9 +132,12 @@ public class TraceJdbcStorage implements ITraceStorage {
         }
 
         @Override
-        public int getTraceListSize(String applicationName) {
+        public int getTraceListSize(String application,
+                                    Timestamp start,
+                                    Timestamp end) {
             return dslContext.fetchCount(dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                   .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(applicationName))
+                                                   .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
+                                                   .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.between(start, end))
                                                    .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq("")));
         }
 
@@ -149,6 +159,16 @@ public class TraceJdbcStorage implements ITraceStorage {
                              .where(Tables.BITHON_TRACE_MAPPING.USER_TX_ID.eq(id))
                              .limit(1)
                              .fetchOne(Tables.BITHON_TRACE_MAPPING.TRACE_ID);
+        }
+
+        @Override
+        public void getTraceDistribution(String application, TimeSpan start, TimeSpan end) {
+            dslContext.select(DSL.count(Tables.BITHON_TRACE_SPAN.TRACEID))
+                      .from(Tables.BITHON_TRACE_SPAN)
+                      .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.between(start.toTimestamp(), end.toTimestamp()))
+                      .and(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
+                      .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""))
+                      .fetch();
         }
 
         private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {

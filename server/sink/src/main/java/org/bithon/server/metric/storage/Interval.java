@@ -26,37 +26,30 @@ import org.bithon.server.common.utils.datetime.TimeSpan;
 public class Interval {
     private final TimeSpan startTime;
     private final TimeSpan endTime;
+
+    /**
+     * in second
+     */
     private final int granularity;
 
-    private Interval(TimeSpan startTime, TimeSpan endTime) {
+    private Interval(TimeSpan startTime, TimeSpan endTime, int step) {
         this.startTime = startTime;
         this.endTime = endTime;
-        this.granularity = getGranularity(startTime, endTime);
+        this.granularity = step;
     }
 
     public static Interval of(TimeSpan start, TimeSpan end) {
-        return new Interval(start, end);
+        return of(start, end, getGranularity(start, end));
     }
 
-    public TimeSpan getStartTime() {
-        return startTime;
-    }
-
-    public TimeSpan getEndTime() {
-        return endTime;
-    }
-
-    /**
-     * @return query granularity in seconds
-     */
-    public int getGranularity() {
-        return granularity;
+    public static Interval of(TimeSpan start, TimeSpan end, int step) {
+        return new Interval(start, end, step);
     }
 
     /**
      * TODO: interval should be consistent with retention rules
      */
-    private int getGranularity(TimeSpan start, TimeSpan end) {
+    private static int getGranularity(TimeSpan start, TimeSpan end) {
         long length = end.diff(start) / 1000;
         if (length >= 7 * 24 * 3600) {
             return 15 * 60;
@@ -74,5 +67,20 @@ public class Interval {
             return 30;
         }
         return 10;
+    }
+
+    public TimeSpan getStartTime() {
+        return startTime;
+    }
+
+    public TimeSpan getEndTime() {
+        return endTime;
+    }
+
+    /**
+     * @return query granularity in seconds
+     */
+    public int getGranularity() {
+        return granularity;
     }
 }

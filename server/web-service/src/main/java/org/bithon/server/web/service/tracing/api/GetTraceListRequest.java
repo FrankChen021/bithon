@@ -20,6 +20,7 @@ import lombok.Data;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -28,8 +29,14 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 public class GetTraceListRequest {
-    @NotNull
-    private String appName;
+    @NotBlank
+    private String application;
+
+    @NotBlank
+    private String startTimeISO8601;
+
+    @NotBlank
+    private String endTimeISO8601;
 
     @Min(0)
     private int pageNumber = 0;

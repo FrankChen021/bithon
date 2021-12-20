@@ -16,8 +16,10 @@
 
 package org.bithon.server.tracing.storage;
 
+import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.tracing.sink.TraceSpan;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -27,10 +29,17 @@ import java.util.List;
 public interface ITraceReader {
     List<TraceSpan> getTraceByTraceId(String traceId);
 
-    List<TraceSpan> getTraceList(String appName, int pageNumber, int pageSize);
-    int getTraceListSize(String appName);
+    List<TraceSpan> getTraceList(String application,
+                                 Timestamp start,
+                                 Timestamp end,
+                                 int pageNumber,
+                                 int pageSize);
+
+    int getTraceListSize(String application, Timestamp start, Timestamp end);
 
     List<TraceSpan> getTraceByParentSpanId(String parentSpanId);
 
     String getTraceIdByMapping(String id);
+
+    void getTraceDistribution(String application, TimeSpan start, TimeSpan end);
 }

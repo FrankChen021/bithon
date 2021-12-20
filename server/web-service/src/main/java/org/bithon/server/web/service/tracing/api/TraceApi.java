@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.tracing.api;
 
+import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -42,16 +44,32 @@ public class TraceApi {
 
     @PostMapping("/api/trace/getTraceById")
     public GetTraceByIdResponse getTraceById(@Valid @RequestBody GetTraceByIdRequest request) {
-        List<TraceSpan> spanList = traceService.getTraceByTraceId(request.getId(), request.getType(), request.isHierachy());
+        List<TraceSpan> spanList = traceService.getTraceByTraceId(request.getId(),
+                                                                  request.getType(),
+                                                                  request.isHierachy());
 
         return new GetTraceByIdResponse(spanList, traceService.buildMap(spanList));
     }
 
+    @PostMapping("/api/trace/getTraceDistribution")
+    public GetTraceDistributionResponse getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
+        return traceService.getTraceDistribution(request.getApplication(),
+                                                 request.getStartTimeISO8601(),
+                                                 request.getEndTimeISO8601());
+    }
+
     @PostMapping("/api/trace/getTraceList")
     public GetTraceListResponse getTraceList(@Valid @RequestBody GetTraceListRequest request) {
+        Timestamp start = TimeSpan.fromISO8601(request.getStartTimeISO8601()).toTimestamp();
+        Timestamp end  = TimeSpan.fromISO8601(request.getEndTimeISO8601()).toTimestamp();
+
         return new GetTraceListResponse(
-            traceService.getTraceListSize(request.getAppName()),
-            traceService.getTraceList(request.getAppName(), request.getPageNumber(), request.getPageSize())
+            traceService.getTraceListSize(request.getApplication(), start, end),
+            traceService.getTraceList(request.getApplication(),
+                                      start,
+                                      end,
+                                      request.getPageNumber(),
+                                      request.getPageSize())
         );
     }
 
