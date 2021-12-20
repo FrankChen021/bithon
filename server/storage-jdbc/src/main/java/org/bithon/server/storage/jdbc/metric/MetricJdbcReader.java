@@ -116,7 +116,7 @@ public class MetricJdbcReader implements IMetricReader {
             }
         }
         while (j < queryResult.size()) {
-            queryResult.get(j).put("timestamp", (int)queryResult.get(j).get("timestamp") * 1000L);
+            queryResult.get(j).put("timestamp", (int) queryResult.get(j).get("timestamp") * 1000L);
             returns.add(queryResult.get(j++));
         }
         return returns;
