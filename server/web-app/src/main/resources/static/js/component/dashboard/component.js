@@ -375,7 +375,7 @@ class Dashboard {
                 metrics: chartComponent.getOption().metrics
             }),
             processResult: (data) => {
-                const timeLabels = data.map(d => moment(d.timestamp).local().format('HH:mm:ss'));
+                const timeLabels = data.map(d => moment(d._timestamp).local().format('HH:mm:ss'));
 
                 const series = chartDescriptor.metrics.map(metric => {
 

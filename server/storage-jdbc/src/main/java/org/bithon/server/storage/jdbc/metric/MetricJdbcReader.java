@@ -64,6 +64,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MetricJdbcReader implements IMetricReader {
 
+    private final static String TIMESTAMP_QUERY_NAME = "_timestamp";
+
     private final DSLContext dsl;
     private final ISqlExpressionFormatter sqlFormatter;
 
@@ -96,27 +98,27 @@ public class MetricJdbcReader implements IMetricReader {
              bucket < endBucket;
              bucket += step) {
             if (j < queryResult.size()) {
-                long nextSlot = ((Number) queryResult.get(j).get("timestamp")).longValue();
+                long nextSlot = ((Number) queryResult.get(j).get(TIMESTAMP_QUERY_NAME)).longValue();
                 while (bucket < nextSlot) {
                     Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
-                    empty.put("timestamp", bucket * 1000);
+                    empty.put(TIMESTAMP_QUERY_NAME, bucket * 1000);
                     query.getMetrics().forEach((metric) -> empty.put(metric, 0));
                     returns.add(empty);
                     bucket += step;
                 }
 
                 // convert to millisecond
-                queryResult.get(j).put("timestamp", nextSlot * 1000);
+                queryResult.get(j).put(TIMESTAMP_QUERY_NAME, nextSlot * 1000);
                 returns.add(queryResult.get(j++));
             } else {
                 Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
-                empty.put("timestamp", bucket * 1000);
+                empty.put(TIMESTAMP_QUERY_NAME, bucket * 1000);
                 query.getMetrics().forEach((metric) -> empty.put(metric, 0));
                 returns.add(empty);
             }
         }
         while (j < queryResult.size()) {
-            queryResult.get(j).put("timestamp", ((Number) queryResult.get(j).get("timestamp")).longValue() * 1000L);
+            queryResult.get(j).put(TIMESTAMP_QUERY_NAME, ((Number) queryResult.get(j).get(TIMESTAMP_QUERY_NAME)).longValue() * 1000L);
             returns.add(queryResult.get(j++));
         }
         return returns;
@@ -625,23 +627,25 @@ public class MetricJdbcReader implements IMetricReader {
             String timestampExpression = sqlFormatter.timeFloor("timestamp", interval);
             if (rawExpressions.isEmpty()) {
                 return StringUtils.format(
-                    "SELECT %s \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s %s %s",
+                    "SELECT %s AS \"_timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s %s %s",
                     timestampExpression,
                     String.join(",", postExpressions),
                     tableName,
                     this.filters,
                     sqlFormatter.formatTimestamp(start),
                     sqlFormatter.formatTimestamp(end),
-                    sqlFormatter.groupByUseRawExpression() ? timestampExpression : "timestamp",
+                    sqlFormatter.groupByUseRawExpression() ? timestampExpression : TIMESTAMP_QUERY_NAME,
                     this.groupBy,
-                    sqlFormatter.orderByTimestamp("timestamp")
+                    sqlFormatter.orderByTimestamp(TIMESTAMP_QUERY_NAME)
                 );
             } else {
+                // quote must be used to brace the field name
+                // otherwise in H2, the output field name will be turned into upper case
                 return StringUtils.format(
-                    "SELECT \"timestamp\" %s ,%s FROM "
+                    "SELECT \"timestamp\" AS \"_timestamp\" %s ,%s FROM "
                     + "("
                     + "     SELECT %s, %s \"timestamp\" %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s"
-                    + ")GROUP BY \"timestamp\" %s",
+                    + ")GROUP BY \"%s\" %s",
                     this.groupBy,
                     String.join(",", postExpressions),
                     String.join(",", rawExpressions),
@@ -651,7 +655,8 @@ public class MetricJdbcReader implements IMetricReader {
                     this.filters,
                     sqlFormatter.formatTimestamp(start),
                     sqlFormatter.formatTimestamp(end),
-                    sqlFormatter.orderByTimestamp("timestamp")
+                    sqlFormatter.groupByUseRawExpression() ? "timestamp" : TIMESTAMP_QUERY_NAME,
+                    sqlFormatter.orderByTimestamp(TIMESTAMP_QUERY_NAME)
                 );
             }
         }

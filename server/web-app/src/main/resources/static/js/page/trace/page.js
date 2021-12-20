@@ -132,8 +132,8 @@ class TracePage {
                 this._data = data;
 
                 const timeLabels = data.data.map(val => {
-                    return moment(val.timestamp).local().format('HH:mm') + "\n"
-                        + moment(val.timestamp + data.bucket * 1000).local().format('HH:mm')
+                    return moment(val._timestamp).local().format('HH:mm') + "\n"
+                        + moment(val._timestamp + data.bucket * 1000).local().format('HH:mm')
                 });
 
                 const series = [{
@@ -223,7 +223,7 @@ class TracePage {
     }
 
     #onClickChart(e) {
-        const s = moment(this._data.data[e.dataIndex].timestamp).utc();
+        const s = moment(this._data.data[e.dataIndex]._timestamp).utc();
         const interval = {
             start: s.toISOString(),
             end: s.add(this._data.bucket, 'second').toISOString()
