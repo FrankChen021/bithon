@@ -78,6 +78,6 @@ public class DateTimeUtils {
     }
 
     public static String toISO8601(long milliseconds) {
-        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ENGLISH).format(new Date(milliseconds));
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH).format(new Date(milliseconds));
     }
 }
