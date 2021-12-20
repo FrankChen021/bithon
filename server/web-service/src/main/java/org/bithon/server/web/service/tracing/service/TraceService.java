@@ -112,7 +112,7 @@ public class TraceService {
         }
 
         TimeSpan start = StringUtils.hasText(startTimeISO8601) ? TimeSpan.fromISO8601(startTimeISO8601) : null;
-        TimeSpan end  = StringUtils.hasText(endTimeISO8601) ? TimeSpan.fromISO8601(endTimeISO8601) : null;
+        TimeSpan end = StringUtils.hasText(endTimeISO8601) ? TimeSpan.fromISO8601(endTimeISO8601) : null;
         List<TraceSpan> spans = traceReader.getTraceByTraceId(txId, start, end);
 
         if (!asTree) {
@@ -162,7 +162,9 @@ public class TraceService {
                                                              String endTimeISO8601) {
         TimeSpan start = TimeSpan.fromISO8601(startTimeISO8601);
         TimeSpan end = TimeSpan.fromISO8601(endTimeISO8601);
-        Interval interval = Interval.of(start, end, getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).getLength());
+        Interval interval = Interval.of(start,
+                                        end,
+                                        getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).getLength());
 
         // create a virtual data source to use current metric API to query
         DataSourceSchema schema = new DataSourceSchema("trace_span",

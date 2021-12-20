@@ -63,7 +63,7 @@ public class TraceApi {
     @PostMapping("/api/trace/getTraceList")
     public GetTraceListResponse getTraceList(@Valid @RequestBody GetTraceListRequest request) {
         Timestamp start = TimeSpan.fromISO8601(request.getStartTimeISO8601()).toTimestamp();
-        Timestamp end  = TimeSpan.fromISO8601(request.getEndTimeISO8601()).toTimestamp();
+        Timestamp end = TimeSpan.fromISO8601(request.getEndTimeISO8601()).toTimestamp();
 
         return new GetTraceListResponse(
             traceService.getTraceListSize(request.getApplication(), start, end),
