@@ -427,9 +427,9 @@ public class MetricJdbcReader implements IMetricReader {
             this.metrics.add(metricSpec.getName());
 
             StringBuilder sb = new StringBuilder();
-            sb.append(StringUtils.format("sum(\"%s\")", metricSpec.getName()));
+            sb.append(StringUtils.format("count(1)", metricSpec.getName()));
             if (addAlias) {
-                sb.append(StringUtils.format(" AS \"%s\"", metricSpec.getName()));
+                sb.append(StringUtils.format("count(1) AS \"%s\"", metricSpec.getName()));
             }
             return sb.toString();
         }
@@ -495,12 +495,6 @@ public class MetricJdbcReader implements IMetricReader {
 
         @Override
         public Void visit(DoubleSumMetricSpec metricSpec) {
-            visit(metricSpec, "sum");
-            return null;
-        }
-
-        @Override
-        public Void visit(CountMetricSpec metricSpec) {
             visit(metricSpec, "sum");
             return null;
         }
@@ -573,6 +567,16 @@ public class MetricJdbcReader implements IMetricReader {
             }
 
             @Override
+            public Void visit(CountMetricSpec metricSpec) {
+                this.metrics.add(metricSpec.getName());
+                postExpressions.add(StringUtils.format("count(1)%s",
+                                                       addAlias ? StringUtils.format(" AS \"%s\"", metricSpec.getName()) : ""));
+                rawExpressions.add(StringUtils.format(" \"%s\"", metricSpec.getName()));
+
+                return null;
+            }
+
+            @Override
             public Void visit(PostAggregatorMetricSpec postMetricSpec) {
                 StringBuilder sb = new StringBuilder();
                 postMetricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
@@ -592,6 +596,12 @@ public class MetricJdbcReader implements IMetricReader {
                             @Override
                             protected void visitLast(String metricName) {
                                 MetricClauseBuilder.this.visitLast(metricName);
+                            }
+
+                            @Override
+                            public Void visit(CountMetricSpec metricSpec) {
+                                rawExpressions.add(StringUtils.format("count(1)", metricSpec.getName()));
+                                return null;
                             }
 
                             @Override
