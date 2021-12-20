@@ -38,10 +38,14 @@ public class TraceController {
     @GetMapping("/web/trace/detail")
     public String traceHome(@RequestParam("id") String id,
                             @RequestParam(value = "type", required = false, defaultValue = "trace") String type,
+                            @RequestParam(value = "start", required = false, defaultValue = "") String start,
+                            @RequestParam(value = "end", required = false, defaultValue = "") String end,
                             Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         model.addAttribute("id", id);
         model.addAttribute("type", type);
+        model.addAttribute("start", start);
+        model.addAttribute("end", end);
         return "trace/detail";
     }
 }

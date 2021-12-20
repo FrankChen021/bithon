@@ -59,6 +59,14 @@
     </script>
     <script th:src="@{/js/api-client/schema-api.js}"></script>
     <script th:src="@{/js/component/dashboard/component.js}"></script>
+    <script th:src="@{/lib/custom-scrollbar/jquery.mCustomScrollbar.concat.min.js}"></script>
+    <script th:src="@{/lib/pro-sidebar/src/js/main.js}"></script>
+    <script th:src="@{/js/api-client/metadata-client.js}"></script>
+    <script th:src="@{/js/api-client/dashboard-api.js}"></script>
+    <script th:src="@{/js/component/sidebar/component.js}"></script>
+    <script th:src="@{/js/component/auto-refresher/component.js}"></script>
+    <script th:src="@{/js/component/time-interval/component.js}"></script>
+    <script th:src="@{/js/component/app-selector/component.js}"></script>
 </head>
 <body>
 
@@ -310,17 +318,8 @@
         </div>
     </main>
     <!-- page-content" -->
-
-    <script th:src="@{/lib/custom-scrollbar/jquery.mCustomScrollbar.concat.min.js}"></script>
-    <script th:src="@{/lib/pro-sidebar/src/js/main.js}"></script>
-    <script th:src="@{/js/api-client/metadata-client.js}"></script>
-    <script th:src="@{/js/api-client/dashboard-api.js}"></script>
-    <script th:src="@{/js/component/sidebar/component.js}"></script>
-    <script th:src="@{/js/component/auto-refresher/component.js}"></script>
-    <script th:src="@{/js/component/time-interval/component.js}"></script>
-    <script th:src="@{/js/component/app-selector/component.js}"></script>
     <script>
-        new SearchBar();
+        new SearchBar(true);
     </script>
 </div>
 </body>

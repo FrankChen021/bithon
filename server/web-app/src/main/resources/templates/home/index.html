@@ -17,9 +17,9 @@
     <script type="text/javascript" th:src="@{/js/app-card-component.js}"></script>
     <script type="text/javascript">
         $(document).ready(() => {
+            new SearchBar(true);
             new AppCardComponent(apiHost, 'appList').loadAppList();
         });
-
     </script>
 </div>
 </body>

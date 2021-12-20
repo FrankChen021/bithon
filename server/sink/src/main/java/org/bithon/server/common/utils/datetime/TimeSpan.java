@@ -22,6 +22,7 @@ import org.bithon.server.metric.parser.DateTimes;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -88,5 +89,18 @@ public class TimeSpan {
     @Override
     public int hashCode() {
         return (int) milliseconds;
+    }
+
+    public TimeSpan floor(Duration duration) {
+        long milliSeconds = duration.getSeconds() * 1000;
+        return new TimeSpan(this.milliseconds / milliSeconds * milliSeconds);
+    }
+
+    public TimeSpan ceil(Duration duration) {
+        long milliSeconds = duration.getSeconds() * 1000;
+
+        boolean hasModule = this.milliseconds % milliSeconds > 0;
+
+        return new TimeSpan((this.milliseconds / milliSeconds + (hasModule ? 1 : 0)) * milliSeconds);
     }
 }

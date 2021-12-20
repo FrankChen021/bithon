@@ -18,29 +18,20 @@ package org.bithon.server.web.service.tracing.api;
 
 import lombok.Data;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/6 4:17 下午
+ * @author Frank Chen
+ * @date 17/12/21 4:06 PM
  */
 @Data
-public class GetTraceListRequest {
-    @NotBlank
-    private String application;
-
+public class GetTraceDistributionRequest {
     @NotBlank
     private String startTimeISO8601;
 
     @NotBlank
     private String endTimeISO8601;
 
-    @Min(0)
-    private int pageNumber = 0;
-
-    @Min(5)
-    @Max(100)
-    private int pageSize = 10;
+    @NotBlank
+    private String application;
 }

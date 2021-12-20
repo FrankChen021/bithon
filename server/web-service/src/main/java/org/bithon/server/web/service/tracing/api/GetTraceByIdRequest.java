@@ -38,5 +38,8 @@ public class GetTraceByIdRequest {
      */
     private String type = "trace";
 
+    private String startTimeISO8601;
+    private String endTimeISO8601;
+
     private boolean hierachy = false;
 }

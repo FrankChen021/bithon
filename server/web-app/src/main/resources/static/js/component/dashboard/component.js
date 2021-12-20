@@ -37,7 +37,8 @@ class Dashboard {
         this._dashboard = dashboard;
 
         //
-        // App Filter
+        // Create App Filter
+        // The 'appSelector' element is defined in app-layout.html
         //
         new AppSelector(this._appName).childOf('appSelector').registerAppChangedListener((text, value) => {
             window.location = `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`;
@@ -123,6 +124,7 @@ class Dashboard {
 
         //
         // Create AutoRefresher
+        // the filterBarForm is defined in the app-layout.html
         //
         const parent = $('#filterBarForm');
         new AutoRefresher({
@@ -373,7 +375,7 @@ class Dashboard {
                 metrics: chartComponent.getOption().metrics
             }),
             processResult: (data) => {
-                const timeLabels = data.map(d => moment(d.timestamp).local().format('HH:mm:ss'));
+                const timeLabels = data.map(d => moment(d._timestamp).local().format('HH:mm:ss'));
 
                 const series = chartDescriptor.metrics.map(metric => {
 

@@ -2,7 +2,8 @@ class ChartComponent {
 
     constructor(option) {
         this.option = $.extend({
-            height: '200px'
+            height: '200px',
+            showLegend: true
         }, option);
 
         this._chartId = option.containerId + '_chart';
@@ -89,6 +90,10 @@ class ChartComponent {
             success: (data) => {
                 this._chart.hideLoading();
                 const returnedOption = option.processResult(data);
+                if (returnedOption == null) {
+                    return;
+                }
+
                 if (returnedOption.series != null) {
                     //
                     // merge series
@@ -103,7 +108,7 @@ class ChartComponent {
                     returnedOption.series = series;
                 }
 
-                if (!this.hasUserSelection()) {
+                if (this.option.showLegend && !this.hasUserSelection()) {
                     let legend = {
                         data: [],
                         selected: {}
@@ -254,6 +259,12 @@ class ChartComponent {
 
         this._openHandler = openHandler;
         return this;
+    }
+
+    setClickHandler(handler) {
+        this._chart.on('click', (e) => {
+            handler(e);
+        });
     }
 
     //PRIVATE
