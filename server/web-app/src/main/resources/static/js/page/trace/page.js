@@ -16,7 +16,7 @@ class TracePage {
 
         // View
         new AppSelector(this._appName).childOf('appSelector').registerAppChangedListener((text, value) => {
-            window.location = `/web/app/trace/${value}?interval=${g_MetricSelectedInterval}`;
+            window.location = `/web/app/trace/${value}`;
         });
 
         // View

@@ -27,7 +27,7 @@ import java.util.List;
  * @date 2021/2/6 3:28 下午
  */
 public interface ITraceReader {
-    List<TraceSpan> getTraceByTraceId(String traceId);
+    List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
 
     List<TraceSpan> getTraceList(String application,
                                  Timestamp start,

@@ -35,6 +35,7 @@ import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.jooq.DSLContext;
 import org.jooq.Query;
+import org.jooq.SelectConditionStep;
 import org.jooq.impl.DSL;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -105,14 +106,21 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     private class TraceJdbcReader implements ITraceReader {
         @Override
-        public List<TraceSpan> getTraceByTraceId(String traceId) {
-            return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                             .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId))
-                             // for spans coming from a same application instance, sort them by the start time
-                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
-                                      Tables.BITHON_TRACE_SPAN.INSTANCENAME,
-                                      Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
-                             .fetch(this::toTraceSpan);
+        public List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end) {
+            SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
+                                                                       .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
+            if (start != null) {
+                sql = sql.and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start.toTimestamp()));
+            }
+            if (end != null) {
+                sql = sql.and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end.toTimestamp()));
+            }
+
+            // for spans coming from a same application instance, sort them by the start time
+            return sql.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
+                               Tables.BITHON_TRACE_SPAN.INSTANCENAME,
+                               Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
+                      .fetch(this::toTraceSpan);
         }
 
         @Override

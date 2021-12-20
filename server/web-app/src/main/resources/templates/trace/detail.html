@@ -44,6 +44,8 @@
         let traceData = [];
     </script>
     <script>
+        const g_UIComponentSearchBar = new SearchBar(false);
+
         const table = $('#table');
         table.bootstrapTable({
             url: apiHost + '/api/trace/getTraceById',
@@ -75,9 +77,12 @@
 
             queryParamsType: '',
             queryParams: function (params) {
+                const interval = g_UIComponentSearchBar.getInterval();
                 return {
                     id: id,
-                    type: type
+                    type: type,
+                    startTimeISO8601: interval.start,
+                    endTimeISO8601: interval.end
                 };
             },
 

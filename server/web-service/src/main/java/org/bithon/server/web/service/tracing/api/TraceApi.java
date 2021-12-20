@@ -46,6 +46,8 @@ public class TraceApi {
     public GetTraceByIdResponse getTraceById(@Valid @RequestBody GetTraceByIdRequest request) {
         List<TraceSpan> spanList = traceService.getTraceByTraceId(request.getId(),
                                                                   request.getType(),
+                                                                  request.getStartTimeISO8601(),
+                                                                  request.getEndTimeISO8601(),
                                                                   request.isHierachy());
 
         return new GetTraceByIdResponse(spanList, traceService.buildMap(spanList));

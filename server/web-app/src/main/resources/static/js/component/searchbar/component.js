@@ -1,5 +1,11 @@
 class SearchBar {
-    constructor() {
+    constructor(openNewWindow) {
+        // Model
+        this._mInputId = "";
+        this._mInputInterval = "";
+        this._mOpenNewWindow = openNewWindow;
+
+        // View
         const navbar = $(".navbar").first();
         navbar.append(
             '        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"\n' +
@@ -10,11 +16,19 @@ class SearchBar {
             '            <ul class="navbar-nav mr-auto">\n' +
             '                <!-- a placeholder that ensure the search form is aligned at right side -->\n' +
             '            </ul>\n' +
-            '            <form class="mx-2 my-auto d-inline" style="width: 40%">\n' +
+            '            <form class="d-inline" style="width: 40%">\n' +
             '                <div class="input-group">\n' +
             '                    <input type="text" class="form-control" placeholder="trace id/query id">\n' +
+            '                    <div class="col-sm-3" style="padding: 0">' +
+            '                       <select class="form-control">' +
+            '                          <option selected>Today</option>' +
+            '                          <option>Yesterday</option>' +
+            '                          <option>This Week</option>' +
+            '                          <option>Last Week</option>' +
+            '                       </select>' +
+            '                    </div>' +
             '                    <span class="input-group-append">\n' +
-            '                        <button class="btn btn-outline-secondary" type="button">Search</button>\n' +
+            '                        <button class="btn btn-outline-secondary" type="button"><i class=\'fa fa-search\'></i></button>\n' +
             '                    </span>\n' +
             '                </div>\n' +
             '            </form>\n' +
@@ -26,33 +40,88 @@ class SearchBar {
                 event.preventDefault();
             }
         );
+        this._vIntervalSelect = navbar.find("select").change((event) => {
+            this._timeRange = event.target.selectedIndex;
+        });
 
-        this._id = "";
+        //
+        // Binding input to view and model
+        //
+        const queryParameters = this.#getQueryParameter();
+        if (queryParameters["id"] != null) {
+            this._mInputId = queryParameters["id"];
+            input.val(this._mInputId);
+        }
+        if (queryParameters["interval"] != null) {
+            this._mInputInterval = queryParameters["interval"];
+            navbar.find("select").val(queryParameters["interval"]).trigger('change');
+        }
+    }
+
+    #getQueryParameter() {
+        const parameters = {};
         const uri = decodeURI(window.location.href);
         const paramPos = uri.indexOf('?') + 1;
-        if (paramPos <= 0) {
-            return;
-        }
-        const idPos = uri.indexOf("id=", paramPos);
-        if (idPos > 0) {
-            const nextParamPos = uri.indexOf("&", idPos);
 
-            if (nextParamPos !== -1) {
-                this._id = uri.substring(idPos + 3, nextParamPos);
-            } else {
-                this._id = uri.substring(idPos + 3);
-            }
-            input.val(this._id);
+        if (paramPos <= 0) {
+            return parameters;
         }
+
+        // extract args
+        const args = uri.substring(paramPos).split("&")
+        for(let i = 0; i < args.length; i++) {
+            const pair = args[i].split("=");
+            parameters[pair[0]] = pair[1];
+        }
+
+        return parameters;
     }
 
     #search(id) {
         if (id === '') {
             return;
         }
-        if (id === this._id) {
+        if (id === this._mInputId && this._vIntervalSelect.val() === this._mInputInterval) {
+            // no change
             return;
         }
-        window.location.href = `/web/trace/detail?id=${id}&type=auto`;
+
+        const uri = `/web/trace/detail?id=${id}&type=auto&interval=${encodeURI(this._vIntervalSelect.val())}`;
+        if (this._mOpenNewWindow) {
+            window.open(uri);
+        } else {
+            window.location.href = uri;
+        }
+    }
+
+    getInterval() {
+        switch (this._vIntervalSelect.prop('selectedIndex')) {
+            case 0://today
+                return {
+                    start: moment().utc().local().startOf('day').toISOString(),
+                    end: moment().utc().local().toISOString()
+                }
+            case 1://yesterday
+                const start = moment().utc().local().startOf('day').subtract(1, 'day');
+                return {
+                    start: start.toISOString(),
+                    end: start.add(1, 'day').toISOString()
+                };
+            case 2://This Week
+                return {
+                    start: moment().utc().local().startOf('week').toISOString(),
+                    end: moment().utc().local().toISOString()
+                };
+            case 3://Last Week
+            {
+                const start = moment().utc().local().startOf('week').subtract(7, 'day');
+                return {
+                    start: start.toISOString(),
+                    end: start.add(7, 'day').toISOString()
+                };
+            }
+            default:
+                return {};
+        }
     }
 }
