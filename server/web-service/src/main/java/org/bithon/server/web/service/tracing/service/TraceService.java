@@ -179,6 +179,11 @@ public class TraceService {
                                                                                              "instanceName",
                                                                                              false,
                                                                                              null,
+                                                                                             null),
+                                                                     new StringDimensionSpec("parentSpanId",
+                                                                                             "parentSpanId",
+                                                                                             false,
+                                                                                             null,
                                                                                              null)),
                                                        Collections.singletonList(CountMetricSpec.INSTANCE),
                                                        null,
@@ -186,9 +191,8 @@ public class TraceService {
 
         TimeseriesQuery query = new TimeseriesQuery(schema,
                                                     Collections.singletonList("count"),
-                                                    Collections.singletonList(new DimensionCondition("appName",
-                                                                                                     new EqualMatcher(
-                                                                                                         application))),
+                                                    Arrays.asList(new DimensionCondition("appName", new EqualMatcher(application)),
+                                                                  new DimensionCondition("parentSpanId", new EqualMatcher(""))),
                                                     interval,
                                                     Collections.emptyList());
 
