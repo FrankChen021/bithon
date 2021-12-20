@@ -64,38 +64,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MetricJdbcReader implements IMetricReader {
 
-    static class DefaultSqlExpressionFormatter implements ISqlExpressionFormatter {
-        public static ISqlExpressionFormatter INSTANCE = new DefaultSqlExpressionFormatter();
-
-        @Override
-        public boolean groupByUseRawExpression() {
-            return false;
-        }
-
-        @Override
-        public boolean allowSameAggregatorExpression() {
-            return true;
-        }
-    }
-
-    static class H2SqlExpressionFormatter implements ISqlExpressionFormatter {
-        public static ISqlExpressionFormatter INSTANCE = new H2SqlExpressionFormatter();
-
-        @Override
-        public boolean groupByUseRawExpression() {
-            return true;
-        }
-
-        @Override
-        public boolean allowSameAggregatorExpression() {
-            return true;
-        }
-
-        /*
-         * NOTE, H2 does not support timestamp comparison, we have to use ISO8601 format
-         */
-    }
-
     private final DSLContext dsl;
     private final ISqlExpressionFormatter sqlFormatter;
 
@@ -123,27 +91,33 @@ public class MetricJdbcReader implements IMetricReader {
         int j = 0;
         TimeSpan start = query.getInterval().getStartTime();
         TimeSpan end = query.getInterval().getEndTime();
-        int granularity = query.getInterval().getGranularity();
-        for (long slot = start.toSeconds() / granularity * granularity, endSlot = end.toSeconds() / granularity * granularity;
-             slot < endSlot;
-             slot += granularity) {
+        int step = query.getInterval().getGranularity();
+        for (long bucket = start.toSeconds() / step * step, endBucket = end.toSeconds() / step * step;
+             bucket < endBucket;
+             bucket += step) {
             if (j < queryResult.size()) {
                 long nextSlot = ((Number) queryResult.get(j).get("timestamp")).longValue();
-                while (slot < nextSlot) {
+                while (bucket < nextSlot) {
                     Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
-                    empty.put("timestamp", slot * 1000);
+                    empty.put("timestamp", bucket * 1000);
                     query.getMetrics().forEach((metric) -> empty.put(metric, 0));
                     returns.add(empty);
-                    slot += granularity;
+                    bucket += step;
                 }
+
+                // convert to millisecond
                 queryResult.get(j).put("timestamp", nextSlot * 1000);
                 returns.add(queryResult.get(j++));
             } else {
                 Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
-                empty.put("timestamp", slot * 1000);
+                empty.put("timestamp", bucket * 1000);
                 query.getMetrics().forEach((metric) -> empty.put(metric, 0));
                 returns.add(empty);
             }
+        }
+        while (j < queryResult.size()) {
+            queryResult.get(j).put("timestamp", (int)queryResult.get(j).get("timestamp") * 1000L);
+            returns.add(queryResult.get(j++));
         }
         return returns;
     }
@@ -181,13 +155,15 @@ public class MetricJdbcReader implements IMetricReader {
                                      .collect(Collectors.joining());
 
         String filter = query.getFilters().stream()
-                             .map(dimension -> dimension.getMatcher().accept(new SQLFilterBuilder(dimension.getDimension())) + " AND ")
+                             .map(dimension -> dimension.getMatcher()
+                                                        .accept(new SQLFilterBuilder(dimension.getDimension()))
+                                               + " AND ")
                              .collect(Collectors.joining());
 
         String groupByFields = query.getGroupBys().stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
 
         String sql = StringUtils.format(
-            "SELECT %s %s %s %s FROM \"%s\" OUTER WHERE %s \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s",
+            "SELECT %s %s %s %s FROM \"%s\" OUTER WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s",
             groupByFields,
             metricList,
             postAggregatorMetrics,
@@ -229,7 +205,7 @@ public class MetricJdbcReader implements IMetricReader {
                                      .map(d -> d.getMatcher().accept(new SQLFilterBuilder(d.getDimension())))
                                      .collect(Collectors.joining(" AND "));
         String sql = StringUtils.format(
-            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s ",
+            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s ",
             dimension,
             dimension,
             "bithon_" + dataSourceSchema.getName().replace("-", "_"),
@@ -247,6 +223,38 @@ public class MetricJdbcReader implements IMetricReader {
             }
             return mapObject;
         }).collect(Collectors.toList());
+    }
+
+    static class DefaultSqlExpressionFormatter implements ISqlExpressionFormatter {
+        public static ISqlExpressionFormatter INSTANCE = new DefaultSqlExpressionFormatter();
+
+        @Override
+        public boolean groupByUseRawExpression() {
+            return false;
+        }
+
+        @Override
+        public boolean allowSameAggregatorExpression() {
+            return true;
+        }
+    }
+
+    static class H2SqlExpressionFormatter implements ISqlExpressionFormatter {
+        public static ISqlExpressionFormatter INSTANCE = new H2SqlExpressionFormatter();
+
+        @Override
+        public boolean groupByUseRawExpression() {
+            return true;
+        }
+
+        @Override
+        public boolean allowSameAggregatorExpression() {
+            return true;
+        }
+
+        /*
+         * NOTE, H2 does not support timestamp comparison, we have to use ISO8601 format
+         */
     }
 
     /**
@@ -374,7 +382,8 @@ public class MetricJdbcReader implements IMetricReader {
             metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
                 @Override
                 public void visitMetric(IMetricSpec metricSpec) {
-                    if (!sqlExpressionFormatter.allowSameAggregatorExpression() && metrics.contains(metricSpec.getName())) {
+                    if (!sqlExpressionFormatter.allowSameAggregatorExpression()
+                        && metrics.contains(metricSpec.getName())) {
                         // this metricSpec has been in the SQL,
                         // don't need to construct the aggregation expression for this post aggregator
                         // because some DBMS does not support duplicated aggregation expressions for one metric
@@ -413,7 +422,8 @@ public class MetricJdbcReader implements IMetricReader {
                 public void visitVariable(String variable) {
                     Object variableValue = variables.get(variable);
                     if (variableValue == null) {
-                        throw new RuntimeException(StringUtils.format("variable (%s) not provided in context", variable));
+                        throw new RuntimeException(StringUtils.format("variable (%s) not provided in context",
+                                                                      variable));
                     }
                     sb.append(variableValue);
                 }
@@ -539,10 +549,112 @@ public class MetricJdbcReader implements IMetricReader {
         private final DataSourceSchema schema;
         private final long interval;
         private final ISqlExpressionFormatter sqlFormatter;
-        private String filters;
         private final TimeSpan start;
         private final TimeSpan end;
+        private String filters;
         private String groupBy = "";
+
+        TimeSeriesSqlClauseBuilder(ISqlExpressionFormatter sqlFormatter,
+                                   TimeSpan start,
+                                   TimeSpan end,
+                                   DataSourceSchema dataSourceSchema,
+                                   long interval) {
+            this.sqlFormatter = sqlFormatter;
+            this.tableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
+            this.start = start;
+            this.end = end;
+            this.schema = dataSourceSchema;
+            this.interval = interval;
+        }
+
+        TimeSeriesSqlClauseBuilder metrics(Collection<String> metrics) {
+            MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(this.sqlFormatter,
+                                                                              ImmutableMap.of("interval",
+                                                                                              interval,
+                                                                                              "instanceCount",
+                                                                                              "count(distinct \"instanceName\")"),
+                                                                              true,
+                                                                              postExpressions,
+                                                                              rawExpressions);
+
+            List<IMetricSpec> postMetricSpecList = new ArrayList<>();
+            for (String metricName : metrics) {
+                IMetricSpec metricSpec = schema.getMetricSpecByName(metricName);
+                if (metricSpec == null) {
+                    throw new RuntimeException(StringUtils.format("[%s] not defined", metricName));
+                }
+
+                if (metricSpec instanceof PostAggregatorMetricSpec) {
+                    //
+                    // post metrics will be processed at last
+                    // so that there won't be duplicated expressions for one field
+                    //
+                    // This constraint is required by some DBMS
+                    //
+                    postMetricSpecList.add(metricSpec);
+                } else {
+                    metricSpec.accept(metricFieldsBuilder);
+                }
+            }
+            for (IMetricSpec postMetricSpec : postMetricSpecList) {
+                postMetricSpec.accept(metricFieldsBuilder);
+            }
+
+            if (!metricFieldsBuilder.hasLast) {
+                this.rawExpressions.clear();
+            }
+            return this;
+        }
+
+        TimeSeriesSqlClauseBuilder filters(Collection<DimensionCondition> filters) {
+            this.filters = filters.stream()
+                                  .map(dimension -> dimension.getMatcher()
+                                                             .accept(new SQLFilterBuilder(dimension.getDimension())))
+                                  .collect(Collectors.joining(" AND "));
+            return this;
+        }
+
+        public TimeSeriesSqlClauseBuilder groupBy(List<String> groupBy) {
+            this.groupBy = groupBy.stream()
+                                  .map(field -> "," + schema.getDimensionSpecByName(field).getName())
+                                  .collect(Collectors.joining());
+            return this;
+        }
+
+        String build() {
+            String timestampExpression = sqlFormatter.timeFloor("timestamp", interval);
+            if (rawExpressions.isEmpty()) {
+                return StringUtils.format(
+                    "SELECT %s \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s %s %s",
+                    timestampExpression,
+                    String.join(",", postExpressions),
+                    tableName,
+                    this.filters,
+                    sqlFormatter.formatTimestamp(start),
+                    sqlFormatter.formatTimestamp(end),
+                    sqlFormatter.groupByUseRawExpression() ? timestampExpression : "timestamp",
+                    this.groupBy,
+                    sqlFormatter.orderByTimestamp("timestamp")
+                );
+            } else {
+                return StringUtils.format(
+                    "SELECT \"timestamp\" %s ,%s FROM "
+                    + "("
+                    + "     SELECT %s, %s \"timestamp\" %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s"
+                    + ")GROUP BY \"timestamp\" %s",
+                    this.groupBy,
+                    String.join(",", postExpressions),
+                    String.join(",", rawExpressions),
+                    timestampExpression,
+                    this.groupBy,
+                    tableName,
+                    this.filters,
+                    sqlFormatter.formatTimestamp(start),
+                    sqlFormatter.formatTimestamp(end),
+                    sqlFormatter.orderByTimestamp("timestamp")
+                );
+            }
+        }
 
         static class MetricClauseBuilder extends MetricSpecVisitor {
             private final ISqlExpressionFormatter sqlFormatter;
@@ -570,7 +682,9 @@ public class MetricJdbcReader implements IMetricReader {
             public Void visit(CountMetricSpec metricSpec) {
                 this.metrics.add(metricSpec.getName());
                 postExpressions.add(StringUtils.format("count(1)%s",
-                                                       addAlias ? StringUtils.format(" AS \"%s\"", metricSpec.getName()) : ""));
+                                                       addAlias
+                                                       ? StringUtils.format(" AS \"%s\"", metricSpec.getName())
+                                                       : ""));
                 rawExpressions.add(StringUtils.format(" \"%s\"", metricSpec.getName()));
 
                 return null;
@@ -585,7 +699,8 @@ public class MetricJdbcReader implements IMetricReader {
                         metricSpec.accept(new MetricSpecVisitor() {
                             @Override
                             protected void visit(IMetricSpec metricSpec, String aggregator) {
-                                if (!sqlFormatter.allowSameAggregatorExpression() && metrics.contains(metricSpec.getName())) {
+                                if (!sqlFormatter.allowSameAggregatorExpression()
+                                    && metrics.contains(metricSpec.getName())) {
                                     sb.append(StringUtils.format("\"%s\"", metricSpec.getName()));
                                 } else {
                                     sb.append(StringUtils.format("%s(\"%s\")", aggregator, metricSpec.getName()));
@@ -657,7 +772,9 @@ public class MetricJdbcReader implements IMetricReader {
                 postExpressions.add(StringUtils.format("%s(\"%s\")%s",
                                                        aggregator,
                                                        metricSpec.getName(),
-                                                       addAlias ? StringUtils.format(" AS \"%s\"", metricSpec.getName()) : ""));
+                                                       addAlias
+                                                       ? StringUtils.format(" AS \"%s\"", metricSpec.getName())
+                                                       : ""));
                 rawExpressions.add(StringUtils.format(" \"%s\"", metricSpec.getName()));
             }
 
@@ -671,110 +788,11 @@ public class MetricJdbcReader implements IMetricReader {
                                                        addAlias ? StringUtils.format(" AS \"%s\"", metricName) : ""));
 
                 int interval = ((Number) this.variables.get("interval")).intValue();
-                rawExpressions.add(StringUtils.format("FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) \"%s\"",
-                                                      metricName,
-                                                      sqlFormatter.timeFloor("timestamp", interval),
-                                                      metricName));
-            }
-        }
-
-        TimeSeriesSqlClauseBuilder(ISqlExpressionFormatter sqlFormatter,
-                                   TimeSpan start,
-                                   TimeSpan end,
-                                   DataSourceSchema dataSourceSchema,
-                                   long interval) {
-            this.sqlFormatter = sqlFormatter;
-            this.tableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
-            this.start = start;
-            this.end = end;
-            this.schema = dataSourceSchema;
-            this.interval = interval;
-        }
-
-        TimeSeriesSqlClauseBuilder metrics(Collection<String> metrics) {
-            MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(this.sqlFormatter,
-                                                                              ImmutableMap.of("interval", interval,
-                                                                                              "instanceCount",
-                                                                                              "count(distinct \"instanceName\")"),
-                                                                              true,
-                                                                              postExpressions,
-                                                                              rawExpressions);
-
-            List<IMetricSpec> postMetricSpecList = new ArrayList<>();
-            for (String metricName : metrics) {
-                IMetricSpec metricSpec = schema.getMetricSpecByName(metricName);
-                if (metricSpec == null) {
-                    throw new RuntimeException(StringUtils.format("[%s] not defined", metricName));
-                }
-
-                if (metricSpec instanceof PostAggregatorMetricSpec) {
-                    //
-                    // post metrics will be processed at last
-                    // so that there won't be duplicated expressions for one field
-                    //
-                    // This constraint is required by some DBMS
-                    //
-                    postMetricSpecList.add(metricSpec);
-                } else {
-                    metricSpec.accept(metricFieldsBuilder);
-                }
-            }
-            for (IMetricSpec postMetricSpec : postMetricSpecList) {
-                postMetricSpec.accept(metricFieldsBuilder);
-            }
-
-            if (!metricFieldsBuilder.hasLast) {
-                this.rawExpressions.clear();
-            }
-            return this;
-        }
-
-        TimeSeriesSqlClauseBuilder filters(Collection<DimensionCondition> filters) {
-            this.filters = filters.stream()
-                                  .map(dimension -> dimension.getMatcher().accept(new SQLFilterBuilder(dimension.getDimension())))
-                                  .collect(Collectors.joining(" AND "));
-            return this;
-        }
-
-        public TimeSeriesSqlClauseBuilder groupBy(List<String> groupBy) {
-            this.groupBy = groupBy.stream()
-                                  .map(field -> "," + schema.getDimensionSpecByName(field).getName())
-                                  .collect(Collectors.joining());
-            return this;
-        }
-
-        String build() {
-            String timestampExpression = sqlFormatter.timeFloor("timestamp", interval);
-            if (rawExpressions.isEmpty()) {
-                return StringUtils.format(
-                    "SELECT %s \"timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s GROUP BY %s %s %s",
-                    timestampExpression,
-                    String.join(",", postExpressions),
-                    tableName,
-                    this.filters,
-                    sqlFormatter.formatTimestamp(start),
-                    sqlFormatter.formatTimestamp(end),
-                    sqlFormatter.groupByUseRawExpression() ? timestampExpression : "timestamp",
-                    this.groupBy,
-                    sqlFormatter.orderByTimestamp("timestamp")
-                );
-            } else {
-                return StringUtils.format(
-                    "SELECT \"timestamp\" %s ,%s FROM "
-                    + "("
-                    + "     SELECT %s, %s \"timestamp\" %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" <= %s"
-                    + ")GROUP BY \"timestamp\" %s",
-                    this.groupBy,
-                    String.join(",", postExpressions),
-                    String.join(",", rawExpressions),
-                    timestampExpression,
-                    this.groupBy,
-                    tableName,
-                    this.filters,
-                    sqlFormatter.formatTimestamp(start),
-                    sqlFormatter.formatTimestamp(end),
-                    sqlFormatter.orderByTimestamp("timestamp")
-                );
+                rawExpressions.add(StringUtils.format(
+                    "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) \"%s\"",
+                    metricName,
+                    sqlFormatter.timeFloor("timestamp", interval),
+                    metricName));
             }
         }
     }
