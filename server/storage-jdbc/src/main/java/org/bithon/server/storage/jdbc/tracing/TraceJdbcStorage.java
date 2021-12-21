@@ -36,6 +36,7 @@ import org.bithon.server.tracing.storage.ITraceWriter;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.jooq.SelectConditionStep;
+import org.jooq.SelectSeekStep1;
 import org.jooq.impl.DSL;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -108,7 +109,8 @@ public class TraceJdbcStorage implements ITraceStorage {
         @Override
         public List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end) {
             SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                                       .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
+                                                                       .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(
+                                                                           traceId));
             if (start != null) {
                 sql = sql.and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start.toTimestamp()));
             }
@@ -127,17 +129,36 @@ public class TraceJdbcStorage implements ITraceStorage {
         public List<TraceSpan> getTraceList(String application,
                                             Timestamp start,
                                             Timestamp end,
+                                            String orderBy,
+                                            String order,
                                             int pageNumber,
                                             int pageSize) {
-            return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                             .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
-                             .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
-                             .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
-                             .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""))
-                             .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc())
-                             .offset(pageNumber * pageSize)
-                             .limit(pageSize)
-                             .fetch(this::toTraceSpan);
+            SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
+                                                                     .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(
+                                                                           application))
+                                                                     .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
+                                                                     .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
+                                                                     .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""));
+            //noinspection rawtypes
+            SelectSeekStep1 sql2;
+            if ("costTime".equals(orderBy)) {
+                if ("desc".equals(order)) {
+                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.COSTTIMEMS.desc());
+                } else {
+                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.COSTTIMEMS.asc());
+                }
+            } else {
+                if ("desc".equals(order)) {
+                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc());
+                } else {
+                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc());
+                }
+            }
+
+            //noinspection unchecked
+            return sql2.offset(pageNumber * pageSize)
+                      .limit(pageSize)
+                      .fetch(r->this.toTraceSpan((BithonTraceSpanRecord) r));
         }
 
         @Override

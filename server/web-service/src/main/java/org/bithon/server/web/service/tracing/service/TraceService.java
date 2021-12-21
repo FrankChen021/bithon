@@ -152,9 +152,16 @@ public class TraceService {
     public List<TraceSpan> getTraceList(String application,
                                         Timestamp start,
                                         Timestamp end,
+                                        String orderBy,
+                                        String order,
                                         int pageNumber,
                                         int pageSize) {
-        return traceReader.getTraceList(application, start, end, pageNumber, pageSize);
+        return traceReader.getTraceList(application,
+                                        start,
+                                        end,
+                                        orderBy,
+                                        order,
+                                        pageNumber, pageSize);
     }
 
     public GetTraceDistributionResponse getTraceDistribution(String application,

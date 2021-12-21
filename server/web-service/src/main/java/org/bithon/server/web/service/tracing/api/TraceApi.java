@@ -70,6 +70,8 @@ public class TraceApi {
             traceService.getTraceList(request.getApplication(),
                                       start,
                                       end,
+                                      request.getOrderBy(),
+                                      request.getOrder(),
                                       request.getPageNumber(),
                                       request.getPageSize())
         );
