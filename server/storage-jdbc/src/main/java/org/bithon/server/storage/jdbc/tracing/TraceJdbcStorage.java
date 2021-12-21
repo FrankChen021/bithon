@@ -134,11 +134,10 @@ public class TraceJdbcStorage implements ITraceStorage {
                                             int pageNumber,
                                             int pageSize) {
             SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                                     .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(
-                                                                           application))
-                                                                     .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
-                                                                     .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
-                                                                     .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""));
+                                                                       .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
+                                                                       .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
+                                                                       .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
+                                                                       .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""));
             //noinspection rawtypes
             SelectSeekStep1 sql2;
             if ("costTime".equals(orderBy)) {
@@ -157,8 +156,8 @@ public class TraceJdbcStorage implements ITraceStorage {
 
             //noinspection unchecked
             return sql2.offset(pageNumber * pageSize)
-                      .limit(pageSize)
-                      .fetch(r->this.toTraceSpan((BithonTraceSpanRecord) r));
+                       .limit(pageSize)
+                       .fetch(r -> this.toTraceSpan((BithonTraceSpanRecord) r));
         }
 
         @Override
