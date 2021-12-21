@@ -18,11 +18,15 @@ package org.bithon.agent.plugin.spring.webflux.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
+import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
+import org.springframework.http.server.reactive.AbstractServerHttpRequest;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
@@ -37,10 +41,28 @@ public class NettyRoutingFilter$Filter extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceContext traceContext = TraceContextHolder.current();
+        ServerWebExchange exchange = aopContext.getArgAs(0);
+
+        // ReactorHttpHandlerAdapter#apply creates an object of AbstractServerHttpRequest
+        if (!(exchange.getRequest() instanceof AbstractServerHttpRequest)) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        // the request object on exchange is type of HttpServerOperation
+        // see ReactorHttpHandlerAdapter#apply
+        Object nativeRequest = ((AbstractServerHttpRequest) exchange.getRequest()).getNativeRequest();
+        if (!(nativeRequest instanceof IBithonObject)) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        HttpServerContext ctx = (HttpServerContext) ((IBithonObject) nativeRequest).getInjectedObject();
+        ITraceContext traceContext = ctx.getTraceContext();
         if (traceContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
+
+        // set to thread local for following calls such as HttpClientFinalizer
+        TraceContextHolder.set(traceContext);
 
         aopContext.setUserContext(traceContext.currentSpan()
                                               .newChildSpan("webflux-routing")
@@ -52,7 +74,14 @@ public class NettyRoutingFilter$Filter extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
+        TraceContextHolder.remove();
+
         ITraceSpan span = aopContext.castUserContextAs();
+        if (span == null) {
+            // in case of exception in the Enter interceptor
+            return;
+        }
+
         Mono<Void> originalReturning = aopContext.castReturningAs();
         Mono<Void> replacedReturning = originalReturning.doAfterSuccessOrError((success, error) -> {
             span.tag(error)
