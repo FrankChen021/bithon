@@ -32,6 +32,8 @@ public interface ITraceReader {
     List<TraceSpan> getTraceList(String application,
                                  Timestamp start,
                                  Timestamp end,
+                                 String orderBy,
+                                 String order,
                                  int pageNumber,
                                  int pageSize);
 

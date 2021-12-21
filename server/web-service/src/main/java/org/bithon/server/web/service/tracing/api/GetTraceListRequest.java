@@ -37,6 +37,9 @@ public class GetTraceListRequest {
     @NotBlank
     private String endTimeISO8601;
 
+    private String order = "desc";
+    private String orderBy = "";
+
     @Min(0)
     private int pageNumber = 0;
 

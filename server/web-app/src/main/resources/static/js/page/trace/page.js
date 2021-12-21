@@ -1,38 +1,40 @@
 class TracePage {
     constructor(appName) {
         // Model
-        this._appName = appName;
-        this._interval = null;
+        this.mApplication = appName;
+        this.mInterval = null;
 
         // View
-        this._chartComponent = new ChartComponent({
+        this.vChartComponent = new ChartComponent({
             containerId: 'distribution',
             height: '150px',
             showLegend: false
         });//.header('Distribution');
-        this._chartComponent.setClickHandler((e) => {
+        this.vChartComponent.setClickHandler((e) => {
             this.#onClickChart(e);
         });
 
         // View
-        new AppSelector(this._appName).childOf('appSelector').registerAppChangedListener((text, value) => {
+        new AppSelector(this.mApplication).childOf('appSelector').registerAppChangedListener((text, value) => {
             window.location = `/web/app/trace/${value}`;
         });
 
-        // View
         const parent = $('#filterBarForm');
-        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0px;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
-              .find("button").click(()=>{
-                  this.#refreshPage();
-        });
 
-        // View
-        this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
-            this._interval = null;
+        // View - Refresh Button
+        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0px;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
+            .find("button").click(() => {
             this.#refreshPage();
         });
 
         // View
+        this.vIntervalSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
+            this.mInterval = this.vIntervalSelector.getInterval();
+            this.#refreshPage();
+        });
+        this.mInterval = this.vIntervalSelector.getInterval();
+
+        // View, will also trigger refresh automatically
         $('#table').bootstrapTable({
             toolbar: '#toolbar',//工具栏
 
@@ -48,8 +50,8 @@ class TracePage {
             paginationNextText: '>',             //下一页按钮样式
             pageNumber: 1,
             pageSize: 10,
-            pageList: [10, 25, 50],
-            sortName: 'lastAlertAt',
+            pageList: [10, 25, 50, 100],
+            sortName: 'startTime',
             sortOrder: 'desc',
 
             queryParamsType: '',
@@ -82,33 +84,50 @@ class TracePage {
                 title: 'Trace Id',
                 formatter: function (value, row) {
                     return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}">${value}</a>`;
-                }
+                },
             }, {
                 field: 'startTime',
                 title: 'Time',
                 formatter: function (value) {
                     return new Date(value / 1000).format('yyyy-MM-dd hh:mm:ss');
-                }
+                },
+                sortable: true
             }, {
                 field: 'costTime',
                 title: 'Duration',
                 formatter: function (value, row) {
                     return nanoFormat(value * 1000);
-                }
+                },
+                sortable: true
             }, {
                 field: 'tags',
                 title: 'URL',
                 formatter: function (value, row) {
                     return value.uri;
                 }
-            }]
+            }, {
+                field: 'tags',
+                title: 'Status',
+                formatter: function (value, row) {
+                    return value.status;
+                }
+            }],
+
+            rowStyle: (row, index) => {
+                if (row.tags.status !== "200") {
+                    return {
+                        classes: 'alert-warning'
+                    }
+                }
+                return {};
+            }
         });
 
-        this.#refreshPage();
+        this.#refreshChart();
     }
 
     #getInterval() {
-        return this._interval != null ? this._interval : this._timeSelector.getInterval();
+        return this.mInterval;//this.mInterval != null ? this.mInterval : this.vIntervalSelector.getInterval();
     }
 
     #refreshPage() {
@@ -120,8 +139,12 @@ class TracePage {
         //
         // refresh the distribution chart
         //
+        this.#refreshChart();
+    }
+
+    #refreshChart() {
         const interval = this.#getInterval();
-        this._chartComponent.load({
+        this.vChartComponent.load({
             url: apiHost + '/api/trace/getTraceDistribution',
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
@@ -165,11 +188,7 @@ class TracePage {
                 op.series = series;
                 return op;
             }
-        })
-
-        //
-        // refresh the table list
-        //
+        });
     }
 
     // PRIVATE
@@ -228,8 +247,8 @@ class TracePage {
             start: s.toISOString(),
             end: s.add(this._data.bucket, 'second').toISOString()
         }
-        if (this._interval == null || (this._interval.start !== interval.start && this._interval.end !== interval.end)) {
-            this._interval = interval;
+        if (this.mInterval == null || (this.mInterval.start !== interval.start && this.mInterval.end !== interval.end)) {
+            this.mInterval = interval;
             this.#refreshPage();
         }
     }
