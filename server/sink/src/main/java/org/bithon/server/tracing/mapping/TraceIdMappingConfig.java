@@ -16,21 +16,21 @@
 
 package org.bithon.server.tracing.mapping;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.tracing.sink.TraceSpan;
+import lombok.Data;
 
-import java.util.function.BiConsumer;
+import java.util.Map;
 
 /**
+ * Extract a user-defined transaction id on a given parameter to trace id
+ *
+ * - type: xxx
+ * - params:
+ *
  * @author Frank Chen
- * @date 10/12/21 3:12 PM
+ * @date 10/12/21 3:08 PM
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "uri", value = URIParameterExtractor.class),
-    @JsonSubTypes.Type(name = "name", value = NameValueExtractor.class),
-})
-public interface ITraceMappingExtractor {
-    void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback);
+@Data
+public class TraceIdMappingConfig {
+    private String type;
+    private Map<String, Object> args;
 }

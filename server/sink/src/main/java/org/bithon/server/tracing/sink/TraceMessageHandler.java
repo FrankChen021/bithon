@@ -19,7 +19,7 @@ package org.bithon.server.tracing.sink;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
-import org.bithon.server.tracing.mapping.TraceMapping;
+import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.mapping.TraceMappingFactory;
 import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
@@ -39,7 +39,7 @@ import java.util.function.Function;
 public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<IteratorableCollection<TraceSpan>> {
 
     private final ITraceWriter traceWriter;
-    private final Function<Collection<TraceSpan>, List<TraceMapping>> extractor;
+    private final Function<Collection<TraceSpan>, List<TraceIdMapping>> extractor;
 
     public TraceMessageHandler(ApplicationContext applicationContext) {
         super("trace", 2, 10, Duration.ofMinutes(1), 2048);

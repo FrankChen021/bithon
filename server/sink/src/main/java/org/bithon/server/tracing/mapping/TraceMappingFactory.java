@@ -46,11 +46,11 @@ public class TraceMappingFactory {
     /**
      * create trace id mapping extractors from configuration
      */
-    public static Function<Collection<TraceSpan>, List<TraceMapping>> create(ApplicationContext context) {
-        final List<ITraceMappingExtractor> extractorList = new ArrayList<>();
+    public static Function<Collection<TraceSpan>, List<TraceIdMapping>> create(ApplicationContext context) {
+        final List<ITraceIdMappingExtractor> extractorList = new ArrayList<>();
 
         // add default extractor
-        extractorList.add(CompatibilityMappingExtractor.INSTANCE);
+        extractorList.add(CompatibilityIdMappingExtractor.INSTANCE);
 
         //
         // create extractors from configuration
@@ -58,13 +58,13 @@ public class TraceMappingFactory {
         TraceConfig config = context.getBean(TraceConfig.class);
         if (!CollectionUtils.isEmpty(config.getMapping())) {
             ObjectMapper mapper = context.getBean(ObjectMapper.class);
-            for (TraceMappingConfig mappingConfig : config.getMapping()) {
+            for (TraceIdMappingConfig mappingConfig : config.getMapping()) {
                 try {
                     Map<String, Object> map = new HashMap<>();
                     map.put("type", mappingConfig.getType());
                     map.putAll(mappingConfig.getArgs());
                     String json = mapper.writeValueAsString(map);
-                    extractorList.add(mapper.readValue(json, ITraceMappingExtractor.class));
+                    extractorList.add(mapper.readValue(json, ITraceIdMappingExtractor.class));
                 } catch (IOException e) {
                     log.error("Unable to create extractor for type " + mappingConfig.getType(), e);
                 }
@@ -77,16 +77,16 @@ public class TraceMappingFactory {
     /**
      * only for test cases
      */
-    static Function<Collection<TraceSpan>, List<TraceMapping>> create(ITraceMappingExtractor extractorList) {
+    static Function<Collection<TraceSpan>, List<TraceIdMapping>> create(ITraceIdMappingExtractor extractorList) {
         return create(Collections.singletonList(extractorList));
     }
 
-    static Function<Collection<TraceSpan>, List<TraceMapping>> create(List<ITraceMappingExtractor> extractorList) {
+    static Function<Collection<TraceSpan>, List<TraceIdMapping>> create(List<ITraceIdMappingExtractor> extractorList) {
         return spanList -> {
             Set<String> duplication = new HashSet<>();
 
             // remove duplicated mappings from returned values of extractors
-            List<TraceMapping> mappings = new ArrayList<>();
+            List<TraceIdMapping> mappings = new ArrayList<>();
 
             for (TraceSpan span : spanList) {
                 // extractors extract mapping from tags,
@@ -95,13 +95,13 @@ public class TraceMappingFactory {
                     continue;
                 }
 
-                for (ITraceMappingExtractor extractor : extractorList) {
+                for (ITraceIdMappingExtractor extractor : extractorList) {
                     extractor.extract(span,
                                       (thisSpan, uTxId) -> {
                                           if (duplication.add(uTxId)) {
-                                              mappings.add(new TraceMapping(thisSpan.getStartTime() / 1000,
-                                                                            uTxId,
-                                                                            thisSpan.getTraceId()));
+                                              mappings.add(new TraceIdMapping(thisSpan.getStartTime() / 1000,
+                                                                              uTxId,
+                                                                              thisSpan.getTraceId()));
 
                                           }
                                       });
@@ -115,8 +115,8 @@ public class TraceMappingFactory {
     /**
      * see: https://github.com/FrankChen021/bithon/issues/260
      */
-    static class CompatibilityMappingExtractor implements ITraceMappingExtractor {
-        static final ITraceMappingExtractor INSTANCE = new CompatibilityMappingExtractor();
+    static class CompatibilityIdMappingExtractor implements ITraceIdMappingExtractor {
+        static final ITraceIdMappingExtractor INSTANCE = new CompatibilityIdMappingExtractor();
 
         @Override
         public void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback) {

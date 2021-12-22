@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
-import org.bithon.server.tracing.mapping.TraceMapping;
+import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceReader;
@@ -249,9 +249,9 @@ public class TraceJdbcStorage implements ITraceStorage {
         }
 
         @Override
-        public void writeMappings(Collection<TraceMapping> mappings) {
+        public void writeMappings(Collection<TraceIdMapping> mappings) {
             List<Query> queries = new ArrayList<>();
-            for (TraceMapping mapping : mappings) {
+            for (TraceIdMapping mapping : mappings) {
                 Query q = dslContext.insertInto(Tables.BITHON_TRACE_MAPPING)
                                     .set(Tables.BITHON_TRACE_MAPPING.TRACE_ID, mapping.getTraceId())
                                     .set(Tables.BITHON_TRACE_MAPPING.USER_TX_ID, mapping.getUserId())

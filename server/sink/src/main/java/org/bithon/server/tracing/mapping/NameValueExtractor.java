@@ -27,10 +27,12 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
+ * Extract a corresponding id from a name-value pair in tags
+ *
  * @author Frank Chen
  * @date 10/12/21 4:32 PM
  */
-public class NameValueExtractor implements ITraceMappingExtractor {
+public class NameValueExtractor implements ITraceIdMappingExtractor {
 
     private final Collection<String> names;
 
