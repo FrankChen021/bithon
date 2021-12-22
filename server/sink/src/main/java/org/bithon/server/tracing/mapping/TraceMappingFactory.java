@@ -26,8 +26,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -77,8 +77,8 @@ public class TraceMappingFactory {
     /**
      * only for test cases
      */
-    static Function<Collection<TraceSpan>, List<TraceIdMapping>> create(ITraceIdMappingExtractor extractorList) {
-        return create(Collections.singletonList(extractorList));
+    static Function<Collection<TraceSpan>, List<TraceIdMapping>> create(ITraceIdMappingExtractor extractor) {
+        return create(Arrays.asList(CompatibilityIdMappingExtractor.INSTANCE, extractor));
     }
 
     static Function<Collection<TraceSpan>, List<TraceIdMapping>> create(List<ITraceIdMappingExtractor> extractorList) {

@@ -32,6 +32,25 @@ import java.util.function.Function;
  */
 public class URIParameterExtractorTest {
     @Test
+    public void testUpstreamTraceId() {
+        TraceSpan span = new TraceSpan();
+        span.setTraceId("1");
+        span.setStartTime(System.currentTimeMillis());
+        span.setKind("SERVER");
+        span.setTags(ImmutableMap.of("upstreamTraceId",
+                                     "123456",
+                                     "status",
+                                     "200"));
+
+        Function<Collection<TraceSpan>, List<TraceIdMapping>> extractor = TraceMappingFactory.create(new URIParameterExtractor(Collections.singletonList("query_id")));
+        List<TraceIdMapping> mappings = extractor.apply(Collections.singletonList(span));
+        Assert.assertEquals(1, mappings.size());
+        Assert.assertEquals("123456", mappings.get(0).getUserId());
+        Assert.assertEquals("1", mappings.get(0).getTraceId());
+        Assert.assertEquals(span.getStartTime() / 1000L, mappings.get(0).getTimestamp());
+    }
+
+    @Test
     public void testAbsoluteURI() {
         TraceSpan span = new TraceSpan();
         span.setTraceId("1");
