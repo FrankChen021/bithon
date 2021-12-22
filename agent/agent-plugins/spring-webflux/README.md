@@ -3,8 +3,8 @@
 
 ```mermaid
 graph 
-    ReactorHttpHandlerAdapter 
-    ---> filters 
+    ReactorHttpHandlerAdapter(HttpServerOperations, resp)
+    ---> filters ( AbstractServerHttpRequest(HttpServerOperations) )
     ---> NettyRoutingFilter 
     ---> HttpClientFinializer#send
     ---> HttpClientFinializer#responseConnection

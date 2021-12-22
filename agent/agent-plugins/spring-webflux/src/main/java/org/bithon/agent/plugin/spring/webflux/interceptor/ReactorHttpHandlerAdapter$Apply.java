@@ -83,6 +83,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         // which is instrumented as IBithonObject
         //
         if (request instanceof IBithonObject) {
+            // the injected object is created in HttpServerOperation$Ctor
             Object injected = ((IBithonObject) request).getInjectedObject();
             if (injected instanceof HttpServerContext) {
                 final ITraceContext traceContext = Tracer.get()
@@ -100,12 +101,6 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
                             .start();
 
                 ((HttpServerContext) injected).setTraceContext(traceContext);
-
-                // this thread-local variable won't be removed in the 'onMethodLeave' below
-                // that's because the filter chain is executed after 'onMethodLeave'
-                // since webflux is built upon netty which means the network threads are fixed
-                // we don't need to care about the thread-local variable causes memory-leak
-                TraceContextHolder.set(traceContext);
             }
         }
 
@@ -122,8 +117,6 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
             update(request, response, aopContext.getCostTime());
             finishTrace(request, response);
 
-            // in this execution path, filters won't be executed, it's safe to remove the thread-local variable
-            TraceContextHolder.remove();
             return;
         }
 

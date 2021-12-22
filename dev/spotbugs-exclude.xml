@@ -66,6 +66,7 @@
     <Bug pattern="CN_IDIOM_NO_SUPER_CALL"/>
     <Bug pattern="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE"/>
     <Bug pattern="DC_DOUBLECHECK"/>
+    <Bug pattern="DE_MIGHT_IGNORE"/> <!--we might use catch(Exception ignored) pattern to ignore some exceptions-->
     <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING"/>
     <Bug pattern="DM_EXIT"/>
     <Bug pattern="DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED"/>

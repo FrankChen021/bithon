@@ -73,19 +73,22 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
             //noinspection rawtypes
             Publisher publisher = originalReceiver.apply(httpClientResponse, connection);
 
-            // tracing
-            final ITraceSpan httpClientSpan = httpClientContext.getSpan();
-            if (httpClientSpan != null) {
-                httpClientSpan.tag("status", String.valueOf(httpClientResponse.status().code()))
-                              .tag("uri", uri)
-                              .finish();
-            }
+            try {
+                // tracing
+                final ITraceSpan httpClientSpan = httpClientContext.getSpan();
+                if (httpClientSpan != null) {
+                    httpClientSpan.tag("status", String.valueOf(httpClientResponse.status().code()))
+                                  .tag("uri", uri)
+                                  .finish();
+                }
 
-            // metrics
-            metricCollector.addRequest(uri,
-                                       method,
-                                       httpClientResponse.status().code(),
-                                       System.nanoTime() - httpClientContext.getStartTimeNs());
+                // metrics
+                metricCollector.addRequest(uri,
+                                           method,
+                                           httpClientResponse.status().code(),
+                                           System.nanoTime() - httpClientContext.getStartTimeNs());
+            } catch (Exception ignored) {
+            }
 
             return publisher;
         };
@@ -143,6 +146,7 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
             }
         }));
 
+        // post process of Flux.timeout
         ((IBithonObject) replacedReturning).setInjectedObject((Runnable) () -> {
             // tracing
             final ITraceSpan httpClientSpan = httpClientContext.getSpan();
