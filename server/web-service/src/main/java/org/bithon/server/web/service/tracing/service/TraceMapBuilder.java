@@ -102,7 +102,19 @@ public class TraceMapBuilder {
             } else {
                 TraceSpanBo parentSpan = boMap.get(span.parentSpanId);
                 if (parentSpan == null) {
-                    //should not happen
+                    // this is possible when upstream application A, which is out of monitor of bithon, passes trace context
+                    // this an application B which is under monitor of bithon
+                    //
+                    // In this case, the root span of this trace is application B has parentSpanId,
+                    // but obviously, this parentSpanId can't be found in the span collections
+                    // So, we add it to the root span
+                    //
+                    rootSpans.add(bo);
+
+                    // we also clear the parentSpanId field so that the UI can show it correctly
+                    // even though doing this is not a very good way
+                    span.parentSpanId = "";
+                    bo.setParentSpanId("");
                 } else {
                     parentSpan.children.add(bo);
                 }

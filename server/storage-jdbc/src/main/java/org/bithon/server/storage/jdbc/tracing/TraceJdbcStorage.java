@@ -137,7 +137,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                                                                        .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
                                                                        .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
                                                                        .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
-                                                                       .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""));
+                                                                       .and(Tables.BITHON_TRACE_SPAN.KIND.eq("SERVER"));
             //noinspection rawtypes
             SelectSeekStep1 sql2;
             if ("costTime".equals(orderBy)) {
@@ -169,7 +169,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                                    .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
                                    .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
                                    .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
-                                   .and(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(""))
+                                   .and(Tables.BITHON_TRACE_SPAN.KIND.eq("SERVER"))
                                    .fetchOne(0);
         }
 

@@ -187,8 +187,8 @@ public class TraceService {
                                                                                              false,
                                                                                              null,
                                                                                              null),
-                                                                     new StringDimensionSpec("parentSpanId",
-                                                                                             "parentSpanId",
+                                                                     new StringDimensionSpec("kind",
+                                                                                             "kind",
                                                                                              false,
                                                                                              null,
                                                                                              null)),
@@ -199,7 +199,7 @@ public class TraceService {
         TimeseriesQuery query = new TimeseriesQuery(schema,
                                                     Collections.singletonList("count"),
                                                     Arrays.asList(new DimensionCondition("appName", new EqualMatcher(application)),
-                                                                  new DimensionCondition("parentSpanId", new EqualMatcher(""))),
+                                                                  new DimensionCondition("kind", new EqualMatcher("SERVER"))),
                                                     interval,
                                                     Collections.emptyList());
 

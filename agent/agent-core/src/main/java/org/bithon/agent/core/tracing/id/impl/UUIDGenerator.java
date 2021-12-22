@@ -25,6 +25,9 @@ import java.util.UUID;
  * @date 2021/2/6 12:20 上午
  */
 public class UUIDGenerator implements ITraceIdGenerator {
+    /**
+     * generates an opentelemetry specification standard trace id
+     */
     @Override
     public String newTraceId() {
         return UUID.randomUUID().toString().replace("-", "");

@@ -18,6 +18,7 @@ package org.bithon.server.tracing.mapping;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.tracing.TraceConfig;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.springframework.context.ApplicationContext;
@@ -32,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -41,29 +43,40 @@ import java.util.function.Function;
 @Slf4j
 public class TraceMappingFactory {
 
+    /**
+     * create trace id mapping extractors from configuration
+     */
     public static Function<Collection<TraceSpan>, List<TraceMapping>> create(ApplicationContext context) {
-        TraceConfig config = context.getBean(TraceConfig.class);
-        if (CollectionUtils.isEmpty(config.getMapping())) {
-            return traceSpan -> Collections.emptyList();
-        }
-
         final List<ITraceMappingExtractor> extractorList = new ArrayList<>();
-        ObjectMapper mapper = context.getBean(ObjectMapper.class);
-        for (TraceMappingConfig mappingConfig : config.getMapping()) {
-            try {
-                Map<String, Object> map = new HashMap<>();
-                map.put("type", mappingConfig.getType());
-                map.putAll(mappingConfig.getArgs());
-                String json = mapper.writeValueAsString(map);
-                extractorList.add(mapper.readValue(json, ITraceMappingExtractor.class));
-            } catch (IOException e) {
-                log.error("Unable to create extractor for type " + mappingConfig.getType(), e);
+
+        // add default extractor
+        extractorList.add(CompatibilityMappingExtractor.INSTANCE);
+
+        //
+        // create extractors from configuration
+        //
+        TraceConfig config = context.getBean(TraceConfig.class);
+        if (!CollectionUtils.isEmpty(config.getMapping())) {
+            ObjectMapper mapper = context.getBean(ObjectMapper.class);
+            for (TraceMappingConfig mappingConfig : config.getMapping()) {
+                try {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("type", mappingConfig.getType());
+                    map.putAll(mappingConfig.getArgs());
+                    String json = mapper.writeValueAsString(map);
+                    extractorList.add(mapper.readValue(json, ITraceMappingExtractor.class));
+                } catch (IOException e) {
+                    log.error("Unable to create extractor for type " + mappingConfig.getType(), e);
+                }
             }
         }
 
         return create(extractorList);
     }
 
+    /**
+     * only for test cases
+     */
     static Function<Collection<TraceSpan>, List<TraceMapping>> create(ITraceMappingExtractor extractorList) {
         return create(Collections.singletonList(extractorList));
     }
@@ -72,13 +85,17 @@ public class TraceMappingFactory {
         return spanList -> {
             Set<String> duplication = new HashSet<>();
 
+            // remove duplicated mappings from returned values of extractors
             List<TraceMapping> mappings = new ArrayList<>();
-            for (ITraceMappingExtractor extractor : extractorList) {
-                for (TraceSpan span : spanList) {
-                    if (CollectionUtils.isEmpty(span.getTags())) {
-                        continue;
-                    }
 
+            for (TraceSpan span : spanList) {
+                // extractors extract mapping from tags,
+                // if there's no tags, it's no need to call extractors
+                if (CollectionUtils.isEmpty(span.getTags())) {
+                    continue;
+                }
+
+                for (ITraceMappingExtractor extractor : extractorList) {
                     extractor.extract(span,
                                       (thisSpan, uTxId) -> {
                                           if (duplication.add(uTxId)) {
@@ -93,5 +110,23 @@ public class TraceMappingFactory {
 
             return mappings;
         };
+    }
+
+    /**
+     * see: https://github.com/FrankChen021/bithon/issues/260
+     */
+    static class CompatibilityMappingExtractor implements ITraceMappingExtractor {
+        static final ITraceMappingExtractor INSTANCE = new CompatibilityMappingExtractor();
+
+        @Override
+        public void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback) {
+            if (!"SERVER".equals(span.getKind())) {
+                return;
+            }
+            String upstreamTraceId = span.getTags().get("upstreamTraceId");
+            if (StringUtils.hasText(upstreamTraceId)) {
+                callback.accept(span, upstreamTraceId);
+            }
+        }
     }
 }
