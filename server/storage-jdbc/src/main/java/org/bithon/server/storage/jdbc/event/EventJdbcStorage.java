@@ -23,7 +23,9 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.event.sink.EventMessage;
+import org.bithon.server.event.storage.Event;
 import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.event.storage.IEventReader;
 import org.bithon.server.event.storage.IEventStorage;
@@ -108,13 +110,13 @@ public class EventJdbcStorage implements IEventStorage {
                     args = "{}";
                 }
                 return dslContext.insertInto(Tables.BITHON_EVENT)
-                                     .set(Tables.BITHON_EVENT.APPNAME, message.getAppName())
-                                     .set(Tables.BITHON_EVENT.INSTANCENAME, message.getInstanceName())
-                                     .set(Tables.BITHON_EVENT.TYPE, message.getType())
-                                     .set(Tables.BITHON_EVENT.ARGUMENTS, args)
-                                     .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(message.getTimestamp()));
+                                 .set(Tables.BITHON_EVENT.APPNAME, message.getAppName())
+                                 .set(Tables.BITHON_EVENT.INSTANCENAME, message.getInstanceName())
+                                 .set(Tables.BITHON_EVENT.TYPE, message.getType())
+                                 .set(Tables.BITHON_EVENT.ARGUMENTS, args)
+                                 .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(message.getTimestamp()));
             }).collect(Collectors.toList());
-            dslContext.batch(queries);
+            dslContext.batch(queries).execute();
         }
     }
 
@@ -128,6 +130,24 @@ public class EventJdbcStorage implements IEventStorage {
         @Override
         public void close() {
             dslContext.close();
+        }
+
+        @Override
+        public List<Event> getEventList(String application, TimeSpan start, TimeSpan end) {
+            return dslContext.selectFrom(Tables.BITHON_EVENT)
+                             .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
+                             .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()))
+                             .and(Tables.BITHON_EVENT.APPNAME.eq(application))
+                             .orderBy(Tables.BITHON_EVENT.TIMESTAMP.desc())
+                             .fetch((r) -> {
+                                 Event e = new Event();
+                                 e.setApplication(r.getAppname());
+                                 e.setArgs(r.getArguments());
+                                 e.setInstance(r.getInstancename());
+                                 e.setType(r.getType());
+                                 e.setTimestamp(r.getTimestamp().getTime());
+                                 return e;
+                             });
         }
     }
 }

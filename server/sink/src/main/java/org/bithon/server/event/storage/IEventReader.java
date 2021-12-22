@@ -16,9 +16,14 @@
 
 package org.bithon.server.event.storage;
 
+import org.bithon.server.common.utils.datetime.TimeSpan;
+
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:18 下午
  */
 public interface IEventReader extends AutoCloseable {
+    List<Event> getEventList(String application, TimeSpan start, TimeSpan end);
 }
