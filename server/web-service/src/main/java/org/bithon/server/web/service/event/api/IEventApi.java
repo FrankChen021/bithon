@@ -14,16 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.storage;
+package org.bithon.server.web.service.event.api;
 
-import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.List;
+import javax.validation.Valid;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:18 下午
+ * @author Frank Chen
+ * @date 22/12/21 11:17 AM
  */
-public interface IEventReader extends AutoCloseable {
-    List<Event> getEventList(String application, TimeSpan start, TimeSpan end);
+
+public interface IEventApi {
+
+    @PostMapping("/api/event/getEventList")
+    GetEventListResponse getEventList(@Valid @RequestBody GetEventListRequest request);
 }

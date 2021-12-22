@@ -71,4 +71,11 @@ public class AppController {
         model.addAttribute("appName", appName);
         return "app/topo";
     }
+
+    @GetMapping("/web/app/event/{appName}")
+    public String eventHome(@PathVariable("appName") String appName, Model model) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
+        model.addAttribute("appName", appName);
+        return "app/event";
+    }
 }

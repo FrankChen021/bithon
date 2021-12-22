@@ -14,16 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.event.storage;
+package org.bithon.server.web.service.event.api;
 
-import org.bithon.server.common.utils.datetime.TimeSpan;
+import lombok.Data;
 
-import java.util.List;
+import javax.validation.constraints.NotBlank;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:18 下午
+ * @author Frank Chen
+ * @date 22/12/21 11:19 AM
  */
-public interface IEventReader extends AutoCloseable {
-    List<Event> getEventList(String application, TimeSpan start, TimeSpan end);
+@Data
+public class GetEventListRequest {
+
+    @NotBlank
+    private String application;
+
+    @NotBlank
+    private String startTimeISO8601;
+
+    @NotBlank
+    private String endTimeISO8601;
 }
