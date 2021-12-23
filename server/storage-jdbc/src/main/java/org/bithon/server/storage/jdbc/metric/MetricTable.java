@@ -48,9 +48,12 @@ public class MetricTable extends TableImpl {
     private final List<Field> dimensions = new ArrayList<>();
     @Getter
     private final List<Field> metrics = new ArrayList<>();
-    Field<Timestamp> timestampField;
-
     private final List<Index> indexes;
+    private final Field<Timestamp> timestampField;
+
+    public Field<Timestamp> getTimestampField() {
+        return timestampField;
+    }
 
     public MetricTable(DataSourceSchema schema) {
         super(DSL.name("bithon_" + schema.getName().replace('-', '_')));
@@ -58,8 +61,16 @@ public class MetricTable extends TableImpl {
         //noinspection unchecked
         timestampField = this.createField(DSL.name("timestamp"), SQLDataType.TIMESTAMP);
 
+        List<Field> indexesFields = new ArrayList<>();
+        indexesFields.add(timestampField);
+
         for (IDimensionSpec dimension : schema.getDimensionsSpec()) {
-            dimensions.add(createField(dimension.getName(), dimension.getValueType(), dimension.getLength()));
+            Field dimensionField = createField(dimension.getName(), dimension.getValueType(), dimension.getLength());
+            dimensions.add(dimensionField);
+
+            if (dimension.isVisible()) {
+                indexesFields.add(dimensionField);
+            }
         }
 
         for (IMetricSpec metric : schema.getMetricsSpec()) {
@@ -69,9 +80,6 @@ public class MetricTable extends TableImpl {
             metrics.add(createField(metric.getName(), metric.getValueType(), null));
         }
 
-        List<Field> indexesFields = new ArrayList<>();
-        indexesFields.add(timestampField);
-        indexesFields.addAll(dimensions);
         Index index = Internal.createIndex("idx_" + this.getName() + "_dimensions",
                                            this,
                                            indexesFields.toArray(new Field[0]),

@@ -71,13 +71,14 @@ class MetricJdbcWriter implements IMetricWriter {
     @SuppressWarnings("unchecked")
     private InsertSetMoreStep<?> toInsertSql(InputRow inputRow) {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
-                                       .set(table.timestampField, new Timestamp(inputRow.getColAsLong("timestamp")));
+                                       .set(table.getTimestampField(), new Timestamp(inputRow.getColAsLong("timestamp")));
 
         //noinspection rawtypes
         for (Field dimension : table.getDimensions()) {
             Object value = inputRow.getCol(dimension.getName(), "");
             step.set(dimension, getOrTruncateDimension(dimension, value));
         }
+
         //noinspection rawtypes
         for (Field metric : table.getMetrics()) {
             Object value = inputRow.getCol(metric.getName(), 0);
@@ -90,14 +91,14 @@ class MetricJdbcWriter implements IMetricWriter {
     @SuppressWarnings("unchecked")
     private InsertSetMoreStep<?> toInsertSql(Measurement measurement) {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
-                                       .set(table.timestampField,
-                                            new Timestamp(measurement.getTimestamp()));
+                                       .set(table.getTimestampField(), new Timestamp(measurement.getTimestamp()));
 
         //noinspection rawtypes
         for (Field dimension : table.getDimensions()) {
             Object value = measurement.getDimension(dimension.getName(), "");
             step.set(dimension, getOrTruncateDimension(dimension, value));
         }
+
         //noinspection rawtypes
         for (Field metric : table.getMetrics()) {
             Object value = measurement.getMetric(metric.getName(), 0);
