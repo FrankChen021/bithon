@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.logback.interceptor;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
+import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
@@ -53,10 +54,16 @@ public class LoggerCallAppenders extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         IThrowableProxy exception = aopContext.castUserContextAs();
 
+        StringBuilder stackElements = new StringBuilder();
+        for (StackTraceElementProxy p : exception.getStackTraceElementProxyArray()) {
+            stackElements.append(p.getSTEAsString());
+            stackElements.append("\n");
+        }
+
         Map<String, Object> exceptionArgs = new HashMap<>();
         exceptionArgs.put("exceptionClass", exception.getClassName());
         exceptionArgs.put("message", exception.getMessage() == null ? "" : exception.getMessage());
-        exceptionArgs.put("stack", exception.toString());
+        exceptionArgs.put("stack", stackElements.toString());
         EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
         Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
         dispatcher.sendMessage(dispatcher.getMessageConverter().from(exceptionEvent));
