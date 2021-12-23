@@ -18,6 +18,7 @@ package org.bithon.server.event.sink;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
@@ -58,31 +59,42 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Itera
         this.exceptionMetricWriter = applicationContext.getBean(IMetricStorage.class).createMetricWriter(schema);
     }
 
+    @Data
+    static class ExceptionEventArgs {
+        private String exceptionClass;
+        private String message;
+        private String stack;
+    }
+
     @Override
     protected void onMessage(IteratorableCollection<EventMessage> iterator) throws IOException {
-        List<InputRow> metrics = new ArrayList<>();
+        List<InputRow> exceptionEvents = new ArrayList<>();
+
+        List<EventMessage> genericEvents = new ArrayList<>();
         while (iterator.hasNext()) {
             EventMessage message = iterator.next();
             if ("exception".equals(message.getType())) {
-                // generate a metric
                 InputRow row = new InputRow(new HashMap<>());
 
-                JsonNode jsonArgs = objectMapper.readTree(message.getJsonArgs());
-                for (Iterator<String> i = jsonArgs.fieldNames(); i.hasNext(); ) {
-                    String field = i.next();
-                    row.updateColumn(field, jsonArgs.get(field));
-                }
+                ExceptionEventArgs args = objectMapper.readValue(message.getJsonArgs(), ExceptionEventArgs.class);
                 row.updateColumn("appName", message.getAppName());
                 row.updateColumn("instanceName", message.getInstanceName());
                 row.updateColumn("timestamp", message.getTimestamp());
+                row.updateColumn("exceptionClass", args.getExceptionClass());
+                row.updateColumn("message", args.getMessage());
+                row.updateColumn("stack", args.getStack());
                 row.updateColumn("exceptionCount", 1);
-                metrics.add(row);
+                exceptionEvents.add(row);
+            } else {
+                genericEvents.add(message);
             }
         }
-        if (!metrics.isEmpty()) {
-            exceptionMetricWriter.write(metrics);
+        if (!exceptionEvents.isEmpty()) {
+            exceptionMetricWriter.write(exceptionEvents);
         }
-        eventWriter.write(iterator.toCollection());
+        if (!genericEvents.isEmpty()) {
+            eventWriter.write(genericEvents);
+        }
     }
 
     @Override
