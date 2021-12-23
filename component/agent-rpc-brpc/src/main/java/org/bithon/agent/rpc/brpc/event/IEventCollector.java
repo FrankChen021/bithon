@@ -27,6 +27,8 @@ import org.bithon.component.brpc.ServiceConfig;
 public interface IEventCollector {
 
     @ServiceConfig(isOneway = true)
-    void sendEvent(BrpcMessageHeader header, BrpcEventMessage body);
+    void sendEvent(BrpcMessageHeader header, BrpcEventMessage message);
 
+    @ServiceConfig(isOneway = true)
+    void sendEvent2(BrpcMessageHeader header, BrpcEventMessage2 message);
 }

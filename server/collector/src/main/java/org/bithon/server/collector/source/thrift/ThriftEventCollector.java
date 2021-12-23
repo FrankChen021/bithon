@@ -46,7 +46,7 @@ public class ThriftEventCollector implements IEventCollector.Iface {
                                                 .instanceName(header.getInstanceName())
                                                 .timestamp(message.getTimestamp())
                                                 .type(message.getEventType())
-                                                .args(message.getArguments())
+                                                //.args(message.getArguments())
                                                 .build();
         Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
         eventSink.process("event", IteratorableCollection.of(delegate));

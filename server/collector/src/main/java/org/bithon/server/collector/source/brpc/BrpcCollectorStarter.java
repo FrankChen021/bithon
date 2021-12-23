@@ -16,6 +16,7 @@
 
 package org.bithon.server.collector.source.brpc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -80,7 +81,8 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
 
                 case "event":
                     clazz = IEventCollector.class;
-                    serviceProvider = new BrpcEventCollector(applicationContext.getBean(IEventMessageSink.class));
+                    serviceProvider = new BrpcEventCollector(applicationContext.getBean(IEventMessageSink.class),
+                                                             applicationContext.getBean(ObjectMapper.class));
                     break;
 
                 case "tracing":

@@ -30,10 +30,8 @@ import org.bithon.agent.core.utils.time.DateTime;
 import org.bithon.agent.plugin.jvm.gc.GcMetricCollector;
 import org.bithon.agent.plugin.jvm.mem.ClassMetricCollector;
 import org.bithon.agent.plugin.jvm.mem.MemoryMetricCollector;
-import shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -136,32 +134,27 @@ public class JvmMetricCollector {
     }
 
     private EventMessage buildJvmStartedEventMessage() {
-        Map<String, String> args = new TreeMap<>();
+        Map<String, Object> args = new TreeMap<>();
 
         args.put("os.arch", JmxBeans.OS_BEAN.getArch());
         args.put("os.version", JmxBeans.OS_BEAN.getVersion());
         args.put("os.name", JmxBeans.OS_BEAN.getName());
-        args.put("os.committedVirtualMemorySize", String.valueOf(JmxBeans.OS_BEAN.getCommittedVirtualMemorySize()));
-        args.put("os.totalPhysicalMemorySize", String.valueOf(JmxBeans.OS_BEAN.getTotalPhysicalMemorySize()));
-        args.put("os.totalSwapSpaceSize", String.valueOf(JmxBeans.OS_BEAN.getTotalSwapSpaceSize()));
+        args.put("os.committedVirtualMemorySize", JmxBeans.OS_BEAN.getCommittedVirtualMemorySize());
+        args.put("os.totalPhysicalMemorySize", JmxBeans.OS_BEAN.getTotalPhysicalMemorySize());
+        args.put("os.totalSwapSpaceSize", JmxBeans.OS_BEAN.getTotalSwapSpaceSize());
         if (JmxBeans.OS_BEAN instanceof UnixOperatingSystemMXBean) {
             UnixOperatingSystemMXBean unixOperatingSystemMXBean = (UnixOperatingSystemMXBean) JmxBeans.OS_BEAN;
-            args.put("os.maxFileDescriptorCount",
-                     String.valueOf(unixOperatingSystemMXBean.getMaxFileDescriptorCount()));
+            args.put("os.maxFileDescriptorCount", unixOperatingSystemMXBean.getMaxFileDescriptorCount());
         }
 
-        ObjectMapper om = new ObjectMapper();
-        try {
-            if (JmxBeans.RUNTIME_BEAN.isBootClassPathSupported()) {
-                args.put("runtime.bootClassPath",
-                         om.writeValueAsString(JmxBeans.RUNTIME_BEAN.getBootClassPath().split(File.pathSeparator)));
-            }
-            args.put("runtime.classPath", om.writeValueAsString(JmxBeans.RUNTIME_BEAN.getClassPath().split(File.pathSeparator)));
-            args.put("runtime.arguments", om.writeValueAsString(JmxBeans.RUNTIME_BEAN.getInputArguments()));
-            args.put("runtime.libraryPath", om.writeValueAsString(JmxBeans.RUNTIME_BEAN.getLibraryPath().split(File.pathSeparator)));
-            args.put("runtime.systemProperties", om.writeValueAsString(JmxBeans.RUNTIME_BEAN.getSystemProperties()));
-        } catch (IOException ignored) {
+        if (JmxBeans.RUNTIME_BEAN.isBootClassPathSupported()) {
+            args.put("runtime.bootClassPath", JmxBeans.RUNTIME_BEAN.getBootClassPath().split(File.pathSeparator));
         }
+        args.put("runtime.classPath", JmxBeans.RUNTIME_BEAN.getClassPath().split(File.pathSeparator));
+        args.put("runtime.arguments", JmxBeans.RUNTIME_BEAN.getInputArguments());
+        args.put("runtime.libraryPath", JmxBeans.RUNTIME_BEAN.getLibraryPath().split(File.pathSeparator));
+        args.put("runtime.systemProperties", JmxBeans.RUNTIME_BEAN.getSystemProperties());
+
         args.put("runtime.managementSpecVersion", JmxBeans.RUNTIME_BEAN.getManagementSpecVersion());
         args.put("runtime.name", JmxBeans.RUNTIME_BEAN.getName());
         args.put("runtime.java.name", JmxBeans.RUNTIME_BEAN.getSpecName());
@@ -172,8 +165,8 @@ public class JvmMetricCollector {
         args.put("runtime.java.vm.version", JmxBeans.RUNTIME_BEAN.getVmVersion());
         args.put("runtime.startTime", DateTime.toISO8601(JmxBeans.RUNTIME_BEAN.getStartTime()));
 
-        args.put("mem.heap.initial", String.valueOf(JmxBeans.MEM_BEAN.getHeapMemoryUsage().getInit()));
-        args.put("mem.heap.max", String.valueOf(JmxBeans.MEM_BEAN.getHeapMemoryUsage().getMax()));
+        args.put("mem.heap.initial", JmxBeans.MEM_BEAN.getHeapMemoryUsage().getInit());
+        args.put("mem.heap.max", JmxBeans.MEM_BEAN.getHeapMemoryUsage().getMax());
 
         args.put("agent.version", AgentBuildVersion.VERSION);
         args.put("agent.build", AgentBuildVersion.SCM_REVISION);

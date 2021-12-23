@@ -53,7 +53,7 @@ public class LoggerCallAppenders extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         IThrowableProxy exception = aopContext.castUserContextAs();
 
-        Map<String, String> exceptionArgs = new HashMap<>();
+        Map<String, Object> exceptionArgs = new HashMap<>();
         exceptionArgs.put("exceptionClass", exception.getClassName());
         exceptionArgs.put("message", exception.getMessage() == null ? "" : exception.getMessage());
         exceptionArgs.put("stack", exception.toString());

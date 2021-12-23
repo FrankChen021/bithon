@@ -16,6 +16,8 @@
 
 package org.bithon.server.event.sink;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
@@ -32,6 +34,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -43,10 +46,12 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Itera
 
     final IEventWriter eventWriter;
     final IMetricWriter exceptionMetricWriter;
+    final ObjectMapper objectMapper;
 
     public EventsMessageHandler(ApplicationContext applicationContext) throws IOException {
         super("event", 1, 5, Duration.ofMinutes(3), 1024);
         this.eventWriter = applicationContext.getBean(IEventStorage.class).createWriter();
+        this.objectMapper = applicationContext.getBean(ObjectMapper.class);
 
         DataSourceSchema schema = applicationContext.getBean(DataSourceSchemaManager.class).getDataSourceSchema("exception-metrics");
         schema.setEnforceDuplicationCheck(false);
@@ -60,7 +65,13 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Itera
             EventMessage message = iterator.next();
             if ("exception".equals(message.getType())) {
                 // generate a metric
-                InputRow row = new InputRow(new HashMap<>(message.getArgs()));
+                InputRow row = new InputRow(new HashMap<>());
+
+                JsonNode jsonArgs = objectMapper.readTree(message.getJsonArgs());
+                for (Iterator<String> i = jsonArgs.fieldNames(); i.hasNext(); ) {
+                    String field = i.next();
+                    row.updateColumn(field, jsonArgs.get(field));
+                }
                 row.updateColumn("appName", message.getAppName());
                 row.updateColumn("instanceName", message.getInstanceName());
                 row.updateColumn("timestamp", message.getTimestamp());

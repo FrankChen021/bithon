@@ -24,9 +24,9 @@ import java.util.Map;
  */
 public class EventMessage {
     private final String messageType;
-    private final Map<String, String> args;
+    private final Map<String, Object> args;
 
-    public EventMessage(String messageType, Map<String, String> args) {
+    public EventMessage(String messageType, Map<String, Object> args) {
         this.messageType = messageType;
         this.args = args;
     }
@@ -35,7 +35,7 @@ public class EventMessage {
         return messageType;
     }
 
-    public Map<String, String> getArgs() {
+    public Map<String, Object> getArgs() {
         return args;
     }
 }

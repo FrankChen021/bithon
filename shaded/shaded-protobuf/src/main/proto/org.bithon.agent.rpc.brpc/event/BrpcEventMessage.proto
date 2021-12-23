@@ -9,3 +9,9 @@ message BrpcEventMessage {
     string eventType = 2;
     map<string,string> arguments = 3;
 }
+
+message BrpcEventMessage2 {
+    int64 timestamp = 1;
+    string eventType = 2;
+    string jsonArguments = 3;
+}

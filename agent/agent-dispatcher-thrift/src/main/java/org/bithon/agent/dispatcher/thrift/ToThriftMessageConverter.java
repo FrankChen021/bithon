@@ -244,7 +244,6 @@ public class ToThriftMessageConverter implements IMessageConverter {
         ThriftEventMessage message = new ThriftEventMessage();
         message.setTimestamp(System.currentTimeMillis());
         message.setEventType(event.getMessageType());
-        message.setArguments(event.getArgs());
         return message;
     }
 

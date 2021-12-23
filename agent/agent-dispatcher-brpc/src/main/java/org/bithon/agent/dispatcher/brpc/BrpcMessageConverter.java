@@ -32,7 +32,7 @@ import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
+import org.bithon.agent.rpc.brpc.event.BrpcEventMessage2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericDimensionSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurement;
@@ -48,9 +48,11 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
+import shaded.com.fasterxml.jackson.core.JsonProcessingException;
+import shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import shaded.com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +61,13 @@ import java.util.Map;
  * @date 2021/6/27 20:13
  */
 public class BrpcMessageConverter implements IMessageConverter {
+
+    private final ObjectMapper objectMapper;
+
+    public BrpcMessageConverter() {
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+    }
 
     @Override
     public Object from(long timestamp, int interval, JdbcPoolMetrics metrics) {
@@ -229,11 +238,17 @@ public class BrpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(EventMessage event) {
-        return BrpcEventMessage.newBuilder()
-                               .setTimestamp(System.currentTimeMillis())
-                               .setEventType(event.getMessageType())
-                               .putAllArguments(event.getArgs() == null ? Collections.emptyMap() : event.getArgs())
-                               .build();
+        String jsonArgs;
+        try {
+            jsonArgs = objectMapper.writeValueAsString(event.getArgs());
+        } catch (JsonProcessingException ignored) {
+            jsonArgs = "{}";
+        }
+        return BrpcEventMessage2.newBuilder()
+                                .setTimestamp(System.currentTimeMillis())
+                                .setEventType(event.getMessageType())
+                                .setJsonArguments(jsonArgs)
+                                .build();
     }
 
     @Override

@@ -16,9 +16,12 @@
 
 package org.bithon.server.collector.source.brpc;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
+import org.bithon.agent.rpc.brpc.event.BrpcEventMessage2;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.event.sink.EventMessage;
@@ -35,19 +38,40 @@ import java.util.Iterator;
 public class BrpcEventCollector implements IEventCollector, AutoCloseable {
 
     private final IEventMessageSink eventSink;
+    private final ObjectMapper objectMapper;
 
-    public BrpcEventCollector(IEventMessageSink eventSink) {
+    public BrpcEventCollector(IEventMessageSink eventSink, ObjectMapper objectMapper) {
         this.eventSink = eventSink;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public void sendEvent(BrpcMessageHeader header, BrpcEventMessage message) {
+        String jsonArgs;
+        try {
+            jsonArgs = objectMapper.writeValueAsString(message.getArgumentsMap());
+        } catch (JsonProcessingException e) {
+            jsonArgs = "{}";
+        }
         EventMessage eventMessage = EventMessage.builder()
                                                 .appName(header.getAppName())
                                                 .instanceName(header.getInstanceName())
                                                 .timestamp(message.getTimestamp())
                                                 .type(message.getEventType())
-                                                .args(message.getArgumentsMap())
+                                                .jsonArgs(jsonArgs)
+                                                .build();
+        Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
+        eventSink.process("event", IteratorableCollection.of(delegate));
+    }
+
+    @Override
+    public void sendEvent2(BrpcMessageHeader header, BrpcEventMessage2 message) {
+        EventMessage eventMessage = EventMessage.builder()
+                                                .appName(header.getAppName())
+                                                .instanceName(header.getInstanceName())
+                                                .timestamp(message.getTimestamp())
+                                                .type(message.getEventType())
+                                                .jsonArgs(message.getJsonArguments())
                                                 .build();
         Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
         eventSink.process("event", IteratorableCollection.of(delegate));
