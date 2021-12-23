@@ -41,6 +41,11 @@ public class LongDimensionSpec extends AbstractDimensionSpec {
     }
 
     @Override
+    public int getLength() {
+        return 8;
+    }
+
+    @Override
     public IValueType getValueType() {
         return LongValueType.INSTANCE;
     }
