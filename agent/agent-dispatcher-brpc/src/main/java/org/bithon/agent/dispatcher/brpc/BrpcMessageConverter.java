@@ -32,7 +32,7 @@ import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.rpc.brpc.event.BrpcEventMessage2;
+import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericDimensionSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurement;
@@ -244,11 +244,11 @@ public class BrpcMessageConverter implements IMessageConverter {
         } catch (JsonProcessingException ignored) {
             jsonArgs = "{}";
         }
-        return BrpcEventMessage2.newBuilder()
-                                .setTimestamp(System.currentTimeMillis())
-                                .setEventType(event.getMessageType())
-                                .setJsonArguments(jsonArgs)
-                                .build();
+        return BrpcEventMessage.newBuilder()
+                               .setTimestamp(System.currentTimeMillis())
+                               .setEventType(event.getMessageType())
+                               .setJsonArguments(jsonArgs)
+                               .build();
     }
 
     @Override

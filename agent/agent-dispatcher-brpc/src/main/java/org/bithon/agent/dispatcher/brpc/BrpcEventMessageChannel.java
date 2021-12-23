@@ -23,7 +23,6 @@ import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
 import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
-import org.bithon.agent.rpc.brpc.event.BrpcEventMessage2;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
 import org.bithon.component.brpc.channel.ClientChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
@@ -80,7 +79,7 @@ public class BrpcEventMessageChannel implements IMessageChannel {
 
     @Override
     public void sendMessage(Object message) {
-        if (!(message instanceof BrpcEventMessage2)) {
+        if (!(message instanceof BrpcEventMessage)) {
             return;
         }
 
@@ -91,7 +90,7 @@ public class BrpcEventMessageChannel implements IMessageChannel {
         }
 
         try {
-            eventCollector.sendEvent2(header, (BrpcEventMessage2) message);
+            eventCollector.sendEvent(header, (BrpcEventMessage) message);
         } catch (CallerSideException e) {
             //suppress client exception
             log.error("Failed to send event: {}", e.getMessage());
