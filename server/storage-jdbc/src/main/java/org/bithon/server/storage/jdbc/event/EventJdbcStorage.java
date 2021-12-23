@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.event.sink.EventMessage;
@@ -102,20 +101,14 @@ public class EventJdbcStorage implements IEventStorage {
 
         @Override
         public void write(Collection<EventMessage> eventMessage) {
-            List<Query> queries = eventMessage.stream().map(message -> {
-                String args;
-                try {
-                    args = om.writeValueAsString(message.getArgs());
-                } catch (JsonProcessingException e) {
-                    args = "{}";
-                }
-                return dslContext.insertInto(Tables.BITHON_EVENT)
-                                 .set(Tables.BITHON_EVENT.APPNAME, message.getAppName())
-                                 .set(Tables.BITHON_EVENT.INSTANCENAME, message.getInstanceName())
-                                 .set(Tables.BITHON_EVENT.TYPE, message.getType())
-                                 .set(Tables.BITHON_EVENT.ARGUMENTS, args)
-                                 .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(message.getTimestamp()));
-            }).collect(Collectors.toList());
+            List<Query> queries = eventMessage.stream()
+                                              .map(message -> dslContext.insertInto(Tables.BITHON_EVENT)
+                                                                        .set(Tables.BITHON_EVENT.APPNAME, message.getAppName())
+                                                                        .set(Tables.BITHON_EVENT.INSTANCENAME, message.getInstanceName())
+                                                                        .set(Tables.BITHON_EVENT.TYPE, message.getType())
+                                                                        .set(Tables.BITHON_EVENT.ARGUMENTS, message.getJsonArgs())
+                                                                        .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(message.getTimestamp())))
+                                              .collect(Collectors.toList());
             dslContext.batch(queries).execute();
         }
     }

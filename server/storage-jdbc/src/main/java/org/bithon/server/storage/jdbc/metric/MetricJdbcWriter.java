@@ -76,7 +76,7 @@ class MetricJdbcWriter implements IMetricWriter {
         //noinspection rawtypes
         for (Field dimension : table.getDimensions()) {
             Object value = inputRow.getCol(dimension.getName(), "");
-            step.set(dimension, value);
+            step.set(dimension, getOrTruncateDimension(dimension, value));
         }
         //noinspection rawtypes
         for (Field metric : table.getMetrics()) {
@@ -96,7 +96,7 @@ class MetricJdbcWriter implements IMetricWriter {
         //noinspection rawtypes
         for (Field dimension : table.getDimensions()) {
             Object value = measurement.getDimension(dimension.getName(), "");
-            step.set(dimension, value);
+            step.set(dimension, getOrTruncateDimension(dimension, value));
         }
         //noinspection rawtypes
         for (Field metric : table.getMetrics()) {
@@ -109,5 +109,17 @@ class MetricJdbcWriter implements IMetricWriter {
 
     @Override
     public void close() {
+    }
+
+    private String getOrTruncateDimension(Field<?> dimensionField, Object value) {
+        if (dimensionField.getDataType().hasLength()) {
+            int len = dimensionField.getDataType().length();
+
+            String v = value.toString();
+            if (v.length() > len) {
+                return v.substring(0, len - 3) + "...";
+            }
+        }
+        return value.toString();
     }
 }

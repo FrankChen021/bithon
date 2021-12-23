@@ -47,7 +47,7 @@ public class BrpcEventCollector implements IEventCollector, AutoCloseable {
                                                 .instanceName(header.getInstanceName())
                                                 .timestamp(message.getTimestamp())
                                                 .type(message.getEventType())
-                                                .args(message.getArgumentsMap())
+                                                .jsonArgs(message.getJsonArguments())
                                                 .build();
         Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
         eventSink.process("event", IteratorableCollection.of(delegate));

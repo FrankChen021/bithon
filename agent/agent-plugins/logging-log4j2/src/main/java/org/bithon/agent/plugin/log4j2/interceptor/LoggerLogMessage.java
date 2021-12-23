@@ -45,7 +45,7 @@ public class LoggerLogMessage extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         Throwable exception = (Throwable) aopContext.getArgs()[4];
 
-        Map<String, String> exceptionArgs = new HashMap<>();
+        Map<String, Object> exceptionArgs = new HashMap<>();
         exceptionArgs.put("exceptionClass", exception.getClass().getName());
         exceptionArgs.put("message", exception.getMessage() == null ? "" : exception.getMessage());
         exceptionArgs.put("stack", exception.toString());

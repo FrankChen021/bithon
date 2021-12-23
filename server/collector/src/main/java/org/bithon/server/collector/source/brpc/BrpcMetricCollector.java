@@ -183,6 +183,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                                                                       dimSpec.getName(),
                                                                                                       true,
                                                                                                       true,
+                                                                                                      null,
                                                                                                       null))
                                                               .collect(Collectors.toList()),
                                                        message.getSchema().getMetricsSpecList()

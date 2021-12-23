@@ -31,13 +31,22 @@ import javax.validation.constraints.NotNull;
  */
 public class StringDimensionSpec extends AbstractDimensionSpec {
 
+    private final int length;
+
     @JsonCreator
     public StringDimensionSpec(@JsonProperty("name") @NotNull String name,
                                @JsonProperty("displayText") @NotNull String displayText,
                                @JsonProperty("isRequired") Boolean isRequired,
                                @JsonProperty("visible") Boolean visible,
+                               @JsonProperty("length") @Nullable Integer length,
                                @JsonProperty("transformer") @Nullable IDimensionTransformer transformer) {
         super(name, displayText, isRequired, visible, transformer);
+        this.length = length == null ? 128 : length;
+    }
+
+    @Override
+    public int getLength() {
+        return length;
     }
 
     @Override

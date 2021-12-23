@@ -38,6 +38,8 @@ public interface IDimensionSpec {
 
     boolean isRequired();
 
+    int getLength();
+
     /**
      * 对用户是否可见
      */
