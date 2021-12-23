@@ -177,9 +177,11 @@ public class JvmMetricCollector {
         args.put("mem.heap.initial", JmxBeans.MEM_BEAN.getHeapMemoryUsage().getInit());
         args.put("mem.heap.max", JmxBeans.MEM_BEAN.getHeapMemoryUsage().getMax());
 
-        args.put("agent.version", AgentBuildVersion.VERSION);
-        args.put("agent.build", AgentBuildVersion.SCM_REVISION);
-        args.put("agent.timestamp", AgentBuildVersion.TIMESTAMP);
+        Map<String, String> bithonProps = new TreeMap<>();
+        bithonProps.put("version", AgentBuildVersion.VERSION);
+        bithonProps.put("build", AgentBuildVersion.SCM_REVISION);
+        bithonProps.put("timestamp", AgentBuildVersion.TIMESTAMP);
+        args.put("bithon", bithonProps);
 
         return new EventMessage("jvm.started", args);
     }
