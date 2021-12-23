@@ -33,6 +33,7 @@ import org.bithon.agent.plugin.jvm.mem.MemoryMetricCollector;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -150,10 +151,18 @@ public class JvmMetricCollector {
         if (JmxBeans.RUNTIME_BEAN.isBootClassPathSupported()) {
             args.put("runtime.bootClassPath", JmxBeans.RUNTIME_BEAN.getBootClassPath().split(File.pathSeparator));
         }
-        args.put("runtime.classPath", JmxBeans.RUNTIME_BEAN.getClassPath().split(File.pathSeparator));
-        args.put("runtime.arguments", JmxBeans.RUNTIME_BEAN.getInputArguments());
-        args.put("runtime.libraryPath", JmxBeans.RUNTIME_BEAN.getLibraryPath().split(File.pathSeparator));
-        args.put("runtime.systemProperties", JmxBeans.RUNTIME_BEAN.getSystemProperties());
+        args.put("runtime.classPath", sort(Arrays.asList(JmxBeans.RUNTIME_BEAN.getClassPath().split(File.pathSeparator))));
+        args.put("runtime.libraryPath", sort(Arrays.asList(JmxBeans.RUNTIME_BEAN.getLibraryPath().split(File.pathSeparator))));
+        args.put("runtime.arguments", sort(new ArrayList<>(JmxBeans.RUNTIME_BEAN.getInputArguments())));
+
+        Map<String, String> systemProperties = new TreeMap<>(JmxBeans.RUNTIME_BEAN.getSystemProperties());
+        systemProperties.remove("java.class.path");
+        systemProperties.remove("java.library.path");
+        String bootClassPath = systemProperties.remove("sun.boot.class.path");
+        if (bootClassPath != null && !args.containsKey("runtime.bootClassPath")) {
+            args.put("runtime.bootClassPath", sort(Arrays.asList(bootClassPath.split(":"))));
+        }
+        args.put("runtime.systemProperties", systemProperties);
 
         args.put("runtime.managementSpecVersion", JmxBeans.RUNTIME_BEAN.getManagementSpecVersion());
         args.put("runtime.name", JmxBeans.RUNTIME_BEAN.getName());
@@ -173,5 +182,10 @@ public class JvmMetricCollector {
         args.put("agent.timestamp", AgentBuildVersion.TIMESTAMP);
 
         return new EventMessage("jvm.started", args);
+    }
+
+    private <T extends Comparable<? super T>> List<T> sort(List<T> list) {
+        Collections.sort(list);
+        return list;
     }
 }
