@@ -96,7 +96,10 @@ class EventPage {
 
             detailView: true,
             detailFormatter: (index, row) => {
-                return "<pre>" + JSON.stringify(JSON.parse(row.args), null, 2) + "</pre>";
+                if (row.formattedArgs === undefined) {
+                    row.formattedArgs = "<pre>" + JSON.stringify(JSON.parse(row.args), null, 2) + "</pre>";
+                }
+                return row.formattedArgs;
             }
         });
     }
