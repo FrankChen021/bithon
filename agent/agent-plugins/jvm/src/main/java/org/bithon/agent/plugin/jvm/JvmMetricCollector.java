@@ -162,6 +162,10 @@ public class JvmMetricCollector {
         if (bootClassPath != null && !args.containsKey("runtime.bootClassPath")) {
             args.put("runtime.bootClassPath", sort(Arrays.asList(bootClassPath.split(":"))));
         }
+        String seperator = systemProperties.remove("line.separator");
+        if (seperator != null) {
+            systemProperties.put("line.separator", seperator.replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r"));
+        }
         args.put("runtime.systemProperties", systemProperties);
 
         args.put("runtime.managementSpecVersion", JmxBeans.RUNTIME_BEAN.getManagementSpecVersion());

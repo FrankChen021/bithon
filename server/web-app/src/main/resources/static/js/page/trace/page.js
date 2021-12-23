@@ -24,6 +24,7 @@ class TracePage {
         // View - Refresh Button
         parent.append('<button class="btn btn-outline-secondary" style="border-radius:0px;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
             .find("button").click(() => {
+            this.mInterval = this.vIntervalSelector.getInterval();
             this.#refreshPage();
         });
 

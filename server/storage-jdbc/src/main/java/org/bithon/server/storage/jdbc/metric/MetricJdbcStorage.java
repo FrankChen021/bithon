@@ -62,7 +62,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     public IMetricCleaner createMetricCleaner(DataSourceSchema schema) {
         return timestamp -> {
             final MetricTable table = new MetricTable(schema);
-            dslContext.deleteFrom(table).where(table.timestampField.lt(new Timestamp(timestamp))).execute();
+            dslContext.deleteFrom(table).where(table.getTimestampField().lt(new Timestamp(timestamp))).execute();
         };
     }
 
