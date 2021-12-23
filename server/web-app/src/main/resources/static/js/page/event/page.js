@@ -84,7 +84,7 @@ class EventPage {
                 width: 200
             }, {
                 field: 'type',
-                title: 'Type',
+                title: 'Event',
                 width: 100
             }, {
                 field: 'args',
