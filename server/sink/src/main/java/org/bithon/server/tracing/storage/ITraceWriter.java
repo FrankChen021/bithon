@@ -16,7 +16,7 @@
 
 package org.bithon.server.tracing.storage;
 
-import org.bithon.server.tracing.mapping.TraceMapping;
+import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.sink.TraceSpan;
 
 import java.io.IOException;
@@ -33,5 +33,5 @@ public interface ITraceWriter extends AutoCloseable {
     }
 
     void writeSpans(Collection<TraceSpan> traceSpans) throws IOException;
-    void writeMappings(Collection<TraceMapping> mappings) throws IOException;
+    void writeMappings(Collection<TraceIdMapping> mappings) throws IOException;
 }

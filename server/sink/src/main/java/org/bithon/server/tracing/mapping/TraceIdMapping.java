@@ -16,21 +16,19 @@
 
 package org.bithon.server.tracing.mapping;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.Map;
+import lombok.NoArgsConstructor;
 
 /**
- * Extract a user-defined transaction id on a given parameter to trace id
- *
- * - type: xxx
- * - params:
- *
  * @author Frank Chen
- * @date 10/12/21 3:08 PM
+ * @date 10/12/21 3:27 PM
  */
 @Data
-public class TraceMappingConfig {
-    private String type;
-    private Map<String, Object> args;
+@NoArgsConstructor
+@AllArgsConstructor
+public class TraceIdMapping {
+    private long timestamp;
+    private String userId;
+    private String traceId;
 }

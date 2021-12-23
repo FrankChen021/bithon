@@ -32,11 +32,13 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
+ * Extract a corresponding id from a value in tags which is formatted as URI
+ *
  * @author Frank Chen
  * @date 10/12/21 3:13 PM
  */
 @Slf4j
-public class URIParameterExtractor implements ITraceMappingExtractor {
+public class URIParameterExtractor implements ITraceIdMappingExtractor {
 
     private final Collection<String> parameters;
 
@@ -45,7 +47,7 @@ public class URIParameterExtractor implements ITraceMappingExtractor {
     }
 
     /**
-     * yaml deserialize the value of args parameter on {@link TraceMappingConfig} into a Map instead of an expected array
+     * yaml deserialize the value of args parameter on {@link TraceIdMappingConfig} into a Map instead of an expected array
      */
     @JsonCreator
     public URIParameterExtractor(@JsonProperty("parameters") Map<String, String> parameters) {

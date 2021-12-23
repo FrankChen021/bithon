@@ -20,37 +20,60 @@ import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 
+import java.util.regex.Pattern;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/8/5 18:04
  */
 public class TraceContextFactory {
-    public static ITraceContext create(TraceMode traceMode, String traceId, String parentSpanId) {
-        ITraceContext ctx = createTraceContext(traceMode, traceId);
-        ctx.newSpan(parentSpanId, ctx.spanIdGenerator().newSpanId());
-        return ctx;
-    }
-
-    public static ITraceContext create(TraceMode mode, String traceId, String parentSpanId, String spanId) {
-        ITraceContext ctx = createTraceContext(mode, traceId);
-        ctx.newSpan(parentSpanId, spanId);
-        return ctx;
-    }
+    static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-zA-Z]{32}");
 
     public static ITraceContext create(TraceMode traceMode, String traceId) {
-        ITraceContext ctx = createTraceContext(traceMode, traceId);
-        ctx.newSpan();
-        return ctx;
+        return create(traceMode, traceId, null);
     }
 
-    private static ITraceContext createTraceContext(TraceMode traceMode, String traceId) {
+    public static ITraceContext create(TraceMode traceMode, String traceId, String parentSpanId) {
+        return create(traceMode,
+                      traceId,
+                      parentSpanId,
+                      Tracer.get().spanIdGenerator().newSpanId());
+    }
+
+    public static ITraceContext create(TraceMode traceMode, String traceId, String parentSpanId, String spanId) {
+        //
+        // check compatibility of trace id
+        //
+        String upstreamTraceId = null;
+        if (traceId.length() != 32 || !UUID_PATTERN.matcher(traceId).matches()) {
+            upstreamTraceId = traceId;
+            traceId = Tracer.get().traceIdGenerator().newTraceId();
+        }
+
+        //
+        // create trace context
+        //
+        ITraceContext context;
         switch (traceMode) {
             case TRACE:
-                return new TraceContext(traceId, Tracer.get().spanIdGenerator()).reporter(Tracer.get().reporter());
+                context = new TraceContext(traceId, Tracer.get().spanIdGenerator()).reporter(Tracer.get().reporter());
+                break;
             case PROPAGATION:
-                return new PropagationTraceContext(traceId, Tracer.get().spanIdGenerator());
+                context = new PropagationTraceContext(traceId, Tracer.get().spanIdGenerator());
+                break;
             default:
+                // actually never happen
+                // just a branch to make the code readable
                 throw new AgentException("Unknown trace mode:%s", traceMode);
         }
+
+        //
+        // set necessary status
+        //
+        ITraceSpan span = context.newSpan(parentSpanId, spanId);
+        if (upstreamTraceId != null) {
+            span.tag("upstreamTraceId", upstreamTraceId);
+        }
+        return context;
     }
 }
