@@ -18,6 +18,9 @@ package org.bithon.server.common.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.ThreadUtils;
+import org.bithon.server.event.sink.LocalEventSink;
+import org.bithon.server.metric.sink.LocalMetricSink;
+import org.bithon.server.tracing.sink.LocalTraceSink;
 
 import java.time.Duration;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -60,9 +63,17 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
 
     protected abstract void onMessage(MSG msg) throws Exception;
 
+    /**
+     * @see LocalMetricSink#close()
+     * @see LocalTraceSink#close()
+     * @see LocalEventSink#close()
+     */
     @Override
     public void close() throws Exception {
         log.info("Shutting down executor [{}]", this.getType());
         executor.shutdown();
+        if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+            log.info("Shutting down executor [{}] timeout.", this.getType());
+        }
     }
 }
