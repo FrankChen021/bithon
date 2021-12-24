@@ -58,4 +58,10 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<Iterat
     public String getType() {
         return "trace";
     }
+
+    @Override
+    public void close() throws Exception {
+        super.close();
+        this.traceWriter.close();
+    }
 }
