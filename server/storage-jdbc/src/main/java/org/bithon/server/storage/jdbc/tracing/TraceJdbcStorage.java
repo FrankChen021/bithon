@@ -113,7 +113,7 @@ public class TraceJdbcStorage implements ITraceStorage {
      * The batch writer here may not be a perfect design.
      * It can be put at the message handler layer so that all writers can gain batch capability.
      * For metrics have already been aggregated at agent side it's TPS is not very high, So it's not a pain point.
-     *
+     * <p>
      * But for trace, there's no such aggregation layer which may result in high QPS of insert.
      * Since I'm not focusing on the implementation detail now, perfect solution is left in the future.
      */
@@ -127,7 +127,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         private BatchWriter(ITraceWriter writer) {
             this.writer = writer;
             this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadUtils.NamedThreadFactory("trace-batch-writer"));
-            this.executor.scheduleAtFixedRate(this::flush, 5,2, TimeUnit.SECONDS);
+            this.executor.scheduleAtFixedRate(this::flush, 5, 2, TimeUnit.SECONDS);
         }
 
         @Override
@@ -160,7 +160,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                     log.debug("Flushing [{}] spans into storage...", spans.size());
                     this.writer.writeSpans(spans);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.info("Exception when flushing spans into storage", e);
                 }
             }
 
@@ -169,7 +169,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                     log.debug("Flushing [{}] trace id mappings into storage...", spans.size());
                     this.writer.writeMappings(mappings);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.info("Exception when flushing id mapping into storage", e);
                 }
             }
         }
@@ -180,7 +180,7 @@ public class TraceJdbcStorage implements ITraceStorage {
             // shutdown and wait for current scheduler to close
             this.executor.shutdown();
             try {
-                if(!this.executor.awaitTermination(20, TimeUnit.SECONDS) ) {
+                if (!this.executor.awaitTermination(20, TimeUnit.SECONDS)) {
                     log.warn("Timeout when shutdown trace batch writer");
                 }
             } catch (InterruptedException ignored) {
