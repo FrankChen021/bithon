@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
@@ -46,6 +47,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -79,8 +83,8 @@ public class TraceJdbcStorage implements ITraceStorage {
     }
 
     @Override
-    public TraceJdbcWriter createWriter() {
-        return new TraceJdbcWriter();
+    public ITraceWriter createWriter() {
+        return new BatchWriter(new TraceJdbcWriter());
     }
 
     @Override
@@ -103,6 +107,91 @@ public class TraceJdbcStorage implements ITraceStorage {
                       .where(Tables.BITHON_TRACE_MAPPING.TIMESTAMP.le(before))
                       .execute();
         };
+    }
+
+    /**
+     * The batch writer here may not be a perfect design.
+     * It can be put at the message handler layer so that all writers can gain batch capability.
+     * For metrics have already been aggregated at agent side it's TPS is not very high, So it's not a pain point.
+     * <p>
+     * But for trace, there's no such aggregation layer which may result in high QPS of insert.
+     * Since I'm not focusing on the implementation detail now, perfect solution is left in the future.
+     */
+    private static class BatchWriter implements ITraceWriter {
+        private final List<TraceSpan> traceSpans = new ArrayList<>();
+        private final List<TraceIdMapping> traceIdMappings = new ArrayList<>();
+
+        private final ITraceWriter writer;
+        private final ScheduledExecutorService executor;
+
+        private BatchWriter(ITraceWriter writer) {
+            this.writer = writer;
+            this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadUtils.NamedThreadFactory("trace-batch-writer"));
+            this.executor.scheduleAtFixedRate(this::flush, 5, 2, TimeUnit.SECONDS);
+        }
+
+        @Override
+        public void writeSpans(Collection<TraceSpan> spans) {
+            synchronized (this) {
+                this.traceSpans.addAll(spans);
+            }
+        }
+
+        @Override
+        public void writeMappings(Collection<TraceIdMapping> mappings) {
+            synchronized (this) {
+                this.traceIdMappings.addAll(mappings);
+            }
+        }
+
+        private void flush() {
+            List<TraceSpan> spans;
+            List<TraceIdMapping> mappings;
+            synchronized (this) {
+                spans = new ArrayList<>(traceSpans);
+                traceSpans.clear();
+
+                mappings = new ArrayList<>(traceIdMappings);
+                traceIdMappings.clear();
+            }
+
+            if (!spans.isEmpty()) {
+                try {
+                    log.debug("Flushing [{}] spans into storage...", spans.size());
+                    this.writer.writeSpans(spans);
+                } catch (IOException e) {
+                    log.info("Exception when flushing spans into storage", e);
+                }
+            }
+
+            if (!mappings.isEmpty()) {
+                try {
+                    log.debug("Flushing [{}] trace id mappings into storage...", spans.size());
+                    this.writer.writeMappings(mappings);
+                } catch (IOException e) {
+                    log.info("Exception when flushing id mapping into storage", e);
+                }
+            }
+        }
+
+        @Override
+        public void close() {
+            log.info("Shutting down trace batch writer...");
+            // shutdown and wait for current scheduler to close
+            this.executor.shutdown();
+            try {
+                if (!this.executor.awaitTermination(20, TimeUnit.SECONDS)) {
+                    log.warn("Timeout when shutdown trace batch writer");
+                }
+            } catch (InterruptedException ignored) {
+            }
+
+            // flush all data to see if there's any more data
+            flush();
+
+            // close underlying writer at last
+            this.writer.close();
+        }
     }
 
     private class TraceJdbcReader implements ITraceReader {
