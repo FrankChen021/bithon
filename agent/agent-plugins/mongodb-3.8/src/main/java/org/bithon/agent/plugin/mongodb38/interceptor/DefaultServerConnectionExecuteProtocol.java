@@ -29,6 +29,7 @@ import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -54,6 +55,7 @@ public class DefaultServerConnectionExecuteProtocol extends AbstractInterceptor 
         aopContext.setUserContext(TraceSpanFactory.newSpan("mongodb")
                                                   .method(aopContext.getMethod())
                                                   .kind(SpanKind.CLIENT)
+                                                  .tag(Tags.TARGET_TYPE, Tags.TargetType.MongoDb.name())
                                                   .start());
 
         return InterceptionDecision.CONTINUE;

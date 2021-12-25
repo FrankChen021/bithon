@@ -23,6 +23,7 @@ import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -56,8 +57,10 @@ public class Channels$Write extends AbstractInterceptor {
         final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-jetty")
                                                 .method(aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
-                                                .tag("uri", httpRequest.getUri())
-                                                .tag("method", httpRequest.getMethod().getName())
+                                                .tag(Tags.URI, httpRequest.getUri())
+                                                .tag(Tags.HTTP_METHOD, httpRequest.getMethod().getName())
+                                                .tag(Tags.TARGET_TYPE, Tags.TargetType.HttpService.name())
+                                                .propagate(httpRequest.headers(), (headersArgs, key, value) -> headersArgs.set(key, value))
                                                 .start();
         //
         // propagate tracing after span creation
@@ -65,10 +68,6 @@ public class Channels$Write extends AbstractInterceptor {
         if (span.isNull()) {
             return InterceptionDecision.SKIP_LEAVE;
         }
-
-        span.context().propagate(httpRequest.headers(), (headersArgs, key, value) -> {
-            headersArgs.set(key, value);
-        });
 
         aopContext.setUserContext(span);
 

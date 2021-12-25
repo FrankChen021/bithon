@@ -22,6 +22,7 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import sun.net.www.MessageHeader;
 
@@ -49,7 +50,9 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
          */
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag("uri", connection.getURL().toString())
+                                      .tag(Tags.URI, connection.getURL().toString())
+                                      .tag(Tags.HTTP_METHOD, connection.getRequestMethod())
+                                      .tag(Tags.TARGET_TYPE, Tags.TargetType.HttpService.name())
                                       .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))
                                       .start());
 

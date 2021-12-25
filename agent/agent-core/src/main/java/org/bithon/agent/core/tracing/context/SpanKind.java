@@ -21,6 +21,12 @@ package org.bithon.agent.core.tracing.context;
  * @date 2021/2/5 8:51 下午
  */
 public enum SpanKind {
+    /**
+     * a client is a termination of trace in current context.
+     * It spreads the trace context to next hop.
+     *
+     * For such type, 'targetType' and 'uri' must be filled in `tags`
+     */
     CLIENT,
     SERVER,
     PRODUCER,

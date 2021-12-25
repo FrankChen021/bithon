@@ -22,6 +22,7 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
 import org.reactivestreams.Publisher;
@@ -57,7 +58,8 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
                                                   .newChildSpan("webflux-httpClient")
                                                   .kind(SpanKind.CLIENT)
                                                   .method(aopContext.getMethod())
-                                                  .tag("uri", uri)
+                                                  .tag(Tags.URI, uri)
+                                                  .tag(Tags.TARGET_TYPE, Tags.TargetType.HttpService.name())
                                                   .start());
         }
 

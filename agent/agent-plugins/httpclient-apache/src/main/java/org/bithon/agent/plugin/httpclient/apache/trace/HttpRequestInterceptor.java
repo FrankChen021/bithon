@@ -24,6 +24,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 
 /**
@@ -46,8 +47,9 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
         // create a span and save it in user-context
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag("uri", httpRequest.getRequestLine().getUri())
-                                      .tag("method", httpRequest.getRequestLine().getMethod())
+                                      .tag(Tags.URI, httpRequest.getRequestLine().getUri())
+                                      .tag(Tags.HTTP_METHOD, httpRequest.getRequestLine().getMethod())
+                                      .tag(Tags.TARGET_TYPE, Tags.TargetType.HttpService.name())
                                       .propagate(httpRequest, (request, key, value) -> request.setHeader(key, value))
                                       .start());
 

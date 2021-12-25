@@ -20,7 +20,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 
 import java.net.URI;
@@ -46,8 +46,7 @@ public class RestTemplateExecuteInterceptor extends AbstractInterceptor {
         }
 
         aopContext.setUserContext(span.method(aopContext.getMethod())
-                                      .kind(SpanKind.CLIENT)
-                                      .tag("uri", uri)
+                                      .tag(Tags.URI, uri)
                                       .start());
 
         return InterceptionDecision.CONTINUE;
