@@ -75,11 +75,11 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.HttpHost",
                                                                     "org.apache.http.HttpRequest",
                                                                     "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirectorExecute"),
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirector$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("releaseConnection")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirectorReleaseConnection")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.metrics.DefaultRequestDirector$ReleaseConnection")
                 ),
 
             //
@@ -92,7 +92,7 @@ public class ApacheHttpClientPlugin implements IPlugin {
                                                                     "org.apache.http.HttpRequest",
                                                                     "org.apache.http.HttpClientConnection",
                                                                     "org.apache.http.protocol.HttpContext")
-                                                   .to("org.bithon.agent.plugin.httpclient.apache.trace.HttpRequestInterceptor")
+                                                   .to("org.bithon.agent.plugin.httpclient.apache.interceptor.HttpRequestExecutor$Execute")
                 )
         );
     }
