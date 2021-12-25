@@ -48,7 +48,6 @@ public class BeanMethodInterceptorImpl implements IBeanMethodInterceptor {
         }
 
         return span.component("bean")
-                   .kind(SpanKind.CLIENT)
                    .method(method)
                    .start();
     }

@@ -66,7 +66,6 @@ public class NettyRoutingFilter$Filter extends AbstractInterceptor {
 
         aopContext.setUserContext(traceContext.currentSpan()
                                               .newChildSpan("webflux-routing")
-                                              .kind(SpanKind.CLIENT)
                                               .method(aopContext.getMethod())
                                               .start());
         return InterceptionDecision.CONTINUE;
