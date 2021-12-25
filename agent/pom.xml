@@ -29,7 +29,6 @@
         <module>agent-core</module>
         <module>agent-controller</module>
         <module>agent-dispatcher-brpc</module>
-        <module>agent-dispatcher-thrift</module>
         <module>agent-plugins</module>
         <module>agent-sentinel</module>
         <module>agent-main</module>
@@ -52,13 +51,6 @@
             <dependency>
                 <groupId>org.bithon.agent</groupId>
                 <artifactId>agent-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <!-- Dispatcher thrift client -->
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-dispatcher-thrift</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

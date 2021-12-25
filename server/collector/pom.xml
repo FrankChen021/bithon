@@ -39,12 +39,6 @@
       <artifactId>lombok</artifactId>
     </dependency>
 
-    <!-- Thrift RPC -->
-    <dependency>
-      <groupId>org.bithon</groupId>
-      <artifactId>agent-rpc-thrift</artifactId>
-    </dependency>
-
     <!-- BRPC -->
     <dependency>
       <groupId>org.bithon</groupId>
