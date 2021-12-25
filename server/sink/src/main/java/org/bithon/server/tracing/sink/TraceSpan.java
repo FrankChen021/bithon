@@ -40,4 +40,32 @@ public class TraceSpan {
     public String name;
     public String clazz;
     public String method;
+
+    public boolean containsTag(String name) {
+        return tags.containsKey(name);
+    }
+
+    public String getTag(String name) {
+        return tags.get(name);
+    }
+
+    @Override
+    public String toString() {
+        return "TraceSpan{" +
+               "appName='" + appName + '\'' +
+               ", instanceName='" + instanceName + '\'' +
+               ", traceId='" + traceId + '\'' +
+               ", spanId='" + spanId + '\'' +
+               ", kind='" + kind + '\'' +
+               ", parentSpanId='" + parentSpanId + '\'' +
+               ", parentApplication='" + parentApplication + '\'' +
+               ", tags=" + tags +
+               ", costTime=" + costTime +
+               ", startTime=" + startTime +
+               ", endTime=" + endTime +
+               ", name='" + name + '\'' +
+               ", clazz='" + clazz + '\'' +
+               ", method='" + method + '\'' +
+               '}';
+    }
 }
