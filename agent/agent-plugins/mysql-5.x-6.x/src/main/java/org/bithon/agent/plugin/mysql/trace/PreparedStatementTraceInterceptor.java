@@ -43,7 +43,6 @@ public class PreparedStatementTraceInterceptor extends AbstractInterceptor {
         // create a span and save it in user-context
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag(Tags.TARGET_TYPE, Tags.TargetType.MySQL.name())
                                       .start());
 
         return InterceptionDecision.CONTINUE;

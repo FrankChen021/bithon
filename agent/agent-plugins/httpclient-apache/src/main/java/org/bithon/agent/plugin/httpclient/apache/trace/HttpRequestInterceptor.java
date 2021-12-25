@@ -49,7 +49,6 @@ public class HttpRequestInterceptor extends AbstractInterceptor {
                                       .kind(SpanKind.CLIENT)
                                       .tag(Tags.URI, httpRequest.getRequestLine().getUri())
                                       .tag(Tags.HTTP_METHOD, httpRequest.getRequestLine().getMethod())
-                                      .tag(Tags.TARGET_TYPE, Tags.TargetType.HttpService.name())
                                       .propagate(httpRequest, (request, key, value) -> request.setHeader(key, value))
                                       .start());
 

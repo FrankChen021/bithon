@@ -21,6 +21,8 @@ package org.bithon.agent.core.tracing.context;
  * @date 2021/2/5 8:51 下午
  */
 public enum SpanKind {
+    NONE,
+
     /**
      * a client is a termination of trace in current context.
      * It spreads the trace context to next hop.

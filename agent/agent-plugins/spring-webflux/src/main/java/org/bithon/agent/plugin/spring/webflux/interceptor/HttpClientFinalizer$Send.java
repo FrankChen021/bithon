@@ -43,12 +43,11 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         HttpClient httpClient = aopContext.castTargetAs();
-        String uri = httpClient.configuration().uri();
-
-        HttpClientContext httpClientContext = new HttpClientContext();
+        IBithonObject bithonObject = aopContext.castTargetAs();
 
         // span will be finished in ResponseConnection interceptor
-        IBithonObject bithonObject = aopContext.castTargetAs();
+        // so we need an extra object to pass the context
+        HttpClientContext httpClientContext = new HttpClientContext();
         bithonObject.setInjectedObject(httpClientContext);
 
         ITraceContext traceContext = TraceContextHolder.current();
@@ -58,8 +57,8 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
                                                   .newChildSpan("webflux-httpClient")
                                                   .kind(SpanKind.CLIENT)
                                                   .method(aopContext.getMethod())
-                                                  .tag(Tags.URI, uri)
-                                                  .tag(Tags.TARGET_TYPE, Tags.TargetType.HttpService.name())
+                                                  .tag(Tags.URI, httpClient.configuration().uri())
+                                                  .tag(Tags.HTTP_METHOD, httpClient.configuration().method().name())
                                                   .start());
         }
 

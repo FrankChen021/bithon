@@ -60,7 +60,6 @@ public class HttpRequest$Send extends AbstractInterceptor {
                                                 .kind(SpanKind.CLIENT)
                                                 .tag(Tags.URI, httpRequest.getURI().getPath())
                                                 .tag(Tags.HTTP_METHOD, httpRequest.getMethod())
-                                                .tag(Tags.TARGET_TYPE, Tags.TargetType.HttpService.name())
                                                 .propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> headersArgs.put(key, value))
                                                 .start();
 

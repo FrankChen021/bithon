@@ -39,7 +39,7 @@ class TraceSpan implements ITraceSpan {
      */
     private long startTime;
     private long endTime;
-    private SpanKind kind;
+    private SpanKind kind = SpanKind.NONE;
     private String component;
     private String parentApplication;
     private String clazz;

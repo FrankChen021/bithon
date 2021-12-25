@@ -52,7 +52,6 @@ public class HttpClientWriteRequestInterceptor extends AbstractInterceptor {
                                       .kind(SpanKind.CLIENT)
                                       .tag(Tags.URI, connection.getURL().toString())
                                       .tag(Tags.HTTP_METHOD, connection.getRequestMethod())
-                                      .tag(Tags.TARGET_TYPE, Tags.TargetType.HttpService.name())
                                       .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))
                                       .start());
 

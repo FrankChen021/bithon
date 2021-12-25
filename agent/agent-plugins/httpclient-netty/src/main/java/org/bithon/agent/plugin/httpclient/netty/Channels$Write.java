@@ -59,7 +59,6 @@ public class Channels$Write extends AbstractInterceptor {
                                                 .kind(SpanKind.CLIENT)
                                                 .tag(Tags.URI, httpRequest.getUri())
                                                 .tag(Tags.HTTP_METHOD, httpRequest.getMethod().getName())
-                                                .tag(Tags.TARGET_TYPE, Tags.TargetType.HttpService.name())
                                                 .propagate(httpRequest.headers(), (headersArgs, key, value) -> headersArgs.set(key, value))
                                                 .start();
         //

@@ -72,7 +72,6 @@ public class DefaultServerConnection {
             aopContext.setUserContext(TraceSpanFactory.newSpan("mongodb")
                                                       .method(aopContext.getMethod())
                                                       .kind(SpanKind.CLIENT)
-                                                      .tag(Tags.TARGET_TYPE, Tags.TargetType.MongoDb.name())
                                                       .start());
 
             return InterceptionDecision.CONTINUE;
