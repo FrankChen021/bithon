@@ -54,13 +54,6 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- Dispatcher thrift client -->
-            <dependency>
-                <groupId>org.bithon.agent</groupId>
-                <artifactId>agent-dispatcher-thrift</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
             <!-- Dispatcher brpc client -->
             <dependency>
                 <groupId>org.bithon.agent</groupId>

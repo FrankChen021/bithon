@@ -83,11 +83,6 @@
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>agent-rpc-thrift</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bithon</groupId>
         <artifactId>agent-rpc-brpc</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -230,7 +225,6 @@
                 <exclude>**/README</exclude>
                 <exclude>**/jOOQ/**</exclude>
                 <exclude>**/jooq/**</exclude>
-                <exclude>src/main/java/org/bithon/agent/rpc/thrift/**</exclude>
                 <exclude>src/test/java/org/bithon/component/brpc/example/protobuf</exclude>
                 <exclude>src/main/resources/static/**</exclude>
                 <exclude>**/*.properties</exclude>
