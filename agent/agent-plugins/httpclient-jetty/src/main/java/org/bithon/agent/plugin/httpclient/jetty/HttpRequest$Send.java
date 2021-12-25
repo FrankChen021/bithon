@@ -23,6 +23,7 @@ import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.eclipse.jetty.client.HttpRequest;
 import org.eclipse.jetty.client.api.Response;
@@ -57,17 +58,13 @@ public class HttpRequest$Send extends AbstractInterceptor {
         final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-jetty")
                                                 .method(aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
-                                                .tag("uri", httpRequest.getURI().getPath())
-                                                .tag("method", httpRequest.getMethod())
+                                                .tag(Tags.URI, httpRequest.getURI().getPath())
+                                                .tag(Tags.HTTP_METHOD, httpRequest.getMethod())
+                                                .propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> headersArgs.put(key, value))
                                                 .start();
 
-        //
-        // propagate tracing after span creation
-        //
-        if (!span.isNull()) {
-            span.context().propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> {
-                headersArgs.put(key, value);
-            });
+        if (span.isNull()) {
+            return InterceptionDecision.SKIP_LEAVE;
         }
 
         final long startAt = System.nanoTime();

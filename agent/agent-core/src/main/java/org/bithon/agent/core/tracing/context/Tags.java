@@ -17,23 +17,22 @@
 package org.bithon.agent.core.tracing.context;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/5 8:51 下午
+ * @author Frank Chen
+ * @date 25/12/21 5:56 PM
  */
-public enum SpanKind {
-    NONE,
+public class Tags {
+    public static final String HTTP_METHOD = "method";
 
     /**
-     * a client is a termination of trace in current context.
-     * It spreads the trace context to next hop.
+     * For a {@link SpanKind#CLIENT}, the uri must be in the format of URI where the scheme represent the target service
      *
-     * For such type, 'targetType' and 'uri' must be filled in `tags`
+     * For example,
+     *  http://localhost:8080
+     *  redis://127.0.0.1:6379
+     *  mongodb://127.0.0.1:8000
+     *  mysql:127.0.0.1:3309
+     *
      */
-    CLIENT,
-    SERVER,
-    PRODUCER,
-    CONSUMER;
-
-    SpanKind() {
-    }
+    public static final String URI = "uri";
+    public static final String STATUS = "status";
 }

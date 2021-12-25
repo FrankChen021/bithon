@@ -17,12 +17,9 @@
 package org.bithon.agent.plugin.guice.installer;
 
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 
 import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * NOTE:
@@ -33,8 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2021/7/10 18:46
  */
 public class BeanMethodInterceptorImpl implements IBeanMethodInterceptor {
-
-    private final Map<Class<?>, String> componentNames = new ConcurrentHashMap<>();
 
     @Override
     public Object onMethodEnter(
@@ -48,7 +43,6 @@ public class BeanMethodInterceptorImpl implements IBeanMethodInterceptor {
         }
 
         return span.component("bean")
-                   .kind(SpanKind.CLIENT)
                    .method(method)
                    .start();
     }

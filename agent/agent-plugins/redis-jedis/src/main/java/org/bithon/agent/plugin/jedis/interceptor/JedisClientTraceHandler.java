@@ -21,6 +21,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import redis.clients.jedis.Client;
 import shaded.org.slf4j.Logger;
@@ -35,7 +36,8 @@ import java.util.Set;
  */
 public class JedisClientTraceHandler extends AbstractInterceptor {
     private static final Logger log = LoggerFactory.getLogger(JedisClientTraceHandler.class);
-    private Set<String> ignoreCommands = new HashSet<>();
+    //TODO: move the configuration
+    private final Set<String> ignoreCommands = new HashSet<>();
 
     @Override
     public boolean initialize() {
@@ -59,11 +61,11 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
         }
 
         Client redisClient = aopContext.castTargetAs();
-        String hostAndPort = redisClient.getHost() + ":" + redisClient.getPort();
+        String uri = "redis://" + redisClient.getHost() + ":" + redisClient.getPort();
 
         aopContext.setUserContext(span.method(command)
                                       .kind(SpanKind.CLIENT)
-                                      .tag("uri", hostAndPort)
+                                      .tag(Tags.URI, uri)
                                       .start());
 
         return InterceptionDecision.CONTINUE;

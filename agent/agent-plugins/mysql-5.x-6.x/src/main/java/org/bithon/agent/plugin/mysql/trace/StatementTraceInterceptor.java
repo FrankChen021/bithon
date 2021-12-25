@@ -44,6 +44,7 @@ public class StatementTraceInterceptor extends AbstractInterceptor {
 
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
+                                      //TODO: connection uri
                                       .start());
 
         return InterceptionDecision.CONTINUE;

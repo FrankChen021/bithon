@@ -17,12 +17,15 @@
 package org.bithon.server.web.service.tracing.service;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.web.service.tracing.api.TraceMap;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +38,7 @@ import java.util.stream.Collectors;
  * @date 24/11/21 7:06 pm
  */
 @Data
+@Slf4j
 public class TraceMapBuilder {
 
     private final Map<String, TraceMap.Link> links = new HashMap<>();
@@ -124,22 +128,44 @@ public class TraceMapBuilder {
         TraceSpanBo user = new TraceSpanBo();
         user.setAppName("user");
 
-        traverseCallChain(user, rootSpans);
+        buildMap(user, rootSpans);
 
         return new TraceMap(nodes.values(), links.values());
     }
 
-    private void traverseCallChain(TraceSpanBo source,
-                                   List<TraceSpanBo> targets) {
-        for (TraceSpanBo target : targets) {
-            if (!source.getAppName().equals(target.getAppName())
-                || !Objects.equals(source.getInstanceName(), target.getInstanceName())) {
+    private void buildMap(TraceSpanBo parentSpan, List<TraceSpanBo> childSpans) {
+        for (int i = 0, size = childSpans.size(); i < size; i++) {
+            TraceSpanBo childSpan = childSpans.get(i);
 
-                this.addLink(source, target).incrCount();
+            if (!parentSpan.getAppName().equals(childSpan.getAppName())
+                || !Objects.equals(parentSpan.getInstanceName(), childSpan.getInstanceName())) {
 
-                traverseCallChain(target, target.children);
+                this.addLink(parentSpan, childSpan).incrCount();
+
+                buildMap(childSpan, childSpan.children);
             } else {
-                traverseCallChain(source, target.children);
+                // the instance of childSpan is the same as the parentSpan
+                // no need to create a link, but just recursively search next level
+                buildMap(parentSpan, childSpan.children);
+            }
+
+            // this childSpan is a CLIENT termination,
+            // when there's no children, it means the next hop might be another system.
+            // So, we need to create a link for this situation
+            if (childSpan.children.size() == 0
+                && "CLIENT".equals(childSpan.getKind())
+                && childSpan.containsTag("uri")) {
+
+                String uriText = childSpan.getTag("uri");
+                try {
+                    URI uri = new URI(uriText);
+                    TraceSpan next = new TraceSpan();
+                    next.setAppName(uri.getScheme());
+                    next.setInstanceName(uri.getHost() + ":" + uri.getPort());
+                    this.addLink(childSpan, next).incrCount();
+                } catch (URISyntaxException e) {
+                    log.error("Malformed uri detected in span: {}", childSpan);
+                }
             }
         }
     }
