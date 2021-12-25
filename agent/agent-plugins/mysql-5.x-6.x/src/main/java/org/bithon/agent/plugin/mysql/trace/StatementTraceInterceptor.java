@@ -22,7 +22,6 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
-import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -46,7 +45,6 @@ public class StatementTraceInterceptor extends AbstractInterceptor {
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
                                       //TODO: connection uri
-                                      .tag(Tags.TARGET_TYPE, Tags.TargetType.MySQL.name())
                                       .start());
 
         return InterceptionDecision.CONTINUE;

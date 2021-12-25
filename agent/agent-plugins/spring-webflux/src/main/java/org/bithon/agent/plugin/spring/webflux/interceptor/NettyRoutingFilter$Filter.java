@@ -22,7 +22,6 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;

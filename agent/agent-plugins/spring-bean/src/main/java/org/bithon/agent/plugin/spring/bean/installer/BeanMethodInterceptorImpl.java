@@ -17,7 +17,6 @@
 package org.bithon.agent.plugin.spring.bean.installer;
 
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
