@@ -25,7 +25,6 @@
   <modules>
     <module>component/component-commons</module>
     <module>component/component-brpc</module>
-    <module>component/agent-rpc-thrift</module>
     <module>component/agent-rpc-brpc</module>
     <module>agent</module>
     <module>server/sink</module>
