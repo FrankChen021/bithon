@@ -16,6 +16,8 @@
 
 package org.bithon.agent.core.aop.descriptor;
 
+import org.bithon.agent.core.aop.matcher.NameMatcher;
+import org.bithon.agent.core.aop.matcher.NamesMatcher;
 import shaded.net.bytebuddy.description.NamedElement;
 import shaded.net.bytebuddy.description.annotation.AnnotationDescription;
 import shaded.net.bytebuddy.description.annotation.AnnotationList;
@@ -23,6 +25,7 @@ import shaded.net.bytebuddy.description.annotation.AnnotationSource;
 import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.description.method.ParameterList;
 import shaded.net.bytebuddy.description.modifier.Visibility;
+import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -39,18 +42,12 @@ import java.util.Set;
 public class MatcherUtils {
     private static final Logger log = LoggerFactory.getLogger(MatcherUtils.class);
 
-    public static <T extends NamedElement> ElementMatcher.Junction<T> named(String typeName) {
-        return new ElementMatcher.Junction.AbstractBase<T>() {
-            @Override
-            public boolean matches(T target) {
-                return target.getActualName().equals(typeName);
-            }
+    public static <T extends NamedElement> ElementMatcher.Junction<T> withName(String name) {
+        return new NameMatcher<>(name);
+    }
 
-            @Override
-            public String toString() {
-                return typeName;
-            }
-        };
+    public static ElementMatcher.Junction<? super TypeDescription> withNames(String... names) {
+        return new NamesMatcher<>(names);
     }
 
     public static <T extends MethodDescription> ElementMatcher.Junction<T> takesArguments(int size) {

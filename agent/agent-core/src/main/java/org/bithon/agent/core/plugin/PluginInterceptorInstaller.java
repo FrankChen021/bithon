@@ -72,16 +72,30 @@ public class PluginInterceptorInstaller {
         return builder;
     }
 
+    /**
+     * 1. merge ALL descriptors in ALL plugins
+     * 2. install agent for
+     *
+     * @param agentBuilder
+     * @param inst
+     * @param plugins
+     */
     private static void install(AgentBuilder agentBuilder, Instrumentation inst, List<IPlugin> plugins) {
-        for (IPlugin plugin : plugins) {
-            // this installer must be instantiated for each plugin
-            InterceptorInstaller installer = new InterceptorInstaller(agentBuilder, inst);
-            installer.transformToBithonClass(plugin.getBithonClassDescriptor());
+        // this installer must be instantiated for each plugin
+        InterceptorInstaller installer = new InterceptorInstaller(agentBuilder, inst);
 
-            for (InterceptorDescriptor interceptor : plugin.getInterceptors()) {
-                installer.installInterceptor(plugin.getClass().getSimpleName(), interceptor, plugin.getPreconditions());
+        for (IPlugin plugin : plugins) {
+            if (!installer.merge(plugin.getBithonClassDescriptor())) {
+                new InterceptorInstaller(agentBuilder, inst).transformToBithonClass(plugin.getBithonClassDescriptor());
+            }
+            if (!installer.merge(plugin.getPreconditions(), plugin.getInterceptors())) {
+                for (InterceptorDescriptor interceptor : plugin.getInterceptors()) {
+                    new InterceptorInstaller(agentBuilder, inst).installInterceptor(plugin.getClass().getSimpleName(), interceptor, plugin.getPreconditions());
+                }
             }
         }
+
+        installer.install();
     }
 
     private static List<IPlugin> loadPlugins() {

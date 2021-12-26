@@ -19,9 +19,6 @@ package org.bithon.agent.core.aop.descriptor;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 
-import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.namedOneOf;
-
 /**
  * Defines which class should be transformed into IBithonObject subclasses
  *
@@ -45,27 +42,15 @@ public class BithonClassDescriptor {
         return debug;
     }
 
-    /**
-     * NOTE: For multiple class, {@link #of(ElementMatcher.Junction)} should be used where argument is call of {@link shaded.net.bytebuddy.matcher.ElementMatchers#namedOneOf(String...)}
-     */
     public static BithonClassDescriptor of(String clazz) {
-        return new BithonClassDescriptor(named(clazz), false);
+        return new BithonClassDescriptor(MatcherUtils.withName(clazz), false);
     }
 
     public static BithonClassDescriptor of(String... clazz) {
-        return new BithonClassDescriptor(namedOneOf(clazz), false);
+        return new BithonClassDescriptor(MatcherUtils.withNames(clazz), false);
     }
 
     public static BithonClassDescriptor of(String clazz, boolean debug) {
-        return new BithonClassDescriptor(named(clazz), debug);
-    }
-
-    public static BithonClassDescriptor of(ElementMatcher.Junction<? super TypeDescription> classMatcher) {
-        return new BithonClassDescriptor(classMatcher, false);
-    }
-
-    public static BithonClassDescriptor of(ElementMatcher.Junction<? super TypeDescription> classMatcher,
-                                           boolean debug) {
-        return new BithonClassDescriptor(classMatcher, debug);
+        return new BithonClassDescriptor(MatcherUtils.withName(clazz), debug);
     }
 }

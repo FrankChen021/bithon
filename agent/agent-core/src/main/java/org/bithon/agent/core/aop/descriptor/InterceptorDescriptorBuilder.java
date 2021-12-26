@@ -30,10 +30,10 @@ public class InterceptorDescriptorBuilder {
     private boolean isBootstrapClass;
 
     public static InterceptorDescriptorBuilder forClass(String targetClass) {
-        return forClass(MatcherUtils.named(targetClass));
+        return forClass(MatcherUtils.withName(targetClass));
     }
 
-    public static InterceptorDescriptorBuilder forClass(ElementMatcher.Junction<? super TypeDescription> targetClassMatcher) {
+    private static InterceptorDescriptorBuilder forClass(ElementMatcher.Junction<? super TypeDescription> targetClassMatcher) {
         return new InterceptorDescriptorBuilder().targetClass(targetClassMatcher);
     }
 
@@ -60,7 +60,7 @@ public class InterceptorDescriptorBuilder {
     }
 
     public InterceptorDescriptorBuilder targetClass(String targetClass) {
-        this.targetClass = MatcherUtils.named(targetClass);
+        this.targetClass = MatcherUtils.withName(targetClass);
         return this;
     }
 

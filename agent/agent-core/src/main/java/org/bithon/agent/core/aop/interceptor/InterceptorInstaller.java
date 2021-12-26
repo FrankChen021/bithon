@@ -31,8 +31,11 @@ import org.bithon.agent.core.aop.AopDebugger;
 import org.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
+import org.bithon.agent.core.aop.matcher.NameMatcher;
+import org.bithon.agent.core.aop.matcher.NamesMatcher;
 import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.utils.CollectionUtils;
+import shaded.net.bytebuddy.NamingStrategy;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.dynamic.DynamicType;
@@ -42,17 +45,28 @@ import shaded.net.bytebuddy.implementation.SuperMethodCall;
 import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
+import shaded.net.bytebuddy.matcher.StringSetMatcher;
 import shaded.net.bytebuddy.utility.JavaModule;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.isSynthetic;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.not;
 
 /**
  * @author frank.chen021@outlook.com
@@ -63,6 +77,7 @@ public class InterceptorInstaller {
 
     private final AgentBuilder agentBuilder;
     private final Instrumentation inst;
+    private final Map<String, Descriptor> descriptors = new HashMap<>();
 
     public InterceptorInstaller(AgentBuilder agentBuilder,
                                 Instrumentation inst) {
@@ -302,6 +317,129 @@ public class InterceptorInstaller {
     private String getSimpleClassName(String className) {
         int dot = className.lastIndexOf('.');
         return dot == -1 ? className : className.substring(dot + 1);
+    }
+
+    public boolean merge(BithonClassDescriptor bithonClassDescriptor) {
+        if (bithonClassDescriptor == null) {
+            return true;
+        }
+        ElementMatcher.Junction<? super TypeDescription> matcher = bithonClassDescriptor.getClassMatcher();
+
+        if (matcher instanceof NameMatcher) {
+            String name = ((NameMatcher<?>) matcher).getName();
+
+            this.descriptors.computeIfAbsent(name, v -> new Descriptor());
+
+            return true;
+        } else if (matcher instanceof NamesMatcher) {
+            Set<String> names = ((NamesMatcher<?>) matcher).getNames();
+
+            names.forEach(name -> this.descriptors.computeIfAbsent(name, v -> new Descriptor()));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean merge(List<IInterceptorPrecondition> preconditions, List<InterceptorDescriptor> interceptors) {
+        for (InterceptorDescriptor interceptor : interceptors) {
+            ElementMatcher.Junction<?> matcher = interceptor.getClassMatcher();
+
+            String name = ((NameMatcher<?>) matcher).getName();
+
+            Descriptor descriptor = this.descriptors.computeIfAbsent(name, v -> new Descriptor());
+            descriptor.methodInterceptors.addAll(Stream.of(interceptor.getMethodPointCutDescriptors()).collect(Collectors.toList()));
+            if (CollectionUtils.isNotEmpty(preconditions)) {
+                descriptor.preconditions.addAll(preconditions);
+            }
+            descriptor.preconditions.addAll(preconditions);
+            if (interceptor.isBootstrapClass()) {
+                descriptor.isBootstrapClass = interceptor.isBootstrapClass();
+            }
+        }
+        return true;
+    }
+
+    public void install() {
+        ElementMatcher.Junction<? super TypeDescription> typeMatcher = new shaded.net.bytebuddy.matcher.NameMatcher<>(new StringSetMatcher(new HashSet<>(this.descriptors.keySet())));
+
+
+        AgentBuilder.RawMatcher.ForElementMatchers ignoredMatcher = new AgentBuilder.RawMatcher.ForElementMatchers(nameStartsWith("shaded.")
+                                                                                                                       .and(not(ElementMatchers.nameStartsWith(
+                                                                                                                           NamingStrategy.SuffixingRandom.BYTE_BUDDY_RENAME_PACKAGE
+                                                                                                                           + ".")))
+                                                                                                                       .or(isSynthetic()));
+        AgentBuilder
+            agentBuilder = this.agentBuilder
+            // make sure the target class is not ignored by Bytebuddy's default ignore rule
+            .ignore(ignoredMatcher)
+            .type(typeMatcher)
+            .transform((DynamicType.Builder<?> builder,
+                        TypeDescription typeDescription,
+                        ClassLoader classLoader,
+                        JavaModule javaModule) -> {
+
+                String type = typeDescription.getTypeName();
+                Descriptor descriptor = this.descriptors.get(type);
+                if (descriptor == null) {
+                    return null;
+                }
+
+                //
+                // Run checkers first to see if a plugin can be installed
+                //
+                if (CollectionUtils.isNotEmpty(descriptor.preconditions)) {
+                    for (IInterceptorPrecondition condition : descriptor.preconditions) {
+                        if (!condition.canInstall("TODO: provider name", classLoader, typeDescription)) {
+                            return null;
+                        }
+                    }
+                }
+
+                //
+                // Transform target class to type of IBithonObject
+                //
+                if (!typeDescription.isAssignableTo(IBithonObject.class)) {
+                    builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
+                                                  Object.class,
+                                                  ACC_PRIVATE | ACC_VOLATILE)
+                                     .implement(IBithonObject.class)
+                                     .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
+                }
+
+                //
+                // Install interceptor
+                //
+                for (MethodPointCutDescriptor pointCut : descriptor.methodInterceptors) {
+                    log.info("Install interceptor [{}#{}] to [{}#{}]",
+                             "TODO: provider name",
+                             getSimpleClassName(pointCut.getInterceptor()),
+                             getSimpleClassName(typeDescription.getName()),
+                             pointCut);
+                    if (descriptor.isBootstrapClass) {
+                        builder = installBootstrapInterceptor(typeDescription,
+                                                              builder,
+                                                              pointCut.getInterceptor(),
+                                                              pointCut);
+                    } else {
+                        builder = installInterceptor(builder,
+                                                     "TODO: provider name",
+                                                     pointCut.getInterceptor(),
+                                                     classLoader,
+                                                     pointCut);
+                    }
+                }
+                return builder;
+            }).with(AopDebugger.INSTANCE);
+
+        agentBuilder.installOn(inst);
+    }
+
+    static class Descriptor {
+        private final List<IInterceptorPrecondition> preconditions = new ArrayList<>();
+        private final List<MethodPointCutDescriptor> methodInterceptors = new ArrayList<>();
+        private boolean isBootstrapClass;
     }
 
     static class IgnoreExclusionMatcher implements AgentBuilder.RawMatcher {

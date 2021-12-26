@@ -42,7 +42,7 @@ public class Log4j2Plugin implements IPlugin {
             forClass("org.apache.logging.log4j.core.Logger")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(MatcherUtils.named("logMessage")
+                                                   .onMethod(MatcherUtils.withName("logMessage")
                                                                          .and(MatcherUtils.takesArgument(1,
                                                                                                          "org.apache.logging.log4j.Level"))
                                                                          .and(MatcherUtils.takesArgument(4,
@@ -63,7 +63,7 @@ public class Log4j2Plugin implements IPlugin {
                      * {@link org.apache.logging.log4j.core.pattern.PatternParser#parse(String, List, List, boolean, boolean, boolean)}
                      */
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(MatcherUtils.named("parse")
+                                                   .onMethod(MatcherUtils.withName("parse")
                                                                          .and(MatcherUtils.takesArgument(0,
                                                                                                          "java.lang.String"))
                                                                          .and(MatcherUtils.takesArguments(6)))
