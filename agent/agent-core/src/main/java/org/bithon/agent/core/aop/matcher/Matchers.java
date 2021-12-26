@@ -14,10 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.aop.descriptor;
+package org.bithon.agent.core.aop.matcher;
 
-import org.bithon.agent.core.aop.matcher.NameMatcher;
-import org.bithon.agent.core.aop.matcher.NamesMatcher;
 import shaded.net.bytebuddy.description.NamedElement;
 import shaded.net.bytebuddy.description.annotation.AnnotationDescription;
 import shaded.net.bytebuddy.description.annotation.AnnotationList;
@@ -25,7 +23,6 @@ import shaded.net.bytebuddy.description.annotation.AnnotationSource;
 import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.description.method.ParameterList;
 import shaded.net.bytebuddy.description.modifier.Visibility;
-import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
@@ -39,15 +36,21 @@ import java.util.Set;
  * @author frank.chen021@outlook.com
  * @date 2021/2/20 9:30 下午
  */
-public class MatcherUtils {
-    private static final Logger log = LoggerFactory.getLogger(MatcherUtils.class);
+public class Matchers {
+    private static final Logger log = LoggerFactory.getLogger(Matchers.class);
 
     public static <T extends NamedElement> ElementMatcher.Junction<T> withName(String name) {
-        return new NameMatcher<>(name);
-    }
+        return new ElementMatcher.Junction.AbstractBase<T>() {
+            @Override
+            public boolean matches(T target) {
+                return target.getActualName().equals(name);
+            }
 
-    public static ElementMatcher.Junction<? super TypeDescription> withNames(String... names) {
-        return new NamesMatcher<>(names);
+            @Override
+            public String toString() {
+                return name;
+            }
+        };
     }
 
     public static <T extends MethodDescription> ElementMatcher.Junction<T> takesArguments(int size) {

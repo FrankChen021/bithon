@@ -17,6 +17,7 @@
 package org.bithon.agent.core.aop.descriptor;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
+import org.bithon.agent.core.aop.matcher.Matchers;
 import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
@@ -43,8 +44,8 @@ public class MethodPointCutDescriptorBuilder {
         if (method == null) {
             throw new AgentException("Failed to configure interceptor for 'method' has not been set.");
         }
-        ElementMatcher.Junction<? super MethodDescription> methodMatcher = MatcherUtils.debuggableMatcher(debug,
-                                                                                                          method);
+        ElementMatcher.Junction<? super MethodDescription> methodMatcher = Matchers.debuggableMatcher(debug,
+                                                                                                      method);
         if (argsMatcher != null) {
             methodMatcher = methodMatcher.and(argsMatcher);
         }
@@ -64,27 +65,27 @@ public class MethodPointCutDescriptorBuilder {
     }
 
     public MethodPointCutDescriptorBuilder onAllMethods(String method) {
-        this.method = MatcherUtils.withName(method);
+        this.method = Matchers.withName(method);
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndArgs(String method, String... args) {
-        this.method = MatcherUtils.withName(method);
-        this.argsMatcher = MatcherUtils.createArgumentsMatcher(debug, args);
+        this.method = Matchers.withName(method);
+        this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndRawArgs(String method, String... args) {
-        this.method = MatcherUtils.withName(method);
-        this.argsMatcher = MatcherUtils.createArgumentsMatcher(debug, true, args);
+        this.method = Matchers.withName(method);
+        this.argsMatcher = Matchers.createArgumentsMatcher(debug, true, args);
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
     }
 
     public MethodPointCutDescriptorBuilder onMethodAndNoArgs(String method) {
-        this.method = MatcherUtils.withName(method);
+        this.method = Matchers.withName(method);
         this.argsMatcher = takesNoArguments();
         this.methodType = MethodType.NON_CONSTRUCTOR;
         return this;
@@ -113,7 +114,7 @@ public class MethodPointCutDescriptorBuilder {
             throw new IllegalArgumentException("args should not be null");
         }
         this.method = ElementMatchers.isConstructor();
-        this.argsMatcher = MatcherUtils.createArgumentsMatcher(debug, args);
+        this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
         this.methodType = MethodType.CONSTRUCTOR;
         return this;
     }
@@ -125,7 +126,7 @@ public class MethodPointCutDescriptorBuilder {
     }
 
     public MethodPointCutDescriptorBuilder onArgs(String... args) {
-        this.argsMatcher = MatcherUtils.createArgumentsMatcher(debug, args);
+        this.argsMatcher = Matchers.createArgumentsMatcher(debug, args);
         return this;
     }
 
