@@ -45,8 +45,7 @@ public class JdkHttpClientPlugin implements IPlugin {
                                                    .onMethod(named("New")
                                                                  .and(isStatic())
                                                                  .and(takesArguments(5))
-                                                                 .and(Matchers.takesArgument(4,
-                                                                                             "sun.net.www.protocol.http.HttpURLConnection")))
+                                                                 .and(Matchers.takesArgument(4, "sun.net.www.protocol.http.HttpURLConnection")))
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.HttpClientNewInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
@@ -60,8 +59,7 @@ public class JdkHttpClientPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.HttpClientWriteRequestInterceptor"),
 
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethod(named("parseHTTP").and(Matchers.takesArgument(0,
-                                                                                                           "sun.net.www.MessageHeader")))
+                                                   .onMethod(named("parseHTTP").and(Matchers.takesArgument(0, "sun.net.www.MessageHeader")))
                                                    .to("org.bithon.agent.plugin.httpclient.jdk.HttpClientParseHttpInterceptor")),
 
             // HttpsClient inherits from HttpClient

@@ -14,56 +14,47 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.apache.trace;
+package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
-
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import sun.net.www.MessageHeader;
+
+import java.net.HttpURLConnection;
 
 /**
  * @author frankchen
  */
-public class HttpRequestInterceptor extends AbstractInterceptor {
+public class HttpClient$WriteRequest extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[0];
+        MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
 
-        //
-        // Trace
-        //
-        ITraceSpan span = TraceSpanFactory.newSpan("httpClient");
+        ITraceSpan span = TraceSpanFactory.newSpan("httpClient-jdk");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        // create a span and save it in user-context
+        IBithonObject injectedObject = aopContext.castTargetAs();
+        HttpURLConnection connection = (HttpURLConnection) injectedObject.getInjectedObject();
+
+        /*
+         * starts a span which will be finished after HttpClient.parseHttp
+         */
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag(Tags.URI, httpRequest.getRequestLine().getUri())
-                                      .tag(Tags.HTTP_METHOD, httpRequest.getRequestLine().getMethod())
-                                      .propagate(httpRequest, (request, key, value) -> request.setHeader(key, value))
+                                      .tag(Tags.URI, connection.getURL().toString())
+                                      .tag(Tags.HTTP_METHOD, connection.getRequestMethod())
+                                      .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))
                                       .start());
 
         return InterceptionDecision.CONTINUE;
-    }
-
-    @Override
-    public void onMethodLeave(AopContext context) {
-        ITraceSpan thisSpan = context.castUserContextAs();
-        if (thisSpan == null) {
-            return;
-        }
-
-        HttpResponse response = context.castReturningAs();
-        String status = response.getStatusLine() == null ? "-1" : Integer.toString(response.getStatusLine().getStatusCode());
-        thisSpan.tag("status", status).tag(context.getException()).finish();
     }
 }

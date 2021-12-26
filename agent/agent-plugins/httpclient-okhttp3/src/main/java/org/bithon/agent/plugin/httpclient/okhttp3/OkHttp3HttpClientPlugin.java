@@ -39,7 +39,7 @@ public class OkHttp3HttpClientPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("getResponseWithInterceptorChain")
-                                                   .to("org.bithon.agent.plugin.httpclient.okhttp3.OkHttp3Interceptor")
+                                                   .to("org.bithon.agent.plugin.httpclient.okhttp3.RealCall$GetResponseWithInterceptorChain")
                 )
         );
     }

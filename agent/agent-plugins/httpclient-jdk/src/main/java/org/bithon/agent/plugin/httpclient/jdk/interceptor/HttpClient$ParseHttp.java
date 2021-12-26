@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.jdk;
+package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
@@ -31,7 +31,7 @@ import sun.net.www.protocol.http.HttpURLConnection;
 /**
  * @author frankchen
  */
-public class HttpClientParseHttpInterceptor extends AbstractInterceptor {
+public class HttpClient$ParseHttp extends AbstractInterceptor {
 
     //TODO: jdk-http metrics
     HttpOutgoingMetricsCollector metricCollector;

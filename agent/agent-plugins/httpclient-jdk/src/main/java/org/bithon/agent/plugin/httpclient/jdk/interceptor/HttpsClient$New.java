@@ -14,26 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.jdk;
+package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import sun.net.www.protocol.http.HttpURLConnection;
-
-import java.net.Proxy;
-import java.net.URL;
 
 /**
- * {@link sun.net.www.http.HttpClient#New(URL, Proxy, int, boolean, HttpURLConnection)}
- *
  * @author frank.chen021@outlook.com
- * @date 2021/2/21 11:13 下午
+ * @date 2021/3/14 11:13 下午
  */
-public class HttpClientNewInterceptor extends AbstractInterceptor {
+public class HttpsClient$New extends AbstractInterceptor {
     /**
      * inject HttpURLConnection instance, which creates HttpClient instance, into the instance of HttpClient as its parent
      *
+     * @param aopContext
      */
     @Override
     public void onMethodLeave(AopContext aopContext) {
@@ -43,6 +38,6 @@ public class HttpClientNewInterceptor extends AbstractInterceptor {
             return;
         }
 
-        injectedObject.setInjectedObject(aopContext.getArgs()[4]);
+        injectedObject.setInjectedObject(aopContext.getArgs()[6]);
     }
 }
