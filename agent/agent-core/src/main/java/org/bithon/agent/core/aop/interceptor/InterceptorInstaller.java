@@ -46,6 +46,7 @@ import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.instrument.Instrumentation;
+import java.util.HashSet;
 import java.util.Locale;
 
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
@@ -188,7 +189,7 @@ public class InterceptorInstaller {
     public void installOn(AgentBuilder agentBuilder, Instrumentation inst) {
         agentBuilder
             .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(nameStartsWith("shaded.").or(isSynthetic())))
-            .type(new NameMatcher<>(new StringSetMatcher(descriptors.getTypes())))
+            .type(new NameMatcher<>(new StringSetMatcher(new HashSet<>(descriptors.getTypes()))))
             .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule) -> {
 
                 String type = typeDescription.getTypeName();
@@ -200,7 +201,7 @@ public class InterceptorInstaller {
                 }
 
                 //
-                // Run checkers first to see if a plugin can be installed
+                // Run checkers first to see if an interceptor can be installed
                 //
                 if (CollectionUtils.isNotEmpty(descriptor.getPreconditions())) {
                     for (IInterceptorPrecondition condition : descriptor.getPreconditions()) {
