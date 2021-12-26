@@ -16,9 +16,6 @@
 
 package org.bithon.agent.core.aop.descriptor;
 
-import shaded.net.bytebuddy.description.type.TypeDescription;
-import shaded.net.bytebuddy.matcher.ElementMatcher;
-
 /**
  * Defines which class should be transformed into IBithonObject subclasses
  *
@@ -26,31 +23,27 @@ import shaded.net.bytebuddy.matcher.ElementMatcher;
  * @date 2021/3/27 19:59
  */
 public class BithonClassDescriptor {
-    private final ElementMatcher.Junction<? super TypeDescription> classMatcher;
+    private final String[] classes;
     private final boolean debug;
 
-    private BithonClassDescriptor(ElementMatcher.Junction<? super TypeDescription> classMatcher, boolean debug) {
-        this.classMatcher = classMatcher;
+    private BithonClassDescriptor(String[] classes, boolean debug) {
+        this.classes = classes;
         this.debug = debug;
     }
 
-    public ElementMatcher.Junction<? super TypeDescription> getClassMatcher() {
-        return classMatcher;
+    public static BithonClassDescriptor of(String... clazz) {
+        return new BithonClassDescriptor(clazz, false);
+    }
+
+    public static BithonClassDescriptor of(String clazz, boolean debug) {
+        return new BithonClassDescriptor(new String[]{clazz}, debug);
+    }
+
+    public String[] getClassMatcher() {
+        return classes;
     }
 
     public boolean isDebug() {
         return debug;
-    }
-
-    public static BithonClassDescriptor of(String clazz) {
-        return new BithonClassDescriptor(MatcherUtils.withName(clazz), false);
-    }
-
-    public static BithonClassDescriptor of(String... clazz) {
-        return new BithonClassDescriptor(MatcherUtils.withNames(clazz), false);
-    }
-
-    public static BithonClassDescriptor of(String clazz, boolean debug) {
-        return new BithonClassDescriptor(MatcherUtils.withName(clazz), debug);
     }
 }

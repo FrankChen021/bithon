@@ -32,7 +32,6 @@ import org.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
 import org.bithon.agent.core.aop.matcher.NameMatcher;
-import org.bithon.agent.core.aop.matcher.NamesMatcher;
 import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.utils.CollectionUtils;
 import shaded.net.bytebuddy.NamingStrategy;
@@ -58,7 +57,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -83,36 +81,6 @@ public class InterceptorInstaller {
                                 Instrumentation inst) {
         this.agentBuilder = agentBuilder;
         this.inst = inst;
-    }
-
-    public void transformToBithonClass(BithonClassDescriptor descriptor) {
-        if (descriptor == null) {
-            return;
-        }
-
-        AgentBuilder agentBuilder =
-            this.agentBuilder.type(descriptor.getClassMatcher())
-                             .transform((DynamicType.Builder<?> builder,
-                                         TypeDescription typeDescription,
-                                         ClassLoader classLoader,
-                                         JavaModule javaModule) -> {
-                                 if (typeDescription.isAssignableTo(IBithonObject.class)) {
-                                     return builder;
-                                 }
-
-                                 builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
-                                                               Object.class,
-                                                               ACC_PRIVATE | ACC_VOLATILE)
-                                                  .implement(IBithonObject.class)
-                                                  .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
-
-                                 return builder;
-                             });
-
-        if (descriptor.isDebug()) {
-            agentBuilder = agentBuilder.with(AopDebugger.INSTANCE);
-        }
-        agentBuilder.installOn(inst);
     }
 
     public void installInterceptor(String providerName,
@@ -319,27 +287,16 @@ public class InterceptorInstaller {
         return dot == -1 ? className : className.substring(dot + 1);
     }
 
-    public boolean merge(BithonClassDescriptor bithonClassDescriptor) {
+    public void merge(BithonClassDescriptor bithonClassDescriptor) {
         if (bithonClassDescriptor == null) {
-            return true;
+            return;
         }
-        ElementMatcher.Junction<? super TypeDescription> matcher = bithonClassDescriptor.getClassMatcher();
-
-        if (matcher instanceof NameMatcher) {
-            String name = ((NameMatcher<?>) matcher).getName();
-
-            this.descriptors.computeIfAbsent(name, v -> new Descriptor());
-
-            return true;
-        } else if (matcher instanceof NamesMatcher) {
-            Set<String> names = ((NamesMatcher<?>) matcher).getNames();
-
-            names.forEach(name -> this.descriptors.computeIfAbsent(name, v -> new Descriptor()));
-
-            return true;
+        for (String clazz : bithonClassDescriptor.getClassMatcher()) {
+            Descriptor descriptor = this.descriptors.computeIfAbsent(clazz, v -> new Descriptor());
+            if (bithonClassDescriptor.isDebug()) {
+                descriptor.isDebuggingOn = bithonClassDescriptor.isDebug();
+            }
         }
-
-        return false;
     }
 
     public boolean merge(List<IInterceptorPrecondition> preconditions, List<InterceptorDescriptor> interceptors) {
@@ -440,6 +397,7 @@ public class InterceptorInstaller {
         private final List<IInterceptorPrecondition> preconditions = new ArrayList<>();
         private final List<MethodPointCutDescriptor> methodInterceptors = new ArrayList<>();
         private boolean isBootstrapClass;
+        private boolean isDebuggingOn;
     }
 
     static class IgnoreExclusionMatcher implements AgentBuilder.RawMatcher {
