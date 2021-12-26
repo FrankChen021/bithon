@@ -21,12 +21,12 @@ import org.bithon.agent.controller.setting.IAgentSettingRefreshListener;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import org.bithon.agent.sentinel.expt.SentinelCommandException;
 import org.bithon.agent.sentinel.flow.FlowRuleDto;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
 import shaded.com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import shaded.com.fasterxml.jackson.databind.JsonNode;
 import shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  */
 public class SentinelRuleManager {
 
-    private static final Logger log = LoggerFactory.getLogger(SentinelRuleManager.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(SentinelRuleManager.class);
     private static volatile SentinelRuleManager INSTANCE;
 
     static {

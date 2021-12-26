@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.spring.mvc;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.utils.CollectionUtils;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
@@ -29,7 +29,7 @@ import java.util.Set;
  * frank.chen021@outlook.com
  */
 public class MethodMatchingInterceptor extends AbstractInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(MethodMatchingInterceptor.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(MethodMatchingInterceptor.class);
 
     @Override
     public void onMethodLeave(AopContext aopContext) {

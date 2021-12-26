@@ -31,11 +31,11 @@ import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 /**
  * {@link org.springframework.http.server.reactive.ReactorHttpHandlerAdapter#apply}
@@ -45,7 +45,7 @@ import shaded.org.slf4j.LoggerFactory;
  */
 public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ReactorHttpHandlerAdapter$Apply.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(ReactorHttpHandlerAdapter$Apply.class);
 
     private HttpIncomingMetricsCollector metricCollector;
     private HttpIncomingFilter requestFilter;

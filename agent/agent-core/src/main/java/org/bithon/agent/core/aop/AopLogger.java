@@ -18,8 +18,8 @@ package org.bithon.agent.core.aop;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
 import org.bithon.agent.bootstrap.aop.IAopLogger;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 /**
  * created via reflection from bootstrap aop instances which are loaded by bootstrap class loader
@@ -30,7 +30,7 @@ import shaded.org.slf4j.LoggerFactory;
  */
 public class AopLogger implements IAopLogger {
 
-    private final Logger log;
+    private final ILogAdaptor log;
 
     private AopLogger(Class<?> logClass) {
         this.log = LoggerFactory.getLogger(logClass);

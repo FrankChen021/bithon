@@ -28,8 +28,8 @@ import org.bithon.component.brpc.channel.ClientChannel;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.time.Duration;
 import java.util.List;
@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * @date 2021/6/27 20:14
  */
 public class BrpcTraceMessageChannel implements IMessageChannel {
-    private static final Logger log = LoggerFactory.getLogger(BrpcTraceMessageChannel.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(BrpcTraceMessageChannel.class);
 
     private final ITraceCollector traceCollector;
     private final DispatcherConfig dispatcherConfig;

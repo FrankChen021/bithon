@@ -20,6 +20,8 @@ import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.utils.filter.IMatcher;
 import org.bithon.agent.core.utils.filter.InCollectionMatcher;
 import org.bithon.agent.core.utils.filter.StringEqualMatcher;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.description.field.FieldDescription;
@@ -31,8 +33,6 @@ import shaded.net.bytebuddy.matcher.ElementMatchers;
 import shaded.net.bytebuddy.matcher.NameMatcher;
 import shaded.net.bytebuddy.matcher.StringSetMatcher;
 import shaded.net.bytebuddy.utility.JavaModule;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ import java.util.stream.Stream;
  * @date 2021/7/10 13:05
  */
 public class BeanMethodAopInstaller {
-    private static final Logger log = LoggerFactory.getLogger(BeanMethodAopInstaller.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(BeanMethodAopInstaller.class);
 
     private static final Set<String> PROCESSED = new ConcurrentSkipListSet<>();
     private static Map<String, BeanAopDescriptor> PENDING_DESCRIPTORS = new ConcurrentHashMap<>();

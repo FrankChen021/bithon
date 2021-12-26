@@ -28,8 +28,8 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
 import org.bithon.agent.core.utils.ReflectionUtils;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * @author frankchen
  */
 public class RealCall$GetResponseWithInterceptorChain extends AbstractInterceptor {
-    private static Logger log = LoggerFactory.getLogger(RealCall$GetResponseWithInterceptorChain.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(RealCall$GetResponseWithInterceptorChain.class);
 
     private HttpOutgoingMetricsCollector metricCollector;
     private Set<String> ignoredSuffixes;

@@ -26,8 +26,8 @@ import org.bithon.agent.sentinel.ISentinelListener;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import org.bithon.agent.sentinel.flow.FlowRuleDto;
 import org.bithon.agent.sentinel.servlet.SentinelFilter;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServletRequest;
@@ -39,7 +39,7 @@ import java.util.EnumSet;
  * @author frankchen
  */
 public class StandardContextCtor extends AbstractInterceptor {
-    static Logger log = LoggerFactory.getLogger(StandardContextCtor.class);
+    static ILogAdaptor log = LoggerFactory.getLogger(StandardContextCtor.class);
 
     /**
      * {@link StandardContext#StandardContext()}

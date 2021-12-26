@@ -24,12 +24,12 @@ import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.com.alibaba.druid.sql.visitor.ParameterizedOutputVisitorUtils;
 import shaded.com.alibaba.druid.util.JdbcConstants;
 import shaded.com.fasterxml.jackson.databind.JsonNode;
 import shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,9 +41,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frankchen
  */
 public class StatementMetricCollector implements IMetricCollector, IAgentSettingRefreshListener {
-    private static StatementMetricCollector INSTANCE;
-    private static final Logger log = LoggerFactory.getLogger(StatementMetricCollector.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(StatementMetricCollector.class);
     private static final String MYSQL_COUNTER_NAME = "sql_stats";
+    private static volatile StatementMetricCollector INSTANCE;
     private final Map<String, Map<String, SQLStatementMetrics>> metricMap = new ConcurrentHashMap<>();
     private long sqlTime = 1000;
 

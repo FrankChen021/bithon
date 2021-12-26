@@ -21,31 +21,40 @@ import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.plugin.PluginInterceptorInstaller;
-import shaded.org.apache.log4j.xml.DOMConfigurator;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
-import java.util.Locale;
 import java.util.ServiceLoader;
-
-import static java.io.File.separator;
 
 /**
  * @author frankchen
  */
 public class AgentStarter {
+    private static ILogAdaptor log = LoggerFactory.getLogger(AgentStarter.class);
+
+    /**
+     * The banner is generated at https://manytools.org/hacker-tools/ascii-banner/ with font = 3D-ASCII
+     */
+    private static void showBanner() {
+        log.info("\n ________  ___  _________  ___  ___  ________  ________      \n"
+                 + "|\\   __  \\|\\  \\|\\___   ___\\\\  \\|\\  \\|\\   __  \\|\\   ___  \\    \n"
+                 + "\\ \\  \\|\\ /\\ \\  \\|___ \\  \\_\\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\ \\  \\   \n"
+                 + " \\ \\   __  \\ \\  \\   \\ \\  \\ \\ \\   __  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\  \n"
+                 + "  \\ \\  \\|\\  \\ \\  \\   \\ \\  \\ \\ \\  \\ \\  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\ \n"
+                 + "   \\ \\_______\\ \\__\\   \\ \\__\\ \\ \\__\\ \\__\\ \\_______\\ \\__\\\\ \\__\\\n"
+                 + "    \\|_______|\\|__|    \\|__|  \\|__|\\|__|\\|_______|\\|__| \\|__|\n"
+                 + "Version: {}, {}, Build time:{}\n",
+                 AgentBuildVersion.VERSION,
+                 AgentBuildVersion.SCM_REVISION,
+                 AgentBuildVersion.TIMESTAMP);
+    }
 
     public void start(String agentPath, Instrumentation inst) throws Exception {
-        System.out.printf(Locale.ENGLISH,
-                          "Version: %s, %s, Build time:%s%n%n",
-                          AgentBuildVersion.VERSION,
-                          AgentBuildVersion.SCM_REVISION,
-                          AgentBuildVersion.TIMESTAMP);
+        showBanner();
 
         InstrumentationHelper.setInstance(inst);
-
-        initAgentLogger(agentPath);
 
         //
         // show loaded libs
@@ -55,11 +64,9 @@ public class AgentStarter {
                         .stream()
                         .map(jar -> new File(jar.getName()).getName())
                         .sorted()
-                        .forEach(name -> LoggerFactory.getLogger("AgentClassLoader").info("Found lib {}", name));
+                        .forEach(name -> log.info("Found lib {}", name));
 
         AgentContext agentContext = AgentContext.createInstance(agentPath);
-
-        ensureApplicationTempDirectory(agentContext);
 
         PluginInterceptorInstaller.install(agentContext, inst);
 
@@ -67,40 +74,6 @@ public class AgentStarter {
         for (IAgentInitializer initializer : ServiceLoader.load(IAgentInitializer.class,
                                                                 AgentClassLoader.getClassLoader())) {
             initializer.initialize(agentContext);
-        }
-    }
-
-    private void initAgentLogger(String agentPath) {
-        String logConfigName = "log4j.configuration";
-        String logConfigFile = agentPath + separator + AgentContext.CONF_DIR + separator + "log4j.xml";
-        String oldLogConfig = System.getProperty(logConfigName);
-
-        // replace original property
-        System.setProperty(logConfigName, logConfigFile);
-
-        // log config
-        ClassLoader ctxLoader = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader(AgentClassLoader.getClassLoader());
-            DOMConfigurator.configure(logConfigFile);
-        } finally {
-            Thread.currentThread().setContextClassLoader(ctxLoader);
-        }
-
-        // restore original property
-        if (oldLogConfig != null) {
-            System.setProperty(logConfigName, oldLogConfig);
-        } else {
-            System.clearProperty(logConfigName);
-        }
-    }
-
-    private void ensureApplicationTempDirectory(AgentContext context) {
-        File tmpDir = new File(context.getAgentDirectory() + separator + AgentContext.TMP_DIR + separator +
-                               context.getAppInstance().getQualifiedAppName());
-
-        if (!tmpDir.exists()) {
-            tmpDir.mkdirs();
         }
     }
 }

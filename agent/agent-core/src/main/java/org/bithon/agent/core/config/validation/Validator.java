@@ -17,7 +17,7 @@
 package org.bithon.agent.core.config.validation;
 
 import org.bithon.agent.core.config.ConfigurationProperties;
-import org.bithon.agent.core.utils.lang.StringUtils;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -103,7 +103,8 @@ public class Validator {
         @Override
         public String validate(Annotation annotation, Class<?> objectType, Object value) {
             if (objectType.equals(String.class)) {
-                if (StringUtils.isNotBlank((String) value)) {
+                if (StringUtils.hasText((String) value)) {
+                    // success
                     return null;
                 } else {
                     return ((NotBlank) annotation).message();

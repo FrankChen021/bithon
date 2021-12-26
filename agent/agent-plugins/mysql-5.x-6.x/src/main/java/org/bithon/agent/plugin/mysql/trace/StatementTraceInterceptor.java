@@ -23,14 +23,14 @@ import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 /**
  * @author frankchen
  */
 public class StatementTraceInterceptor extends AbstractInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(StatementTraceInterceptor.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(StatementTraceInterceptor.class);
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {

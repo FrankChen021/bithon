@@ -31,8 +31,8 @@ import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.core.tracing.reporter.ITraceReporter;
 import org.bithon.agent.core.tracing.sampler.ISampler;
 import org.bithon.agent.core.tracing.sampler.SamplerFactory;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @date 2021/2/5 9:42 下午
  */
 public class Tracer {
-    private static final Logger log = LoggerFactory.getLogger(Tracer.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(Tracer.class);
 
     private static volatile Tracer INSTANCE;
 

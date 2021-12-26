@@ -53,8 +53,6 @@ public class Main {
             }
         }
 
-        showBanner();
-
         File agentDirectory = new BootstrapJarLocator().locate(Main.class.getName()).getParentFile();
 
         ClassLoader classLoader = AgentClassLoader.initialize(agentDirectory);
@@ -68,18 +66,5 @@ public class Main {
         } catch (InvocationTargetException e) {
             throw e.getCause();
         }
-    }
-
-    /**
-     * The banner is generated on https://manytools.org/hacker-tools/ascii-banner/ with font = 3D-ASCII
-     */
-    private static void showBanner() {
-        System.out.println(" ________  ___  _________  ___  ___  ________  ________      \n"
-                           + "|\\   __  \\|\\  \\|\\___   ___\\\\  \\|\\  \\|\\   __  \\|\\   ___  \\    \n"
-                           + "\\ \\  \\|\\ /\\ \\  \\|___ \\  \\_\\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\ \\  \\   \n"
-                           + " \\ \\   __  \\ \\  \\   \\ \\  \\ \\ \\   __  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\  \n"
-                           + "  \\ \\  \\|\\  \\ \\  \\   \\ \\  \\ \\ \\  \\ \\  \\ \\  \\\\\\  \\ \\  \\\\ \\  \\ \n"
-                           + "   \\ \\_______\\ \\__\\   \\ \\__\\ \\ \\__\\ \\__\\ \\_______\\ \\__\\\\ \\__\\\n"
-                           + "    \\|_______|\\|__|    \\|__|  \\|__|\\|__|\\|_______|\\|__| \\|__|");
     }
 }

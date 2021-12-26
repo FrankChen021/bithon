@@ -20,9 +20,9 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.quartz.impl.SchedulerRepository;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -31,7 +31,7 @@ import java.util.TimerTask;
  * @author frankchen
  */
 public class QuartzInterceptor extends AbstractInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(QuartzInterceptor.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(QuartzInterceptor.class);
 
     private Dispatcher dispatcher;
 

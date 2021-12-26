@@ -19,14 +19,14 @@ package org.bithon.agent.plugin.quartz2;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 /**
  * @author frankchen
  */
 public class QuartzJobExecutionLogInterceptor extends AbstractInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(QuartzJobExecutionLogInterceptor.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(QuartzJobExecutionLogInterceptor.class);
 
     private QuartzMetricCollector quartzCounter;
 

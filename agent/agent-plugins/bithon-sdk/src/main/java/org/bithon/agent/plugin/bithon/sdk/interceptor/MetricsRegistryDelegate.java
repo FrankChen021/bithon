@@ -34,8 +34,8 @@ import org.bithon.agent.sdk.metric.IMetricValueProvider;
 import org.bithon.agent.sdk.metric.aggregator.LongMax;
 import org.bithon.agent.sdk.metric.aggregator.LongMin;
 import org.bithon.agent.sdk.metric.aggregator.LongSum;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -53,71 +53,15 @@ import java.util.stream.Collectors;
  */
 public class MetricsRegistryDelegate implements IMetricCollector2 {
 
-    private static final Logger log = LoggerFactory.getLogger(MetricsRegistryDelegate.class);
-
-    static class NullMetricValueProvider implements IMetricValueProvider {
-        static NullMetricValueProvider INSTANCE = new NullMetricValueProvider();
-
-        @Override
-        public long value() {
-            return 0;
-        }
-    }
-
-    static class Measurement implements IMeasurement {
-        private final List<String> dimensions;
-        private final Object metricProvider;
-        private final List<Field> metricFields;
-
-        public Object getMetricProvider() {
-            return metricProvider;
-        }
-
-        Measurement(Object metricProvider, List<String> dimensions, List<Field> metricFields) {
-            this.dimensions = dimensions;
-            this.metricProvider = metricProvider;
-            this.metricFields = metricFields;
-        }
-
-        @Override
-        public List<String> getDimensions() {
-            return dimensions;
-        }
-
-        @Override
-        public int getMetricCount() {
-            return this.metricFields.size();
-        }
-
-        @Override
-        public long getMetricValue(int index) {
-            if (index < this.metricFields.size()) {
-
-                Field field = this.metricFields.get(index);
-                try {
-                    IMetricValueProvider provider = (IMetricValueProvider) this.metricFields.get(index).get(metricProvider);
-                    return provider.value();
-                } catch (IllegalAccessException e) {
-                    log.error("Can't get value of [{}] on class [{}]: {}",
-                              field.getName(),
-                              metricProvider.getClass().getName(),
-                              e.getMessage());
-                    return Long.MAX_VALUE;
-                }
-            }
-            return Long.MAX_VALUE;
-        }
-    }
-
+    private static final ILogAdaptor log = LoggerFactory.getLogger(MetricsRegistryDelegate.class);
     private final Supplier<Object> metricInstantiator;
     private final Schema schema;
-    private Map<List<String>, IMeasurement> metricsMap = new ConcurrentHashMap<>();
-
     /**
      * keep metrics that won't be cleared when they have been collected
      */
     private final Map<List<String>, IMeasurement> retainedMetricsMap = new ConcurrentHashMap<>();
     private final List<Field> metricField = new ArrayList<>();
+    private Map<List<String>, IMeasurement> metricsMap = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")
     protected MetricsRegistryDelegate(String name,
@@ -210,5 +154,59 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         metricMap.putAll(retainedMetricsMap);
 
         return messageConverter.from(this.schema, metricMap.values(), timestamp, interval);
+    }
+
+    static class NullMetricValueProvider implements IMetricValueProvider {
+        static NullMetricValueProvider INSTANCE = new NullMetricValueProvider();
+
+        @Override
+        public long value() {
+            return 0;
+        }
+    }
+
+    static class Measurement implements IMeasurement {
+        private final List<String> dimensions;
+        private final Object metricProvider;
+        private final List<Field> metricFields;
+
+        Measurement(Object metricProvider, List<String> dimensions, List<Field> metricFields) {
+            this.dimensions = dimensions;
+            this.metricProvider = metricProvider;
+            this.metricFields = metricFields;
+        }
+
+        public Object getMetricProvider() {
+            return metricProvider;
+        }
+
+        @Override
+        public List<String> getDimensions() {
+            return dimensions;
+        }
+
+        @Override
+        public int getMetricCount() {
+            return this.metricFields.size();
+        }
+
+        @Override
+        public long getMetricValue(int index) {
+            if (index < this.metricFields.size()) {
+
+                Field field = this.metricFields.get(index);
+                try {
+                    IMetricValueProvider provider = (IMetricValueProvider) this.metricFields.get(index).get(metricProvider);
+                    return provider.value();
+                } catch (IllegalAccessException e) {
+                    log.error("Can't get value of [{}] on class [{}]: {}",
+                              field.getName(),
+                              metricProvider.getClass().getName(),
+                              e.getMessage());
+                    return Long.MAX_VALUE;
+                }
+            }
+            return Long.MAX_VALUE;
+        }
     }
 }

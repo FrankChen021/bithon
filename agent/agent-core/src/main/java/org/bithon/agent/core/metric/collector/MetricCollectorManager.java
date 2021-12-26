@@ -21,8 +21,8 @@ import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.utils.CollectionUtils;
 import org.bithon.agent.core.utils.concurrent.NamedThreadFactory;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.List;
 import java.util.Locale;
@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
  * @author frankchen
  */
 public class MetricCollectorManager {
-    private static final Logger log = LoggerFactory.getLogger(MetricCollectorManager.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(MetricCollectorManager.class);
 
     private static final int INTERVAL = 10;
     private static final MetricCollectorManager INSTANCE = new MetricCollectorManager();

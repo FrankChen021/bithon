@@ -30,14 +30,14 @@ import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 /**
  * @author frankchen
  */
 public class DefaultServerConnectionExecuteProtocol extends AbstractInterceptor {
-    static Logger log = LoggerFactory.getLogger(DefaultServerConnectionExecuteProtocol.class);
+    static ILogAdaptor log = LoggerFactory.getLogger(DefaultServerConnectionExecuteProtocol.class);
 
     private MongoDbMetricCollector metricCollector;
 

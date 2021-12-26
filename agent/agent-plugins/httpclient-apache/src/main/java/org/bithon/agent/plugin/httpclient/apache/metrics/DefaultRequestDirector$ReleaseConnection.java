@@ -27,8 +27,8 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.lang.reflect.Field;
 
@@ -39,7 +39,7 @@ import java.lang.reflect.Field;
  * @date 2021/3/15
  */
 public class DefaultRequestDirector$ReleaseConnection extends AbstractInterceptor {
-    private static Logger log = LoggerFactory.getLogger(DefaultRequestDirector$ReleaseConnection.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(DefaultRequestDirector$ReleaseConnection.class);
 
     private HttpOutgoingMetricsCollector metricProvider;
     private Field managedConnectionField;

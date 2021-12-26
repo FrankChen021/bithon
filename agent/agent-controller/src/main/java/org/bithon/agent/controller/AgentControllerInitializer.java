@@ -22,9 +22,9 @@ import org.bithon.agent.controller.setting.AgentSettingManager;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.plugin.PluginClassLoaderManager;
 import org.bithon.agent.core.starter.IAgentInitializer;
-import org.bithon.agent.core.utils.lang.StringUtils;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.StringUtils;
 
 import java.util.ServiceLoader;
 
@@ -33,7 +33,7 @@ import java.util.ServiceLoader;
  * @date 2021/7/1 5:55 下午
  */
 public class AgentControllerInitializer implements IAgentInitializer {
-    private static final Logger log = LoggerFactory.getLogger(AgentControllerInitializer.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(AgentControllerInitializer.class);
 
     @Override
     public void initialize(AgentContext context) throws Exception {

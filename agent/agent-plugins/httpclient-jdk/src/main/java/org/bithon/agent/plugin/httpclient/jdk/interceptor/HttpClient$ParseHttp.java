@@ -24,7 +24,7 @@ import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
-import org.bithon.agent.core.utils.lang.StringUtils;
+import org.bithon.component.commons.utils.StringUtils;
 import sun.net.www.MessageHeader;
 import sun.net.www.protocol.http.HttpURLConnection;
 
@@ -79,7 +79,7 @@ public class HttpClient$ParseHttp extends AbstractInterceptor {
      * It will return 200 and 401 respectively. Returns -1 if no code can be discerned
      */
     private Integer parseStatusCode(String statusLine) {
-        if (!StringUtils.isEmpty(statusLine)) {
+        if (StringUtils.hasText(statusLine)) {
             String[] results = statusLine.split(" ");
             if (results.length >= 1) {
                 try {

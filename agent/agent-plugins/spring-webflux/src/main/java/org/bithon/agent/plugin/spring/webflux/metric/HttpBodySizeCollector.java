@@ -25,9 +25,9 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import reactor.netty.channel.ChannelOperations;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 /**
  * @author Frank ChenØ
@@ -35,7 +35,7 @@ import shaded.org.slf4j.LoggerFactory;
  */
 public abstract class HttpBodySizeCollector extends ChannelDuplexHandler {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(HttpBodySizeCollector.class);
+    protected static final ILogAdaptor LOG = LoggerFactory.getLogger(HttpBodySizeCollector.class);
 
     long dataReceived;
     long dataSent;

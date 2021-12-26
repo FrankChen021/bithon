@@ -11,17 +11,6 @@
   <artifactId>agent-core</artifactId>
 
   <dependencies>
-    <!-- 3rd Dependency -->
-    <dependency>
-      <groupId>org.bithon.shaded</groupId>
-      <artifactId>shaded-slf4j</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.bithon.shaded</groupId>
-      <artifactId>shaded-log4j</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
     <dependency>
       <groupId>org.bithon.shaded</groupId>
       <artifactId>shaded-bytebuddy</artifactId>
@@ -31,6 +20,11 @@
       <groupId>org.bithon.shaded</groupId>
       <artifactId>shaded-jackson</artifactId>
       <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>component-commons</artifactId>
     </dependency>
 
     <!-- provided by target application -->

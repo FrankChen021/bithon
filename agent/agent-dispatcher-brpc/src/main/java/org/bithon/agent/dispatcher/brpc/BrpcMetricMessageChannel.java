@@ -28,8 +28,8 @@ import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -47,12 +47,12 @@ import java.util.stream.Stream;
  * @date 2021/6/27 20:14
  */
 public class BrpcMetricMessageChannel implements IMessageChannel {
-    private static final Logger log = LoggerFactory.getLogger(BrpcMetricMessageChannel.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(BrpcMetricMessageChannel.class);
 
     private final Map<String, Method> sendMethods = new HashMap<>();
     private final DispatcherConfig dispatcherConfig;
-    private BrpcMessageHeader header;
     private final IMetricCollector metricCollector;
+    private BrpcMessageHeader header;
 
     public BrpcMetricMessageChannel(DispatcherConfig dispatcherConfig) {
         Method[] methods = IMetricCollector.class.getDeclaredMethods();
