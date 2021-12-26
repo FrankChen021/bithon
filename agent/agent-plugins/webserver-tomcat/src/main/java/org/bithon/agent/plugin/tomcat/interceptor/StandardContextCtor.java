@@ -26,8 +26,8 @@ import org.bithon.agent.sentinel.ISentinelListener;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
 import org.bithon.agent.sentinel.flow.FlowRuleDto;
 import org.bithon.agent.sentinel.servlet.SentinelFilter;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServletRequest;

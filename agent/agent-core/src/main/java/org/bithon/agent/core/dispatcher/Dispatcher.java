@@ -24,8 +24,8 @@ import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
 import org.bithon.agent.core.dispatcher.task.BlockingQueue;
 import org.bithon.agent.core.dispatcher.task.DispatchTask;
 import org.bithon.agent.core.dispatcher.task.IMessageQueue;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.lang.reflect.Method;
 

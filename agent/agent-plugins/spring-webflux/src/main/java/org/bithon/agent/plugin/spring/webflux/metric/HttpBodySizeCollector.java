@@ -25,8 +25,8 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import reactor.netty.channel.ChannelOperations;
 
 /**

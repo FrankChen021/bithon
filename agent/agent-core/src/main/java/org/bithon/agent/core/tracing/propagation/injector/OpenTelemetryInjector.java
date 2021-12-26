@@ -20,7 +20,7 @@ import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 /**
  * @author frank.chen021@outlook.com

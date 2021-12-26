@@ -38,7 +38,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bithon.component.logging;
+package org.bithon.component.commons.logging;
 
 import org.bithon.component.commons.forbidden.SuppressForbidden;
 

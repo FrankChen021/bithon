@@ -19,8 +19,8 @@ package org.bithon.agent.plugin.thread.threadpool;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.expt.AgentException;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.concurrent.ThreadPoolExecutor;
 

@@ -22,8 +22,8 @@ import org.bithon.agent.core.aop.AopClassGenerator;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.interceptor.InterceptorInstaller;
 import org.bithon.agent.core.context.AgentContext;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 
 import java.io.File;

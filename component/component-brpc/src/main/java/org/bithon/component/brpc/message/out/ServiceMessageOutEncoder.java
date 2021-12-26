@@ -18,8 +18,8 @@ package org.bithon.component.brpc.message.out;
 
 import org.bithon.component.brpc.invocation.ClientInvocationManager;
 import org.bithon.component.brpc.message.ServiceMessageType;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.com.google.protobuf.CodedOutputStream;
 import shaded.io.netty.buffer.ByteBuf;
 import shaded.io.netty.buffer.ByteBufOutputStream;

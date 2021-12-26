@@ -31,7 +31,7 @@
 
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>component-logging</artifactId>
+      <artifactId>component-commons</artifactId>
     </dependency>
 
     <dependency>

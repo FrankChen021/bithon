@@ -23,8 +23,8 @@ import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.plugin.PluginClassLoaderManager;
 import org.bithon.agent.core.starter.IAgentInitializer;
 import org.bithon.agent.core.utils.lang.StringUtils;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.ServiceLoader;
 

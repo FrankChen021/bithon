@@ -23,7 +23,7 @@ import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import org.bithon.agent.core.tracing.reporter.ITraceReporter;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
 import org.bithon.agent.core.utils.time.Clock;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;

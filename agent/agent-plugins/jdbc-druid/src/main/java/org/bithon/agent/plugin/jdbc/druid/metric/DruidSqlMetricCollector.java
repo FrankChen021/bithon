@@ -22,8 +22,8 @@ import org.bithon.agent.core.metric.collector.IMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.plugin.jdbc.druid.DruidPlugin;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;

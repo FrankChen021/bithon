@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.logging.adaptor.slf4j;
+package org.bithon.component.commons.logging.adaptor.slf4j;
 
 
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.ILogAdaptorFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.ILogAdaptorFactory;
 import org.slf4j.Logger;
 import org.slf4j.helpers.NOPLoggerFactory;
 import org.slf4j.spi.LocationAwareLogger;

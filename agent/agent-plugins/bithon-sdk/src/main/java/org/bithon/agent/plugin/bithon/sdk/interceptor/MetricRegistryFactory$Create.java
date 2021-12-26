@@ -27,8 +27,8 @@ import org.bithon.agent.core.utils.lang.StringUtils;
 import org.bithon.agent.sdk.expt.SdkException;
 import org.bithon.agent.sdk.metric.IMetricsRegistry;
 import org.bithon.agent.sdk.metric.MetricRegistryFactory;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

@@ -28,8 +28,8 @@ import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

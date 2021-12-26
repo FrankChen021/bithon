@@ -14,16 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.logging.adaptor.log4j;
+package org.bithon.component.commons.logging.adaptor.jdk;
 
-import org.apache.log4j.Logger;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.ILogAdaptorFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.ILogAdaptorFactory;
 
-public class Log4jLoggerFactory implements ILogAdaptorFactory {
+import java.util.logging.Logger;
+
+public class JdkLoggerFactory implements ILogAdaptorFactory {
 
     @Override
     public ILogAdaptor newLogger(String name) {
-        return new Log4jLogAdaptor(Logger.getLogger(name));
+        return new JdkLogAdaptor(Logger.getLogger(name));
     }
 }

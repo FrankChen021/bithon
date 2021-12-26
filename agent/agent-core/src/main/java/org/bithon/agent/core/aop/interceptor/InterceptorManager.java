@@ -18,8 +18,8 @@ package org.bithon.agent.core.aop.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.core.plugin.PluginClassLoaderManager;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

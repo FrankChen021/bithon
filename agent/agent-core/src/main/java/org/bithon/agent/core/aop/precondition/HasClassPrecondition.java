@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.aop.precondition;
 
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 
 /**

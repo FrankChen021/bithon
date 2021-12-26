@@ -28,8 +28,8 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
 import org.bithon.agent.core.utils.ReflectionUtils;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Locale;

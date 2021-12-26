@@ -21,8 +21,8 @@ import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.utils.CollectionUtils;
 import org.bithon.agent.core.utils.concurrent.NamedThreadFactory;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.List;
 import java.util.Locale;

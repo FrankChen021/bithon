@@ -14,15 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.logging.adaptor.log4j2;
+package org.bithon.component.commons.logging;
 
-import org.apache.logging.log4j.LogManager;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.ILogAdaptorFactory;
-
-public final class Log4j2LogAdaptorFactory implements ILogAdaptorFactory {
-    @Override
-    public ILogAdaptor newLogger(String name) {
-        return new Log4j2LogAdaptor(LogManager.getLogger(name));
-    }
+/**
+ * @author Frank Chen
+ * @date 26/12/21 5:17 PM
+ */
+public interface ILogAdaptorFactory {
+    ILogAdaptor newLogger(String name);
 }

@@ -16,8 +16,8 @@
 
 package org.bithon.agent.plugin.quartz2;
 
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.quartz.impl.SchedulerRepository;
 
 public class Quartz2Monitor {

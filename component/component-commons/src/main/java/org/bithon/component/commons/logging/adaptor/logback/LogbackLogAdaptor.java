@@ -14,16 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.logging.adaptor.slf4j;
+package org.bithon.component.commons.logging.adaptor.logback;
 
-import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.ILogAdaptor;
 import org.slf4j.Logger;
 
-final class Slf4JLogAdaptor implements ILogAdaptor {
+/**
+ * @author Frank Chen
+ * @date 26/12/21 6:35 PM
+ */
+public class LogbackLogAdaptor implements ILogAdaptor {
 
     private final Logger logger;
 
-    Slf4JLogAdaptor(Logger logger) {
+    public LogbackLogAdaptor(Logger logger) {
         this.logger = logger;
     }
 
@@ -53,8 +57,8 @@ final class Slf4JLogAdaptor implements ILogAdaptor {
     }
 
     @Override
-    public void trace(String format, Object... argArray) {
-        logger.trace(format, argArray);
+    public void trace(String format, Object... arguments) {
+        logger.trace(format, arguments);
     }
 
     @Override
@@ -83,8 +87,8 @@ final class Slf4JLogAdaptor implements ILogAdaptor {
     }
 
     @Override
-    public void debug(String format, Object... argArray) {
-        logger.debug(format, argArray);
+    public void debug(String format, Object... arguments) {
+        logger.debug(format, arguments);
     }
 
     @Override
@@ -113,8 +117,8 @@ final class Slf4JLogAdaptor implements ILogAdaptor {
     }
 
     @Override
-    public void info(String format, Object... argArray) {
-        logger.info(format, argArray);
+    public void info(String format, Object... arguments) {
+        logger.info(format, arguments);
     }
 
     @Override
@@ -138,8 +142,8 @@ final class Slf4JLogAdaptor implements ILogAdaptor {
     }
 
     @Override
-    public void warn(String format, Object... argArray) {
-        logger.warn(format, argArray);
+    public void warn(String format, Object... arguments) {
+        logger.warn(format, arguments);
     }
 
     @Override
@@ -173,8 +177,8 @@ final class Slf4JLogAdaptor implements ILogAdaptor {
     }
 
     @Override
-    public void error(String format, Object... argArray) {
-        logger.error(format, argArray);
+    public void error(String format, Object... arguments) {
+        logger.error(format, arguments);
     }
 
     @Override

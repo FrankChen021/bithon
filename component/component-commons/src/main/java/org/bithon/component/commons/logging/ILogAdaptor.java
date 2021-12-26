@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.logging;
+package org.bithon.component.commons.logging;
 
 public interface ILogAdaptor {
 

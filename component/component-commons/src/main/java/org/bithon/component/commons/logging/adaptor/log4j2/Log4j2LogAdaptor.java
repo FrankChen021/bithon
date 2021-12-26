@@ -38,26 +38,46 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package org.bithon.component.logging;
+package org.bithon.component.commons.logging.adaptor.log4j2;
 
-/**
- * Holds the results of formatting done by {@link MessageFormatter}.
- */
-public class FormattingTuple {
 
-    private final String message;
-    private final Throwable throwable;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.spi.ExtendedLogger;
+import org.apache.logging.log4j.spi.ExtendedLoggerWrapper;
+import org.bithon.component.commons.logging.ILogAdaptor;
 
-    FormattingTuple(String message, Throwable throwable) {
-        this.message = message;
-        this.throwable = throwable;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+class Log4j2LogAdaptor extends ExtendedLoggerWrapper implements ILogAdaptor {
+
+    private static final boolean VARARGS_ONLY;
+
+    static {
+        // check if current log4j2 supports vargs
+        VARARGS_ONLY = AccessController.doPrivileged((PrivilegedAction<Boolean>) () -> {
+            try {
+                Logger.class.getMethod("debug", String.class, Object.class);
+                return false;
+            } catch (NoSuchMethodException ignore) {
+                // Log4J2 version too old.
+                return true;
+            } catch (SecurityException ignore) {
+                // We could not detect the version, so we will use Log4J2 if its on the classpath.
+                return false;
+            }
+        });
     }
 
-    public String getMessage() {
-        return message;
+    Log4j2LogAdaptor(Logger logger) {
+        super((ExtendedLogger) logger, logger.getName(), logger.getMessageFactory());
+        if (VARARGS_ONLY) {
+            throw new UnsupportedOperationException("Log4J2 version mismatch");
+        }
     }
 
-    public Throwable getThrowable() {
-        return throwable;
+    @Override
+    public String name() {
+        return getName();
     }
 }

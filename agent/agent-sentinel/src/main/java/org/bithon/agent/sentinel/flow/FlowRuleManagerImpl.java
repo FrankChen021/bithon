@@ -18,8 +18,8 @@ package org.bithon.agent.sentinel.flow;
 
 import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.sentinel.SentinelRuleManager;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;

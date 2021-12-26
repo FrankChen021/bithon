@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.component.logging;
+package org.bithon.component.commons.logging;
 
-import org.bithon.component.logging.adaptor.jdk.JdkLoggerFactory;
-import org.bithon.component.logging.adaptor.log4j.Log4jLoggerFactory;
-import org.bithon.component.logging.adaptor.log4j2.Log4j2LogAdaptorFactory;
-import org.bithon.component.logging.adaptor.logback.LogbackAdaptorFactory;
-import org.bithon.component.logging.adaptor.slf4j.Slf4jLogAdaptorFactory;
+import org.bithon.component.commons.logging.adaptor.jdk.JdkLoggerFactory;
+import org.bithon.component.commons.logging.adaptor.log4j.Log4jLoggerFactory;
+import org.bithon.component.commons.logging.adaptor.log4j2.Log4j2LogAdaptorFactory;
+import org.bithon.component.commons.logging.adaptor.logback.LogbackAdaptorFactory;
+import org.bithon.component.commons.logging.adaptor.slf4j.Slf4jLogAdaptorFactory;
 
 
 public class LoggerFactory {

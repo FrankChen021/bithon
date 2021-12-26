@@ -14,24 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.aop;
+package org.bithon.component.commons.logging.adaptor.logback;
 
 import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.net.bytebuddy.agent.builder.AgentBuilder;
-import shaded.net.bytebuddy.utility.JavaModule;
-
-import java.util.Locale;
+import org.bithon.component.commons.logging.ILogAdaptorFactory;
+import org.slf4j.impl.StaticLoggerBinder;
 
 /**
  * @author Frank Chen
- * @date 26/12/21 1:50 PM
+ * @date 26/12/21 6:35 PM
  */
-public class AopTransformationListener extends AgentBuilder.Listener.Adapter {
-    protected static final ILogAdaptor log = LoggerFactory.getLogger(AopTransformationListener.class);
+public class LogbackAdaptorFactory implements ILogAdaptorFactory {
 
     @Override
-    public void onError(String s, ClassLoader classLoader, JavaModule javaModule, boolean b, Throwable throwable) {
-        log.error(String.format(Locale.ENGLISH, "Failed to transform %s", s), throwable);
+    public ILogAdaptor newLogger(String name) {
+        return new LogbackLogAdaptor(StaticLoggerBinder.getSingleton().getLoggerFactory().getLogger(name));
     }
 }

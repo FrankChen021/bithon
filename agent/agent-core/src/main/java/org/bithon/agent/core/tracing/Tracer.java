@@ -31,8 +31,8 @@ import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.core.tracing.reporter.ITraceReporter;
 import org.bithon.agent.core.tracing.sampler.ISampler;
 import org.bithon.agent.core.tracing.sampler.SamplerFactory;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;

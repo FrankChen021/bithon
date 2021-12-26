@@ -20,8 +20,8 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.quartz.impl.SchedulerRepository;
 
 import java.util.Timer;

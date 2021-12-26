@@ -21,7 +21,7 @@ import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.plugin.PluginInterceptorInstaller;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;

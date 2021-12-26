@@ -18,8 +18,8 @@ package org.bithon.agent.core.context;
 
 import org.bithon.agent.core.utils.NetworkUtils;
 import org.bithon.agent.core.utils.lang.StringUtils;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.net.InetAddress;
 import java.util.ArrayList;

@@ -19,8 +19,8 @@ package org.bithon.agent.plugin.quartz2;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.quartz.core.JobRunShell;
 import org.quartz.impl.JobExecutionContextImpl;
 

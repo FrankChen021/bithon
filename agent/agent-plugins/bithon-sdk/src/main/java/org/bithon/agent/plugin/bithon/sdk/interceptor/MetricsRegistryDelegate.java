@@ -34,8 +34,8 @@ import org.bithon.agent.sdk.metric.IMetricValueProvider;
 import org.bithon.agent.sdk.metric.aggregator.LongMax;
 import org.bithon.agent.sdk.metric.aggregator.LongMin;
 import org.bithon.agent.sdk.metric.aggregator.LongSum;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

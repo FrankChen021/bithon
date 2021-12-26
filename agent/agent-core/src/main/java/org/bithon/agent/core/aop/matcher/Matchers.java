@@ -16,8 +16,8 @@
 
 package org.bithon.agent.core.aop.matcher;
 
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.net.bytebuddy.description.NamedElement;
 import shaded.net.bytebuddy.description.annotation.AnnotationDescription;
 import shaded.net.bytebuddy.description.annotation.AnnotationList;

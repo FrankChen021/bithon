@@ -39,9 +39,9 @@
  */
 
 
-package org.bithon.component.logging.adaptor.slf4j;
+package org.bithon.component.commons.logging.adaptor.slf4j;
 
-import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.ILogAdaptor;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.spi.LocationAwareLogger;
 

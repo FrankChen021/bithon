@@ -17,8 +17,8 @@
 package org.bithon.agent.core.dispatcher.task;
 
 import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
-import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggerFactory;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;

@@ -1,17 +1,29 @@
-package org.bithon.component.logging.adaptor.logback;
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
 
-import org.bithon.component.logging.ILogAdaptor;
+package org.bithon.component.commons.logging.adaptor.slf4j;
+
+import org.bithon.component.commons.logging.ILogAdaptor;
 import org.slf4j.Logger;
 
-/**
- * @author Frank Chen
- * @date 26/12/21 6:35 PM
- */
-public class LogbackLogAdaptor implements ILogAdaptor {
+final class Slf4JLogAdaptor implements ILogAdaptor {
 
     private final Logger logger;
 
-    public LogbackLogAdaptor(Logger logger) {
+    Slf4JLogAdaptor(Logger logger) {
         this.logger = logger;
     }
 
@@ -41,8 +53,8 @@ public class LogbackLogAdaptor implements ILogAdaptor {
     }
 
     @Override
-    public void trace(String format, Object... arguments) {
-        logger.trace(format, arguments);
+    public void trace(String format, Object... argArray) {
+        logger.trace(format, argArray);
     }
 
     @Override
@@ -71,8 +83,8 @@ public class LogbackLogAdaptor implements ILogAdaptor {
     }
 
     @Override
-    public void debug(String format, Object... arguments) {
-        logger.debug(format, arguments);
+    public void debug(String format, Object... argArray) {
+        logger.debug(format, argArray);
     }
 
     @Override
@@ -101,8 +113,8 @@ public class LogbackLogAdaptor implements ILogAdaptor {
     }
 
     @Override
-    public void info(String format, Object... arguments) {
-        logger.info(format, arguments);
+    public void info(String format, Object... argArray) {
+        logger.info(format, argArray);
     }
 
     @Override
@@ -126,8 +138,8 @@ public class LogbackLogAdaptor implements ILogAdaptor {
     }
 
     @Override
-    public void warn(String format, Object... arguments) {
-        logger.warn(format, arguments);
+    public void warn(String format, Object... argArray) {
+        logger.warn(format, argArray);
     }
 
     @Override
@@ -161,8 +173,8 @@ public class LogbackLogAdaptor implements ILogAdaptor {
     }
 
     @Override
-    public void error(String format, Object... arguments) {
-        logger.error(format, arguments);
+    public void error(String format, Object... argArray) {
+        logger.error(format, argArray);
     }
 
     @Override
