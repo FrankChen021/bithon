@@ -42,6 +42,14 @@ public class StringUtils {
         return (str != null && !str.isEmpty() && containsText(str));
     }
 
+    public static boolean isEmpty(String v) {
+        return v == null || v.trim().isEmpty();
+    }
+
+    public static boolean isBlank(String str) {
+        return !hasText(str);
+    }
+
     /**
      * @param timestamp timestamp in millisecond
      */
