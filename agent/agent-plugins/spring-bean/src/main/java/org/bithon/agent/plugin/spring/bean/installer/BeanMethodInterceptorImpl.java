@@ -53,17 +53,17 @@ public class BeanMethodInterceptorImpl implements IBeanMethodInterceptor {
 
         String component = componentNames.computeIfAbsent(method.getDeclaringClass(), beanClass -> {
             if (beanClass.isAnnotationPresent(RestController.class)) {
-                return "restController";
+                return "rest-controller";
             } else if (beanClass.isAnnotationPresent(Controller.class)) {
                 return "controller";
             } else if (beanClass.isAnnotationPresent(Service.class)) {
-                return "springService";
+                return "spring-service";
             } else if (beanClass.isAnnotationPresent(Repository.class)) {
-                return "springRepository";
+                return "spring-repository";
             } else if (beanClass.isAnnotationPresent(Component.class)) {
-                return "springComponent";
+                return "spring-component";
             } else {
-                return "springBean";
+                return "spring-bean";
             }
         });
 
