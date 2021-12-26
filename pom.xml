@@ -24,6 +24,7 @@
 
   <modules>
     <module>component/component-commons</module>
+    <module>component/component-logging</module>
     <module>component/component-brpc</module>
     <module>component/agent-rpc-brpc</module>
     <module>agent</module>
@@ -76,6 +77,11 @@
         <version>1.18.20</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.bithon</groupId>
+        <artifactId>component-logging</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
         <artifactId>component-brpc</artifactId>

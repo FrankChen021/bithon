@@ -14,11 +14,8 @@
         <module>shaded-alibaba-sentinel</module>
         <module>shaded-bytebuddy</module>
         <module>shaded-jackson</module>
-        <module>shaded-log4j</module>
-        <module>shaded-log4j2</module>
         <module>shaded-netty</module>
         <module>shaded-protobuf</module>
-        <module>shaded-slf4j</module>
     </modules>
     <build>
         <pluginManagement>

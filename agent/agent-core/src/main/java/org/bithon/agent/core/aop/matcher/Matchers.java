@@ -16,6 +16,8 @@
 
 package org.bithon.agent.core.aop.matcher;
 
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 import shaded.net.bytebuddy.description.NamedElement;
 import shaded.net.bytebuddy.description.annotation.AnnotationDescription;
 import shaded.net.bytebuddy.description.annotation.AnnotationList;
@@ -24,8 +26,6 @@ import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.description.method.ParameterList;
 import shaded.net.bytebuddy.description.modifier.Visibility;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -37,7 +37,7 @@ import java.util.Set;
  * @date 2021/2/20 9:30 下午
  */
 public class Matchers {
-    private static final Logger log = LoggerFactory.getLogger(Matchers.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(Matchers.class);
 
     public static <T extends NamedElement> ElementMatcher.Junction<T> withName(String name) {
         return new ElementMatcher.Junction.AbstractBase<T>() {

@@ -25,6 +25,8 @@ import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 import shaded.io.netty.bootstrap.Bootstrap;
 import shaded.io.netty.channel.Channel;
 import shaded.io.netty.channel.ChannelHandlerContext;
@@ -38,8 +40,6 @@ import shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import shaded.io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import shaded.io.netty.handler.codec.LengthFieldPrepender;
 import shaded.io.netty.util.concurrent.Future;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.time.Duration;
@@ -50,12 +50,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * Should only be used at the client side
  */
 public class ClientChannel implements IChannelWriter, Closeable {
-    private static final Logger log = LoggerFactory.getLogger(ClientChannel.class);
-
     //
     // channel
     //
     public static final int MAX_RETRY = 30;
+    private static final ILogAdaptor log = LoggerFactory.getLogger(ClientChannel.class);
     private final Bootstrap bootstrap;
     private final AtomicReference<Channel> channel = new AtomicReference<>();
     private final IEndPointProvider endPointProvider;

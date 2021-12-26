@@ -19,10 +19,10 @@ package org.bithon.agent.plugin.quartz2;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 import org.quartz.core.JobRunShell;
 import org.quartz.impl.JobExecutionContextImpl;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  */
 public class QuartzMetricCollector implements IMetricCollector {
     static final String COUNTER_NAME = "quartz2";
-    private static final Logger log = LoggerFactory.getLogger(QuartzMetricCollector.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(QuartzMetricCollector.class);
     private static final String JOB_NAME = "jobName";
     private static final String JOB_CLASS = "jobClass";
     private static final String JOB_START_TIME = "jobStartTime";

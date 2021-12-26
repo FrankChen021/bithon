@@ -32,6 +32,8 @@ import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
 import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.utils.CollectionUtils;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.dynamic.DynamicType;
@@ -42,8 +44,6 @@ import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
 import shaded.net.bytebuddy.matcher.NameMatcher;
 import shaded.net.bytebuddy.matcher.StringSetMatcher;
 import shaded.net.bytebuddy.utility.JavaModule;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.instrument.Instrumentation;
 import java.util.HashSet;
@@ -60,7 +60,7 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
  * @date 2021/1/24 9:24 下午
  */
 public class InterceptorInstaller {
-    private static final Logger log = LoggerFactory.getLogger(InterceptorInstaller.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(InterceptorInstaller.class);
 
     private final Descriptors descriptors;
 

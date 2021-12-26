@@ -29,15 +29,15 @@ import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 /**
  * @author frankchen
  * @date 2021-03-27 16:30
  */
 public class DefaultServerConnection {
-    static Logger log = LoggerFactory.getLogger(DefaultServerConnection.class);
+    static ILogAdaptor log = LoggerFactory.getLogger(DefaultServerConnection.class);
 
     /**
      * {@link com.mongodb.connection.DefaultServerConnection#executeProtocol(com.mongodb.connection.Protocol)}

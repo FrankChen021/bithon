@@ -22,14 +22,14 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 /**
  * @author frankchen
  */
 public class DruidTraceHandler extends AbstractInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(DruidTraceHandler.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(DruidTraceHandler.class);
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {

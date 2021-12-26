@@ -19,7 +19,7 @@ package org.bithon.agent.core.dispatcher;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
 import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;

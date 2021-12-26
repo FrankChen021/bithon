@@ -27,8 +27,8 @@ import org.bithon.agent.core.utils.lang.StringUtils;
 import org.bithon.agent.sdk.expt.SdkException;
 import org.bithon.agent.sdk.metric.IMetricsRegistry;
 import org.bithon.agent.sdk.metric.MetricRegistryFactory;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -44,7 +44,7 @@ import java.util.List;
  */
 public class MetricRegistryFactory$Create implements IReplacementInterceptor {
 
-    private static final Logger log = LoggerFactory.getLogger(MetricRegistryFactory$Create.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(MetricRegistryFactory$Create.class);
 
     @Override
     public Object onExecute(Object[] args) {

@@ -18,8 +18,8 @@ package org.bithon.agent.sentinel.flow;
 
 import org.bithon.agent.controller.cmd.IAgentCommand;
 import org.bithon.agent.sentinel.SentinelRuleManager;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
@@ -29,7 +29,7 @@ import java.util.Set;
  * @date 2021/7/5 7:54 下午
  */
 public class FlowRuleManagerImpl implements IFlowRuleManager, IAgentCommand {
-    private static final Logger log = LoggerFactory.getLogger(FlowRuleManagerImpl.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(FlowRuleManagerImpl.class);
 
     @Override
     public void create(FlowRuleDto request) {

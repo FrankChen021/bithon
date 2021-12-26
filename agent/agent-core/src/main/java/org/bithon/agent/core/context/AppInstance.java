@@ -18,8 +18,8 @@ package org.bithon.agent.core.context;
 
 import org.bithon.agent.core.utils.NetworkUtils;
 import org.bithon.agent.core.utils.lang.StringUtils;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import java.util.List;
  * @date 2021/1/21 9:58 下午
  */
 public class AppInstance {
-    private static final Logger log = LoggerFactory.getLogger(AppInstance.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(AppInstance.class);
 
     private final String appName;
     private final String qualifiedAppName;

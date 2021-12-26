@@ -18,6 +18,8 @@ package org.bithon.component.brpc.message.out;
 
 import org.bithon.component.brpc.invocation.ClientInvocationManager;
 import org.bithon.component.brpc.message.ServiceMessageType;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 import shaded.com.google.protobuf.CodedOutputStream;
 import shaded.io.netty.buffer.ByteBuf;
 import shaded.io.netty.buffer.ByteBufOutputStream;
@@ -26,20 +28,9 @@ import shaded.io.netty.channel.ChannelHandlerContext;
 import shaded.io.netty.channel.ChannelPromise;
 import shaded.io.netty.handler.codec.EncoderException;
 import shaded.io.netty.handler.codec.MessageToByteEncoder;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessageOut> {
-    private static final Logger log = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);
-
-    static class ServiceMessageEncodingException extends EncoderException {
-        final ServiceMessageOut out;
-
-        public ServiceMessageEncodingException(ServiceMessageOut out, Throwable cause) {
-            super(cause);
-            this.out = out;
-        }
-    }
+    private static final ILogAdaptor log = LoggerFactory.getLogger(ServiceMessageOutEncoder.class);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ServiceMessageOut msg, ByteBuf out) {
@@ -73,5 +64,14 @@ public class ServiceMessageOutEncoder extends MessageToByteEncoder<ServiceMessag
 
             log.error("Exception when encoding out message", cause);
         }));
+    }
+
+    static class ServiceMessageEncodingException extends EncoderException {
+        final ServiceMessageOut out;
+
+        public ServiceMessageEncodingException(ServiceMessageOut out, Throwable cause) {
+            super(cause);
+            this.out = out;
+        }
     }
 }

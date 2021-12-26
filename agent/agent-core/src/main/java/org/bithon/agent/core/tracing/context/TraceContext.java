@@ -23,7 +23,7 @@ import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import org.bithon.agent.core.tracing.reporter.ITraceReporter;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
 import org.bithon.agent.core.utils.time.Clock;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,7 +103,7 @@ class TraceContext implements ITraceContext {
         try {
             this.reporter.report(this.spans);
         } catch (Throwable e) {
-            LoggerFactory.getLogger(TraceContext.class).error("Exception occured when finish a context", e);
+            LoggerFactory.getLogger(TraceContext.class).error("Exception occurred when finish a context", e);
         }
     }
 

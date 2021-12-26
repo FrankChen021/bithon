@@ -23,9 +23,9 @@ import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 import redis.clients.jedis.Client;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
@@ -35,7 +35,7 @@ import java.util.Set;
  * @author frankchen
  */
 public class JedisClientTraceHandler extends AbstractInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(JedisClientTraceHandler.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(JedisClientTraceHandler.class);
     //TODO: move the configuration
     private final Set<String> ignoreCommands = new HashSet<>();
 

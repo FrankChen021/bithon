@@ -16,12 +16,12 @@
 
 package org.bithon.agent.plugin.quartz2;
 
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 import org.quartz.impl.SchedulerRepository;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 public class Quartz2Monitor {
-    private static final Logger log = LoggerFactory.getLogger(Quartz2Monitor.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(Quartz2Monitor.class);
 
     private static SchedulerRepository schedulerRepository;
 

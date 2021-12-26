@@ -22,9 +22,9 @@ import org.bithon.agent.core.aop.AopClassGenerator;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.interceptor.InterceptorInstaller;
 import org.bithon.agent.core.context.AgentContext;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -42,7 +42,7 @@ import java.util.zip.ZipFile;
  */
 public class PluginInterceptorInstaller {
 
-    private static final Logger log = LoggerFactory.getLogger(PluginInterceptorInstaller.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(PluginInterceptorInstaller.class);
 
     public static void install(AgentContext agentContext, Instrumentation inst) {
         // create plugin class loader first

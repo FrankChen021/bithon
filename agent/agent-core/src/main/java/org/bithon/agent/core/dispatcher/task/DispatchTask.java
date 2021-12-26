@@ -17,8 +17,8 @@
 package org.bithon.agent.core.dispatcher.task;
 
 import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -28,7 +28,7 @@ import java.util.function.Consumer;
  */
 public class DispatchTask {
 
-    private static final Logger log = LoggerFactory.getLogger(DispatchTask.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(DispatchTask.class);
 
     private final Consumer<Object> messageConsumer;
     private final long gcPeriod;

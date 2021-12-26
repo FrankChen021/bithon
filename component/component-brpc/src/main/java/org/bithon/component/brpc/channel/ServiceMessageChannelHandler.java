@@ -24,18 +24,18 @@ import org.bithon.component.brpc.message.ServiceMessage;
 import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 import shaded.io.netty.channel.ChannelHandler;
 import shaded.io.netty.channel.ChannelHandlerContext;
 import shaded.io.netty.channel.ChannelInboundHandlerAdapter;
 import shaded.io.netty.handler.codec.DecoderException;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 @ChannelHandler.Sharable
 public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
-    private static final Logger log = LoggerFactory.getLogger(ServiceMessageChannelHandler.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(ServiceMessageChannelHandler.class);
 
     private final IServiceInvocationExecutor invoker;
     private final ServiceRegistry serviceRegistry;

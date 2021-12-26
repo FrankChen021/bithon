@@ -19,11 +19,11 @@ package org.bithon.agent.controller.setting;
 
 import org.bithon.agent.controller.IAgentController;
 import org.bithon.agent.core.utils.CollectionUtils;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import shaded.com.fasterxml.jackson.databind.JsonNode;
 import shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frank.chen021@outlook.com
  */
 public class AgentSettingManager {
-    private static final Logger log = LoggerFactory.getLogger(AgentSettingManager.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(AgentSettingManager.class);
 
     private static AgentSettingManager INSTANCE = null;
 
@@ -53,8 +53,14 @@ public class AgentSettingManager {
     private Map<String, JsonNode> latestSettings = Collections.emptyMap();
     private ObjectMapper om;
 
-    public Map<String, JsonNode> getLatestSettings() {
-        return latestSettings;
+    private AgentSettingManager(String appName, String env, IAgentController controller) {
+        this.appName = appName;
+        this.env = env;
+        this.controller = controller;
+        this.listeners = new ConcurrentHashMap<>();
+        this.om = new ObjectMapper();
+        om.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     public static void createInstance(String appName, String env, IAgentController controller) {
@@ -66,14 +72,8 @@ public class AgentSettingManager {
         return INSTANCE;
     }
 
-    private AgentSettingManager(String appName, String env, IAgentController controller) {
-        this.appName = appName;
-        this.env = env;
-        this.controller = controller;
-        this.listeners = new ConcurrentHashMap<>();
-        this.om = new ObjectMapper();
-        om.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    public Map<String, JsonNode> getLatestSettings() {
+        return latestSettings;
     }
 
     public void register(String name, IAgentSettingRefreshListener listener) {

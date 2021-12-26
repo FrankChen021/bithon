@@ -29,8 +29,8 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
 import org.bithon.agent.core.utils.ReflectionUtils;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @author frankchen
  */
 public class RealCall$GetResponseWithInterceptorChain extends AbstractInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(RealCall$GetResponseWithInterceptorChain.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(RealCall$GetResponseWithInterceptorChain.class);
 
     private HttpOutgoingMetricsCollector metricCollector;
     private Set<String> ignoredSuffixes;
@@ -51,7 +51,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AbstractIntercepto
     @Override
     public boolean initialize() {
         ignoredSuffixes = Arrays.stream("html, js, css, jpg, gif, png, swf, ttf, ico, woff, woff2, json, eot, svg".split(
-            ","))
+                                    ","))
                                 .map(x -> x.trim().toLowerCase(Locale.ENGLISH))
                                 .collect(Collectors.toSet());
 

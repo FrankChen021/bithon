@@ -16,10 +16,10 @@
 
 package org.bithon.agent.core.aop;
 
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.utility.JavaModule;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
 
 import java.util.Locale;
 
@@ -28,7 +28,7 @@ import java.util.Locale;
  * @date 26/12/21 1:50 PM
  */
 public class AopTransformationListener extends AgentBuilder.Listener.Adapter {
-    protected static final Logger log = LoggerFactory.getLogger(AopTransformationListener.class);
+    protected static final ILogAdaptor log = LoggerFactory.getLogger(AopTransformationListener.class);
 
     @Override
     public void onError(String s, ClassLoader classLoader, JavaModule javaModule, boolean b, Throwable throwable) {

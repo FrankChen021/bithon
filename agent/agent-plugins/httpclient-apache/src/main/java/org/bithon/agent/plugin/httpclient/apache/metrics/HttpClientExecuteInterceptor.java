@@ -29,8 +29,8 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -42,7 +42,7 @@ import java.util.Set;
  * @author frankchen
  */
 public class HttpClientExecuteInterceptor extends AbstractInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(HttpClientExecuteInterceptor.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(HttpClientExecuteInterceptor.class);
     private static final Set<String> IGNORED_SUFFIXES = new HashSet<>();
     private HttpOutgoingMetricsCollector metricCollector;
     private boolean isNewVersion = true;

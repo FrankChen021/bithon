@@ -22,8 +22,8 @@ import org.bithon.agent.core.metric.collector.IMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.plugin.jdbc.druid.DruidPlugin;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,7 +36,7 @@ import java.util.List;
  * @author frankchen
  */
 public class DruidSqlMetricCollector implements IMetricCollector {
-    private static final Logger log = LoggerFactory.getLogger(DruidSqlMetricCollector.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(DruidSqlMetricCollector.class);
 
     public void update(String methodName,
                        String connectionString,

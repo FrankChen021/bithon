@@ -24,8 +24,8 @@ import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
 import org.bithon.agent.core.dispatcher.task.BlockingQueue;
 import org.bithon.agent.core.dispatcher.task.DispatchTask;
 import org.bithon.agent.core.dispatcher.task.IMessageQueue;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.lang.reflect.Method;
 
@@ -33,7 +33,7 @@ import java.lang.reflect.Method;
  * @author frankchen
  */
 public class Dispatcher {
-    private static final Logger log = LoggerFactory.getLogger(Dispatcher.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(Dispatcher.class);
 
     private final String dispatcherName;
     private final IMessageConverter messageConverter;

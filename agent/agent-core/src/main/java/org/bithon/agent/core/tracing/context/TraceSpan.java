@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.tracing.context;
 
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.lang.reflect.Executable;
 import java.util.HashMap;

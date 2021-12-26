@@ -23,15 +23,15 @@ import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 /**
  * @author frankchen
  * @date 2021-03-27 16:30
  */
 public class ConnectionMessagesSentEvent {
-    private static final Logger log = LoggerFactory.getLogger(ConnectionMessagesSentEvent.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(ConnectionMessagesSentEvent.class);
 
     public static class Constructor extends AbstractInterceptor {
         private MongoDbMetricCollector metricCollector;

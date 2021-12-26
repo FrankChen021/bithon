@@ -28,8 +28,8 @@ import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.time.Duration;
 import java.util.List;
@@ -38,14 +38,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- *
  * A controller that accepts and serves commands from remote server
  *
  * @author frank.chen021@outlook.com
  * @date 2021/6/28 10:41 上午
  */
 public class BrpcAgentController implements IAgentController {
-    private static final Logger log = LoggerFactory.getLogger(BrpcAgentController.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(BrpcAgentController.class);
 
     private final ClientChannel channel;
     private final ISettingFetcher fetcher;

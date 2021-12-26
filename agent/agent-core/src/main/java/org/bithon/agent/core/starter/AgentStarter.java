@@ -21,8 +21,7 @@ import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.plugin.PluginInterceptorInstaller;
-import shaded.org.apache.log4j.xml.DOMConfigurator;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
@@ -71,6 +70,7 @@ public class AgentStarter {
     }
 
     private void initAgentLogger(String agentPath) {
+        /*
         String logConfigName = "log4j.configuration";
         String logConfigFile = agentPath + separator + AgentContext.CONF_DIR + separator + "log4j.xml";
         String oldLogConfig = System.getProperty(logConfigName);
@@ -93,6 +93,7 @@ public class AgentStarter {
         } else {
             System.clearProperty(logConfigName);
         }
+         */
     }
 
     private void ensureApplicationTempDirectory(AgentContext context) {

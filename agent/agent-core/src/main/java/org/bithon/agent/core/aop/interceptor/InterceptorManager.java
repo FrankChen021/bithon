@@ -18,8 +18,8 @@ package org.bithon.agent.core.aop.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.core.plugin.PluginClassLoaderManager;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,7 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author frankchen
  */
 class InterceptorManager {
-    private static final Logger log = LoggerFactory.getLogger(InterceptorManager.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(InterceptorManager.class);
 
     private static final Map<String, Object> INTERCEPTORS = new ConcurrentHashMap<>();
 

@@ -23,8 +23,8 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.redis.RedisMetricCollector;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.lang.reflect.Field;
 
@@ -33,7 +33,7 @@ import java.lang.reflect.Field;
  * @date Dec 27, 2020 11:14:08 PM
  */
 public class JedisOutputStreamFlushBuffer extends AbstractInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(JedisOutputStreamFlushBuffer.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(JedisOutputStreamFlushBuffer.class);
 
     private Field countField;
     private RedisMetricCollector metricCollector;

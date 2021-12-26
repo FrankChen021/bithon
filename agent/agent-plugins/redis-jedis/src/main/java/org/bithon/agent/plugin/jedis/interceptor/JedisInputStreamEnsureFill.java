@@ -22,8 +22,8 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.redis.RedisMetricCollector;
-import shaded.org.slf4j.Logger;
-import shaded.org.slf4j.LoggerFactory;
+import org.bithon.component.logging.ILogAdaptor;
+import org.bithon.component.logging.LoggerFactory;
 
 import java.lang.reflect.Field;
 
@@ -32,7 +32,7 @@ import java.lang.reflect.Field;
  * @date Dec 26, 2020 12:11:14 PM
  */
 public class JedisInputStreamEnsureFill extends AbstractInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(JedisInputStreamEnsureFill.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(JedisInputStreamEnsureFill.class);
 
     private Field countField = null;
     private Field limitField = null;
