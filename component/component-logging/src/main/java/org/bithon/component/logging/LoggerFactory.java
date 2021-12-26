@@ -19,6 +19,7 @@ package org.bithon.component.logging;
 import org.bithon.component.logging.adaptor.jdk.JdkLoggerFactory;
 import org.bithon.component.logging.adaptor.log4j.Log4jLoggerFactory;
 import org.bithon.component.logging.adaptor.log4j2.Log4j2LogAdaptorFactory;
+import org.bithon.component.logging.adaptor.logback.LogbackAdaptorFactory;
 import org.bithon.component.logging.adaptor.slf4j.Slf4jLogAdaptorFactory;
 
 
@@ -38,6 +39,7 @@ public class LoggerFactory {
 
             Class<?>[] factoryClassList = new Class[]{
                 Slf4jLogAdaptorFactory.class,
+                LogbackAdaptorFactory.class,
                 Log4j2LogAdaptorFactory.class,
                 Log4jLoggerFactory.class,
                 JdkLoggerFactory.class
