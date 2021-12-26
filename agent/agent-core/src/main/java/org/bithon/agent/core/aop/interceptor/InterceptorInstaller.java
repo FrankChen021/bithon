@@ -48,6 +48,7 @@ import shaded.org.slf4j.LoggerFactory;
 import java.lang.instrument.Instrumentation;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
@@ -187,9 +188,11 @@ public class InterceptorInstaller {
     }
 
     public void installOn(AgentBuilder agentBuilder, Instrumentation inst) {
+        Set<String> types = new HashSet<>(descriptors.getTypes());
+
         agentBuilder
             .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(nameStartsWith("shaded.").or(isSynthetic())))
-            .type(new NameMatcher<>(new StringSetMatcher(new HashSet<>(descriptors.getTypes()))))
+            .type(new NameMatcher<>(new StringSetMatcher(types)))
             .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule) -> {
 
                 String type = typeDescription.getTypeName();
@@ -237,6 +240,6 @@ public class InterceptorInstaller {
                 }
                 return builder;
             })
-            .with(AopDebugger.INSTANCE).installOn(inst);
+            .with(new AopDebugger(types)).installOn(inst);
     }
 }

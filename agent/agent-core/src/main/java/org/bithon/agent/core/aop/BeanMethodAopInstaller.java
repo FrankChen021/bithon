@@ -163,7 +163,7 @@ public class BeanMethodAopInstaller {
                                                                      .on(new BeanMethodModifierMatcher().and((method -> !propertyMethods.contains(method.getName())
                                                                                                                         && !excludedMethods.matches(method.getName())))));
                                       })
-                                      .with(AopDebugger.INSTANCE)
+                                      .with(new AopTransformationListener())
                                       .installOn(InstrumentationHelper.getInstance());
         }
     }
