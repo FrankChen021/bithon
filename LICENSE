@@ -222,3 +222,16 @@ SOURCE/JAVA-SERVER
     * hooks/pre-push.sh
     * setup-hooks.sh
 
+qos.ch
+================================
+
+  This product contains logging framework code adapted from qos.ch
+    * component/component-logging/src/main/java/org/bithon/component/logging/adaptor/jdk/JdkLogAdaptor.java
+    * component/component-logging/src/main/java/org/bithon/component/logging/adaptor/log4j/Log4jLogAdaptor.java
+    * component/component-logging/src/main/java/org/bithon/component/logging/adaptor/log4j2/Log4j2LogAdaptor.java
+    * component/component-logging/src/main/java/org/bithon/component/logging/adaptor/slf4j/LocationAwareSlf4jLogAdaptor.java
+    * component/component-logging/src/main/java/org/bithon/component/logging/FormattingTuple.java
+    * component/component-logging/src/main/java/org/bithon/component/logging/MessageFormatter.java
+
+
+
