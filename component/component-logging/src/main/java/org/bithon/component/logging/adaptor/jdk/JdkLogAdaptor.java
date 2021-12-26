@@ -40,22 +40,20 @@
 
 package org.bithon.component.logging.adaptor.jdk;
 
-import org.bithon.component.logging.AbstractLogAdaptor;
 import org.bithon.component.logging.FormattingTuple;
+import org.bithon.component.logging.ILogAdaptor;
 import org.bithon.component.logging.MessageFormatter;
 
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-class JdkLogAdaptor extends AbstractLogAdaptor {
+class JdkLogAdaptor implements ILogAdaptor {
 
     static final String SELF = JdkLogAdaptor.class.getName();
-    static final String SUPER = AbstractLogAdaptor.class.getName();
     final transient Logger logger;
 
     JdkLogAdaptor(Logger logger) {
-        super(logger.getName());
         this.logger = logger;
     }
 
@@ -70,7 +68,7 @@ class JdkLogAdaptor extends AbstractLogAdaptor {
         int selfIndex = -1;
         for (int i = 0; i < steArray.length; i++) {
             final String className = steArray[i].getClassName();
-            if (className.equals(callerFQCN) || SUPER.equals(className)) {
+            if (className.equals(callerFQCN)) {
                 selfIndex = i;
                 break;
             }
@@ -79,7 +77,7 @@ class JdkLogAdaptor extends AbstractLogAdaptor {
         int found = -1;
         for (int i = selfIndex + 1; i < steArray.length; i++) {
             final String className = steArray[i].getClassName();
-            if (!(className.equals(callerFQCN) || SUPER.equals(className))) {
+            if (!(className.equals(callerFQCN))) {
                 found = i;
                 break;
             }
@@ -92,6 +90,11 @@ class JdkLogAdaptor extends AbstractLogAdaptor {
             record.setSourceClassName(ste.getClassName());
             record.setSourceMethodName(ste.getMethodName());
         }
+    }
+
+    @Override
+    public String name() {
+        return this.logger.getName();
     }
 
     /**

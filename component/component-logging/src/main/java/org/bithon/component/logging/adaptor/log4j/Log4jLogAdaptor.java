@@ -14,15 +14,39 @@
  *    limitations under the License.
  */
 
+/**
+ * Copyright (c) 2004-2011 QOS.ch
+ * All rights reserved.
+ * <p>
+ * Permission is hereby granted, free  of charge, to any person obtaining
+ * a  copy  of this  software  and  associated  documentation files  (the
+ * "Software"), to  deal in  the Software without  restriction, including
+ * without limitation  the rights to  use, copy, modify,  merge, publish,
+ * distribute,  sublicense, and/or sell  copies of  the Software,  and to
+ * permit persons to whom the Software  is furnished to do so, subject to
+ * the following conditions:
+ * <p>
+ * The  above  copyright  notice  and  this permission  notice  shall  be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+ * EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+ * MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package org.bithon.component.logging.adaptor.log4j;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.bithon.component.logging.AbstractLogAdaptor;
 import org.bithon.component.logging.FormattingTuple;
+import org.bithon.component.logging.ILogAdaptor;
 import org.bithon.component.logging.MessageFormatter;
 
-class Log4jLogAdaptor extends AbstractLogAdaptor {
+class Log4jLogAdaptor implements ILogAdaptor {
 
     /**
      * Following the pattern discussed in pages 162 through 168 of "The complete log4j manual".
@@ -35,7 +59,6 @@ class Log4jLogAdaptor extends AbstractLogAdaptor {
     private final transient Logger logger;
 
     Log4jLogAdaptor(Logger logger) {
-        super(logger.getName());
         this.logger = logger;
         traceCapable = isTraceCapable();
     }
@@ -47,6 +70,11 @@ class Log4jLogAdaptor extends AbstractLogAdaptor {
         } catch (NoSuchMethodError ignored) {
             return false;
         }
+    }
+
+    @Override
+    public String name() {
+        return logger.getName();
     }
 
     /**

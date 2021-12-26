@@ -16,21 +16,20 @@
 
 package org.bithon.component.logging.adaptor.slf4j;
 
-import org.bithon.component.logging.AbstractLogAdaptor;
+import org.bithon.component.logging.ILogAdaptor;
 import org.slf4j.Logger;
 
-/**
- * <a href="https://www.slf4j.org/">SLF4J</a> logger.
- */
-final class Slf4JLogAdaptor extends AbstractLogAdaptor {
+final class Slf4JLogAdaptor implements ILogAdaptor {
 
-    private static final long serialVersionUID = 108038972685130825L;
-
-    private final transient Logger logger;
+    private final Logger logger;
 
     Slf4JLogAdaptor(Logger logger) {
-        super(logger.getName());
         this.logger = logger;
+    }
+
+    @Override
+    public String name() {
+        return logger.getName();
     }
 
     @Override

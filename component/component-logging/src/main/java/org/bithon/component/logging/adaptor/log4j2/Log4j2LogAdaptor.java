@@ -14,20 +14,40 @@
  *    limitations under the License.
  */
 
+/**
+ * Copyright (c) 2004-2011 QOS.ch
+ * All rights reserved.
+ * <p>
+ * Permission is hereby granted, free  of charge, to any person obtaining
+ * a  copy  of this  software  and  associated  documentation files  (the
+ * "Software"), to  deal in  the Software without  restriction, including
+ * without limitation  the rights to  use, copy, modify,  merge, publish,
+ * distribute,  sublicense, and/or sell  copies of  the Software,  and to
+ * permit persons to whom the Software  is furnished to do so, subject to
+ * the following conditions:
+ * <p>
+ * The  above  copyright  notice  and  this permission  notice  shall  be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+ * EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+ * MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package org.bithon.component.logging.adaptor.log4j2;
 
 
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.spi.ExtendedLogger;
 import org.apache.logging.log4j.spi.ExtendedLoggerWrapper;
 import org.bithon.component.logging.ILogAdaptor;
-import org.bithon.component.logging.LoggingLevel;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-
-import static org.bithon.component.logging.AbstractLogAdaptor.EXCEPTION_MESSAGE;
 
 class Log4j2LogAdaptor extends ExtendedLoggerWrapper implements ILogAdaptor {
 
@@ -43,7 +63,7 @@ class Log4j2LogAdaptor extends ExtendedLoggerWrapper implements ILogAdaptor {
                 // Log4J2 version too old.
                 return true;
             } catch (SecurityException ignore) {
-                // We could not detect the version so we will use Log4J2 if its on the classpath.
+                // We could not detect the version, so we will use Log4J2 if its on the classpath.
                 return false;
             }
         });
@@ -56,85 +76,8 @@ class Log4j2LogAdaptor extends ExtendedLoggerWrapper implements ILogAdaptor {
         }
     }
 
-    private static Level toLevel(LoggingLevel level) {
-        switch (level) {
-            case INFO:
-                return Level.INFO;
-            case DEBUG:
-                return Level.DEBUG;
-            case WARN:
-                return Level.WARN;
-            case ERROR:
-                return Level.ERROR;
-            case TRACE:
-                return Level.TRACE;
-            default:
-                throw new Error();
-        }
-    }
-
     @Override
     public String name() {
         return getName();
-    }
-
-    @Override
-    public void trace(Throwable t) {
-        log(Level.TRACE, EXCEPTION_MESSAGE, t);
-    }
-
-    @Override
-    public void debug(Throwable t) {
-        log(Level.DEBUG, EXCEPTION_MESSAGE, t);
-    }
-
-    @Override
-    public void info(Throwable t) {
-        log(Level.INFO, EXCEPTION_MESSAGE, t);
-    }
-
-    @Override
-    public void warn(Throwable t) {
-        log(Level.WARN, EXCEPTION_MESSAGE, t);
-    }
-
-    @Override
-    public void error(Throwable t) {
-        log(Level.ERROR, EXCEPTION_MESSAGE, t);
-    }
-
-    @Override
-    public boolean isEnabled(LoggingLevel level) {
-        return isEnabled(toLevel(level));
-    }
-
-    @Override
-    public void log(LoggingLevel level, String msg) {
-        log(toLevel(level), msg);
-    }
-
-    @Override
-    public void log(LoggingLevel level, String format, Object arg) {
-        log(toLevel(level), format, arg);
-    }
-
-    @Override
-    public void log(LoggingLevel level, String format, Object argA, Object argB) {
-        log(toLevel(level), format, argA, argB);
-    }
-
-    @Override
-    public void log(LoggingLevel level, String format, Object... arguments) {
-        log(toLevel(level), format, arguments);
-    }
-
-    @Override
-    public void log(LoggingLevel level, String msg, Throwable t) {
-        log(toLevel(level), msg, t);
-    }
-
-    @Override
-    public void log(LoggingLevel level, Throwable t) {
-        log(toLevel(level), EXCEPTION_MESSAGE, t);
     }
 }

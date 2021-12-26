@@ -1,19 +1,23 @@
 package org.bithon.component.logging.adaptor.logback;
 
-import org.bithon.component.logging.AbstractLogAdaptor;
+import org.bithon.component.logging.ILogAdaptor;
 import org.slf4j.Logger;
 
 /**
  * @author Frank Chen
  * @date 26/12/21 6:35 PM
  */
-public class LogbackLogAdaptor extends AbstractLogAdaptor {
+public class LogbackLogAdaptor implements ILogAdaptor {
 
     private final Logger logger;
 
     public LogbackLogAdaptor(Logger logger) {
-        super(logger.getName());
         this.logger = logger;
+    }
+
+    @Override
+    public String name() {
+        return logger.getName();
     }
 
     @Override

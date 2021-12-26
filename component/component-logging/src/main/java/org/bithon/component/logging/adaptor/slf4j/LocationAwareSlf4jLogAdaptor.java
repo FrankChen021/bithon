@@ -14,9 +14,34 @@
  *    limitations under the License.
  */
 
+/**
+ * Copyright (c) 2004-2011 QOS.ch
+ * All rights reserved.
+ * <p>
+ * Permission is hereby granted, free  of charge, to any person obtaining
+ * a  copy  of this  software  and  associated  documentation files  (the
+ * "Software"), to  deal in  the Software without  restriction, including
+ * without limitation  the rights to  use, copy, modify,  merge, publish,
+ * distribute,  sublicense, and/or sell  copies of  the Software,  and to
+ * permit persons to whom the Software  is furnished to do so, subject to
+ * the following conditions:
+ * <p>
+ * The  above  copyright  notice  and  this permission  notice  shall  be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+ * EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+ * MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+
 package org.bithon.component.logging.adaptor.slf4j;
 
-import org.bithon.component.logging.AbstractLogAdaptor;
+import org.bithon.component.logging.ILogAdaptor;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.spi.LocationAwareLogger;
 
@@ -26,14 +51,13 @@ import static org.slf4j.spi.LocationAwareLogger.INFO_INT;
 import static org.slf4j.spi.LocationAwareLogger.TRACE_INT;
 import static org.slf4j.spi.LocationAwareLogger.WARN_INT;
 
-final class LocationAwareSlf4jLogAdaptor extends AbstractLogAdaptor {
+final class LocationAwareSlf4jLogAdaptor implements ILogAdaptor {
 
     private static final String FQCN = LocationAwareSlf4jLogAdaptor.class.getName();
 
     private final transient LocationAwareLogger logger;
 
     LocationAwareSlf4jLogAdaptor(LocationAwareLogger logger) {
-        super(logger.getName());
         this.logger = logger;
     }
 
@@ -47,6 +71,11 @@ final class LocationAwareSlf4jLogAdaptor extends AbstractLogAdaptor {
 
     private void log(final int level, final FormattingTuple tuple) {
         logger.log(null, FQCN, level, tuple.getMessage(), tuple.getArgArray(), tuple.getThrowable());
+    }
+
+    @Override
+    public String name() {
+        return logger.getName();
     }
 
     @Override
