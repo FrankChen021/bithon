@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.namedOneOf;
 
 /**
  * @author frankchen
@@ -42,11 +41,11 @@ public class LettucePlugin implements IPlugin {
     @Override
     public BithonClassDescriptor getBithonClassDescriptor() {
         return BithonClassDescriptor.of(
-            namedOneOf("io.lettuce.core.StatefulRedisConnectionImpl",
-                       "io.lettuce.core.pubsub.StatefulRedisPubSubConnectionImpl",
-                       "io.lettuce.core.pubsub.StatefulRedisClusterPubSubConnectionImpl",
-                       "io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnectionImpl",
-                       "io.lettuce.core.sentinel.StatefulRedisSentinelConnectionImpl")
+            "io.lettuce.core.StatefulRedisConnectionImpl",
+            "io.lettuce.core.pubsub.StatefulRedisPubSubConnectionImpl",
+            "io.lettuce.core.pubsub.StatefulRedisClusterPubSubConnectionImpl",
+            "io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnectionImpl",
+            "io.lettuce.core.sentinel.StatefulRedisSentinelConnectionImpl"
         );
     }
 

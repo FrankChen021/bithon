@@ -121,7 +121,7 @@ public class AopClassGenerator {
                                       .make();
 
         if (methodPointCutDescriptor.isDebug()) {
-            AopDebugger.INSTANCE.saveClassToFile(aopClassType);
+            AopDebugger.saveClassToFile(aopClassType);
         }
 
         classesTypeMap.put(targetAopClassName, aopClassType.getBytes());

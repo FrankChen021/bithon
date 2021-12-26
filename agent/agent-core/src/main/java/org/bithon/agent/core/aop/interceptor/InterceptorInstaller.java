@@ -28,8 +28,7 @@ import org.bithon.agent.bootstrap.aop.ReplaceMethodAop;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.aop.AopClassGenerator;
 import org.bithon.agent.core.aop.AopDebugger;
-import org.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
-import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
 import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.utils.CollectionUtils;
@@ -40,19 +39,21 @@ import shaded.net.bytebuddy.implementation.FieldAccessor;
 import shaded.net.bytebuddy.implementation.MethodDelegation;
 import shaded.net.bytebuddy.implementation.SuperMethodCall;
 import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
-import shaded.net.bytebuddy.matcher.ElementMatcher;
-import shaded.net.bytebuddy.matcher.ElementMatchers;
+import shaded.net.bytebuddy.matcher.NameMatcher;
+import shaded.net.bytebuddy.matcher.StringSetMatcher;
 import shaded.net.bytebuddy.utility.JavaModule;
 import shaded.org.slf4j.Logger;
 import shaded.org.slf4j.LoggerFactory;
 
 import java.lang.instrument.Instrumentation;
-import java.security.ProtectionDomain;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.isSynthetic;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 
 /**
  * @author frank.chen021@outlook.com
@@ -61,116 +62,15 @@ import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
 public class InterceptorInstaller {
     private static final Logger log = LoggerFactory.getLogger(InterceptorInstaller.class);
 
-    private final AgentBuilder agentBuilder;
-    private final Instrumentation inst;
+    private final Descriptors descriptors;
 
-    public InterceptorInstaller(AgentBuilder agentBuilder,
-                                Instrumentation inst) {
-        this.agentBuilder = agentBuilder;
-        this.inst = inst;
-    }
-
-    public void transformToBithonClass(BithonClassDescriptor descriptor) {
-        if (descriptor == null) {
-            return;
-        }
-
-        AgentBuilder agentBuilder =
-            this.agentBuilder.type(descriptor.getClassMatcher())
-                             .transform((DynamicType.Builder<?> builder,
-                                         TypeDescription typeDescription,
-                                         ClassLoader classLoader,
-                                         JavaModule javaModule) -> {
-                                 if (typeDescription.isAssignableTo(IBithonObject.class)) {
-                                     return builder;
-                                 }
-
-                                 builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
-                                                               Object.class,
-                                                               ACC_PRIVATE | ACC_VOLATILE)
-                                                  .implement(IBithonObject.class)
-                                                  .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
-
-                                 return builder;
-                             });
-
-        if (descriptor.isDebug()) {
-            agentBuilder = agentBuilder.with(AopDebugger.INSTANCE);
-        }
-        agentBuilder.installOn(inst);
-    }
-
-    public void installInterceptor(String providerName,
-                                   InterceptorDescriptor interceptor,
-                                   List<IInterceptorPrecondition> preconditions) {
-        AgentBuilder
-            agentBuilder = this.agentBuilder
-            // make sure the target class is not ignored by Bytebuddy's default ignore rule
-            .ignore(new IgnoreExclusionMatcher(interceptor.getClassMatcher()))
-            .type(interceptor.getClassMatcher())
-            .transform((DynamicType.Builder<?> builder,
-                        TypeDescription typeDescription,
-                        ClassLoader classLoader,
-                        JavaModule javaModule) -> {
-
-                //
-                // Run checkers first to see if a plugin can be installed
-                //
-                if (CollectionUtils.isNotEmpty(preconditions)) {
-                    for (IInterceptorPrecondition condition : preconditions) {
-                        if (!condition.canInstall(providerName, classLoader, typeDescription)) {
-                            return null;
-                        }
-                    }
-                }
-
-                //
-                // Transform target class to type of IBithonObject
-                //
-                if (!typeDescription.isAssignableTo(IBithonObject.class)) {
-                    builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
-                                                  Object.class,
-                                                  ACC_PRIVATE | ACC_VOLATILE)
-                                     .implement(IBithonObject.class)
-                                     .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
-                }
-
-                //
-                // Install interceptor
-                //
-                for (MethodPointCutDescriptor pointCut : interceptor.getMethodPointCutDescriptors()) {
-                    log.info("Install interceptor [{}#{}] to [{}#{}]",
-                             providerName,
-                             getSimpleClassName(pointCut.getInterceptor()),
-                             getSimpleClassName(typeDescription.getName()),
-                             pointCut);
-                    if (interceptor.isBootstrapClass()) {
-                        builder = installBootstrapInterceptor(typeDescription,
-                                                              builder,
-                                                              pointCut.getInterceptor(),
-                                                              pointCut);
-                    } else {
-                        builder = installInterceptor(builder,
-                                                     providerName,
-                                                     pointCut.getInterceptor(),
-                                                     classLoader,
-                                                     pointCut);
-                    }
-                }
-                return builder;
-            });
-        if (interceptor.isDebug()) {
-            agentBuilder = agentBuilder.with(AopDebugger.INSTANCE);
-        }
-
-        agentBuilder.installOn(inst);
+    public InterceptorInstaller(Descriptors descriptors) {
+        this.descriptors = descriptors;
     }
 
     /**
-     * Since methods in
-     * {@link BootstrapMethodAop}
-     * {@link BootstrapConstructorAop}
-     * are defined as static, the interceptors must be installed as classes
+     * Since methods in {@link BootstrapMethodAop} and {@link BootstrapConstructorAop} are defined as static,
+     * the interceptors must be installed as classes
      */
     private DynamicType.Builder<?> installBootstrapInterceptor(TypeDescription typeDescription,
                                                                DynamicType.Builder<?> builder,
@@ -191,31 +91,21 @@ public class InterceptorInstaller {
 
                 case CONSTRUCTOR:
                     builder = builder.constructor(pointCutDescriptor.getMethodMatcher())
-                                     .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation
-                                                                                     .withDefaultConfiguration()
-                                                                                     .to(getBootstrapAopClass(
-                                                                                         interceptorClassName))));
+                                     .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation.withDefaultConfiguration()
+                                                                                                 .to(getBootstrapAopClass(interceptorClassName))));
                     break;
 
                 default:
-                    log.warn("Interceptor[{}] ignored due to unknown method type {}",
-                             interceptorClassName,
-                             pointCutDescriptor.getTargetMethodType().name());
+                    log.warn("Interceptor[{}] ignored due to unknown method type {}", interceptorClassName, pointCutDescriptor.getTargetMethodType().name());
                     break;
             }
         } catch (Exception e) {
-            log.error(String.format(Locale.ENGLISH,
-                                    "Failed to load interceptor[%s] due to [%s]",
-                                    interceptorClassName,
-                                    e.getMessage()),
-                      e);
+            log.error(String.format(Locale.ENGLISH, "Failed to load interceptor[%s] due to [%s]", interceptorClassName, e.getMessage()), e);
             return builder;
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Interceptor[{}] loaded for target method[{}]",
-                      interceptorClassName,
-                      pointCutDescriptor.toString());
+            log.debug("Interceptor[{}] loaded for target method[{}]", interceptorClassName, pointCutDescriptor.toString());
         }
 
         return builder;
@@ -240,9 +130,7 @@ public class InterceptorInstaller {
 
         Object interceptor;
         try {
-            interceptor = InterceptorManager.loadInterceptor(interceptorProvider,
-                                                             interceptorName,
-                                                             classLoader);
+            interceptor = InterceptorManager.loadInterceptor(interceptorProvider, interceptorName, classLoader);
 
             if (interceptor == null) {
                 log.info("Interceptor[{}] initial failed, interceptor ignored", interceptorName);
@@ -275,20 +163,15 @@ public class InterceptorInstaller {
 
                 case CONSTRUCTOR:
                     builder = builder.constructor(pointCutDescriptor.getMethodMatcher())
-                                     .intercept(SuperMethodCall.INSTANCE
-                                                    .andThen(MethodDelegation.to(new ConstructorAop((AbstractInterceptor) interceptor))));
+                                     .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation.to(new ConstructorAop((AbstractInterceptor) interceptor))));
                     break;
 
                 default:
-                    log.warn("Interceptor[{}] ignored due to unknown method type {}",
-                             interceptorName,
-                             pointCutDescriptor.getTargetMethodType().name());
+                    log.warn("Interceptor[{}] ignored due to unknown method type {}", interceptorName, pointCutDescriptor.getTargetMethodType().name());
                     break;
             }
         } catch (Exception e) {
-            log.error("Failed to load interceptor[{}] due to {}",
-                      interceptorName,
-                      e.getMessage());
+            log.error("Failed to load interceptor[{}] due to {}", interceptorName, e.getMessage());
             return builder;
         }
 
@@ -304,39 +187,59 @@ public class InterceptorInstaller {
         return dot == -1 ? className : className.substring(dot + 1);
     }
 
-    static class IgnoreExclusionMatcher implements AgentBuilder.RawMatcher {
+    public void installOn(AgentBuilder agentBuilder, Instrumentation inst) {
+        Set<String> types = new HashSet<>(descriptors.getTypes());
 
-        ElementMatcher<? super TypeDescription> exclusion;
-        ForElementMatchers or1;
-        ForElementMatchers or2;
+        agentBuilder
+            .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(nameStartsWith("shaded.").or(isSynthetic())))
+            .type(new NameMatcher<>(new StringSetMatcher(types)))
+            .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule) -> {
 
-        public IgnoreExclusionMatcher(ElementMatcher<? super TypeDescription> exclusion) {
-            this.exclusion = exclusion;
-            this.or1 = new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.any(),
-                                                                      ElementMatchers.isBootstrapClassLoader());
-            this.or2 = new AgentBuilder.RawMatcher.ForElementMatchers(ElementMatchers.nameStartsWith("shaded.") //shaded.net.bytebuddy.
-                                                                                     .or(ElementMatchers.nameStartsWith(
-                                                                                         "com.sbss.bithon.agent."))
-                                                                                     .or(ElementMatchers.nameStartsWith(
-                                                                                         "sun.reflect."))
-                                                                                     .or(ElementMatchers.isSynthetic()));
-        }
+                String type = typeDescription.getTypeName();
+                Descriptors.Descriptor descriptor = descriptors.get(type);
+                if (descriptor == null) {
+                    // this must be something wrong
+                    log.error("Error to transform [{}] for the descriptor is not found", type);
+                    return null;
+                }
 
-        @Override
-        public boolean matches(TypeDescription typeDescription,
-                               ClassLoader classLoader,
-                               JavaModule javaModule,
-                               Class<?> aClass,
-                               ProtectionDomain protectionDomain) {
-            return !exclusion.matches(typeDescription) && (or1.matches(typeDescription,
-                                                                       classLoader,
-                                                                       javaModule,
-                                                                       aClass,
-                                                                       protectionDomain) || or2.matches(typeDescription,
-                                                                                                        classLoader,
-                                                                                                        javaModule,
-                                                                                                        aClass,
-                                                                                                        protectionDomain));
-        }
+                //
+                // Run checkers first to see if an interceptor can be installed
+                //
+                if (CollectionUtils.isNotEmpty(descriptor.getPreconditions())) {
+                    for (IInterceptorPrecondition condition : descriptor.getPreconditions()) {
+                        if (!condition.canInstall("TODO: provider name", classLoader, typeDescription)) {
+                            return null;
+                        }
+                    }
+                }
+
+                //
+                // Transform target class to type of IBithonObject
+                //
+                if (!typeDescription.isAssignableTo(IBithonObject.class)) {
+                    builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME, Object.class, ACC_PRIVATE | ACC_VOLATILE)
+                                     .implement(IBithonObject.class)
+                                     .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
+                }
+
+                //
+                // Install interceptor
+                //
+                for (MethodPointCutDescriptor pointCut : descriptor.getMethodInterceptors()) {
+                    log.info("Install interceptor [{}#{}] to [{}#{}]",
+                             descriptor.getPlugin(),
+                             getSimpleClassName(pointCut.getInterceptor()),
+                             getSimpleClassName(typeDescription.getName()),
+                             pointCut);
+                    if (descriptor.isBootstrapClass()) {
+                        builder = installBootstrapInterceptor(typeDescription, builder, pointCut.getInterceptor(), pointCut);
+                    } else {
+                        builder = installInterceptor(builder, descriptor.getPlugin(), pointCut.getInterceptor(), classLoader, pointCut);
+                    }
+                }
+                return builder;
+            })
+            .with(new AopDebugger(types)).installOn(inst);
     }
 }

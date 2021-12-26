@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.aop.descriptor;
+package org.bithon.agent.core.aop.matcher;
 
 import shaded.net.bytebuddy.description.NamedElement;
 import shaded.net.bytebuddy.description.annotation.AnnotationDescription;
@@ -36,19 +36,19 @@ import java.util.Set;
  * @author frank.chen021@outlook.com
  * @date 2021/2/20 9:30 下午
  */
-public class MatcherUtils {
-    private static final Logger log = LoggerFactory.getLogger(MatcherUtils.class);
+public class Matchers {
+    private static final Logger log = LoggerFactory.getLogger(Matchers.class);
 
-    public static <T extends NamedElement> ElementMatcher.Junction<T> named(String typeName) {
+    public static <T extends NamedElement> ElementMatcher.Junction<T> withName(String name) {
         return new ElementMatcher.Junction.AbstractBase<T>() {
             @Override
             public boolean matches(T target) {
-                return target.getActualName().equals(typeName);
+                return target.getActualName().equals(name);
             }
 
             @Override
             public String toString() {
-                return typeName;
+                return name;
             }
         };
     }

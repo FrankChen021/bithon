@@ -16,25 +16,18 @@
 
 package org.bithon.agent.core.aop.descriptor;
 
-import shaded.net.bytebuddy.description.type.TypeDescription;
-import shaded.net.bytebuddy.matcher.ElementMatcher;
-
 /**
  * @author frankchen
  * @date Jan 13, 2020 1:07:41 PM
  */
 public class InterceptorDescriptorBuilder {
 
-    private ElementMatcher.Junction<? super TypeDescription> targetClass;
+    private String targetClass;
     private boolean debug;
     private boolean isBootstrapClass;
 
     public static InterceptorDescriptorBuilder forClass(String targetClass) {
-        return forClass(MatcherUtils.named(targetClass));
-    }
-
-    public static InterceptorDescriptorBuilder forClass(ElementMatcher.Junction<? super TypeDescription> targetClassMatcher) {
-        return new InterceptorDescriptorBuilder().targetClass(targetClassMatcher);
+        return new InterceptorDescriptorBuilder().targetClass(targetClass);
     }
 
     /**
@@ -54,13 +47,8 @@ public class InterceptorDescriptorBuilder {
 
     }
 
-    public InterceptorDescriptorBuilder targetClass(ElementMatcher.Junction<? super TypeDescription> classMatcher) {
-        this.targetClass = classMatcher;
-        return this;
-    }
-
     public InterceptorDescriptorBuilder targetClass(String targetClass) {
-        this.targetClass = MatcherUtils.named(targetClass);
+        this.targetClass = targetClass;
         return this;
     }
 

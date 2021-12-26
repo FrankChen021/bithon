@@ -16,12 +16,6 @@
 
 package org.bithon.agent.core.aop.descriptor;
 
-import shaded.net.bytebuddy.description.type.TypeDescription;
-import shaded.net.bytebuddy.matcher.ElementMatcher;
-
-import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.namedOneOf;
-
 /**
  * Defines which class should be transformed into IBithonObject subclasses
  *
@@ -29,43 +23,27 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.namedOneOf;
  * @date 2021/3/27 19:59
  */
 public class BithonClassDescriptor {
-    private final ElementMatcher.Junction<? super TypeDescription> classMatcher;
+    private final String[] targetClasses;
     private final boolean debug;
 
-    private BithonClassDescriptor(ElementMatcher.Junction<? super TypeDescription> classMatcher, boolean debug) {
-        this.classMatcher = classMatcher;
+    private BithonClassDescriptor(String[] classes, boolean debug) {
+        this.targetClasses = classes;
         this.debug = debug;
     }
 
-    public ElementMatcher.Junction<? super TypeDescription> getClassMatcher() {
-        return classMatcher;
+    public static BithonClassDescriptor of(String... clazz) {
+        return new BithonClassDescriptor(clazz, false);
+    }
+
+    public static BithonClassDescriptor of(String clazz, boolean debug) {
+        return new BithonClassDescriptor(new String[]{clazz}, debug);
+    }
+
+    public String[] getTargetClasses() {
+        return targetClasses;
     }
 
     public boolean isDebug() {
         return debug;
-    }
-
-    /**
-     * NOTE: For multiple class, {@link #of(ElementMatcher.Junction)} should be used where argument is call of {@link shaded.net.bytebuddy.matcher.ElementMatchers#namedOneOf(String...)}
-     */
-    public static BithonClassDescriptor of(String clazz) {
-        return new BithonClassDescriptor(named(clazz), false);
-    }
-
-    public static BithonClassDescriptor of(String... clazz) {
-        return new BithonClassDescriptor(namedOneOf(clazz), false);
-    }
-
-    public static BithonClassDescriptor of(String clazz, boolean debug) {
-        return new BithonClassDescriptor(named(clazz), debug);
-    }
-
-    public static BithonClassDescriptor of(ElementMatcher.Junction<? super TypeDescription> classMatcher) {
-        return new BithonClassDescriptor(classMatcher, false);
-    }
-
-    public static BithonClassDescriptor of(ElementMatcher.Junction<? super TypeDescription> classMatcher,
-                                           boolean debug) {
-        return new BithonClassDescriptor(classMatcher, debug);
     }
 }
