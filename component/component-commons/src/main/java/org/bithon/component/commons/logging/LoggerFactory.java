@@ -47,7 +47,7 @@ public class LoggerFactory {
             for (Class<?> factoryClass : factoryClassList) {
                 try {
                     ILogAdaptorFactory factory = (ILogAdaptorFactory) factoryClass.newInstance();
-                    factory.newLogger("default").debug("Using [{}] as logging framework", factory.getClass().getSimpleName());
+                    factory.newLogger("default").info("Using [{}] as logging framework", factory.getClass().getSimpleName());
                     LoggerFactory.adaptorFactory = factory;
                     break;
                 } catch (InstantiationException | IllegalAccessException ignored) {
