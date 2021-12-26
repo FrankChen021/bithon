@@ -19,7 +19,7 @@ package org.bithon.agent.core.plugin;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.loader.JarClassLoader;
 import org.bithon.agent.core.aop.AopClassGenerator;
-import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
+import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.interceptor.InterceptorInstaller;
 import org.bithon.agent.core.context.AgentContext;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
@@ -72,25 +72,17 @@ public class PluginInterceptorInstaller {
         return builder;
     }
 
-    /**
-     * 1. merge ALL descriptors in ALL plugins
-     * 2. install agent for
-     *
-     * @param agentBuilder
-     * @param inst
-     * @param plugins
-     */
     private static void install(AgentBuilder agentBuilder, Instrumentation inst, List<IPlugin> plugins) {
-        // this installer must be instantiated for each plugin
-        InterceptorInstaller installer = new InterceptorInstaller(agentBuilder, inst);
-
+        Descriptors descriptors = new Descriptors();
         for (IPlugin plugin : plugins) {
-            installer.merge(plugin.getBithonClassDescriptor());
+            String pluginName = plugin.getClass().getSimpleName();
 
-            installer.merge(plugin.getPreconditions(), plugin.getInterceptors());
+            descriptors.merge(pluginName, plugin.getBithonClassDescriptor());
+
+            descriptors.merge(pluginName, plugin.getPreconditions(), plugin.getInterceptors());
         }
 
-        installer.install();
+        new InterceptorInstaller(descriptors).installOn(agentBuilder, inst);
     }
 
     private static List<IPlugin> loadPlugins() {
@@ -107,7 +99,7 @@ public class PluginInterceptorInstaller {
             try {
                 String pluginClassName = jar.getManifest().getMainAttributes().getValue("Plugin-Class");
                 if (pluginClassName == null) {
-                    log.info("Found plugin {}", jarFileName);
+                    log.info("Invalid plugin {}", jarFileName);
                     continue;
                 }
 
