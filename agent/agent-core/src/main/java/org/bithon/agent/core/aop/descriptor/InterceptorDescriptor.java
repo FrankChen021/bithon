@@ -16,9 +16,6 @@
 
 package org.bithon.agent.core.aop.descriptor;
 
-import shaded.net.bytebuddy.description.type.TypeDescription;
-import shaded.net.bytebuddy.matcher.ElementMatcher;
-
 /**
  * Class-oriented descriptor
  *
@@ -29,16 +26,16 @@ public class InterceptorDescriptor {
 
     private final boolean debug;
     private final boolean isBootstrapClass;
-    private final ElementMatcher.Junction<? super TypeDescription> classMatcher;
+    private final String targetClass;
     private final MethodPointCutDescriptor[] methodPointCutDescriptors;
 
     public InterceptorDescriptor(boolean debug,
                                  boolean isBootstrapClass,
-                                 ElementMatcher.Junction<? super TypeDescription> classMatcher,
+                                 String targetClass,
                                  MethodPointCutDescriptor[] methodPointCutDescriptors) {
         this.debug = debug;
         this.isBootstrapClass = isBootstrapClass;
-        this.classMatcher = classMatcher;
+        this.targetClass = targetClass;
         this.methodPointCutDescriptors = methodPointCutDescriptors;
     }
 
@@ -46,8 +43,8 @@ public class InterceptorDescriptor {
         return isBootstrapClass;
     }
 
-    public ElementMatcher.Junction<? super TypeDescription> getClassMatcher() {
-        return classMatcher;
+    public String getTargetClass() {
+        return targetClass;
     }
 
     public MethodPointCutDescriptor[] getMethodPointCutDescriptors() {

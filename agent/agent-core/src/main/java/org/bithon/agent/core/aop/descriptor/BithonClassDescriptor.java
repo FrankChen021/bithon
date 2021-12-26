@@ -23,11 +23,11 @@ package org.bithon.agent.core.aop.descriptor;
  * @date 2021/3/27 19:59
  */
 public class BithonClassDescriptor {
-    private final String[] classes;
+    private final String[] targetClasses;
     private final boolean debug;
 
     private BithonClassDescriptor(String[] classes, boolean debug) {
-        this.classes = classes;
+        this.targetClasses = classes;
         this.debug = debug;
     }
 
@@ -39,8 +39,8 @@ public class BithonClassDescriptor {
         return new BithonClassDescriptor(new String[]{clazz}, debug);
     }
 
-    public String[] getClassMatcher() {
-        return classes;
+    public String[] getTargetClasses() {
+        return targetClasses;
     }
 
     public boolean isDebug() {

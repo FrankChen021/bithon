@@ -31,7 +31,6 @@ import org.bithon.agent.core.aop.AopDebugger;
 import org.bithon.agent.core.aop.descriptor.BithonClassDescriptor;
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
-import org.bithon.agent.core.aop.matcher.NameMatcher;
 import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.utils.CollectionUtils;
 import shaded.net.bytebuddy.NamingStrategy;
@@ -81,72 +80,6 @@ public class InterceptorInstaller {
                                 Instrumentation inst) {
         this.agentBuilder = agentBuilder;
         this.inst = inst;
-    }
-
-    public void installInterceptor(String providerName,
-                                   InterceptorDescriptor interceptor,
-                                   List<IInterceptorPrecondition> preconditions) {
-        AgentBuilder
-            agentBuilder = this.agentBuilder
-            // make sure the target class is not ignored by Bytebuddy's default ignore rule
-            .ignore(new IgnoreExclusionMatcher(interceptor.getClassMatcher()))
-            .type(interceptor.getClassMatcher())
-            .transform((DynamicType.Builder<?> builder,
-                        TypeDescription typeDescription,
-                        ClassLoader classLoader,
-                        JavaModule javaModule) -> {
-
-                //
-                // Run checkers first to see if a plugin can be installed
-                //
-                if (CollectionUtils.isNotEmpty(preconditions)) {
-                    for (IInterceptorPrecondition condition : preconditions) {
-                        if (!condition.canInstall(providerName, classLoader, typeDescription)) {
-                            return null;
-                        }
-                    }
-                }
-
-                //
-                // Transform target class to type of IBithonObject
-                //
-                if (!typeDescription.isAssignableTo(IBithonObject.class)) {
-                    builder = builder.defineField(IBithonObject.INJECTED_FIELD_NAME,
-                                                  Object.class,
-                                                  ACC_PRIVATE | ACC_VOLATILE)
-                                     .implement(IBithonObject.class)
-                                     .intercept(FieldAccessor.ofField(IBithonObject.INJECTED_FIELD_NAME));
-                }
-
-                //
-                // Install interceptor
-                //
-                for (MethodPointCutDescriptor pointCut : interceptor.getMethodPointCutDescriptors()) {
-                    log.info("Install interceptor [{}#{}] to [{}#{}]",
-                             providerName,
-                             getSimpleClassName(pointCut.getInterceptor()),
-                             getSimpleClassName(typeDescription.getName()),
-                             pointCut);
-                    if (interceptor.isBootstrapClass()) {
-                        builder = installBootstrapInterceptor(typeDescription,
-                                                              builder,
-                                                              pointCut.getInterceptor(),
-                                                              pointCut);
-                    } else {
-                        builder = installInterceptor(builder,
-                                                     providerName,
-                                                     pointCut.getInterceptor(),
-                                                     classLoader,
-                                                     pointCut);
-                    }
-                }
-                return builder;
-            });
-        if (interceptor.isDebug()) {
-            agentBuilder = agentBuilder.with(AopDebugger.INSTANCE);
-        }
-
-        agentBuilder.installOn(inst);
     }
 
     /**
@@ -291,7 +224,7 @@ public class InterceptorInstaller {
         if (bithonClassDescriptor == null) {
             return;
         }
-        for (String clazz : bithonClassDescriptor.getClassMatcher()) {
+        for (String clazz : bithonClassDescriptor.getTargetClasses()) {
             Descriptor descriptor = this.descriptors.computeIfAbsent(clazz, v -> new Descriptor());
             if (bithonClassDescriptor.isDebug()) {
                 descriptor.isDebuggingOn = bithonClassDescriptor.isDebug();
@@ -299,13 +232,11 @@ public class InterceptorInstaller {
         }
     }
 
-    public boolean merge(List<IInterceptorPrecondition> preconditions, List<InterceptorDescriptor> interceptors) {
+    public void merge(List<IInterceptorPrecondition> preconditions, List<InterceptorDescriptor> interceptors) {
         for (InterceptorDescriptor interceptor : interceptors) {
-            ElementMatcher.Junction<?> matcher = interceptor.getClassMatcher();
+            String targetClass = interceptor.getTargetClass();
 
-            String name = ((NameMatcher<?>) matcher).getName();
-
-            Descriptor descriptor = this.descriptors.computeIfAbsent(name, v -> new Descriptor());
+            Descriptor descriptor = this.descriptors.computeIfAbsent(targetClass, v -> new Descriptor());
             descriptor.methodInterceptors.addAll(Stream.of(interceptor.getMethodPointCutDescriptors()).collect(Collectors.toList()));
             if (CollectionUtils.isNotEmpty(preconditions)) {
                 descriptor.preconditions.addAll(preconditions);
@@ -314,8 +245,10 @@ public class InterceptorInstaller {
             if (interceptor.isBootstrapClass()) {
                 descriptor.isBootstrapClass = interceptor.isBootstrapClass();
             }
+            if (interceptor.isDebug()) {
+                descriptor.isDebuggingOn = interceptor.isDebug();
+            }
         }
-        return true;
     }
 
     public void install() {

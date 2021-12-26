@@ -87,11 +87,7 @@ public class PluginInterceptorInstaller {
         for (IPlugin plugin : plugins) {
             installer.merge(plugin.getBithonClassDescriptor());
 
-            if (!installer.merge(plugin.getPreconditions(), plugin.getInterceptors())) {
-                for (InterceptorDescriptor interceptor : plugin.getInterceptors()) {
-                    new InterceptorInstaller(agentBuilder, inst).installInterceptor(plugin.getClass().getSimpleName(), interceptor, plugin.getPreconditions());
-                }
-            }
+            installer.merge(plugin.getPreconditions(), plugin.getInterceptors());
         }
 
         installer.install();
