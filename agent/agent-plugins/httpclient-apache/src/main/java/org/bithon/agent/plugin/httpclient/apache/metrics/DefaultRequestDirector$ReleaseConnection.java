@@ -33,17 +33,19 @@ import shaded.org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 
 /**
+ * {@link DefaultRequestDirector#releaseConnection()}
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class DefaultRequestDirectorReleaseConnection extends AbstractInterceptor {
-    private static Logger log = LoggerFactory.getLogger(DefaultRequestDirectorReleaseConnection.class);
+public class DefaultRequestDirector$ReleaseConnection extends AbstractInterceptor {
+    private static Logger log = LoggerFactory.getLogger(DefaultRequestDirector$ReleaseConnection.class);
 
     private HttpOutgoingMetricsCollector metricProvider;
     private Field managedConnectionField;
 
     @Override
-    public boolean initialize() throws Exception {
+    public boolean initialize() {
         metricProvider = MetricCollectorManager.getInstance()
                                                .getOrRegister("apache-http-client", HttpOutgoingMetricsCollector.class);
 

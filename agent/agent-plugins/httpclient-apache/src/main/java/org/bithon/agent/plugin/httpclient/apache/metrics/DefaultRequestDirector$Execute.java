@@ -36,7 +36,7 @@ import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class DefaultRequestDirectorExecute extends AbstractInterceptor {
+public class DefaultRequestDirector$Execute extends AbstractInterceptor {
 
     private HttpOutgoingMetricsCollector metricCollector;
 

@@ -41,7 +41,7 @@ public class OkHttp32HttpClientPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("getResponseWithInterceptorChain",
                                                                     "boolean")
-                                                   .to("org.bithon.agent.plugin.httpclient.okhttp32.OkHttp32Interceptor")
+                                                   .to("org.bithon.agent.plugin.httpclient.okhttp32.RealCall$GetResponseWithInterceptorChain")
                 )
 
             /*
