@@ -50,7 +50,7 @@ public class LoggerFactory {
                     factory.newLogger("default").info("Using [{}] as logging framework", factory.getClass().getSimpleName());
                     LoggerFactory.adaptorFactory = factory;
                     break;
-                } catch (InstantiationException | IllegalAccessException ignored) {
+                } catch (NoClassDefFoundError | InstantiationException | IllegalAccessException ignored) {
                 }
             }
         }
