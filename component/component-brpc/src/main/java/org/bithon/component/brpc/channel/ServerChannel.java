@@ -56,14 +56,23 @@ public class ServerChannel implements Closeable {
 
     private static final AttributeKey<String> ATTR_CLIENT_NAME = AttributeKey.valueOf("client.name");
 
-    private final NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
-    private final NioEventLoopGroup workerGroup = new NioEventLoopGroup();
+    private final NioEventLoopGroup bossGroup;
+    private final NioEventLoopGroup workerGroup;
     private final ServiceRegistry serviceRegistry = new ServiceRegistry();
 
     /**
      * 服务端的请求直接在worker线程中处理，无需单独定义线程池
      */
     private final ClientChannelManager clientChannelManager = new ClientChannelManager();
+
+    public ServerChannel() {
+        this(8);
+    }
+
+    public ServerChannel(int nThreadCount) {
+        bossGroup = new NioEventLoopGroup(1);
+        workerGroup = new NioEventLoopGroup(nThreadCount);
+    }
 
     /**
      * bind current service provider to this channel
