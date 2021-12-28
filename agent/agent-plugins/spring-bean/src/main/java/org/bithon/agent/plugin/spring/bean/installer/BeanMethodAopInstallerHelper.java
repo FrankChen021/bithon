@@ -43,8 +43,6 @@ public class BeanMethodAopInstallerHelper {
         //
         ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance()).make(null, null).injectRaw(new HashMap<String, byte[]>() {
             {
-                put(IBeanMethodInterceptor.class.getName(),
-                    ByteCodeUtils.getClassByteCode(IBeanMethodInterceptor.class.getName(), IBeanMethodInterceptor.class.getClassLoader()));
                 put(BeanMethodInterceptorFactory.class.getName(),
                     ByteCodeUtils.getClassByteCode(BeanMethodInterceptorFactory.class.getName(), BeanMethodInterceptorFactory.class.getClassLoader()));
             }

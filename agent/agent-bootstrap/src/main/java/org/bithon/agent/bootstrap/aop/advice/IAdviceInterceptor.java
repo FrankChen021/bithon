@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.bean.installer;
+package org.bithon.agent.bootstrap.aop.advice;
 
 import java.lang.reflect.Method;
 
@@ -24,7 +24,7 @@ import java.lang.reflect.Method;
  * @author frank.chen021@outlook.com
  * @date 2021/7/11 11:27
  */
-public interface IBeanMethodInterceptor {
+public interface IAdviceInterceptor {
 
     /**
      * @return context
@@ -35,9 +35,10 @@ public interface IBeanMethodInterceptor {
         Object[] args
     );
 
-    void onMethodExit(Method method,
-                      Object target,
-                      Object[] args,
-                      Throwable exception,
-                      Object context);
+    Object onMethodExit(Method method,
+                        Object target,
+                        Object[] args,
+                        Object returning,
+                        Throwable exception,
+                        Object context);
 }

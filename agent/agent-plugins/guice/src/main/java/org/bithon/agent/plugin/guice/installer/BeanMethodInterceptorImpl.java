@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugin.guice.installer;
 
+import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 
@@ -29,7 +30,7 @@ import java.lang.reflect.Method;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class BeanMethodInterceptorImpl implements IBeanMethodInterceptor {
+public class BeanMethodInterceptorImpl implements IAdviceInterceptor {
 
     @Override
     public Object onMethodEnter(
@@ -48,11 +49,13 @@ public class BeanMethodInterceptorImpl implements IBeanMethodInterceptor {
     }
 
     @Override
-    public void onMethodExit(final Method method,
-                             final Object target,
-                             final Object[] args,
-                             final Throwable exception,
-                             final Object context) {
+    public Object onMethodExit(final Method method,
+                               final Object target,
+                               final Object[] args,
+                               final Object returning,
+                               final Throwable exception,
+                               final Object context) {
         ((ITraceSpan) context).tag(exception).finish();
+        return returning;
     }
 }

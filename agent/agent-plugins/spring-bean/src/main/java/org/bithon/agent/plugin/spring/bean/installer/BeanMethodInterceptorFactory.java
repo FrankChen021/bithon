@@ -17,6 +17,7 @@
 package org.bithon.agent.plugin.spring.bean.installer;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
+import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
 import shaded.net.bytebuddy.asm.Advice;
 
 import java.util.Locale;
@@ -36,9 +37,9 @@ public class BeanMethodInterceptorFactory {
 
     public static final String INTERCEPTOR_CLASS_NAME = "org.bithon.agent.plugin.spring.bean.installer.BeanMethodInterceptorImpl";
 
-    private static IBeanMethodInterceptor interceptorInstance;
+    private static IAdviceInterceptor interceptorInstance;
 
-    public static IBeanMethodInterceptor getOrCreate() {
+    public static IAdviceInterceptor getOrCreate() {
         if (interceptorInstance != null) {
             return interceptorInstance;
         }
@@ -54,7 +55,7 @@ public class BeanMethodInterceptorFactory {
                     return interceptorInstance;
                 }
 
-                interceptorInstance = (IBeanMethodInterceptor) interceptorClass.newInstance();
+                interceptorInstance = (IAdviceInterceptor) interceptorClass.newInstance();
             }
 
         } catch (Exception e) {

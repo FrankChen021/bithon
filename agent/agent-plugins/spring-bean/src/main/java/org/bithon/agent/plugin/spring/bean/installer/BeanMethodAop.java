@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugin.spring.bean.installer;
 
+import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -40,7 +41,7 @@ public class BeanMethodAop {
         final @Advice.AllArguments Object[] args,
         @Advice.Local("context") Object context
     ) {
-        IBeanMethodInterceptor interceptor = BeanMethodInterceptorFactory.getOrCreate();
+        IAdviceInterceptor interceptor = BeanMethodInterceptorFactory.getOrCreate();
         if (interceptor != null) {
             context = interceptor.onMethodEnter(method, target, args);
         }
@@ -54,9 +55,9 @@ public class BeanMethodAop {
                             final @Advice.Thrown Throwable exception,
                             final @Advice.Local("context") Object context) {
         if (context != null) {
-            IBeanMethodInterceptor interceptor = BeanMethodInterceptorFactory.getOrCreate();
+            IAdviceInterceptor interceptor = BeanMethodInterceptorFactory.getOrCreate();
             if (interceptor != null) {
-                interceptor.onMethodExit(method, target, args, exception, context);
+                interceptor.onMethodExit(method, target, args, returning, exception, context);
             }
         }
     }

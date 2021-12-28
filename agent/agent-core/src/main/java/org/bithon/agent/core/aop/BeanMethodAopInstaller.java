@@ -16,6 +16,7 @@
 
 package org.bithon.agent.core.aop;
 
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.utils.filter.IMatcher;
 import org.bithon.agent.core.utils.filter.InCollectionMatcher;
@@ -212,8 +213,13 @@ public class BeanMethodAopInstaller {
 
         public BeanTransformationConfig() {
             //exclude all methods declared in Object.class
+            Set<String> methods = Stream.of(Object.class.getMethods()).map(Method::getName).collect(Collectors.toSet());
+
+            //exclude all methods declared in IBithonObject.class
+            methods.addAll(Stream.of(IBithonObject.class.getMethods()).map(Method::getName).collect(Collectors.toSet()));
+
             excludedMethods = new MatcherList();
-            excludedMethods.add(new InCollectionMatcher(Stream.of(Object.class.getMethods()).map(Method::getName).collect(Collectors.toList())));
+            excludedMethods.add(new InCollectionMatcher(methods));
         }
 
         public boolean isDebug() {
