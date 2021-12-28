@@ -34,6 +34,7 @@ import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
+import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.jooq.SelectConditionStep;
@@ -62,12 +63,15 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
+    protected final TraceStorageConfig config;
 
     @JsonCreator
     public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
-                            @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+                            @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                            @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
+        this.config = storageConfig;
     }
 
     @Override
@@ -84,7 +88,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        return new BatchWriter(new TraceJdbcWriter());
+        return new BatchWriter(new TraceJdbcWriter(), config);
     }
 
     @Override
@@ -122,18 +126,23 @@ public class TraceJdbcStorage implements ITraceStorage {
         private final List<TraceIdMapping> traceIdMappings = new ArrayList<>();
 
         private final ITraceWriter writer;
+        private final TraceStorageConfig config;
         private final ScheduledExecutorService executor;
 
-        private BatchWriter(ITraceWriter writer) {
+        private BatchWriter(ITraceWriter writer, TraceStorageConfig config) {
             this.writer = writer;
+            this.config = config;
             this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadUtils.NamedThreadFactory("trace-batch-writer"));
-            this.executor.scheduleAtFixedRate(this::flush, 5, 2, TimeUnit.SECONDS);
+            this.executor.scheduleAtFixedRate(this::flush, 5, 1, TimeUnit.SECONDS);
         }
 
         @Override
         public void writeSpans(Collection<TraceSpan> spans) {
             synchronized (this) {
                 this.traceSpans.addAll(spans);
+            }
+            if (traceSpans.size() > config.getBatchSize()) {
+                flushSpans();
             }
         }
 
@@ -142,9 +151,34 @@ public class TraceJdbcStorage implements ITraceStorage {
             synchronized (this) {
                 this.traceIdMappings.addAll(mappings);
             }
+            if (this.traceIdMappings.size() > config.getBatchSize()) {
+                flushMappings();
+            }
         }
 
         private void flush() {
+            flushSpans();
+            flushMappings();
+        }
+
+        private void flushSpans() {
+            List<TraceSpan> spans;
+            synchronized (this) {
+                spans = new ArrayList<>(traceSpans);
+                traceSpans.clear();
+            }
+
+            if (!spans.isEmpty()) {
+                try {
+                    log.debug("Flushing [{}] spans into storage...", spans.size());
+                    this.writer.writeSpans(spans);
+                } catch (IOException e) {
+                    log.info("Exception when flushing spans into storage", e);
+                }
+            }
+        }
+
+        private void flushMappings() {
             List<TraceSpan> spans;
             List<TraceIdMapping> mappings;
             synchronized (this) {

@@ -31,4 +31,5 @@ import org.springframework.context.annotation.Configuration;
 public class TraceStorageConfig {
     private String type;
     private TTLConfig ttl;
+    private int batchSize = 2000;
 }
