@@ -53,6 +53,15 @@ public class Matchers {
         };
     }
 
+    public static <T extends NamedElement> ElementMatcher.Junction<T> withNames(Set<String> names) {
+        return new ElementMatcher.Junction.AbstractBase<T>() {
+            @Override
+            public boolean matches(T target) {
+                return names.contains(target.getActualName());
+            }
+        };
+    }
+
     public static <T extends MethodDescription> ElementMatcher.Junction<T> takesArguments(int size) {
         return new ElementMatcher.Junction.AbstractBase<T>() {
 

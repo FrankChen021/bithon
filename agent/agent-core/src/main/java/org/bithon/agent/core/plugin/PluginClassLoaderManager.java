@@ -18,6 +18,7 @@ package org.bithon.agent.core.plugin;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
+import org.bithon.agent.bootstrap.loader.CascadingClassLoader;
 import org.bithon.agent.bootstrap.loader.JarClassLoader;
 import org.bithon.agent.bootstrap.loader.JarResolver;
 import org.bithon.agent.core.context.AgentContext;
@@ -46,10 +47,8 @@ public final class PluginClassLoaderManager {
         return appClassLoader == null
                ? defaultLoader
                : LOADER_MAPPING.computeIfAbsent(appClassLoader,
-                                                k -> new JarClassLoader("plugin",
-                                                                        defaultLoader.getJars(),
-                                                                        AgentClassLoader.getClassLoader(),
-                                                                        appClassLoader));
+                                                k -> new CascadingClassLoader(defaultLoader,
+                                                                              appClassLoader));
     }
 
     public static JarClassLoader getDefaultLoader() {
