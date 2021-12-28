@@ -38,6 +38,7 @@ import org.bithon.server.metric.typing.LongValueType;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 /**
  * @author frankchen
@@ -65,7 +66,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
      * runtime property
      */
     @JsonIgnore
-    private final ThreadLocal<PostAggregatorExpressionParser> parsers;
+    private final Supplier<PostAggregatorExpressionParser> parsers;
 
     @JsonIgnore
     private DataSourceSchema owner;
@@ -84,7 +85,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
         this.valueType = "long".equalsIgnoreCase(valueType) ? LongValueType.INSTANCE : DoubleValueType.INSTANCE;
         this.visible = visible == null ? true : visible;
 
-        this.parsers = ThreadLocal.withInitial(() -> {
+        this.parsers = () -> {
             PostAggregatorExpressionLexer lexer = new PostAggregatorExpressionLexer(CharStreams.fromString(expression));
             lexer.getErrorListeners().clear();
             lexer.addErrorListener(new BaseErrorListener() {
@@ -135,7 +136,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                 }
             });
             return parser;
-        });
+        };
     }
 
     @JsonIgnore
@@ -162,9 +163,6 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     @Override
     public void setOwner(DataSourceSchema dataSource) {
         this.owner = dataSource;
-
-        // initialize parser
-        this.parsers.get();
     }
 
     public void visitExpression(PostAggregatorExpressionVisitor visitor) {
