@@ -42,6 +42,13 @@ public class SpringWebFluxPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
                 ),
 
+            forClass("org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("filter")
+                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.AdaptCachedBodyGlobalFilter$Filter")
+                ),
+
             forClass("org.springframework.cloud.gateway.filter.NettyRoutingFilter")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
@@ -97,6 +104,13 @@ public class SpringWebFluxPlugin implements IPlugin {
                                                                        "org.reactivestreams.Publisher")
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.Flux$Timeout")
                 )
+/*
+            forClass("org.springframework.cloud.gateway.handler.FilteringWebHandler")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onConstructor(Matchers.takesArguments(1))
+                                                   .to("org.bithon.agent.plugin.spring.webflux.gateway.FilteringWebHandler$Ctor")
+                )*/
         );
     }
 }

@@ -1,0 +1,71 @@
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package org.bithon.agent.plugin.spring.webflux.interceptor;
+
+import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.tracing.context.ITraceContext;
+import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.http.server.reactive.AbstractServerHttpRequest;
+import org.springframework.web.server.ServerWebExchange;
+
+/**
+ * @author Frank Chen
+ * @date 28/12/21 12:08 PM
+ */
+public class AdaptCachedBodyGlobalFilter$Filter extends AbstractInterceptor {
+
+    @Override
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        ServerWebExchange exchange = aopContext.getArgAs(0);
+
+        // ReactorHttpHandlerAdapter#apply creates an object of AbstractServerHttpRequest
+        if (!(exchange.getRequest() instanceof AbstractServerHttpRequest)) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        // the request object on exchange is type of HttpServerOperation
+        // see ReactorHttpHandlerAdapter#apply
+        Object nativeRequest = ((AbstractServerHttpRequest) exchange.getRequest()).getNativeRequest();
+        if (!(nativeRequest instanceof IBithonObject)) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        HttpServerContext ctx = (HttpServerContext) ((IBithonObject) nativeRequest).getInjectedObject();
+        ITraceContext traceContext = ctx.getTraceContext();
+        if (traceContext == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        ITraceSpan span = traceContext.currentSpan()
+                                      .newChildSpan("webflux-routing")
+                                      .method(aopContext.getMethod())
+                                      .start();
+
+        // replace the input argument
+        GatewayFilterChain delegate = aopContext.getArgAs(1);
+        aopContext.getArgs()[1] = (GatewayFilterChain) exchange1 -> {
+            span.finish();
+            return delegate.filter(exchange1);
+        };
+        return InterceptionDecision.SKIP_LEAVE;
+    }
+}
