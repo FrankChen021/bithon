@@ -109,7 +109,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
             if (serviceGroup.isCtrl) {
                 applicationContext.getBean(CommandService.class).setServerChannel(channel);
             }
-            serviceGroup.channel = new ServerChannel();
+            serviceGroup.channel = channel;
             serviceGroup.start(port);
         });
 

@@ -26,6 +26,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.tracing.storage.ITraceCleaner;
+import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.jooq.DSLContext;
 
 /**
@@ -41,8 +42,9 @@ public class TraceStorage extends TraceJdbcStorage {
     @JsonCreator
     public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                        @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
-        super(dslContext, objectMapper);
+        super(dslContext, objectMapper, storageConfig);
         this.config = config;
     }
 
