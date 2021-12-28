@@ -17,7 +17,7 @@
 package org.bithon.server.common.handler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.common.utils.ThreadUtils;
+import org.bithon.component.commons.utils.ThreadUtils;
 import org.bithon.server.event.sink.LocalEventSink;
 import org.bithon.server.metric.sink.LocalMetricSink;
 import org.bithon.server.tracing.sink.LocalTraceSink;
@@ -47,7 +47,7 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
                                           TimeUnit.SECONDS,
                                           new LinkedBlockingQueue<>(queueSize),
                                           new ThreadUtils.NamedThreadFactory(name),
-                                          new ThreadPoolExecutor.DiscardPolicy());
+                                          new ThreadPoolExecutor.DiscardOldestPolicy());
     }
 
     @Override
