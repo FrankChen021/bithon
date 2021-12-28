@@ -17,7 +17,7 @@ dispatchers:
     client:
       factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
-      timeout: 3000
+      maxLifeTime: 30000
     servers: 127.0.0.1:9898
     messageDebug:
       RedisMessage: true
@@ -30,7 +30,7 @@ dispatchers:
     client:
       factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
-      timeout: 3000
+      maxLifeTime: 30000
     servers: 127.0.0.1:9895
   event:
     queue:
@@ -41,7 +41,7 @@ dispatchers:
     client:
       factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
       # in milliseconds
-      timeout: 3000
+      maxLifeTime: 30000
     servers: 127.0.0.1:9896
     messageDebug:
       EventMessage: true

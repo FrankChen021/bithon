@@ -27,6 +27,7 @@ import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.ThreadUtils;
 import shaded.io.netty.bootstrap.Bootstrap;
 import shaded.io.netty.channel.Channel;
 import shaded.io.netty.channel.ChannelHandlerContext;
@@ -62,6 +63,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
     private NioEventLoopGroup bossGroup;
     private Duration retryInterval;
     private int maxRetry;
+    private long connectionTimestamp;
 
     /**
      * a logic name of the client, which could be used for the servers to find client instances
@@ -87,7 +89,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
         this.maxRetry = MAX_RETRY;
         this.retryInterval = Duration.ofMillis(100);
 
-        bossGroup = new NioEventLoopGroup(nThreads);
+        bossGroup = new NioEventLoopGroup(nThreads, new ThreadUtils.NamedThreadFactory("brpc-client"));
         bootstrap = new Bootstrap();
         bootstrap.group(bossGroup)
                  .channel(NioSocketChannel.class)
@@ -131,6 +133,19 @@ public class ClientChannel implements IChannelWriter, Closeable {
         }
     }
 
+    public synchronized void disconnect() {
+        Channel ch = channel.getAndSet(null);
+        if (ch != null) {
+            ch.disconnect();
+        }
+        connectionTimestamp = 0;
+    }
+
+    @Override
+    public long getConnectionLifeTime() {
+        return connectionTimestamp > 0 ? System.currentTimeMillis() - connectionTimestamp : 0;
+    }
+
     /**
      * must be called before {@link #getRemoteService(Class)}
      */
@@ -165,6 +180,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
                 Future<?> connectFuture = bootstrap.connect(endpoint.getHost(), endpoint.getPort());
                 connectFuture.await(200, TimeUnit.MILLISECONDS);
                 if (connectFuture.isSuccess()) {
+                    connectionTimestamp = System.currentTimeMillis();
                     log.info("Successfully connected to server({}:{})", endpoint.getHost(), endpoint.getPort());
                     return;
                 }

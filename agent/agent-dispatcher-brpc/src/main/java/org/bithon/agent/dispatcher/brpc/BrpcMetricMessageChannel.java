@@ -23,7 +23,9 @@ import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
 import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
+import org.bithon.component.brpc.IServiceController;
 import org.bithon.component.brpc.channel.ClientChannel;
+import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CalleeSideException;
@@ -53,6 +55,7 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
     private final DispatcherConfig dispatcherConfig;
     private final IMetricCollector metricCollector;
     private BrpcMessageHeader header;
+    private long lastConnectAt;
 
     public BrpcMetricMessageChannel(DispatcherConfig dispatcherConfig) {
         Method[] methods = IMetricCollector.class.getDeclaredMethods();
@@ -123,6 +126,15 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
             messageClass = ((List<?>) message).get(0).getClass().getName();
         } else {
             messageClass = message.getClass().getName();
+        }
+
+        IChannelWriter channel = ((IServiceController) metricCollector).getChannel();
+        if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
+            log.info("Disconnect metric-channel for load balancing...");
+            try {
+                channel.disconnect();
+            } catch (Exception ignored) {
+            }
         }
 
         Method method = sendMethods.get(messageClass);

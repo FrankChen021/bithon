@@ -24,7 +24,9 @@ import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
+import org.bithon.component.brpc.IServiceController;
 import org.bithon.component.brpc.channel.ClientChannel;
+import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
@@ -81,6 +83,15 @@ public class BrpcEventMessageChannel implements IMessageChannel {
     public void sendMessage(Object message) {
         if (!(message instanceof BrpcEventMessage)) {
             return;
+        }
+
+        IChannelWriter channel = ((IServiceController) eventCollector).getChannel();
+        if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
+            log.info("Disconnect for event-channel load balancing...");
+            try {
+                channel.disconnect();
+            } catch (Exception ignored) {
+            }
         }
 
         boolean isDebugOn = this.dispatcherConfig.getMessageDebug()

@@ -22,6 +22,13 @@ public interface IChannelWriter {
 
     void connect();
 
+    void disconnect();
+
+    /**
+     * how long this connection has been set up in millisecond
+     */
+    long getConnectionLifeTime();
+
     /**
      * get underlying channel object
      */
