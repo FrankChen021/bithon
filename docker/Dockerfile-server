@@ -14,9 +14,9 @@
 #   limitations under the License.
 #
 
-ARG AGENT
+ARG JDK=8
 
-FROM maven:3.8.1-jdk-8-slim as builder
+FROM maven:3.8.1-jdk-${JDK}-slim as builder
 
 ARG BUILD_FROM_SOURCE="true"
 
@@ -47,14 +47,12 @@ RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; th
       -DskipTests \
     ; fi
 
-FROM amd64/busybox:1.30.0-glibc as busybox
-FROM gcr.io/distroless/java:8
+FROM openjdk:${JDK}-slim
 COPY --from=builder /src/server/server-starter/target/bithon-server-starter.jar /opt/bithon-server-starter.jar
 
-COPY --from=busybox /bin/busybox /busybox/busybox
-RUN ["/busybox/busybox", "--install", "/bin"]
-RUN ["/busybox/busybox", "--install", "/wget"]
-RUN ["/busybox/busybox", "--install", "/unzip"]
+RUN apt-get -qq update \
+    && apt-get -qq -y install unzip \
+    && apt-get -qq -y install wget
 
 COPY docker/startup.sh /startup.sh
 RUN chmod +x /startup.sh \
