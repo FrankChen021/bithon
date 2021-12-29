@@ -16,7 +16,8 @@
 
 package org.bithon.agent.rpc.brpc.cmd;
 
-import org.bithon.component.brpc.ServiceConfig;
+import org.bithon.component.brpc.BrpcMethod;
+import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/7/2 3:50 下午
  */
+@BrpcService
 public interface IJvmCommand {
 
     class StackFrame {
@@ -141,6 +143,6 @@ public interface IJvmCommand {
         }
     }
 
-    @ServiceConfig(serializer = Serializer.JSON)
+    @BrpcMethod(serializer = Serializer.JSON)
     List<ThreadInfo> dumpThreads();
 }

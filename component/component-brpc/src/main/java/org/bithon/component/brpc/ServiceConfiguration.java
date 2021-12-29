@@ -39,8 +39,8 @@ public class ServiceConfiguration {
     }
 
     public static ServiceConfiguration getServiceConfiguration(Method method) {
-        ServiceConfig serviceConfig = method.getDeclaringClass().getAnnotation(ServiceConfig.class);
-        ServiceConfig methodConfig = method.getAnnotation(ServiceConfig.class);
+        BrpcService serviceConfig = method.getDeclaringClass().getAnnotation(BrpcService.class);
+        BrpcMethod methodConfig = method.getAnnotation(BrpcMethod.class);
 
         String methodName;
         boolean isOneway;

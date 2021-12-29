@@ -14,18 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.rpc.brpc.setting;
+package org.bithon.component.brpc.exception;
 
-import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import org.bithon.component.brpc.BrpcService;
-
-import java.util.Map;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/6/30 3:25 下午
+ * @author Frank Chen
+ * @date 29/12/21 6:21 PM
  */
-@BrpcService
-public interface ISettingFetcher {
-    Map<String, String> fetch(BrpcMessageHeader header, long lastModifiedSince);
+public class ServiceRegistrationException extends RuntimeException {
+    public ServiceRegistrationException(String message) {
+        super(message);
+    }
+
+    public ServiceRegistrationException(String format, Object... formatArgs) {
+        super(StringUtils.format(format, formatArgs));
+    }
 }

@@ -14,30 +14,31 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.sentinel.degrade;
+package org.bithon.component.brpc;
 
-import org.bithon.component.brpc.BrpcMethod;
-import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
-import java.util.Set;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/7/5 7:22 下午
+ * Apply to all BRPC interface declaration
+ *
+ * @author Frank Chen
+ * @date 29/12/21 6:15 PM
  */
-@BrpcService
-public interface IDegradingRuleManager {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface BrpcService {
+    /**
+     * service name
+     * if not specified, it defaults to the class name
+     */
+    String name() default "";
 
-    @BrpcMethod(serializer = Serializer.JSON)
-    void create(DegradingRuleDto request);
+    boolean isOneway() default false;
 
-    @BrpcMethod(serializer = Serializer.JSON)
-    void update(DegradingRuleDto request);
-
-    void delete(String ruleId);
-
-    void deleteAll();
-
-    Set<String> getRules();
+    Serializer serializer() default Serializer.BINARY;
 }

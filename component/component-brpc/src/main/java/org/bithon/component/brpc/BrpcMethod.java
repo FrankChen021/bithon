@@ -24,15 +24,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * when this annotation is applied to a type, it's a type level configuration
- * when it's applied to a method, it's a method level configuration
- * And method level configuration can override the type level configuration
+ * This method level configuration can override the type level configuration which is {@link BrpcService}
  *
  * @author frankchen
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
-public @interface ServiceConfig {
+@Target({ElementType.METHOD})
+public @interface BrpcMethod {
     /**
      * service name
      */

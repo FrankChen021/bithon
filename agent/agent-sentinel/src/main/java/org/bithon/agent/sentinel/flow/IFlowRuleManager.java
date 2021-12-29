@@ -16,7 +16,8 @@
 
 package org.bithon.agent.sentinel.flow;
 
-import org.bithon.component.brpc.ServiceConfig;
+import org.bithon.component.brpc.BrpcMethod;
+import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
 import java.util.Set;
@@ -25,12 +26,13 @@ import java.util.Set;
  * @author frank.chen021@outlook.com
  * @date 2021/7/5 7:50 下午
  */
+@BrpcService
 public interface IFlowRuleManager {
 
-    @ServiceConfig(serializer = Serializer.JSON)
+    @BrpcMethod(serializer = Serializer.JSON)
     void create(FlowRuleDto request);
 
-    @ServiceConfig(serializer = Serializer.JSON)
+    @BrpcMethod(serializer = Serializer.JSON)
     void update(FlowRuleDto request);
 
     void delete(String ruleId);

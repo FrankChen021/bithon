@@ -16,13 +16,15 @@
 
 package org.bithon.component.brpc.example;
 
-import org.bithon.component.brpc.ServiceConfig;
+import org.bithon.component.brpc.BrpcMethod;
+import org.bithon.component.brpc.BrpcService;
 import org.bithon.component.brpc.example.protobuf.WebRequestMetrics;
 import org.bithon.component.brpc.message.serializer.Serializer;
 
 import java.util.List;
 import java.util.Map;
 
+@BrpcService
 public interface IExampleService {
     int div(int a, int b);
 
@@ -34,7 +36,7 @@ public interface IExampleService {
     /**
      * Oneway test
      */
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendOneway(String msg);
 
     /**
@@ -42,7 +44,7 @@ public interface IExampleService {
      */
     int[] append(int[] arrays, int value);
 
-    @ServiceConfig(name = "appendString")
+    @BrpcMethod(name = "appendString")
     String[] append(String[] arrays, String value);
 
     /**
@@ -66,7 +68,7 @@ public interface IExampleService {
 
     String sendWebMetrics3(WebRequestMetrics metrics, String uri);
 
-    @ServiceConfig(serializer = Serializer.JSON, name = "merge2")
+    @BrpcMethod(serializer = Serializer.JSON, name = "merge2")
     Map<String, String> mergeWithJson(Map<String, String> a, Map<String, String> b);
 
     /**
