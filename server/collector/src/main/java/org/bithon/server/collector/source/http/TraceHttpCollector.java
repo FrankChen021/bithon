@@ -30,10 +30,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * @author Frank Chen
@@ -121,7 +121,7 @@ public class TraceHttpCollector {
             }
 
             // tidy tags
-            Map<String, String> tags = new TreeMap<>();
+            Map<String, String> tags = new HashMap<>();
             for (Map.Entry<String, String> entry : span.getTags().entrySet()) {
                 String key = entry.getKey();
                 String val = entry.getValue();
@@ -132,6 +132,7 @@ public class TraceHttpCollector {
                 }
                 tags.put(key, val);
             }
+            span.getTags().clear();
             span.setTags(tags);
 
             return span;
