@@ -24,6 +24,7 @@ import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
+import org.bithon.component.commons.utils.ThreadUtils;
 import shaded.io.netty.bootstrap.ServerBootstrap;
 import shaded.io.netty.buffer.PooledByteBufAllocator;
 import shaded.io.netty.channel.Channel;
@@ -70,8 +71,8 @@ public class ServerChannel implements Closeable {
     }
 
     public ServerChannel(int nThreadCount) {
-        bossGroup = new NioEventLoopGroup(1);
-        workerGroup = new NioEventLoopGroup(nThreadCount);
+        bossGroup = new NioEventLoopGroup(1, new ThreadUtils.NamedThreadFactory("brpc-server"));
+        workerGroup = new NioEventLoopGroup(nThreadCount, new ThreadUtils.NamedThreadFactory("brpc-s-worker"));
     }
 
     /**
@@ -141,7 +142,6 @@ public class ServerChannel implements Closeable {
         return clientChannelManager.getEndpoints();
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T getRemoteService(EndPoint clientEndpoint, Class<T> serviceClass) {
         Channel channel = clientChannelManager.getChannel(clientEndpoint);
         if (channel == null) {
@@ -247,6 +247,17 @@ public class ServerChannel implements Closeable {
         @Override
         public void connect() {
             //do nothing for a server channel
+        }
+
+        @Override
+        public void disconnect() {
+            //do nothing for a server channel
+        }
+
+        @Override
+        public long getConnectionLifeTime() {
+            // not support for a server channel now
+            return 0;
         }
 
         @Override

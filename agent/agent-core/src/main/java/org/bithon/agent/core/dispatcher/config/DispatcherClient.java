@@ -21,15 +21,22 @@ package org.bithon.agent.core.dispatcher.config;
  */
 public class DispatcherClient {
 
+    /**
+     * must be sub-class of {@link org.bithon.agent.core.dispatcher.channel.IMessageChannelFactory}
+     */
     private String factory;
-    private int timeout;
 
-    public int getTimeout() {
-        return timeout;
+    /**
+     * how long a connection can be kept. in milliseconds
+     */
+    private int maxLifeTime;
+
+    public int getMaxLifeTime() {
+        return maxLifeTime;
     }
 
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
+    public void setMaxLifeTime(int maxLifeTime) {
+        this.maxLifeTime = maxLifeTime;
     }
 
     public String getFactory() {

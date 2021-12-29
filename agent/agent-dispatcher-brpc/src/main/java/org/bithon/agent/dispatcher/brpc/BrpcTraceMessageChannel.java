@@ -24,7 +24,9 @@ import org.bithon.agent.rpc.brpc.ApplicationType;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
+import org.bithon.component.brpc.IServiceController;
 import org.bithon.component.brpc.channel.ClientChannel;
+import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.RoundRobinEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
@@ -85,6 +87,15 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
         }
         if (((List<?>) message).isEmpty()) {
             return;
+        }
+
+        IChannelWriter channel = ((IServiceController) traceCollector).getChannel();
+        if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
+            log.info("Disconnect trace-channel for load balancing...");
+            try {
+                channel.disconnect();
+            } catch (Exception ignored) {
+            }
         }
 
         boolean isDebugOn = this.dispatcherConfig.getMessageDebug()

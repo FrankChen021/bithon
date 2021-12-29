@@ -32,6 +32,7 @@ public class ServiceStubFactory {
     private static Method setTimeoutMethod;
     private static Method rstTimeoutMethod;
     private static Method getPeerMethod;
+    private static Method getChannelMethod;
 
     static {
         try {
@@ -40,6 +41,7 @@ public class ServiceStubFactory {
             setTimeoutMethod = IServiceController.class.getMethod("setTimeout", long.class);
             rstTimeoutMethod = IServiceController.class.getMethod("rstTimeout");
             getPeerMethod = IServiceController.class.getMethod("getPeer");
+            getChannelMethod = IServiceController.class.getMethod("getChannel");
         } catch (NoSuchMethodException ignored) {
         }
     }
@@ -56,9 +58,9 @@ public class ServiceStubFactory {
     static class ServiceInvocationHandler implements InvocationHandler {
         private final IChannelWriter channelWriter;
         private final ClientInvocationManager clientInvocationManager;
+        private final String appName;
         private boolean debugEnabled;
         private long timeout = 5000;
-        private final String appName;
 
         public ServiceInvocationHandler(String appName,
                                         IChannelWriter channelWriter,
@@ -88,6 +90,9 @@ public class ServiceStubFactory {
             if (getPeerMethod.equals(method)) {
                 InetSocketAddress socketAddress = (InetSocketAddress) channelWriter.getChannel().remoteAddress();
                 return EndPoint.of(socketAddress);
+            }
+            if (getChannelMethod.equals(method)) {
+                return this.channelWriter;
             }
             return clientInvocationManager.invoke(appName, channelWriter, debugEnabled, timeout, method, args);
         }

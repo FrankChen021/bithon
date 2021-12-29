@@ -16,6 +16,7 @@
 
 package org.bithon.component.brpc;
 
+import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.endpoint.EndPoint;
 
 public interface IServiceController {
@@ -29,4 +30,6 @@ public interface IServiceController {
     void rstTimeout();
 
     EndPoint getPeer();
+
+    IChannelWriter getChannel();
 }

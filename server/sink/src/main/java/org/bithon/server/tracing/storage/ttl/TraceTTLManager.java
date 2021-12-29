@@ -17,8 +17,8 @@
 package org.bithon.server.tracing.storage.ttl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.ThreadUtils;
 import org.bithon.server.common.ttl.TTLConfig;
-import org.bithon.server.common.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.DateTimeUtils;
 import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceStorage;

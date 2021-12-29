@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.utils;
+package org.bithon.component.commons.utils;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
