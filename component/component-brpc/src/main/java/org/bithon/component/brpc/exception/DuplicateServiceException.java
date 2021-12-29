@@ -17,25 +17,23 @@
 package org.bithon.component.brpc.exception;
 
 import java.lang.reflect.Method;
-import java.util.Locale;
 
 /**
  * @author Frank Chen
  * @date 20/10/21 9:50 pm
  */
-public class DuplicateServiceException extends RuntimeException {
-    private final Class interfaceClass;
+public class DuplicateServiceException extends ServiceRegistrationException {
+    private final Class<?> interfaceClass;
     private final Method method;
     private final String serviceName;
     private final String methodName;
 
-    public DuplicateServiceException(Class interfaceClass, Method method, String serviceName, String methodName) {
-        super(String.format(Locale.ENGLISH,
-                            "Class[%s].[%s] is retrying to register as [%s#%s], but the name has been already registered",
-                            interfaceClass.getTypeName(),
-                            method.toString(),
-                            serviceName,
-                            methodName));
+    public DuplicateServiceException(Class<?> interfaceClass, Method method, String serviceName, String methodName) {
+        super("Class[%s].[%s] is retrying to register as [%s#%s], but the name has been already registered",
+              interfaceClass.getTypeName(),
+              method.toString(),
+              serviceName,
+              methodName);
         this.interfaceClass = interfaceClass;
         this.method = method;
         this.serviceName = serviceName;
@@ -54,7 +52,7 @@ public class DuplicateServiceException extends RuntimeException {
         return method;
     }
 
-    public Class getInterfaceClass() {
+    public Class<?> getInterfaceClass() {
         return interfaceClass;
     }
 }

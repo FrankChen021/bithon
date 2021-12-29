@@ -229,6 +229,7 @@ public class RpcTest {
             Set<EndPoint> clients = serverChannel.getClientEndpoints();
             Assert.assertEquals(1, clients.size());
 
+            //noinspection OptionalGetWithoutIsPresent
             EndPoint endpoint = clients.stream().findFirst().get();
             IExampleService clientService = serverChannel.getRemoteService(endpoint, IExampleService.class);
 

@@ -16,6 +16,7 @@
 
 package org.bithon.component.brpc.channel;
 
+import org.bithon.component.brpc.BrpcMethod;
 import org.bithon.component.brpc.ServiceRegistry;
 import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
@@ -79,7 +80,7 @@ public class ServerChannel implements Closeable {
      * bind current service provider to this channel
      * NOTE:
      * 1. only those methods defined in interface will be binded
-     * 2. methods name can be the same, but the methods with same name must use {@link org.bithon.component.brpc.ServiceConfig} to give alias name to each method
+     * 2. methods name can be the same, but the methods with same name must use {@link BrpcMethod} to give alias name to each method
      */
     public ServerChannel bindService(Object impl) {
         serviceRegistry.addService(impl);

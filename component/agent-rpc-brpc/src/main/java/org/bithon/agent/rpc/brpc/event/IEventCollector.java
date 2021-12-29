@@ -18,14 +18,16 @@ package org.bithon.agent.rpc.brpc.event;
 
 
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import org.bithon.component.brpc.ServiceConfig;
+import org.bithon.component.brpc.BrpcMethod;
+import org.bithon.component.brpc.BrpcService;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 19:57
  */
+@BrpcService
 public interface IEventCollector {
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendEvent(BrpcMessageHeader header, BrpcEventMessage message);
 }

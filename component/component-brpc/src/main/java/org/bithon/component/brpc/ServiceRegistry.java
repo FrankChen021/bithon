@@ -17,16 +17,18 @@
 package org.bithon.component.brpc;
 
 import org.bithon.component.brpc.exception.DuplicateServiceException;
+import org.bithon.component.brpc.exception.ServiceRegistrationException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ServiceRegistry {
 
@@ -37,17 +39,20 @@ public class ServiceRegistry {
     private final Map<String, Map<String, RegistryItem>> registry = new ConcurrentHashMap<>();
 
     public void addService(Object serviceImpl) {
-        // prevent duplicated registry for interfaces declared on multiple super classes
+        Set<Class<?>> interfaces = new HashSet<>();
 
-        Set<Class<?>> interfaces = new HashSet<>(Arrays.asList(serviceImpl.getClass().getInterfaces()));
+        Class<?> clazz = serviceImpl.getClass();
+        while (clazz != null) {
+            interfaces.addAll(Stream.of(clazz.getInterfaces())
+                                    .filter(interfaceClazz -> interfaceClazz.getAnnotation(BrpcService.class) != null)
+                                    .collect(Collectors.toList()));
 
-        Class<?> superClass = serviceImpl.getClass().getSuperclass();
-        while (superClass != null) {
-            interfaces.addAll(Arrays.asList(superClass.getInterfaces()));
-
-            superClass = superClass.getSuperclass();
+            clazz = clazz.getSuperclass();
         }
 
+        if (interfaces.isEmpty()) {
+            throw new ServiceRegistrationException("Service provider [%s] has no @BrpcService declaration.", serviceImpl.getClass().getName());
+        }
         for (Class<?> interfaceType : interfaces) {
             addService(interfaceType, serviceImpl);
         }
@@ -96,7 +101,7 @@ public class ServiceRegistry {
         public RegistryItem(Method method, Object serviceImpl) {
             this.method = method;
             this.serviceImpl = serviceImpl;
-            ServiceConfig sp = method.getAnnotation(ServiceConfig.class);
+            BrpcMethod sp = method.getAnnotation(BrpcMethod.class);
             this.isOneway = sp != null && sp.isOneway();
             this.parameterTypes = method.getGenericParameterTypes();
         }

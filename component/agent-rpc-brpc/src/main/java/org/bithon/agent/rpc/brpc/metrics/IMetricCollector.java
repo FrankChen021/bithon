@@ -17,7 +17,8 @@
 package org.bithon.agent.rpc.brpc.metrics;
 
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import org.bithon.component.brpc.ServiceConfig;
+import org.bithon.component.brpc.BrpcMethod;
+import org.bithon.component.brpc.BrpcService;
 
 import java.util.List;
 
@@ -25,44 +26,45 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 19:57
  */
+@BrpcService
 public interface IMetricCollector {
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendIncomingHttp(BrpcMessageHeader header, List<BrpcHttpIncomingMetricMessage> messages);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendJvm(BrpcMessageHeader header, List<BrpcJvmMetricMessage> messages);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendJvmGc(BrpcMessageHeader header, List<BrpcJvmGcMetricMessage> messages);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendWebServer(BrpcMessageHeader header, List<BrpcWebServerMetricMessage> messages);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendException(BrpcMessageHeader header, List<BrpcExceptionMetricMessage> messages);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendOutgoingHttp(BrpcMessageHeader header, List<BrpcHttpOutgoingMetricMessage> messages);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendThreadPool(BrpcMessageHeader header, List<BrpcThreadPoolMetricMessage> messages);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendJdbc(BrpcMessageHeader header, List<BrpcJdbcPoolMetricMessage> messages);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendRedis(BrpcMessageHeader header, List<BrpcRedisMetricMessage> messages);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendSql(BrpcMessageHeader header, List<BrpcSqlMetricMessage> messages);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendMongoDb(BrpcMessageHeader header, List<BrpcMongoDbMetricMessage> messages);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendGenericMetrics(BrpcMessageHeader header, BrpcGenericMetricMessage message);
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendGenericMetricsV2(BrpcMessageHeader header, BrpcGenericMetricMessageV2 message);
 }

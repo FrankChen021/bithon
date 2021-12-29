@@ -17,7 +17,8 @@
 package org.bithon.agent.rpc.brpc.tracing;
 
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import org.bithon.component.brpc.ServiceConfig;
+import org.bithon.component.brpc.BrpcMethod;
+import org.bithon.component.brpc.BrpcService;
 
 import java.util.List;
 
@@ -25,8 +26,9 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/6/27 19:57
  */
+@BrpcService
 public interface ITraceCollector {
 
-    @ServiceConfig(isOneway = true)
+    @BrpcMethod(isOneway = true)
     void sendTrace(BrpcMessageHeader header, List<BrpcTraceSpanMessage> spans);
 }
