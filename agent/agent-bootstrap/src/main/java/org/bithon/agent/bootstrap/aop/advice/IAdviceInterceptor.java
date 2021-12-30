@@ -19,7 +19,6 @@ package org.bithon.agent.bootstrap.aop.advice;
 import java.lang.reflect.Method;
 
 /**
- * NOTE: this class is injected into bootstrap class loader, so all its dependencies must be in the bootstrap class loader
  *
  * @author frank.chen021@outlook.com
  * @date 2021/7/11 11:27

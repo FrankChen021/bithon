@@ -66,6 +66,9 @@ public class IAdviceAopTemplate {
         return interceptorInstance;
     }
 
+    /**
+     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     */
     @Advice.OnMethodEnter
     public static void enter(
         final @Advice.Origin Method method,
@@ -79,6 +82,9 @@ public class IAdviceAopTemplate {
         }
     }
 
+    /**
+     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
     public static void exit(final @Advice.Origin Method method,
                             final @Advice.This Object target,

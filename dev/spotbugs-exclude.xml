@@ -39,19 +39,11 @@
         <Bug pattern="UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.plugin.spring.bean.installer.BeanMethodAop"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.plugin.spring.bean.installer.BeanMethodAop"/>
-        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.plugin.guice.installer.BeanMethodAop"/>
-        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    </Match>
-    <Match>
-        <Class name="org.bithon.agent.plugin.guice.installer.BeanMethodAop"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate"/>
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
     <Match>

@@ -14,13 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.guice.installer;
+package org.bithon.agent.plugin.spring.bean.interceptor;
 
 import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * NOTE:
@@ -30,7 +37,9 @@ import java.lang.reflect.Method;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class BeanMethodInterceptorImpl implements IAdviceInterceptor {
+public class BeanMethod$Invoke implements IAdviceInterceptor {
+
+    private final Map<Class<?>, String> componentNames = new ConcurrentHashMap<>();
 
     @Override
     public Object onMethodEnter(
@@ -43,7 +52,23 @@ public class BeanMethodInterceptorImpl implements IAdviceInterceptor {
             return null;
         }
 
-        return span.component("bean")
+        String component = componentNames.computeIfAbsent(method.getDeclaringClass(), beanClass -> {
+            if (beanClass.isAnnotationPresent(RestController.class)) {
+                return "rest-controller";
+            } else if (beanClass.isAnnotationPresent(Controller.class)) {
+                return "controller";
+            } else if (beanClass.isAnnotationPresent(Service.class)) {
+                return "spring-service";
+            } else if (beanClass.isAnnotationPresent(Repository.class)) {
+                return "spring-repository";
+            } else if (beanClass.isAnnotationPresent(Component.class)) {
+                return "spring-component";
+            } else {
+                return "spring-bean";
+            }
+        });
+
+        return span.component(component)
                    .method(method)
                    .start();
     }

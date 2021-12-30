@@ -14,19 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.aop;
+package org.bithon.agent.core.plugin;
 
 
 import org.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
 import org.bithon.agent.bootstrap.aop.BootstrapMethodAop;
+import org.bithon.agent.core.aop.AopClassHelper;
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
-import org.bithon.agent.core.plugin.IPlugin;
-import shaded.net.bytebuddy.ByteBuddy;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
-import shaded.net.bytebuddy.dynamic.DynamicType;
-import shaded.net.bytebuddy.dynamic.loading.ClassInjector;
-import shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.lang.instrument.Instrumentation;
 import java.util.HashMap;
@@ -34,43 +30,25 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * If there is Bootstrap instrumentation plugin declared in plugin list, BootstrapAopInstaller inject the necessary
- * classes into bootstrap class loader, including generated dynamic delegate classes.
+ * For the instrumentation of bootstrap classes, an AOP class for each interceptor is generated to perform the interception
  *
  * @author frankchen
  * @date 2021-02-18 19:23
  */
-public class AopClassGenerator {
+public class PluginAopClassGenerator {
 
     private final Map<String, byte[]> classesTypeMap = new HashMap<>();
     private final Instrumentation instrumentation;
     private final AgentBuilder agentBuilder;
 
-    public AopClassGenerator(Instrumentation instrumentation,
-                             AgentBuilder agentBuilder) {
+    public PluginAopClassGenerator(Instrumentation instrumentation,
+                                   AgentBuilder agentBuilder) {
         this.instrumentation = instrumentation;
         this.agentBuilder = agentBuilder;
     }
 
     public static String bootstrapAopClass(String methodsInterceptor) {
         return methodsInterceptor + "Aop";
-    }
-
-    public static DynamicType.Unloaded<?> generateAopClass(Class<?> aopTemplateClass,
-                                                           String targetAopClassName,
-                                                           String interceptorClassName,
-                                                           boolean debug) {
-        DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(aopTemplateClass)
-                                                              .name(targetAopClassName)
-                                                              .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
-                                                              .value(interceptorClassName)
-                                                              .make();
-
-        if (debug) {
-            AopDebugger.saveClassToFile(aopClassType);
-        }
-
-        return aopClassType;
     }
 
     public AgentBuilder generate(List<IPlugin> plugins) {
@@ -94,9 +72,7 @@ public class AopClassGenerator {
 
     private AgentBuilder injectClassToClassLoader() {
         if (!classesTypeMap.isEmpty()) {
-            ClassInjector.UsingUnsafe.Factory factory = ClassInjector.UsingUnsafe.Factory.resolve(instrumentation);
-            factory.make(null, null).injectRaw(classesTypeMap);
-            return agentBuilder.with(new AgentBuilder.InjectionStrategy.UsingUnsafe.OfFactory(factory));
+            return agentBuilder.with(new AgentBuilder.InjectionStrategy.UsingUnsafe.OfFactory(AopClassHelper.inject(classesTypeMap)));
         } else {
             return agentBuilder;
         }
@@ -130,10 +106,10 @@ public class AopClassGenerator {
                                   MethodPointCutDescriptor methodPointCutDescriptor) {
         String targetAopClassName = bootstrapAopClass(interceptorClass);
 
-        byte[] aopClassBytes = generateAopClass(baseBootstrapAopClass,
-                                                targetAopClassName,
-                                                interceptorClass,
-                                                methodPointCutDescriptor.isDebug()).getBytes();
+        byte[] aopClassBytes = AopClassHelper.generateAopClass(baseBootstrapAopClass,
+                                                               targetAopClassName,
+                                                               interceptorClass,
+                                                               methodPointCutDescriptor.isDebug()).getBytes();
 
         classesTypeMap.put(targetAopClassName, aopClassBytes);
     }

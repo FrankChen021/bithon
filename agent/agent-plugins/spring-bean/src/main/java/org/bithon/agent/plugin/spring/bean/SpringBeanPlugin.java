@@ -47,11 +47,11 @@ public class SpringBeanPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("createBeanInstance")
-                                                   .to("org.bithon.agent.plugin.spring.bean.interceptor.CreateBeanInstanceInterceptor"),
+                                                   .to("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$CreateInstance"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("applyBeanPostProcessorsBeforeInstantiation")
-                                                   .to("org.bithon.agent.plugin.spring.bean.interceptor.ApplyBeanPostProcessorInterceptor")
+                                                   .to("org.bithon.agent.plugin.spring.bean.interceptor.AbstractAutowireCapableBeanFactory$ApplyBeanPostProcessor")
                 )
         );
     }

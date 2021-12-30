@@ -28,7 +28,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
  * @author frank.chen021@outlook.com
  * @date 2021/4/11 20:48
  */
-public class CreateBeanInstanceInterceptor extends AbstractInterceptor {
+public class AbstractAutowireCapableBeanFactory$CreateInstance extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
