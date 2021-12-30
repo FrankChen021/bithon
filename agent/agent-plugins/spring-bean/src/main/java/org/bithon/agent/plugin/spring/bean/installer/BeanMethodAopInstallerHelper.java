@@ -16,11 +16,15 @@
 
 package org.bithon.agent.plugin.spring.bean.installer;
 
+import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
+import org.bithon.agent.core.aop.AopClassGenerator;
 import org.bithon.agent.core.aop.BeanMethodAopInstaller;
 import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.core.plugin.PluginConfigurationManager;
-import org.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import org.bithon.agent.plugin.spring.bean.SpringBeanPlugin;
+import shaded.net.bytebuddy.asm.Advice;
+import shaded.net.bytebuddy.dynamic.ClassFileLocator;
+import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.dynamic.loading.ClassInjector;
 
 import java.util.HashMap;
@@ -33,23 +37,35 @@ public class BeanMethodAopInstallerHelper {
 
     static BeanMethodAopInstaller.BeanTransformationConfig transformationConfig;
 
+    private static DynamicType.Unloaded<?> targetAopClass;
+
     public static void initialize() {
         transformationConfig = PluginConfigurationManager.load(SpringBeanPlugin.class)
                                                          .getConfig("agent.plugin.spring.bean", BeanMethodAopInstaller.BeanTransformationConfig.class);
 
+        String targetAopClassName = BeanMethodAopInstallerHelper.class.getPackage().getName() + ".SpringBeanMethodAop";
+
+        targetAopClass = AopClassGenerator.generateAopClass(IAdviceAopTemplate.class,
+                                                            targetAopClassName,
+                                                            BeanMethodInterceptorImpl.class.getName(),
+                                                            true);
         //
         // inject interceptor classes into bootstrap class loader to ensure this interceptor classes could be found by Adviced code which would be loaded by application class loader
-        // because for any class loader, it would back to bootstrap class loader to find class first
+        // because for any class loader, it would be back to bootstrap class loader to find class first
         //
-        ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance()).make(null, null).injectRaw(new HashMap<String, byte[]>() {
-            {
-                put(BeanMethodInterceptorFactory.class.getName(),
-                    ByteCodeUtils.getClassByteCode(BeanMethodInterceptorFactory.class.getName(), BeanMethodInterceptorFactory.class.getClassLoader()));
-            }
-        });
+        ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance())
+                                         .make(null, null)
+                                         .injectRaw(new HashMap<String, byte[]>() {
+                                             {
+                                                 put(targetAopClassName, targetAopClass.getBytes());
+                                             }
+                                         });
+
     }
 
     public static void install(Class<?> targetClass) {
-        BeanMethodAopInstaller.install(targetClass, BeanMethodAop.class, transformationConfig);
+        BeanMethodAopInstaller.install(targetClass,
+                                       Advice.to(targetAopClass.getTypeDescription(), ClassFileLocator.Simple.of(targetAopClass.getAllTypes())),
+                                       transformationConfig);
     }
 }

@@ -56,6 +56,23 @@ public class AopClassGenerator {
         return methodsInterceptor + "Aop";
     }
 
+    public static DynamicType.Unloaded<?> generateAopClass(Class<?> aopTemplateClass,
+                                                           String targetAopClassName,
+                                                           String interceptorClassName,
+                                                           boolean debug) {
+        DynamicType.Unloaded<?> aopClassType = new ByteBuddy().redefine(aopTemplateClass)
+                                                              .name(targetAopClassName)
+                                                              .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
+                                                              .value(interceptorClassName)
+                                                              .make();
+
+        if (debug) {
+            AopDebugger.saveClassToFile(aopClassType);
+        }
+
+        return aopClassType;
+    }
+
     public AgentBuilder generate(List<IPlugin> plugins) {
         for (IPlugin plugin : plugins) {
             generateAop4Plugin(plugin);
@@ -113,17 +130,11 @@ public class AopClassGenerator {
                                   MethodPointCutDescriptor methodPointCutDescriptor) {
         String targetAopClassName = bootstrapAopClass(interceptorClass);
 
-        DynamicType.Unloaded<?> aopClassType = null;
-        aopClassType = new ByteBuddy().redefine(baseBootstrapAopClass)
-                                      .name(targetAopClassName)
-                                      .field(ElementMatchers.named("INTERCEPTOR_CLASS_NAME"))
-                                      .value(interceptorClass)
-                                      .make();
+        byte[] aopClassBytes = generateAopClass(baseBootstrapAopClass,
+                                                targetAopClassName,
+                                                interceptorClass,
+                                                methodPointCutDescriptor.isDebug()).getBytes();
 
-        if (methodPointCutDescriptor.isDebug()) {
-            AopDebugger.saveClassToFile(aopClassType);
-        }
-
-        classesTypeMap.put(targetAopClassName, aopClassType.getBytes());
+        classesTypeMap.put(targetAopClassName, aopClassBytes);
     }
 }

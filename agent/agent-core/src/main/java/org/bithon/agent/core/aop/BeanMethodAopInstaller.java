@@ -65,10 +65,7 @@ public class BeanMethodAopInstaller {
         });
     }
 
-    /**
-     * @param toAdviceClass must be in bootstrap class loader
-     */
-    public static void install(Class<?> targetClass, Class<?> toAdviceClass, BeanTransformationConfig transformationConfig) {
+    public static void install(Class<?> targetClass, Advice advice, BeanTransformationConfig transformationConfig) {
         if (targetClass.isSynthetic()) {
             /*
              * eg: org.springframework.boot.actuate.autoconfigure.metrics.KafkaMetricsAutoConfiguration$$Lambda$709/829537923
@@ -116,7 +113,7 @@ public class BeanMethodAopInstaller {
             }
         }
 
-        BeanAopDescriptor descriptor = new BeanAopDescriptor(targetClass.getName(), toAdviceClass, excludedMethods);
+        BeanAopDescriptor descriptor = new BeanAopDescriptor(targetClass.getName(), advice, excludedMethods);
 
         if (AgentContext.getInstance().getAppInstance().getPort() == 0) {
             //
@@ -188,19 +185,18 @@ public class BeanMethodAopInstaller {
         //
         // inject on corresponding methods
         //
-        return builder.visit(Advice.to(descriptor.toAdviceClass)
-                                   .on(new BeanMethodModifierMatcher().and((method -> !propertyMethods.contains(method.getName())
-                                                                                      && !descriptor.excludedMethods.matches(method.getName())))));
+        return builder.visit(descriptor.advice.on(new BeanMethodModifierMatcher().and((method -> !propertyMethods.contains(method.getName())
+                                                                                                 && !descriptor.excludedMethods.matches(method.getName())))));
     }
 
     private static class BeanAopDescriptor {
         private final String targetClass;
-        private final Class<?> toAdviceClass;
+        private final Advice advice;
         private final MatcherList excludedMethods;
 
-        public BeanAopDescriptor(String targetClass, Class<?> toAdviceClass, MatcherList excludedMethods) {
+        public BeanAopDescriptor(String targetClass, Advice advice, MatcherList excludedMethods) {
             this.targetClass = targetClass;
-            this.toAdviceClass = toAdviceClass;
+            this.advice = advice;
             this.excludedMethods = excludedMethods;
         }
     }

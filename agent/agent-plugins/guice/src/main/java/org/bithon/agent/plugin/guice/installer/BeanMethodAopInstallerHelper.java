@@ -21,6 +21,7 @@ import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import org.bithon.agent.plugin.guice.GuicePlugin;
+import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.dynamic.loading.ClassInjector;
 
 import java.util.HashMap;
@@ -46,7 +47,7 @@ public class BeanMethodAopInstallerHelper {
 
     public static void install(Class<?> clazz) {
         BeanMethodAopInstaller.install(clazz,
-                                       BeanMethodAop.class,
+                                       Advice.to(BeanMethodAop.class),
                                        PluginConfigurationManager.load(GuicePlugin.class)
                                                                  .getConfig("agent.plugin.guice", BeanMethodAopInstaller.BeanTransformationConfig.class));
     }
