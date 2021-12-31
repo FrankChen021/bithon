@@ -23,6 +23,8 @@ import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Method;
@@ -30,7 +32,7 @@ import java.lang.reflect.Method;
 /**
  * this interceptor intercepts the target {@link org.springframework.cloud.gateway.filter.GatewayFilter#filter(ServerWebExchange, GatewayFilterChain)}
  * and execute the interceptor code once entering the target method, and stops the execution when {@link GatewayFilterChain#filter(ServerWebExchange)} is called.
- *
+ * <p>
  * See {@link org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter} for an example
  *
  * @author Frank Chen
@@ -43,14 +45,19 @@ public class BeforeGatewayFilterInterceptor implements IAdviceInterceptor {
         ServerWebExchange exchange = (ServerWebExchange) args[0];
         GatewayFilterChain delegate = (GatewayFilterChain) args[1];
 
+        // some filters may turn the raw request to a decorated request
+        ServerHttpRequest httpRequest = exchange.getRequest();
+        if (httpRequest instanceof ServerHttpRequestDecorator) {
+            httpRequest = ((ServerHttpRequestDecorator) httpRequest).getDelegate();
+        }
         // ReactorHttpHandlerAdapter#apply creates an object of AbstractServerHttpRequest
-        if (!(exchange.getRequest() instanceof AbstractServerHttpRequest)) {
+        if (!(httpRequest instanceof AbstractServerHttpRequest)) {
             return null;
         }
 
         // the request object on exchange is type of HttpServerOperation
         // see ReactorHttpHandlerAdapter#apply
-        Object nativeRequest = ((AbstractServerHttpRequest) exchange.getRequest()).getNativeRequest();
+        Object nativeRequest = ((AbstractServerHttpRequest) httpRequest).getNativeRequest();
         if (!(nativeRequest instanceof IBithonObject)) {
             return null;
         }
@@ -71,11 +78,16 @@ public class BeforeGatewayFilterInterceptor implements IAdviceInterceptor {
             span.finish();
             return delegate.filter(exchange1);
         };
-        return null;
+
+        return span;
     }
 
     @Override
     public Object onMethodExit(Method method, Object target, Object[] args, Object returning, Throwable exception, Object context) {
+        ITraceSpan span = (ITraceSpan) context;
+        if (exception != null && span != null) {
+            span.tag(exception).finish();
+        }
         return returning;
     }
 }

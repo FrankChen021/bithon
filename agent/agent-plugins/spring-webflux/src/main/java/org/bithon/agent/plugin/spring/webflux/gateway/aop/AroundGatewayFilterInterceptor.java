@@ -25,6 +25,8 @@ import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -47,14 +49,19 @@ public class AroundGatewayFilterInterceptor implements IAdviceInterceptor {
     public Object onMethodEnter(Method method, Object target, Object[] args) {
         ServerWebExchange exchange = (ServerWebExchange) args[0];
 
+        // some filters may turn the raw request to a decorated request
+        ServerHttpRequest httpRequest = exchange.getRequest();
+        if (httpRequest instanceof ServerHttpRequestDecorator) {
+            httpRequest = ((ServerHttpRequestDecorator) httpRequest).getDelegate();
+        }
         // ReactorHttpHandlerAdapter#apply creates an object of AbstractServerHttpRequest
-        if (!(exchange.getRequest() instanceof AbstractServerHttpRequest)) {
-            return InterceptionDecision.SKIP_LEAVE;
+        if (!(httpRequest instanceof AbstractServerHttpRequest)) {
+            return null;
         }
 
         // the request object on exchange is type of HttpServerOperation
         // see ReactorHttpHandlerAdapter#apply
-        Object nativeRequest = ((AbstractServerHttpRequest) exchange.getRequest()).getNativeRequest();
+        Object nativeRequest = ((AbstractServerHttpRequest) httpRequest).getNativeRequest();
         if (!(nativeRequest instanceof IBithonObject)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
