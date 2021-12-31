@@ -32,8 +32,6 @@ import shaded.net.bytebuddy.utility.JavaModule;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * @author frank.chen021@outlook.com
@@ -43,18 +41,13 @@ public class DynamicInterceptorInstaller {
     private static final ILogAdaptor log = LoggerFactory.getLogger(DynamicInterceptorInstaller.class);
     private static final DynamicInterceptorInstaller INSTANCE = new DynamicInterceptorInstaller();
 
-    private final Set<String> installedClassList = new ConcurrentSkipListSet<>();
-
     public static DynamicInterceptorInstaller getInstance() {
         return INSTANCE;
     }
 
     private DynamicType.Builder<?> install(AopDescriptor descriptor, DynamicType.Builder<?> builder) {
-        if (installedClassList.add(descriptor.getTargetClass())) {
-            log.info("Dynamically install interceptor for [{}]", descriptor.targetClass);
-            return builder.visit(descriptor.advice.on(descriptor.methodMatcher));
-        }
-        return builder;
+        log.info("Dynamically install interceptor for [{}]", descriptor.targetClass);
+        return builder.visit(descriptor.advice.on(descriptor.methodMatcher));
     }
 
     public void installOne(AopDescriptor descriptor) {
