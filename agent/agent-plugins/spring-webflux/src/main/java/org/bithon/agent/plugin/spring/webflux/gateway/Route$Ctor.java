@@ -20,30 +20,38 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.utils.CollectionUtils;
 import org.bithon.agent.plugin.spring.webflux.gateway.aop.GatewayAopDynamicInstaller;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.route.Route;
 
 import java.util.List;
 
 /**
- * {@link org.springframework.cloud.gateway.handler.FilteringWebHandler#FilteringWebHandler(List)}
- * <p>
- * install interceptor for global filter during runtime
+ * Install handler to user gateway filter
  *
  * @author Frank Chen
- * @date 27/12/21 5:31 PM
+ * @date 30/12/21 2:16 PM
  */
-public class FilteringWebHandler$Ctor extends AbstractInterceptor {
+public class Route$Ctor extends AbstractInterceptor {
+
+    @Override
+    public boolean initialize() {
+
+
+        return true;
+    }
 
     @Override
     public void onConstruct(AopContext aopContext) {
-        if (!(aopContext.getArgs()[0] instanceof List)) {
+        if (aopContext.hasException()) {
             return;
         }
-        List<GlobalFilter> globalFilters = aopContext.getArgAs(0);
-        if (CollectionUtils.isEmpty(globalFilters)) {
+        Route route = aopContext.castTargetAs();
+
+        List<GatewayFilter> filters = route.getFilters();
+        if (CollectionUtils.isEmpty(filters)) {
             return;
         }
 
-        GatewayAopDynamicInstaller.install(globalFilters.stream().map(GlobalFilter::getClass));
+        GatewayAopDynamicInstaller.install(filters.stream().map(GatewayFilter::getClass));
     }
 }

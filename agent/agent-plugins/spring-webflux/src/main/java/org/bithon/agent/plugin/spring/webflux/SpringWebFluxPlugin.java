@@ -41,7 +41,7 @@ public class SpringWebFluxPlugin implements IPlugin {
                                                    .onAllMethods("apply")
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.ReactorHttpHandlerAdapter$Apply")
                 ),
-
+/*
             forClass("org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
@@ -55,6 +55,7 @@ public class SpringWebFluxPlugin implements IPlugin {
                                                    .onAllMethods("filter")
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.NettyRoutingFilter$Filter")
                 ),
+*/
 
             forClass("reactor.netty.http.server.HttpServerConfig$HttpServerChannelInitializer")
                 .methods(
@@ -103,14 +104,23 @@ public class SpringWebFluxPlugin implements IPlugin {
                                                                        "java.util.function.Function",
                                                                        "org.reactivestreams.Publisher")
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.Flux$Timeout")
-                )
-/*
+                ),
+
+            // route filter
+            forClass("org.springframework.cloud.gateway.route.Route")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onConstructor(Matchers.takesLastArgument("java.util.List"))
+                                                   .to("org.bithon.agent.plugin.spring.webflux.gateway.Route$Ctor")
+                ),
+
+            // global filter
             forClass("org.springframework.cloud.gateway.handler.FilteringWebHandler")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.takesArguments(1))
                                                    .to("org.bithon.agent.plugin.spring.webflux.gateway.FilteringWebHandler$Ctor")
-                )*/
+                )
         );
     }
 }

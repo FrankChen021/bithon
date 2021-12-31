@@ -19,7 +19,6 @@ package org.bithon.agent.bootstrap.aop.advice;
 import java.lang.reflect.Method;
 
 /**
- *
  * @author frank.chen021@outlook.com
  * @date 2021/7/11 11:27
  */
@@ -34,10 +33,17 @@ public interface IAdviceInterceptor {
         Object[] args
     );
 
-    Object onMethodExit(Method method,
-                        Object target,
-                        Object[] args,
-                        Object returning,
-                        Throwable exception,
-                        Object context);
+    /**
+     * only be called when the returning value of {@link #onMethodEnter(Method, Object, Object[])} is NOT NULL
+     *
+     * @param context the returning value of {@link #onMethodEnter(Method, Object, Object[])}
+     */
+    default Object onMethodExit(Method method,
+                                Object target,
+                                Object[] args,
+                                Object returning,
+                                Throwable exception,
+                                Object context) {
+        return returning;
+    }
 }

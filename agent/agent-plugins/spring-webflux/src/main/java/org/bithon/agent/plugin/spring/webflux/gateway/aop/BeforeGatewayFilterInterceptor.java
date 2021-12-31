@@ -20,31 +20,28 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
 
 /**
- * NOTE:
- * Any update of class/package name of this class must be manually reflected to {@link BeanMethodInterceptorFactory#INTERCEPTOR_CLASS_NAME},
- * or the Bean interception WON'T WORK
+ * this interceptor intercepts the target {@link org.springframework.cloud.gateway.filter.GatewayFilter#filter(ServerWebExchange, GatewayFilterChain)}
+ * and execute the interceptor code once entering the target method, and stops the execution when {@link GatewayFilterChain#filter(ServerWebExchange)} is called.
  *
- * @author frank.chen021@outlook.com
- * @date 2021/7/10 18:46
+ * See {@link org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter} for an example
+ *
+ * @author Frank Chen
+ * @date 28/12/21 12:08 PM
  */
-public class FilterMethodInterceptorImpl implements IAdviceInterceptor {
+public class BeforeGatewayFilterInterceptor implements IAdviceInterceptor {
 
     @Override
-    public Object onMethodEnter(
-        final Method method,
-        final Object target,
-        final Object[] args
-    ) {
+    public Object onMethodEnter(Method method, Object target, Object[] args) {
         ServerWebExchange exchange = (ServerWebExchange) args[0];
+        GatewayFilterChain delegate = (GatewayFilterChain) args[1];
 
         // ReactorHttpHandlerAdapter#apply creates an object of AbstractServerHttpRequest
         if (!(exchange.getRequest() instanceof AbstractServerHttpRequest)) {
@@ -64,37 +61,21 @@ public class FilterMethodInterceptorImpl implements IAdviceInterceptor {
             return null;
         }
 
-        // set to thread local for following calls such as HttpClientFinalizer
-        TraceContextHolder.set(traceContext);
+        ITraceSpan span = traceContext.currentSpan()
+                                      .newChildSpan("filter")
+                                      .method(method)
+                                      .start();
 
-        return traceContext.currentSpan()
-                           .newChildSpan("gateway-filter")
-                           .method(method)
-                           .start();
+        // replace the input argument
+        args[1] = (GatewayFilterChain) exchange1 -> {
+            span.finish();
+            return delegate.filter(exchange1);
+        };
+        return null;
     }
 
     @Override
-    public Object onMethodExit(final Method method,
-                               final Object target,
-                               final Object[] args,
-                               final Object returning,
-                               final Throwable exception,
-                               final Object context) {
-        TraceContextHolder.remove();
-
-        ITraceSpan span = (ITraceSpan) context;
-        if (span == null) {
-            // in case of exception in the Enter interceptor
-            return returning;
-        }
-        if (exception != null) {
-            span.tag(exception).finish();
-            return returning;
-        }
-
-        //noinspection unchecked
-        Mono<Void> originalReturning = (Mono<Void>) returning;
-        //noinspection deprecation
-        return originalReturning.doAfterSuccessOrError((success, error) -> ((ITraceSpan) context).tag(error).finish());
+    public Object onMethodExit(Method method, Object target, Object[] args, Object returning, Throwable exception, Object context) {
+        return returning;
     }
 }

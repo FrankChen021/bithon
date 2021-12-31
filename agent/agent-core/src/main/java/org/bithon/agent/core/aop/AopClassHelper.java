@@ -64,9 +64,11 @@ public class AopClassHelper {
         return factory;
     }
 
-    public static ClassInjector.UsingUnsafe.Factory inject(DynamicType.Unloaded<?> type) {
-        Map<String, byte[]> types = new HashMap<>();
-        types.put(type.getTypeDescription().getTypeName(), type.getBytes());
-        return inject(types);
+    public static ClassInjector.UsingUnsafe.Factory inject(DynamicType.Unloaded<?>... types) {
+        Map<String, byte[]> typeMap = new HashMap<>();
+        for (DynamicType.Unloaded<?> type : types) {
+            typeMap.put(type.getTypeDescription().getTypeName(), type.getBytes());
+        }
+        return inject(typeMap);
     }
 }

@@ -21,20 +21,11 @@ import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.utils.filter.IMatcher;
 import org.bithon.agent.core.utils.filter.InCollectionMatcher;
 import org.bithon.agent.core.utils.filter.StringEqualMatcher;
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
-import shaded.net.bytebuddy.description.field.FieldDescription;
 import shaded.net.bytebuddy.description.method.MethodDescription;
-import shaded.net.bytebuddy.description.type.TypeDescription;
-import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.matcher.ElementMatcher;
-import shaded.net.bytebuddy.matcher.ElementMatchers;
-import shaded.net.bytebuddy.matcher.NameMatcher;
-import shaded.net.bytebuddy.matcher.StringSetMatcher;
-import shaded.net.bytebuddy.utility.JavaModule;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,14 +42,13 @@ import java.util.stream.Stream;
  * @date 2021/7/10 13:05
  */
 public class BeanMethodAopInstaller {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(BeanMethodAopInstaller.class);
 
     private static final Set<String> PROCESSED = new ConcurrentSkipListSet<>();
-    private static Map<String, BeanAopDescriptor> PENDING_DESCRIPTORS = new ConcurrentHashMap<>();
+    private static Map<String, DynamicInterceptorInstaller.AopDescriptor> PENDING_DESCRIPTORS = new ConcurrentHashMap<>();
 
     static {
         AgentContext.getInstance().getAppInstance().addListener(port -> {
-            install(PENDING_DESCRIPTORS);
+            DynamicInterceptorInstaller.install(PENDING_DESCRIPTORS);
 
             // clear the reference
             BeanMethodAopInstaller.PENDING_DESCRIPTORS = null;
@@ -113,7 +103,24 @@ public class BeanMethodAopInstaller {
             }
         }
 
-        BeanAopDescriptor descriptor = new BeanAopDescriptor(targetClass.getName(), advice, excludedMethods);
+        //
+        // infer property methods
+        //
+        Set<String> propertyMethods = new HashSet<>();
+        for (Field field : targetClass.getDeclaredFields()) {
+            String name = field.getName();
+            char[] chr = name.toCharArray();
+            chr[0] = Character.toUpperCase(chr[0]);
+            name = new String(chr);
+            propertyMethods.add("get" + name);
+            propertyMethods.add("set" + name);
+            propertyMethods.add("is" + name);
+        }
+
+        DynamicInterceptorInstaller.AopDescriptor descriptor = new DynamicInterceptorInstaller.AopDescriptor(targetClass.getName(),
+                                                                                                             advice,
+                                                                                                             new BeanMethodMatcher(propertyMethods,
+                                                                                                                                   excludedMethods));
 
         if (AgentContext.getInstance().getAppInstance().getPort() == 0) {
             //
@@ -124,80 +131,9 @@ public class BeanMethodAopInstaller {
             // I use a workaround that by deferring the installation until the application's web service is working
             // This may not solve the problem from the root or completely, but I think such problems have been eased a lot.
             //
-            PENDING_DESCRIPTORS.put(descriptor.targetClass, descriptor);
+            PENDING_DESCRIPTORS.put(descriptor.getTargetClass(), descriptor);
         } else {
-            installOne(descriptor);
-        }
-    }
-
-    private static void installOne(BeanAopDescriptor descriptor) {
-
-        new AgentBuilder.Default().ignore(ElementMatchers.nameStartsWith("shaded."))
-                                  .disableClassFormatChanges()
-                                  .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
-                                  .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                                  .type(ElementMatchers.named(descriptor.targetClass))
-                                  .transform((builder, typeDescription, classLoader, javaModule) -> transformBeanClass(descriptor, builder, typeDescription))
-                                  .with(new AopTransformationListener())
-                                  .installOn(InstrumentationHelper.getInstance());
-    }
-
-    private static void install(Map<String, BeanAopDescriptor> descriptors) {
-        ElementMatcher<? super TypeDescription> typeMatcher = new NameMatcher<>(new StringSetMatcher(new HashSet<>(descriptors.keySet())));
-
-        new AgentBuilder.Default().ignore(ElementMatchers.nameStartsWith("shaded."))
-                                  .disableClassFormatChanges()
-                                  .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
-                                  .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                                  .type(typeMatcher)
-                                  .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule) -> {
-                                      BeanAopDescriptor descriptor = descriptors.get(typeDescription.getTypeName());
-                                      if (descriptor == null) {
-                                          // this must be an error
-                                          log.error("Can't find BeanAopDescriptor for [{}]", typeDescription.getTypeName());
-                                          return builder;
-                                      }
-
-                                      return transformBeanClass(descriptor, builder, typeDescription);
-
-                                  })
-                                  .with(new AopTransformationListener())
-                                  .installOn(InstrumentationHelper.getInstance());
-    }
-
-    private static DynamicType.Builder<?> transformBeanClass(BeanAopDescriptor descriptor, DynamicType.Builder<?> builder, TypeDescription typeDescription) {
-        log.info("Setup AOP for Bean class [{}]", descriptor.targetClass);
-
-        //
-        // infer property methods
-        //
-        Set<String> propertyMethods = new HashSet<>();
-        for (FieldDescription field : typeDescription.getDeclaredFields()) {
-            String name = field.getName();
-            char[] chr = name.toCharArray();
-            chr[0] = Character.toUpperCase(chr[0]);
-            name = new String(chr);
-            propertyMethods.add("get" + name);
-            propertyMethods.add("set" + name);
-            propertyMethods.add("is" + name);
-        }
-
-        //
-        // inject on corresponding methods
-        //
-        return builder.visit(descriptor.advice.on(new BeanMethodModifierMatcher().and((method -> !propertyMethods.contains(method.getName())
-                                                                                                 && !descriptor.excludedMethods.matches(method.getName())))));
-    }
-
-    private static class BeanAopDescriptor {
-        private final String targetClass;
-        private final Advice advice;
-        private final MatcherList excludedMethods;
-
-        public BeanAopDescriptor(String targetClass, Advice advice, MatcherList excludedMethods) {
-            this.targetClass = targetClass;
-            this.advice = advice;
-            this.excludedMethods = excludedMethods;
+            DynamicInterceptorInstaller.installOne(descriptor);
         }
     }
 
@@ -286,7 +222,15 @@ public class BeanMethodAopInstaller {
         }
     }
 
-    static class BeanMethodModifierMatcher extends ElementMatcher.Junction.AbstractBase<MethodDescription> {
+    static class BeanMethodMatcher extends ElementMatcher.Junction.AbstractBase<MethodDescription> {
+        private final Set<String> propertyMethods;
+        private final MatcherList excludedMethods;
+
+        BeanMethodMatcher(Set<String> propertyMethods, MatcherList excludedMethods) {
+            this.propertyMethods = propertyMethods;
+            this.excludedMethods = excludedMethods;
+        }
+
         @Override
         public boolean matches(MethodDescription target) {
             boolean matched = target.isPublic()
@@ -297,9 +241,23 @@ public class BeanMethodAopInstaller {
             if (!matched) {
                 return false;
             }
-            return !target.getName().startsWith("is")
-                   && !target.getName().startsWith("set")
-                   && !target.getName().startsWith("can");
+
+            String name = target.getName();
+
+            matched = !name.startsWith("is") && !name.startsWith("set") && !name.startsWith("can");
+            if (!matched) {
+                return false;
+            }
+
+            if (propertyMethods.contains(name)) {
+                return false;
+            }
+
+            if (excludedMethods.matches(name)) {
+                return false;
+            }
+
+            return true;
         }
     }
 

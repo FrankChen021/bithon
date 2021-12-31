@@ -73,12 +73,18 @@ public class IAdviceAopTemplate {
     public static void enter(
         final @Advice.Origin Method method,
         final @Advice.This(optional = true) Object target,
-        final @Advice.AllArguments Object[] args,
+        @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
         @Advice.Local("context") Object context
     ) {
         IAdviceInterceptor interceptor = getOrCreateInterceptor();
         if (interceptor != null) {
-            context = interceptor.onMethodEnter(method, target, args);
+            Object[] newArgs = args;
+
+            context = interceptor.onMethodEnter(method, target, newArgs);
+
+            //this assignment must be kept since it tells bytebuddy that args might have been re-written
+            // so that bytebyddy re-map the args to original function input argument
+            args = newArgs;
         }
     }
 
