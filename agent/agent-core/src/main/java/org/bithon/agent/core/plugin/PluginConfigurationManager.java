@@ -35,18 +35,14 @@ public class PluginConfigurationManager {
      */
     public static Configuration load(Class<? extends IPlugin> pluginClass) {
         String name = pluginClass.getPackage().getName() + ".yml";
-
         String dynamicPrefix = "bithon." + getPluginConfigurationPrefixName(pluginClass.getName());
+
         try (InputStream is = pluginClass.getClassLoader().getResourceAsStream(name)) {
-            return Configuration.create(name,
-                                        is,
-                                        "bithon." + getPluginConfigurationPrefixName(pluginClass.getName()));
+            return Configuration.create(name, is, dynamicPrefix);
         } catch (IOException ignored) {
             // ignore this exception thrown from InputStream.close
             // try to load from dynamic configuration
-            return Configuration.create(name,
-                                        null,
-                                        "bithon." + getPluginConfigurationPrefixName(pluginClass.getName()));
+            return Configuration.create(name, null, dynamicPrefix);
         }
     }
 
