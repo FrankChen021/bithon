@@ -54,17 +54,17 @@ public class BeanMethod$Invoke implements IAdviceInterceptor {
 
         String component = componentNames.computeIfAbsent(method.getDeclaringClass(), beanClass -> {
             if (beanClass.isAnnotationPresent(RestController.class)) {
-                return "rest-controller";
+                return "restController";
             } else if (beanClass.isAnnotationPresent(Controller.class)) {
                 return "controller";
             } else if (beanClass.isAnnotationPresent(Service.class)) {
-                return "spring-service";
+                return "springService";
             } else if (beanClass.isAnnotationPresent(Repository.class)) {
-                return "spring-repository";
+                return "springRepository";
             } else if (beanClass.isAnnotationPresent(Component.class)) {
-                return "spring-component";
+                return "springComponent";
             } else {
-                return "spring-bean";
+                return "springBean";
             }
         });
 
