@@ -34,13 +34,6 @@ import java.util.List;
 public class Route$Ctor extends AbstractInterceptor {
 
     @Override
-    public boolean initialize() {
-
-
-        return true;
-    }
-
-    @Override
     public void onConstruct(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;

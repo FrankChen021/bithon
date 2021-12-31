@@ -110,7 +110,7 @@ public class SpringWebFluxPlugin implements IPlugin {
             forClass("org.springframework.cloud.gateway.route.Route")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor(Matchers.takesLastArgument("java.util.List"))
+                                                   .onAllConstructor()
                                                    .to("org.bithon.agent.plugin.spring.webflux.gateway.Route$Ctor")
                 ),
 
