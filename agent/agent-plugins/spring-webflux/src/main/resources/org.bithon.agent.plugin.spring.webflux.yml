@@ -1,0 +1,8 @@
+agent:
+  plugin:
+    spring:
+      webflux:
+        gateway:
+          org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter: before
+          org.springframework.cloud.gateway.filter.NettyRoutingFilter: around
+
