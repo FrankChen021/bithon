@@ -54,7 +54,7 @@ public class DynamicInterceptorInstaller {
             log.info("Dynamically install interceptor for [{}]", descriptor.targetClass);
             return builder.visit(descriptor.advice.on(descriptor.methodMatcher));
         }
-        return null;
+        return builder;
     }
 
     public void installOne(AopDescriptor descriptor) {
