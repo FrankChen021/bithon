@@ -41,10 +41,9 @@ import java.util.stream.Stream;
  */
 public class GatewayAopDynamicInstaller {
 
+    private static final GatewayFilterConfig FILTER_CONFIG;
     private static Advice aroundFilterAdvice;
     private static Advice beforeFilterAdvice;
-
-    private static final GatewayFilterConfig FILTER_CONFIG;
 
     static {
         FILTER_CONFIG = PluginConfigurationManager.load(SpringWebFluxPlugin.class).getConfig(GatewayFilterConfig.class);
@@ -86,7 +85,7 @@ public class GatewayAopDynamicInstaller {
                    .filter(f -> f.getAdvice() != null)
                    .collect(Collectors.toMap(DynamicInterceptorInstaller.AopDescriptor::getTargetClass, v -> v));
 
-        DynamicInterceptorInstaller.install(descriptors);
+        DynamicInterceptorInstaller.getInstance().install(descriptors);
     }
 
     private static Advice getAdviceClass(Class<?> filterClass) {

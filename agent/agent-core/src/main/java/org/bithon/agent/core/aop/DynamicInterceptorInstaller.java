@@ -29,9 +29,11 @@ import shaded.net.bytebuddy.matcher.NameMatcher;
 import shaded.net.bytebuddy.matcher.StringSetMatcher;
 import shaded.net.bytebuddy.utility.JavaModule;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * @author frank.chen021@outlook.com
@@ -39,20 +41,34 @@ import java.util.Map;
  */
 public class DynamicInterceptorInstaller {
     private static final ILogAdaptor log = LoggerFactory.getLogger(DynamicInterceptorInstaller.class);
+    private static final DynamicInterceptorInstaller INSTANCE = new DynamicInterceptorInstaller();
 
-    public static void installOne(AopDescriptor descriptor) {
+    private final Set<String> installedClassList = new ConcurrentSkipListSet<>();
 
+    public static DynamicInterceptorInstaller getInstance() {
+        return INSTANCE;
+    }
+
+    private DynamicType.Builder<?> install(AopDescriptor descriptor, DynamicType.Builder<?> builder, TypeDescription typeDescription) {
+        if (installedClassList.add(descriptor.getTargetClass())) {
+            log.info("Dynamically install interceptor for [{}]", descriptor.targetClass);
+            return builder.visit(descriptor.advice.on(descriptor.methodMatcher));
+        }
+        return null;
+    }
+
+    public void installOne(AopDescriptor descriptor) {
         new AgentBuilder.Default().ignore(ElementMatchers.nameStartsWith("shaded."))
                                   .disableClassFormatChanges()
                                   .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
                                   .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                                   .type(ElementMatchers.named(descriptor.targetClass))
                                   .transform((builder, typeDescription, classLoader, javaModule) -> install(descriptor, builder, typeDescription))
-                                  .with(new AopDebugger(new HashSet<>(Arrays.asList(descriptor.getTargetClass()))))
+                                  .with(new AopDebugger(new HashSet<>(Collections.singletonList(descriptor.getTargetClass()))))
                                   .installOn(InstrumentationHelper.getInstance());
     }
 
-    public static void install(Map<String, AopDescriptor> descriptors) {
+    public void install(Map<String, AopDescriptor> descriptors) {
         ElementMatcher<? super TypeDescription> typeMatcher = new NameMatcher<>(new StringSetMatcher(new HashSet<>(descriptors.keySet())));
 
         new AgentBuilder.Default().ignore(ElementMatchers.nameStartsWith("shaded."))
@@ -73,12 +89,6 @@ public class DynamicInterceptorInstaller {
                                   })
                                   .with(new AopDebugger(new HashSet<>(descriptors.keySet())))
                                   .installOn(InstrumentationHelper.getInstance());
-    }
-
-    private static DynamicType.Builder<?> install(AopDescriptor descriptor, DynamicType.Builder<?> builder, TypeDescription typeDescription) {
-        log.info("Dynamic install interceptor for class [{}]", descriptor.targetClass);
-
-        return builder.visit(descriptor.advice.on(descriptor.methodMatcher));
     }
 
     public static class AopDescriptor {

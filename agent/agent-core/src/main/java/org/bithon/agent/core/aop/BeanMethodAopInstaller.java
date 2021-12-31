@@ -48,7 +48,7 @@ public class BeanMethodAopInstaller {
 
     static {
         AgentContext.getInstance().getAppInstance().addListener(port -> {
-            DynamicInterceptorInstaller.install(PENDING_DESCRIPTORS);
+            DynamicInterceptorInstaller.getInstance().install(PENDING_DESCRIPTORS);
 
             // clear the reference
             BeanMethodAopInstaller.PENDING_DESCRIPTORS = null;
@@ -133,7 +133,7 @@ public class BeanMethodAopInstaller {
             //
             PENDING_DESCRIPTORS.put(descriptor.getTargetClass(), descriptor);
         } else {
-            DynamicInterceptorInstaller.installOne(descriptor);
+            DynamicInterceptorInstaller.getInstance().installOne(descriptor);
         }
     }
 
