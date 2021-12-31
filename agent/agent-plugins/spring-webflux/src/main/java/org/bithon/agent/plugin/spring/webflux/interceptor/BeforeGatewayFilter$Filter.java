@@ -22,21 +22,16 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
 /**
- * {@linkto org.springframework.cloud.gateway.filter.NettyRoutingFilter}
- * <p>
- * This interceptor is not enabled because the callback is executed before
- *
  * @author Frank Chen
- * @date 29/11/21 4:39 pm
+ * @date 28/12/21 12:08 PM
  */
-public class NettyRoutingFilter$Filter extends AbstractInterceptor {
+public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -60,31 +55,17 @@ public class NettyRoutingFilter$Filter extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        // set to thread local for following calls such as HttpClientFinalizer
-        TraceContextHolder.set(traceContext);
+        ITraceSpan span = traceContext.currentSpan()
+                                      .newChildSpan("filter")
+                                      .method(aopContext.getMethod())
+                                      .start();
 
-        aopContext.setUserContext(traceContext.currentSpan()
-                                              .newChildSpan("webflux-routing")
-                                              .method(aopContext.getMethod())
-                                              .start());
-        return InterceptionDecision.CONTINUE;
-    }
-
-    @Override
-    public void onMethodLeave(AopContext aopContext) {
-        TraceContextHolder.remove();
-
-        ITraceSpan span = aopContext.castUserContextAs();
-        if (span == null) {
-            // in case of exception in the Enter interceptor
-            return;
-        }
-
-        Mono<Void> originalReturning = aopContext.castReturningAs();
-        Mono<Void> replacedReturning = originalReturning.doAfterSuccessOrError((success, error) -> {
-            span.tag(error)
-                .finish();
-        });
-        aopContext.setReturning(replacedReturning);
+        // replace the input argument
+        GatewayFilterChain delegate = aopContext.getArgAs(1);
+        aopContext.getArgs()[1] = (GatewayFilterChain) exchange1 -> {
+            span.finish();
+            return delegate.filter(exchange1);
+        };
+        return InterceptionDecision.SKIP_LEAVE;
     }
 }
