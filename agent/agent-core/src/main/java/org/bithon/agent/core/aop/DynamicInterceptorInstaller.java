@@ -49,7 +49,7 @@ public class DynamicInterceptorInstaller {
         return INSTANCE;
     }
 
-    private DynamicType.Builder<?> install(AopDescriptor descriptor, DynamicType.Builder<?> builder, TypeDescription typeDescription) {
+    private DynamicType.Builder<?> install(AopDescriptor descriptor, DynamicType.Builder<?> builder) {
         if (installedClassList.add(descriptor.getTargetClass())) {
             log.info("Dynamically install interceptor for [{}]", descriptor.targetClass);
             return builder.visit(descriptor.advice.on(descriptor.methodMatcher));
@@ -63,7 +63,7 @@ public class DynamicInterceptorInstaller {
                                   .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
                                   .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                                   .type(ElementMatchers.named(descriptor.targetClass))
-                                  .transform((builder, typeDescription, classLoader, javaModule) -> install(descriptor, builder, typeDescription))
+                                  .transform((builder, typeDescription, classLoader, javaModule) -> install(descriptor, builder))
                                   .with(new AopDebugger(new HashSet<>(Collections.singletonList(descriptor.getTargetClass()))))
                                   .installOn(InstrumentationHelper.getInstance());
     }
@@ -84,7 +84,7 @@ public class DynamicInterceptorInstaller {
                                           return builder;
                                       }
 
-                                      return install(descriptor, builder, typeDescription);
+                                      return install(descriptor, builder);
 
                                   })
                                   .with(new AopDebugger(new HashSet<>(descriptors.keySet())))
