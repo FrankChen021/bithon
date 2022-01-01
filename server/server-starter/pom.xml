@@ -81,11 +81,14 @@
     </dependency>
 
     <!-- DEV TOOLS -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-devtools</artifactId>
-      <optional>true</optional>
-    </dependency>
+    <!-- This conflicts with classes in agent-bootstrap when the project is launched from IntelliJ
+         So, we disable this dependency here
+    -->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.boot</groupId>-->
+<!--      <artifactId>spring-boot-devtools</artifactId>-->
+<!--      <optional>true</optional>-->
+<!--    </dependency>-->
 
     <dependency>
       <groupId>com.alibaba.cloud</groupId>

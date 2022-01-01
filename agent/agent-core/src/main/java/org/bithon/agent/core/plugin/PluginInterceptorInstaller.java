@@ -18,7 +18,6 @@ package org.bithon.agent.core.plugin;
 
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.loader.JarClassLoader;
-import org.bithon.agent.core.aop.AopClassGenerator;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.interceptor.InterceptorInstaller;
 import org.bithon.agent.core.context.AgentContext;
@@ -52,7 +51,7 @@ public class PluginInterceptorInstaller {
         List<IPlugin> plugins = loadPlugins();
 
         // install interceptors for bootstrap classes
-        AgentBuilder agentBuilder = new AopClassGenerator(inst, createAgentBuilder(inst)).generate(plugins);
+        AgentBuilder agentBuilder = new PluginAopClassGenerator(inst, createAgentBuilder(inst)).generate(plugins);
 
         // install interceptors
         install(agentBuilder, inst, plugins);

@@ -26,7 +26,7 @@ import org.bithon.agent.plugin.spring.bean.installer.BeanMethodAopInstallerHelpe
  * @author frank.chen021@outlook.com
  * @date 2021/4/11 20:48
  */
-public class ApplyBeanPostProcessorInterceptor extends AbstractInterceptor {
+public class AbstractAutowireCapableBeanFactory$ApplyBeanPostProcessor extends AbstractInterceptor {
 
     /**
      * Re-transform

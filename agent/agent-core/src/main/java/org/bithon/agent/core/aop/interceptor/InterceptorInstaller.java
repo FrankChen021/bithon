@@ -26,7 +26,7 @@ import org.bithon.agent.bootstrap.aop.ISuperMethod;
 import org.bithon.agent.bootstrap.aop.MethodAop;
 import org.bithon.agent.bootstrap.aop.ReplaceMethodAop;
 import org.bithon.agent.bootstrap.expt.AgentException;
-import org.bithon.agent.core.aop.AopClassGenerator;
+import org.bithon.agent.core.aop.AopClassHelper;
 import org.bithon.agent.core.aop.AopDebugger;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
@@ -116,7 +116,7 @@ public class InterceptorInstaller {
      */
     private Class<?> getBootstrapAopClass(String methodsInterceptor) {
         try {
-            return Class.forName(AopClassGenerator.bootstrapAopClass(methodsInterceptor));
+            return Class.forName(AopClassHelper.bootstrapAopClass(methodsInterceptor));
         } catch (ClassNotFoundException e) {
             throw new AgentException(e.getMessage(), e);
         }

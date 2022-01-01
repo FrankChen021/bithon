@@ -65,7 +65,7 @@ public class AopDebugger extends AopTransformationListener {
 
         try {
             if (!CLASS_FILE_DIR.exists()) {
-                CLASS_FILE_DIR.mkdir();
+                CLASS_FILE_DIR.mkdirs();
             }
         } catch (Exception e) {
             log.error("log error", e);

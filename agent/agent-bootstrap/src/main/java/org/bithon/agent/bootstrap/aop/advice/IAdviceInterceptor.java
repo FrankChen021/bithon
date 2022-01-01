@@ -14,17 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.bean.installer;
+package org.bithon.agent.bootstrap.aop.advice;
 
 import java.lang.reflect.Method;
 
 /**
- * NOTE: this class is injected into bootstrap class loader, so all its dependencies must be in the bootstrap class loader
- *
  * @author frank.chen021@outlook.com
  * @date 2021/7/11 11:27
  */
-public interface IBeanMethodInterceptor {
+public interface IAdviceInterceptor {
 
     /**
      * @return context
@@ -35,9 +33,17 @@ public interface IBeanMethodInterceptor {
         Object[] args
     );
 
-    void onMethodExit(Method method,
-                      Object target,
-                      Object[] args,
-                      Throwable exception,
-                      Object context);
+    /**
+     * only be called when the returning value of {@link #onMethodEnter(Method, Object, Object[])} is NOT NULL
+     *
+     * @param context the returning value of {@link #onMethodEnter(Method, Object, Object[])}
+     */
+    default Object onMethodExit(Method method,
+                                Object target,
+                                Object[] args,
+                                Object returning,
+                                Throwable exception,
+                                Object context) {
+        return returning;
+    }
 }

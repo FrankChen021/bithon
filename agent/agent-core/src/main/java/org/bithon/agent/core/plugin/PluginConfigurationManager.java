@@ -30,17 +30,19 @@ import java.util.stream.Collectors;
  */
 public class PluginConfigurationManager {
 
+    /**
+     * load plugin configuration from static plugin.yml and dynamic configuration from environment variable and command line arguments
+     */
     public static Configuration load(Class<? extends IPlugin> pluginClass) {
-        String pkgName = pluginClass.getPackage().getName().replace('.', '/');
+        String name = pluginClass.getPackage().getName() + ".yml";
+        String dynamicPrefix = "bithon." + getPluginConfigurationPrefixName(pluginClass.getName());
 
-        String name = pkgName + "/plugin.yml";
         try (InputStream is = pluginClass.getClassLoader().getResourceAsStream(name)) {
-            return Configuration.create(name,
-                                        is,
-                                        "bithon." + getPluginConfigurationPrefixName(pluginClass.getName()));
+            return Configuration.create(name, is, dynamicPrefix);
         } catch (IOException ignored) {
             // ignore this exception thrown from InputStream.close
-            return Configuration.EMPTY;
+            // try to load from dynamic configuration
+            return Configuration.create(name, null, dynamicPrefix);
         }
     }
 

@@ -14,8 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.bean.installer;
+package org.bithon.agent.plugin.spring.bean.interceptor;
 
+import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class BeanMethodInterceptorImpl implements IBeanMethodInterceptor {
+public class BeanMethod$Invoke implements IAdviceInterceptor {
 
     private final Map<Class<?>, String> componentNames = new ConcurrentHashMap<>();
 
@@ -53,17 +54,17 @@ public class BeanMethodInterceptorImpl implements IBeanMethodInterceptor {
 
         String component = componentNames.computeIfAbsent(method.getDeclaringClass(), beanClass -> {
             if (beanClass.isAnnotationPresent(RestController.class)) {
-                return "rest-controller";
+                return "restController";
             } else if (beanClass.isAnnotationPresent(Controller.class)) {
                 return "controller";
             } else if (beanClass.isAnnotationPresent(Service.class)) {
-                return "spring-service";
+                return "springService";
             } else if (beanClass.isAnnotationPresent(Repository.class)) {
-                return "spring-repository";
+                return "springRepository";
             } else if (beanClass.isAnnotationPresent(Component.class)) {
-                return "spring-component";
+                return "springComponent";
             } else {
-                return "spring-bean";
+                return "springBean";
             }
         });
 
@@ -73,11 +74,13 @@ public class BeanMethodInterceptorImpl implements IBeanMethodInterceptor {
     }
 
     @Override
-    public void onMethodExit(final Method method,
-                             final Object target,
-                             final Object[] args,
-                             final Throwable exception,
-                             final Object context) {
+    public Object onMethodExit(final Method method,
+                               final Object target,
+                               final Object[] args,
+                               final Object returning,
+                               final Throwable exception,
+                               final Object context) {
         ((ITraceSpan) context).tag(exception).finish();
+        return returning;
     }
 }

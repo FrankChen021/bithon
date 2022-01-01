@@ -16,14 +16,15 @@
 
 package org.bithon.agent.plugin.spring.bean.installer;
 
+import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
+import org.bithon.agent.core.aop.AopClassHelper;
 import org.bithon.agent.core.aop.BeanMethodAopInstaller;
-import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.agent.core.plugin.PluginConfigurationManager;
-import org.bithon.agent.core.utils.bytecode.ByteCodeUtils;
 import org.bithon.agent.plugin.spring.bean.SpringBeanPlugin;
-import shaded.net.bytebuddy.dynamic.loading.ClassInjector;
-
-import java.util.HashMap;
+import org.bithon.agent.plugin.spring.bean.interceptor.BeanMethod$Invoke;
+import shaded.net.bytebuddy.asm.Advice;
+import shaded.net.bytebuddy.dynamic.ClassFileLocator;
+import shaded.net.bytebuddy.dynamic.DynamicType;
 
 /**
  * @author frank.chen021@outlook.com
@@ -33,25 +34,28 @@ public class BeanMethodAopInstallerHelper {
 
     static BeanMethodAopInstaller.BeanTransformationConfig transformationConfig;
 
+    private static DynamicType.Unloaded<?> targetAopClass;
+
+    /**
+     * for the interceptors of spring-beans, they perform same function,
+     * So we use one interceptor for all spring-beans, and generates an Aop for that interceptor
+     */
     public static void initialize() {
         transformationConfig = PluginConfigurationManager.load(SpringBeanPlugin.class)
                                                          .getConfig("agent.plugin.spring.bean", BeanMethodAopInstaller.BeanTransformationConfig.class);
 
-        //
-        // inject interceptor classes into bootstrap class loader to ensure this interceptor classes could be found by Adviced code which would be loaded by application class loader
-        // because for any class loader, it would back to bootstrap class loader to find class first
-        //
-        ClassInjector.UsingUnsafe.Factory.resolve(InstrumentationHelper.getInstance()).make(null, null).injectRaw(new HashMap<String, byte[]>() {
-            {
-                put(IBeanMethodInterceptor.class.getName(),
-                    ByteCodeUtils.getClassByteCode(IBeanMethodInterceptor.class.getName(), IBeanMethodInterceptor.class.getClassLoader()));
-                put(BeanMethodInterceptorFactory.class.getName(),
-                    ByteCodeUtils.getClassByteCode(BeanMethodInterceptorFactory.class.getName(), BeanMethodInterceptorFactory.class.getClassLoader()));
-            }
-        });
+        String targetAopClassName = BeanMethodAopInstallerHelper.class.getPackage().getName() + ".SpringBeanMethodAop";
+
+        targetAopClass = AopClassHelper.generateAopClass(IAdviceAopTemplate.class,
+                                                         targetAopClassName,
+                                                         BeanMethod$Invoke.class.getName(),
+                                                         true);
+        AopClassHelper.inject(targetAopClass);
     }
 
     public static void install(Class<?> targetClass) {
-        BeanMethodAopInstaller.install(targetClass, BeanMethodAop.class, transformationConfig);
+        BeanMethodAopInstaller.install(targetClass,
+                                       Advice.to(targetAopClass.getTypeDescription(), ClassFileLocator.Simple.of(targetAopClass.getAllTypes())),
+                                       transformationConfig);
     }
 }
