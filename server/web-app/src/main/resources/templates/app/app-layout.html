@@ -95,19 +95,12 @@
                             </ul>
                         </div>
                     </li>
-                    <li class="sidebar-dropdown">
-                        <a href="#">
+                    <li class="sidebar">
+                        <a th:href="@{'/web/app/trace/' + ${appName}}">
                             <i class="fa fa-shopping-cart"></i>
                             <span class="menu-text">Trace</span>
                             <!--                            <span class="badge badge-pill badge-danger">3</span>-->
                         </a>
-                        <div class="sidebar-submenu">
-                            <ul>
-                                <li>
-                                    <a th:href="@{'/web/app/trace/' + ${appName}}">Request List</a>
-                                </li>
-                            </ul>
-                        </div>
                     </li>
                     <li class="sidebar">
                         <a th:href="@{'/web/app/event/' + ${appName}}">
