@@ -25,6 +25,8 @@ import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -37,14 +39,19 @@ public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         ServerWebExchange exchange = aopContext.getArgAs(0);
 
+        ServerHttpRequest request = exchange.getRequest();
+        if (request instanceof ServerHttpRequestDecorator) {
+            request = ((ServerHttpRequestDecorator) request).getDelegate();
+        }
+
         // ReactorHttpHandlerAdapter#apply creates an object of AbstractServerHttpRequest
-        if (!(exchange.getRequest() instanceof AbstractServerHttpRequest)) {
+        if (!(request instanceof AbstractServerHttpRequest)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         // the request object on exchange is type of HttpServerOperation
         // see ReactorHttpHandlerAdapter#apply
-        Object nativeRequest = ((AbstractServerHttpRequest) exchange.getRequest()).getNativeRequest();
+        Object nativeRequest = ((AbstractServerHttpRequest) request).getNativeRequest();
         if (!(nativeRequest instanceof IBithonObject)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
