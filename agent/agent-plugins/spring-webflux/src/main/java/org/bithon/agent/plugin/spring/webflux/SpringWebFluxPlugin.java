@@ -66,7 +66,7 @@ public class SpringWebFluxPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("onInboundComplete")
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.ChannelOperations$onInboundComplete")
+                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.ChannelOperations$OnInboundComplete")
                 ),
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")

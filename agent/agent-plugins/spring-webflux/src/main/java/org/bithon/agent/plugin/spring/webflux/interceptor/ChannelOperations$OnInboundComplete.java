@@ -32,7 +32,7 @@ import reactor.netty.channel.ChannelOperations;
  * @author Frank Chen
  * @date 3/1/22 5:10 PM
  */
-public class ChannelOperations$onInboundComplete extends AbstractInterceptor {
+public class ChannelOperations$OnInboundComplete extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         if (!"HttpServerOperations".equals(aopContext.getTarget().getClass().getSimpleName())) {
