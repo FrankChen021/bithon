@@ -1,6 +1,6 @@
 class TimeInterval {
 
-    constructor(defaultInterval) {
+    constructor(defaultIntervalId, includeAll) {
         this._listeners = [];
 
         this._viewModel = [
@@ -18,11 +18,15 @@ class TimeInterval {
             {id: "yesterday", value: "yesterday", unit: "day", text: "Yesterday"},
         ];
 
+        if (includeAll) {
+            this._viewModel.push({id: "all", value: "all", unit: "day", text: "All"});
+        }
+
         this._control = $('<select id="intervalSelector" class="form-control"></select>');
         this._viewModel.forEach(model => {
             const option = $(`<option id="${model.id}" value="${model.value}" data-unit="${model.unit}">${model.text}</option>`);
             this._control.append(option);
-            if (model.id === defaultInterval) {
+            if (model.id === defaultIntervalId) {
                 option.attr('selected', true);
             }
         });
@@ -66,6 +70,11 @@ class TimeInterval {
             return {
                 start: start.toISOString(),
                 end: start.add(1, 'day').toISOString()
+            };
+        } else if (selectedModel.value === 'all') {
+            return {
+                start: "2000-01-01T00:00:00.000Z",
+                end: "2099-12-31T23:59:59.000Z"
             };
         } else {
             return {
