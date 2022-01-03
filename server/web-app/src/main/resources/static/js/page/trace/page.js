@@ -87,6 +87,9 @@ class TracePage {
                     return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}">${value}</a>`;
                 },
             }, {
+                field: 'instanceName',
+                title: 'Instance'
+            }, {
                 field: 'startTime',
                 title: 'Time',
                 formatter: function (value) {
