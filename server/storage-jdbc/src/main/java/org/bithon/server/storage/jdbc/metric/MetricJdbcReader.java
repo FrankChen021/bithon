@@ -207,13 +207,14 @@ public class MetricJdbcReader implements IMetricReader {
                                      .map(d -> d.getMatcher().accept(new SQLFilterBuilder(d.getDimension())))
                                      .collect(Collectors.joining(" AND "));
         String sql = StringUtils.format(
-            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s ",
+            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s ORDER BY \"%s\"",
             dimension,
             dimension,
             "bithon_" + dataSourceSchema.getName().replace("-", "_"),
             condition,
             sqlFormatter.formatTimestamp(start),
-            sqlFormatter.formatTimestamp(end)
+            sqlFormatter.formatTimestamp(end),
+            dimension
         );
 
         log.info("Executing {}", sql);
