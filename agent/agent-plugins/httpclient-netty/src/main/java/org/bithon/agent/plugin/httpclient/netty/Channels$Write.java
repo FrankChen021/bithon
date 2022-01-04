@@ -25,6 +25,7 @@ import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.component.commons.utils.StringUtils;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -54,12 +55,22 @@ public class Channels$Write extends AbstractInterceptor {
 
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
 
-        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-jetty")
+        String uri = httpRequest.getUri();
+        if (!uri.startsWith("http")) {
+            String host = httpRequest.headers().get("HOST");
+            if (StringUtils.hasText(host)) {
+                uri = "http://" + host + uri;
+            }
+        }
+        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-netty")
                                                 .method(aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
-                                                .tag(Tags.URI, httpRequest.getUri())
+                                                .tag(Tags.URI, uri)
                                                 .tag(Tags.HTTP_METHOD, httpRequest.getMethod().getName())
-                                                .propagate(httpRequest.headers(), (headersArgs, key, value) -> headersArgs.set(key, value))
+                                                .propagate(
+                                                    httpRequest.headers(),
+                                                    (headersArgs, key, value) -> headersArgs.set(key, value)
+                                                )
                                                 .start();
         //
         // propagate tracing after span creation
@@ -98,16 +109,20 @@ public class Channels$Write extends AbstractInterceptor {
             // metrics
             //
             if (channelFuture.getCause() != null) {
-                metricCollector.addExceptionRequest(uri,
-                                                    method,
-                                                    System.nanoTime() - startAt);
+                metricCollector.addExceptionRequest(
+                    uri,
+                    method,
+                    System.nanoTime() - startAt
+                );
             } else {
                 // TODO: it's a little bit complex to get response
                 // see NettyHttpClient in druid to know how to get HttpResponse
-                metricCollector.addRequest(uri,
-                                           method,
-                                           200,
-                                           System.nanoTime() - startAt);
+                metricCollector.addRequest(
+                    uri,
+                    method,
+                    200,
+                    System.nanoTime() - startAt
+                );
             }
 
             //
