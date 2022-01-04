@@ -22,7 +22,11 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 
+import java.util.Map;
+
 /**
+ * {@link org.apache.druid.sql.SqlLifecycle#initialize(String, Map)}
+ *
  * @author Frank Chen
  * @date 4/1/22 6:37 PM
  */
@@ -33,8 +37,11 @@ public class SqlLifecycle$Initialize extends AbstractInterceptor {
         ITraceContext ctx = TraceContextHolder.current();
         if (ctx != null) {
             Object query = aopContext.getArgs()[0];
+            Map<String, Object> context = aopContext.getArgAs(1);
             if (query != null && !ctx.currentSpan().tags().containsKey("query")) {
-                ctx.currentSpan().tag("query", query.toString());
+                ctx.currentSpan()
+                   .tag("query_id", context == null ? null : (String) context.getOrDefault("queryId", null))
+                   .tag("query", query.toString());
             }
         }
         return InterceptionDecision.SKIP_LEAVE;

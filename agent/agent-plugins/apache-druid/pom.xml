@@ -20,6 +20,12 @@
       <version>0.16.0-incubating</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.druid</groupId>
+      <artifactId>druid-sql</artifactId>
+      <version>0.16.0-incubating</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>

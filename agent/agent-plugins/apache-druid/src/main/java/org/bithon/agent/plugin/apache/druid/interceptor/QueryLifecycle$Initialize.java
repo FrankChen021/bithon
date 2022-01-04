@@ -60,7 +60,9 @@ public class QueryLifecycle$Initialize extends AbstractInterceptor {
             QueryLifecycle lifecycle = aopContext.castTargetAs();
             if (!ctx.currentSpan().tags().containsKey("query")) {
                 try {
-                    ctx.currentSpan().tag("query", om.writeValueAsString(lifecycle.getQuery()));
+                    ctx.currentSpan()
+                       .tag("query_id", lifecycle.getQuery().getId())
+                       .tag("query", om.writeValueAsString(lifecycle.getQuery()));
                 } catch (JsonProcessingException e) {
                     log.error("Unable to serialize query object: {}", e.getMessage());
                 }
