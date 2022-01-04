@@ -19,7 +19,6 @@ package org.bithon.agent.plugin.apache.druid.interceptor;
 import org.apache.druid.server.QueryLifecycle;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.component.commons.logging.ILogAdaptor;
@@ -52,11 +51,6 @@ public class QueryLifecycle$Initialize extends AbstractInterceptor {
           This is not the best way because we can't use the shaded jackson to serialize/deserialize shaded joda objects anymore.
          */
         this.om.registerModule(new JodaModule());
-    }
-
-    @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        return InterceptionDecision.CONTINUE;
     }
 
     @Override
