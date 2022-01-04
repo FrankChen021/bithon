@@ -42,7 +42,11 @@ public class EventApi implements IEventApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
-        List<Event> events = eventReader.getEventList(request.getApplication(), start, end);
+        List<Event> events = eventReader.getEventList(request.getApplication(),
+                                                      start,
+                                                      end,
+                                                      request.getPageNumber(),
+                                                      request.getPageSize());
         return new GetEventListResponse(events.size(), events);
     }
 }

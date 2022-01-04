@@ -126,12 +126,14 @@ public class EventJdbcStorage implements IEventStorage {
         }
 
         @Override
-        public List<Event> getEventList(String application, TimeSpan start, TimeSpan end) {
+        public List<Event> getEventList(String application, TimeSpan start, TimeSpan end, int pageNumber, int pageSize) {
             return dslContext.selectFrom(Tables.BITHON_EVENT)
                              .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
                              .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()))
                              .and(Tables.BITHON_EVENT.APPNAME.eq(application))
                              .orderBy(Tables.BITHON_EVENT.TIMESTAMP.desc())
+                             .offset(pageNumber * pageSize)
+                             .limit(pageSize)
                              .fetch((r) -> {
                                  Event e = new Event();
                                  e.setApplication(r.getAppname());
