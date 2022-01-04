@@ -21,6 +21,7 @@ import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
@@ -39,6 +40,7 @@ public abstract class HttpBodySizeCollector extends ChannelDuplexHandler {
 
     long dataReceived;
     long dataSent;
+    long dataReceivedTime;
 
     @Override
     @SuppressWarnings("FutureReturnValueIgnored")
@@ -60,7 +62,7 @@ public abstract class HttpBodySizeCollector extends ChannelDuplexHandler {
         if (msg instanceof LastHttpContent) {
             promise.addListener(future -> {
                 ChannelOperations<?, ?> channelOps = ChannelOperations.get(ctx.channel());
-                if (getTargetClass() != null && channelOps.getClass().isAssignableFrom(getTargetClass())) {
+                if (channelOps != null && getTargetClass() != null && channelOps.getClass().isAssignableFrom(getTargetClass())) {
                     recordWrite(channelOps, dataSent);
                 }
 
@@ -74,6 +76,10 @@ public abstract class HttpBodySizeCollector extends ChannelDuplexHandler {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        if (msg instanceof HttpRequest) {
+            dataReceivedTime = System.nanoTime();
+        }
+
         if (msg instanceof ByteBufHolder) {
             dataReceived += ((ByteBufHolder) msg).content().readableBytes();
         } else if (msg instanceof ByteBuf) {
@@ -82,7 +88,7 @@ public abstract class HttpBodySizeCollector extends ChannelDuplexHandler {
 
         if (msg instanceof LastHttpContent) {
             ChannelOperations<?, ?> channelOps = ChannelOperations.get(ctx.channel());
-            if (getTargetClass() != null && channelOps.getClass().isAssignableFrom(getTargetClass())) {
+            if (channelOps != null && getTargetClass() != null && channelOps.getClass().isAssignableFrom(getTargetClass())) {
                 recordRead(channelOps, dataReceived);
             }
 
@@ -92,15 +98,15 @@ public abstract class HttpBodySizeCollector extends ChannelDuplexHandler {
         ctx.fireChannelRead(msg);
     }
 
-    // TODO: use right statusCode
     private void recordRead(ChannelOperations<?, ?> channelOps, long dataReceived) {
         HttpIOMetrics metric = getMetricContext((IBithonObject) channelOps);
+        metric.receivedTimeNs = System.nanoTime() - dataReceivedTime;
         if (metric.responseBytes == -1) {
             metric.requestBytes = dataReceived;
             return;
         }
 
-        updateBytes(channelOps, dataReceived, metric.responseBytes);
+        updateBytes(channelOps, dataReceived, metric.responseBytes, metric.receivedTimeNs);
     }
 
     private void recordWrite(ChannelOperations<?, ?> channelOps, long dataSent) {
@@ -110,10 +116,10 @@ public abstract class HttpBodySizeCollector extends ChannelDuplexHandler {
             return;
         }
 
-        updateBytes(channelOps, metric.requestBytes, dataSent);
+        updateBytes(channelOps, metric.requestBytes, dataSent, metric.receivedTimeNs);
     }
 
-    protected abstract void updateBytes(ChannelOperations<?, ?> channelOps, long dataReceived, long dataSent);
+    protected abstract void updateBytes(ChannelOperations<?, ?> channelOps, long dataReceived, long dataSent, long receivedTimeNs);
 
     protected abstract HttpIOMetrics getMetricContext(IBithonObject bithonObject);
 

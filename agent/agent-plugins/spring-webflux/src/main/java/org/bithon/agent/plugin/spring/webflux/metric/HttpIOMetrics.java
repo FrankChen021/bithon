@@ -23,4 +23,5 @@ package org.bithon.agent.plugin.spring.webflux.metric;
 public class HttpIOMetrics {
     public long requestBytes = -1;
     public long responseBytes = -1;
+    public long receivedTimeNs = 0;
 }

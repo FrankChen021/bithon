@@ -22,14 +22,15 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * {@linkto org.springframework.cloud.gateway.filter.NettyRoutingFilter}
+ * {@link org.springframework.cloud.gateway.filter.NettyRoutingFilter}
  * <p>
  * This interceptor is not enabled because the callback is executed before
  *
@@ -42,14 +43,19 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         ServerWebExchange exchange = aopContext.getArgAs(0);
 
+        ServerHttpRequest request = exchange.getRequest();
+        if (request instanceof ServerHttpRequestDecorator) {
+            request = ((ServerHttpRequestDecorator) request).getDelegate();
+        }
+
         // ReactorHttpHandlerAdapter#apply creates an object of AbstractServerHttpRequest
-        if (!(exchange.getRequest() instanceof AbstractServerHttpRequest)) {
+        if (!(request instanceof AbstractServerHttpRequest)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
         // the request object on exchange is type of HttpServerOperation
         // see ReactorHttpHandlerAdapter#apply
-        Object nativeRequest = ((AbstractServerHttpRequest) exchange.getRequest()).getNativeRequest();
+        Object nativeRequest = ((AbstractServerHttpRequest) request).getNativeRequest();
         if (!(nativeRequest instanceof IBithonObject)) {
             return InterceptionDecision.SKIP_LEAVE;
         }
@@ -60,9 +66,6 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        // set to thread local for following calls such as HttpClientFinalizer
-        TraceContextHolder.set(traceContext);
-
         aopContext.setUserContext(traceContext.currentSpan()
                                               .newChildSpan("filter")
                                               .method(aopContext.getMethod())
@@ -72,8 +75,6 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        TraceContextHolder.remove();
-
         ITraceSpan span = aopContext.castUserContextAs();
         if (span == null) {
             // in case of exception in the Enter interceptor
@@ -81,10 +82,8 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
         }
 
         Mono<Void> originalReturning = aopContext.castReturningAs();
-        Mono<Void> replacedReturning = originalReturning.doAfterSuccessOrError((success, error) -> {
-            span.tag(error)
-                .finish();
-        });
+        Mono<Void> replacedReturning = originalReturning.doAfterSuccessOrError((success, error) -> span.tag(error)
+                                                                                                       .finish());
         aopContext.setReturning(replacedReturning);
     }
 }

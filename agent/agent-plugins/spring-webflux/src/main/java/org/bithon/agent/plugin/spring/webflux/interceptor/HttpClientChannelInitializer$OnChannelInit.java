@@ -94,7 +94,8 @@ public class HttpClientChannelInitializer$OnChannelInit extends AbstractIntercep
         @Override
         protected void updateBytes(ChannelOperations<?, ?> channelOps,
                                    long dataReceived,
-                                   long dataSent) {
+                                   long dataSent,
+                                   long receivedTimeNs) {
             // resource url is the fully qualified URL
             metricsCollector.addBytes(((HttpClientInfos) channelOps).resourceUrl(),
                                       ((HttpClientRequest) channelOps).method().name(),

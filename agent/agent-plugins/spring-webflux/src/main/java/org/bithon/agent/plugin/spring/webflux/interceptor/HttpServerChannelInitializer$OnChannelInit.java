@@ -97,7 +97,8 @@ public class HttpServerChannelInitializer$OnChannelInit extends AbstractIntercep
         @Override
         protected void updateBytes(ChannelOperations<?, ?> channelOps,
                                    long dataReceived,
-                                   long dataSent) {
+                                   long dataSent,
+                                   long receivedTimeNs) {
             try {
                 metricCollector.getOrCreateMetrics(((HttpServerRequest) channelOps).requestHeaders()
                                                                                    .get(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
