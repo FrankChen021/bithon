@@ -15,6 +15,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>apache-druid</module>
     <module>bithon-sdk</module>
     <module>guice</module>
     <module>jdbc-druid</module>
@@ -48,6 +49,12 @@
 
   <dependencies>
     <!-- Use to publish -->
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-apache-druid</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-bithon-sdk</artifactId>
