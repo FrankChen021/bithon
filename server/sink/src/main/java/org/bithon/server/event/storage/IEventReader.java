@@ -26,4 +26,6 @@ import java.util.List;
  */
 public interface IEventReader extends AutoCloseable {
     List<Event> getEventList(String application, TimeSpan start, TimeSpan end, int pageNumber, int pageSize);
+
+    int getEventListSize(String application, TimeSpan start, TimeSpan end);
 }
