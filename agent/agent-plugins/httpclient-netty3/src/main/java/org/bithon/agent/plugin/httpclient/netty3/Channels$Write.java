@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.netty;
+package org.bithon.agent.plugin.httpclient.netty3;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
@@ -43,7 +43,7 @@ public class Channels$Write extends AbstractInterceptor {
     @Override
     public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("httpClient-netty", HttpOutgoingMetricsCollector.class);
+                                                .getOrRegister("httpClient-netty3", HttpOutgoingMetricsCollector.class);
         return true;
     }
 
@@ -55,17 +55,9 @@ public class Channels$Write extends AbstractInterceptor {
 
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
 
-        String uri = httpRequest.getUri();
-        if (!uri.startsWith("http")) {
-            String host = httpRequest.headers().get("HOST");
-            if (StringUtils.hasText(host)) {
-                uri = "http://" + host + uri;
-            }
-        }
-        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-netty")
+        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-netty3")
                                                 .method(aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
-                                                .tag(Tags.URI, uri)
                                                 .tag(Tags.HTTP_METHOD, httpRequest.getMethod().getName())
                                                 .propagate(
                                                     httpRequest.headers(),
@@ -76,7 +68,7 @@ public class Channels$Write extends AbstractInterceptor {
         // propagate tracing after span creation
         //
         if (span.isNull()) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return InterceptionDecision.CONTINUE;
         }
 
         aopContext.setUserContext(span);
@@ -91,10 +83,10 @@ public class Channels$Write extends AbstractInterceptor {
         }
 
         final HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
-        final String uri = httpRequest.getUri();
         final String method = httpRequest.getMethod().getName();
         final long startAt = aopContext.getStartTimestamp();
         final ITraceSpan span = (ITraceSpan) aopContext.getUserContext();
+        final String uri = getUri(httpRequest);
 
         // unlink reference
         aopContext.setUserContext(null);
@@ -104,6 +96,7 @@ public class Channels$Write extends AbstractInterceptor {
             return;
         }
         ChannelFuture future = (ChannelFuture) ret;
+
         future.addListener(channelFuture -> {
             //
             // metrics
@@ -128,9 +121,23 @@ public class Channels$Write extends AbstractInterceptor {
             //
             // tracing
             //
-            span.tag(channelFuture.getCause());
-            span.finish();
-            span.context().finish();
+            if (span != null) {
+                span.tag(channelFuture.getCause())
+                    .tag(Tags.URI, uri)
+                    .finish();
+                span.context().finish();
+            }
         });
+    }
+
+    private String getUri(HttpRequest httpRequest) {
+        String uri = httpRequest.getUri();
+        if (!httpRequest.getUri().startsWith("http")) {
+            String host = httpRequest.headers().get("HOST");
+            if (StringUtils.hasText(host)) {
+                uri = "http://" + host + httpRequest.getUri();
+            }
+        }
+        return uri;
     }
 }

@@ -31,7 +31,7 @@
     <module>httpclient-jdk</module>
     <module>httpclient-apache</module>
     <module>httpclient-jetty</module>
-    <module>httpclient-netty</module>
+    <module>httpclient-netty3</module>
     <module>redis-jedis</module>
     <module>redis-lettuce-5.x</module>
     <module>mongodb</module>
@@ -153,7 +153,7 @@
     </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-httpclient-netty</artifactId>
+      <artifactId>agent-plugin-httpclient-netty3</artifactId>
       <version>${project.version}</version>
     </dependency>
 
