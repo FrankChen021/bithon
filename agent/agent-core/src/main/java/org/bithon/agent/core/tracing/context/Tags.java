@@ -21,6 +21,7 @@ package org.bithon.agent.core.tracing.context;
  * @date 25/12/21 5:56 PM
  */
 public class Tags {
+    public static final String HTTP_VERSION = "http-version";
     public static final String HTTP_METHOD = "method";
 
     /**

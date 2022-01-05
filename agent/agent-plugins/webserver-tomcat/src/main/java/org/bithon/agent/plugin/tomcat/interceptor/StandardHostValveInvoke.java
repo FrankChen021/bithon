@@ -29,6 +29,7 @@ import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 
 /**
@@ -68,8 +69,9 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
         TraceContextHolder.set(traceContext);
         traceContext.currentSpan()
                     .component("tomcat")
-                    .tag("uri", request.getRequestURI())
-                    .tag("method", request.getMethod())
+                    .tag(Tags.URI, request.getRequestURI())
+                    .tag(Tags.HTTP_METHOD, request.getMethod())
+                    .tag(Tags.HTTP_VERSION, request.getProtocol())
                     .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.getHeader(header))))
                     .method(aopContext.getMethod())
                     .kind(SpanKind.SERVER)
@@ -103,16 +105,10 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
                 span.tag("exception", aopContext.getException().toString());
             }
         } finally {
-            try {
-                if (span != null) {
-                    span.finish();
-                }
-            } catch (Exception ignored) {
+            if (span != null) {
+                span.finish();
             }
-            try {
-                traceContext.finish();
-            } catch (Exception ignored) {
-            }
+            traceContext.finish();
             try {
                 TraceContextHolder.remove();
             } catch (Exception ignored) {
