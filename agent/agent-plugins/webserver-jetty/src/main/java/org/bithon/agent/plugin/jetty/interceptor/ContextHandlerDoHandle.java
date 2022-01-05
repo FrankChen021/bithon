@@ -29,6 +29,7 @@ import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.eclipse.jetty.server.Request;
@@ -81,8 +82,9 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
 
             traceContext.currentSpan()
                         .component("jetty")
-                        .tag("uri", request.getRequestURI())
-                        .tag("method", request.getMethod())
+                        .tag(Tags.URI, request.getRequestURI())
+                        .tag(Tags.HTTP_METHOD, request.getMethod())
+                        .tag(Tags.HTTP_VERSION, request.getHttpVersion().toString())
                         .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.getHeader(header))))
                         .method(aopContext.getMethod())
                         .kind(SpanKind.SERVER)

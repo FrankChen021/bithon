@@ -28,6 +28,7 @@ import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
@@ -93,8 +94,9 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
                 traceContext.currentSpan()
                             .component("webflux")
-                            .tag("uri", request.fullPath())
-                            .tag("method", request.method().name())
+                            .tag(Tags.URI, request.uri())
+                            .tag(Tags.HTTP_METHOD, request.method().name())
+                            .tag(Tags.HTTP_VERSION, request.version().text())
                             .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.requestHeaders().get(header))))
                             .method(aopContext.getMethod())
                             .kind(SpanKind.SERVER)
