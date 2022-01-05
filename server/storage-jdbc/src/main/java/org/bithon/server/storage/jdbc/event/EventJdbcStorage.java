@@ -59,10 +59,7 @@ public class EventJdbcStorage implements IEventStorage {
 
     @Override
     public void initialize() {
-        this.dslContext.createTableIfNotExists(Tables.BITHON_EVENT)
-                       .columns(Tables.BITHON_EVENT.fields())
-                       .indexes(Tables.BITHON_EVENT.getIndexes())
-                       .execute();
+        this.dslContext.createTableIfNotExists(Tables.BITHON_EVENT).columns(Tables.BITHON_EVENT.fields()).indexes(Tables.BITHON_EVENT.getIndexes()).execute();
     }
 
     @Override
@@ -77,9 +74,7 @@ public class EventJdbcStorage implements IEventStorage {
 
     @Override
     public IEventCleaner createCleaner() {
-        return timestamp -> dslContext.delete(Tables.BITHON_EVENT)
-                                      .where(Tables.BITHON_EVENT.TIMESTAMP.le(new Timestamp(timestamp)))
-                                      .execute();
+        return timestamp -> dslContext.delete(Tables.BITHON_EVENT).where(Tables.BITHON_EVENT.TIMESTAMP.le(new Timestamp(timestamp))).execute();
     }
 
     private static class EventWriter implements IEventWriter {
@@ -87,9 +82,7 @@ public class EventJdbcStorage implements IEventStorage {
         private final ObjectMapper om;
 
         private EventWriter(DSLContext dslContext, ObjectMapper om) {
-            this.dslContext = DSL.using(dslContext.configuration()
-                                                  .derive(new ThreadLocalTransactionProvider(dslContext.configuration()
-                                                                                                       .connectionProvider())));
+            this.dslContext = DSL.using(dslContext.configuration().derive(new ThreadLocalTransactionProvider(dslContext.configuration().connectionProvider())));
 
             this.om = om;
         }
@@ -126,12 +119,14 @@ public class EventJdbcStorage implements IEventStorage {
         }
 
         @Override
-        public List<Event> getEventList(String application, TimeSpan start, TimeSpan end) {
+        public List<Event> getEventList(String application, TimeSpan start, TimeSpan end, int pageNumber, int pageSize) {
             return dslContext.selectFrom(Tables.BITHON_EVENT)
                              .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
                              .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()))
                              .and(Tables.BITHON_EVENT.APPNAME.eq(application))
                              .orderBy(Tables.BITHON_EVENT.TIMESTAMP.desc())
+                             .offset(pageNumber * pageSize)
+                             .limit(pageSize)
                              .fetch((r) -> {
                                  Event e = new Event();
                                  e.setApplication(r.getAppname());
@@ -141,6 +136,16 @@ public class EventJdbcStorage implements IEventStorage {
                                  e.setTimestamp(r.getTimestamp().getTime());
                                  return e;
                              });
+        }
+
+        @Override
+        public int getEventListSize(String application, TimeSpan start, TimeSpan end) {
+            return (int) dslContext.select(DSL.count())
+                                   .from(Tables.BITHON_EVENT)
+                                   .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
+                                   .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()))
+                                   .and(Tables.BITHON_EVENT.APPNAME.eq(application))
+                                   .fetchOne(0);
         }
     }
 }

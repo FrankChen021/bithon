@@ -18,6 +18,8 @@ package org.bithon.server.web.service.event.api;
 
 import lombok.Data;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 
 /**
@@ -35,4 +37,11 @@ public class GetEventListRequest {
 
     @NotBlank
     private String endTimeISO8601;
+
+    @Min(0)
+    private int pageNumber = 0;
+
+    @Min(0)
+    @Max(100)
+    private int pageSize = 10;
 }

@@ -11,16 +11,15 @@ class Dashboard {
         this._stackLayoutRowFill = 0;
         this._stackLayoutRow = $('<div class="row"></div>');
         this._container.append(this._stackLayoutRow);
+        this._timeSelector = null;
 
         // Model
         this._schema = {};
         this._chartComponents = {};
         this._chartDescriptors = {};
         this._selectedDimensions = {};
+        this._selectedInterval = null;
         this.addDimension('appName', appName);
-
-        // UI Component
-        this._timeSelector = null;
 
         // Y Axis Formatter
         this._formatters = {};
@@ -130,6 +129,7 @@ class Dashboard {
         new AutoRefresher({
             timerLength: 10
         }).childOf(parent).registerRefreshListener(() => {
+            this._selectedInterval = this._timeSelector.getInterval();
             this.refreshDashboard();
         });
 
@@ -138,8 +138,10 @@ class Dashboard {
         //
         this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
             g_MetricSelectedInterval = selectedModel.id;
+            this._selectedInterval = this._timeSelector.getInterval();
             this.refreshDashboard();
         });
+        this._selectedInterval = this._timeSelector.getInterval();
 
         $.each(dashboard.charts, (index, chartDescriptor) => {
 
@@ -619,7 +621,7 @@ class Dashboard {
     }
 
     getSelectedTimeInterval() {
-        return this._timeSelector.getInterval();
+        return this._selectedInterval;
     }
 
     //PRIVATE
