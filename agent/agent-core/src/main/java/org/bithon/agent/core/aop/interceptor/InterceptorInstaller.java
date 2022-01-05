@@ -134,11 +134,11 @@ public class InterceptorInstaller {
 
             if (interceptor == null) {
                 log.info("Interceptor[{}] initial failed, interceptor ignored", interceptorName);
-                return null;
+                return builder;
             }
         } catch (Exception e) {
             log.error(String.format(Locale.ENGLISH, "Failed to load interceptor[%s] due to %s", interceptorName, e.getMessage()), e);
-            return null;
+            return builder;
         }
 
         try {
@@ -200,7 +200,7 @@ public class InterceptorInstaller {
                 if (descriptor == null) {
                     // this must be something wrong
                     log.error("Error to transform [{}] for the descriptor is not found", type);
-                    return null;
+                    return builder;
                 }
 
                 //
@@ -209,7 +209,7 @@ public class InterceptorInstaller {
                 if (CollectionUtils.isNotEmpty(descriptor.getPreconditions())) {
                     for (IInterceptorPrecondition condition : descriptor.getPreconditions()) {
                         if (!condition.canInstall("TODO: provider name", classLoader, typeDescription)) {
-                            return null;
+                            return builder;
                         }
                     }
                 }

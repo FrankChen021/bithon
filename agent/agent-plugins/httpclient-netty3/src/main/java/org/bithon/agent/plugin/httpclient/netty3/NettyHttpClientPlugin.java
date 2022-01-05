@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.netty;
+package org.bithon.agent.plugin.httpclient.netty3;
 
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
@@ -46,7 +46,7 @@ public class NettyHttpClientPlugin implements IPlugin {
                                                        "org.jboss.netty.channel.Channel",
                                                        "java.lang.Object"
                                                    )
-                                                   .to("org.bithon.agent.plugin.httpclient.netty.Channels$Write")
+                                                   .to("org.bithon.agent.plugin.httpclient.netty3.Channels$Write")
 
                 )
         );

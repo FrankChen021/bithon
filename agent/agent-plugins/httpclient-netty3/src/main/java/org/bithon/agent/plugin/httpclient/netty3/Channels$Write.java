@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.httpclient.netty;
+package org.bithon.agent.plugin.httpclient.netty3;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
@@ -25,6 +25,7 @@ import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+import org.bithon.component.commons.utils.StringUtils;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -42,7 +43,7 @@ public class Channels$Write extends AbstractInterceptor {
     @Override
     public boolean initialize() {
         metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("httpClient-netty", HttpOutgoingMetricsCollector.class);
+                                                .getOrRegister("httpClient-netty3", HttpOutgoingMetricsCollector.class);
         return true;
     }
 
@@ -54,18 +55,20 @@ public class Channels$Write extends AbstractInterceptor {
 
         HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
 
-        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-jetty")
+        final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-netty3")
                                                 .method(aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
-                                                .tag(Tags.URI, httpRequest.getUri())
                                                 .tag(Tags.HTTP_METHOD, httpRequest.getMethod().getName())
-                                                .propagate(httpRequest.headers(), (headersArgs, key, value) -> headersArgs.set(key, value))
+                                                .propagate(
+                                                    httpRequest.headers(),
+                                                    (headersArgs, key, value) -> headersArgs.set(key, value)
+                                                )
                                                 .start();
         //
         // propagate tracing after span creation
         //
         if (span.isNull()) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return InterceptionDecision.CONTINUE;
         }
 
         aopContext.setUserContext(span);
@@ -80,10 +83,10 @@ public class Channels$Write extends AbstractInterceptor {
         }
 
         final HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
-        final String uri = httpRequest.getUri();
         final String method = httpRequest.getMethod().getName();
         final long startAt = aopContext.getStartTimestamp();
         final ITraceSpan span = (ITraceSpan) aopContext.getUserContext();
+        final String uri = getUri(httpRequest);
 
         // unlink reference
         aopContext.setUserContext(null);
@@ -93,29 +96,48 @@ public class Channels$Write extends AbstractInterceptor {
             return;
         }
         ChannelFuture future = (ChannelFuture) ret;
+
         future.addListener(channelFuture -> {
             //
             // metrics
             //
             if (channelFuture.getCause() != null) {
-                metricCollector.addExceptionRequest(uri,
-                                                    method,
-                                                    System.nanoTime() - startAt);
+                metricCollector.addExceptionRequest(
+                    uri,
+                    method,
+                    System.nanoTime() - startAt
+                );
             } else {
                 // TODO: it's a little bit complex to get response
                 // see NettyHttpClient in druid to know how to get HttpResponse
-                metricCollector.addRequest(uri,
-                                           method,
-                                           200,
-                                           System.nanoTime() - startAt);
+                metricCollector.addRequest(
+                    uri,
+                    method,
+                    200,
+                    System.nanoTime() - startAt
+                );
             }
 
             //
             // tracing
             //
-            span.tag(channelFuture.getCause());
-            span.finish();
-            span.context().finish();
+            if (span != null) {
+                span.tag(channelFuture.getCause())
+                    .tag(Tags.URI, uri)
+                    .finish();
+                span.context().finish();
+            }
         });
+    }
+
+    private String getUri(HttpRequest httpRequest) {
+        String uri = httpRequest.getUri();
+        if (!httpRequest.getUri().startsWith("http")) {
+            String host = httpRequest.headers().get("HOST");
+            if (StringUtils.hasText(host)) {
+                uri = "http://" + host + httpRequest.getUri();
+            }
+        }
+        return uri;
     }
 }

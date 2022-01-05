@@ -36,7 +36,7 @@ public class AgentClassLoader {
      */
     public static ClassLoader initialize(File agentDirectory) {
         final Thread mainThread = Thread.currentThread();
-        instance = new JarClassLoader("agent-bootstrap",
+        instance = new JarClassLoader("agent-library",
                                       JarResolver.resolve(new File(agentDirectory, "lib")),
                                       mainThread::getContextClassLoader);
         return instance;
