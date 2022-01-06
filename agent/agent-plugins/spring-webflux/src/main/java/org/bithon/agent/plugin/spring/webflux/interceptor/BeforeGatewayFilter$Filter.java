@@ -20,8 +20,11 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin;
+import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;
@@ -34,6 +37,12 @@ import org.springframework.web.server.ServerWebExchange;
  * @date 28/12/21 12:08 PM
  */
 public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
+
+    private final GatewayFilterConfigs configs;
+
+    public BeforeGatewayFilter$Filter() {
+        configs = PluginConfigurationManager.load(SpringWebFluxPlugin.class).getConfig(GatewayFilterConfigs.class);
+    }
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -65,6 +74,15 @@ public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
         ITraceSpan span = traceContext.currentSpan()
                                       .newChildSpan("filter")
                                       .method(aopContext.getMethod())
+                                      .tag((s) -> {
+                                          GatewayFilterConfigs.Filter filterConfig = configs.get(aopContext.getTargetClass().getName());
+                                          for (String attribName : filterConfig.getAttributes()) {
+                                              Object attribValue = exchange.getAttribute(attribName);
+                                              if (attribValue != null) {
+                                                  s.tag(attribName, attribValue.toString());
+                                              }
+                                          }
+                                      })
                                       .start();
 
         // replace the input argument
