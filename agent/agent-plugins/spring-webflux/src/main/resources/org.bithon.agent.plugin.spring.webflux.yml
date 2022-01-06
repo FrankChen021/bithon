@@ -3,6 +3,8 @@ agent:
     spring:
       webflux:
         gateway:
-          org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter: before
-          org.springframework.cloud.gateway.filter.NettyRoutingFilter: around
+          org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter:
+            mode: before
+          org.springframework.cloud.gateway.filter.NettyRoutingFilter:
+            mode: around
 

@@ -21,7 +21,7 @@ import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.core.aop.matcher.Matchers;
 import org.bithon.agent.core.plugin.IPlugin;
 import org.bithon.agent.core.plugin.PluginConfigurationManager;
-import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfig;
+import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,13 +60,6 @@ public class SpringWebFluxPlugin implements IPlugin {
                                                    .onConstructor(Matchers.takesArguments(1)
                                                                           .or(Matchers.takesArguments(10)))
                                                    .to("org.bithon.agent.plugin.spring.webflux.interceptor.HttpServerOperations$Ctor")
-                ),
-
-            forClass("reactor.netty.channel.ChannelOperations")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("onInboundComplete")
-                                                   .to("org.bithon.agent.plugin.spring.webflux.interceptor.ChannelOperations$OnInboundComplete")
                 ),
 
             forClass("reactor.netty.http.client.HttpClientFinalizer")
@@ -116,21 +109,21 @@ public class SpringWebFluxPlugin implements IPlugin {
     List<InterceptorDescriptor> getGatewayInterceptors() {
         List<InterceptorDescriptor> filterInterceptors = new ArrayList<>();
 
-        GatewayFilterConfig configs = PluginConfigurationManager.load(SpringWebFluxPlugin.class).getConfig(GatewayFilterConfig.class);
-        for (Map.Entry<String, String> entry : configs.entrySet()) {
+        GatewayFilterConfigs configs = PluginConfigurationManager.load(SpringWebFluxPlugin.class).getConfig(GatewayFilterConfigs.class);
+        for (Map.Entry<String, GatewayFilterConfigs.Filter> entry : configs.entrySet()) {
             String clazz = entry.getKey();
-            String mode = entry.getValue();
+            GatewayFilterConfigs.Filter filter = entry.getValue();
 
             MethodPointCutDescriptorBuilder builder = MethodPointCutDescriptorBuilder.build()
                                                                                      .onMethodAndArgs("filter",
                                                                                                       "org.springframework.web.server.ServerWebExchange",
                                                                                                       "org.springframework.cloud.gateway.filter.GatewayFilterChain");
 
-            if ("before".equals(mode)) {
+            if ("before".equals(filter.getMode())) {
                 filterInterceptors.add(forClass(clazz)
                                            .debug()
                                            .methods(builder.to("org.bithon.agent.plugin.spring.webflux.interceptor.BeforeGatewayFilter$Filter")));
-            } else if ("around".equals(mode)) {
+            } else if ("around".equals(filter.getMode())) {
                 filterInterceptors.add(forClass(clazz)
                                            .debug()
                                            .methods(builder.to("org.bithon.agent.plugin.spring.webflux.interceptor.AroundGatewayFilter$Filter")));

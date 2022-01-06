@@ -18,12 +18,34 @@ package org.bithon.agent.plugin.spring.webflux.config;
 
 import org.bithon.agent.core.config.ConfigurationProperties;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Frank Chen
  * @date 31/12/21 11:25 PM
  */
 @ConfigurationProperties(prefix = "agent.plugin.spring.webflux.gateway")
-public class GatewayFilterConfig extends HashMap<String, String> {
+public class GatewayFilterConfigs extends HashMap<String, GatewayFilterConfigs.Filter> {
+    public static class Filter {
+        private String mode;
+        private List<String> attributes = Collections.emptyList();
+
+        public String getMode() {
+            return mode;
+        }
+
+        public void setMode(String mode) {
+            this.mode = mode;
+        }
+
+        public List<String> getAttributes() {
+            return attributes;
+        }
+
+        public void setAttributes(List<String> attributes) {
+            this.attributes = attributes;
+        }
+    }
 }
