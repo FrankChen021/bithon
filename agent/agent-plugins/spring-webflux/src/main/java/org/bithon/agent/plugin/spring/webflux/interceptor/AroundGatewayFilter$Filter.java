@@ -20,8 +20,12 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.core.tracing.context.TraceContextHolder;
+import org.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin;
+import org.bithon.agent.plugin.spring.webflux.config.GatewayFilterConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.springframework.http.server.reactive.AbstractServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -38,6 +42,12 @@ import reactor.core.publisher.Mono;
  * @date 29/11/21 4:39 pm
  */
 public class AroundGatewayFilter$Filter extends AbstractInterceptor {
+
+    private final GatewayFilterConfigs configs;
+
+    public AroundGatewayFilter$Filter() {
+        configs = PluginConfigurationManager.load(SpringWebFluxPlugin.class).getConfig(GatewayFilterConfigs.class);
+    }
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -66,15 +76,35 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(traceContext.currentSpan()
-                                              .newChildSpan("filter")
-                                              .method(aopContext.getMethod())
-                                              .start());
+        // Set the context for each filter
+        //
+        // Once upon time we did it in the ChannelOperations#onInboundComplete which is called by HttpServerOperations
+        // that's the entry point for the incoming HTTP requests which is schedule on the HTTP nio threads
+        // But for a repeated/retried request, it's scheduled on parallel scheduler threads, so any code that retrieves the context fails
+        TraceContextHolder.set(traceContext);
+
+        ITraceSpan span = traceContext.currentSpan()
+                                      .newChildSpan("filter")
+                                      .method(aopContext.getMethod())
+                                      .tag((s) -> {
+                                          GatewayFilterConfigs.Filter filterConfig = configs.get(aopContext.getTargetClass().getName());
+                                          for (String attribName : filterConfig.getAttributes()) {
+                                              Object attribValue = exchange.getAttribute(attribName);
+                                              if (attribValue != null) {
+                                                  s.tag(attribName, attribValue.toString());
+                                              }
+                                          }
+                                      })
+                                      .start();
+
+        aopContext.setUserContext(span);
         return InterceptionDecision.CONTINUE;
     }
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
+        TraceContextHolder.remove();
+
         ITraceSpan span = aopContext.castUserContextAs();
         if (span == null) {
             // in case of exception in the Enter interceptor
