@@ -23,6 +23,7 @@ import org.bithon.server.event.storage.IEventStorage;
 import org.bithon.server.meta.storage.CachableMetadataStorage;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.storage.IMetricStorage;
+import org.bithon.server.metric.storage.ISchemaStorage;
 import org.bithon.server.metric.storage.MetricStorageConfig;
 import org.bithon.server.setting.storage.ISettingStorage;
 import org.bithon.server.setting.storage.SettingStorageConfig;
@@ -50,6 +51,19 @@ public class StorageConfigurer {
 
         String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         IMetricStorage storage = om.readValue(jsonType, IMetricStorage.class);
+        storage.initialize();
+        return storage;
+    }
+
+    @Bean
+    public ISchemaStorage createSchemaStorage(ObjectMapper om, MetricStorageConfig storageConfig) throws IOException {
+        InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
+                                              "[%s] can't be blank",
+                                              storageConfig.getClass(),
+                                              "type");
+
+        String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
+        ISchemaStorage storage = om.readValue(jsonType, ISchemaStorage.class);
         storage.initialize();
         return storage;
     }

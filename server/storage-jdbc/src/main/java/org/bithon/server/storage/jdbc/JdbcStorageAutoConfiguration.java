@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.Module;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
+import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -65,6 +66,7 @@ public class JdbcStorageAutoConfiguration {
             public void setupModule(SetupContext context) {
                 context.registerSubtypes(TraceJdbcStorage.class,
                                          MetricJdbcStorage.class,
+                                         SchemaJdbcStorage.class,
                                          EventJdbcStorage.class,
                                          MetadataJdbcStorage.class,
                                          SettingJdbcStorage.class);

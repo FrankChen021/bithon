@@ -41,10 +41,10 @@ public class TableCreator {
     }
 
     public void createIfNotExist(Table<?> table, int ttlDays) {
-        createIfNotExist(table, ttlDays, false);
+        createIfNotExist(table, ttlDays, false, true);
     }
 
-    public void createIfNotExist(Table<?> table, int ttlDays, boolean useReplacingMergeTree) {
+    public void createIfNotExist(Table<?> table, int ttlDays, boolean useReplacingMergeTree, boolean partitionBy) {
         //
         // create local table
         //
@@ -75,9 +75,17 @@ public class TableCreator {
                                          tableName,
                                          StringUtils.hasText(config.getCluster()) ? " on cluster " + config.getCluster() : ""));
             sb.append(getFieldText(table));
-            sb.append(StringUtils.format(") ENGINE=%s PARTITION BY toYYYYMMDD(timestamp) ",
-                                         engine.replaceAll("\\{database\\}", config.getDatabase())
-                                               .replaceAll("\\{table\\}", tableName)));
+
+            // replace macro in the template to suit for ReplicatedMergeTree
+            engine = engine.replaceAll("\\{database\\}", config.getDatabase())
+                           .replaceAll("\\{table\\}", tableName);
+
+            sb.append(StringUtils.format(") ENGINE=%s(%s) ",
+                                         engine,
+                                         useReplacingMergeTree ? "timestamp" : ""));
+            if (partitionBy) {
+                sb.append("PARTITION BY toYYYYMMDD(timestamp) ");
+            }
 
             //
             // Order by Clause
@@ -85,6 +93,12 @@ public class TableCreator {
             {
                 sb.append("ORDER BY(");
                 for (Index idx : table.getIndexes()) {
+                    if (useReplacingMergeTree) {
+                        if (!idx.getUnique()) {
+                            // for replacing merge tree, use unique key as order key only
+                            continue;
+                        }
+                    }
                     for (SortField<?> f : idx.getFields()) {
                         sb.append(StringUtils.format("`%s`,", f.getName()));
                     }

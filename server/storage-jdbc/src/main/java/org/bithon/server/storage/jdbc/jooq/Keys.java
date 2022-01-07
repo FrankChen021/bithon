@@ -5,8 +5,12 @@ package org.bithon.server.storage.jdbc.jooq;
 
 
 import org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaSchema;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonAgentSettingRecord;
+import org.bithon.server.storage.jdbc.jooq.tables.records.BithonMetaSchemaRecord;
+import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceMappingRecord;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.jooq.UniqueKey;
 import org.jooq.impl.Internal;
@@ -29,6 +33,8 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = UniqueKeys0.KEY_BITHON_AGENT_SETTING_KEY_APPNAME;
+    public static final UniqueKey<BithonMetaSchemaRecord> KEY_BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME = UniqueKeys0.KEY_BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME;
+    public static final UniqueKey<BithonTraceMappingRecord> KEY_BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_ID = UniqueKeys0.KEY_BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_ID;
     public static final UniqueKey<BithonTraceSpanRecord> KEY_BITHON_TRACE_SPAN_IDX_KEY = UniqueKeys0.KEY_BITHON_TRACE_SPAN_IDX_KEY;
 
     // -------------------------------------------------------------------------
@@ -42,6 +48,8 @@ public class Keys {
 
     private static class UniqueKeys0 {
         public static final UniqueKey<BithonAgentSettingRecord> KEY_BITHON_AGENT_SETTING_KEY_APPNAME = Internal.createUniqueKey(BithonAgentSetting.BITHON_AGENT_SETTING, "KEY_bithon_agent_setting_key_appName", BithonAgentSetting.BITHON_AGENT_SETTING.APPNAME, BithonAgentSetting.BITHON_AGENT_SETTING.SETTINGNAME);
+        public static final UniqueKey<BithonMetaSchemaRecord> KEY_BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME = Internal.createUniqueKey(BithonMetaSchema.BITHON_META_SCHEMA, "KEY_bithon_meta_schema_idx_meta_schema_name", BithonMetaSchema.BITHON_META_SCHEMA.NAME);
+        public static final UniqueKey<BithonTraceMappingRecord> KEY_BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_ID = Internal.createUniqueKey(BithonTraceMapping.BITHON_TRACE_MAPPING, "KEY_bithon_trace_mapping_idx_trace_mapping_id", BithonTraceMapping.BITHON_TRACE_MAPPING.USER_TX_ID, BithonTraceMapping.BITHON_TRACE_MAPPING.TRACE_ID);
         public static final UniqueKey<BithonTraceSpanRecord> KEY_BITHON_TRACE_SPAN_IDX_KEY = Internal.createUniqueKey(BithonTraceSpan.BITHON_TRACE_SPAN, "KEY_bithon_trace_span_idx_key", BithonTraceSpan.BITHON_TRACE_SPAN.TRACEID, BithonTraceSpan.BITHON_TRACE_SPAN.SPANID);
     }
 }

@@ -32,6 +32,30 @@ CREATE TABLE `bithon_application_instance`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='应用';
 
+-- mapping between application and metric
+DROP TABLE IF EXISTS `bithon_meta_application_metric_map`;
+CREATE TABLE `bithon_meta_application_metric_map`
+(
+    `timestamp`   TIMESTAMP(3)     NOT NULL COMMENT'update time',
+    `application` varchar(128) NOT NULL,
+    `schema` VARCHAR(64) NOT NULL COMMENT 'name in bithon_metric_schema',
+    KEY `idx_meta_application_metric_map` (`application`, `schema`),
+    KEY `idx_meta_application_metric_map_timestamp` (`timestamp`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+DROP TABLE IF EXISTS `bithon_meta_schema`;
+CREATE TABLE `bithon_meta_schema`
+(
+    `timestamp`    TIMESTAMP(3) NOT NULL COMMENT 'Created Timestamp',
+    `name`         VARCHAR(64)  NOT NULL COMMENT 'Schema Name',
+    `schema`       TEXT NOT NULL COMMENT 'Schema in JSON',
+    UNIQUE `idx_meta_schema_name` (`name`),
+    KEY `idx_meta_schema_timestamp` (`timestamp`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT ='';
+
+-- Agent Configuration
 DROP TABLE IF EXISTS `bithon_agent_setting`;
 CREATE TABLE `bithon_agent_setting`
 (
@@ -76,7 +100,7 @@ CREATE TABLE `bithon_trace_mapping`
     `timestamp`     TIMESTAMP             NOT NULL COMMENT 'Milli Seconds',
     `user_tx_id`    VARCHAR(64)           NOT NULL COMMENT 'user side transaction id',
     `trace_id`      VARCHAR(64)           NOT NULL COMMENT 'trace id in bithon',
-    KEY `idx_trace_mapping_id` (`user_tx_id`, `trace_id`)
+    UNIQUE `idx_trace_mapping_id` (`user_tx_id`, `trace_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -94,3 +118,5 @@ CREATE TABLE `bithon_event`
     KEY `idx_event_type` (`type`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='';
+
+

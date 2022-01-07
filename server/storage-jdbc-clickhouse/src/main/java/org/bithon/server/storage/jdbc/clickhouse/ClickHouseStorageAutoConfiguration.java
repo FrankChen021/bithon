@@ -79,6 +79,7 @@ public class ClickHouseStorageAutoConfiguration {
                                          MetricStorage.class,
                                          EventStorage.class,
                                          MetadataStorage.class,
+                                         SchemaStorage.class,
                                          SettingStorage.class);
             }
         };

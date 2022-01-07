@@ -7,6 +7,8 @@ package org.bithon.server.storage.jdbc.jooq;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaApplicationMetricMap;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaSchema;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 
@@ -31,6 +33,16 @@ public class Tables {
      * The table <code>bithon_event</code>.
      */
     public static final BithonEvent BITHON_EVENT = BithonEvent.BITHON_EVENT;
+
+    /**
+     * The table <code>bithon_meta_application_metric_map</code>.
+     */
+    public static final BithonMetaApplicationMetricMap BITHON_META_APPLICATION_METRIC_MAP = BithonMetaApplicationMetricMap.BITHON_META_APPLICATION_METRIC_MAP;
+
+    /**
+     * The table <code>bithon_meta_schema</code>.
+     */
+    public static final BithonMetaSchema BITHON_META_SCHEMA = BithonMetaSchema.BITHON_META_SCHEMA;
 
     /**
      * The table <code>bithon_trace_mapping</code>.
