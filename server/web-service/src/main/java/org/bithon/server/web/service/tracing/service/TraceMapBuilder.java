@@ -50,7 +50,7 @@ public class TraceMapBuilder {
         if (span.getInstanceName() == null) {
             return span.getAppName();
         } else {
-            return span.getAppName() + "/" + span.getInstanceName();
+            return span.getAppName() + " | " + span.getInstanceName();
         }
     }
 
