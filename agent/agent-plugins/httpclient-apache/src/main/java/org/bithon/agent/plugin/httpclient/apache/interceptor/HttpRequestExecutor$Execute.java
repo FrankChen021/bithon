@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.httpclient.apache.interceptor;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
@@ -39,15 +40,24 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
         //
         // Trace
         //
-        ITraceSpan span = TraceSpanFactory.newSpan("httpClient");
+        ITraceSpan span = TraceSpanFactory.newSpan("apache-httpClient");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        String uri;
+        if (httpRequest instanceof HttpRequestWrapper) {
+            // this getUri returns the full URI with host
+            uri = ((HttpRequestWrapper) httpRequest).getOriginal().getRequestLine().getUri();
+        } else {
+            // this getUri returns the path and parameters, no host is included
+            uri = httpRequest.getRequestLine().getUri();
         }
 
         // create a span and save it in user-context
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag(Tags.URI, httpRequest.getRequestLine().getUri())
+                                      .tag(Tags.URI, uri)
                                       .tag(Tags.HTTP_METHOD, httpRequest.getRequestLine().getMethod())
                                       .propagate(httpRequest, (request, key, value) -> request.setHeader(key, value))
                                       .start());
