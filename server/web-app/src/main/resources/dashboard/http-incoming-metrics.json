@@ -86,6 +86,7 @@
       "width": 4,
       "yAxis": [
         {
+          "format": "byte_rate"
         },
         {
           "format": "binary_byte"

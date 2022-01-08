@@ -29,6 +29,7 @@ class Dashboard {
         this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 0);
         this._formatters['millisecond'] = (v) => milliFormat(v, 0);
         this._formatters['microsecond'] = (v) => microFormat(v, 0);
+        this._formatters['byte_rate'] = (v) => binaryByteFormat(v) + "/s";
     }
 
     // PUBLIC
