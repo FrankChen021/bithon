@@ -19,10 +19,8 @@ package org.bithon.server.meta.storage;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.meta.Metadata;
 import org.bithon.server.meta.MetadataType;
-import org.bithon.server.metric.DataSourceSchema;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com

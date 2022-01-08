@@ -144,7 +144,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         log.info("Loading metric schemas");
         try {
             schemas = schemaStorage.getSchemas().stream().collect(Collectors.toConcurrentMap(DataSourceSchema::getName, v -> v));
-        } catch(Exception e) {
+        } catch (Exception e) {
             log.error("Exception occurs when loading schemas", e);
         }
     }
