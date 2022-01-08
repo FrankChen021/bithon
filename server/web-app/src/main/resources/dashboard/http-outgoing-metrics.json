@@ -46,7 +46,25 @@
         {
           "name": "countException"
         }
-      ]
+      ],
+      "details": {
+        "groupBy": [
+          "path",
+          "statusCode"
+        ],
+        "metrics": [
+          "requestCount"
+        ],
+        "filters": [
+          {
+            "dimension": "statusCode",
+            "matcher": {
+              "type": "notEqual",
+              "pattern": "200"
+            }
+          }
+        ]
+      }
     },
     {
       "dataSource": "http-outgoing-metrics",

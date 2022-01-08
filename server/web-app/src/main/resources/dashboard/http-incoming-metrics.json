@@ -60,7 +60,25 @@
         {
           "name": "degradedCount"
         }
-      ]
+      ],
+      "details": {
+        "groupBy": [
+          "uri",
+          "statusCode"
+        ],
+        "metrics": [
+          "totalCount"
+        ],
+        "filters": [
+          {
+            "dimension": "statusCode",
+            "matcher": {
+              "type": "notEqual",
+              "pattern": "200"
+            }
+          }
+        ]
+      }
     },
     {
       "dataSource": "http-incoming-metrics",
