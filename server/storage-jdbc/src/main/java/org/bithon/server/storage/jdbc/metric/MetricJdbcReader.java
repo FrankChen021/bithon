@@ -25,6 +25,7 @@ import org.bithon.server.common.matcher.EndwithMatcher;
 import org.bithon.server.common.matcher.EqualMatcher;
 import org.bithon.server.common.matcher.IContainsMatcher;
 import org.bithon.server.common.matcher.IMatcherVisitor;
+import org.bithon.server.common.matcher.NotEqualMatcher;
 import org.bithon.server.common.matcher.RegexMatcher;
 import org.bithon.server.common.matcher.StartwithMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
@@ -277,6 +278,19 @@ public class MetricJdbcReader implements IMetricReader {
             sb.append(name);
             sb.append("\"");
             sb.append("=");
+            sb.append('\'');
+            sb.append(matcher.getPattern());
+            sb.append('\'');
+            return sb.toString();
+        }
+
+        @Override
+        public String visit(NotEqualMatcher matcher) {
+            StringBuilder sb = new StringBuilder(64);
+            sb.append("\"");
+            sb.append(name);
+            sb.append("\"");
+            sb.append("<>");
             sb.append('\'');
             sb.append(matcher.getPattern());
             sb.append('\'');

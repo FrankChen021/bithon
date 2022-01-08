@@ -42,7 +42,7 @@ public class GroupByQueryRequest {
     @NotEmpty
     private String dataSource;
 
-    private Map<String, DimensionCondition> filters = Collections.emptyMap();
+    private List<DimensionCondition> filters = Collections.emptyList();
 
     private List<String> metrics = Collections.emptyList();
     private List<IQuerableAggregator> aggregators = Collections.emptyList();

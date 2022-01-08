@@ -147,13 +147,76 @@ class Dashboard {
 
             this.layout(chartDescriptor.id, chartDescriptor.width * 3);
 
-            this.createChartComponent(chartDescriptor.id, chartDescriptor)
+            // create chart
+            const chartComponent = this.createChartComponent(chartDescriptor.id, chartDescriptor)
                 .setOpenHandler(() => {
                     this.openChart(chartDescriptor.id);
                 });
 
+            // create detail view for this chart
+            if (chartDescriptor.details != null) {
+                // get columns
+                const columns = [];
+                $.each(chartDescriptor.details.groupBy, (index, dimension) => {
+                    columns.push({field: dimension, title: dimension, align: 'center'});
+                });
+                $.each(chartDescriptor.details.metrics, (index, metric) => {
+                    columns.push({field: metric, title: metric, align: 'center'});
+                });
+
+                const detailView = this.#createDetailView(chartComponent.getUIContainer(), columns);
+                chartComponent.setSelectionHandler(
+                    (option, start, end) => {
+                        this.#refreshDetailView(chartDescriptor, detailView, option, start, end);
+                    },
+                    () => {
+                        detailView.clear();
+                    });
+            }
+
             this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
         });
+    }
+
+    #createDetailView(parent, columns) {
+        return new TableComponent(parent, columns);
+    }
+
+    #refreshDetailView(chartDescriptor, detailView, option, startIndex, endIndex) {
+        // get the time range
+        const start = option.timestamp.start;
+        const interval = option.timestamp.interval;
+
+        const startTimestamp = moment(start + startIndex * interval).utc().toISOString();
+        const endTimestamp = moment(start + endIndex * interval).utc().toISOString();
+
+        const filters = [];
+        $.each(this._selectedDimensions, (propName, filter) => {
+            filters.push(filter);
+        });
+        if (chartDescriptor.filters != null) {
+            $.each(chartDescriptor.filters, (index, filter) => {
+                filters.push(filter);
+            });
+        }
+        if (chartDescriptor.details.filters != null) {
+            $.each(chartDescriptor.details.filters, (index, filter) => {
+                filters.push(filter);
+            });
+        }
+
+        const loadOptions = {
+            url: apiHost + "/api/datasource/groupBy",
+            ajaxData: {
+                dataSource: chartDescriptor.dataSource,
+                startTimeISO8601: startTimestamp,
+                endTimeISO8601: endTimestamp,
+                filters: filters,
+                metrics: chartDescriptor.details.metrics,
+                groupBy: chartDescriptor.details.groupBy
+            }
+        };
+        detailView.load(loadOptions);
     }
 
     // PRIVATE
@@ -292,7 +355,19 @@ class Dashboard {
         if (chartOption.yAxis.length === 1) {
             chartOption.grid.right = 15;
         }
-
+        if (chartDescriptor.details != null) {
+            chartOption.brush = {
+                xAxisIndex: 'all',
+                brushLink: 'all',
+                outOfBrush: {
+                    colorAlpha: 0.1
+                }
+            };
+            chartOption.toolbox = {
+                // the toolbox is disabled because the ChartComponent takes over the functionalities
+                show: false
+            };
+        }
         const chartComponent = new ChartComponent({
             containerId: chartId,
             metrics: chartDescriptor.metrics.map(metric => metric.name),
@@ -360,8 +435,8 @@ class Dashboard {
         if (metricNamePrefix == null) {
             metricNamePrefix = '';
         }
-        var dimensions = {};
-        if ( chartDescriptor.dimensions === undefined) {
+        let dimensions = {};
+        if (chartDescriptor.dimensions === undefined) {
             dimensions = this._selectedDimensions;
         } else {
             Object.assign(dimensions, this._selectedDimensions);
@@ -380,15 +455,16 @@ class Dashboard {
                 const timeLabels = data.map(d => moment(d._timestamp).local().format('HH:mm:ss'));
 
                 const series = chartDescriptor.metrics.map(metric => {
-
                     return {
                         name: metricNamePrefix + (metric.displayName === undefined ? metric.name : metric.displayName),
                         type: metric.chartType || 'line',
-                        areaStyle: {opacity: 0.3},
+
                         data: data.map(d => metric.transformer(d, metric.name)),
+                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
+
+                        areaStyle: {opacity: 0.3},
                         lineStyle: {width: 1},
                         itemStyle: {opacity: 0},
-                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
 
                         // selected is not a property of series
                         // this is used to render default selected state of legend by chart-component
@@ -396,8 +472,16 @@ class Dashboard {
                     }
                 });
 
+
                 return {
-                    xAxis: {data: timeLabels},
+                    // save the timestamp for further processing
+                    timestamp: {
+                        start: data.length === 0 ? 0 : data[0]._timestamp,
+                        interval: data.length === 0 ? 0 : data[1]._timestamp - data[0]._timestamp
+                    },
+                    xAxis: {
+                        data: timeLabels
+                    },
                     series: series
                 }
             }
@@ -464,6 +548,16 @@ class Dashboard {
                         backgroundColor: '#283b56',
                     },
                 },
+            },
+            axisPointer: {
+                link: [
+                    {
+                        xAxisIndex: 'all'
+                    }
+                ],
+                label: {
+                    backgroundColor: '#777'
+                }
             },
             legend: {
                 type: 'scroll',
