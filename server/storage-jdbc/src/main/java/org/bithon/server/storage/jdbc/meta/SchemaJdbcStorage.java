@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.storage.ISchemaStorage;
 import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaSchema;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonMetaSchemaRecord;
 import org.jooq.DSLContext;
 import org.springframework.dao.DuplicateKeyException;
