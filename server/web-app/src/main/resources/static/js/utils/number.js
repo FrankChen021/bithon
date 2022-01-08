@@ -10,7 +10,7 @@ function binaryByteFormat(byteVal) {
     }
     const sizes = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
     if (bytes === 0) {
-        return '0';
+        return '0B';
     }
     const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10);
     let s;
