@@ -26,7 +26,7 @@ import javax.validation.constraints.NotNull;
  * @author Frank Chen
  * @date 8/1/22 2:41 PM
  */
-public class NotEqualMatcher  implements IStringMatcher {
+public class NotEqualMatcher implements IStringMatcher {
     @Getter
     @NotNull
     private final String pattern;
