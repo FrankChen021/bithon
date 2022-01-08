@@ -104,6 +104,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
                 if (handler != null) {
                     return handler;
                 }
+
                 schemaManager.addDataSourceSchema(message.getSchema());
                 try {
                     handler = new MetricMessageHandler(message.getSchema().getName(),

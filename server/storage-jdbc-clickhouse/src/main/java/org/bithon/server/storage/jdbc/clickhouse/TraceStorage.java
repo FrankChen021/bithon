@@ -52,7 +52,7 @@ public class TraceStorage extends TraceJdbcStorage {
     public void initialize() {
         TableCreator tableCreator = new TableCreator(config, dslContext);
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN, config.getTtlDays());
-        tableCreator.createIfNotExist(Tables.BITHON_TRACE_MAPPING, config.getTtlDays(), true);
+        tableCreator.createIfNotExist(Tables.BITHON_TRACE_MAPPING, config.getTtlDays(), true, true);
     }
 
     @Override

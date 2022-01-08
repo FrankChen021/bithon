@@ -97,6 +97,11 @@ public class DataSourceApi {
         return schemaManager.getDataSourceSchema(schemaName);
     }
 
+    @PostMapping("/api/datasource/schema/update")
+    public void updateSchema(@RequestBody DataSourceSchema schema) {
+        schemaManager.updateDataSourceSchmea(schema);
+    }
+
     @PostMapping("/api/datasource/name")
     public Collection<DisplayableText> getSchemaNames() {
         return schemaManager.getDataSources()

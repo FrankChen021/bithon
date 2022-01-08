@@ -11,6 +11,8 @@ import java.util.List;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaApplicationMetricMap;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaSchema;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 import org.jooq.Catalog;
@@ -24,7 +26,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = 1916041216;
+    private static final long serialVersionUID = 1986027132;
 
     /**
      * The reference instance of <code></code>
@@ -45,6 +47,16 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>bithon_event</code>.
      */
     public final BithonEvent BITHON_EVENT = org.bithon.server.storage.jdbc.jooq.tables.BithonEvent.BITHON_EVENT;
+
+    /**
+     * The table <code>bithon_meta_application_metric_map</code>.
+     */
+    public final BithonMetaApplicationMetricMap BITHON_META_APPLICATION_METRIC_MAP = org.bithon.server.storage.jdbc.jooq.tables.BithonMetaApplicationMetricMap.BITHON_META_APPLICATION_METRIC_MAP;
+
+    /**
+     * The table <code>bithon_meta_schema</code>.
+     */
+    public final BithonMetaSchema BITHON_META_SCHEMA = org.bithon.server.storage.jdbc.jooq.tables.BithonMetaSchema.BITHON_META_SCHEMA;
 
     /**
      * The table <code>bithon_trace_mapping</code>.
@@ -81,6 +93,8 @@ public class DefaultSchema extends SchemaImpl {
             BithonAgentSetting.BITHON_AGENT_SETTING,
             BithonApplicationInstance.BITHON_APPLICATION_INSTANCE,
             BithonEvent.BITHON_EVENT,
+            BithonMetaApplicationMetricMap.BITHON_META_APPLICATION_METRIC_MAP,
+            BithonMetaSchema.BITHON_META_SCHEMA,
             BithonTraceMapping.BITHON_TRACE_MAPPING,
             BithonTraceSpan.BITHON_TRACE_SPAN);
     }

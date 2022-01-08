@@ -131,7 +131,7 @@ public class TraceJdbcStorage implements ITraceStorage {
             this.writer = writer;
             this.config = config;
             this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadUtils.NamedThreadFactory("trace-batch-writer"));
-            this.executor.scheduleAtFixedRate(this::flush, 5, 1, TimeUnit.SECONDS);
+            this.executor.scheduleWithFixedDelay(this::flush, 5, 1, TimeUnit.SECONDS);
         }
 
         @Override
