@@ -82,7 +82,7 @@ public class DataSourceApi {
         return this.metricStorage.createMetricReader(schema).groupBy(new GroupByQuery(schema,
                                                                                       request.getMetrics(),
                                                                                       request.getAggregators(),
-                                                                                      request.getFilters().values(),
+                                                                                      request.getFilters(),
                                                                                       Interval.of(start, end),
                                                                                       request.getGroupBy()));
     }

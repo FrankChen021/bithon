@@ -1,6 +1,12 @@
 class ChartComponent {
 
     constructor(option) {
+        this._selectionHandler = null;
+        this._selectionClearHandler = null;
+        this._openHandler = null;
+
+        this._selectionState = false;
+
         this.option = $.extend({
             height: '200px',
             showLegend: true
@@ -17,12 +23,32 @@ class ChartComponent {
         $(this._card).find('.card-chart').attr('id', this._chartId).height(this.option.height);
 
         this._chart = echarts.init(document.getElementById(this._chartId));
+        this._chart.on('brushEnd', (params) => {
+            if (this._selectionHandler == null) {
+                return;
+            }
+            if (params.areas.length === 0) {
+                return;
+            }
+
+            const rangeIndex = params.areas[0].coordRange;
+            const startIndex = rangeIndex[0];
+            const endIndex = rangeIndex[1];
+            if (startIndex === endIndex) {
+                return;
+            }
+            this._selectionHandler(this._chart.getOption(), startIndex, endIndex);
+        });
+
         window.addEventListener("resize", () => {
             this._chart.resize();
         });
 
-        this._openHandler = null;
         this._chartSeries = {};
+    }
+
+    getUIContainer() {
+        return this._card;
     }
 
     header(text) {
@@ -32,6 +58,8 @@ class ChartComponent {
                 '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
                 '<span class="header-text btn-sm"></span>' +
                 '<div class="tools ml-auto">' +
+                '<button style="display:none" class="btn btn-sm btn-select"><span class="far fa-object-ungroup" title="selection"></span></button>' +
+                '<button style="display:none" class="btn btn-sm btn-open"><span class="far fa-window-maximize" title="open"></span></button>' +
                 //'    <button class="btn btn-sm btn-alert"><span class="far fa-bell" title="alert"></span></button>' +
                 '</div>' +
                 '</div>');
@@ -71,6 +99,14 @@ class ChartComponent {
      * }
      */
     load(option) {
+        //
+        // clear the selection
+        //
+        if (this._selectionHandler != null) {
+            this.#clearRangeSelection();
+        }
+
+        // reload the chart
         option = $.extend({
             ajaxType: 'POST',
             processResult: function (data) {
@@ -250,8 +286,8 @@ class ChartComponent {
 
     setOpenHandler(openHandler) {
         if ($(this._card).find('btn-open').length === 0) {
-            const ctrl = $(this._card).find('.tools').append('<button class="btn btn-sm btn-open"><span class="far fa-square" title="open"></span></button>');
-            ctrl.find(".btn-open").click(() => {
+            const ctrl = $(this._card).find('.tools');
+            ctrl.find(".btn-open").css('display', '').click(() => {
                 if (this._openHandler != null)
                     this._openHandler.apply();
             });
@@ -265,6 +301,33 @@ class ChartComponent {
         this._chart.on('click', (e) => {
             handler(e);
         });
+        return this;
+    }
+
+    setSelectionHandler(handler, clearHandler) {
+        const ctrl = $(this._card).find('.tools')
+        ctrl.find(".btn-select").css('display', '').click(() => {
+            this._chart.dispatchAction({
+                type: 'takeGlobalCursor',
+                key: 'brush',
+                brushOption: {
+                    brushType: this._selectionState ? false : 'lineX',
+                    brushMode: 'single'
+                }
+            });
+            const btn = $(this._card).find('.tools').find('.btn-select');
+            if (this._selectionState) {
+                btn.removeClass('btn-primary');
+                this.#clearRangeSelection();
+            } else {
+                btn.addClass('btn-primary');
+            }
+            this._selectionState = !this._selectionState;
+        });
+
+        this._selectionHandler = handler;
+        this._selectionClearHandler = clearHandler;
+        return this;
     }
 
     //PRIVATE
@@ -285,5 +348,18 @@ class ChartComponent {
             return true;
         }
         return false;
+    }
+
+    #clearRangeSelection() {
+        this._chart.dispatchAction({
+            type: 'brush',
+            command: 'clear',
+            areas: [],
+        });
+
+        // call clear handler
+        if (this._selectionClearHandler != null) {
+            this._selectionClearHandler();
+        }
     }
 }

@@ -25,7 +25,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,7 +41,7 @@ public class GroupByQueryRequest {
     @NotEmpty
     private String dataSource;
 
-    private Map<String, DimensionCondition> filters = Collections.emptyMap();
+    private List<DimensionCondition> filters = Collections.emptyList();
 
     private List<String> metrics = Collections.emptyList();
     private List<IQuerableAggregator> aggregators = Collections.emptyList();
