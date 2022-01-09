@@ -158,6 +158,9 @@
           "name": "avgGcTime",
           "yAxis": 1
         }
+      ],
+      "groupBy" : [
+        "gcName"
       ]
     },
     {
@@ -188,6 +191,9 @@
           "name": "avgGcTime",
           "yAxis": 1
         }
+      ],
+      "groupBy": [
+        "gcName"
       ]
     }
   ]

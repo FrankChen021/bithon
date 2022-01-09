@@ -60,6 +60,13 @@ class Dashboard {
             const chartId = 'chart_' + index;
             chartDescriptor['id'] = chartId;
 
+            // turn into metrics object into map
+            chartDescriptor.metricMap = {};
+            $.each(chartDescriptor.metrics, (index, metricDef) =>{
+                chartDescriptor.metricMap[metricDef.name] = metricDef;
+            });
+
+            // set up a data source to charts mapping
             const dataSourceName = chartDescriptor.dataSource;
             if (dataSource2Charts[dataSourceName] == null) {
                 dataSource2Charts[dataSourceName] = [];
@@ -317,7 +324,7 @@ class Dashboard {
                 params.forEach(p => {
                     const yAxisIndex = currentChartOption.series[p.seriesIndex].yAxisIndex;
                     const formatterFn = formatterFns[yAxisIndex];
-                    const s = formatterFn != null ? formatterFn(p.data) : p.data;
+                    const s = formatterFn != null ? formatterFn(p.data.toFixed(2)) : p.data.toFixed(2);
                     result += `<br />${p.marker}${p.seriesName}: ${s}`;
                 });
                 return result;
@@ -433,6 +440,12 @@ class Dashboard {
     }
 
     refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix) {
+        if (chartDescriptor.groupBy != null) {
+            // in future, the version 2 method should be used for all cases
+            this.refreshChart2(chartDescriptor, chartComponent, interval, metricNamePrefix);
+            return;
+        }
+
         if (metricNamePrefix == null) {
             metricNamePrefix = '';
         }
@@ -450,6 +463,7 @@ class Dashboard {
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
                 dimensions: dimensions,
+                groups: chartDescriptor.groupBy,
                 metrics: chartComponent.getOption().metrics
             }),
             processResult: (data) => {
@@ -460,7 +474,7 @@ class Dashboard {
                         name: metricNamePrefix + (metric.displayName === undefined ? metric.name : metric.displayName),
                         type: metric.chartType || 'line',
 
-                        data: data.map(d => metric.transformer(d, metric.name)),
+                        data: data.map(d => metric.transformer(d[metric.name])),
                         yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
 
                         areaStyle: {opacity: 0.3},
@@ -479,6 +493,82 @@ class Dashboard {
                     timestamp: {
                         start: data.length === 0 ? 0 : data[0]._timestamp,
                         interval: data.length === 0 ? 0 : data[1]._timestamp - data[0]._timestamp
+                    },
+                    xAxis: {
+                        data: timeLabels
+                    },
+                    series: series
+                }
+            }
+        });
+    }
+
+    refreshChart2(chartDescriptor, chartComponent, interval, metricNamePrefix) {
+        if (metricNamePrefix == null) {
+            metricNamePrefix = '';
+        }
+
+        let dimensions = [];
+        $.each(this._selectedDimensions, (index, filter) => {
+            dimensions.push(filter);
+        });
+        if (chartDescriptor.dimensions !== undefined) {
+            $.each(chartDescriptor.dimensions, (index, filter) => {
+                dimensions.push(filter);
+            });
+        }
+
+        chartComponent.load({
+            url: apiHost + "/api/datasource/timeseries",
+            ajaxData: JSON.stringify({
+                dataSource: chartDescriptor.dataSource,
+                startTimeISO8601: interval.start,
+                endTimeISO8601: interval.end,
+                dimensions: dimensions,
+                groups: chartDescriptor.groupBy,
+                metrics: chartComponent.getOption().metrics
+            }),
+            processResult: (data) => {
+                const timeLabels = [];
+                for (let t = data.startTimestamp; t <= data.endTimestamp; t += data.interval) {
+                    timeLabels.push(moment(t).local().format('HH:mm:ss'));
+                }
+                const series = [];
+                $.each(data.metrics, (index, metric) => {
+                    let metricName = metric.tags[metric.tags.length - 1];
+                    let metricDef = chartDescriptor.metricMap[metricName];
+                    if (metricDef === undefined) {
+                        return;
+                    }
+
+                    let group = "";
+                    for(let i= 0; i < metric.tags.length -1; i++) {
+                        group += metric.tags[i];
+                        group += "-";
+                    }
+                    let s = {
+                        name: group + metricNamePrefix + (metricDef.displayName === undefined ? metricDef.name : metricDef.displayName),
+                        type: metricDef.chartType || 'line',
+
+                        data: metric.values,
+                        yAxisIndex: metricDef.yAxis == null ? 0 : metricDef.yAxis,
+
+                        areaStyle: {opacity: 0.3},
+                        lineStyle: {width: 1},
+                        itemStyle: {opacity: 0},
+
+                        // selected is not a property of series
+                        // this is used to render default selected state of legend by chart-component
+                        selected: metricDef.selected === undefined ? true : metricDef.selected
+                    };
+                    series.push(s);
+                });
+
+                return {
+                    // save the timestamp for further processing
+                    timestamp: {
+                        start: data.startTimestamp,
+                        interval: data.interval
                     },
                     xAxis: {
                         data: timeLabels
@@ -511,17 +601,11 @@ class Dashboard {
             if (yIndex < chartDescriptor.yAxis.length) {
                 const yAxis = chartDescriptor.yAxis[yIndex];
                 if (yAxis.format === 'millisecond' && schema.metricsSpec[metricName].unit === 'nanosecond') {
-                    return function (data, metricName) {
-                        const val = data[metricName];
-                        return val == null ? 0 : (val / 1000 / 1000).toFixed(2);
-                    }
+                    return (val) => val == null ? 0 : (val / 1000 / 1000);
                 }
             }
         }
-        return function (data, metricName) {
-            const val = data[metricName];
-            return val == null ? 0 : val.toFixed(2);
-        }
+        return (val) => val === null ? 0 : val;
     }
 
     // PRIVATE
