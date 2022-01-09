@@ -85,44 +85,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                                                          .metrics(query.getMetrics())
                                                                                          .groupBy(query.getGroupBys())
                                                                                          .build();
-        List<Map<String, Object>> queryResult = executeSql(sql);
-
-        //
-        // fill empty time slot bucket
-        //
-        List<Map<String, Object>> returns = new ArrayList<>();
-        int j = 0;
-        TimeSpan start = query.getInterval().getStartTime();
-        TimeSpan end = query.getInterval().getEndTime();
-        int step = query.getInterval().getGranularity();
-        for (long bucket = start.toSeconds() / step * step, endBucket = end.toSeconds() / step * step;
-             bucket < endBucket;
-             bucket += step) {
-            if (j < queryResult.size()) {
-                long nextSlot = ((Number) queryResult.get(j).get(TIMESTAMP_QUERY_NAME)).longValue();
-                while (bucket < nextSlot) {
-                    Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
-                    empty.put(TIMESTAMP_QUERY_NAME, bucket * 1000);
-                    query.getMetrics().forEach((metric) -> empty.put(metric, 0));
-                    returns.add(empty);
-                    bucket += step;
-                }
-
-                // convert to millisecond
-                queryResult.get(j).put(TIMESTAMP_QUERY_NAME, nextSlot * 1000);
-                returns.add(queryResult.get(j++));
-            } else {
-                Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
-                empty.put(TIMESTAMP_QUERY_NAME, bucket * 1000);
-                query.getMetrics().forEach((metric) -> empty.put(metric, 0));
-                returns.add(empty);
-            }
-        }
-        while (j < queryResult.size()) {
-            queryResult.get(j).put(TIMESTAMP_QUERY_NAME, ((Number) queryResult.get(j).get(TIMESTAMP_QUERY_NAME)).longValue() * 1000L);
-            returns.add(queryResult.get(j++));
-        }
-        return returns;
+        return executeSql(sql);
     }
 
     @Override
@@ -642,15 +605,17 @@ public class MetricJdbcReader implements IMetricReader {
             String timestampExpression = sqlFormatter.timeFloor("timestamp", interval);
             if (rawExpressions.isEmpty()) {
                 return StringUtils.format(
-                    "SELECT %s AS \"_timestamp\", %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s %s %s",
+                    "SELECT %s AS \"_timestamp\", %s %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s %s %s",
                     timestampExpression,
                     String.join(",", postExpressions),
+                    this.groupBy,
                     tableName,
                     this.filters,
                     sqlFormatter.formatTimestamp(start),
                     sqlFormatter.formatTimestamp(end),
                     sqlFormatter.groupByUseRawExpression() ? timestampExpression : TIMESTAMP_QUERY_NAME,
                     this.groupBy,
+                    // order by
                     sqlFormatter.orderByTimestamp(TIMESTAMP_QUERY_NAME)
                 );
             } else {
@@ -660,7 +625,7 @@ public class MetricJdbcReader implements IMetricReader {
                     "SELECT \"timestamp\" AS \"_timestamp\" %s ,%s FROM "
                     + "("
                     + "     SELECT %s, %s \"timestamp\" %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s"
-                    + ")GROUP BY \"%s\" %s",
+                    + ")GROUP BY \"%s\" %s %s",
                     this.groupBy,
                     String.join(",", postExpressions),
                     String.join(",", rawExpressions),
@@ -670,7 +635,10 @@ public class MetricJdbcReader implements IMetricReader {
                     this.filters,
                     sqlFormatter.formatTimestamp(start),
                     sqlFormatter.formatTimestamp(end),
+                    // group by
                     sqlFormatter.groupByUseRawExpression() ? "timestamp" : TIMESTAMP_QUERY_NAME,
+                    this.groupBy,
+                    // order by
                     sqlFormatter.orderByTimestamp(TIMESTAMP_QUERY_NAME)
                 );
             }
