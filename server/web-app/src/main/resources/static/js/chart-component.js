@@ -43,8 +43,6 @@ class ChartComponent {
         window.addEventListener("resize", () => {
             this._chart.resize();
         });
-
-        this._chartSeries = {};
     }
 
     getUIContainer() {
@@ -130,22 +128,23 @@ class ChartComponent {
                     return;
                 }
 
-                if (returnedOption.series != null) {
-                    //
-                    // merge series
-                    //
-                    $.each(returnedOption.series, (index, s) => {
-                        this._chartSeries[s.name] = s;
-                    });
-                    const series = [];
-                    for (const name in this._chartSeries) {
-                        series.push(this._chartSeries[name]);
-                    }
-                    returnedOption.series = series;
-                }
-
-                if (this.option.showLegend && !this.hasUserSelection()) {
+                // if (returnedOption.series != null) {
+                //     //
+                //     // merge series
+                //     //
+                //     $.each(returnedOption.series, (index, s) => {
+                //         this._chartSeries[s.name] = s;
+                //     });
+                //     const series = [];
+                //     for (const name in this._chartSeries) {
+                //         series.push(this._chartSeries[name]);
+                //     }
+                //     returnedOption.series = series;
+                // }
+                const isReplace = returnedOption.replace !== undefined && returnedOption.replace;
+                if (isReplace || (this.option.showLegend && !this.hasUserSelection())) {
                     let legend = {
+                        id: 'l',
                         data: [],
                         selected: {}
                     };
@@ -158,7 +157,11 @@ class ChartComponent {
                     });
                     returnedOption.legend = legend;
                 }
-                this.setChartOption(returnedOption);
+                if (isReplace) {
+                    this._chart.setOption(returnedOption, {replaceMerge: ['series', 'legend']});
+                } else {
+                    this._chart.setOption(returnedOption);
+                }
             },
             error: (data) => {
                 this._chart.hideLoading();
@@ -168,40 +171,22 @@ class ChartComponent {
     }
 
     clearLines(name) {
-        if (name == null) {
-            this._chartSeries = [];
-            this.setChartOption({
-                legend: {
-                    data: []
-                },
-                series: []
-            });
-        } else {
-            const currentOption = this.getChartOption();
-            const newSeries = [];
-            const newList = [];
-            for (let i = 0; i < currentOption.legend[0].data.length; i++) {
-                const legend = currentOption.legend[0].data[i];
-
-                if (legend.name.startsWith(name)) {
-                    delete this._chartSeries[legend.name];
-                    currentOption.series[i].data = [];
-                } else {
-                    newList.push(legend);
+        const newSeries = [];
+        const currentOption = this.getChartOption();
+        if (name != null) {
+            $.each(currentOption.series, (index, s) => {
+                if (!s.name.startsWith(name)) {
+                    newSeries.push(s);
                 }
-                newSeries.push(currentOption.series[i]);
-            }
-            this.setChartOption({
-                legend: {
-                    data: newList
-                },
-                series: newSeries
             });
         }
+        currentOption.series = newSeries;
+        this._chart.setOption(currentOption, true);
     }
 
     containsLine(name) {
-        for (const s in this._chartSeries) {
+        const currentOption = this.getChartOption();
+        for (const s in currentOption.series) {
             if (s.name === name) {
                 return true;
             }
@@ -281,7 +266,6 @@ class ChartComponent {
 
     dispose() {
         this._chart.dispose();
-        this._chartSeries = {};
     }
 
     setOpenHandler(openHandler) {

@@ -40,7 +40,7 @@
       "type": "longSum",
       "name": "gcTime",
       "displayText": "Accumulative GC Time",
-      "unit": "nanosecond",
+      "unit": "millisecond",
       "visible": false
     },
     {
