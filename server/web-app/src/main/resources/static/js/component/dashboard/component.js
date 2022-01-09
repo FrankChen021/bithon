@@ -62,7 +62,7 @@ class Dashboard {
 
             // turn into metrics object into map
             chartDescriptor.metricMap = {};
-            $.each(chartDescriptor.metrics, (index, metricDef) =>{
+            $.each(chartDescriptor.metrics, (index, metricDef) => {
                 chartDescriptor.metricMap[metricDef.name] = metricDef;
             });
 
@@ -439,10 +439,14 @@ class Dashboard {
         this.refreshDashboard();
     }
 
-    refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix) {
+    refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
+        if (mode === undefined) {
+            mode = 'refresh';
+        }
+
         if (chartDescriptor.groupBy != null) {
             // in future, the version 2 method should be used for all cases
-            this.refreshChart2(chartDescriptor, chartComponent, interval, metricNamePrefix);
+            this.refreshChart2(chartDescriptor, chartComponent, interval, metricNamePrefix, mode);
             return;
         }
 
@@ -503,7 +507,7 @@ class Dashboard {
         });
     }
 
-    refreshChart2(chartDescriptor, chartComponent, interval, metricNamePrefix) {
+    refreshChart2(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
         if (metricNamePrefix == null) {
             metricNamePrefix = '';
         }
@@ -542,12 +546,15 @@ class Dashboard {
                     }
 
                     let group = "";
-                    for(let i= 0; i < metric.tags.length -1; i++) {
+                    for (let i = 0; i < metric.tags.length - 1; i++) {
                         group += metric.tags[i];
                         group += "-";
                     }
+
+                    const n = metricNamePrefix + group + (metricDef.displayName === undefined ? metricDef.name : metricDef.displayName);
                     let s = {
-                        name: group + metricNamePrefix + (metricDef.displayName === undefined ? metricDef.name : metricDef.displayName),
+                        id: n,
+                        name: n,
                         type: metricDef.chartType || 'line',
 
                         data: metric.values,
@@ -564,7 +571,25 @@ class Dashboard {
                     series.push(s);
                 });
 
+                // a groupBy query might return empty data
+                if ( series.length === 0 ) {
+                    series.push({
+                        id: 'empty',
+                        name: 'empty',
+                        type: 'line',
+                        data: new Array(data.count).fill(0),
+                        yAxisIndex: 0,
+                        areaStyle: {opacity: 0.3},
+                        lineStyle: {width: 1},
+                        itemStyle: {opacity: 0},
+                        selected: true
+                    });
+                }
+
                 return {
+                    // for a groupBy query, always replace the series because one group may not exist in a following query
+                    replace: chartDescriptor.groupBy != null && mode === 'refresh',
+
                     // save the timestamp for further processing
                     timestamp: {
                         start: data.startTimestamp,
@@ -784,7 +809,8 @@ class Dashboard {
                             start: baseStart.toISOString(true),
                             end: baseEnd.toISOString(true)
                         },
-                        text + '-');
+                        text + '-',
+                        'add');
                 });
 
                 latestButtons[0].click();
