@@ -48,28 +48,44 @@ public class DataSourceApi {
     private final MetricStorageConfig storageConfig;
     private final IMetricStorage metricStorage;
     private final DataSourceSchemaManager schemaManager;
+    private final DataSourceService dataSourceService;
 
     public DataSourceApi(MetricStorageConfig storageConfig,
                          IMetricStorage metricStorage,
-                         DataSourceSchemaManager schemaManager) {
+                         DataSourceSchemaManager schemaManager,
+                         DataSourceService dataSourceService) {
         this.storageConfig = storageConfig;
         this.metricStorage = metricStorage;
         this.schemaManager = schemaManager;
+        this.dataSourceService = dataSourceService;
     }
 
     @PostMapping("/api/datasource/metrics")
-    public List<Map<String, Object>> timeseries(@Valid @RequestBody GetMetricsRequest request) {
+    public List<Map<String, Object>> metrics(@Valid @RequestBody GetMetricsRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
-        return this.metricStorage.createMetricReader(schema)
-                                 .timeseries(new TimeseriesQuery(schema,
-                                                                 request.getMetrics(),
-                                                                 request.getDimensions().values(),
-                                                                 Interval.of(start, end),
-                                                                 request.getGroups()));
+        return dataSourceService.oldTimeseriesQuery(new TimeseriesQuery(schema,
+                                                                        request.getMetrics(),
+                                                                        request.getDimensions().values(),
+                                                                        Interval.of(start, end),
+                                                                        request.getGroups()));
+    }
+
+    @PostMapping("/api/datasource/timeseries")
+    public DataSourceService.TimeSeriesQueryResult timeseries(@Valid @RequestBody TimeSeriesQueryRequest request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
+
+        return dataSourceService.timeseriesQuery(new TimeseriesQuery(schema,
+                                                                     request.getMetrics(),
+                                                                     request.getDimensions(),
+                                                                     Interval.of(start, end),
+                                                                     request.getGroups()));
     }
 
     @PostMapping("/api/datasource/groupBy")
