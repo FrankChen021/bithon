@@ -37,7 +37,7 @@ public class DirectMemoryCollector {
                                                                                 .findFirst()
                                                                                 .get();
 
-    private static long max = 0;
+    private long max = 0;
 
     //
     // call the VM.maxDirectMemory in static initializer so that if the VM class does not exist, a NoClassDefFoundError will be raised
