@@ -35,7 +35,7 @@ import org.slf4j.MDC;
 public class PatternLayoutCtor extends AbstractInterceptor {
 
     @Override
-    public void onConstruct(AopContext aopContext) throws Exception {
+    public void onConstruct(AopContext aopContext) {
         TraceContextListener.getInstance().addListener(new TraceContextListener.IListener() {
             @Override
             public void onSpanStarted(ITraceSpan span) {
