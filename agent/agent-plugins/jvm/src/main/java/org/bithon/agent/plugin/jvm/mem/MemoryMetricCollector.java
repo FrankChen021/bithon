@@ -16,17 +16,12 @@
 
 package org.bithon.agent.plugin.jvm.mem;
 
-import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.metric.domain.jvm.MemoryMetrics;
 import org.bithon.agent.core.metric.domain.jvm.MemoryRegionMetrics;
-import org.bithon.agent.core.plugin.PluginClassLoaderManager;
 import org.bithon.agent.plugin.jvm.JmxBeans;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
-import java.util.Iterator;
-import java.util.ServiceConfigurationError;
-import java.util.ServiceLoader;
 
 /**
  * @author frank.chen021@outlook.com
@@ -36,38 +31,11 @@ public class MemoryMetricCollector {
 
     private static final MemoryPoolMXBean META_SPACE_BEAN = ManagementFactory.getMemoryPoolMXBeans()
                                                                              .stream()
-                                                                             .filter(bean -> "Metaspace".equalsIgnoreCase(
-                                                                                 bean.getName()))
+                                                                             .filter(bean -> "Metaspace".equalsIgnoreCase(bean.getName()))
                                                                              .findFirst()
                                                                              .get();
 
-    private static IDirectMemoryCollector directMemoryCollector;
-
-    public static void initDirectMemoryCollector() {
-        ServiceLoader<IDirectMemoryCollector> spi = ServiceLoader.load(IDirectMemoryCollector.class,
-                                                                       PluginClassLoaderManager.getDefaultLoader());
-        Iterator<IDirectMemoryCollector> i = spi.iterator();
-        if (!i.hasNext()) {
-            throw new AgentException("Unable to find instance of IDirectMemoryCollector. Check if agent-plugin-jvm-jdkXXXX.jar exists.");
-        }
-        try {
-            directMemoryCollector = i.next();
-        } catch (UnsupportedClassVersionError e) {
-            throw new AgentException(
-                "JRE[%s], which is used to run this application, is mismatched with the JDK that is used to compile Bithon. Make sure to use a matched JRE, or compile Bithon with a right JDK.",
-                JmxBeans.RUNTIME_BEAN.getSpecVersion());
-        } catch (ServiceConfigurationError e) {
-            Throwable cause = e.getCause();
-            while (cause.getCause() != null) {
-                cause = cause.getCause();
-            }
-            if (cause instanceof AgentException) {
-                throw (AgentException) cause;
-            } else {
-                throw new AgentException(cause);
-            }
-        }
-    }
+    private static DirectMemoryCollector directMemoryCollector;
 
     public static MemoryMetrics collectTotal() {
         return new MemoryMetrics(Runtime.getRuntime().totalMemory(),
@@ -88,5 +56,10 @@ public class MemoryMetricCollector {
 
     public static MemoryRegionMetrics collectDirectMemory() {
         return directMemoryCollector.collect();
+    }
+
+    public static void initDirectMemoryCollector() {
+        // this will throw exception which is intended
+        directMemoryCollector = new DirectMemoryCollector();
     }
 }
