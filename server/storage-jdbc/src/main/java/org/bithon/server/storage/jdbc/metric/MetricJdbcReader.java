@@ -596,7 +596,7 @@ public class MetricJdbcReader implements IMetricReader {
 
         public TimeSeriesSqlClauseBuilder groupBy(List<String> groupBy) {
             this.groupBy = groupBy.stream()
-                                  .map(field -> "," + schema.getDimensionSpecByName(field).getName())
+                                  .map(field -> "," + "\"" + schema.getDimensionSpecByName(field).getName() + "\"")
                                   .collect(Collectors.joining());
             return this;
         }
