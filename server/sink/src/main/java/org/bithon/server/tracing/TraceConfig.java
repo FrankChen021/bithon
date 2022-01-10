@@ -35,5 +35,6 @@ import java.util.Map;
 public class TraceConfig {
     private List<TraceIdMappingConfig> mapping;
 
+    private SanitizerConfig globalSanitizer;
     private Map<String, SanitizerConfig> applicationSanitizer;
 }

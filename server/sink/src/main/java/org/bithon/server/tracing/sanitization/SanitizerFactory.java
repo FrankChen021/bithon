@@ -18,16 +18,20 @@ import java.util.Map;
 public class SanitizerFactory {
     private final ObjectMapper objectMapper;
     private final Map<String, ISanitizer> applicationSanitizers;
+    private final ISanitizer globalSanitizer;
 
     public SanitizerFactory(ObjectMapper objectMapper, TraceConfig traceConfig) {
         this.objectMapper = objectMapper;
         this.applicationSanitizers = new HashMap<>();
-        traceConfig.getApplicationSanitizer().forEach((application, config) -> {
-            ISanitizer sanitizer = getSanitizer(config);
-            if (sanitizer != null) {
-                applicationSanitizers.put(application, sanitizer);
-            }
-        });
+        if ( traceConfig.getApplicationSanitizer() != null) {
+            traceConfig.getApplicationSanitizer().forEach((application, config) -> {
+                ISanitizer sanitizer = getSanitizer(config);
+                if (sanitizer != null) {
+                    applicationSanitizers.put(application, sanitizer);
+                }
+            });
+        }
+        this.globalSanitizer = traceConfig.getGlobalSanitizer() == null ? null : getSanitizer(traceConfig.getGlobalSanitizer());
     }
 
     private ISanitizer getSanitizer(SanitizerConfig config) {
@@ -46,7 +50,7 @@ public class SanitizerFactory {
     }
 
     public void sanitize(IteratorableCollection<TraceSpan> spans) {
-        if (applicationSanitizers.isEmpty()) {
+        if (applicationSanitizers.isEmpty() && globalSanitizer == null) {
             return;
         }
         while (spans.hasNext()) {
@@ -55,13 +59,14 @@ public class SanitizerFactory {
     }
 
     private void sanitize(TraceSpan span) {
-        if (span.getAppName() == null) {
-            return;
+        if (span.getAppName() != null) {
+            ISanitizer sanitizer = applicationSanitizers.get(span.getAppName());
+            if (sanitizer != null) {
+                sanitizer.sanitize(span);
+            }
         }
-        ISanitizer sanitizer = applicationSanitizers.get(span.getAppName());
-        if (sanitizer == null) {
-            return;
+        if(globalSanitizer != null) {
+            globalSanitizer.sanitize(span);
         }
-        sanitizer.sanitize(span);
     }
 }
