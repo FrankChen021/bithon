@@ -60,6 +60,7 @@ public class TraceMappingFactory {
             ObjectMapper mapper = context.getBean(ObjectMapper.class);
             for (TraceIdMappingConfig mappingConfig : config.getMapping()) {
                 try {
+                    // flatten the configuration
                     Map<String, Object> map = new HashMap<>();
                     map.put("type", mappingConfig.getType());
                     map.putAll(mappingConfig.getArgs());
