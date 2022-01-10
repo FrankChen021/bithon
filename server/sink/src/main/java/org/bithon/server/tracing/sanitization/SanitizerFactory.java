@@ -39,7 +39,7 @@ public class SanitizerFactory {
     public SanitizerFactory(ObjectMapper objectMapper, TraceConfig traceConfig) {
         this.objectMapper = objectMapper;
         this.applicationSanitizers = new HashMap<>();
-        if ( traceConfig.getApplicationSanitizer() != null) {
+        if (traceConfig.getApplicationSanitizer() != null) {
             traceConfig.getApplicationSanitizer().forEach((application, config) -> {
                 ISanitizer sanitizer = getSanitizer(config);
                 if (sanitizer != null) {
@@ -81,7 +81,7 @@ public class SanitizerFactory {
                 sanitizer.sanitize(span);
             }
         }
-        if(globalSanitizer != null) {
+        if (globalSanitizer != null) {
             globalSanitizer.sanitize(span);
         }
     }

@@ -46,6 +46,7 @@ public class TraceSpan {
 
     @JsonIgnore
     private Map<String, String> urlParameters;
+
     public Map<String, String> getURLParameters() {
         if (urlParameters == null) {
             urlParameters = MiscUtils.parseURLParameters(tags.get("uri"));
@@ -64,7 +65,7 @@ public class TraceSpan {
     public void setTag(String name, String value) {
         try {
             this.tags.put(name, value);
-        } catch(UnsupportedOperationException e) {
+        } catch (UnsupportedOperationException e) {
             this.tags = new HashMap<>(this.tags);
             this.tags.put(name, value);
         }

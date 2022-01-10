@@ -27,12 +27,11 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- *
  * The tracing at the agent side will catch information from the uri and user specified header.
  * But there might be some sensitive information in the information above for some specific applications
- *
+ * <p>
  * So, this class is used to sanitize the sensitive information according to user's configuration.
- *
+ * <p>
  * Currently, only sanitizing on the 'uri' parameter is supported.
  *
  * @author Frank Chen
@@ -47,7 +46,7 @@ public class UrlSanitizer implements ISanitizer {
      */
     @JsonCreator
     public UrlSanitizer(@JsonProperty("sensitiveParameters") Map<String, String> sensitiveParameters) {
-        this.sensitiveParameters= new ArrayList<>(sensitiveParameters.values());
+        this.sensitiveParameters = new ArrayList<>(sensitiveParameters.values());
     }
 
     @Override
