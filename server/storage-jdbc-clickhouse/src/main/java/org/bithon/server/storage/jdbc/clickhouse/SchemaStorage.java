@@ -26,9 +26,11 @@ import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -59,13 +61,18 @@ public class SchemaStorage extends SchemaJdbcStorage {
     public List<DataSourceSchema> getSchemas() {
         String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME, Tables.BITHON_META_SCHEMA.SCHEMA).from(Tables.BITHON_META_SCHEMA).getSQL() + " FINAL";
 
-        return dslContext.fetch(sql).map((mapper) -> {
+        List<Record> records = dslContext.fetch(sql);
+        if (records == null) {
+            return Collections.emptyList();
+        }
+
+        return records.stream().map((mapper) -> {
             try {
                 return objectMapper.readValue(mapper.getValue(1, String.class), DataSourceSchema.class);
             } catch (JsonProcessingException e) {
                 return null;
             }
-        }).stream().filter(Objects::nonNull).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @Override
@@ -74,7 +81,8 @@ public class SchemaStorage extends SchemaJdbcStorage {
                      + " FINAL where "
                      + Tables.BITHON_META_SCHEMA.NAME.eq(name).toString();
 
-        return dslContext.fetchOne(sql).map((mapper) -> {
+        Record record = dslContext.fetchOne(sql);
+        return record == null ? null : record.map((mapper) -> {
             try {
                 return objectMapper.readValue(mapper.getValue(1, String.class), DataSourceSchema.class);
             } catch (JsonProcessingException e) {

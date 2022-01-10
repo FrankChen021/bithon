@@ -16,8 +16,11 @@
 
 package org.bithon.server.tracing.sink;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.bithon.server.common.utils.MiscUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -41,12 +44,31 @@ public class TraceSpan {
     public String clazz;
     public String method;
 
+    @JsonIgnore
+    private Map<String, String> urlParameters;
+
+    public Map<String, String> getURLParameters() {
+        if (urlParameters == null) {
+            urlParameters = MiscUtils.parseURLParameters(tags.get("uri"));
+        }
+        return urlParameters;
+    }
+
     public boolean containsTag(String name) {
         return tags.containsKey(name);
     }
 
     public String getTag(String name) {
         return tags.get(name);
+    }
+
+    public void setTag(String name, String value) {
+        try {
+            this.tags.put(name, value);
+        } catch (UnsupportedOperationException e) {
+            this.tags = new HashMap<>(this.tags);
+            this.tags.put(name, value);
+        }
     }
 
     @Override

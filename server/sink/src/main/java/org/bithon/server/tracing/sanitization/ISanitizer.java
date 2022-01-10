@@ -14,27 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.tracing;
+package org.bithon.server.tracing.sanitization;
 
-import lombok.Data;
-import org.bithon.server.tracing.mapping.TraceIdMappingConfig;
-import org.bithon.server.tracing.sanitization.SanitizerConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.tracing.sink.TraceSpan;
 
 /**
  * @author Frank Chen
- * @date 10/12/21 3:33 PM
+ * @date 10/1/22 2:28 PM
  */
-@Data
-@Configuration
-@ConfigurationProperties(prefix = "bithon.tracing")
-public class TraceConfig {
-    private List<TraceIdMappingConfig> mapping;
-
-    private SanitizerConfig globalSanitizer;
-    private Map<String, SanitizerConfig> applicationSanitizer;
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(value = {
+    @JsonSubTypes.Type(name = "uri", value = UrlSanitizer.class),
+})
+public interface ISanitizer {
+    void sanitize(TraceSpan span);
 }

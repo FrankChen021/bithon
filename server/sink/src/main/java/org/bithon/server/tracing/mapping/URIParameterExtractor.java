@@ -22,12 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.tracing.sink.TraceSpan;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -56,55 +52,13 @@ public class URIParameterExtractor implements ITraceIdMappingExtractor {
 
     @Override
     public void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback) {
-        String uriText = span.getTags().get("uri");
-        if (!StringUtils.hasText(uriText)) {
-            return;
-        }
+        Map<String, String> urlParameters = span.getURLParameters();
 
-        try {
-            URI uri = new URI(uriText);
-
-            Map<String, String> variables = parseQuery(uri.getQuery());
-
-            for (String parameter : this.parameters) {
-                String userTxId = variables.get(parameter);
-                if (StringUtils.hasText(userTxId)) {
-                    callback.accept(span, userTxId);
-                }
-            }
-
-        } catch (URISyntaxException e) {
-            log.warn("Invalid URI[{}] to extract trace mapping: {}", uriText, e.getMessage());
-        }
-    }
-
-    private Map<String, String> parseQuery(String query) {
-        if (!StringUtils.hasText(query)) {
-            return Collections.emptyMap();
-        }
-
-        Map<String, String> variables = new HashMap<>();
-        int fromIndex = 0;
-        int toIndex = 0;
-        while (toIndex != -1) {
-            String name;
-            String value;
-            toIndex = query.indexOf('=', fromIndex);
-            if (toIndex - fromIndex > 1) {
-                name = query.substring(fromIndex, toIndex);
-                fromIndex = toIndex + 1;
-                toIndex = query.indexOf('&', fromIndex);
-                if (toIndex == -1) {
-                    value = query.substring(fromIndex);
-                } else {
-                    value = query.substring(fromIndex, toIndex);
-                }
-                variables.put(name, value);
-                fromIndex = toIndex + 1;
-            } else {
-                fromIndex = query.indexOf('&', toIndex) + 1;
+        for (String parameter : this.parameters) {
+            String userTxId = urlParameters.get(parameter);
+            if (StringUtils.hasText(userTxId)) {
+                callback.accept(span, userTxId);
             }
         }
-        return variables;
     }
 }

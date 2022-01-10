@@ -3,6 +3,11 @@ server:
 
 bithon:
   tracing:
+    globalSanitizer:
+      type: uri
+      args:
+        sensitiveParameters:
+          - password
     mapping:
       - type: uri
         args:

@@ -14,27 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.tracing;
+package org.bithon.server.tracing.sanitization;
 
 import lombok.Data;
-import org.bithon.server.tracing.mapping.TraceIdMappingConfig;
-import org.bithon.server.tracing.sanitization.SanitizerConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
 import java.util.Map;
 
 /**
  * @author Frank Chen
- * @date 10/12/21 3:33 PM
+ * @date 10/1/22 2:31 PM
  */
 @Data
-@Configuration
-@ConfigurationProperties(prefix = "bithon.tracing")
-public class TraceConfig {
-    private List<TraceIdMappingConfig> mapping;
-
-    private SanitizerConfig globalSanitizer;
-    private Map<String, SanitizerConfig> applicationSanitizer;
+public class SanitizerConfig {
+    private String type;
+    private Map<String, Object> args;
 }

@@ -30,7 +30,7 @@ public class IteratorableCollection<E> implements Iterator<E> {
     private final Iterator<E> delegate;
     private boolean end;
 
-    private IteratorableCollection(Iterator<E> delegate) {
+    protected IteratorableCollection(Iterator<E> delegate) {
         this.delegate = delegate;
     }
 
