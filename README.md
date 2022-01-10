@@ -24,10 +24,9 @@ git submodule update --init
 
 ## 2. choose a right JDK
 
-It's highly recommended that JDK that is used to compile bithon is the same as the JRE that runs your applications.
-See [JDKs Compatibility](#jdks-compatibility) for more information.
+JDK 1.8 is recommended because the agent is compatible with higher JRE that is used to run your Java applications.
 
-So you have to choose a right JDK to compile bithon. If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK.
+If you have multiple JDKs on your machine, use `export JAVA_HOME={YOUR_JDK_HOME}` command to set correct JDK.
 
 For example
 
@@ -84,11 +83,6 @@ Attach agent to your java agent by adding following VM arguments.
 -javaagent:<YOUR_PROJECT_DIRECTORY>/agent/agent-distribution/target/agent-distribution/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>
 ```
 
-For applications running on JRE 9 or above, append following arguments to above command line
-```bash
---add-exports java.base/jdk.internal.misc=ALL-UNNAMED
-```
-
 |Variable|Description|
 | --- | --- |
 | YOUR_PROJECT_DIRECTORY | the directory where this project saves |
@@ -115,15 +109,6 @@ Following matrix lists the JDKs that have been tested on macOS. And in theory, t
 | JDK 15.0.2 | Yes |
 | JDK 16.02 | Yes |
 | JDK 17 | Yes |
-
-Due to the backward compatibility of JRE, Bithon that is compiled with a specific version of JDK may work for a range of JREs that applications are running on.
-
-For example:
-
-- Bithon + JDK 1.8 works only for JRE 1.8
-- Bithon + JDK  9 works for JRE between 9 and 17
-- Bithon + JDK 10 works for JRE between 10 and 17
-- Bithon + JDK 17 works for JRE 17
 
 # Contribution
 
