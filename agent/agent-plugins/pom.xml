@@ -20,8 +20,6 @@
     <module>guice</module>
     <module>jdbc-druid</module>
     <module>jvm</module>
-    <module>jvm-jdk8</module>
-    <module>jvm-jdk9</module>
     <module>mysql-5.x-6.x</module>
     <module>mysql-8.x</module>
     <module>quartz2</module>
@@ -216,36 +214,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <!-- Include JDK-related modules -->
-  <profiles>
-    <profile>
-      <id>jdk8</id>
-      <activation>
-        <jdk>1.8</jdk>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>org.bithon.agent</groupId>
-          <artifactId>agent-plugin-jvm-jdk8</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-      </dependencies>
-    </profile>
-    <profile>
-      <id>jdk9+</id>
-      <activation>
-        <jdk>[1.9,)</jdk>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>org.bithon.agent</groupId>
-          <artifactId>agent-plugin-jvm-jdk9</artifactId>
-          <version>${project.version}</version>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
 
   <build>
     <finalName>agent-plugins</finalName>
