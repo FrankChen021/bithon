@@ -26,9 +26,9 @@ class Dashboard {
         this._formatters['binary_byte'] = binaryByteFormat;
         this._formatters['compact_number'] = compactFormat;
         this._formatters['percentage'] = (v) => v + '%';
-        this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 0);
-        this._formatters['millisecond'] = (v) => milliFormat(v, 0);
-        this._formatters['microsecond'] = (v) => microFormat(v, 0);
+        this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 2);
+        this._formatters['millisecond'] = (v) => milliFormat(v, 2);
+        this._formatters['microsecond'] = (v) => microFormat(v, 2);
         this._formatters['byte_rate'] = (v) => binaryByteFormat(v) + "/s";
     }
 
@@ -72,6 +72,41 @@ class Dashboard {
                 dataSource2Charts[dataSourceName] = [];
             }
             dataSource2Charts[dataSourceName].push(chartId);
+        });
+
+        //
+        // Create AutoRefresher
+        // the filterBarForm is defined in the app-layout.html
+        //
+        const parent = $('#filterBarForm');
+        new AutoRefresher({
+            timerLength: 10
+        }).childOf(parent).registerRefreshListener(() => {
+            this._selectedInterval = this._timeSelector.getInterval();
+            this.refreshDashboard();
+        });
+
+        //
+        // Create TimeInterval
+        //
+        this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
+            g_MetricSelectedInterval = selectedModel.id;
+            this._selectedInterval = this._timeSelector.getInterval();
+            this.refreshDashboard();
+        });
+        this._selectedInterval = this._timeSelector.getInterval();
+
+        $.each(dashboard.charts, (index, chartDescriptor) => {
+
+            this.layout(chartDescriptor.id, chartDescriptor.width * 3);
+
+            // create chart
+            const chartComponent = this.createChartComponent(chartDescriptor.id, chartDescriptor)
+                .setOpenHandler(() => {
+                    this.openChart(chartDescriptor.id);
+                });
+
+            this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
         });
 
         const dataSourceFilter = this._dashboard.charts[0].dataSource;
@@ -123,67 +158,87 @@ class Dashboard {
                             this._chartComponents[chartId],
                             this.getSelectedTimeInterval());
                     });
+
+                    // init the detail
+                    $.each(dashboard.charts, (index, chartDescriptor) => {
+                        this.#initChartDetail(chartDescriptor);
+                    });
                 },
                 (error) => {
                 }
             );
         }
+    }
 
-        //
-        // Create AutoRefresher
-        // the filterBarForm is defined in the app-layout.html
-        //
-        const parent = $('#filterBarForm');
-        new AutoRefresher({
-            timerLength: 10
-        }).childOf(parent).registerRefreshListener(() => {
-            this._selectedInterval = this._timeSelector.getInterval();
-            this.refreshDashboard();
-        });
+    #initChartDetail(chartDescriptor) {
+        // create detail view for this chart
+        if (chartDescriptor.details == null) {
+            return;
+        }
 
-        //
-        // Create TimeInterval
-        //
-        this._timeSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
-            g_MetricSelectedInterval = selectedModel.id;
-            this._selectedInterval = this._timeSelector.getInterval();
-            this.refreshDashboard();
-        });
-        this._selectedInterval = this._timeSelector.getInterval();
+        const chartComponent = this._chartComponents[chartDescriptor.id];
 
-        $.each(dashboard.charts, (index, chartDescriptor) => {
+        const columns = [
+            {
+                field: 'id',
+                title: 'No',
+                align: 'center',
+                formatter: (cell, row, index, field) => {
+                    return (index + 1);
+                }
+            }
+        ];
 
-            this.layout(chartDescriptor.id, chartDescriptor.width * 3);
-
-            // create chart
-            const chartComponent = this.createChartComponent(chartDescriptor.id, chartDescriptor)
-                .setOpenHandler(() => {
-                    this.openChart(chartDescriptor.id);
-                });
-
-            // create detail view for this chart
-            if (chartDescriptor.details != null) {
-                // get columns
-                const columns = [];
-                $.each(chartDescriptor.details.groupBy, (index, dimension) => {
-                    columns.push({field: dimension, title: dimension, align: 'center'});
-                });
-                $.each(chartDescriptor.details.metrics, (index, metric) => {
-                    columns.push({field: metric, title: metric, align: 'center'});
-                });
-
-                const detailView = this.#createDetailView(chartComponent.getUIContainer(), columns);
-                chartComponent.setSelectionHandler(
-                    (option, start, end) => {
-                        this.#refreshDetailView(chartDescriptor, detailView, option, start, end);
-                    },
-                    () => {
-                        detailView.clear();
-                    });
+        $.each(chartDescriptor.details.groupBy, (index, dimension) => {
+            // set up lookup for this dimension
+            const column = {field: dimension, title: dimension, align: 'center'};
+            if (chartDescriptor.details.lookup !== undefined) {
+                const dimensionLookup = chartDescriptor.details.lookup[dimension];
+                if (dimensionLookup != null) {
+                    column.formatter = (val) => {
+                        const v = dimensionLookup[val];
+                        if (v != null) {
+                            return v + '(' + val + ')';
+                        } else {
+                            return val;
+                        }
+                    };
+                }
             }
 
-            this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
+            columns.push(column);
         });
+        $.each(chartDescriptor.details.metrics, (index, metric) => {
+            // set up transformer and formatter for this metric
+            const column = {field: metric, title: metric, align: 'center'};
+
+            // find formatter for this metric
+            let chartFormatterFn = null;
+            const metricDef = chartDescriptor.metricMap[metric];
+            if (metricDef != null) {
+                const yAxis = metricDef.yAxis == null ? 0 : metricDef.yAxis;
+                chartFormatterFn = this._formatters[chartDescriptor.yAxis[yAxis].format];
+            }
+
+            let transformerFn = metricDef == null ? null : metricDef.transformer;
+            if (transformerFn != null || chartFormatterFn != null) {
+                column.formatter = (val) => {
+                    const t = transformerFn == null ? v : transformerFn(val);
+                    const v = chartFormatterFn == null ? t : chartFormatterFn(t);
+                    return v;
+                };
+            }
+
+            columns.push(column);
+        });
+        const detailView = this.#createDetailView(chartComponent.getUIContainer(), columns);
+        chartComponent.setSelectionHandler(
+            (option, start, end) => {
+                this.#refreshDetailView(chartDescriptor, detailView, option, start, end);
+            },
+            () => {
+                detailView.clear();
+            });
     }
 
     #createDetailView(parent, columns) {
@@ -324,7 +379,7 @@ class Dashboard {
                 params.forEach(p => {
                     const yAxisIndex = currentChartOption.series[p.seriesIndex].yAxisIndex;
                     const formatterFn = formatterFns[yAxisIndex];
-                    const s = formatterFn != null ? formatterFn(p.data.toFixed(2)) : p.data.toFixed(2);
+                    const s = formatterFn != null ? formatterFn(p.data) : p.data.toFixed(2);
                     result += `<br />${p.marker}${p.seriesName}: ${s}`;
                 });
                 return result;
@@ -444,7 +499,7 @@ class Dashboard {
             mode = 'refresh';
         }
 
-        if (chartDescriptor.groupBy != null) {
+        if (chartDescriptor.groupBy !== undefined) {
             // in future, the version 2 method should be used for all cases
             this.refreshChart2(chartDescriptor, chartComponent, interval, metricNamePrefix, mode);
             return;
@@ -572,7 +627,7 @@ class Dashboard {
                 });
 
                 // a groupBy query might return empty data
-                if ( series.length === 0 ) {
+                if (series.length === 0) {
                     series.push({
                         id: 'empty',
                         name: 'empty',
