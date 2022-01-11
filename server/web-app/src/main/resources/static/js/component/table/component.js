@@ -25,12 +25,12 @@ class TableComponent {
                 showRefresh: false,
 
                 sidePagination: "server",
-                pagination: true,
-                paginationPreText: '<',
-                paginationNextText: '>',
-                pageNumber: 1,
-                pageSize: 10,
-                pageList: [10, 25, 50, 100],
+                pagination: false,
+                // paginationPreText: '<',
+                // paginationNextText: '>',
+                // pageNumber: 1,
+                // pageSize: 10,
+                // pageList: [10, 25, 50, 100],
 
                 queryParamsType: '',
                 queryParams: (params) => this.#getQueryParams(),
