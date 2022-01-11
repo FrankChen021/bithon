@@ -26,6 +26,7 @@ class TableComponent {
 
                 sidePagination: "server",
                 pagination: false,
+                serverSort: false,
                 // paginationPreText: '<',
                 // paginationNextText: '>',
                 // pageNumber: 1,
