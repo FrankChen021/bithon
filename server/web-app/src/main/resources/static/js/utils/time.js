@@ -11,7 +11,7 @@ Date.prototype.format = function (fmt) { //author: meizz
     if (/(y+)/.test(fmt)) {
         fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
     }
-    for (var k in o)
+    for (const k in o)
         if (new RegExp("(" + k + ")").test(fmt)) {
             fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
         }
@@ -38,10 +38,23 @@ function timeFormat(time, fractionDigits, units) {
         index += 1;
         val = time / (1000 ** index);
     }
-    //if (index === 0) {
-        // no need to toFixed(), since it always adds fraction part to the string even if the value is integer
-    //    return val.valueOf() + units[index];
-    //} else {
-        return val.toFixed(fractionDigits === undefined ? 2 : fractionDigits) + units[index];
-    //}
+
+    // let n = val.toFixed(fractionDigits === undefined ? 2 : fractionDigits);
+    //
+    // // remove trailing zeros to make the string compacted
+    // const dot = n.indexOf('.');
+    // if (dot !== -1) {
+    //     let i = n.length - 1;
+    //     for (; i >= dot; i--) {
+    //         if (n.charAt(i) !== '0') {
+    //             break;
+    //         }
+    //     }
+    //     const endExclusiveIndex = (n.charAt(i) === '.') ? i : i + 1;
+    //     n = n.substring(0, endExclusiveIndex) + units[index];
+    //     //console.log(`${time} = ${n}`);
+    //     return n;
+    // }
+
+    return val.formatWithNoTrailingZeros(fractionDigits) + units[index];
 }

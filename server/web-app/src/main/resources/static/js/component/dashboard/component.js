@@ -23,13 +23,13 @@ class Dashboard {
 
         // Y Axis Formatter
         this._formatters = {};
-        this._formatters['binary_byte'] = binaryByteFormat;
-        this._formatters['compact_number'] = compactFormat;
+        this._formatters['binary_byte'] = (v) => v.formatBinaryByte();
+        this._formatters['compact_number'] = (v) => v.formatCompactNumber();
         this._formatters['percentage'] = (v) => v + '%';
         this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 2);
         this._formatters['millisecond'] = (v) => milliFormat(v, 2);
         this._formatters['microsecond'] = (v) => microFormat(v, 2);
-        this._formatters['byte_rate'] = (v) => binaryByteFormat(v) + "/s";
+        this._formatters['byte_rate'] = (v) => v.formatBinaryByte() + "/s";
     }
 
     // PUBLIC
@@ -191,7 +191,7 @@ class Dashboard {
 
         $.each(chartDescriptor.details.groupBy, (index, dimension) => {
             // set up lookup for this dimension
-            const column = {field: dimension, title: dimension, align: 'center'};
+            const column = {field: dimension, title: dimension, align: 'center', sortable: true};
             if (chartDescriptor.details.lookup !== undefined) {
                 const dimensionLookup = chartDescriptor.details.lookup[dimension];
                 if (dimensionLookup != null) {
@@ -210,21 +210,26 @@ class Dashboard {
         });
         $.each(chartDescriptor.details.metrics, (index, metric) => {
             // set up transformer and formatter for this metric
-            const column = {field: metric, title: metric, align: 'center'};
+            const column = {field: metric, title: metric, align: 'center', sortable: true};
 
-            // find formatter for this metric
-            let chartFormatterFn = null;
+            // use the formatter of yAxis to format this metric
+            let formatterFn = null;
             const metricDef = chartDescriptor.metricMap[metric];
             if (metricDef != null) {
                 const yAxis = metricDef.yAxis == null ? 0 : metricDef.yAxis;
-                chartFormatterFn = this._formatters[chartDescriptor.yAxis[yAxis].format];
+                formatterFn = this._formatters[chartDescriptor.yAxis[yAxis].format];
+            } else {
+                // if this metric is not found, format in default ways
+                formatterFn = (v) => {
+                    return v.formatCompactNumber();
+                };
             }
 
             let transformerFn = metricDef == null ? null : metricDef.transformer;
-            if (transformerFn != null || chartFormatterFn != null) {
+            if (transformerFn != null || formatterFn != null) {
                 column.formatter = (val) => {
-                    const t = transformerFn == null ? v : transformerFn(val);
-                    const v = chartFormatterFn == null ? t : chartFormatterFn(t);
+                    const t = transformerFn == null ? val : transformerFn(val);
+                    const v = formatterFn == null ? t : formatterFn(t);
                     return v;
                 };
             }
