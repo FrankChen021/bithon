@@ -9,7 +9,16 @@
         {
           "name": "qps"
         }
-      ]
+      ],
+      "details": {
+        "groupBy": [
+          "path",
+          "statusCode"
+        ],
+        "metrics": [
+          "qps"
+        ]
+      }
     },
     {
       "dataSource": "http-outgoing-metrics",
@@ -22,15 +31,26 @@
       ],
       "metrics": [
         {
-          "name": "avgResponseTime"
+          "name": "minResponseTime"
         },
         {
-          "name": "minResponseTime"
+          "name": "avgResponseTime"
         },
         {
           "name": "maxResponseTime"
         }
-      ]
+      ],
+      "details": {
+        "groupBy": [
+          "path",
+          "statusCode"
+        ],
+        "metrics": [
+          "minResponseTime",
+          "avgResponseTime",
+          "maxResponseTime"
+        ]
+      }
     },
     {
       "dataSource": "http-outgoing-metrics",
@@ -93,7 +113,17 @@
           "name": "responseBytes",
           "yAxis": 1
         }
-      ]
+      ],
+      "details": {
+        "groupBy": [
+          "path",
+          "statusCode"
+        ],
+        "metrics": [
+          "requestByteRate",
+          "responseByteRate"
+        ]
+      }
     }
   ]
 }
