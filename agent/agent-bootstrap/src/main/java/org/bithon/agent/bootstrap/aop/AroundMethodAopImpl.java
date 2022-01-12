@@ -58,18 +58,16 @@ public final class AroundMethodAopImpl {
         //
         // call intercepted method
         //
-        long startTime = System.nanoTime();
+        context.onBeforeTargetMethodInvocation();
         Object returning = null;
         Exception exception = null;
-        {
-            try {
-                returning = superMethod.invoke(args);
-            } catch (Exception e) {
-                exception = e;
-            }
+        try {
+            returning = superMethod.invoke(args);
+        } catch (Exception e) {
+            exception = e;
+        } finally {
+            context.onAfterTargetMethodInvocation();
         }
-        context.setCostTime(System.nanoTime() - startTime);
-        context.setEndTimestamp(System.currentTimeMillis());
 
         //
         // after execution of intercepted method

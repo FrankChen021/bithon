@@ -30,11 +30,13 @@ public class AopContext {
     private final Object target;
     private final Executable method;
     private final Object[] args;
-    private final long startTimestamp;
     private Object userContext;
     private Object returning;
     private Exception exception;
-    private Long costTime;
+
+    private long startNanoTime;
+    private long endNanoTime;
+    private long startTimestamp;
     private long endTimestamp;
 
     public AopContext(Class<?> targetClass,
@@ -137,21 +139,23 @@ public class AopContext {
     }
 
     /**
-     * How long the execution of intercepted method takes in nano-second
+     * How long the execution of intercepted method takes in nanoseconds
      * Note: Only available in {@link AbstractInterceptor#onMethodLeave}
      */
-    public Long getCostTime() {
-        return costTime;
+    public long getCostTime() {
+        return endNanoTime - startNanoTime;
     }
 
-    public void setCostTime(long costTime) {
-        this.costTime = costTime;
-    }
-
+    /**
+     * the timestamp that after {@link AbstractInterceptor#onMethodEnter(AopContext)} and before the intercepted method
+     */
     public long getStartTimestamp() {
         return startTimestamp;
     }
 
+    /**
+     * the timestamp that after the intercepted method and before the {@link AbstractInterceptor#onMethodLeave(AopContext)}
+     */
     public long getEndTimestamp() {
         return endTimestamp;
     }
@@ -163,5 +167,29 @@ public class AopContext {
     public <T> T castInjectedOnTargetAs() {
         //noinspection unchecked
         return (T) ((IBithonObject) this.target).getInjectedObject();
+    }
+
+    public long getStartNanoTime() {
+        return startNanoTime;
+    }
+
+    public long getEndNanoTime() {
+        return endNanoTime;
+    }
+
+    /**
+     * An internal interface. SHOULD NOT be used by users' code
+     */
+    public void onBeforeTargetMethodInvocation() {
+        startNanoTime = System.nanoTime();
+        startTimestamp = System.currentTimeMillis();
+    }
+
+    /**
+     * An internal interface. SHOULD NOT be used by users' code
+     */
+    public void onAfterTargetMethodInvocation() {
+        endNanoTime = System.nanoTime();
+        endTimestamp = System.currentTimeMillis();
     }
 }
