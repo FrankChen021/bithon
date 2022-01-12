@@ -84,7 +84,7 @@ public class Channels$Write extends AbstractInterceptor {
 
         final HttpRequest httpRequest = (HttpRequest) aopContext.getArgs()[1];
         final String method = httpRequest.getMethod().getName();
-        final long startAt = aopContext.getStartTimestamp();
+        final long startAt = aopContext.getStartNanoTime();
         final ITraceSpan span = (ITraceSpan) aopContext.getUserContext();
         final String uri = getUri(httpRequest);
 
