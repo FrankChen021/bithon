@@ -215,7 +215,7 @@ class Dashboard {
             // use the formatter of yAxis to format this metric
             let formatterFn = null;
             const metricDef = chartDescriptor.metricMap[metric];
-            if (metricDef != null) {
+            if (metricDef != null && chartDescriptor.yAxis !== undefined) {
                 const yAxis = metricDef.yAxis == null ? 0 : metricDef.yAxis;
                 formatterFn = this._formatters[chartDescriptor.yAxis[yAxis].format];
             } else {
