@@ -158,9 +158,11 @@ class TracePage {
             processResult: (data) => {
                 this._data = data;
 
+                const labelFormat = data.bucket < 60 ? 'HH:mm:ss' : 'HH:mm';
                 const timeLabels = data.data.map(val => {
-                    return moment(val._timestamp).local().format('HH:mm') + "\n"
-                        + moment(val._timestamp + data.bucket * 1000).local().format('HH:mm')
+                    // it's unix timestamp, so * 1000 is needed to convert it to milliseconds
+                    return moment(val._timestamp * 1000 ).local().format(labelFormat) + "\n"
+                        + moment(val._timestamp * 1000 + data.bucket * 1000).local().format(labelFormat)
                 });
 
                 const series = [{
@@ -246,12 +248,12 @@ class TracePage {
     }
 
     #onClickChart(e) {
-        const s = moment(this._data.data[e.dataIndex]._timestamp).utc();
+        const s = moment(this._data.data[e.dataIndex]._timestamp * 1000).utc();
         const interval = {
             start: s.toISOString(),
             end: s.add(this._data.bucket, 'second').toISOString()
         }
-        if (this.mInterval == null || (this.mInterval.start !== interval.start && this.mInterval.end !== interval.end)) {
+        if (this.mInterval == null || (this.mInterval.start !== interval.start || this.mInterval.end !== interval.end)) {
             this.mInterval = interval;
             this.#refreshPage();
         }
