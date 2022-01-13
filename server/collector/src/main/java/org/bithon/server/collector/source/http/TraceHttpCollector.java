@@ -132,6 +132,13 @@ public class TraceHttpCollector {
                 }
                 tags.put(key, val);
             }
+
+            // standardize the name for SQL
+            String sql = tags.remove("statement");
+            if (sql != null) {
+                tags.put("sql", sql);
+            }
+
             span.getTags().clear();
             span.setTags(tags);
 

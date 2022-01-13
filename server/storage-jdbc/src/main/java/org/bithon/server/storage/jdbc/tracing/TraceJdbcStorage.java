@@ -40,6 +40,7 @@ import org.jooq.DSLContext;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
 import org.jooq.impl.DSL;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -397,7 +398,11 @@ public class TraceJdbcStorage implements ITraceStorage {
             for (TraceIdMapping mapping : mappings) {
                 step.bind(mapping.getTraceId(), mapping.getUserId(), new Timestamp(mapping.getTimestamp()));
             }
-            step.execute();
+            try {
+                step.execute();
+            } catch (DuplicateKeyException ignored) {
+                // for database like H2
+            }
         }
     }
 }
