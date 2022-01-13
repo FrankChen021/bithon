@@ -20,6 +20,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceContext;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 
 import java.util.Map;
@@ -41,7 +42,7 @@ public class SqlLifecycle$Initialize extends AbstractInterceptor {
             if (query != null && !ctx.currentSpan().tags().containsKey("query")) {
                 ctx.currentSpan()
                    .tag("query_id", context == null ? null : (String) context.getOrDefault("queryId", null))
-                   .tag("query", query.toString());
+                   .tag(Tags.SQL, query.toString());
             }
         }
         return InterceptionDecision.SKIP_LEAVE;

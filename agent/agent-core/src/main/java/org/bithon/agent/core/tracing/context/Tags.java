@@ -36,4 +36,5 @@ public class Tags {
      */
     public static final String URI = "uri";
     public static final String STATUS = "status";
+    public static final String SQL = "sql";
 }
