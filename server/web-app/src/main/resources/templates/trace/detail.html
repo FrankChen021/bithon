@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/lib/jquery-treegrid-0.2/css/jquery-treegrid.min.css}"/>
     <script th:src="@{/lib/jquery-treegrid-0.2/js/jquery-treegrid.min.js}"></script>
     <script th:src="@{/lib/bootstrap-table/extensions/treegrid/bootstrap-table-treegrid.min.js}"></script>
+    <script th:src="@{/lib/sql-formatter-4.0.2/sql-formatter.min.js}"></script>
 
     <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
     <script th:src="@{/js/chart-component.js}"></script>
@@ -121,14 +122,49 @@
             }, {
                 field: 'tags',
                 title: 'Tags',
-                formatter: function (value, row) {
-                    let text = JSON.stringify(value, null, 2);
-                    if (text === '{}')
-                        return '';
-                    else
-                        return '<pre>' + text + '</pre>';
+                formatter: function (value, row, index) {
+                    let text = '<pre style="margin-bottom: 0">';
+                    for (const propName in value) {
+                        const propVal = value[propName];
+                        const returnPos = propVal.indexOf('\n');
+                        if (propName !== 'uri' && propName !== 'query_id' && (propVal.length > 30 || returnPos !== -1)) {
+                            const truncateIndex = returnPos !== -1 ? Math.min(returnPos, 30) : 30;
+                            text += `<b>${propName}</b>: ${propVal.substring(0, truncateIndex)}<a href="javascript:showTags(${index}, '${propName}')" class="badge badge-info">...</a><br/>`;
+                        } else {
+                            text += `<b>${propName}</b>: ${propVal}<br/>`;
+                        }
+                    }
+                    text += '</pre>';
+
+                    return text;
                 }
-            }]
+            }],
+
+            // detailView: true,
+            // detailViewIcon: true,
+            // detailViewByClick: true,
+            // detailViewAlign: 'right',
+            // detailFormatter: (index, row) => {
+            //     if (row.detailViewContent !== undefined) {
+            //         return row.detailViewContent;
+            //     }
+            //
+            //     let text = '<pre>';
+            //     for (const propName in row.tags) {
+            //         const propVal = row.tags[propName];
+            //         text += `<b>${propName}</b>: ${propVal}<br/>`;
+            //     }
+            //     text += '</pre>';
+            //     row.detailViewContent = text;
+            //     return row.detailViewContent;
+            //     // if (row.formattedArgs === undefined) {
+            //     //     row.formattedArgs = "<pre>" + JSON.stringify(JSON.parse(row.args), null, 2) + "</pre>";
+            //     // }
+            //     // return row.formattedArgs;
+            // },
+            // detailFilter(index, row) {
+            //     return JSON.stringify(row.tags) !== '{}';
+            // }
         });
 
         function toTraceMapOption(map) {
@@ -205,6 +241,42 @@
             mapComponent.setChartOption(toTraceMapOption(traceData.map));
             chartLoaded = true;
         })
+
+        function showTags(index, propName) {
+            const span = table.bootstrapTable('getData')[index];
+
+            let text = span.tags[propName];
+            if (propName === 'sql'
+                ||
+                // temporary compatible with old span Druid span data
+                (span.method === 'doPost' && propName === 'query' && span.clazz.endsWith("SqlResource"))
+                ||
+                // temporary compatible with old clickhouse span data
+                (span.method === 'query' && propName === 'statement')
+            ) {
+
+                text = window.sqlFormatter.format(text);
+            }
+            bootbox.dialog({
+                centerVertical: true,
+                size: 'xl',
+                onEscape: true,
+                backdrop: true,
+                message: `<pre id="tagValueView">${text}</pre>`,
+                // buttons: {
+                //     copy: {
+                //         label: "Copy",
+                //         className: 'btn-info',
+                //         callback: function () {
+                //             const valueView = document.getElementById('tagValueView');
+                //             valueView.select();
+                //             document.execCommand('copy');
+                //             return false;
+                //         }
+                //     }
+                // }
+            });
+        }
     </script>
 </div>
 </body>
