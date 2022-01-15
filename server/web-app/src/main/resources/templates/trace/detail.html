@@ -6,10 +6,8 @@
 <head>
     <title>Bithon</title>
 
-    <!-- tree grid -->
+    <!-- tree grid style -->
     <link rel="stylesheet" type="text/css" th:href="@{/lib/jquery-treegrid-0.2/css/jquery-treegrid.min.css}"/>
-    <script th:src="@{/lib/jquery-treegrid-0.2/js/jquery-treegrid.min.js}"></script>
-    <script th:src="@{/lib/bootstrap-table/extensions/treegrid/bootstrap-table-treegrid.min.js}"></script>
     <script th:src="@{/lib/sql-formatter-4.0.2/sql-formatter.min.js}"></script>
 
     <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
@@ -48,7 +46,12 @@
         const g_UIComponentSearchBar = new SearchBar(false);
 
         const vTreeTable = new TreeTable('#pills-trace', {
+            treeColumn: 3,
             columns: [{
+                field: '__levelId',
+                title: 'No',
+                formatter: (value, row, index) => (index + 1)
+            }, {
                 field: 'appName',
                 title: 'Application',
             }, {
@@ -75,9 +78,10 @@
             }, {
                 field: 'startTime',
                 title: 'Start Time',
+                width: 140,
                 formatter: function (value, row) {
                     // start time is in micro-second
-                    return new Date(value / 1000).format('yyyy-MM-dd hh:mm:ss');
+                    return new Date(value / 1000).format('MM-dd hh:mm:ss');
                 }
             }, {
                 field: 'tags',
