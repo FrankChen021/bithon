@@ -19,9 +19,9 @@ class TreeTable {
             '    </div>\n' +
             '</div>';
 
-        this.vTable = $(parent).append(tableTemplate).find('table');
-        this.vTableElement = this.vTable[0];
-        this.vDocElement = this.vTableElement.ownerDocument;
+        const vTable = $(parent).append(tableTemplate).find('table');
+        const vTableElement = vTable[0];
+        this.vDocElement = vTableElement.ownerDocument;
 
         const vHead = this.vDocElement.createElement('thead');
         const vHeadRow = this.vDocElement.createElement('tr');
@@ -32,14 +32,23 @@ class TreeTable {
 
             // create UI cell
             const cell = this.vDocElement.createElement('th');
-            cell.innerHTML = `<div class="th-inner">${column.title}</div>`;
+            if ( column.width === undefined ) {
+                cell.innerHTML = `<div class="th-inner"}>${column.title}</div>`;
+            } else {
+                cell.innerHTML = `<div class="th-inner" style="width: ${column.width}px">${column.title}</div>`;
+            }
             vHeadRow.appendChild(cell);
         });
         vHead.appendChild(vHeadRow);
-        this.vTableElement.appendChild(vHead);
+        vTableElement.appendChild(vHead);
+
+        this.vTableBody = this.vDocElement.createElement('tbody')
+        vTableElement.appendChild(this.vTableBody);
 
         // Model, cache the data for further API
         this.mRowDatas = [];
+        this.mTreeColumn = option.treeColumn;
+        this.mMaxDepth = 0;
     }
 
     load(option) {
@@ -57,7 +66,7 @@ class TreeTable {
             dataType: "json",
             contentType: "application/json",
             success: (data) => {
-                this.#renderTable(option.responseHandler(data), 0, 0);
+                this.#renderTable(option.responseHandler(data));
             },
             error: (data) => {
             }
@@ -70,33 +79,133 @@ class TreeTable {
         return cellValue;
     }
 
-    #renderTable(roots, depth, padding) {
+    #renderTable(roots, depth) {
         let rowIndex = -1;
         for (let i = 0; i < roots.length; i++) {
-            rowIndex = this.#renderRow(roots[i], ++rowIndex, depth, padding);
+            rowIndex = this.#renderRow(roots[i], ++rowIndex, 0, (i + 1));
         }
     }
 
-    #renderRow(rowData, rowIndex, depth, padding) {
+    #renderRow(rowData, rowIndex, depth, levelId) {
+        if (depth > this.mMaxDepth) {
+            this.mMaxDepth = depth;
+        }
+
+        rowData.__levelId = levelId;
+        rowData.__vExpanded = true;
+        rowData.__vVisible = true;
+        rowData.__vRowIndex = rowIndex;
         this.mRowDatas.push(rowData);
 
-        const row = this.vDocElement.createElement('tr');
-        $.each(this.mColumns, (index, col) => {
-
-            const cell = this.vDocElement.createElement('td');
-
-            cell.innerHTML = col.formatter(rowData[col.field], rowData, rowIndex);
-
-            row.appendChild(cell);
-        });
-        this.vTableElement.appendChild(row);
-
         const children = this.mGetChildren(rowData);
+
+        //
+        // build an HTML row for current row data
+        //
+        const thisRowIndex = rowIndex;
+        const row = this.vDocElement.createElement('tr');
+        for (let i = 0; i < this.mColumns.length; i++) {
+            const col = this.mColumns[i];
+
+            let cellHTML = '';
+            if (i === this.mTreeColumn) {
+                cellHTML += this.#getIndent(depth);
+                cellHTML += this.#createExpander(children.length > 0);
+            }
+
+            cellHTML += col.formatter(rowData[col.field], rowData, rowIndex);
+
+            const vCell = this.vDocElement.createElement('td');
+            vCell.innerHTML = cellHTML;
+            row.appendChild(vCell);
+        }
+        this.vTableBody.appendChild(row);
+
+        //
+        // build child rows recursively
+        //
         for (let i = 0; i < children.length; i++) {
-            rowIndex = this.#renderRow(children[i], ++rowIndex, depth + 1, padding);
+            rowIndex = this.#renderRow(children[i], ++rowIndex, depth + 1, levelId + '.' + (i + 1));
+        }
+
+        // after building the child, the rowIndex holds the last descendant's index in the table rows
+        if (rowIndex > thisRowIndex) {
+            const expanderElement = row.querySelector('.treegrid-expander');
+            if (expanderElement != null) {
+                expanderElement.addEventListener('click', (e) => {
+                    this.#toggle(thisRowIndex, expanderElement);
+                });
+            }
         }
 
         return rowIndex;
+    }
+
+    #getIndent(depth) {
+        return depth === 0 ? '' : `<span style="width: ${depth * 16}px; height: 16px; display: inline-block; position: relative"></span>`;
+    }
+
+    #createExpander(expanded) {
+        return `<span class="treegrid-expander ${expanded ? 'treegrid-expander-expanded' : ''}"></span>`;
+    }
+
+    #toggle(parentRowIndex, expanderElement) {
+        const expander = $(expanderElement);
+        const rowData = this.mRowDatas[parentRowIndex];
+        if (rowData.__vExpanded) {
+            expander.removeClass('treegrid-expander-expanded')
+                .addClass('treegrid-expander-collapsed');
+
+            this.#collaps(parentRowIndex);
+
+            rowData.__vExpanded = false;
+        } else {
+            expander.removeClass('treegrid-expander-collapsed')
+                .addClass('treegrid-expander-expanded');
+
+            // set this flag first
+            rowData.__vExpanded = true;
+
+            this.#expand(parentRowIndex);
+        }
+    }
+
+    #collaps(parentRowIndex) {
+        const parentRow = this.mRowDatas[parentRowIndex];
+        if (!parentRow.__vExpanded) {
+            // already collapsed
+            return;
+        }
+
+        const children = this.mGetChildren(parentRow);
+        for (let i = 0; i < children.length; i++) {
+            const vChildRowIndex = children[i].__vRowIndex;
+
+            console.log("collapse " + vChildRowIndex);
+
+            // change the UI state
+            $(this.vTableBody.children[vChildRowIndex]).hide();
+
+            this.#collaps(children[i].__vRowIndex);
+        }
+    }
+
+    #expand(parentRowIndex) {
+        const parentRow = this.mRowDatas[parentRowIndex];
+        if (!parentRow.__vExpanded) {
+            // already collapsed
+            return;
+        }
+
+        const children = this.mGetChildren(parentRow);
+        for (let i = 0; i < children.length; i++) {
+            // change the UI state
+            const vChildRowIndex = children[i].__vRowIndex;
+
+            $(this.vTableBody.children[vChildRowIndex]).show();
+
+            this.#expand(children[i].__vRowIndex);
+        }
     }
 
     getRowData() {
