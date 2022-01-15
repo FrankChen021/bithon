@@ -14,6 +14,7 @@
 
     <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
     <script th:src="@{/js/chart-component.js}"></script>
+    <script th:src="@{/js/component/tree-table/component.js}"></script>
 </head>
 <body>
 <div style="padding:20px;" layout:fragment="content">
@@ -33,7 +34,6 @@
     </ul>
     <div class="tab-content">
         <div class="tab-pane show active" id="pills-trace" role="tabpanel" aria-labelledby="pills-trace-tab">
-            <table id="table"></table>
         </div>
         <div class="tab-pane fade" id="pills-map" role="tabpanel" aria-labelledby="pills-map-tab">
         </div>
@@ -47,47 +47,7 @@
     <script>
         const g_UIComponentSearchBar = new SearchBar(false);
 
-        const table = $('#table');
-        table.bootstrapTable({
-            url: apiHost + '/api/trace/getTraceById',
-            method: 'post',
-            contentType: "application/json",
-
-            buttonsAlign: 'right',
-            sidePagination: "server",
-
-            treeEnable: true,
-            treeShowField: 'name',
-            idField: 'spanId',
-            parentIdField: 'parentSpanId',
-            onPostBody: function () {
-                const columns = table.bootstrapTable('getOptions').columns;
-                if (columns && columns[0][1].visible) {
-                    table.treegrid({
-                        treeColumn: 2,
-                        onChange: function () {
-                            table.bootstrapTable('resetView')
-                        }
-                    })
-                }
-            },
-            responseHandler: (data) => {
-                traceData = data;
-                return data.spans;
-            },
-
-            queryParamsType: '',
-            queryParams: function (params) {
-                const interval = g_UIComponentSearchBar.getInterval();
-                return {
-                    id: id,
-                    type: type,
-                    startTimeISO8601: interval.start,
-                    endTimeISO8601: interval.end
-                };
-            },
-
-            uniqueId: 'spanId',
+        const vTreeTable = new TreeTable('#pills-trace', {
             columns: [{
                 field: 'appName',
                 title: 'Application',
@@ -138,33 +98,26 @@
 
                     return text;
                 }
-            }],
-
-            // detailView: true,
-            // detailViewIcon: true,
-            // detailViewByClick: true,
-            // detailViewAlign: 'right',
-            // detailFormatter: (index, row) => {
-            //     if (row.detailViewContent !== undefined) {
-            //         return row.detailViewContent;
-            //     }
-            //
-            //     let text = '<pre>';
-            //     for (const propName in row.tags) {
-            //         const propVal = row.tags[propName];
-            //         text += `<b>${propName}</b>: ${propVal}<br/>`;
-            //     }
-            //     text += '</pre>';
-            //     row.detailViewContent = text;
-            //     return row.detailViewContent;
-            //     // if (row.formattedArgs === undefined) {
-            //     //     row.formattedArgs = "<pre>" + JSON.stringify(JSON.parse(row.args), null, 2) + "</pre>";
-            //     // }
-            //     // return row.formattedArgs;
-            // },
-            // detailFilter(index, row) {
-            //     return JSON.stringify(row.tags) !== '{}';
-            // }
+            }]
+        }).load({
+            url: apiHost + '/api/trace/getTraceById',
+            method: 'post',
+            contentType: "application/json",
+            data: () => {
+                const interval = g_UIComponentSearchBar.getInterval();
+                return {
+                    id: id,
+                    type: type,
+                    startTimeISO8601: interval.start,
+                    endTimeISO8601: interval.end,
+                    hierachy: true
+                };
+            },
+            responseHandler: (data) => {
+                traceData = data;
+                return data.spans;
+            },
+            getChildren: (span) => span.children
         });
 
         function toTraceMapOption(map) {
@@ -243,7 +196,7 @@
         })
 
         function showTags(index, propName) {
-            const span = table.bootstrapTable('getData')[index];
+            const span = vTreeTable.getRowData()[index];
 
             let text = span.tags[propName];
             if (propName === 'sql'
