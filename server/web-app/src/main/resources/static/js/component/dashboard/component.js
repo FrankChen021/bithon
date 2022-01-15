@@ -176,9 +176,14 @@ class Dashboard {
             }
         ];
 
+        //
+        // create columns for dimensions
+        //
         $.each(chartDescriptor.details.groupBy, (index, dimension) => {
-            // set up lookup for this dimension
+
             const column = {field: dimension, title: dimension, align: 'center', sortable: true};
+
+            // set up lookup for this dimension
             if (chartDescriptor.details.lookup !== undefined) {
                 const dimensionLookup = chartDescriptor.details.lookup[dimension];
                 if (dimensionLookup != null) {
@@ -195,6 +200,10 @@ class Dashboard {
 
             columns.push(column);
         });
+
+        //
+        // create columns for metrics
+        //
         $.each(chartDescriptor.details.metrics, (index, metric) => {
             // set up transformer and formatter for this metric
             const column = {field: metric, title: metric, align: 'center', sortable: true};
@@ -222,7 +231,50 @@ class Dashboard {
 
             columns.push(column);
         });
-        const detailView = this.#createDetailView(chartComponent.getUIContainer(), columns);
+
+        const detailView = this.#createDetailView(chartDescriptor.id + '_detailView',
+            chartComponent.getUIContainer(),
+            columns,
+            [{
+                text: "Trace",
+                onClick: (index, row, start, end) => {
+                    const startTimeISO8601 = moment(start).utc().toISOString(true);
+                    const endIimeISO8601 = moment(end).utc().toISOString(true);
+
+                    let url = `/web/trace/search?appName=${this._appName}&`;
+                    const instanceFilter = this._selectedDimensions["instanceName"];
+                    if(instanceFilter != null) {
+                        url += `instanceName=${encodeURI(instanceFilter.matcher.pattern)}&`;
+                    }
+                    url += `startTime=${encodeURI(startTimeISO8601)}&endTime=${encodeURI(endIimeISO8601)}&`;
+
+                    // "tracing": {
+                    //     "filters": {
+                    //         "mapping": {
+                    //             "uri": "tags.uri",
+                    //                 "statusCode": "tags.status"
+                    //         },
+                    //         "kind": "SERVER"
+                    //     }
+                    // }
+                    const tracingFilters = chartDescriptor.details.tracing.filters;
+
+                    $.each(chartDescriptor.details.groupBy, (index, dimension) => {
+                        const mapTo = tracingFilters.mapping[dimension];
+                        if (mapTo != null) {
+                            url += `${mapTo}=${encodeURI(row[dimension])}&`;
+                        } else {
+                            url += `${dimension}=${encodeURI(row[dimension])}&`;
+                        }
+                    });
+
+                    $.each(tracingFilters.extra, (prop, value) => {
+                        url += `${prop}=${encodeURIComponent(value)}&`;
+                    });
+
+                    window.open(url);
+                }
+            }]);
         chartComponent.setSelectionHandler(
             (option, start, end) => {
                 this.#refreshDetailView(chartDescriptor, detailView, option, start, end);
@@ -239,8 +291,8 @@ class Dashboard {
             });
     }
 
-    #createDetailView(parent, columns) {
-        return new TableComponent(parent, columns);
+    #createDetailView(id, parent, columns, buttons) {
+        return new TableComponent(id, parent, columns, buttons);
     }
 
     #refreshDetailView(chartDescriptor, detailView, option, startIndex, endIndex) {
@@ -248,8 +300,11 @@ class Dashboard {
         const start = option.timestamp.start;
         const interval = option.timestamp.interval;
 
-        const startTimestamp = moment(start + startIndex * interval).utc().toISOString();
-        const endTimestamp = moment(start + endIndex * interval).utc().toISOString();
+        const startTimestamp = start + startIndex * interval;
+        const endTimestamp = start + endIndex * interval;
+
+        const startISO8601 = moment(startTimestamp).utc().toISOString();
+        const endISO8601 = moment(endTimestamp).utc().toISOString();
 
         const filters = this.vFilter.getSelectedFilters();
         if (chartDescriptor.filters != null) {
@@ -265,10 +320,12 @@ class Dashboard {
 
         const loadOptions = {
             url: apiHost + "/api/datasource/groupBy",
+            start: startTimestamp,
+            end: endTimestamp,
             ajaxData: {
                 dataSource: chartDescriptor.dataSource,
-                startTimeISO8601: startTimestamp,
-                endTimeISO8601: endTimestamp,
+                startTimeISO8601: startISO8601,
+                endTimeISO8601: endISO8601,
                 filters: filters,
                 metrics: chartDescriptor.details.metrics,
                 groupBy: chartDescriptor.details.groupBy

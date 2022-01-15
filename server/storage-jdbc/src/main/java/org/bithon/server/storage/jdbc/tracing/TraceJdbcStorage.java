@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
@@ -39,7 +40,10 @@ import org.bithon.server.tracing.storage.ITraceWriter;
 import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
+import org.jooq.LikeEscapeStep;
+import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
+import org.jooq.SelectLimitStep;
 import org.jooq.SelectSeekStep1;
 import org.jooq.impl.DSL;
 import org.springframework.dao.DuplicateKeyException;
@@ -49,6 +53,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -303,6 +308,67 @@ public class TraceJdbcStorage implements ITraceStorage {
                              .where(Tables.BITHON_TRACE_MAPPING.USER_TX_ID.eq(id))
                              .limit(1)
                              .fetchOne(Tables.BITHON_TRACE_MAPPING.TRACE_ID);
+        }
+
+        @Override
+        public List<TraceSpan> searchTrace(Timestamp start,
+                                           Timestamp end,
+                                           Map<String, String> conditions,
+                                           String orderBy,
+                                           String order,
+                                           int pageNumber,
+                                           int pageSize) {
+            SelectConditionStep<Record1<String>> sql = dslContext.selectDistinct(Tables.BITHON_TRACE_SPAN.TRACEID)
+                                                                 .from(Tables.BITHON_TRACE_SPAN)
+                                                                 .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
+                                                                 .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end));
+
+            List<LikeEscapeStep> likeExpressions = new ArrayList<>();
+            for (Map.Entry<String, String> entry : conditions.entrySet()) {
+                String key = entry.getKey();
+                String val = entry.getValue();
+                if (key.startsWith("tags.")) {
+                    String subKey = key.substring("tags.".length());
+                    if (StringUtils.hasText(subKey)) {
+                        likeExpressions.add(Tables.BITHON_TRACE_SPAN.TAGS.like("%\"" + subKey + "\":\"" + val + "\"%"));
+                    }
+                } else {
+                    sql = sql.and(Tables.BITHON_TRACE_SPAN.field(key, String.class).eq(val));
+                }
+            }
+
+            // put the like expressions at the end of the conditions
+            for (LikeEscapeStep expr : likeExpressions) {
+                sql = sql.and(expr);
+            }
+
+            SelectConditionStep<BithonTraceSpanRecord> select = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
+                                                                          .where(Tables.BITHON_TRACE_SPAN.TRACEID.in(sql))
+                                                                          .and(Tables.BITHON_TRACE_SPAN.KIND.eq("SERVER"));
+
+            SelectLimitStep<BithonTraceSpanRecord> sql2 = select;
+            if (order != null) {
+                switch (orderBy) {
+                    case "startTime":
+                        if ("desc".equals(order)) {
+                            sql2 = select.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc());
+                        } else {
+                            sql2 = select.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc());
+                        }
+                        break;
+                    case "costTime":
+                        if ("desc".equals(order)) {
+                            sql2 = select.orderBy(Tables.BITHON_TRACE_SPAN.COSTTIMEMS.desc());
+                        } else {
+                            sql2 = select.orderBy(Tables.BITHON_TRACE_SPAN.COSTTIMEMS.asc());
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return sql2.limit(Math.min(pageSize, 100)).fetch(this::toTraceSpan);
         }
 
         private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {

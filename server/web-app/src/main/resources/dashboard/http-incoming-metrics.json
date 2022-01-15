@@ -61,7 +61,18 @@
           "minResponseTime",
           "avgResponseTime",
           "maxResponseTime"
-        ]
+        ],
+        "tracing": {
+          "filters": {
+            "mapping": {
+              "uri": "tags.uri",
+              "statusCode": "tags.status"
+            },
+            "extra": {
+              "kind": "SERVER"
+            }
+          }
+        }
       }
     },
     {
@@ -98,7 +109,19 @@
               "pattern": "200"
             }
           }
-        ]
+        ],
+
+        "tracing": {
+          "filters": {
+            "mapping": {
+              "uri": "tags.uri",
+              "statusCode": "tags.status"
+            },
+            "extra": {
+              "kind": "SERVER"
+            }
+          }
+        }
       }
     },
     {

@@ -1,19 +1,52 @@
+function onTableComponentButtonClick(id, rowIndex, buttonIndex) {
+    const tableComponent = window.gDetailTables[id];
+    if ( tableComponent != null ) {
+        tableComponent.onButtonClick(rowIndex, buttonIndex);
+    }
+}
+
 class TableComponent {
     /**
      *
      * @param parent
      * @param columns arrays of colum. Each of which is {field, title, width}
+     * @param buttons arrays of button, Each of which is {text, class, onclick }
      */
-    constructor(parent, columns) {
-        this.vTable = parent.append('<table id="table"></table>').find('table');
+    constructor(id, parent, columns, buttons) {
+        this.vTable = parent.append(`<table id="${id}"></table>`).find('table');
         this.mColumns = columns;
         this.mCreated = false;
+        this.mButtons = buttons;
+
+        $.each(buttons, (buttonIndex, button) => {
+            this.mColumns.push(
+                {
+                    field: 'id',
+                    title: button.text,
+                    align: 'center',
+                    formatter: (cell, row, rowIndex, field) => {
+                        return `<a href="#" class="badge badge-info" onclick="javascript:onTableComponentButtonClick('${id}', ${rowIndex}, ${buttonIndex})">&gt;</a>`;
+                    }
+                }
+            );
+        })
+        if (window.gDetailTables === undefined) {
+            window.gDetailTables = {};
+        }
+        window.gDetailTables[id] = this;
+    }
+
+    onButtonClick(rowIndex, buttonIndex) {
+        const row = this.vTable.bootstrapTable('getData')[rowIndex];
+        this.mButtons[buttonIndex].onClick(rowIndex, row, this.mStartTimestamp, this.mEndTimestamp);
     }
 
     load(option) {
         console.log(option);
 
         this.mQueryParam = option.ajaxData;
+        this.mStartTimestamp = option.start;
+        this.mEndTimestamp = option.end;
 
         if (!this.mCreated) {
             this.mCreated = true;

@@ -184,6 +184,16 @@ public class TraceService {
                                                 interval.getGranularity());
     }
 
+    public List<TraceSpan> searchTrace(Timestamp start,
+                                       Timestamp end,
+                                       Map<String, String> conditions,
+                                       String orderBy,
+                                       String order,
+                                       int pageNumber,
+                                       int pageSize) {
+        return this.traceReader.searchTrace(start, end, conditions, orderBy, order, pageNumber, pageSize);
+    }
+
     static class Bucket {
         /**
          * number of buckets

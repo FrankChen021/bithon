@@ -1,7 +1,7 @@
 
-function extractQueryParameters() {
+function toQueryParameters(query) {
     const parameters = {};
-    const uri = decodeURI(window.location.href);
+    const uri = decodeURI(query);
     const paramPos = uri.indexOf('?') + 1;
 
     if (paramPos <= 0) {
@@ -18,4 +18,4 @@ function extractQueryParameters() {
     return parameters;
 }
 
-window.queryParams = extractQueryParameters();
+window.queryParams = toQueryParameters();

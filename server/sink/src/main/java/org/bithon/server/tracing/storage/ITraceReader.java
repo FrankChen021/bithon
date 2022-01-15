@@ -22,6 +22,7 @@ import org.bithon.server.tracing.sink.TraceSpan;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -43,4 +44,8 @@ public interface ITraceReader {
     List<TraceSpan> getTraceByParentSpanId(String parentSpanId);
 
     String getTraceIdByMapping(String id);
+
+    List<TraceSpan> searchTrace(Timestamp start,
+                                Timestamp end,
+                                Map<String, String> conditions, String orderBy, String order, int pageNumber, int pageSize);
 }
