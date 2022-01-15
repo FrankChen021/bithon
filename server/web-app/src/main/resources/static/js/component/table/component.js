@@ -24,6 +24,7 @@ class TableComponent {
                     field: 'id',
                     title: button.text,
                     align: 'center',
+                    visible: button.visible,
                     formatter: (cell, row, rowIndex, field) => {
                         return `<a href="#" class="badge badge-info" onclick="javascript:onTableComponentButtonClick('${id}', ${rowIndex}, ${buttonIndex})">&gt;</a>`;
                     }

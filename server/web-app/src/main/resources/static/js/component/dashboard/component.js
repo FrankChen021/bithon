@@ -98,7 +98,7 @@ class Dashboard {
             this.layout(chartDescriptor.id, chartDescriptor.width * 3);
 
             // create chart
-            const chartComponent = this.createChartComponent(chartDescriptor.id, chartDescriptor)
+            this.createChartComponent(chartDescriptor.id, chartDescriptor)
                 .setOpenHandler(() => {
                     this.openChart(chartDescriptor.id);
                 });
@@ -237,43 +237,8 @@ class Dashboard {
             columns,
             [{
                 text: "Trace",
-                onClick: (index, row, start, end) => {
-                    const startTimeISO8601 = moment(start).utc().toISOString(true);
-                    const endIimeISO8601 = moment(end).utc().toISOString(true);
-
-                    let url = `/web/trace/search?appName=${this._appName}&`;
-                    const instanceFilter = this._selectedDimensions["instanceName"];
-                    if(instanceFilter != null) {
-                        url += `instanceName=${encodeURI(instanceFilter.matcher.pattern)}&`;
-                    }
-                    url += `startTime=${encodeURI(startTimeISO8601)}&endTime=${encodeURI(endIimeISO8601)}&`;
-
-                    // "tracing": {
-                    //     "filters": {
-                    //         "mapping": {
-                    //             "uri": "tags.uri",
-                    //                 "statusCode": "tags.status"
-                    //         },
-                    //         "kind": "SERVER"
-                    //     }
-                    // }
-                    const tracingFilters = chartDescriptor.details.tracing.filters;
-
-                    $.each(chartDescriptor.details.groupBy, (index, dimension) => {
-                        const mapTo = tracingFilters.mapping[dimension];
-                        if (mapTo != null) {
-                            url += `${mapTo}=${encodeURI(row[dimension])}&`;
-                        } else {
-                            url += `${dimension}=${encodeURI(row[dimension])}&`;
-                        }
-                    });
-
-                    $.each(tracingFilters.extra, (prop, value) => {
-                        url += `${prop}=${encodeURIComponent(value)}&`;
-                    });
-
-                    window.open(url);
-                }
+                visible: chartDescriptor.details.tracing !== undefined,
+                onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
             }]);
         chartComponent.setSelectionHandler(
             (option, start, end) => {
@@ -332,6 +297,44 @@ class Dashboard {
             }
         };
         detailView.load(loadOptions);
+    }
+
+    #openTraceSearchPage(chartDescriptor, start, end, row) {
+        const startTimeISO8601 = moment(start).utc().toISOString(true);
+        const endIimeISO8601 = moment(end).utc().toISOString(true);
+
+        let url = `/web/trace/search?appName=${this._appName}&`;
+        const instanceFilter = this._selectedDimensions["instanceName"];
+        if(instanceFilter != null) {
+            url += `instanceName=${encodeURI(instanceFilter.matcher.pattern)}&`;
+        }
+        url += `startTime=${encodeURI(startTimeISO8601)}&endTime=${encodeURI(endIimeISO8601)}&`;
+
+        // "tracing": {
+        //     "filters": {
+        //         "mapping": {
+        //             "uri": "tags.uri",
+        //                 "statusCode": "tags.status"
+        //         },
+        //         "kind": "SERVER"
+        //     }
+        // }
+        const tracingFilters = chartDescriptor.details.tracing.filters;
+
+        $.each(chartDescriptor.details.groupBy, (index, dimension) => {
+            const mapTo = tracingFilters.mapping[dimension];
+            if (mapTo != null) {
+                url += `${mapTo}=${encodeURI(row[dimension])}&`;
+            } else {
+                url += `${dimension}=${encodeURI(row[dimension])}&`;
+            }
+        });
+
+        $.each(tracingFilters.extra, (prop, value) => {
+            url += `${prop}=${encodeURIComponent(value)}&`;
+        });
+
+        window.open(url);
     }
 
     // PRIVATE
