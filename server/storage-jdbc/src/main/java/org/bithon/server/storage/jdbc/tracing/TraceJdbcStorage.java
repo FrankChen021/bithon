@@ -218,8 +218,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         @Override
         public List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end) {
             SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                                       .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(
-                                                                           traceId));
+                                                                       .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
             if (start != null) {
                 sql = sql.and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start.toTimestamp()));
             }

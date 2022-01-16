@@ -84,7 +84,10 @@ class TracePage {
                 field: 'traceId',
                 title: 'Trace Id',
                 formatter: function (value, row) {
-                    return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}">${value}</a>`;
+                    var timestamp = row.startTime / 1000;
+                    timestamp = Math.floor(timestamp / 1000 / 60) * 1000 * 60;
+                    timestamp -= 3600 * 1000; // search the detail from 1 hour before current start time
+                    return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}&type=trace&interval=${encodeURI(moment(timestamp).local().toISOString(true) + '/')}">${value}</a>`;
                 },
             }, {
                 field: 'instanceName',
