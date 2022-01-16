@@ -2,7 +2,15 @@ function isNumeric(n) {
     return !Number.isNaN(n) && Number.isFinite(n);
 }
 
-Number.prototype.formatBinaryByte = function() {
+function numberBasedOn(val, based) {
+    return Math.floor(val / based) * based;
+}
+
+Number.prototype.basedOn = function (mod) {
+    return numberBasedOn(this.valueOf(), mod);
+}
+
+Number.prototype.formatBinaryByte = function () {
     const byteVal = this.valueOf();
     const isNegative = byteVal < 0;
     const bytes = Math.abs(byteVal);

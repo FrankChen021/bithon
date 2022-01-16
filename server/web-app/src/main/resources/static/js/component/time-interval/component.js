@@ -16,6 +16,8 @@ class TimeInterval {
             {id: "24h", value: 24, unit: "hour", text: "Last 24h"},
             {id: "today", value: "today", unit: "day", text: "Today"},
             {id: "yesterday", value: "yesterday", unit: "day", text: "Yesterday"},
+            {id: "custom", value: "", text: "Customer Range"}
+            // {id: "user", value: "user", text: "Customer"}
         ];
 
         if (includeAll) {
@@ -34,16 +36,125 @@ class TimeInterval {
             this._control.find(`option[id="5m"]`).attr('selected', true);
         }
 
-        this._control.change(() => {
+        this._control.on('focus', () => {
+            this._prevSelectIndex = this.getSelectedIndex();
+        }).change(() => {
             const selectedIndex = this.getSelectedIndex();
             const selectedModel = this._viewModel[selectedIndex];
-            $.each(this._listeners, (index, listener) => {
-                listener(selectedModel);
-            });
+
+            if (selectedModel.id === 'custom') {
+                this.openCustomerDateSelectorDialog(this.#toInterval(this._prevSelectIndex));
+            } else {
+                $.each(this._listeners, (index, listener) => {
+                    listener(selectedModel);
+                });
+            }
         });
 
         // trigger the change event to load default value
         this._control.change();
+    }
+
+    openCustomerDateSelectorDialog(prevInterval) {
+        bootbox.dialog({
+            centerVertical: true,
+            size: 'xl',
+            onEscape: () => {
+                // restore prev selection without triggering the selection changed event
+                this._control[0].selectedIndex = this._prevSelectIndex;
+            },
+            backdrop: true,
+            message: this.#IntervalTemplate(),
+            buttons: {
+                ok: {
+                    label: "OK",
+                    className: 'btn-info',
+                    callback: () => {
+                        // truncate seconds the millis seconds
+                        const startTimestamp = $('#intervalPickerStart').data(tempusDominus.Namespace.dataKey).viewDate.getTime().basedOn(1000 * 60);
+                        const endTimestamp = $('#intervalPickerEnd').data(tempusDominus.Namespace.dataKey).viewDate.getTime().basedOn(1000 * 60);
+                        if (endTimestamp <= startTimestamp) {
+                            $("#dateTimePickAlert").text('start time is less than or equal to the end time').show();
+                            return false;
+                        }
+
+                        //
+                        // update the UI
+                        //
+                        // check if there's a user item
+                        const displayStart = new Date(startTimestamp).format('MM-dd hh:mm');
+                        const displayEnd = new Date(endTimestamp).format('MM-dd hh:mm');
+                        if (this._control[0].lastChild.id !== 'user') {
+                            // no user item
+                            this._control.append(`<option id="user" value="user">${displayStart} ~ ${displayEnd}</option>`);
+
+                            this._viewModel.push({id: "user", value: "user"});
+                        } else {
+                            // change user item
+                            this._control[0].lastChild.innerText = `${displayStart} ~ ${displayEnd}`;
+                        }
+
+                        // save value to view model
+                        const s = moment(startTimestamp).local().toISOString(true);
+                        const e = moment(endTimestamp).local().toISOString(true);
+                        this._viewModel[this._viewModel.length - 1].start = s;
+                        this._viewModel[this._viewModel.length - 1].end = e;
+
+                        // change the selection
+                        this._control[0].selectedIndex = this._viewModel.length - 1;
+                        this._control.change();
+
+                        return true;
+                    }
+                },
+                cancel: {
+                    label: "Cancel",
+                    className: 'btn-cancel',
+                    callback: () => {
+                        // restore prev selection without triggering the selection changed event
+                        this._control[0].selectedIndex = this._prevSelectIndex;
+                        return true;
+                    }
+                }
+            },
+            onShown: () => {
+
+                $('#intervalPickerStart')
+                    .val(moment(prevInterval.start).local().format('yyyy-MM-DD HH:mm:ss'))
+                    .tempusDominus({
+                        display: {
+                            components: {
+                                useTwentyfourHour: true
+                            },
+                            sideBySide: true,
+                            // inline: true,
+                            keepOpen: true
+                        },
+                        hooks: {
+                            inputFormat: (context, date) => formatDateTime(date.truncate(60000), 'yyyy-MM-dd hh:mm:ss'),
+                            //inputParse: (context, value) => {}
+                        }
+                    });
+                $('#intervalPickerEnd')
+                    .val(moment(prevInterval.end).local().format('yyyy-MM-DD HH:mm:ss'))
+                    .tempusDominus({
+                        display: {
+                            components: {
+                                useTwentyfourHour: true
+                            },
+                            sideBySide: true,
+                            //inline: true,
+                            keepOpen: true
+                        },
+                        hooks: {
+                            inputFormat: (context, date) => formatDateTime(date.truncate(60000), 'yyyy-MM-dd hh:mm:ss'),
+                            //inputParse: (context, value) => {}
+                        }
+                    });
+            },
+            onHidden: () => {
+            }
+        });
     }
 
     childOf(element) {
@@ -58,8 +169,11 @@ class TimeInterval {
 
     //PUBLIC
     getInterval() {
-        const selectedModel = this._viewModel[this.getSelectedIndex()];
+        return this.#toInterval(this.getSelectedIndex());
+    }
 
+    #toInterval(index) {
+        const selectedModel = this._viewModel[index];
         if (selectedModel.value === 'today') {
             return {
                 start: moment().utc().local().startOf('day').toISOString(),
@@ -76,6 +190,11 @@ class TimeInterval {
                 start: "2000-01-01T00:00:00.000Z",
                 end: "2099-12-31T23:59:59.000Z"
             };
+        } else if (selectedModel.value === 'user') {
+            return {
+                start: selectedModel.start,
+                end: selectedModel.end
+            }
         } else {
             return {
                 start: moment().utc().subtract(selectedModel.value, selectedModel.unit).local().toISOString(),
@@ -87,6 +206,34 @@ class TimeInterval {
     //PRIVATE
     getSelectedIndex() {
         return this._control.prop('selectedIndex');
+    }
+
+    #IntervalTemplate(start, end) {
+        return '<form>\n' +
+            '    <div class="form-row">\n' +
+            '        <div class="col-sm-6">\n' +
+            '            <label htmlFor="linkedPickers2Input" class="form-label">From</label>\n' +
+            '            <div class="input-group mb-3">\n' +
+            '                <input type="text" class="form-control" id="intervalPickerStart">\n' +
+            '                <div class="input-group-append">\n' +
+            '                    <span class="input-group-text"><i class="fa fa-calendar"></i></span>\n' +
+            '                </div>\n' +
+            '            </div>\n' +
+            '        </div>\n' +
+            '        <div class="col-sm-6">\n' +
+            '            <label htmlFor="linkedPickers2Input" class="form-label">To</label>\n' +
+            '            <div class="input-group mb-3">\n' +
+            '                <input type="text" class="form-control" id="intervalPickerEnd">\n' +
+            '                <div class="input-group-append">\n' +
+            '                    <span class="input-group-text"><i class="fa fa-calendar"></i></span>\n' +
+            '                </div>\n' +
+            '            </div>\n' +
+            '        </div>\n' +
+            '    </div>\n' +
+            '    <div class="form-group">\n' +
+            '        <div class="alert alert-warning" id="dateTimePickAlert" style="display:none" role="alert"></div>\n' +
+            '    </div>\n' +
+            '</form>';
     }
 }
 
