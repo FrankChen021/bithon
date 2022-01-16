@@ -13,6 +13,7 @@
     <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
     <script th:src="@{/js/chart-component.js}"></script>
     <script th:src="@{/js/component/tree-table/component.js}"></script>
+    <script th:src="@{/js/utils/location.js}"></script>
 </head>
 <body>
 <div style="padding:20px;" layout:fragment="content">
@@ -37,13 +38,22 @@
         </div>
     </div>
 
-    <script th:inline="javascript">
-        let id = [[${id}]];
-        let type = [[${type}]];
-        let traceData = [];
-    </script>
     <script>
-        const g_UIComponentSearchBar = new SearchBar(false);
+        let traceData = [];
+
+        // parse interval from the url
+        const queryParams = extractQueryParameters();
+        let interval = queryParams['interval'];
+        if (interval != null) {
+            const parts = interval.split('/');
+            interval = {
+                start: parts[0],
+                end: parts[1]
+            };
+        } else {
+            //interval maybe undefined
+            interval = null;
+        }
 
         const vTreeTable = new TreeTable('#pills-trace', {
             treeColumn: 3,
@@ -108,12 +118,11 @@
             method: 'post',
             contentType: "application/json",
             data: () => {
-                const interval = g_UIComponentSearchBar.getInterval();
                 return {
-                    id: id,
-                    type: type,
-                    startTimeISO8601: interval.start,
-                    endTimeISO8601: interval.end,
+                    id: queryParams['id'],
+                    type: queryParams['type'],
+                    startTimeISO8601: interval === null ? null : interval.start,
+                    endTimeISO8601: interval === null ? null : interval.end,
                     hierachy: true
                 };
             },

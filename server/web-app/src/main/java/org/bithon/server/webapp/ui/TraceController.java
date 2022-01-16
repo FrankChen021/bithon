@@ -20,7 +20,6 @@ import org.bithon.server.webapp.services.ServiceDiscovery;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author frank.chen021@outlook.com
@@ -36,16 +35,8 @@ public class TraceController {
     }
 
     @GetMapping("/web/trace/detail")
-    public String traceHome(@RequestParam("id") String id,
-                            @RequestParam(value = "type", required = false, defaultValue = "trace") String type,
-                            @RequestParam(value = "start", required = false, defaultValue = "") String start,
-                            @RequestParam(value = "end", required = false, defaultValue = "") String end,
-                            Model model) {
+    public String traceHome(Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
-        model.addAttribute("id", id);
-        model.addAttribute("type", type);
-        model.addAttribute("start", start);
-        model.addAttribute("end", end);
         return "trace/detail";
     }
 }
