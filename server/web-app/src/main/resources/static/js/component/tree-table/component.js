@@ -5,11 +5,10 @@ class TreeTable {
 
         const tableTemplate =
             '<div class="bootstrap-table bootstrap4">\n' +
-            '    <div class="fixed-table-toolbar"></div>\n' +
             '    <div class="fixed-table-container" style="padding-bottom: 0;">\n' +
             '        <div class="fixed-table-body">\n' +
             '            <div class="fixed-table-loading table table-bordered table-hover" style="top: 50px;">\n' +
-            '               <span class="loading-wrap">\n' +
+            '               <span class="loading-wrap" style="margin-top: 50px">\n' +
             '                   <span class="loading-text" style="font-size: 32px;">Loading, please wait</span>\n' +
             '                   <span class="animation-wrap"><span class="animation-dot"></span></span>' +
             '               </span>\n' +
@@ -48,6 +47,8 @@ class TreeTable {
         this.vTableBody = this.vDocElement.createElement('tbody')
         vTableElement.appendChild(this.vTableBody);
 
+        this.vLoading = $(parent).find('.fixed-table-loading');
+
         // Model, cache the data for further API
         this.mRowDatas = [];
         this.mTreeColumn = option.treeColumn;
@@ -62,6 +63,7 @@ class TreeTable {
         if (data instanceof Function) {
             data = data.apply();
         }
+        this.vLoading.toggleClass('open', true);
         $.ajax({
             url: option.url,
             data: JSON.stringify(data),
@@ -71,8 +73,10 @@ class TreeTable {
             contentType: "application/json",
             success: (data) => {
                 this.#renderTable(option.responseHandler(data));
+                this.vLoading.toggleClass('open', false);
             },
             error: (data) => {
+                this.vLoading.toggleClass('open', false);
             }
         });
 
