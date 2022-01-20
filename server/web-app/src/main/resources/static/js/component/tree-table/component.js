@@ -5,11 +5,10 @@ class TreeTable {
 
         const tableTemplate =
             '<div class="bootstrap-table bootstrap4">\n' +
-            '    <div class="fixed-table-toolbar"></div>\n' +
             '    <div class="fixed-table-container" style="padding-bottom: 0;">\n' +
             '        <div class="fixed-table-body">\n' +
             '            <div class="fixed-table-loading table table-bordered table-hover" style="top: 50px;">\n' +
-            '               <span class="loading-wrap">\n' +
+            '               <span class="loading-wrap" style="margin-top: 50px">\n' +
             '                   <span class="loading-text" style="font-size: 32px;">Loading, please wait</span>\n' +
             '                   <span class="animation-wrap"><span class="animation-dot"></span></span>' +
             '               </span>\n' +
@@ -24,6 +23,9 @@ class TreeTable {
         this.vDocElement = vTableElement.ownerDocument;
 
         const vHead = this.vDocElement.createElement('thead');
+        if (option.headerStyle !== undefined) {
+            $(vHead).addClass(option.headerStyle);
+        }
         const vHeadRow = this.vDocElement.createElement('tr');
         $.each(option.columns, (index, column) => {
             if (column.formatter === undefined) {
@@ -32,7 +34,7 @@ class TreeTable {
 
             // create UI cell
             const cell = this.vDocElement.createElement('th');
-            if ( column.width === undefined ) {
+            if (column.width === undefined) {
                 cell.innerHTML = `<div class="th-inner"}>${column.title}</div>`;
             } else {
                 cell.innerHTML = `<div class="th-inner" style="width: ${column.width}px">${column.title}</div>`;
@@ -45,9 +47,12 @@ class TreeTable {
         this.vTableBody = this.vDocElement.createElement('tbody')
         vTableElement.appendChild(this.vTableBody);
 
+        this.vLoading = $(parent).find('.fixed-table-loading');
+
         // Model, cache the data for further API
         this.mRowDatas = [];
         this.mTreeColumn = option.treeColumn;
+        this.mRowStyle = option.rowStyle;
         this.mMaxDepth = 0;
     }
 
@@ -58,6 +63,7 @@ class TreeTable {
         if (data instanceof Function) {
             data = data.apply();
         }
+        this.vLoading.toggleClass('open', true);
         $.ajax({
             url: option.url,
             data: JSON.stringify(data),
@@ -67,8 +73,10 @@ class TreeTable {
             contentType: "application/json",
             success: (data) => {
                 this.#renderTable(option.responseHandler(data));
+                this.vLoading.toggleClass('open', false);
             },
             error: (data) => {
+                this.vLoading.toggleClass('open', false);
             }
         });
 
@@ -80,13 +88,13 @@ class TreeTable {
     }
 
     #renderTable(roots, depth) {
-        let rowIndex = -1;
+        let globalRowIndex = -1;
         for (let i = 0; i < roots.length; i++) {
-            rowIndex = this.#renderRow(roots[i], ++rowIndex, 0, (i + 1));
+            globalRowIndex = this.#renderRow(roots[i], ++globalRowIndex, 0, (i + 1));
         }
     }
 
-    #renderRow(rowData, rowIndex, depth, levelId) {
+    #renderRow(rowData, globalRowIndex, depth, levelId) {
         if (depth > this.mMaxDepth) {
             this.mMaxDepth = depth;
         }
@@ -94,7 +102,7 @@ class TreeTable {
         rowData.__levelId = levelId;
         rowData.__vExpanded = true;
         rowData.__vVisible = true;
-        rowData.__vRowIndex = rowIndex;
+        rowData.__vRowIndex = globalRowIndex;
         this.mRowDatas.push(rowData);
 
         const children = this.mGetChildren(rowData);
@@ -102,8 +110,14 @@ class TreeTable {
         //
         // build an HTML row for current row data
         //
-        const thisRowIndex = rowIndex;
+        const thisRowIndex = globalRowIndex;
         const row = this.vDocElement.createElement('tr');
+        if (this.mRowStyle !== undefined) {
+            const style = this.mRowStyle(this.mRowDatas, globalRowIndex);
+            if (style != null) {
+                $(row).addClass(style);
+            }
+        }
         for (let i = 0; i < this.mColumns.length; i++) {
             const col = this.mColumns[i];
 
@@ -113,7 +127,7 @@ class TreeTable {
                 cellHTML += this.#createExpander(children.length > 0);
             }
 
-            cellHTML += col.formatter(rowData[col.field], rowData, rowIndex);
+            cellHTML += col.formatter(rowData[col.field], rowData, globalRowIndex);
 
             const vCell = this.vDocElement.createElement('td');
             vCell.innerHTML = cellHTML;
@@ -125,11 +139,11 @@ class TreeTable {
         // build child rows recursively
         //
         for (let i = 0; i < children.length; i++) {
-            rowIndex = this.#renderRow(children[i], ++rowIndex, depth + 1, levelId + '.' + (i + 1));
+            globalRowIndex = this.#renderRow(children[i], ++globalRowIndex, depth + 1, levelId + '.' + (i + 1));
         }
 
         // after building the child, the rowIndex holds the last descendant's index in the table rows
-        if (rowIndex > thisRowIndex) {
+        if (globalRowIndex > thisRowIndex) {
             const expanderElement = row.querySelector('.treegrid-expander');
             if (expanderElement != null) {
                 expanderElement.addEventListener('click', (e) => {
@@ -138,7 +152,7 @@ class TreeTable {
             }
         }
 
-        return rowIndex;
+        return globalRowIndex;
     }
 
     #getIndent(depth) {

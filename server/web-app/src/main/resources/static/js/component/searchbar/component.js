@@ -25,6 +25,7 @@ class SearchBar {
             '                          <option>Yesterday</option>' +
             '                          <option>This Week</option>' +
             '                          <option>Last Week</option>' +
+            '                          <option>All</option>' +
             '                       </select>' +
             '                    </div>' +
             '                    <span class="input-group-append">\n' +
@@ -86,7 +87,8 @@ class SearchBar {
             return;
         }
 
-        const uri = `/web/trace/detail?id=${id}&type=auto&interval=${encodeURI(this._vIntervalSelect.val())}`;
+        const interval = this.getInterval();
+        const uri = `/web/trace/detail?id=${id}&type=auto&interval=${encodeURI(interval.start + "/" + interval.end)}`;
         if (this._mOpenNewWindow) {
             window.open(uri);
         } else {
@@ -121,7 +123,10 @@ class SearchBar {
                 };
             }
             default:
-                return {};
+                return {
+                    start: "2022-01-01T00:00:00.000Z",
+                    end: "2099-12-31T00:00:00.000Z"
+                };
         }
     }
 }
