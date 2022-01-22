@@ -26,12 +26,7 @@ import java.util.Arrays;
 public class RedisMetricCollector extends IntervalMetricCollector2<RedisClientMetrics> {
 
     public RedisMetricCollector() {
-        super("redis-metrics", Arrays.asList("uri", "command"), RedisClientMetrics.class);
-    }
-
-    @Override
-    protected RedisClientMetrics newMetrics() {
-        return new RedisClientMetrics();
+        super("redis-metrics", Arrays.asList("uri", "command"), RedisClientMetrics.class, RedisClientMetrics::new);
     }
 
     public RedisClientMetrics getOrCreateMetrics(String uri, String command) {
