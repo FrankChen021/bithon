@@ -26,8 +26,10 @@ public class ReflectionUtils {
     public static Object getFieldValue(Object obj,
                                        String fieldName) {
         Object result = null;
-        Field field = getTargetField(obj.getClass(), fieldName);
-        if (field == null) {
+        Field field;
+        try {
+            field = getField(obj.getClass(), fieldName);
+        } catch (NoSuchFieldException e) {
             return null;
         }
         field.setAccessible(true);
@@ -38,19 +40,15 @@ public class ReflectionUtils {
         return result;
     }
 
-    private static Field getTargetField(Class<?> clazz,
-                                        String fieldName) {
-        Field field = null;
-        if (clazz == null) {
-            return null;
+    public static Field getField(Class<?> clazz,
+                                 String fieldName) throws NoSuchFieldException {
+        while (clazz != null) {
+            try {
+                return clazz.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException ignored) {
+                clazz = clazz.getSuperclass();
+            }
         }
-        try {
-            field = clazz.getDeclaredField(fieldName);
-        } catch (NoSuchFieldException ignored) {
-        }
-        if (field == null) {
-            field = getTargetField(clazz.getSuperclass(), fieldName);
-        }
-        return field;
+        throw new NoSuchFieldException(fieldName);
     }
 }

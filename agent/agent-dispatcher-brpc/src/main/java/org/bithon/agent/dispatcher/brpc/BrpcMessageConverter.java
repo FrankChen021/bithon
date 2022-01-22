@@ -44,7 +44,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
-import org.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
@@ -159,22 +158,7 @@ public class BrpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(long timestamp, int interval, List<String> dimensions, RedisClientMetrics metrics) {
-        return BrpcRedisMetricMessage.newBuilder()
-                                     .setTimestamp(timestamp)
-                                     .setInterval(interval)
-                                     .setUri(dimensions.get(0))
-                                     .setCommand(dimensions.get(1))
-                                     .setMinRequestTime(metrics.getRequestTime().getMin().get())
-                                     .setRequestTime(metrics.getRequestTime().getSum().get())
-                                     .setMaxRequestTime(metrics.getRequestTime().getMax().get())
-                                     .setMinResponseTime(metrics.getResponseTime().getMin().get())
-                                     .setResponseTime(metrics.getResponseTime().getSum().get())
-                                     .setMaxResponseTime(metrics.getResponseTime().getMax().get())
-                                     .setTotalCount(metrics.getCallCount())
-                                     .setExceptionCount(metrics.getExceptionCount())
-                                     .setRequestBytes(metrics.getRequestBytes())
-                                     .setResponseBytes(metrics.getResponseBytes())
-                                     .build();
+        return null;
     }
 
     @Override

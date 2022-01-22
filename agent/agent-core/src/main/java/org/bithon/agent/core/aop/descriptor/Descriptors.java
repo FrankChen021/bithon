@@ -17,15 +17,12 @@
 package org.bithon.agent.core.aop.descriptor;
 
 import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
-import org.bithon.agent.core.utils.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Frank Chen
@@ -38,34 +35,38 @@ public class Descriptors {
         return descriptors.get(type);
     }
 
-    public void merge(String plugin, BithonClassDescriptor bithonClassDescriptor) {
+    /**
+     * merge class instrumentation
+     */
+    public void merge(BithonClassDescriptor bithonClassDescriptor) {
         if (bithonClassDescriptor == null) {
             return;
         }
         for (String targetClass : bithonClassDescriptor.getTargetClasses()) {
-            Descriptor descriptor = this.descriptors.computeIfAbsent(targetClass, v -> new Descriptor(plugin, targetClass));
+            Descriptor descriptor = this.descriptors.computeIfAbsent(targetClass, v -> new Descriptor(targetClass));
             if (bithonClassDescriptor.isDebug()) {
                 descriptor.isDebuggingOn = bithonClassDescriptor.isDebug();
             }
         }
     }
 
-    public void merge(String plugin, List<IInterceptorPrecondition> preconditions, List<InterceptorDescriptor> interceptors) {
+    /**
+     * merge method instrumentation
+     */
+    public void merge(String plugin, IInterceptorPrecondition preconditions, List<InterceptorDescriptor> interceptors) {
         for (InterceptorDescriptor interceptor : interceptors) {
             String targetClass = interceptor.getTargetClass();
 
-            Descriptor descriptor = this.descriptors.computeIfAbsent(targetClass, v -> new Descriptor(plugin, targetClass));
-            descriptor.methodInterceptors.addAll(Stream.of(interceptor.getMethodPointCutDescriptors()).collect(Collectors.toList()));
-            if (CollectionUtils.isNotEmpty(preconditions)) {
-                descriptor.preconditions.addAll(preconditions);
-            }
-            descriptor.preconditions.addAll(preconditions);
+            Descriptor descriptor = this.descriptors.computeIfAbsent(targetClass, v -> new Descriptor(targetClass));
             if (interceptor.isBootstrapClass()) {
                 descriptor.isBootstrapClass = interceptor.isBootstrapClass();
             }
             if (interceptor.isDebug()) {
                 descriptor.isDebuggingOn = interceptor.isDebug();
             }
+
+            MethodPointCuts mp = new MethodPointCuts(plugin, preconditions, interceptor.getMethodPointCutDescriptors());
+            descriptor.getMethodPointCuts().add(mp);
         }
     }
 
@@ -74,35 +75,21 @@ public class Descriptors {
     }
 
     public static class Descriptor {
-        private final String plugin;
         private final String targetClass;
-        private final List<IInterceptorPrecondition> preconditions = new ArrayList<>();
-        private final List<MethodPointCutDescriptor> methodInterceptors = new ArrayList<>();
+        private final List<MethodPointCuts> methodPointCuts = new ArrayList<>();
         private boolean isBootstrapClass;
         private boolean isDebuggingOn;
 
-        Descriptor(String plugin, String targetClass) {
-            this.plugin = plugin;
+        Descriptor(String targetClass) {
             this.targetClass = targetClass;
         }
 
-        /**
-         * get the plugin name in which this interceptor is defined.
-         */
-        public String getPlugin() {
-            return plugin;
+        public List<MethodPointCuts> getMethodPointCuts() {
+            return methodPointCuts;
         }
 
         public String getTargetClass() {
             return targetClass;
-        }
-
-        public List<IInterceptorPrecondition> getPreconditions() {
-            return preconditions;
-        }
-
-        public List<MethodPointCutDescriptor> getMethodInterceptors() {
-            return methodInterceptors;
         }
 
         public boolean isBootstrapClass() {
@@ -111,6 +98,32 @@ public class Descriptors {
 
         public boolean isDebuggingOn() {
             return isDebuggingOn;
+        }
+    }
+
+    public static class MethodPointCuts {
+        public String getPlugin() {
+            return plugin;
+        }
+
+        public IInterceptorPrecondition getPrecondition() {
+            return precondition;
+        }
+
+        public MethodPointCutDescriptor[] getMethodInterceptors() {
+            return methodInterceptors;
+        }
+
+        private final String plugin;
+        private final IInterceptorPrecondition precondition;
+        private final MethodPointCutDescriptor[] methodInterceptors;
+
+        public MethodPointCuts(String plugin,
+                               IInterceptorPrecondition preconditions,
+                               MethodPointCutDescriptor[] methodInterceptors) {
+            this.plugin = plugin;
+            this.precondition = preconditions;
+            this.methodInterceptors = methodInterceptors;
         }
     }
 }

@@ -17,55 +17,33 @@
 package org.bithon.agent.core.metric.domain.redis;
 
 import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.ISimpleMetric;
+import org.bithon.agent.core.metric.model.Max;
+import org.bithon.agent.core.metric.model.Min;
 import org.bithon.agent.core.metric.model.Sum;
-import org.bithon.agent.core.metric.model.Timer;
 
 /**
  * @author frankchen
  */
 public class RedisClientMetrics implements ICompositeMetric {
 
-    private final Timer requestTime = new Timer();
-    private final Timer responseTime = new Timer();
-    private final Sum callCount = new Sum();
+    private final Min minResponseTime = new Min();
+    private final Sum responseTime = new Sum();
+    private final Max maxResponseTime = new Max();
+    private final Sum totalCount = new Sum();
     private final Sum exceptionCount = new Sum();
     private final Sum responseBytes = new Sum();
     private final Sum requestBytes = new Sum();
 
-    public void addRequest(long writeCostTime, int exceptionCount) {
-        this.requestTime.update(writeCostTime);
-        this.exceptionCount.update(exceptionCount);
-        this.callCount.incr();
-    }
-
-    public void addResponse(long readCostTime, int exceptionCount) {
-        this.responseTime.update(readCostTime);
-        this.exceptionCount.update(exceptionCount);
-    }
-
-    public Timer getRequestTime() {
-        return requestTime;
-    }
-
-    public Timer getResponseTime() {
-        return responseTime;
-    }
-
-    public long getCallCount() {
-        return callCount.get();
-    }
-
-    public long getExceptionCount() {
-        return exceptionCount.get();
-    }
-
-    public long getResponseBytes() {
-        return responseBytes.get();
-    }
-
-    public long getRequestBytes() {
-        return requestBytes.get();
-    }
+    private final ISimpleMetric[] metrics = new ISimpleMetric[]{
+        minResponseTime,
+        responseTime,
+        maxResponseTime,
+        totalCount,
+        exceptionCount,
+        responseBytes,
+        requestBytes
+    };
 
     public void addResponseBytes(int responseBytes) {
         this.responseBytes.update(responseBytes);
@@ -73,5 +51,18 @@ public class RedisClientMetrics implements ICompositeMetric {
 
     public void addRequestBytes(int requestBytes) {
         this.requestBytes.update(requestBytes);
+    }
+
+    public void addRequest(long responseTime, int exceptionCount) {
+        this.responseTime.update(responseTime);
+        this.minResponseTime.update(responseTime);
+        this.maxResponseTime.update(responseTime);
+        this.exceptionCount.update(exceptionCount);
+        this.totalCount.incr();
+    }
+
+    @Override
+    public ISimpleMetric[] getMetrics() {
+        return metrics;
     }
 }

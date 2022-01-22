@@ -30,8 +30,8 @@ import java.util.List;
  */
 public interface IPlugin {
 
-    default List<IInterceptorPrecondition> getPreconditions() {
-        return Collections.emptyList();
+    default IInterceptorPrecondition getPreconditions() {
+        return null;
     }
 
     /**
