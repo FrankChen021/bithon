@@ -14,27 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.metric.domain.redis;
+package org.bithon.agent.plugin.jedis.interceptor;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector2;
-
-import java.util.Arrays;
+import org.bithon.agent.core.metric.domain.redis.RedisClientMetrics;
 
 /**
- * @author frankchen
+ * @author Frank Chen
+ * @date 22/1/22 6:02 PM
  */
-public class RedisMetricCollector extends IntervalMetricCollector2<RedisClientMetrics> {
+public class JedisContext {
 
-    public RedisMetricCollector() {
-        super("redis-metrics", Arrays.asList("uri", "command"), RedisClientMetrics.class);
+    private final RedisClientMetrics metrics;
+
+    public JedisContext(RedisClientMetrics metrics) {
+        this.metrics = metrics;
     }
 
-    @Override
-    protected RedisClientMetrics newMetrics() {
-        return new RedisClientMetrics();
-    }
-
-    public RedisClientMetrics getOrCreateMetrics(String uri, String command) {
-        return super.getOrCreateMetrics(uri, command);
+    public RedisClientMetrics getMetrics() {
+        return metrics;
     }
 }

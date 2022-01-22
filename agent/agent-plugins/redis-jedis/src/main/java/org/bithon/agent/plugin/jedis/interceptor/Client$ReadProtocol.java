@@ -44,9 +44,5 @@ public class Client$ReadProtocol extends AbstractInterceptor {
         String endpoint = redisClient.getHost() + ":" + redisClient.getPort();
 
         String command = InterceptorContext.getAs("redis-command");
-        metricCollector.addRead(endpoint,
-                                command,
-                                aopContext.getCostTime(),
-                                aopContext.hasException());
     }
 }

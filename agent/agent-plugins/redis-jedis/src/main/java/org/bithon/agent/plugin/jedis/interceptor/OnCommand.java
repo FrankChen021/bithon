@@ -18,14 +18,20 @@ package org.bithon.agent.plugin.jedis.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.redis.RedisMetricCollector;
-import redis.clients.jedis.Client;
+import redis.clients.jedis.Jedis;
+
+import java.util.Locale;
 
 /**
- * @author frankchen
+ * @author Frank Chen
+ * @date 22/1/22 5:52 PM
  */
-public class Client$SendCommand extends AbstractInterceptor {
+public class OnCommand extends AbstractInterceptor {
+
     private RedisMetricCollector metricCollector;
 
     @Override
@@ -35,10 +41,25 @@ public class Client$SendCommand extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
-        Client redisClient = aopContext.castTargetAs();
-        String hostAndPort = redisClient.getHost() + ":" + redisClient.getPort();
+    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+        Jedis jedis = aopContext.castTargetAs();
+        String hostAndPort = jedis.getClient().getHost() + ":" + jedis.getClient().getPort();
+        //String db = jedis.getDB();
 
-        String command = aopContext.getArgs()[0].toString();
+        String command = aopContext.getMethod().getName().toUpperCase(Locale.ENGLISH);
+
+        InterceptorContext.set("redis-command", new JedisContext(metricCollector.getOrCreateMetrics(hostAndPort, command)));
+
+        return super.onMethodEnter(aopContext);
+    }
+
+    @Override
+    public void onMethodLeave(AopContext aopContext) throws Exception {
+        JedisContext ctx = (JedisContext) InterceptorContext.get("redis-command");
+        if (ctx == null) {
+            return;
+        }
+
+        ctx.getMetrics().addRequest(aopContext.getCostTime(), aopContext.hasException() ? 1 : 0);
     }
 }

@@ -18,10 +18,7 @@ package org.bithon.agent.plugin.jedis.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.redis.RedisMetricCollector;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -36,13 +33,6 @@ public class RedisInputStream$EnsureFill extends AbstractInterceptor {
 
     private Field countField = null;
     private Field limitField = null;
-    private RedisMetricCollector metricCollector;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
-        return true;
-    }
 
     /**
      * The endpoint object returned by 'getInjectedObject' method is set in {@link Connection$Connect}
@@ -70,13 +60,9 @@ public class RedisInputStream$EnsureFill extends AbstractInterceptor {
                 return;
             }
 
-            String command = InterceptorContext.getAs("redis-command");
-            int bytesIn = limitField.getInt(inputStream);
-            metricCollector.addInputBytes((String) ((IBithonObject) inputStream).getInjectedObject(),
-                                          command,
-                                          bytesIn);
-        } catch (IllegalArgumentException
-            | IllegalAccessException e) {
+            JedisContext ctx = InterceptorContext.getAs("redis-command");
+            ctx.getMetrics().addResponseBytes(limitField.getInt(inputStream));
+        } catch (IllegalArgumentException | IllegalAccessException e) {
             log.error("cannot access field [limit/count] of RedisInputStream", e);
         }
     }

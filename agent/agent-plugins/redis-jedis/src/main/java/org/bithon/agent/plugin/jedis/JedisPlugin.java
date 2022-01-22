@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.jedis;
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
 import org.bithon.agent.core.plugin.IPlugin;
+import shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,13 +35,30 @@ public class JedisPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
 
+            /*
             forClass("redis.clients.jedis.Connection")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("connect")
                                                    .to("org.bithon.agent.plugin.jedis.interceptor.Connection$Connect")
+                ),*/
+
+            forClass("redis.clients.jedis.Jedis")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(ElementMatchers.isPublic()
+                                                                            .and(ElementMatchers.isOverriddenFrom(ElementMatchers.namedOneOf(
+                                                                                "redis.clients.jedis.JedisCommands",
+                                                                                "redis.clients.jedis.MultiKeyCommands",
+                                                                                "redis.clients.jedis.AdvancedJedisCommands",
+                                                                                "redis.clients.jedis.ScriptingCommands",
+                                                                                "redis.clients.jedis.BasicCommands",
+                                                                                "redis.clients.jedis.ClusterCommands",
+                                                                                "redis.clients.jedis.SentinelCommands"))))
+                                                   .to("org.bithon.agent.plugin.jedis.interceptor.OnCommand")
                 ),
 
+            /*
             //2.9.x
             forClass("redis.clients.jedis.Client")
                 .methods(
@@ -59,7 +77,7 @@ public class JedisPlugin implements IPlugin {
                                                                     "redis.clients.jedis.commands.ProtocolCommand",
                                                                     "[[B")
                                                    .to("org.bithon.agent.plugin.jedis.interceptor.Client$SendCommand")
-                ),
+                ),*/
 
             forClass("redis.clients.util.RedisOutputStream")
                 .methods(

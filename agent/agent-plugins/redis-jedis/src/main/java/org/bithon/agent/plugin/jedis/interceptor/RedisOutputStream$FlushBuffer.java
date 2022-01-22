@@ -18,11 +18,8 @@ package org.bithon.agent.plugin.jedis.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.redis.RedisMetricCollector;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -36,13 +33,6 @@ public class RedisOutputStream$FlushBuffer extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(RedisOutputStream$FlushBuffer.class);
 
     private Field countField;
-    private RedisMetricCollector metricCollector;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
-        return true;
-    }
 
     /**
      * count property will be flushed after execution of flushBuffer
@@ -58,12 +48,9 @@ public class RedisOutputStream$FlushBuffer extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        String endpoint = (String) ((IBithonObject) outputStream).getInjectedObject();
-        String command = InterceptorContext.getAs("redis-command");
+        JedisContext ctx = InterceptorContext.getAs("redis-command");
         int outputBytes = countField.getInt(outputStream);
-        metricCollector.addOutputBytes(endpoint,
-                                       command,
-                                       outputBytes);
+        ctx.getMetrics().addRequestBytes(outputBytes);
 
         return InterceptionDecision.SKIP_LEAVE;
     }
