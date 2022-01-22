@@ -18,11 +18,14 @@ package org.bithon.agent.plugin.jedis.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
+import org.bithon.agent.core.utils.ReflectionUtils;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 
 /**
@@ -32,42 +35,33 @@ import java.lang.reflect.Field;
 public class RedisOutputStream$FlushBuffer extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(RedisOutputStream$FlushBuffer.class);
 
-    private Field countField;
-
-    /**
-     * count property will be flushed after execution of flushBuffer
-     * so calculate the bytes before execution of the function
-     * <p>
-     * The endpoint is set in {@link Connection$Connect} when OutputStream object is instantiated
-     */
     @Override
-    public InterceptionDecision onMethodEnter(AopContext context) throws Exception {
-        // RedisOutputStream
-        Object outputStream = context.getTarget();
-        if (!ensureField(outputStream.getClass())) {
-            return InterceptionDecision.SKIP_LEAVE;
+    public void onConstruct(AopContext aopContext) throws Exception {
+        OutputStream os = aopContext.getArgAs(0);
+
+        try {
+            Field outputStreamField = ReflectionUtils.getField(aopContext.getTarget().getClass(), "out");
+            outputStreamField.setAccessible(true);
+            outputStreamField.set(aopContext.getTarget(), new OutputStreamDecorator(os));
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            log.error("Unable to set OutputStream for RedisOutputStream: {}", e.getMessage());
         }
-
-        JedisContext ctx = InterceptorContext.getAs("redis-command");
-        int outputBytes = countField.getInt(outputStream);
-        ctx.getMetrics().addRequestBytes(outputBytes);
-
-        return InterceptionDecision.SKIP_LEAVE;
     }
 
-    private boolean ensureField(Class<?> clazz) {
-        try {
-            if (countField == null) {
-                // since this function is lock free,
-                // a temp variable is used to hold the result in order to prevent potential concurrent problems
-                Field field = clazz.getDeclaredField("count");
-                field.setAccessible(true);
-                countField = field;
+    private static class OutputStreamDecorator extends FilterOutputStream {
+        public OutputStreamDecorator(OutputStream out) {
+            super(out);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            super.write(b, off, len);
+
+            try {
+                JedisContext ctx = InterceptorContext.getAs("redis-command");
+                ctx.getMetrics().addRequestBytes(len);
+            } catch (Throwable ignored) {
             }
-            return true;
-        } catch (NoSuchFieldException e) {
-            log.warn("cannot access field [count] of RedisOutStream", e);
-            return false;
         }
     }
 }

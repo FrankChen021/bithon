@@ -19,9 +19,13 @@ package org.bithon.agent.plugin.jedis.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.context.InterceptorContext;
+import org.bithon.agent.core.utils.ReflectionUtils;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 
 /**
@@ -31,61 +35,36 @@ import java.lang.reflect.Field;
 public class RedisInputStream$EnsureFill extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(RedisInputStream$EnsureFill.class);
 
-    private Field countField = null;
-    private Field limitField = null;
-
-    /**
-     * The endpoint object returned by 'getInjectedObject' method is set in {@link Connection$Connect}
-     */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
-        if (aopContext.hasException()) {
-            return;
-        }
-
-        // since RedisInputStream is in different package,
-        // DO NOT use its qualified type to define inputStream object below
-        Object inputStream = aopContext.getTarget();
-        if (!ensureField(inputStream.getClass())) {
-            return;
-        }
+    public void onConstruct(AopContext aopContext) {
+        InputStream is = aopContext.getArgAs(0);
 
         try {
-            // countField: offset of buffer in InputStream
-            // limitField: length of buffer in InputStream
-            // enfill maybe called many times by read function
-            // when count>=limit, RedisInputStream reads data from underlying stream
-            int inputBytes = countField.getInt(inputStream);
-            if (inputBytes > 0) {
-                return;
-            }
-
-            JedisContext ctx = InterceptorContext.getAs("redis-command");
-            ctx.getMetrics().addResponseBytes(limitField.getInt(inputStream));
-        } catch (IllegalArgumentException | IllegalAccessException e) {
-            log.error("cannot access field [limit/count] of RedisInputStream", e);
+            Field inputStreamField = ReflectionUtils.getField(aopContext.getTarget().getClass(), "in");
+            inputStreamField.setAccessible(true);
+            inputStreamField.set(aopContext.getTarget(), new InputStreamDecorator(is));
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            log.error("Unable to set InputStream for RedisInputStream: {}", e.getMessage());
         }
     }
 
-    private boolean ensureField(Class<?> clazz) {
-        try {
-            if (countField == null) {
-                // assign to temporary field first, or there may be concurrent problems
-                Field field = clazz.getDeclaredField("count");
-                field.setAccessible(true);
-                this.countField = field;
+    static class InputStreamDecorator extends FilterInputStream {
+        public InputStreamDecorator(InputStream in) {
+            super(in);
+        }
+
+        @Override
+        public int read(byte[] b) throws IOException {
+            int size = super.read(b);
+            if (size > 0) {
+                try {
+                    JedisContext ctx = InterceptorContext.getAs("redis-command");
+                    ctx.getMetrics().addResponseBytes(size);
+                } catch (Throwable ignored) {
+
+                }
             }
-            if (limitField == null) {
-                // assign to temporary field first, or there may be concurrent problems
-                Field field = clazz.getDeclaredField("limit");
-                field.setAccessible(true);
-                this.limitField = field;
-            }
-            return true;
-        } catch (NoSuchFieldException
-            | SecurityException e) {
-            log.error("cannot access field [limit/count] of RedisInputStream", e);
-            return false;
+            return size;
         }
     }
 }
