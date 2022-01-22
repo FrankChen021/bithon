@@ -32,8 +32,8 @@ import java.lang.reflect.Field;
  * @author frankchen
  * @date Dec 26, 2020 12:11:14 PM
  */
-public class RedisInputStream$EnsureFill extends AbstractInterceptor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(RedisInputStream$EnsureFill.class);
+public class RedisInputStream$Ctor extends AbstractInterceptor {
+    private static final ILogAdaptor log = LoggerFactory.getLogger(RedisInputStream$Ctor.class);
 
     @Override
     public void onConstruct(AopContext aopContext) {

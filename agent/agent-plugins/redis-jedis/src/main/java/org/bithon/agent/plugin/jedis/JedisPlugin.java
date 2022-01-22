@@ -98,14 +98,14 @@ public class JedisPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.OutputStream")))
-                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisOutputStream$FlushBuffer")
+                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisOutputStream$Ctor")
                 ),
 
             forClass("redis.clients.jedis.util.RedisOutputStream")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.OutputStream")))
-                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisOutputStream$FlushBuffer")
+                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisOutputStream$Ctor")
                 ),
 
             //2.9.x
@@ -113,7 +113,7 @@ public class JedisPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.InputStream")))
-                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisInputStream$EnsureFill")
+                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisInputStream$Ctor")
                 ),
 
             //3.x
@@ -121,7 +121,7 @@ public class JedisPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.InputStream")))
-                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisInputStream$EnsureFill")
+                                                   .to("org.bithon.agent.plugin.jedis.interceptor.RedisInputStream$Ctor")
                 )
         );
     }
