@@ -16,8 +16,6 @@
 
 package org.bithon.agent.plugin.bithon.sdk.interceptor;
 
-import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMeasurement;
 import org.bithon.agent.core.metric.collector.IMetricCollector2;
@@ -53,7 +51,7 @@ import java.util.stream.Collectors;
  */
 public class MetricsRegistryDelegate implements IMetricCollector2 {
 
-    private static final ILogAdaptor log = LoggerFactory.getLogger(MetricsRegistryDelegate.class);
+    private static final ILogAdaptor LOG = LoggerFactory.getLogger(MetricsRegistryDelegate.class);
     private final Supplier<Object> metricInstantiator;
     private final Schema schema;
     /**
@@ -114,18 +112,12 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
     }
 
     public Object getOrCreateMetric(boolean retained, String... dimensions) {
-        AppInstance appInstance = AgentContext.getInstance().getAppInstance();
 
-        String[] newDimensions = new String[dimensions.length + 2];
-        newDimensions[0] = appInstance.getQualifiedAppName();
-        newDimensions[1] = appInstance.getHostAndPort();
-        System.arraycopy(dimensions, 0, newDimensions, 2, dimensions.length);
-
-        if (newDimensions.length != schema.getDimensionsSpec().size()) {
+        if (dimensions.length != schema.getDimensionsSpec().size()) {
             throw new RuntimeException("dimensions not matched. Expected dimensions: " + schema.getDimensionsSpec());
         }
 
-        List<String> dimensionList = Arrays.asList(newDimensions);
+        List<String> dimensionList = Arrays.asList(dimensions);
 
         //noinspection rawtypes
         Map map = retained ? retainedMetricsMap : metricsMap;
@@ -156,15 +148,6 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
         return messageConverter.from(this.schema, metricMap.values(), timestamp, interval);
     }
 
-    static class NullMetricValueProvider implements IMetricValueProvider {
-        static NullMetricValueProvider INSTANCE = new NullMetricValueProvider();
-
-        @Override
-        public long value() {
-            return 0;
-        }
-    }
-
     static class Measurement implements IMeasurement {
         private final List<String> dimensions;
         private final Object metricProvider;
@@ -192,21 +175,21 @@ public class MetricsRegistryDelegate implements IMetricCollector2 {
 
         @Override
         public long getMetricValue(int index) {
-            if (index < this.metricFields.size()) {
-
-                Field field = this.metricFields.get(index);
-                try {
-                    IMetricValueProvider provider = (IMetricValueProvider) this.metricFields.get(index).get(metricProvider);
-                    return provider.value();
-                } catch (IllegalAccessException e) {
-                    log.error("Can't get value of [{}] on class [{}]: {}",
-                              field.getName(),
-                              metricProvider.getClass().getName(),
-                              e.getMessage());
-                    return Long.MAX_VALUE;
-                }
+            if (index >= this.metricFields.size()) {
+                return Long.MAX_VALUE;
             }
-            return Long.MAX_VALUE;
+
+            Field field = this.metricFields.get(index);
+            try {
+                IMetricValueProvider provider = (IMetricValueProvider) this.metricFields.get(index).get(metricProvider);
+                return provider.value();
+            } catch (IllegalAccessException e) {
+                LOG.error("Can't get value of [{}] on class [{}]: {}",
+                          field.getName(),
+                          metricProvider.getClass().getName(),
+                          e.getMessage());
+                return Long.MAX_VALUE;
+            }
         }
     }
 }
