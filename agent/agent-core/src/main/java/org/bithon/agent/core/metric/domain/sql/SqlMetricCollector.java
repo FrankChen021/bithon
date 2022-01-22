@@ -16,14 +16,14 @@
 
 package org.bithon.agent.core.metric.domain.sql;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector2;
+import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
 
 import java.util.Collections;
 
 /**
  * @author frankchen
  */
-public class SqlMetricCollector extends IntervalMetricCollector2<SQLMetrics> {
+public class SqlMetricCollector extends IntervalMetricCollector<SQLMetrics> {
 
     protected SqlMetricCollector(String name,
                                  Class<SQLMetrics> metricClass) {

@@ -38,7 +38,7 @@ import java.util.function.Supplier;
  * @author frank.chen021@outlook.com
  * @date 2021/11/06 2:37 下午
  */
-public abstract class IntervalMetricCollector2<T extends ICompositeMetric> implements IMetricCollector2 {
+public abstract class IntervalMetricCollector<T extends ICompositeMetric> implements IMetricCollector2 {
 
     class Measurement implements IMeasurement {
         private final List<String> dimensions;
@@ -69,7 +69,7 @@ public abstract class IntervalMetricCollector2<T extends ICompositeMetric> imple
     private Map<List<String>, IMeasurement> metricsMap = new ConcurrentHashMap<>();
     private final Supplier<T> supplier;
 
-    protected IntervalMetricCollector2(String name, List<String> dimensionSpec, Class<T> metricClass, Supplier<T> newMetricSupplier) {
+    protected IntervalMetricCollector(String name, List<String> dimensionSpec, Class<T> metricClass, Supplier<T> newMetricSupplier) {
         List<String> metricsSpec = new ArrayList<>();
         for (Field field : metricClass.getDeclaredFields()) {
             //noinspection rawtypes

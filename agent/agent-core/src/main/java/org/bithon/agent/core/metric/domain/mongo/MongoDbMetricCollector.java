@@ -16,14 +16,14 @@
 
 package org.bithon.agent.core.metric.domain.mongo;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector2;
+import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
 
 import java.util.Arrays;
 
 /**
  * @author frankchen
  */
-public class MongoDbMetricCollector extends IntervalMetricCollector2<MongoDbMetrics> {
+public class MongoDbMetricCollector extends IntervalMetricCollector<MongoDbMetrics> {
 
     protected MongoDbMetricCollector(String name,
                                      Class<MongoDbMetrics> metricClass) {

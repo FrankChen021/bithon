@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.metric.domain.http;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector2;
+import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
 
 import java.util.Arrays;
 
@@ -25,7 +25,7 @@ import java.util.Arrays;
  *
  * @author frankchen
  */
-public class HttpOutgoingMetricsCollector extends IntervalMetricCollector2<HttpOutgoingMetrics> {
+public class HttpOutgoingMetricsCollector extends IntervalMetricCollector<HttpOutgoingMetrics> {
 
     public HttpOutgoingMetricsCollector() {
         super("http-outgoing-metrics",

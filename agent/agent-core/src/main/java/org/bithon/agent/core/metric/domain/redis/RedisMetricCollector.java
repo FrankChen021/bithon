@@ -16,14 +16,14 @@
 
 package org.bithon.agent.core.metric.domain.redis;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector2;
+import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
 
 import java.util.Arrays;
 
 /**
  * @author frankchen
  */
-public class RedisMetricCollector extends IntervalMetricCollector2<RedisClientMetrics> {
+public class RedisMetricCollector extends IntervalMetricCollector<RedisClientMetrics> {
 
     public RedisMetricCollector() {
         super("redis-metrics", Arrays.asList("uri", "command"), RedisClientMetrics.class, RedisClientMetrics::new);
