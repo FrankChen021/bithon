@@ -30,8 +30,6 @@ import org.bithon.agent.core.aop.AopClassHelper;
 import org.bithon.agent.core.aop.AopDebugger;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
-import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
-import org.bithon.agent.core.utils.CollectionUtils;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
@@ -231,11 +229,9 @@ public class InterceptorInstaller {
         //
         // Run checkers first to see if an interceptor can be installed
         //
-        if (CollectionUtils.isNotEmpty(mp.getPreconditions())) {
-            for (IInterceptorPrecondition condition : mp.getPreconditions()) {
-                if (!condition.canInstall(mp.getPlugin(), classLoader, typeDescription)) {
-                    return builder;
-                }
+        if (mp.getPrecondition() != null) {
+            if (!mp.getPrecondition().canInstall(mp.getPlugin(), classLoader, typeDescription)) {
+                return builder;
             }
         }
 

@@ -22,7 +22,6 @@ import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.plugin.IPlugin;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -34,10 +33,8 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.takesArguments;
 public class MongoDb38Plugin implements IPlugin {
 
     @Override
-    public List<IInterceptorPrecondition> getPreconditions() {
-        return Collections.singletonList(
-            IInterceptorPrecondition.hasClass("com.mongodb.internal.connection.DefaultServerConnection")
-        );
+    public IInterceptorPrecondition getPreconditions() {
+        return IInterceptorPrecondition.hasClass("com.mongodb.internal.connection.DefaultServerConnection");
     }
 
     @Override

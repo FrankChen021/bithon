@@ -24,7 +24,6 @@ import org.bithon.agent.core.plugin.IPlugin;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -35,9 +34,9 @@ import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.
 public class JedisPlugin implements IPlugin {
 
     @Override
-    public List<IInterceptorPrecondition> getPreconditions() {
+    public IInterceptorPrecondition getPreconditions() {
         // < 4.0
-        return Collections.singletonList(IInterceptorPrecondition.hasClass("redis.clients.jedis.Client"));
+        return IInterceptorPrecondition.hasClass("redis.clients.jedis.Client");
     }
 
     @Override
