@@ -194,24 +194,12 @@ public class InterceptorInstaller {
             .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(nameStartsWith("shaded.").or(isSynthetic())))
             .type(new NameMatcher<>(new StringSetMatcher(types)))
             .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule) -> {
-
                 String type = typeDescription.getTypeName();
                 Descriptors.Descriptor descriptor = descriptors.get(type);
                 if (descriptor == null) {
                     // this must be something wrong
                     log.error("Error to transform [{}] for the descriptor is not found", type);
                     return builder;
-                }
-
-                //
-                // Run checkers first to see if an interceptor can be installed
-                //
-                if (CollectionUtils.isNotEmpty(descriptor.getPreconditions())) {
-                    for (IInterceptorPrecondition condition : descriptor.getPreconditions()) {
-                        if (!condition.canInstall(descriptor.getPlugin(), classLoader, typeDescription)) {
-                            return builder;
-                        }
-                    }
                 }
 
                 //
@@ -224,22 +212,48 @@ public class InterceptorInstaller {
                 }
 
                 //
-                // Install interceptor
+                // install interceptor
                 //
-                for (MethodPointCutDescriptor pointCut : descriptor.getMethodInterceptors()) {
-                    log.info("Install interceptor [{}#{}] to [{}#{}]",
-                             descriptor.getPlugin(),
-                             getSimpleClassName(pointCut.getInterceptor()),
-                             getSimpleClassName(typeDescription.getName()),
-                             pointCut);
-                    if (descriptor.isBootstrapClass()) {
-                        builder = installBootstrapInterceptor(typeDescription, builder, pointCut.getInterceptor(), pointCut);
-                    } else {
-                        builder = installInterceptor(builder, descriptor.getPlugin(), pointCut.getInterceptor(), classLoader, pointCut);
-                    }
+                for (Descriptors.MethodPointCuts mp : descriptor.getMethodPointCuts()) {
+                    builder = installInterceptor(mp, builder, typeDescription, classLoader);
                 }
+
                 return builder;
             })
             .with(new AopDebugger(types)).installOn(inst);
+    }
+
+    private DynamicType.Builder<?> installInterceptor(Descriptors.MethodPointCuts mp,
+                                                      DynamicType.Builder<?> builder,
+                                                      TypeDescription typeDescription,
+                                                      ClassLoader classLoader) {
+
+        //
+        // Run checkers first to see if an interceptor can be installed
+        //
+        if (CollectionUtils.isNotEmpty(mp.getPreconditions())) {
+            for (IInterceptorPrecondition condition : mp.getPreconditions()) {
+                if (!condition.canInstall(mp.getPlugin(), classLoader, typeDescription)) {
+                    return builder;
+                }
+            }
+        }
+
+        //
+        // Install interceptor
+        //
+        for (MethodPointCutDescriptor pointCut : mp.getMethodInterceptors()) {
+            log.info("Install interceptor [{}#{}] to [{}#{}]",
+                     mp.getPlugin(),
+                     getSimpleClassName(pointCut.getInterceptor()),
+                     getSimpleClassName(typeDescription.getName()),
+                     pointCut);
+            if (classLoader == null) {
+                builder = installBootstrapInterceptor(typeDescription, builder, pointCut.getInterceptor(), pointCut);
+            } else {
+                builder = installInterceptor(builder, mp.getPlugin(), pointCut.getInterceptor(), classLoader, pointCut);
+            }
+        }
+        return builder;
     }
 }
