@@ -22,7 +22,6 @@ import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.plugin.IPlugin;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -69,13 +68,12 @@ public class MySqlPlugin implements IPlugin {
     };
 
     @Override
-    public List<IInterceptorPrecondition> getPreconditions() {
-        return Collections.singletonList(or(
+    public IInterceptorPrecondition getPreconditions() {
+        return or(
             // mysql 5
-            hasClass("org.gjt.mm.mysql.Driver", true),
+            hasClass("org.gjt.mm.mysql.Driver"),
             // mysql 6
-            hasClass("com.mysql.cj.x.package-info", true)
-                                         )
+            hasClass("com.mysql.cj.x.package-info")
         );
     }
 

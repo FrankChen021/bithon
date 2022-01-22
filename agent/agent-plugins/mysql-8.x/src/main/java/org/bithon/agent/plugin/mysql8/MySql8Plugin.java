@@ -22,7 +22,6 @@ import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.plugin.IPlugin;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -38,10 +37,8 @@ public class MySql8Plugin implements IPlugin {
     static final String METHOD_SEND_COMMAND = "sendCommand";
 
     @Override
-    public List<IInterceptorPrecondition> getPreconditions() {
-        return Collections.singletonList(
-            IInterceptorPrecondition.hasClass("com.mysql.cj.interceptors.QueryInterceptor", true)
-        );
+    public IInterceptorPrecondition getPreconditions() {
+        return IInterceptorPrecondition.hasClass("com.mysql.cj.interceptors.QueryInterceptor");
     }
 
     @Override

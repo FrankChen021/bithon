@@ -76,7 +76,7 @@ public class PluginInterceptorInstaller {
         for (IPlugin plugin : plugins) {
             String pluginName = plugin.getClass().getSimpleName();
 
-            descriptors.merge(pluginName, plugin.getBithonClassDescriptor());
+            descriptors.merge(plugin.getBithonClassDescriptor());
 
             descriptors.merge(pluginName, plugin.getPreconditions(), plugin.getInterceptors());
         }

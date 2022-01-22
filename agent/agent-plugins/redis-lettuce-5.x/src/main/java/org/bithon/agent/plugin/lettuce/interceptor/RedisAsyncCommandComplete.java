@@ -55,10 +55,10 @@ public class RedisAsyncCommandComplete extends AbstractInterceptor {
 
             //TODO: read/write
             //TODO: bytes
-            this.metricProvider.addWrite(asyncContext.getEndpoint(),
-                                         asyncCommand.getType().name(),
-                                         System.nanoTime() - (long) asyncContext.getStartTime(),
-                                         fail);
+            this.metricProvider.getOrCreateMetrics(asyncContext.getEndpoint(),
+                                                   asyncCommand.getType().name())
+                               .addRequest(System.nanoTime() - asyncContext.getStartTime(),
+                                           fail ? 1 : 0);
         }
     }
 }

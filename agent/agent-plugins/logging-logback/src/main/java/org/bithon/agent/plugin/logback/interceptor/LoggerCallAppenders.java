@@ -26,6 +26,9 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.event.EventMessage;
+import org.bithon.agent.core.tracing.context.ITraceContext;
+import org.bithon.agent.core.tracing.context.TraceContextHolder;
+import org.bithon.agent.core.tracing.propagation.TraceMode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,14 +49,6 @@ public class LoggerCallAppenders extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        aopContext.setUserContext(exception);
-        return InterceptionDecision.CONTINUE;
-    }
-
-    @Override
-    public void onMethodLeave(AopContext aopContext) {
-        IThrowableProxy exception = aopContext.castUserContextAs();
-
         StringBuilder stackElements = new StringBuilder();
         for (StackTraceElementProxy p : exception.getStackTraceElementProxyArray()) {
             stackElements.append(p.getSTEAsString());
@@ -64,8 +59,16 @@ public class LoggerCallAppenders extends AbstractInterceptor {
         exceptionArgs.put("exceptionClass", exception.getClassName());
         exceptionArgs.put("message", exception.getMessage() == null ? "" : exception.getMessage());
         exceptionArgs.put("stack", stackElements.toString());
+        exceptionArgs.put("thread", Thread.currentThread().getName());
+        ITraceContext traceContext = TraceContextHolder.current();
+        if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACE)) {
+            exceptionArgs.put("traceId", traceContext.traceId());
+        }
+
         EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
         Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
         dispatcher.sendMessage(dispatcher.getMessageConverter().from(exceptionEvent));
+
+        return InterceptionDecision.SKIP_LEAVE;
     }
 }

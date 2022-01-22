@@ -5,11 +5,32 @@
       "dataSource": "redis-metrics",
       "title": "Commands",
       "width": 4,
+      "yAxis": [
+        {
+        },
+        {
+          "format": "compact_number"
+        }
+      ],
       "metrics": [
         {
-          "name": "totalCount"
+          "name": "qps"
+        },
+        {
+          "name": "totalCount",
+          "yAxis": 1
         }
-      ]
+      ],
+      "details": {
+        "groupBy": [
+          "uri",
+          "command"
+        ],
+        "metrics": [
+          "qps",
+          "totalCount"
+        ]
+      }
     },
     {
       "dataSource": "redis-metrics",
@@ -21,15 +42,6 @@
         }
       ],
       "metrics": [
-        {
-          "name": "minRequestTime"
-        },
-        {
-          "name": "avgRequestTime"
-        },
-        {
-          "name": "maxRequestTime"
-        },
         {
           "name": "minResponseTime"
         },

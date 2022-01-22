@@ -54,9 +54,6 @@ public interface IMetricCollector {
     void sendJdbc(BrpcMessageHeader header, List<BrpcJdbcPoolMetricMessage> messages);
 
     @BrpcMethod(isOneway = true)
-    void sendRedis(BrpcMessageHeader header, List<BrpcRedisMetricMessage> messages);
-
-    @BrpcMethod(isOneway = true)
     void sendSql(BrpcMessageHeader header, List<BrpcSqlMetricMessage> messages);
 
     @BrpcMethod(isOneway = true)

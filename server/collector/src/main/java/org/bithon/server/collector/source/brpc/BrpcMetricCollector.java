@@ -29,7 +29,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcMongoDbMetricMessage;
-import org.bithon.agent.rpc.brpc.metrics.BrpcRedisMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
@@ -142,15 +141,6 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         }
 
         metricSink.process("jdbc-pool-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
-    }
-
-    @Override
-    public void sendRedis(BrpcMessageHeader header, List<BrpcRedisMetricMessage> messages) {
-        if (CollectionUtils.isEmpty(messages)) {
-            return;
-        }
-
-        metricSink.process("redis-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override

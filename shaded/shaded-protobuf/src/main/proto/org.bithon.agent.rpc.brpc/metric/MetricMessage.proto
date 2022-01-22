@@ -205,26 +205,6 @@ message BrpcSqlMetricMessage {
     int64 updateCount            =  10;
 }
 
-/***************************************************************************/
-/*******************************  Redis          ***************************/
-/***************************************************************************/
-message BrpcRedisMetricMessage {
-    int64 timestamp             = 1;
-    string uri                = 2;
-    string command            = 3;
-    int32 interval              = 4;
-    int64 exceptionCount        = 5;
-    int64 totalCount            = 6;
-    int64 minRequestTime        = 7;
-    int64 requestTime           = 8;
-    int64 maxRequestTime        = 9;
-    int64 minResponseTime       = 10;
-    int64 responseTime          = 11;
-    int64 maxResponseTime       = 12;
-    int64 requestBytes          = 13;
-    int64 responseBytes         = 14;
-}
-
 /**************************************************************************/
 /*******************************  MongoDb       ***************************/
 /**************************************************************************/

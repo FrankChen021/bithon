@@ -42,24 +42,6 @@
     },
     {
       "type": "longMin",
-      "name": "minRequestTime",
-      "displayText": "Min Request Time",
-      "unit": "nanosecond"
-    },
-    {
-      "type": "longSum",
-      "name": "requestTime",
-      "displayText": "Request Time",
-      "unit": "nanosecond"
-    },
-    {
-      "type": "longMax",
-      "name": "maxRequestTime",
-      "displayText": "Max Request Time",
-      "unit": "nanosecond"
-    },
-    {
-      "type": "longMin",
       "name": "minResponseTime",
       "displayText": "Min Response Time",
       "unit": "nanosecond"
@@ -82,6 +64,14 @@
       "expression": "requestTime/totalCount",
       "displayText": "AVG Request Time",
       "unit": "nanosecond",
+      "valueType": "double"
+    },
+    {
+      "type": "post",
+      "name": "qps",
+      "expression": "totalCount/{interval}",
+      "displayText": "QPS",
+      "unit": "",
       "valueType": "double"
     },
     {
