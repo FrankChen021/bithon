@@ -24,6 +24,9 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.event.EventMessage;
+import org.bithon.agent.core.tracing.context.ITraceContext;
+import org.bithon.agent.core.tracing.context.TraceContextHolder;
+import org.bithon.agent.core.tracing.propagation.TraceMode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,21 +39,24 @@ public class LoggerLogMessage extends AbstractInterceptor {
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         Level logLevel = (Level) aopContext.getArgs()[1];
-        Throwable e = (Throwable) aopContext.getArgs()[4];
-        return e != null && StandardLevel.ERROR.equals(logLevel.getStandardLevel()) ?
-               InterceptionDecision.CONTINUE : InterceptionDecision.SKIP_LEAVE;
-    }
-
-    @Override
-    public void onMethodLeave(AopContext aopContext) {
         Throwable exception = (Throwable) aopContext.getArgs()[4];
+        if (exception == null || !StandardLevel.ERROR.equals(logLevel.getStandardLevel())) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
         Map<String, Object> exceptionArgs = new HashMap<>();
         exceptionArgs.put("exceptionClass", exception.getClass().getName());
         exceptionArgs.put("message", exception.getMessage() == null ? "" : exception.getMessage());
         exceptionArgs.put("stack", exception.toString());
+        exceptionArgs.put("thread", Thread.currentThread().getName());
+        ITraceContext traceContext = TraceContextHolder.current();
+        if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACE)) {
+            exceptionArgs.put("traceId", traceContext.traceId());
+        }
         EventMessage exceptionEvent = new EventMessage("exception", exceptionArgs);
         Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
         dispatcher.sendMessage(dispatcher.getMessageConverter().from(exceptionEvent));
+
+        return InterceptionDecision.SKIP_LEAVE;
     }
 }
