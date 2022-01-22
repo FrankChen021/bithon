@@ -28,14 +28,7 @@ public interface IInterceptorPrecondition {
      * Helper method
      */
     static IInterceptorPrecondition hasClass(String className) {
-        return new HasClassPrecondition(className, false);
-    }
-
-    /**
-     * Helper method
-     */
-    static IInterceptorPrecondition hasClass(String className, boolean debugging) {
-        return new HasClassPrecondition(className, debugging);
+        return new HasClassPrecondition(className);
     }
 
     static IInterceptorPrecondition or(IInterceptorPrecondition... conditions) {

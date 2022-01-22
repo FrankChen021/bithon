@@ -36,7 +36,8 @@ public class JedisPlugin implements IPlugin {
 
     @Override
     public List<IInterceptorPrecondition> getPreconditions() {
-        return Collections.singletonList(IInterceptorPrecondition.hasClass("redis.clients.jedis.JedisCommands"));
+        // < 4.0
+        return Collections.singletonList(IInterceptorPrecondition.hasClass("redis.clients.jedis.Client"));
     }
 
     @Override
@@ -47,14 +48,48 @@ public class JedisPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(ElementMatchers.isPublic()
+                                                                            .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()))
                                                                             .and(ElementMatchers.isOverriddenFrom(ElementMatchers.namedOneOf(
+                                                                                // 2.9
                                                                                 "redis.clients.jedis.JedisCommands",
                                                                                 "redis.clients.jedis.MultiKeyCommands",
                                                                                 "redis.clients.jedis.AdvancedJedisCommands",
                                                                                 "redis.clients.jedis.ScriptingCommands",
                                                                                 "redis.clients.jedis.BasicCommands",
                                                                                 "redis.clients.jedis.ClusterCommands",
-                                                                                "redis.clients.jedis.SentinelCommands"
+                                                                                "redis.clients.jedis.SentinelCommands",
+
+                                                                                // 3.0
+                                                                                "redis.clients.jedis.commands.JedisCommands",
+                                                                                "redis.clients.jedis.commands.MultiKeyCommands",
+                                                                                "redis.clients.jedis.commands.AdvancedJedisCommands",
+                                                                                "redis.clients.jedis.commands.ScriptingCommands",
+                                                                                "redis.clients.jedis.commands.BasicCommands",
+                                                                                "redis.clients.jedis.commands.ClusterCommands",
+                                                                                "redis.clients.jedis.commands.SentinelCommands",
+                                                                                "redis.clients.jedis.commands.ModuleCommands",
+
+                                                                                // 4.0
+                                                                                "redis.clients.jedis.commands.ServerCommands",
+                                                                                "redis.clients.jedis.commands.DatabaseCommands",
+                                                                                "redis.clients.jedis.commands.KeyCommands",
+                                                                                "redis.clients.jedis.commands.StringCommands",
+                                                                                "redis.clients.jedis.commands.ListCommands",
+                                                                                "redis.clients.jedis.commands.HashCommands",
+                                                                                "redis.clients.jedis.commands.SetCommands",
+                                                                                "redis.clients.jedis.commands.SortedSetCommands",
+                                                                                "redis.clients.jedis.commands.GeoCommands",
+                                                                                "redis.clients.jedis.commands.HyperLogLogCommands",
+                                                                                "redis.clients.jedis.commands.StreamCommands",
+                                                                                "redis.clients.jedis.commands.ControlCommands",
+                                                                                "redis.clients.jedis.commands.ControlBinaryCommands",
+                                                                                "redis.clients.jedis.commands.ClusterCommands",
+                                                                                "redis.clients.jedis.commands.ModuleCommands",
+                                                                                "redis.clients.jedis.commands.GenericControlCommands",
+                                                                                "redis.clients.jedis.commands.ConfigCommands",
+                                                                                "redis.clients.jedis.commands.ScriptingControlCommands",
+                                                                                "redis.clients.jedis.commands.SlowlogCommands",
+                                                                                "redis.clients.jedis.commands.ScriptingKeyCommands"
                                                                             ))))
                                                    .to("org.bithon.agent.plugin.jedis.interceptor.OnCommand")
                 ),
@@ -69,7 +104,7 @@ public class JedisPlugin implements IPlugin {
             forClass("redis.clients.jedis.util.RedisOutputStream")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("flushBuffer")
+                                                   .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.OutputStream")))
                                                    .to("org.bithon.agent.plugin.jedis.interceptor.RedisOutputStream$FlushBuffer")
                 ),
 
@@ -85,7 +120,7 @@ public class JedisPlugin implements IPlugin {
             forClass("redis.clients.jedis.util.RedisInputStream")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onMethodAndNoArgs("ensureFill")
+                                                   .onConstructor(Matchers.takesArguments(2).and(Matchers.takesFirstArgument("java.io.InputStream")))
                                                    .to("org.bithon.agent.plugin.jedis.interceptor.RedisInputStream$EnsureFill")
                 )
         );

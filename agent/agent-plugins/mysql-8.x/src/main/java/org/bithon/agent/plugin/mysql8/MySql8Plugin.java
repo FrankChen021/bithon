@@ -40,7 +40,7 @@ public class MySql8Plugin implements IPlugin {
     @Override
     public List<IInterceptorPrecondition> getPreconditions() {
         return Collections.singletonList(
-            IInterceptorPrecondition.hasClass("com.mysql.cj.interceptors.QueryInterceptor", true)
+            IInterceptorPrecondition.hasClass("com.mysql.cj.interceptors.QueryInterceptor")
         );
     }
 

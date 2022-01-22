@@ -26,11 +26,9 @@ import shaded.net.bytebuddy.description.type.TypeDescription;
 class HasClassPrecondition implements IInterceptorPrecondition {
 
     private final String className;
-    private final boolean debugging;
 
-    public HasClassPrecondition(String className, boolean debugging) {
+    public HasClassPrecondition(String className) {
         this.className = className;
-        this.debugging = debugging;
     }
 
     @Override
@@ -38,9 +36,9 @@ class HasClassPrecondition implements IInterceptorPrecondition {
                               ClassLoader classLoader,
                               TypeDescription typeDescription) {
         boolean resolved = TypeResolver.getInstance().isResolved(classLoader, this.className);
-        if (!resolved && this.debugging) {
+        if (!resolved) {
             LoggerFactory.getLogger(HasClassPrecondition.class)
-                         .info("Required class [{}] not found to install interceptor for [{}] in [{}]",
+                         .warn("Required class [{}] not found to install interceptor for [{}] in [{}]",
                                this.className,
                                typeDescription.getName(),
                                providerName);

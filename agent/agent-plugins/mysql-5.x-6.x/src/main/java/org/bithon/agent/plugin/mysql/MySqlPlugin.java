@@ -72,9 +72,9 @@ public class MySqlPlugin implements IPlugin {
     public List<IInterceptorPrecondition> getPreconditions() {
         return Collections.singletonList(or(
             // mysql 5
-            hasClass("org.gjt.mm.mysql.Driver", true),
+            hasClass("org.gjt.mm.mysql.Driver"),
             // mysql 6
-            hasClass("com.mysql.cj.x.package-info", true)
+            hasClass("com.mysql.cj.x.package-info")
                                          )
         );
     }

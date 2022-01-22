@@ -56,13 +56,16 @@ public class RedisInputStream$EnsureFill extends AbstractInterceptor {
         @Override
         public int read(byte[] b) throws IOException {
             int size = super.read(b);
-            if (size > 0) {
-                try {
-                    JedisContext ctx = InterceptorContext.getAs("redis-command");
+            if (size <= 0) {
+                return size;
+            }
+            try {
+                JedisContext ctx = InterceptorContext.getAs("redis-command");
+                if (ctx != null) {
                     ctx.getMetrics().addResponseBytes(size);
-                } catch (Throwable ignored) {
-
                 }
+            } catch (Throwable ignored) {
+
             }
             return size;
         }

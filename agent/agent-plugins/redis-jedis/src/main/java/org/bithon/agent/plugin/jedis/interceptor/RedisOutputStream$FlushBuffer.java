@@ -59,7 +59,11 @@ public class RedisOutputStream$FlushBuffer extends AbstractInterceptor {
 
             try {
                 JedisContext ctx = InterceptorContext.getAs("redis-command");
-                ctx.getMetrics().addRequestBytes(len);
+                if (ctx != null) {
+                    ctx.getMetrics().addRequestBytes(len);
+                } else {
+                    log.warn("Redis command is not instrumented", new RuntimeException());
+                }
             } catch (Throwable ignored) {
             }
         }

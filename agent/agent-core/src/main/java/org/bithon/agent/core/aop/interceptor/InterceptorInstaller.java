@@ -208,7 +208,7 @@ public class InterceptorInstaller {
                 //
                 if (CollectionUtils.isNotEmpty(descriptor.getPreconditions())) {
                     for (IInterceptorPrecondition condition : descriptor.getPreconditions()) {
-                        if (!condition.canInstall("TODO: provider name", classLoader, typeDescription)) {
+                        if (!condition.canInstall(descriptor.getPlugin(), classLoader, typeDescription)) {
                             return builder;
                         }
                     }
