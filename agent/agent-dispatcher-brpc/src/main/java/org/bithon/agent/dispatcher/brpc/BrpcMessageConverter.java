@@ -19,11 +19,9 @@ package org.bithon.agent.dispatcher.brpc;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMeasurement;
-import org.bithon.agent.core.metric.domain.exception.ExceptionMetrics;
 import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
 import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetrics;
 import org.bithon.agent.core.metric.domain.redis.RedisClientMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
@@ -33,7 +31,6 @@ import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
-import org.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericDimensionSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurement;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
@@ -95,11 +92,6 @@ public class BrpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(long timestamp, int interval, List<String> dimensions, SQLMetrics metrics) {
-        return null;
-    }
-
-    @Override
-    public Object from(long timestamp, int interval, List<String> dimensions, MongoDbMetrics metrics) {
         return null;
     }
 
@@ -175,22 +167,6 @@ public class BrpcMessageConverter implements IMessageConverter {
                                      .setRequestBytes(metrics.getRequestBytes())
                                      .setResponseBytes(metrics.getResponseBytes())
                                      .build();
-    }
-
-    @Override
-    public Object from(long timestamp, int interval, ExceptionMetrics metrics) {
-        BrpcExceptionMetricMessage.Builder builder = BrpcExceptionMetricMessage.newBuilder()
-                                                                               .setTimestamp(timestamp)
-                                                                               .setInterval(interval);
-        if (metrics.getUri() != null) {
-            builder.setUri(metrics.getUri());
-        }
-        if (metrics.getMessage() != null) {
-            builder.setMessage(metrics.getMessage());
-        }
-        return builder.setExceptionCount(metrics.getCount())
-                      .setClassName(metrics.getExceptionClass())
-                      .build();
     }
 
     @Override

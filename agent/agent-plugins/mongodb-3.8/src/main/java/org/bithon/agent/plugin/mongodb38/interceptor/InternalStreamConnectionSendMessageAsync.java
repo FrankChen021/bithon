@@ -51,7 +51,8 @@ public class InternalStreamConnectionSendMessageAsync extends AbstractIntercepto
         ConnectionId connectionId = target.getDescription().getConnectionId();
         int bytesOut = MetricHelper.getMessageSize(byteBufList);
 
-        metricCollector.getOrCreateMetric(connectionId.getServerId().getAddress().toString())
+        metricCollector.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
+                                          "unknown")
                        .addBytesOut(bytesOut);
     }
 }

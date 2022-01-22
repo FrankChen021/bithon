@@ -46,11 +46,6 @@ public interface IMessageConverter {
 
     Object from(long timestamp, int interval, List<String> dimensions, SQLMetrics metrics);
 
-    Object from(long timestamp,
-                int interval,
-                List<String> dimensions,
-                MongoDbMetrics metrics);
-
     Object from(long timestamp, int interval, JvmMetrics metrics);
 
     Object from(long timestamp, int interval, WebServerMetrics metrics);
@@ -58,8 +53,6 @@ public interface IMessageConverter {
     Object from(long timestamp, int interval, SQLStatementMetrics metrics);
 
     Object from(long timestamp, int interval, List<String> dimensions, RedisClientMetrics metrics);
-
-    Object from(long timestamp, int interval, ExceptionMetrics metrics);
 
     Object from(long timestamp, int interval, ThreadPoolMetrics metrics);
 
