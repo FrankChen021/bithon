@@ -32,8 +32,8 @@ import java.lang.reflect.Field;
  * @author frankchen
  * @date Dec 27, 2020 11:14:08 PM
  */
-public class JedisOutputStreamFlushBuffer extends AbstractInterceptor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(JedisOutputStreamFlushBuffer.class);
+public class RedisOutputStream$FlushBuffer extends AbstractInterceptor {
+    private static final ILogAdaptor log = LoggerFactory.getLogger(RedisOutputStream$FlushBuffer.class);
 
     private Field countField;
     private RedisMetricCollector metricCollector;
@@ -48,7 +48,7 @@ public class JedisOutputStreamFlushBuffer extends AbstractInterceptor {
      * count property will be flushed after execution of flushBuffer
      * so calculate the bytes before execution of the function
      * <p>
-     * The endpoint is set in {@link JedisConnectionConnect} when OutputStream object is instantiated
+     * The endpoint is set in {@link Connection$Connect} when OutputStream object is instantiated
      */
     @Override
     public InterceptionDecision onMethodEnter(AopContext context) throws Exception {

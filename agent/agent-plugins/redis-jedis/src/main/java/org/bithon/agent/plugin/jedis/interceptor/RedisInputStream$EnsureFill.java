@@ -31,8 +31,8 @@ import java.lang.reflect.Field;
  * @author frankchen
  * @date Dec 26, 2020 12:11:14 PM
  */
-public class JedisInputStreamEnsureFill extends AbstractInterceptor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(JedisInputStreamEnsureFill.class);
+public class RedisInputStream$EnsureFill extends AbstractInterceptor {
+    private static final ILogAdaptor log = LoggerFactory.getLogger(RedisInputStream$EnsureFill.class);
 
     private Field countField = null;
     private Field limitField = null;
@@ -45,7 +45,7 @@ public class JedisInputStreamEnsureFill extends AbstractInterceptor {
     }
 
     /**
-     * The endpoint object returned by 'getInjectedObject' method is set in {@link JedisConnectionConnect}
+     * The endpoint object returned by 'getInjectedObject' method is set in {@link Connection$Connect}
      */
     @Override
     public void onMethodLeave(AopContext aopContext) {

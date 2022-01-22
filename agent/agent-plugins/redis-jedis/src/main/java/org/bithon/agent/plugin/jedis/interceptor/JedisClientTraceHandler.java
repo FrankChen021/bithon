@@ -23,11 +23,8 @@ import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
-import org.bithon.component.commons.logging.ILogAdaptor;
-import org.bithon.component.commons.logging.LoggerFactory;
 import redis.clients.jedis.Client;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,7 +32,6 @@ import java.util.Set;
  * @author frankchen
  */
 public class JedisClientTraceHandler extends AbstractInterceptor {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(JedisClientTraceHandler.class);
     //TODO: move the configuration
     private final Set<String> ignoreCommands = new HashSet<>();
 
@@ -74,31 +70,10 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         ITraceSpan span = aopContext.castUserContextAs();
-
-        String[] params = this.parseParams(aopContext.getArgs());
-        for (int i = 0; params != null && i < params.length; i++) {
-            span.tag("param" + (i + 1), params[i]);
-        }
         span.finish();
     }
 
     private boolean ignoreCommand(String command) {
         return this.ignoreCommands.contains(command);
-    }
-
-    private String[] parseParams(Object[] objects) {
-        String[] strs = null;
-        if (objects != null && objects.length >= 2 && objects[1] instanceof byte[][]) {
-            byte[][] byteArray = (byte[][]) objects[1];
-            strs = new String[byteArray.length];
-            for (int i = 0; i < byteArray.length; i++) {
-                try {
-                    strs[i] = new String(byteArray[i], StandardCharsets.UTF_8);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
-            }
-        }
-        return strs;
     }
 }

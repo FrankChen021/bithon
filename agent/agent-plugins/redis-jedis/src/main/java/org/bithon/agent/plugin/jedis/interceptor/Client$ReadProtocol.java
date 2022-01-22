@@ -24,9 +24,10 @@ import org.bithon.agent.core.metric.domain.redis.RedisMetricCollector;
 import redis.clients.jedis.Client;
 
 /**
+ * {@link  Client#readProtocolWithCheckingBroken()}
  * @author frankchen
  */
-public class JedisClientSendCommand extends AbstractInterceptor {
+public class Client$ReadProtocol extends AbstractInterceptor {
     private RedisMetricCollector metricCollector;
 
     @Override
@@ -38,13 +39,14 @@ public class JedisClientSendCommand extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         Client redisClient = aopContext.castTargetAs();
-        String hostAndPort = redisClient.getHost() + ":" + redisClient.getPort();
 
-        String command = aopContext.getArgs()[0].toString();
-        InterceptorContext.set("redis-command", command);
-        metricCollector.addWrite(hostAndPort,
-                                 command,
-                                 aopContext.getCostTime(),
-                                 aopContext.hasException());
+        //TODO: cache the name in Client object
+        String endpoint = redisClient.getHost() + ":" + redisClient.getPort();
+
+        String command = InterceptorContext.getAs("redis-command");
+        metricCollector.addRead(endpoint,
+                                command,
+                                aopContext.getCostTime(),
+                                aopContext.hasException());
     }
 }

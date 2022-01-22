@@ -28,7 +28,7 @@ import redis.clients.jedis.Connection;
 /**
  * @author frankchen
  */
-public class JedisConnectionConnect extends AbstractInterceptor {
+public class Connection$Connect extends AbstractInterceptor {
     private RedisMetricCollector metricCollector;
 
     @Override
@@ -38,7 +38,7 @@ public class JedisConnectionConnect extends AbstractInterceptor {
     }
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
         Connection connection = aopContext.castTargetAs();
         return connection.isConnected() ? InterceptionDecision.SKIP_LEAVE : InterceptionDecision.CONTINUE;
     }

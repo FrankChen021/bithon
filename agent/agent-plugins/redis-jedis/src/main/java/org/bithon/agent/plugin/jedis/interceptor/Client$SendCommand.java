@@ -26,7 +26,7 @@ import redis.clients.jedis.Client;
 /**
  * @author frankchen
  */
-public class JedisClientReadProtocol extends AbstractInterceptor {
+public class Client$SendCommand extends AbstractInterceptor {
     private RedisMetricCollector metricCollector;
 
     @Override
@@ -38,14 +38,13 @@ public class JedisClientReadProtocol extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         Client redisClient = aopContext.castTargetAs();
+        String hostAndPort = redisClient.getHost() + ":" + redisClient.getPort();
 
-        //TODO: cache the name in Client object
-        String endpoint = redisClient.getHost() + ":" + redisClient.getPort();
-
-        String command = InterceptorContext.getAs("redis-command");
-        metricCollector.addRead(endpoint,
-                                command,
-                                aopContext.getCostTime(),
-                                aopContext.hasException());
+        String command = aopContext.getArgs()[0].toString();
+        InterceptorContext.set("redis-command", command);
+        metricCollector.addWrite(hostAndPort,
+                                 command,
+                                 aopContext.getCostTime(),
+                                 aopContext.hasException());
     }
 }
