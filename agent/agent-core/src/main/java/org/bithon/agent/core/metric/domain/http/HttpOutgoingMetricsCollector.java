@@ -30,17 +30,10 @@ public class HttpOutgoingMetricsCollector extends IntervalMetricCollector2<HttpO
     public HttpOutgoingMetricsCollector() {
         super("http-outgoing-metrics",
               Arrays.asList("path", "method", "statusCode"),
-              HttpOutgoingMetrics.class);
+              HttpOutgoingMetrics.class,
+              HttpOutgoingMetrics::new);
     }
 
-    @Override
-    protected HttpOutgoingMetrics newMetrics() {
-        return new HttpOutgoingMetrics();
-    }
-
-    /**
-     * @param responseTime in nano-time
-     */
     public void addExceptionRequest(String uri,
                                     String method,
                                     long responseTime) {

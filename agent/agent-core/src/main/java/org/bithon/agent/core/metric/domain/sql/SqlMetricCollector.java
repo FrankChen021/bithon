@@ -16,27 +16,18 @@
 
 package org.bithon.agent.core.metric.domain.sql;
 
-import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
+import org.bithon.agent.core.metric.collector.IntervalMetricCollector2;
 
-import java.util.List;
+import java.util.Collections;
 
 /**
  * @author frankchen
  */
-public class SqlMetricCollector extends IntervalMetricCollector<SQLMetrics> {
-    @Override
-    protected SQLMetrics newMetrics() {
-        return new SQLMetrics();
-    }
+public class SqlMetricCollector extends IntervalMetricCollector2<SQLMetrics> {
 
-    @Override
-    protected Object toMessage(IMessageConverter messageConverter,
-                               int interval,
-                               long timestamp,
-                               List<String> dimensions,
-                               SQLMetrics metric) {
-        return messageConverter.from(timestamp, interval, dimensions, metric);
+    protected SqlMetricCollector(String name,
+                                 Class<SQLMetrics> metricClass) {
+        super(name, Collections.singletonList("connectionString"), metricClass, SQLMetrics::new);
     }
 
     public SQLMetrics getOrCreateMetrics(String connectionString) {

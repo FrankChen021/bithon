@@ -16,6 +16,7 @@
 
 package org.bithon.agent.core.metric.collector;
 
+import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.model.ICompositeMetric;
 import org.bithon.agent.core.metric.model.Max;
@@ -29,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * This collector clear metrics after it collect metrics.
@@ -65,8 +67,9 @@ public abstract class IntervalMetricCollector2<T extends ICompositeMetric> imple
 
     private final Schema2 schema;
     private Map<List<String>, IMeasurement> metricsMap = new ConcurrentHashMap<>();
+    private final Supplier<T> supplier;
 
-    protected IntervalMetricCollector2(String name, List<String> dimensionSpec, Class<T> metricClass) {
+    protected IntervalMetricCollector2(String name, List<String> dimensionSpec, Class<T> metricClass, Supplier<T> newMetricSupplier) {
         List<String> metricsSpec = new ArrayList<>();
         for (Field field : metricClass.getDeclaredFields()) {
             //noinspection rawtypes
@@ -79,17 +82,18 @@ public abstract class IntervalMetricCollector2<T extends ICompositeMetric> imple
                 metricsSpec.add(field.getName());
             }
         }
-        schema = new Schema2(name, dimensionSpec, metricsSpec);
+        this.schema = new Schema2(name, dimensionSpec, metricsSpec);
+        this.supplier = newMetricSupplier;
     }
 
     @SuppressWarnings("unchecked")
     protected T getOrCreateMetrics(String... dimensionValues) {
         if (dimensionValues.length != this.schema.getDimensionsSpec().size()) {
-            // TODO: exception
+            throw new AgentException("required dimension size is {}, but input is {}", this.schema.getDimensionsSpec().size(), dimensionValues.length);
         }
         List<String> dimensions = Arrays.asList(dimensionValues);
-        Measurement metricSet = (Measurement) metricsMap.computeIfAbsent(dimensions, key -> new Measurement(dimensions, newMetrics()));
-        return (T) metricSet.metrics;
+        Measurement measurement = (Measurement) metricsMap.computeIfAbsent(dimensions, key -> new Measurement(dimensions, supplier.get()));
+        return (T) measurement.metrics;
     }
 
     @Override
@@ -105,6 +109,4 @@ public abstract class IntervalMetricCollector2<T extends ICompositeMetric> imple
 
         return messageConverter.from(schema, metrics.values(), timestamp, interval);
     }
-
-    protected abstract T newMetrics();
 }

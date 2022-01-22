@@ -29,15 +29,11 @@ public class HttpIncomingMetricsCollector extends IntervalMetricCollector2<HttpI
     public HttpIncomingMetricsCollector() {
         super("http-incoming-metrics",
               Arrays.asList("srcApplication", "uri", "statusCode"),
-              HttpIncomingMetrics.class);
+              HttpIncomingMetrics.class,
+              HttpIncomingMetrics::new);
     }
 
     public HttpIncomingMetrics getOrCreateMetrics(String srcApplication, String uri, int statusCode) {
         return super.getOrCreateMetrics(srcApplication == null ? "" : srcApplication, uri, String.valueOf(statusCode));
-    }
-
-    @Override
-    protected HttpIncomingMetrics newMetrics() {
-        return new HttpIncomingMetrics();
     }
 }

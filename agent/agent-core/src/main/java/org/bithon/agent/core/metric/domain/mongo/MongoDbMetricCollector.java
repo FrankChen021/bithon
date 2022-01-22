@@ -16,39 +16,21 @@
 
 package org.bithon.agent.core.metric.domain.mongo;
 
-import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
+import org.bithon.agent.core.metric.collector.IntervalMetricCollector2;
 
-import java.util.List;
+import java.util.Arrays;
 
 /**
  * @author frankchen
  */
-public class MongoDbMetricCollector extends IntervalMetricCollector<MongoDbMetrics> {
+public class MongoDbMetricCollector extends IntervalMetricCollector2<MongoDbMetrics> {
 
-    @Override
-    protected MongoDbMetrics newMetrics() {
-        return new MongoDbMetrics();
-    }
-
-    @Override
-    protected Object toMessage(IMessageConverter messageConverter,
-                               int interval,
-                               long timestamp,
-                               List<String> dimensions,
-                               MongoDbMetrics metric) {
-        return messageConverter.from(timestamp, interval, dimensions, metric);
+    protected MongoDbMetricCollector(String name,
+                                     Class<MongoDbMetrics> metricClass) {
+        super(name, Arrays.asList("server", "database"), metricClass, MongoDbMetrics::new);
     }
 
     public MongoDbMetrics getOrCreateMetric(String server, String database) {
         return super.getOrCreateMetrics(server, database);
-    }
-
-    /**
-     * a temp interafce to allow mongodb-3.8 plugin to compile OK
-     */
-    @Deprecated
-    public MongoDbMetrics getOrCreateMetric(String server) {
-        return super.getOrCreateMetrics(server);
     }
 }
