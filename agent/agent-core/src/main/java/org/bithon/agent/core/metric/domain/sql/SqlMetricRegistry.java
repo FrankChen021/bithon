@@ -16,18 +16,26 @@
 
 package org.bithon.agent.core.metric.domain.sql;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
+import org.bithon.agent.core.metric.collector.MetricRegistry;
+import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 
 import java.util.Collections;
 
 /**
  * @author frankchen
  */
-public class SqlMetricCollector extends IntervalMetricCollector<SQLMetrics> {
+public class SqlMetricRegistry extends MetricRegistry<SQLMetrics> {
 
-    protected SqlMetricCollector(String name,
-                                 Class<SQLMetrics> metricClass) {
-        super(name, Collections.singletonList("connectionString"), metricClass, SQLMetrics::new);
+    public static SqlMetricRegistry get() {
+        return MetricRegistryFactory.getOrCreateRegistry("sql-metrics", SqlMetricRegistry::new);
+    }
+
+    protected SqlMetricRegistry() {
+        super("sql-metrics",
+              Collections.singletonList("connectionString"),
+              SQLMetrics.class,
+              SQLMetrics::new,
+              true);
     }
 
     public SQLMetrics getOrCreateMetrics(String connectionString) {
