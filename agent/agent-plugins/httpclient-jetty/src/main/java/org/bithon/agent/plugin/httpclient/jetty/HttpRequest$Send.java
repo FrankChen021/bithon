@@ -19,8 +19,7 @@ package org.bithon.agent.plugin.httpclient.jetty;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
@@ -39,14 +38,7 @@ import java.nio.ByteBuffer;
  */
 public class HttpRequest$Send extends AbstractInterceptor {
 
-    private HttpOutgoingMetricsCollector metricCollector;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("httpClient-jetty", HttpOutgoingMetricsCollector.class);
-        return true;
-    }
+    private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     /**
      * {@link org.eclipse.jetty.client.HttpRequest#send(Response.CompleteListener)}
@@ -114,14 +106,14 @@ public class HttpRequest$Send extends AbstractInterceptor {
                 // metrics
                 //
                 if (result.isFailed()) {
-                    metricCollector.addExceptionRequest(result.getRequest().getURI().toString(),
-                                                        result.getRequest().getMethod(),
-                                                        System.nanoTime() - startAt);
+                    metricRegistry.addExceptionRequest(result.getRequest().getURI().toString(),
+                                                       result.getRequest().getMethod(),
+                                                       System.nanoTime() - startAt);
                 } else {
-                    metricCollector.addRequest(result.getRequest().getURI().toString(),
-                                               result.getRequest().getMethod(),
-                                               result.getResponse().getStatus(),
-                                               System.nanoTime() - startAt);
+                    metricRegistry.addRequest(result.getRequest().getURI().toString(),
+                                              result.getRequest().getMethod(),
+                                              result.getResponse().getStatus(),
+                                              System.nanoTime() - startAt);
                 }
 
                 //

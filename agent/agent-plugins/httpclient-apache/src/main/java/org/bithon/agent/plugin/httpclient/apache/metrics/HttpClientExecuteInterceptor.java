@@ -27,8 +27,7 @@ import org.apache.http.protocol.HttpContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -44,7 +43,7 @@ import java.util.Set;
 public class HttpClientExecuteInterceptor extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(HttpClientExecuteInterceptor.class);
     private static final Set<String> IGNORED_SUFFIXES = new HashSet<>();
-    private HttpOutgoingMetricsCollector metricCollector;
+    private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
     private boolean isNewVersion = true;
 
     public static boolean filter(String uri) {
@@ -54,9 +53,6 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
 
     @Override
     public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("apache-http-client", HttpOutgoingMetricsCollector.class);
-
         try {
             Class.forName("org.apache.http.impl.execchain.MinimalClientExec");
         } catch (ClassNotFoundException e) {
@@ -114,13 +110,13 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
             String requestMethod = httpRequest.getRequestLine().getMethod();
 
             if (hasException) {
-                metricCollector.addExceptionRequest(requestUri, requestMethod, costTime);
+                metricRegistry.addExceptionRequest(requestUri, requestMethod, costTime);
             } else {
                 HttpResponse httpResponse = aopContext.castReturningAs();
-                metricCollector.addRequest(requestUri,
-                                           requestMethod,
-                                           httpResponse.getStatusLine().getStatusCode(),
-                                           costTime);
+                metricRegistry.addRequest(requestUri,
+                                          requestMethod,
+                                          httpResponse.getStatusLine().getStatusCode(),
+                                          costTime);
 
                 HttpContext httpContext = (HttpContext) args[2];
                 if (httpContext != null && httpContext.getAttribute("http.connection") != null) {
@@ -129,7 +125,7 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
                     HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
                     long requestBytes = connectionMetrics.getSentBytesCount();
                     long responseBytes = connectionMetrics.getReceivedBytesCount();
-                    metricCollector.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
+                    metricRegistry.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
                 }
             }
         } else if (isNewVersion && targetObject instanceof RedirectExec) {
@@ -141,7 +137,7 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
             if (hasException) {
                 String requestUri = httpRequestWrapper.getRequestLine().getUri();
                 String requestMethod = httpRequestWrapper.getRequestLine().getMethod();
-                metricCollector.addExceptionRequest(requestUri, requestMethod, costTime);
+                metricRegistry.addExceptionRequest(requestUri, requestMethod, costTime);
             } else {
 
                 HttpContext httpContext = (HttpContext) args[2];
@@ -154,7 +150,7 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
                     HttpConnectionMetrics connectionMetrics = httpConnection.getMetrics();
                     long requestBytes = connectionMetrics.getSentBytesCount();
                     long responseBytes = connectionMetrics.getReceivedBytesCount();
-                    metricCollector.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
+                    metricRegistry.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
                 }
             }
         } else if (isNewVersion) {
@@ -166,12 +162,12 @@ public class HttpClientExecuteInterceptor extends AbstractInterceptor {
             String requestMethod = httpRequest.getRequestLine().getMethod();
 
             if (hasException) {
-                metricCollector.addExceptionRequest(requestUri, requestMethod, costTime);
+                metricRegistry.addExceptionRequest(requestUri, requestMethod, costTime);
             } else {
-                metricCollector.addRequest(requestUri,
-                                           requestMethod,
-                                           ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
-                                           costTime);
+                metricRegistry.addRequest(requestUri,
+                                          requestMethod,
+                                          ((HttpResponse) aopContext.getReturning()).getStatusLine().getStatusCode(),
+                                          costTime);
             }
         } else {
             log.warn("http client version not supported!");

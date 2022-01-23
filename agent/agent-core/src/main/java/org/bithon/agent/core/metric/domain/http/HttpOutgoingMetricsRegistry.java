@@ -16,7 +16,8 @@
 
 package org.bithon.agent.core.metric.domain.http;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
+import org.bithon.agent.core.metric.collector.MetricRegistry;
+import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 
 import java.util.Arrays;
 
@@ -25,13 +26,20 @@ import java.util.Arrays;
  *
  * @author frankchen
  */
-public class HttpOutgoingMetricsCollector extends IntervalMetricCollector<HttpOutgoingMetrics> {
+public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetrics> {
 
-    public HttpOutgoingMetricsCollector() {
-        super("http-outgoing-metrics",
+    public static final String NAME = "http-outgoing-metrics";
+
+    public HttpOutgoingMetricsRegistry() {
+        super(NAME,
               Arrays.asList("path", "method", "statusCode"),
               HttpOutgoingMetrics.class,
-              HttpOutgoingMetrics::new);
+              HttpOutgoingMetrics::new,
+              true);
+    }
+
+    public static HttpOutgoingMetricsRegistry get() {
+        return MetricRegistryFactory.getOrCreateRegistry(NAME, HttpOutgoingMetricsRegistry::new);
     }
 
     public void addExceptionRequest(String uri,

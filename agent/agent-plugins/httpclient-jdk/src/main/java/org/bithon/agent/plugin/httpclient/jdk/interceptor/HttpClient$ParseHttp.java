@@ -19,8 +19,7 @@ package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
@@ -33,15 +32,7 @@ import sun.net.www.protocol.http.HttpURLConnection;
  */
 public class HttpClient$ParseHttp extends AbstractInterceptor {
 
-    //TODO: jdk-http metrics
-    HttpOutgoingMetricsCollector metricCollector;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("jdk-httpclient", HttpOutgoingMetricsCollector.class);
-        return true;
-    }
+    private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
@@ -55,9 +46,9 @@ public class HttpClient$ParseHttp extends AbstractInterceptor {
         String requestUri = connection.getURL().toString();
         if (aopContext.hasException()) {
             // TODO: aopContext.getCostTime here only returns the execution time of HttpClient.parseHTTP
-            metricCollector.addExceptionRequest(requestUri, httpMethod, aopContext.getCostTime());
+            metricRegistry.addExceptionRequest(requestUri, httpMethod, aopContext.getCostTime());
         } else {
-            metricCollector.addRequest(requestUri, httpMethod, statusCode, aopContext.getCostTime());
+            metricRegistry.addRequest(requestUri, httpMethod, statusCode, aopContext.getCostTime());
         }
 
         ITraceContext traceContext = TraceContextHolder.current();

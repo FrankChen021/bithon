@@ -26,8 +26,7 @@ import okio.BufferedSource;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.core.utils.ReflectionUtils;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -45,21 +44,12 @@ import java.util.stream.Collectors;
 public class RealCall$GetResponseWithInterceptorChain extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(RealCall$GetResponseWithInterceptorChain.class);
 
-    private HttpOutgoingMetricsCollector metricCollector;
-    private Set<String> ignoredSuffixes;
+    private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
+    private final Set<String> ignoredSuffixes = Arrays.stream("html, js, css, jpg, gif, png, swf, ttf, ico, woff, woff2, json, eot, svg".split(
+                                                          ","))
+                                                      .map(x -> x.trim().toLowerCase(Locale.ENGLISH))
+                                                      .collect(Collectors.toSet());
 
-    @Override
-    public boolean initialize() {
-        ignoredSuffixes = Arrays.stream("html, js, css, jpg, gif, png, swf, ttf, ico, woff, woff2, json, eot, svg".split(
-                                    ","))
-                                .map(x -> x.trim().toLowerCase(Locale.ENGLISH))
-                                .collect(Collectors.toSet());
-
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("okhttp3.2", HttpOutgoingMetricsCollector.class);
-
-        return true;
-    }
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -78,12 +68,12 @@ public class RealCall$GetResponseWithInterceptorChain extends AbstractIntercepto
         String requestMethod = originRequest.method().toUpperCase(Locale.ENGLISH);
 
         if (aopContext.getException() != null) {
-            metricCollector.addExceptionRequest(requestUri,
-                                                requestMethod,
-                                                aopContext.getCostTime());
+            metricRegistry.addExceptionRequest(requestUri,
+                                               requestMethod,
+                                               aopContext.getCostTime());
         } else {
             Response response = aopContext.castReturningAs();
-            metricCollector.addRequest(requestUri, requestMethod, response.code(), aopContext.getCostTime());
+            metricRegistry.addRequest(requestUri, requestMethod, response.code(), aopContext.getCostTime());
         }
 
         addBytes(requestUri, requestMethod, originRequest, realCall);
@@ -111,7 +101,7 @@ public class RealCall$GetResponseWithInterceptorChain extends AbstractIntercepto
                                                                                                              .size();
             }
 
-            metricCollector.addBytes(uri, method, requestByteSize, responseByteSize);
+            metricRegistry.addBytes(uri, method, requestByteSize, responseByteSize);
         } catch (Exception e) {
             log.warn("OKHttp getByteSize", e);
         }
