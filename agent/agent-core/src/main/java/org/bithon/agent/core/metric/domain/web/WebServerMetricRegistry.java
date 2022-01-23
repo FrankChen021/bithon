@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.metric.domain.web;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
+import org.bithon.agent.core.metric.collector.MetricRegistry;
 
 import java.util.Collections;
 
@@ -24,9 +24,12 @@ import java.util.Collections;
  * @author frank.chen021@outlook.com
  * @date 2021/1/14 9:30 下午
  */
-public class WebServerMetricCollector extends IntervalMetricCollector<WebServerMetrics> {
-    public WebServerMetricCollector() {
-        super("web-server-metrics",
+public class WebServerMetricRegistry extends MetricRegistry<WebServerMetrics> {
+
+    public static final String NAME = "web-server-metrics";
+
+    public WebServerMetricRegistry() {
+        super(NAME,
               Collections.singletonList("type"),
               WebServerMetrics.class,
               null,

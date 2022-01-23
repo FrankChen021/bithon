@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.metric.domain.web;
 
-import org.bithon.agent.core.metric.model.Gauge;
+import org.bithon.agent.core.metric.model.Gauge2;
 import org.bithon.agent.core.metric.model.IMetricSet;
 import org.bithon.agent.core.metric.model.IMetricValueProvider;
 
@@ -26,27 +26,13 @@ import org.bithon.agent.core.metric.model.IMetricValueProvider;
  */
 public class WebServerMetrics implements IMetricSet {
 
-    public final Gauge connectionCount;
-    public final Gauge maxConnections;
-    public final Gauge activeThreads;
-    public final Gauge maxThreads;
-    public final IMetricValueProvider[] metrics;
-
-    public WebServerMetrics(Gauge connectionCount,
-                            Gauge maxConnections,
-                            Gauge activeThreads,
-                            Gauge maxThreads) {
-        this.connectionCount = connectionCount;
-        this.maxConnections = maxConnections;
-        this.activeThreads = activeThreads;
-        this.maxThreads = maxThreads;
-        metrics = new IMetricValueProvider[]{
-            connectionCount,
-            maxConnections,
-            activeThreads,
-            maxThreads
-        };
-    }
+    public final Gauge2 connectionCount = new Gauge2();
+    public final Gauge2 maxConnections = new Gauge2();
+    public final Gauge2 activeThreads = new Gauge2();
+    public final Gauge2 maxThreads = new Gauge2();
+    public final IMetricValueProvider[] metrics = new IMetricValueProvider[]{
+        connectionCount, maxConnections, activeThreads, maxThreads
+    };
 
     @Override
     public IMetricValueProvider[] getMetrics() {

@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.tomcat.metric;
 
 import org.apache.tomcat.util.net.AbstractEndpoint;
-import org.bithon.agent.core.metric.domain.web.WebServerMetricCollector;
+import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerType;
 
@@ -27,7 +27,7 @@ import java.util.Collections;
  * @author frank.chen021@outlook.com
  * @date 2021/1/13 10:46 下午
  */
-public class TomcatWebServerMetricCollector extends WebServerMetricCollector {
+public class TomcatWebServerMetricCollector extends WebServerMetricRegistry {
 
     public TomcatWebServerMetricCollector(AbstractEndpoint<?> endpoint) {
         this.register(Collections.singletonList(WebServerType.TOMCAT.type()),

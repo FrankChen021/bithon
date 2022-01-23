@@ -23,18 +23,18 @@ import java.util.function.LongSupplier;
  * @date 23/1/22 11:31 AM
  */
 public class Gauge2 implements IMetricValueProvider {
-    private LongSupplier delegate;
+    private LongSupplier provider;
 
-    public LongSupplier getDelegate() {
-        return delegate;
+    public LongSupplier getProvider() {
+        return provider;
     }
 
-    public void setDelegate(LongSupplier delegate) {
-        this.delegate = delegate;
+    public void setProvider(LongSupplier provider) {
+        this.provider = provider;
     }
 
     @Override
     public long get() {
-        return delegate == null ? 0 : delegate.getAsLong();
+        return provider == null ? 0 : provider.getAsLong();
     }
 }

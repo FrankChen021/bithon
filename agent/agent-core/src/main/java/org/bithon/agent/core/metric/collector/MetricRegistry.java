@@ -84,6 +84,13 @@ public class MetricRegistry<T extends IMetricSet> {
         return (T) measurement.metrics;
     }
 
+    public T getOrCreateMetrics(List<String> dimensions, Supplier<T> supplier) {
+        if (dimensions.size() != this.schema.getDimensionsSpec().size()) {
+            throw new AgentException("required dimension size is {}, but input is {}", this.schema.getDimensionsSpec().size(), dimensions.size());
+        }
+        return createMetrics(dimensions, supplier.get());
+    }
+
     public void removeMetrics(List<String> dimensions) {
         IMeasurement measurement = metricsMap.remove(dimensions);
         if (measurement != null) {
