@@ -20,29 +20,34 @@ import com.alibaba.druid.pool.DruidDataSource;
 import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/27 11:32 上午
  */
 public class MonitoredSource {
     private final DruidDataSource dataSource;
-    private final String driverClass;
-
-    // dimension
-    private final String connectionString;
-
+    private final List<String> dimensions;
     // metrics
     private final JdbcPoolMetrics jdbcPoolMetrics;
     private final SQLMetrics sqlMetrics;
 
-    MonitoredSource(String driverClass,
-                    String connectionString,
-                    DruidDataSource dataSource) {
+    MonitoredSource(String driverClass, String connectionString, DruidDataSource dataSource) {
         this.dataSource = dataSource;
-        this.driverClass = driverClass;
-        this.connectionString = connectionString;
-        this.jdbcPoolMetrics = new JdbcPoolMetrics(connectionString, driverClass);
+        this.dimensions = Arrays.asList(connectionString, driverClass,
+                                        // support multiple data source for a same endpoint, typically read-write data sources
+                                        String.valueOf(System.identityHashCode(dataSource)));
+        this.jdbcPoolMetrics = new JdbcPoolMetrics(dataSource::getActiveCount,
+                                                   dataSource::getActivePeak,
+                                                   dataSource::getPoolingPeak,
+                                                   dataSource::getPoolingCount);
         this.sqlMetrics = new SQLMetrics();
+    }
+
+    public List<String> getDimensions() {
+        return dimensions;
     }
 
     public DruidDataSource getDataSource() {
@@ -50,11 +55,11 @@ public class MonitoredSource {
     }
 
     public String getDriverClass() {
-        return driverClass;
+        return dimensions.get(1);
     }
 
     public String getConnectionString() {
-        return connectionString;
+        return dimensions.get(0);
     }
 
     public JdbcPoolMetrics getJdbcMetric() {

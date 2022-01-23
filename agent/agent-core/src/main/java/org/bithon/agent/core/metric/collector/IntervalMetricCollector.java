@@ -43,7 +43,7 @@ public abstract class IntervalMetricCollector<T extends IMetricSet> implements I
     private final Supplier<T> supplier;
     private final boolean clearAfterCollect;
     private Map<List<String>, IMeasurement> metricsMap = new ConcurrentHashMap<>();
-    private Map<List<String>, IMeasurement> removedMap = new ConcurrentHashMap<>();
+    private final Map<List<String>, IMeasurement> removedMap = new ConcurrentHashMap<>();
 
     protected IntervalMetricCollector(String name,
                                       List<String> dimensionSpec,
@@ -90,15 +90,15 @@ public abstract class IntervalMetricCollector<T extends IMetricSet> implements I
     }
 
     @SuppressWarnings("unchecked")
-    protected T register(List<String> dimensions, T metrics) {
+    public T register(List<String> dimensions, T metrics) {
         if (dimensions.size() != this.schema.getDimensionsSpec().size()) {
-            throw new AgentException("required dimension size is {}, but input is {}", this.schema.getDimensionsSpec().size(), dimensions.size());
+            throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.size());
         }
         Measurement measurement = (Measurement) metricsMap.computeIfAbsent(dimensions, key -> new Measurement(dimensions, metrics));
         return (T) measurement.metrics;
     }
 
-    protected void unregister(List<String> dimensions, boolean flush) {
+    public void unregister(List<String> dimensions) {
         IMeasurement measurement = metricsMap.remove(dimensions);
         if (measurement != null) {
             removedMap.put(dimensions, measurement);

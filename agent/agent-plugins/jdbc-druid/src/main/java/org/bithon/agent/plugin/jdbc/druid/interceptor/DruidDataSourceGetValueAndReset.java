@@ -16,9 +16,13 @@
 
 package org.bithon.agent.plugin.jdbc.druid.interceptor;
 
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.pool.DruidDataSourceStatValue;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.plugin.jdbc.druid.metric.DruidJdbcMetricCollector;
+import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
+import org.bithon.agent.plugin.jdbc.druid.metric.MonitoredSource;
+import org.bithon.agent.plugin.jdbc.druid.metric.MonitoredSourceManager;
 
 /**
  * @author frankchen
@@ -26,7 +30,29 @@ import org.bithon.agent.plugin.jdbc.druid.metric.DruidJdbcMetricCollector;
 public class DruidDataSourceGetValueAndReset extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        DruidJdbcMetricCollector.getOrCreateInstance().updateMetrics(aopContext.castTargetAs(),
-                                                                     aopContext.castReturningAs());
+        updateMetrics(aopContext.castTargetAs(),
+                      aopContext.castReturningAs());
+    }
+
+    private void updateMetrics(DruidDataSource dataSource, DruidDataSourceStatValue statistic) {
+        if (statistic == null) {
+            return;
+        }
+        MonitoredSource source = MonitoredSourceManager.getInstance().getMonitoredDataSource(dataSource);
+        if (source == null) {
+            return;
+        }
+
+        JdbcPoolMetrics metrics = source.getJdbcMetric();
+        metrics.createCount.update(statistic.getPhysicalConnectCount());
+        metrics.destroyCount.update(statistic.getPhysicalCloseCount());
+        metrics.createErrorCount.update(statistic.getPhysicalConnectErrorCount());
+        metrics.logicConnectionCount.update(statistic.getConnectCount());
+        metrics.logicCloseCount.update(statistic.getCloseCount());
+        metrics.executeCount.update(statistic.getExecuteCount());
+        metrics.commitCount.update(statistic.getCommitCount());
+        metrics.rollbackCount.update(statistic.getRollbackCount());
+        metrics.startTransactionCount.update(statistic.getStartTransactionCount());
+        metrics.waitThreadCount.update(statistic.getWaitThreadCount());
     }
 }

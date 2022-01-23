@@ -81,7 +81,7 @@ public class ThreadPoolMetricsCollector extends IntervalMetricCollector<ThreadPo
         if (dimensions == null) {
             return;
         }
-        this.unregister(dimensions, true);
+        this.unregister(dimensions);
     }
 
     private Optional<ThreadPoolMetrics> getMetrics(AbstractExecutorService executor) {

@@ -47,14 +47,18 @@ public class MonitoredSourceManager {
                                                               dataSource);
         connectionMap.putIfAbsent(connectionString, monitoredSource);
         dataSourceMap.putIfAbsent(dataSource, monitoredSource);
+
+        DruidJdbcMetricCollector.getOrCreateInstance().register(monitoredSource.getDimensions(), monitoredSource.getJdbcMetric());
         return true;
     }
 
     public void rmvDataSource(DruidDataSource dataSource) {
         MonitoredSource monitoredSource = dataSourceMap.remove(dataSource);
-        if (monitoredSource != null) {
-            connectionMap.remove(monitoredSource.getConnectionString());
+        if (monitoredSource == null) {
+            return;
         }
+        connectionMap.remove(monitoredSource.getConnectionString());
+        DruidJdbcMetricCollector.getOrCreateInstance().unregister(monitoredSource.getDimensions());
     }
 
     public MonitoredSource getMonitoredDataSource(DruidDataSource dataSource) {

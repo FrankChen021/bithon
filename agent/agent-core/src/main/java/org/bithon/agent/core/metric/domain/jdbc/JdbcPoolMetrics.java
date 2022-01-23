@@ -17,21 +17,19 @@
 package org.bithon.agent.core.metric.domain.jdbc;
 
 import org.bithon.agent.core.metric.model.Gauge;
+import org.bithon.agent.core.metric.model.IMetricSet;
+import org.bithon.agent.core.metric.model.IMetricValueProvider;
 import org.bithon.agent.core.metric.model.Sum;
 
 /**
  * @author frankchen
  */
-public class JdbcPoolMetrics {
-    // dimension
-    private final String connectionString;
-    private final String driverClass;
-
-    // metrics
-    public Gauge activeCount = new Gauge();
-    public Gauge activePeak = new Gauge();
-    public Gauge poolingPeak = new Gauge();
-    public Gauge poolingCount = new Gauge();
+public class JdbcPoolMetrics implements IMetricSet {
+    public final Gauge activeCount;
+    public final Gauge activePeak;
+    public final Gauge poolingPeak;
+    public final Gauge poolingCount;
+    private final IMetricValueProvider[] metrics;
     public Sum createCount = new Sum();
     public Sum destroyCount = new Sum();
     public Sum logicConnectionCount = new Sum();
@@ -43,16 +41,32 @@ public class JdbcPoolMetrics {
     public Sum startTransactionCount = new Sum();
     public Sum waitThreadCount = new Sum();
 
-    public JdbcPoolMetrics(String connectionString, String driverClass) {
-        this.connectionString = connectionString;
-        this.driverClass = driverClass;
+    public JdbcPoolMetrics(Gauge activeCount, Gauge activePeak, Gauge poolingPeak, Gauge poolingCount) {
+        this.activeCount = activeCount;
+        this.activePeak = activePeak;
+        this.poolingPeak = poolingPeak;
+        this.poolingCount = poolingCount;
+
+        metrics = new IMetricValueProvider[]{
+            activeCount,
+            activePeak,
+            poolingPeak,
+            poolingCount,
+            createCount,
+            destroyCount,
+            logicConnectionCount,
+            logicCloseCount,
+            createErrorCount,
+            executeCount,
+            commitCount,
+            rollbackCount,
+            startTransactionCount,
+            waitThreadCount
+        };
     }
 
-    public String getConnectionString() {
-        return connectionString;
-    }
-
-    public String getDriverClass() {
-        return driverClass;
+    @Override
+    public IMetricValueProvider[] getMetrics() {
+        return metrics;
     }
 }

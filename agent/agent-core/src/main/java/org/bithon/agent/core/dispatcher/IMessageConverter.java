@@ -18,7 +18,6 @@ package org.bithon.agent.core.dispatcher;
 
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMeasurement;
-import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
 import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
@@ -37,8 +36,6 @@ import java.util.Map;
  * @date 2021/1/4 10:46 下午
  */
 public interface IMessageConverter {
-
-    Object from(long timestamp, int interval, JdbcPoolMetrics metrics);
 
     Object from(long timestamp, int interval, List<String> dimensions, SQLMetrics metrics);
 

@@ -19,7 +19,6 @@ package org.bithon.agent.dispatcher.brpc;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMeasurement;
-import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
 import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
@@ -36,7 +35,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchema;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchemaV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
-import org.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
@@ -60,30 +58,6 @@ public class BrpcMessageConverter implements IMessageConverter {
     public BrpcMessageConverter() {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    }
-
-    @Override
-    public Object from(long timestamp, int interval, JdbcPoolMetrics metrics) {
-        return BrpcJdbcPoolMetricMessage.newBuilder()
-                                        .setTimestamp(timestamp)
-                                        .setInterval(interval)
-                                        .setConnectionString(metrics.getConnectionString())
-                                        .setDriverClass(metrics.getDriverClass())
-                                        .setActiveCount(metrics.activeCount.get())
-                                        .setActivePeak(metrics.activePeak.get())
-                                        .setPoolingCount(metrics.poolingCount.get())
-                                        .setPoolingPeak(metrics.poolingPeak.get())
-                                        .setCreateCount(metrics.createCount.get())
-                                        .setDestroyCount(metrics.destroyCount.get())
-                                        .setLogicCloseCount(metrics.logicCloseCount.get())
-                                        .setLogicCloseCount(metrics.logicCloseCount.get())
-                                        .setCreateErrorCount(metrics.createErrorCount.get())
-                                        .setExecuteCount(metrics.executeCount.get())
-                                        .setCommitCount(metrics.commitCount.get())
-                                        .setRollbackCount(metrics.rollbackCount.get())
-                                        .setStartTransactionCount(metrics.startTransactionCount.get())
-                                        .setWaitThreadCount(metrics.waitThreadCount.get())
-                                        .build();
     }
 
     @Override
