@@ -26,16 +26,18 @@ import java.util.Collections;
  */
 public class SqlMetricRegistry extends MetricRegistry<SQLMetrics> {
 
-    public static SqlMetricRegistry get() {
-        return MetricRegistryFactory.getOrCreateRegistry("sql-metrics", SqlMetricRegistry::new);
-    }
+    public static String NAME = "sql-metrics";
 
     protected SqlMetricRegistry() {
-        super("sql-metrics",
+        super(NAME,
               Collections.singletonList("connectionString"),
               SQLMetrics.class,
               SQLMetrics::new,
               true);
+    }
+
+    public static SqlMetricRegistry get() {
+        return MetricRegistryFactory.getOrCreateRegistry("sql-metrics", SqlMetricRegistry::new);
     }
 
     public SQLMetrics getOrCreateMetrics(String connectionString) {

@@ -18,7 +18,6 @@ package org.bithon.agent.plugin.jdbc.druid.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
-import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,7 +31,6 @@ public class MonitoredSource {
     private final List<String> dimensions;
     // metrics
     private final JdbcPoolMetrics jdbcPoolMetrics;
-    private final SQLMetrics sqlMetrics;
 
     MonitoredSource(String driverClass, String connectionString, DruidDataSource dataSource) {
         this.dataSource = dataSource;
@@ -43,7 +41,6 @@ public class MonitoredSource {
                                                    dataSource::getActivePeak,
                                                    dataSource::getPoolingPeak,
                                                    dataSource::getPoolingCount);
-        this.sqlMetrics = new SQLMetrics();
     }
 
     public List<String> getDimensions() {
@@ -54,19 +51,7 @@ public class MonitoredSource {
         return dataSource;
     }
 
-    public String getDriverClass() {
-        return dimensions.get(1);
-    }
-
-    public String getConnectionString() {
-        return dimensions.get(0);
-    }
-
     public JdbcPoolMetrics getJdbcMetric() {
         return jdbcPoolMetrics;
-    }
-
-    public SQLMetrics getSqlMetric() {
-        return sqlMetrics;
     }
 }

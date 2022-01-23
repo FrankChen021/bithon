@@ -29,7 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MonitoredSourceManager {
 
     static final MonitoredSourceManager INSTANCE = new MonitoredSourceManager();
-    private final Map<String, MonitoredSource> connectionMap = new ConcurrentHashMap<>();
     private final Map<DruidDataSource, MonitoredSource> dataSourceMap = new ConcurrentHashMap<>();
 
     public static MonitoredSourceManager getInstance() {
@@ -38,14 +37,13 @@ public class MonitoredSourceManager {
 
     public boolean addDataSource(DruidDataSource dataSource) {
         String connectionString = MiscUtils.cleanupConnectionString(dataSource.getRawJdbcUrl());
-        if (connectionMap.containsKey(connectionString) && dataSourceMap.containsKey(dataSource)) {
+        if (dataSourceMap.containsKey(dataSource)) {
             return false;
         }
 
         MonitoredSource monitoredSource = new MonitoredSource(dataSource.getDriverClassName(),
                                                               connectionString,
                                                               dataSource);
-        connectionMap.putIfAbsent(connectionString, monitoredSource);
         dataSourceMap.putIfAbsent(dataSource, monitoredSource);
 
         DruidJdbcMetricRegistry.get().createMetrics(monitoredSource.getDimensions(), monitoredSource.getJdbcMetric());
@@ -57,7 +55,6 @@ public class MonitoredSourceManager {
         if (monitoredSource == null) {
             return;
         }
-        connectionMap.remove(monitoredSource.getConnectionString());
         DruidJdbcMetricRegistry.get().removeMetrics(monitoredSource.getDimensions());
     }
 
@@ -65,15 +62,7 @@ public class MonitoredSourceManager {
         return dataSourceMap.get(dataSource);
     }
 
-    public MonitoredSource getMonitoredDataSource(String key) {
-        return connectionMap.get(key);
-    }
-
     public Collection<MonitoredSource> getMonitoredSources() {
-        return connectionMap.values();
-    }
-
-    public boolean isEmpty() {
-        return connectionMap.isEmpty();
+        return dataSourceMap.values();
     }
 }
