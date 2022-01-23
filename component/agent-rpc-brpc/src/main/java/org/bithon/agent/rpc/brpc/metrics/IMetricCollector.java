@@ -39,12 +39,6 @@ public interface IMetricCollector {
     void sendWebServer(BrpcMessageHeader header, List<BrpcWebServerMetricMessage> messages);
 
     @BrpcMethod(isOneway = true)
-    void sendThreadPool(BrpcMessageHeader header, List<BrpcThreadPoolMetricMessage> messages);
-
-    @BrpcMethod(isOneway = true)
-    void sendJdbc(BrpcMessageHeader header, List<BrpcJdbcPoolMetricMessage> messages);
-
-    @BrpcMethod(isOneway = true)
     void sendSql(BrpcMessageHeader header, List<BrpcSqlMetricMessage> messages);
 
     @BrpcMethod(isOneway = true)
