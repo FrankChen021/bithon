@@ -17,7 +17,7 @@
 package org.bithon.agent.core.metric.domain.sql;
 
 import org.bithon.agent.core.metric.model.ICompositeMetric;
-import org.bithon.agent.core.metric.model.ISimpleMetric;
+import org.bithon.agent.core.metric.model.IMetricValueProvider;
 import org.bithon.agent.core.metric.model.Max;
 import org.bithon.agent.core.metric.model.Min;
 import org.bithon.agent.core.metric.model.Sum;
@@ -37,7 +37,7 @@ public class SQLMetrics implements ICompositeMetric {
     private final Sum bytesIn = new Sum();
     private final Sum bytesOut = new Sum();
 
-    private final ISimpleMetric[] metrics = new ISimpleMetric[]{
+    private final IMetricValueProvider[] metrics = new IMetricValueProvider[]{
         minResponseTime,
         responseTime,
         maxResponseTime,
@@ -106,5 +106,10 @@ public class SQLMetrics implements ICompositeMetric {
 
     public Sum getBytesOut() {
         return bytesOut;
+    }
+
+    @Override
+    public IMetricValueProvider[] getMetrics() {
+        return metrics;
     }
 }

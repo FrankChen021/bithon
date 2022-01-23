@@ -16,10 +16,25 @@
 
 package org.bithon.agent.core.metric.model;
 
+import java.util.function.LongSupplier;
+
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/3/25 7:28 下午
+ * @author Frank Chen
+ * @date 23/1/22 11:31 AM
  */
-public interface ISimpleMetric extends IMetric, IMetricValueProvider {
-    long update(long value);
+public class Gauge2 implements IMetricValueProvider {
+    private LongSupplier delegate;
+
+    public LongSupplier getDelegate() {
+        return delegate;
+    }
+
+    public void setDelegate(LongSupplier delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public long get() {
+        return delegate == null ? 0 : delegate.getAsLong();
+    }
 }

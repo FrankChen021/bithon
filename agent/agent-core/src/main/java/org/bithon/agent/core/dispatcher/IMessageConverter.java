@@ -23,7 +23,6 @@ import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
-import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
@@ -48,8 +47,6 @@ public interface IMessageConverter {
     Object from(long timestamp, int interval, WebServerMetrics metrics);
 
     Object from(long timestamp, int interval, SQLStatementMetrics metrics);
-
-    Object from(long timestamp, int interval, ThreadPoolMetrics metrics);
 
     // tracing span message
     Object from(ITraceSpan span);

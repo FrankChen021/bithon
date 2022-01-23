@@ -26,36 +26,11 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 class ThreadPoolExecutorMetrics extends ThreadPoolMetrics {
 
-    private final ThreadPoolExecutor executor;
-
     ThreadPoolExecutorMetrics(ThreadPoolExecutor executor) {
-        super(executor.getThreadFactory().getClass().getName(),
-              ThreadPoolUtils.getThreadPoolName(executor.getThreadFactory()));
-        this.executor = executor;
-    }
-
-    @Override
-    public long getActiveThreads() {
-        return executor.getActiveCount();
-    }
-
-    @Override
-    public long getCurrentPoolSize() {
-        return executor.getPoolSize();
-    }
-
-    @Override
-    public long getMaxPoolSize() {
-        return executor.getMaximumPoolSize();
-    }
-
-    @Override
-    public long getLargestPoolSize() {
-        return executor.getLargestPoolSize();
-    }
-
-    @Override
-    public long getQueuedTaskCount() {
-        return executor.getQueue().size();
+        super(executor::getActiveCount,
+              executor::getPoolSize,
+              executor::getMaximumPoolSize,
+              executor::getLargestPoolSize,
+              () -> executor.getQueue().size());
     }
 }

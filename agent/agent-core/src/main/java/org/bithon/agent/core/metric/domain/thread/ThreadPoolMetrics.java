@@ -16,16 +16,15 @@
 
 package org.bithon.agent.core.metric.domain.thread;
 
+import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.IMetricValueProvider;
 import org.bithon.agent.core.metric.model.Sum;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 10:48 下午
  */
-public abstract class ThreadPoolMetrics {
-
-    private final String executorClass;
-    private final String threadPoolName;
+public class ThreadPoolMetrics implements ICompositeMetric {
 
     public Sum callerRunTaskCount = new Sum();
     public Sum abortedTaskCount = new Sum();
@@ -34,55 +33,42 @@ public abstract class ThreadPoolMetrics {
     public Sum exceptionTaskCount = new Sum();
     public Sum successfulTaskCount = new Sum();
     public Sum totalTaskCount = new Sum();
+    public final IMetricValueProvider activeThreads;
+    public final IMetricValueProvider currentPoolSize;
+    public final IMetricValueProvider maxPoolSize;
+    public final IMetricValueProvider largestPoolSize;
+    public final IMetricValueProvider queuedTaskCount;
 
-    public ThreadPoolMetrics(String executorClass, String threadPoolName) {
-        this.executorClass = executorClass;
-        this.threadPoolName = threadPoolName;
+    private final IMetricValueProvider[] metrics;
+
+    public ThreadPoolMetrics(IMetricValueProvider activeThreads,
+                             IMetricValueProvider currentPoolSize,
+                             IMetricValueProvider maxPoolSize,
+                             IMetricValueProvider largestPoolSize, IMetricValueProvider queuedTaskCount) {
+        this.activeThreads = activeThreads;
+        this.currentPoolSize = currentPoolSize;
+        this.maxPoolSize = maxPoolSize;
+        this.largestPoolSize = largestPoolSize;
+        this.queuedTaskCount = queuedTaskCount;
+
+        this.metrics = new IMetricValueProvider[]{
+            callerRunTaskCount,
+            abortedTaskCount,
+            discardedTaskCount,
+            discardedOldestTaskCount,
+            exceptionTaskCount,
+            successfulTaskCount,
+            totalTaskCount,
+            activeThreads,
+            currentPoolSize,
+            maxPoolSize,
+            largestPoolSize,
+            queuedTaskCount
+        };
     }
 
-    public abstract long getActiveThreads();
-
-    public abstract long getCurrentPoolSize();
-
-    public abstract long getMaxPoolSize();
-
-    public abstract long getLargestPoolSize();
-
-    public abstract long getQueuedTaskCount();
-
-    public long getCallerRunTaskCount() {
-        return callerRunTaskCount.get();
-    }
-
-    public long getAbortedTaskCount() {
-        return abortedTaskCount.get();
-    }
-
-    public long getDiscardedTaskCount() {
-        return discardedTaskCount.get();
-    }
-
-    public long getDiscardedOldestTaskCount() {
-        return discardedOldestTaskCount.get();
-    }
-
-    public long getExceptionTaskCount() {
-        return exceptionTaskCount.get();
-    }
-
-    public long getSuccessfulTaskCount() {
-        return successfulTaskCount.get();
-    }
-
-    public long getTotalTaskCount() {
-        return totalTaskCount.get();
-    }
-
-    public String getExecutorClass() {
-        return executorClass;
-    }
-
-    public String getThreadPoolName() {
-        return threadPoolName;
+    @Override
+    public IMetricValueProvider[] getMetrics() {
+        return metrics;
     }
 }

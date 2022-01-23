@@ -41,6 +41,7 @@ public class Gauge implements ISimpleMetric {
         return this.value.getAndSet(value);
     }
 
+    @Override
     public long get() {
         return value.get();
     }

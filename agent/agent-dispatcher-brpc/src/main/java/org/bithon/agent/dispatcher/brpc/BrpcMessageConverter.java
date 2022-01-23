@@ -24,7 +24,6 @@ import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
-import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
@@ -40,7 +39,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
-import org.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import shaded.com.fasterxml.jackson.core.JsonProcessingException;
@@ -145,28 +143,6 @@ public class BrpcMessageConverter implements IMessageConverter {
     @Override
     public Object from(long timestamp, int interval, SQLStatementMetrics metrics) {
         return null;
-    }
-
-    @Override
-    public Object from(long timestamp, int interval, ThreadPoolMetrics metrics) {
-        return BrpcThreadPoolMetricMessage.newBuilder().setTimestamp(timestamp)
-                                          .setInterval(interval)
-                                          .setExecutorClass(metrics.getExecutorClass())
-                                          .setPoolName(metrics.getThreadPoolName())
-                                          // task
-                                          .setCallerRunTaskCount(metrics.getCallerRunTaskCount())
-                                          .setAbortedTaskCount(metrics.getAbortedTaskCount())
-                                          .setDiscardedOldestTaskCount(metrics.getDiscardedOldestTaskCount())
-                                          .setDiscardedTaskCount(metrics.getDiscardedTaskCount())
-                                          .setExceptionTaskCount(metrics.getExceptionTaskCount())
-                                          .setSuccessfulTaskCount(metrics.getSuccessfulTaskCount())
-                                          .setTotalTaskCount(metrics.getTotalTaskCount())
-                                          // thread pool
-                                          .setActiveThreads(metrics.getActiveThreads())
-                                          .setCurrentPoolSize(metrics.getCurrentPoolSize())
-                                          .setMaxPoolSize(metrics.getMaxPoolSize())
-                                          .setLargestPoolSize(metrics.getLargestPoolSize())
-                                          .build();
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.thread.threadpool;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.core.utils.ReflectionUtils;
 
 import java.util.concurrent.ForkJoinPool;
 
@@ -31,7 +32,10 @@ public class ForkJoinPoolConstructor extends AbstractInterceptor {
         ThreadPoolMetricsCollector collector = ThreadPoolMetricsCollector.getInstance();
         if (collector != null) {
             ForkJoinPool pool = aopContext.castTargetAs();
-            collector.addThreadPool(pool, new ForkJoinPoolMetrics(pool));
+            collector.addThreadPool(pool,
+                                    pool.getClass().getName(),
+                                    ThreadPoolUtils.stripSuffix((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"),
+                                    new ForkJoinPoolMetrics(pool));
         }
     }
 }

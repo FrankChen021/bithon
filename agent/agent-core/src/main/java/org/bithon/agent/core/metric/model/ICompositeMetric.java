@@ -24,7 +24,5 @@ public interface ICompositeMetric extends IMetric {
     /**
      * TODO: come up a way to automatically generate this method
      */
-    default ISimpleMetric[] getMetrics() {
-        return new ISimpleMetric[0];
-    }
+    IMetricValueProvider[] getMetrics();
 }
