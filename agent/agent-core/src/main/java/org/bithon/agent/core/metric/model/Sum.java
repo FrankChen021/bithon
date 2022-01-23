@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author frank.chen021@outlook.com
  * @date 2021/2/23 9:18 下午
  */
-public class Sum implements ISimpleMetric {
+public class Sum implements IMetricValueUpdater, IMetricValueProvider {
     private final AtomicLong value;
 
     public Sum() {
@@ -47,6 +47,7 @@ public class Sum implements ISimpleMetric {
         return value.get();
     }
 
+    @Override
     public long get() {
         return value.getAndSet(0);
     }

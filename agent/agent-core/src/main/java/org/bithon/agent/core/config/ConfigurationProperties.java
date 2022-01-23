@@ -22,6 +22,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Annotate a config class.
+ *
+ * NOTE: fields in the target class should be annotated with {@link shaded.com.fasterxml.jackson.annotation.JsonProperty}
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/8/7 09:57
  */

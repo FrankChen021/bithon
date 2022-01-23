@@ -24,9 +24,8 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
+import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
@@ -39,14 +38,7 @@ import org.bithon.component.commons.logging.LoggerFactory;
 public class DefaultServerConnectionExecuteProtocol extends AbstractInterceptor {
     static ILogAdaptor log = LoggerFactory.getLogger(DefaultServerConnectionExecuteProtocol.class);
 
-    private MongoDbMetricCollector metricCollector;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("mongodb-3.8-metrics", MongoDbMetricCollector.class);
-        return true;
-    }
+    private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -92,8 +84,8 @@ public class DefaultServerConnectionExecuteProtocol extends AbstractInterceptor 
         //
         if (command != null) {
             int exceptionCount = aopContext.hasException() ? 0 : 1;
-            metricCollector.getOrCreateMetric(hostAndPort, command.getDatabase())
-                           .add(aopContext.getCostTime(), exceptionCount);
+            metricRegistry.getOrCreateMetric(hostAndPort, command.getDatabase())
+                          .add(aopContext.getCostTime(), exceptionCount);
         }
     }
 }

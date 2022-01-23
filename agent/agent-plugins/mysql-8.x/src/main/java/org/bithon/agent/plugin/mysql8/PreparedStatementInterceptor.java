@@ -19,9 +19,8 @@ package org.bithon.agent.plugin.mysql8;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
-import org.bithon.agent.core.metric.domain.sql.SqlMetricCollector;
+import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.core.utils.MiscUtils;
 
 import java.sql.Statement;
@@ -30,13 +29,11 @@ import java.sql.Statement;
  * @author frankchen
  */
 public class PreparedStatementInterceptor extends AbstractInterceptor {
-    private SqlMetricCollector sqlMetricCollector;
+    private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
     private SqlStatementMetricCollector statementCollector;
 
     @Override
     public boolean initialize() {
-        sqlMetricCollector = MetricCollectorManager.getInstance()
-                                                   .getOrRegister("mysql8-metrics", SqlMetricCollector.class);
         statementCollector = SqlStatementMetricCollector.getInstance();
         return true;
     }
@@ -57,7 +54,7 @@ public class PreparedStatementInterceptor extends AbstractInterceptor {
         String methodName = aopContext.getMethod().getName();
         String connectionString = aopContext.castUserContextAs();
 
-        SQLMetrics metric = sqlMetricCollector.getOrCreateMetrics(connectionString);
+        SQLMetrics metric = metricRegistry.getOrCreateMetrics(connectionString);
         boolean isQuery = true;
         if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName)
             || MySql8Plugin.METHOD_EXECUTE_UPDATE_INTERNAL.equals(methodName)) {

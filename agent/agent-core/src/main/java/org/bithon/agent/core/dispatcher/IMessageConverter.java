@@ -18,16 +18,10 @@ package org.bithon.agent.core.dispatcher;
 
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMeasurement;
-import org.bithon.agent.core.metric.domain.exception.ExceptionMetrics;
-import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
 import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetrics;
-import org.bithon.agent.core.metric.domain.redis.RedisClientMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
-import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
-import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
@@ -42,26 +36,11 @@ import java.util.Map;
  */
 public interface IMessageConverter {
 
-    Object from(long timestamp, int interval, JdbcPoolMetrics metrics);
-
     Object from(long timestamp, int interval, List<String> dimensions, SQLMetrics metrics);
-
-    Object from(long timestamp,
-                int interval,
-                List<String> dimensions,
-                MongoDbMetrics metrics);
 
     Object from(long timestamp, int interval, JvmMetrics metrics);
 
-    Object from(long timestamp, int interval, WebServerMetrics metrics);
-
     Object from(long timestamp, int interval, SQLStatementMetrics metrics);
-
-    Object from(long timestamp, int interval, List<String> dimensions, RedisClientMetrics metrics);
-
-    Object from(long timestamp, int interval, ExceptionMetrics metrics);
-
-    Object from(long timestamp, int interval, ThreadPoolMetrics metrics);
 
     // tracing span message
     Object from(ITraceSpan span);

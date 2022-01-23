@@ -19,8 +19,13 @@ package org.bithon.agent.plugin.jetty.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.plugin.jetty.metric.WebServerMetricCollector;
+import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
+import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
+import org.bithon.agent.core.metric.domain.web.WebServerType;
 import org.eclipse.jetty.server.AbstractNetworkConnector;
+
+import java.util.Collections;
 
 /**
  * @author frankchen
@@ -31,8 +36,14 @@ public class AbstractConnectorDoStart extends AbstractInterceptor {
     public void onMethodLeave(AopContext context) {
         AbstractNetworkConnector connector = (AbstractNetworkConnector) context.getTarget();
 
+        // notify to start emit the metrics
         AgentContext.getInstance().getAppInstance().setPort(connector.getPort());
 
-        WebServerMetricCollector.getInstance().setConnector(connector);
+        WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
+                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.JETTY.type()),
+                                                                            WebServerMetrics::new);
+
+        metrics.connectionCount.setProvider(() -> connector.getConnectedEndPoints().size());
+        metrics.maxConnections.setProvider(connector::getAcceptors);
     }
 }

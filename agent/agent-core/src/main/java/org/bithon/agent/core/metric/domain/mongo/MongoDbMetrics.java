@@ -16,24 +16,40 @@
 
 package org.bithon.agent.core.metric.domain.mongo;
 
-import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.IMetricSet;
+import org.bithon.agent.core.metric.model.IMetricValueProvider;
+import org.bithon.agent.core.metric.model.Max;
+import org.bithon.agent.core.metric.model.Min;
 import org.bithon.agent.core.metric.model.Sum;
-import org.bithon.agent.core.metric.model.Timer;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/4 11:35 下午
  */
-public class MongoDbMetrics implements ICompositeMetric {
-    Timer responseTime = new Timer();
+public class MongoDbMetrics implements IMetricSet {
+    Min minResponseTime = new Min();
+    Sum responseTime = new Sum();
+    Max maxResponseTime = new Max();
     Sum callCount = new Sum();
     Sum exceptionCount = new Sum();
     Sum responseBytes = new Sum();
     Sum requestBytes = new Sum();
 
+    IMetricValueProvider[] metrics = new IMetricValueProvider[]{
+        minResponseTime,
+        responseTime,
+        maxResponseTime,
+        callCount,
+        exceptionCount,
+        responseBytes,
+        requestBytes
+    };
+
     public void add(long responseTime, int exceptionCount) {
         this.callCount.incr();
         this.responseTime.update(responseTime);
+        this.maxResponseTime.update(responseTime);
+        this.minResponseTime.update(responseTime);
         this.exceptionCount.update(exceptionCount);
     }
 
@@ -45,23 +61,8 @@ public class MongoDbMetrics implements ICompositeMetric {
         this.requestBytes.update(bytesOut);
     }
 
-    public Timer getResponseTime() {
-        return responseTime;
-    }
-
-    public Sum getCallCount() {
-        return callCount;
-    }
-
-    public Sum getExceptionCount() {
-        return exceptionCount;
-    }
-
-    public Sum getResponseBytes() {
-        return responseBytes;
-    }
-
-    public Sum getRequestBytes() {
-        return requestBytes;
+    @Override
+    public IMetricValueProvider[] getMetrics() {
+        return metrics;
     }
 }

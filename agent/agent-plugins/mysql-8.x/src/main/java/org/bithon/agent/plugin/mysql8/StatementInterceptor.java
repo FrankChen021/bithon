@@ -20,9 +20,8 @@ package org.bithon.agent.plugin.mysql8;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
-import org.bithon.agent.core.metric.domain.sql.SqlMetricCollector;
+import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.core.utils.MiscUtils;
 
 import java.sql.Statement;
@@ -31,15 +30,7 @@ import java.sql.Statement;
  * @author frankchen
  */
 public class StatementInterceptor extends AbstractInterceptor {
-    private SqlMetricCollector sqlMetricCollector;
-
-    @Override
-    public boolean initialize() throws Exception {
-        sqlMetricCollector = MetricCollectorManager.getInstance()
-                                                   .getOrRegister("mysql8-metrics", SqlMetricCollector.class);
-
-        return super.initialize();
-    }
+    private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
@@ -56,7 +47,7 @@ public class StatementInterceptor extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         String connectionString = aopContext.castUserContextAs();
 
-        SQLMetrics metric = sqlMetricCollector.getOrCreateMetrics(connectionString);
+        SQLMetrics metric = metricRegistry.getOrCreateMetrics(connectionString);
         boolean isQuery = true;
         String methodName = aopContext.getMethod().getName();
         if (MySql8Plugin.METHOD_EXECUTE_UPDATE.equals(methodName)

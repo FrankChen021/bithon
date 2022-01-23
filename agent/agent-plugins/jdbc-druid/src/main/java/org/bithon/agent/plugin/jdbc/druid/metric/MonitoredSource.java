@@ -18,7 +18,9 @@ package org.bithon.agent.plugin.jdbc.druid.metric;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
-import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,42 +28,30 @@ import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
  */
 public class MonitoredSource {
     private final DruidDataSource dataSource;
-    private final String driverClass;
-
-    // dimension
-    private final String connectionString;
-
+    private final List<String> dimensions;
     // metrics
     private final JdbcPoolMetrics jdbcPoolMetrics;
-    private final SQLMetrics sqlMetrics;
 
-    MonitoredSource(String driverClass,
-                    String connectionString,
-                    DruidDataSource dataSource) {
+    MonitoredSource(String driverClass, String connectionString, DruidDataSource dataSource) {
         this.dataSource = dataSource;
-        this.driverClass = driverClass;
-        this.connectionString = connectionString;
-        this.jdbcPoolMetrics = new JdbcPoolMetrics(connectionString, driverClass);
-        this.sqlMetrics = new SQLMetrics();
+        this.dimensions = Arrays.asList(connectionString, driverClass,
+                                        // support multiple data source for a same endpoint, typically read-write data sources
+                                        String.valueOf(System.identityHashCode(dataSource)));
+        this.jdbcPoolMetrics = new JdbcPoolMetrics(dataSource::getActiveCount,
+                                                   dataSource::getActivePeak,
+                                                   dataSource::getPoolingPeak,
+                                                   dataSource::getPoolingCount);
+    }
+
+    public List<String> getDimensions() {
+        return dimensions;
     }
 
     public DruidDataSource getDataSource() {
         return dataSource;
     }
 
-    public String getDriverClass() {
-        return driverClass;
-    }
-
-    public String getConnectionString() {
-        return connectionString;
-    }
-
     public JdbcPoolMetrics getJdbcMetric() {
         return jdbcPoolMetrics;
-    }
-
-    public SQLMetrics getSqlMetric() {
-        return sqlMetrics;
     }
 }

@@ -23,9 +23,8 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
+import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
@@ -43,14 +42,7 @@ public class DefaultServerConnection {
      * {@link com.mongodb.connection.DefaultServerConnection#executeProtocol(com.mongodb.connection.Protocol)}
      */
     public static class ExecuteProtocol extends AbstractInterceptor {
-        private MongoDbMetricCollector metricCollector;
-
-        @Override
-        public boolean initialize() {
-            metricCollector = MetricCollectorManager.getInstance()
-                                                    .getOrRegister("mongo-3.x-metrics", MongoDbMetricCollector.class);
-            return true;
-        }
+        private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
         @Override
         public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -106,8 +98,8 @@ public class DefaultServerConnection {
             //
             if (command != null) {
                 int exceptionCount = aopContext.hasException() ? 0 : 1;
-                metricCollector.getOrCreateMetric(hostAndPort, command.getDatabase())
-                               .add(aopContext.getCostTime(), exceptionCount);
+                metricRegistry.getOrCreateMetric(hostAndPort, command.getDatabase())
+                              .add(aopContext.getCostTime(), exceptionCount);
             }
         }
     }
@@ -116,14 +108,7 @@ public class DefaultServerConnection {
      * {@link com.mongodb.connection.DefaultServerConnection#executeProtocolAsync(com.mongodb.connection.Protocol, SingleResultCallback)}
      */
     public static class ExecuteProtocolAsync extends AbstractInterceptor {
-        private MongoDbMetricCollector metricCollector;
-
-        @Override
-        public boolean initialize() {
-            metricCollector = MetricCollectorManager.getInstance()
-                                                    .getOrRegister("mongo-3.x-metrics", MongoDbMetricCollector.class);
-            return true;
-        }
+        private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
         /**
          * {@link com.mongodb.connection.DefaultServerConnection#executeProtocolAsync(com.mongodb.connection.Protocol, com.mongodb.async.SingleResultCallback)}

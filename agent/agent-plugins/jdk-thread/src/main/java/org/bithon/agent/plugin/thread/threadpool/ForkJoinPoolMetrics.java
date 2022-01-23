@@ -17,7 +17,7 @@
 package org.bithon.agent.plugin.thread.threadpool;
 
 import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
-import org.bithon.agent.core.utils.ReflectionUtils;
+import org.bithon.agent.core.metric.model.IMetricValueProvider;
 
 import java.util.concurrent.ForkJoinPool;
 
@@ -26,38 +26,20 @@ import java.util.concurrent.ForkJoinPool;
  * @date 2021/2/25 11:26 下午
  */
 public class ForkJoinPoolMetrics extends ThreadPoolMetrics {
-    private final ForkJoinPool pool;
-    private long largestPoolSize = 0;
 
     public ForkJoinPoolMetrics(ForkJoinPool pool) {
-        super(pool.getClass().getName(),
-              ThreadPoolUtils.stripSuffix((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"));
-        this.pool = pool;
-    }
+        super(pool::getActiveThreadCount,
+              pool::getPoolSize,
+              pool::getParallelism,
+              new IMetricValueProvider() {
+                  private long largestPoolSize = 0;
 
-    @Override
-    public long getActiveThreads() {
-        return pool.getActiveThreadCount();
-    }
-
-    @Override
-    public long getCurrentPoolSize() {
-        return pool.getPoolSize();
-    }
-
-    @Override
-    public long getMaxPoolSize() {
-        return pool.getParallelism();
-    }
-
-    @Override
-    public long getLargestPoolSize() {
-        largestPoolSize = Math.max(pool.getPoolSize(), largestPoolSize);
-        return largestPoolSize;
-    }
-
-    @Override
-    public long getQueuedTaskCount() {
-        return pool.getQueuedTaskCount();
+                  @Override
+                  public long get() {
+                      largestPoolSize = Math.max(pool.getPoolSize(), largestPoolSize);
+                      return largestPoolSize;
+                  }
+              },
+              pool::getQueuedTaskCount);
     }
 }

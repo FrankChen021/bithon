@@ -19,8 +19,7 @@ package org.bithon.agent.plugin.httpclient.netty3;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
@@ -38,14 +37,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
  */
 public class Channels$Write extends AbstractInterceptor {
 
-    private HttpOutgoingMetricsCollector metricCollector;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("httpClient-netty3", HttpOutgoingMetricsCollector.class);
-        return true;
-    }
+    private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
@@ -102,7 +94,7 @@ public class Channels$Write extends AbstractInterceptor {
             // metrics
             //
             if (channelFuture.getCause() != null) {
-                metricCollector.addExceptionRequest(
+                metricRegistry.addExceptionRequest(
                     uri,
                     method,
                     System.nanoTime() - startAt
@@ -110,7 +102,7 @@ public class Channels$Write extends AbstractInterceptor {
             } else {
                 // TODO: it's a little bit complex to get response
                 // see NettyHttpClient in druid to know how to get HttpResponse
-                metricCollector.addRequest(
+                metricRegistry.addRequest(
                     uri,
                     method,
                     200,

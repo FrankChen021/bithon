@@ -32,6 +32,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * Metric Registry and Dispatcher(in some other system, it's called as reporter)
@@ -128,6 +129,29 @@ public class MetricCollectorManager {
 
         //noinspection unchecked
         return (T) collectors.computeIfAbsent(collectorName, key -> new ManagedMetricCollector(collector)).collector;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends IMetricCollectorBase> T getOrRegister(String collectorName, Supplier<T> collectorSupplier) {
+        ManagedMetricCollector managedCollector = collectors.get(collectorName);
+        if (managedCollector != null) {
+            return (T) managedCollector.collector;
+        }
+        synchronized (this) {
+            try {
+                managedCollector = collectors.get(collectorName);
+                // double check
+                if (managedCollector != null) {
+                    return (T) managedCollector.collector;
+                }
+
+                managedCollector = new ManagedMetricCollector(collectorSupplier.get());
+                collectors.put(collectorName, managedCollector);
+                return (T) managedCollector.collector;
+            } catch (Exception e) {
+                throw new RuntimeException("Can't create or register metric provider " + collectorName, e);
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")

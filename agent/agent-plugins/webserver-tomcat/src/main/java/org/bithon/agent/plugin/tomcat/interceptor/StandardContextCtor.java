@@ -19,8 +19,7 @@ package org.bithon.agent.plugin.tomcat.interceptor;
 import org.apache.catalina.core.StandardContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.sentinel.ISentinelListener;
 import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
@@ -54,7 +53,7 @@ public class StandardContextCtor extends AbstractInterceptor {
         servletContext.addServletContainerInitializer((c, ctx) -> {
             try {
                 SentinelListener listener = new SentinelListener();
-                ctx.addFilter("com.sbss.bithon.agent.sentinel", new SentinelFilter(listener))
+                ctx.addFilter("org.bithon.agent.sentinel", new SentinelFilter(listener))
                    .addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
                 log.info("Sentinel for tomcat installed");
             } catch (Exception e) {
@@ -65,31 +64,24 @@ public class StandardContextCtor extends AbstractInterceptor {
 
     static class SentinelListener implements ISentinelListener {
 
-        HttpIncomingMetricsCollector collector;
-
-        SentinelListener() {
-            collector = MetricCollectorManager.getInstance()
-                                              .getOrRegister("tomcat-web-request-metrics",
-                                                             HttpIncomingMetricsCollector.class);
-
-        }
+        final HttpIncomingMetricsRegistry registry = HttpIncomingMetricsRegistry.get();
 
         @Override
         public void onDegraded(HttpServletRequest request) {
-            collector.getOrCreateMetrics(request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
-                                         request.getRequestURI(),
-                                         429)
-                     .getDegradedCount()
-                     .incr();
+            registry.getOrCreateMetrics(request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
+                                        request.getRequestURI(),
+                                        429)
+                    .getDegradedCount()
+                    .incr();
         }
 
         @Override
         public void onFlowControlled(HttpServletRequest request) {
-            collector.getOrCreateMetrics(request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
-                                         request.getRequestURI(),
-                                         429)
-                     .getFlowedCount()
-                     .incr();
+            registry.getOrCreateMetrics(request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION),
+                                        request.getRequestURI(),
+                                        429)
+                    .getFlowedCount()
+                    .incr();
         }
 
         @Override

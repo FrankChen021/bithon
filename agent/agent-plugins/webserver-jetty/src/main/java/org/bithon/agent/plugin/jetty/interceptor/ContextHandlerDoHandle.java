@@ -21,9 +21,8 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
@@ -43,22 +42,15 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ContextHandlerDoHandle extends AbstractInterceptor {
     private HttpIncomingFilter requestFilter;
-
-    private HttpIncomingMetricsCollector metricsCollector;
+    private HttpIncomingMetricsRegistry metricRegistry;
     private TraceConfig traceConfig;
 
 
     @Override
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
-
-        metricsCollector = MetricCollectorManager.getInstance()
-                                                 .getOrRegister("jetty-web-request-metrics",
-                                                                HttpIncomingMetricsCollector.class);
-
-        traceConfig = AgentContext.getInstance()
-                                  .getAgentConfiguration()
-                                  .getConfig(TraceConfig.class);
+        metricRegistry = HttpIncomingMetricsRegistry.get();
+        traceConfig = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
 
         return true;
     }
@@ -73,9 +65,7 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
 
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
 
-        ITraceContext traceContext = Tracer.get()
-                                           .propagator()
-                                           .extract(request, (carrier, key) -> carrier.getHeader(key));
+        ITraceContext traceContext = Tracer.get().propagator().extract(request, (carrier, key) -> carrier.getHeader(key));
         if (traceContext != null) {
             TraceContextHolder.set(traceContext);
             InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
@@ -122,8 +112,7 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
             }
 
             HttpServletResponse response = (HttpServletResponse) aopContext.getArgs()[3];
-            span.tag("status", Integer.toString(response.getStatus()))
-                .tag(aopContext.getException());
+            span.tag("status", Integer.toString(response.getStatus())).tag(aopContext.getException());
         } finally {
             if (span != null) {
                 span.finish();
@@ -138,10 +127,7 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
         }
     }
 
-    private void update(Request request,
-                        HttpServletRequest httpServletRequest,
-                        HttpServletResponse response,
-                        long costTime) {
+    private void update(Request request, HttpServletRequest httpServletRequest, HttpServletResponse response, long costTime) {
         String srcApplication = request.getHeader(ITracePropagator.TRACE_HEADER_SRC_APPLICATION);
         String uri = httpServletRequest.getRequestURI();
         int httpStatus = response.getStatus();
@@ -154,10 +140,8 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
             responseByteSize = jettyResponse.getContentCount();
         }
 
-        this.metricsCollector.getOrCreateMetrics(srcApplication,
-                                                 uri,
-                                                 httpStatus)
-                             .updateRequest(costTime, count4xx, count5xx)
-                             .updateBytes(requestByteSize, responseByteSize);
+        this.metricRegistry.getOrCreateMetrics(srcApplication, uri, httpStatus)
+                           .updateRequest(costTime, count4xx, count5xx)
+                           .updateBytes(requestByteSize, responseByteSize);
     }
 }

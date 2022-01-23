@@ -21,28 +21,16 @@ import org.apache.coyote.Response;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 
 /**
  * @author frankchen
  */
 public class CoyoteAdapterService extends AbstractInterceptor {
-    private HttpIncomingMetricsCollector metricCollector;
-    private HttpIncomingFilter requestFilter;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("tomcat-web-request-metrics",
-                                                               HttpIncomingMetricsCollector.class);
-
-        requestFilter = new HttpIncomingFilter();
-
-        return true;
-    }
+    private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
+    private final HttpIncomingFilter requestFilter = new HttpIncomingFilter();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
@@ -77,8 +65,8 @@ public class CoyoteAdapterService extends AbstractInterceptor {
         long requestByteSize = request.getBytesRead();
         long responseByteSize = response.getBytesWritten(false);
 
-        this.metricCollector.getOrCreateMetrics(srcApplication, uri, httpStatus)
-                            .updateRequest(responseTime, count4xx, count5xx)
-                            .updateBytes(requestByteSize, responseByteSize);
+        this.metricRegistry.getOrCreateMetrics(srcApplication, uri, httpStatus)
+                           .updateRequest(responseTime, count4xx, count5xx)
+                           .updateBytes(requestByteSize, responseByteSize);
     }
 }

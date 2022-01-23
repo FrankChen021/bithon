@@ -30,6 +30,6 @@ public class ThreadPoolExecutorDiscardPolicy extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext joinPoint) {
         ThreadPoolExecutor executor = (ThreadPoolExecutor) joinPoint.getArgs()[1];
-        ThreadPoolMetricsCollector.getInstance().addDiscard(executor);
+        ThreadPoolMetricRegistry.getInstance().addDiscard(executor);
     }
 }

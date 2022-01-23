@@ -685,7 +685,8 @@ class Dashboard {
             const yIndex = metricDescriptor.yAxis == null ? 0 : metricDescriptor.yAxis;
             if (yIndex < chartDescriptor.yAxis.length) {
                 const yAxis = chartDescriptor.yAxis[yIndex];
-                if (yAxis.format === 'millisecond' && schema.metricsSpec[metricName].unit === 'nanosecond') {
+                const metricSpec = schema.metricsSpec[metricName];
+                if (metricSpec != null && yAxis.format === 'millisecond' && metricSpec.unit === 'nanosecond') {
                     return (val) => val == null ? 0 : (val / 1000 / 1000);
                 }
             }

@@ -16,47 +16,26 @@
 
 package org.bithon.agent.core.metric.domain.web;
 
+import org.bithon.agent.core.metric.model.Gauge2;
+import org.bithon.agent.core.metric.model.IMetricSet;
+import org.bithon.agent.core.metric.model.IMetricValueProvider;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/13 10:51 下午
  */
-public class WebServerMetrics {
+public class WebServerMetrics implements IMetricSet {
 
-    private final WebServerType serverType;
-    private final long connectionCount;
-    private final long maxConnections;
-    private final long activeThreads;
-    private final long maxThreads;
+    public final Gauge2 connectionCount = new Gauge2();
+    public final Gauge2 maxConnections = new Gauge2();
+    public final Gauge2 activeThreads = new Gauge2();
+    public final Gauge2 maxThreads = new Gauge2();
+    public final IMetricValueProvider[] metrics = new IMetricValueProvider[]{
+        connectionCount, maxConnections, activeThreads, maxThreads
+    };
 
-    public WebServerMetrics(WebServerType serverType,
-                            long connectionCount,
-                            long maxConnections,
-                            long activeThreads,
-                            long maxThreads) {
-        this.serverType = serverType;
-        this.connectionCount = connectionCount;
-        this.maxConnections = maxConnections;
-        this.activeThreads = activeThreads;
-        this.maxThreads = maxThreads;
-    }
-
-    public WebServerType getServerType() {
-        return serverType;
-    }
-
-    public long getConnectionCount() {
-        return connectionCount;
-    }
-
-    public long getMaxConnections() {
-        return maxConnections;
-    }
-
-    public long getActiveThreads() {
-        return activeThreads;
-    }
-
-    public long getMaxThreads() {
-        return maxThreads;
+    @Override
+    public IMetricValueProvider[] getMetrics() {
+        return metrics;
     }
 }

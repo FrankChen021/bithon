@@ -20,8 +20,12 @@ import org.apache.tomcat.util.net.AbstractEndpoint;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.plugin.tomcat.metric.WebServerMetricCollector;
+import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
+import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
+import org.bithon.agent.core.metric.domain.web.WebServerType;
+
+import java.util.Collections;
 
 /**
  * @author frankchen
@@ -32,12 +36,20 @@ public class AbstractEndpointStart extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext context) {
-        if (null == endpoint) {
-            endpoint = (AbstractEndpoint<?>) context.getTarget();
-
-            AgentContext.getInstance().getAppInstance().setPort(endpoint.getPort());
-
-            MetricCollectorManager.getInstance().register("webserver-tomcat", new WebServerMetricCollector(endpoint));
+        if (endpoint != null) {
+            return;
         }
+
+        endpoint = (AbstractEndpoint<?>) context.getTarget();
+
+        AgentContext.getInstance().getAppInstance().setPort(endpoint.getPort());
+
+        WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
+                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.UNDERTOW.type()),
+                                                                            WebServerMetrics::new);
+        metrics.connectionCount.setProvider(endpoint::getConnectionCount);
+        metrics.maxConnections.setProvider(endpoint::getMaxConnections);
+        metrics.activeThreads.setProvider(endpoint::getCurrentThreadsBusy);
+        metrics.maxThreads.setProvider(endpoint::getMaxThreads);
     }
 }

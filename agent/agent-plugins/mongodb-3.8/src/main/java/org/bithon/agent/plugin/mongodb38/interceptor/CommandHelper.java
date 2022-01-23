@@ -24,9 +24,8 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
+import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 import org.bson.BsonDocument;
 
 /**
@@ -45,14 +44,7 @@ public class CommandHelper {
      */
     public static class ExecuteCommand extends AbstractInterceptor {
 
-        private MongoDbMetricCollector metricCollector;
-
-        @Override
-        public boolean initialize() {
-            metricCollector = MetricCollectorManager.getInstance()
-                                                    .getOrRegister("mongo-3.8-metrics", MongoDbMetricCollector.class);
-            return true;
-        }
+        private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
         @Override
         public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
@@ -75,8 +67,8 @@ public class CommandHelper {
                                             : aopContext.getArgAs(2);
 
             String server = connection.getDescription().getServerAddress().toString();
-            metricCollector.getOrCreateMetric(server, (String) aopContext.getArgs()[0])
-                           .add(aopContext.getCostTime(), aopContext.hasException() ? 1 : 0);
+            metricRegistry.getOrCreateMetric(server, (String) aopContext.getArgs()[0])
+                          .add(aopContext.getCostTime(), aopContext.hasException() ? 1 : 0);
             super.onMethodLeave(aopContext);
         }
     }

@@ -14,41 +14,25 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.metric.model;
+package org.bithon.agent.core.metric.domain.web;
+
+import org.bithon.agent.core.metric.collector.MetricRegistry;
+
+import java.util.Collections;
 
 /**
- * It's a compound metric which holds total time, min time and max time
- *
  * @author frank.chen021@outlook.com
- * @date 2021-03-16
+ * @date 2021/1/14 9:30 下午
  */
-public class Timer implements ISimpleMetric {
+public class WebServerMetricRegistry extends MetricRegistry<WebServerMetrics> {
 
-    private final Sum sum = new Sum();
-    private final Max max = new Max();
-    private final Min min = new Min();
+    public static final String NAME = "web-server-metrics";
 
-    @Override
-    public long update(long value) {
-        max.update(value);
-        min.update(value);
-        return sum.update(value);
-    }
-
-    @Override
-    public long get() {
-        return 0;
-    }
-
-    public Sum getSum() {
-        return sum;
-    }
-
-    public Max getMax() {
-        return max;
-    }
-
-    public Min getMin() {
-        return min;
+    public WebServerMetricRegistry() {
+        super(NAME,
+              Collections.singletonList("type"),
+              WebServerMetrics.class,
+              null,
+              false);
     }
 }

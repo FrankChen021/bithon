@@ -14,27 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.metric.domain.redis;
+package org.bithon.agent.core.metric.model;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector2;
-
-import java.util.Arrays;
+import java.util.function.LongSupplier;
 
 /**
- * @author frankchen
+ * @author Frank Chen
+ * @date 23/1/22 11:31 AM
  */
-public class RedisMetricCollector extends IntervalMetricCollector2<RedisClientMetrics> {
+public class Gauge2 implements IMetricValueProvider {
+    private LongSupplier provider;
 
-    public RedisMetricCollector() {
-        super("redis-metrics", Arrays.asList("uri", "command"), RedisClientMetrics.class);
+    public LongSupplier getProvider() {
+        return provider;
+    }
+
+    public void setProvider(LongSupplier provider) {
+        this.provider = provider;
     }
 
     @Override
-    protected RedisClientMetrics newMetrics() {
-        return new RedisClientMetrics();
-    }
-
-    public RedisClientMetrics getOrCreateMetrics(String uri, String command) {
-        return super.getOrCreateMetrics(uri, command);
+    public long get() {
+        return provider == null ? 0 : provider.getAsLong();
     }
 }

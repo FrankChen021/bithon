@@ -19,11 +19,18 @@ package org.bithon.agent.plugin.undertow.interceptor;
 import io.undertow.Undertow;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
+import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
+import org.bithon.agent.core.metric.domain.web.WebServerType;
 import org.bithon.agent.core.utils.ReflectionUtils;
-import org.bithon.agent.plugin.undertow.metric.WebServerMetricCollector;
 import org.xnio.XnioWorker;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,20 +38,74 @@ import java.util.List;
  */
 public class UndertowStart extends AbstractInterceptor {
 
-    private Integer port;
-
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        if (port == null && !aopContext.hasException()) {
-            Undertow server = (Undertow) aopContext.getTarget();
+        if (AgentContext.getInstance().getAppInstance().getPort() != 0 || aopContext.hasException()) {
+            return;
+        }
 
-            List<?> listeners = (List<?>) ReflectionUtils.getFieldValue(server, "listeners");
-            XnioWorker worker = (XnioWorker) ReflectionUtils.getFieldValue(server, "worker");
-            port = Integer.parseInt(ReflectionUtils.getFieldValue(listeners.iterator().next(), "port").toString());
-            AgentContext.getInstance().getAppInstance().setPort(port);
+        Undertow server = (Undertow) aopContext.getTarget();
 
-            Object taskPool = ReflectionUtils.getFieldValue(worker, "taskPool");
-            WebServerMetricCollector.getInstance().setThreadPool(taskPool);
+        List<?> listeners = (List<?>) ReflectionUtils.getFieldValue(server, "listeners");
+        int port = Integer.parseInt(ReflectionUtils.getFieldValue(listeners.iterator().next(), "port").toString());
+        AgentContext.getInstance().getAppInstance().setPort(port);
+
+        XnioWorker worker = (XnioWorker) ReflectionUtils.getFieldValue(server, "worker");
+        TaskPoolAccessor accessor = new TaskPoolAccessor(ReflectionUtils.getFieldValue(worker, "taskPool"));
+
+        WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
+                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.UNDERTOW.type()),
+                                                                            WebServerMetrics::new);
+        metrics.activeThreads.setProvider(accessor::getActiveCount);
+        metrics.maxThreads.setProvider(accessor::getMaximumPoolSize);
+    }
+
+    /**
+     * Implementations of TaskPool in different version(3.3.8 used by Undertow 1.x vs 3.8 used by Undertow 2.x) differ from each other
+     * Fortunately, they have same method name so that we could use reflect to unify the code together
+     */
+    static class TaskPoolAccessor {
+        private final Object taskPool;
+        private final Method getActiveCount;
+        private final Method getMaximumPoolSize;
+
+        TaskPoolAccessor(Object taskPool) {
+            this.taskPool = taskPool;
+            getActiveCount = getMethod(this.taskPool.getClass(), "getActiveCount");
+            getActiveCount.setAccessible(true);
+            getMaximumPoolSize = getMethod(this.taskPool.getClass(), "getMaximumPoolSize");
+            getMaximumPoolSize.setAccessible(true);
+        }
+
+        Method getMethod(Class<?> clazz, String name) {
+            Class<?> thisClass = clazz;
+            while (thisClass != null) {
+                try {
+                    return thisClass.getDeclaredMethod(name);
+                } catch (NoSuchMethodException e) {
+                    thisClass = thisClass.getSuperclass();
+                }
+            }
+            throw new AgentException("can't find [%s] in [%s]", name, clazz.getName());
+        }
+
+        public int getActiveCount() {
+            try {
+                int activeCount = (int) getActiveCount.invoke(taskPool);
+                return activeCount == -1 ? 0 : activeCount;
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                //TODO: warning log
+                return 0;
+            }
+        }
+
+        public int getMaximumPoolSize() {
+            try {
+                return (int) getMaximumPoolSize.invoke(taskPool);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                //TODO: warning log
+                return 0;
+            }
         }
     }
 }

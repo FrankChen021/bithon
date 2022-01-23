@@ -18,8 +18,13 @@ package org.bithon.agent.plugin.jetty.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.plugin.jetty.metric.WebServerMetricCollector;
+import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
+import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
+import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
+import org.bithon.agent.core.metric.domain.web.WebServerType;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+
+import java.util.Collections;
 
 /**
  * @author frankchen
@@ -28,6 +33,13 @@ public class QueuedThreadPoolDoStart extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext context) {
-        WebServerMetricCollector.getInstance().setThreadPool((QueuedThreadPool) context.getTarget());
+        QueuedThreadPool threadPool = context.castTargetAs();
+
+        WebServerMetrics metrics = MetricRegistryFactory.getOrCreateRegistry(WebServerMetricRegistry.NAME, WebServerMetricRegistry::new)
+                                                        .getOrCreateMetrics(Collections.singletonList(WebServerType.JETTY.type()),
+                                                                            WebServerMetrics::new);
+
+        metrics.activeThreads.setProvider(threadPool::getBusyThreads);
+        metrics.maxThreads.setProvider(threadPool::getMaxThreads);
     }
 }

@@ -20,8 +20,7 @@ import io.lettuce.core.protocol.AsyncCommand;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.redis.RedisMetricCollector;
+import org.bithon.agent.core.metric.domain.redis.RedisMetricRegistry;
 import org.bithon.agent.plugin.lettuce.LettuceAsyncContext;
 
 /**
@@ -29,13 +28,7 @@ import org.bithon.agent.plugin.lettuce.LettuceAsyncContext;
  */
 public class RedisAsyncCommandComplete extends AbstractInterceptor {
 
-    private RedisMetricCollector metricProvider;
-
-    @Override
-    public boolean initialize() {
-        metricProvider = MetricCollectorManager.getInstance().getOrRegister("lettuce", RedisMetricCollector.class);
-        return true;
-    }
+    private final RedisMetricRegistry metricRegistry = RedisMetricRegistry.get();
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
@@ -55,7 +48,7 @@ public class RedisAsyncCommandComplete extends AbstractInterceptor {
 
             //TODO: read/write
             //TODO: bytes
-            this.metricProvider.getOrCreateMetrics(asyncContext.getEndpoint(),
+            this.metricRegistry.getOrCreateMetrics(asyncContext.getEndpoint(),
                                                    asyncCommand.getType().name())
                                .addRequest(System.nanoTime() - asyncContext.getStartTime(),
                                            fail ? 1 : 0);

@@ -29,9 +29,9 @@ public class ThreadPoolExecutorShutdown extends AbstractInterceptor {
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        ThreadPoolMetricsCollector collector = ThreadPoolMetricsCollector.getInstance();
-        if (collector != null) {
-            collector.deleteThreadPool((ThreadPoolExecutor) aopContext.getTarget());
+        ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
+        if (registry != null) {
+            registry.deleteThreadPool((ThreadPoolExecutor) aopContext.getTarget());
         }
     }
 }

@@ -16,8 +16,8 @@
 
 package org.bithon.agent.core.metric.domain.http;
 
-import org.bithon.agent.core.metric.model.ICompositeMetric;
-import org.bithon.agent.core.metric.model.ISimpleMetric;
+import org.bithon.agent.core.metric.model.IMetricSet;
+import org.bithon.agent.core.metric.model.IMetricValueProvider;
 import org.bithon.agent.core.metric.model.Max;
 import org.bithon.agent.core.metric.model.Min;
 import org.bithon.agent.core.metric.model.Sum;
@@ -27,7 +27,7 @@ import org.bithon.agent.core.metric.model.Sum;
  *
  * @author frankchen
  */
-public class HttpOutgoingMetrics implements ICompositeMetric {
+public class HttpOutgoingMetrics implements IMetricSet {
     /**
      * total cost time in NANO second
      */
@@ -72,8 +72,8 @@ public class HttpOutgoingMetrics implements ICompositeMetric {
     }
 
     @Override
-    public ISimpleMetric[] getMetrics() {
-        return new ISimpleMetric[]{
+    public IMetricValueProvider[] getMetrics() {
+        return new IMetricValueProvider[]{
             responseTime,
             maxResponseTime,
             minResponseTime,

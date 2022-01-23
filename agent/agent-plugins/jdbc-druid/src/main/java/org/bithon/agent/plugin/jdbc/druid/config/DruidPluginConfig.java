@@ -14,11 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.metric.model;
+package org.bithon.agent.plugin.jdbc.druid.config;
+
+import org.bithon.agent.core.config.ConfigurationProperties;
+import shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author frankchen@apache.org
- * @date 2021/3/25 7:36 下午
+ * @author Frank Chen
+ * @date 23/1/22 7:20 PM
  */
-public interface IMetric {
+@ConfigurationProperties(prefix = "agent.plugin.jdbc.druid")
+public class DruidPluginConfig {
+
+    @JsonProperty
+    private boolean isSQLMetricEnabled = false;
+
+    public void setSQLMetricEnabled(boolean isSQLMetricEnabled) {
+        this.isSQLMetricEnabled = isSQLMetricEnabled;
+    }
+
+    public boolean isSQLMetricEnabled() {
+        return isSQLMetricEnabled;
+    }
 }

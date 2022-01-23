@@ -20,8 +20,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.redis.RedisMetricCollector;
+import org.bithon.agent.core.metric.domain.redis.RedisMetricRegistry;
 import redis.clients.jedis.Jedis;
 
 import java.util.Locale;
@@ -32,13 +31,7 @@ import java.util.Locale;
  */
 public class OnCommand extends AbstractInterceptor {
 
-    private RedisMetricCollector metricCollector;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance().getOrRegister("jedis", RedisMetricCollector.class);
-        return true;
-    }
+    private final RedisMetricRegistry metricRegistry = RedisMetricRegistry.get();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
@@ -48,7 +41,7 @@ public class OnCommand extends AbstractInterceptor {
 
         String command = aopContext.getMethod().getName().toUpperCase(Locale.ENGLISH);
 
-        InterceptorContext.set("redis-command", new JedisContext(metricCollector.getOrCreateMetrics(hostAndPort, command)));
+        InterceptorContext.set("redis-command", new JedisContext(metricRegistry.getOrCreateMetrics(hostAndPort, command)));
 
         return super.onMethodEnter(aopContext);
     }

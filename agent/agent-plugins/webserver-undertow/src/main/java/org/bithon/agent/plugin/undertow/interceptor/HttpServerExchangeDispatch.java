@@ -20,9 +20,8 @@ import io.undertow.server.HttpServerExchange;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 
 /**
@@ -30,19 +29,8 @@ import org.bithon.agent.core.tracing.propagation.ITracePropagator;
  */
 public class HttpServerExchangeDispatch extends AbstractInterceptor {
 
-    private HttpIncomingFilter requestFilter;
-    private HttpIncomingMetricsCollector metricCollector;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("undertow-web-request-metrics",
-                                                               HttpIncomingMetricsCollector.class);
-
-        requestFilter = new HttpIncomingFilter();
-
-        return true;
-    }
+    private final HttpIncomingFilter requestFilter = new HttpIncomingFilter();
+    private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext context) {
@@ -70,8 +58,8 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
         long responseByteSize = exchange.getResponseBytesSent();
         long costTime = System.nanoTime() - startNano;
 
-        this.metricCollector.getOrCreateMetrics(srcApplication, uri, httpStatus)
-                            .updateRequest(costTime, count4xx, count5xx)
-                            .updateBytes(requestByteSize, responseByteSize);
+        this.metricRegistry.getOrCreateMetrics(srcApplication, uri, httpStatus)
+                           .updateRequest(costTime, count4xx, count5xx)
+                           .updateBytes(requestByteSize, responseByteSize);
     }
 }

@@ -16,16 +16,20 @@
 
 package org.bithon.agent.core.metric.domain.sql;
 
-import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.IMetricSet;
+import org.bithon.agent.core.metric.model.IMetricValueProvider;
+import org.bithon.agent.core.metric.model.Max;
+import org.bithon.agent.core.metric.model.Min;
 import org.bithon.agent.core.metric.model.Sum;
-import org.bithon.agent.core.metric.model.Timer;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/4 11:18 下午
  */
-public class SQLMetrics implements ICompositeMetric {
-    private final Timer responseTime = new Timer();
+public class SQLMetrics implements IMetricSet {
+    private final Min minResponseTime = new Min();
+    private final Sum responseTime = new Sum();
+    private final Max maxResponseTime = new Max();
     private final Sum callCount = new Sum();
     private final Sum errorCount = new Sum();
     private final Sum queryCount = new Sum();
@@ -33,8 +37,22 @@ public class SQLMetrics implements ICompositeMetric {
     private final Sum bytesIn = new Sum();
     private final Sum bytesOut = new Sum();
 
+    private final IMetricValueProvider[] metrics = new IMetricValueProvider[]{
+        minResponseTime,
+        responseTime,
+        maxResponseTime,
+        callCount,
+        errorCount,
+        queryCount,
+        updateCount,
+        bytesIn,
+        bytesOut
+    };
+
     public void update(Boolean isQuery, boolean failed, long responseTime) {
         this.responseTime.update(responseTime);
+        this.minResponseTime.update(responseTime);
+        this.maxResponseTime.update(responseTime);
         if (isQuery != null) {
             if (isQuery) {
                 this.queryCount.incr();
@@ -62,7 +80,7 @@ public class SQLMetrics implements ICompositeMetric {
         this.bytesOut.update(bytesOut);
     }
 
-    public Timer getResponseTime() {
+    public Sum getResponseTime() {
         return responseTime;
     }
 
@@ -88,5 +106,10 @@ public class SQLMetrics implements ICompositeMetric {
 
     public Sum getBytesOut() {
         return bytesOut;
+    }
+
+    @Override
+    public IMetricValueProvider[] getMetrics() {
+        return metrics;
     }
 }

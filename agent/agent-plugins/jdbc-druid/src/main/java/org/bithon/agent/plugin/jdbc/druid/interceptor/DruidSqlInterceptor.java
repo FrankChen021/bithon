@@ -19,9 +19,13 @@ package org.bithon.agent.plugin.jdbc.druid.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
+import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.core.utils.MiscUtils;
-import org.bithon.agent.plugin.jdbc.druid.metric.DruidSqlMetricCollector;
+import org.bithon.agent.plugin.jdbc.druid.DruidPlugin;
+import org.bithon.agent.plugin.jdbc.druid.config.DruidPluginConfig;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.sql.Statement;
 
@@ -29,14 +33,14 @@ import java.sql.Statement;
  * @author frankchen
  */
 public class DruidSqlInterceptor extends AbstractInterceptor {
+    private static final ILogAdaptor log = LoggerFactory.getLogger(DruidSqlInterceptor.class);
 
-    DruidSqlMetricCollector metricCollector;
+    final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
-    public boolean initialize() throws Exception {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("sql-metrics(druid)", DruidSqlMetricCollector.class);
-        return super.initialize();
+    public boolean initialize() {
+        DruidPluginConfig config = AgentContext.getInstance().getAgentConfiguration().getConfig(DruidPluginConfig.class);
+        return config.isSQLMetricEnabled();
     }
 
     @Override
@@ -59,11 +63,29 @@ public class DruidSqlInterceptor extends AbstractInterceptor {
     @Override
     public void onMethodLeave(AopContext aopContext) {
         String connectionString = aopContext.castUserContextAs();
-        if (connectionString != null) {
-            metricCollector.update(aopContext.getMethod().getName(),
-                                   connectionString,
-                                   aopContext,
-                                   aopContext.getCostTime());
+        if (connectionString == null) {
+            return;
         }
+
+        String methodName = aopContext.getMethod().getName();
+
+        // check if metrics provider for this driver exists
+        Boolean isQuery = null;
+        if (DruidPlugin.METHOD_EXECUTE_UPDATE.equals(methodName)
+            || DruidPlugin.METHOD_EXECUTE_BATCH.equals(methodName)) {
+            isQuery = false;
+        } else if (DruidPlugin.METHOD_EXECUTE.equals(methodName)) {
+            /*
+             * execute method return true if the first result is a ResultSet
+             */
+            isQuery = aopContext.getReturning() == null ? null : (boolean) aopContext.castReturningAs();
+        } else if (DruidPlugin.METHOD_EXECUTE_QUERY.equals(methodName)) {
+            isQuery = true;
+        } else {
+            //TODO: parse the SQL to check if it's a SELECT
+            log.warn("unknown method intercepted by druid-sql-counter : {}", methodName);
+        }
+
+        metricRegistry.getOrCreateMetrics(connectionString).update(isQuery, aopContext.hasException(), aopContext.getCostTime());
     }
 }

@@ -24,21 +24,13 @@ import com.mongodb.session.SessionContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
+import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 
 /**
  * @author frankchen
  */
 public class DefaultServerConnectionExecuteProtocolAsync extends AbstractInterceptor {
-    private MongoDbMetricCollector metricCollector;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("mongodb-3.8-metrics", MongoDbMetricCollector.class);
-        return true;
-    }
+    private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     /**
      * {@link DefaultServerConnection#executeProtocolAsync(LegacyProtocol, SingleResultCallback)}

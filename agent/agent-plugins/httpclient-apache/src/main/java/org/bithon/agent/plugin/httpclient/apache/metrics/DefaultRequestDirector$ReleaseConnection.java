@@ -25,8 +25,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -41,16 +40,8 @@ import java.lang.reflect.Field;
 public class DefaultRequestDirector$ReleaseConnection extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(DefaultRequestDirector$ReleaseConnection.class);
 
-    private HttpOutgoingMetricsCollector metricProvider;
+    private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
     private Field managedConnectionField;
-
-    @Override
-    public boolean initialize() {
-        metricProvider = MetricCollectorManager.getInstance()
-                                               .getOrRegister("apache-http-client", HttpOutgoingMetricsCollector.class);
-
-        return true;
-    }
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
@@ -88,7 +79,7 @@ public class DefaultRequestDirector$ReleaseConnection extends AbstractIntercepto
 
             String requestUri = httpRequest.getRequestLine().getUri();
             String requestMethod = httpRequest.getRequestLine().getMethod();
-            metricProvider.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
+            metricRegistry.addBytes(requestUri, requestMethod, requestBytes, responseBytes);
         } catch (ConnectionShutdownException e) {
             log.warn("Failed to get metric on HTTP Connection since it has been shutdown", e);
         }

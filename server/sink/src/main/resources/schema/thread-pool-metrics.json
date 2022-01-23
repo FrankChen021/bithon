@@ -25,6 +25,12 @@
       "name": "poolName",
       "displayText": "Thread Pool Name",
       "required": true
+    },
+    {
+      "name": "poolId",
+      "displayText": "Thread Pool Id",
+      "required": true,
+      "visible": false
     }
   ],
   "metricsSpec": [

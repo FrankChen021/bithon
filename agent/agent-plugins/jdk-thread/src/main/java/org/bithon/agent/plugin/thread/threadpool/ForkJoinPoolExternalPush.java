@@ -32,6 +32,6 @@ public class ForkJoinPoolExternalPush extends AbstractInterceptor {
         ForkJoinPool pool = aopContext.castTargetAs();
 
         //TODO: record task exception of ForkJoinPool
-        ThreadPoolMetricsCollector.getInstance().addTotal(pool);
+        ThreadPoolMetricRegistry.getInstance().addTotal(pool);
     }
 }

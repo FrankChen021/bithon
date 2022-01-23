@@ -22,9 +22,8 @@ import com.mysql.jdbc.MysqlIO;
 import com.mysql.jdbc.ResultSetImpl;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
-import org.bithon.agent.core.metric.domain.sql.SqlMetricCollector;
+import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.core.utils.MiscUtils;
 import org.bithon.agent.core.utils.ReflectionUtils;
 import org.bithon.agent.plugin.mysql.MySqlPlugin;
@@ -38,13 +37,7 @@ import java.sql.SQLException;
  */
 public class MySqlIOInterceptor extends AbstractInterceptor {
 
-    SqlMetricCollector metricCollector;
-
-    @Override
-    public boolean initialize() throws Exception {
-        metricCollector = MetricCollectorManager.getInstance().getOrRegister("mysql-metrics", SqlMetricCollector.class);
-        return super.initialize();
-    }
+    private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
     public void onMethodLeave(AopContext aopContext) throws SQLException {
@@ -54,7 +47,7 @@ public class MySqlIOInterceptor extends AbstractInterceptor {
 
         MySQLConnection connection = (MySQLConnection) ReflectionUtils.getFieldValue(mysqlIO, "connection");
 
-        SQLMetrics metric = metricCollector.getOrCreateMetrics(MiscUtils.cleanupConnectionString(connection.getURL()));
+        SQLMetrics metric = metricRegistry.getOrCreateMetrics(MiscUtils.cleanupConnectionString(connection.getURL()));
 
         if (MySqlPlugin.METHOD_SEND_COMMAND.equals(methodName)) {
             Buffer queryPacket = (Buffer) aopContext.getArgs()[2];

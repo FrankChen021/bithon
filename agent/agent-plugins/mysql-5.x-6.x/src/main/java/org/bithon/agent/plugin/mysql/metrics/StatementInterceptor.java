@@ -19,8 +19,7 @@ package org.bithon.agent.plugin.mysql.metrics;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.sql.SqlMetricCollector;
+import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.core.utils.MiscUtils;
 import org.bithon.agent.plugin.mysql.MySqlPlugin;
 
@@ -31,14 +30,7 @@ import java.sql.Statement;
  * @author frankchen
  */
 public class StatementInterceptor extends AbstractInterceptor {
-    private SqlMetricCollector sqlMetricCollector;
-
-    @Override
-    public boolean initialize() {
-        sqlMetricCollector = MetricCollectorManager.getInstance()
-                                                   .getOrRegister("mysql-metrics", SqlMetricCollector.class);
-        return true;
-    }
+    private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -74,7 +66,7 @@ public class StatementInterceptor extends AbstractInterceptor {
             }
         }
 
-        sqlMetricCollector.getOrCreateMetrics(connectionString)
-                          .update(isQuery, aopContext.hasException(), aopContext.getCostTime());
+        metricRegistry.getOrCreateMetrics(connectionString)
+                      .update(isQuery, aopContext.hasException(), aopContext.getCostTime());
     }
 }

@@ -20,9 +20,8 @@ package org.bithon.agent.plugin.mysql8;
 import com.mysql.cj.conf.HostInfo;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
-import org.bithon.agent.core.metric.domain.sql.SqlMetricCollector;
+import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.core.utils.MiscUtils;
 import org.bithon.agent.core.utils.ReflectionUtils;
 
@@ -33,15 +32,7 @@ import java.lang.reflect.Method;
  */
 public class NativeProtocolInterceptor extends AbstractInterceptor {
 
-    SqlMetricCollector sqlMetricCollector;
-
-    @Override
-    public boolean initialize() throws Exception {
-        sqlMetricCollector = MetricCollectorManager.getInstance()
-                                                   .getOrRegister("mysql8-metrics", SqlMetricCollector.class);
-
-        return super.initialize();
-    }
+    private final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
 
     @Override
     public void onMethodLeave(AopContext aopContext) throws Exception {
@@ -52,7 +43,7 @@ public class NativeProtocolInterceptor extends AbstractInterceptor {
         Object session = ReflectionUtils.getFieldValue(nativeProtocol, "session");
         HostInfo hostInfo = (HostInfo) ReflectionUtils.getFieldValue(session, "hostInfo");
 
-        SQLMetrics metric = sqlMetricCollector.getOrCreateMetrics(MiscUtils.cleanupConnectionString(hostInfo.getDatabaseUrl()));
+        SQLMetrics metric = metricRegistry.getOrCreateMetrics(MiscUtils.cleanupConnectionString(hostInfo.getDatabaseUrl()));
 
         if (MySql8Plugin.METHOD_SEND_COMMAND.equals(methodName)) {
             Object message = aopContext.getArgs()[0];

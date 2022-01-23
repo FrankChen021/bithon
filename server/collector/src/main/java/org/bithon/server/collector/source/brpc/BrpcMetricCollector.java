@@ -19,19 +19,12 @@ package org.bithon.server.collector.source.brpc;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
-import org.bithon.agent.rpc.brpc.metrics.BrpcExceptionMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurement;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
-import org.bithon.agent.rpc.brpc.metrics.BrpcHttpIncomingMetricMessage;
-import org.bithon.agent.rpc.brpc.metrics.BrpcHttpOutgoingMetricMessage;
-import org.bithon.agent.rpc.brpc.metrics.BrpcJdbcPoolMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
-import org.bithon.agent.rpc.brpc.metrics.BrpcMongoDbMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
-import org.bithon.agent.rpc.brpc.metrics.BrpcThreadPoolMetricMessage;
-import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.server.common.utils.ReflectionUtils;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
@@ -50,6 +43,7 @@ import org.bithon.server.metric.sink.MetricMessage;
 import org.bithon.server.metric.sink.SchemaMetricMessage;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,20 +57,13 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     private final IMessageSink<SchemaMetricMessage> schemaMetricSink;
     private final IMetricMessageSink metricSink;
+    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", true, true, 128, null);
+    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", true, true, 128, null);
 
     public BrpcMetricCollector(IMessageSink<SchemaMetricMessage> schemaMetricSink,
                                IMetricMessageSink metricSink) {
         this.schemaMetricSink = schemaMetricSink;
         this.metricSink = metricSink;
-    }
-
-    @Override
-    public void sendIncomingHttp(BrpcMessageHeader header, List<BrpcHttpIncomingMetricMessage> messages) {
-        if (CollectionUtils.isEmpty(messages)) {
-            return;
-        }
-
-        metricSink.process("http-incoming-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
@@ -98,51 +85,6 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
     }
 
     @Override
-    public void sendWebServer(BrpcMessageHeader header, List<BrpcWebServerMetricMessage> messages) {
-        if (CollectionUtils.isEmpty(messages)) {
-            return;
-        }
-
-        metricSink.process("web-server-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
-    }
-
-    @Override
-    public void sendException(BrpcMessageHeader header, List<BrpcExceptionMetricMessage> messages) {
-        if (CollectionUtils.isEmpty(messages)) {
-            return;
-        }
-
-        metricSink.process("exception-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
-    }
-
-    @Override
-    public void sendOutgoingHttp(BrpcMessageHeader header, List<BrpcHttpOutgoingMetricMessage> messages) {
-        if (CollectionUtils.isEmpty(messages)) {
-            return;
-        }
-
-        metricSink.process("http-outgoing-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
-    }
-
-    @Override
-    public void sendThreadPool(BrpcMessageHeader header, List<BrpcThreadPoolMetricMessage> messages) {
-        if (CollectionUtils.isEmpty(messages)) {
-            return;
-        }
-
-        metricSink.process("thread-pool-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
-    }
-
-    @Override
-    public void sendJdbc(BrpcMessageHeader header, List<BrpcJdbcPoolMetricMessage> messages) {
-        if (CollectionUtils.isEmpty(messages)) {
-            return;
-        }
-
-        metricSink.process("jdbc-pool-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
-    }
-
-    @Override
     public void sendSql(BrpcMessageHeader header, List<BrpcSqlMetricMessage> messages) {
         if (CollectionUtils.isEmpty(messages)) {
             return;
@@ -152,52 +94,49 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
     }
 
     @Override
-    public void sendMongoDb(BrpcMessageHeader header, List<BrpcMongoDbMetricMessage> messages) {
-        if (CollectionUtils.isEmpty(messages)) {
-            return;
-        }
-
-        metricSink.process("mongodb-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
-    }
-
-    @Override
     public void sendGenericMetrics(BrpcMessageHeader header, BrpcGenericMetricMessage message) {
-        SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();
 
+        List<IDimensionSpec> dimensionSpecs = new ArrayList<>();
+        dimensionSpecs.add(appName);
+        dimensionSpecs.add(instanceName);
+        dimensionSpecs.addAll(message.getSchema()
+                                     .getDimensionsSpecList()
+                                     .stream()
+                                     .map(dimSpec -> new StringDimensionSpec(dimSpec.getName(),
+                                                                             dimSpec.getName(),
+                                                                             true,
+                                                                             true,
+                                                                             null,
+                                                                             null))
+                                     .collect(Collectors.toList()));
+
+        SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();
         DataSourceSchema schema = new DataSourceSchema(message.getSchema().getName(),
                                                        message.getSchema().getName(),
                                                        new TimestampSpec("timestamp", "auto", null),
-                                                       message.getSchema().getDimensionsSpecList()
-                                                              .stream()
-                                                              .map(dimSpec -> new StringDimensionSpec(dimSpec.getName(),
-                                                                                                      dimSpec.getName(),
-                                                                                                      true,
-                                                                                                      true,
-                                                                                                      null,
-                                                                                                      null))
-                                                              .collect(Collectors.toList()),
+                                                       dimensionSpecs,
                                                        message.getSchema().getMetricsSpecList()
                                                               .stream()
                                                               .map(metricSpec -> {
-                                                                  if (metricSpec.getType().equals("longMax")) {
+                                                                  if ("longMax".equals(metricSpec.getType())) {
                                                                       return new LongMaxMetricSpec(metricSpec.getName(),
                                                                                                    metricSpec.getName(),
                                                                                                    "",
                                                                                                    true);
                                                                   }
-                                                                  if (metricSpec.getType().equals("longMin")) {
+                                                                  if ("longMin".equals(metricSpec.getType())) {
                                                                       return new LongMinMetricSpec(metricSpec.getName(),
                                                                                                    metricSpec.getName(),
                                                                                                    "",
                                                                                                    true);
                                                                   }
-                                                                  if (metricSpec.getType().equals("longSum")) {
+                                                                  if ("longSum".equals(metricSpec.getType())) {
                                                                       return new LongSumMetricSpec(metricSpec.getName(),
                                                                                                    metricSpec.getName(),
                                                                                                    "",
                                                                                                    true);
                                                                   }
-                                                                  if (metricSpec.getType().equals("longLast")) {
+                                                                  if ("longLast".equals(metricSpec.getType())) {
                                                                       return new LongLastMetricSpec(metricSpec.getName(),
                                                                                                     metricSpec.getName(),
                                                                                                     "",
@@ -220,16 +159,16 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             @Override
             public MetricMessage next() {
                 MetricMessage metricMessage = new MetricMessage();
-                BrpcGenericMeasurement metricSet = iterator.next();
+                BrpcGenericMeasurement measurement = iterator.next();
 
                 int i = 0;
-                for (String dimension : metricSet.getDimensionList()) {
+                for (String dimension : measurement.getDimensionList()) {
                     IDimensionSpec dimensionSpec = schema.getDimensionsSpec().get(i++);
                     metricMessage.put(dimensionSpec.getName(), dimension);
                 }
 
                 i = 0;
-                for (long metric : metricSet.getMetricList()) {
+                for (long metric : measurement.getMetricList()) {
                     IMetricSpec metricSpec = schema.getMetricsSpec().get(i++);
                     metricMessage.put(metricSpec.getName(), metric);
                 }
@@ -256,16 +195,16 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             @Override
             public MetricMessage next() {
                 MetricMessage metricMessage = new MetricMessage();
-                BrpcGenericMeasurement metricSet = iterator.next();
+                BrpcGenericMeasurement measurement = iterator.next();
 
                 int i = 0;
-                for (String dimension : metricSet.getDimensionList()) {
+                for (String dimension : measurement.getDimensionList()) {
                     String dimensionSpec = message.getSchema().getDimensionsSpec(i++);
                     metricMessage.put(dimensionSpec, dimension);
                 }
 
                 i = 0;
-                for (long metric : metricSet.getMetricList()) {
+                for (long metric : measurement.getMetricList()) {
                     String metricSpec = message.getSchema().getMetricsSpec(i++);
                     metricMessage.put(metricSpec, metric);
                 }

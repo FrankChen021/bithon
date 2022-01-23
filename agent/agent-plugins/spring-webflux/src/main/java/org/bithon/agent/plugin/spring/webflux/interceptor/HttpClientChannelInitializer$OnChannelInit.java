@@ -21,8 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpBodySizeCollector;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpIOMetrics;
 import reactor.netty.NettyPipeline;
@@ -40,16 +39,7 @@ import reactor.netty.http.client.HttpClientRequest;
  */
 public class HttpClientChannelInitializer$OnChannelInit extends AbstractInterceptor {
 
-    private HttpOutgoingMetricsCollector metricsCollector;
-
-    @Override
-    public boolean initialize() {
-        metricsCollector = MetricCollectorManager.getInstance()
-                                                 .getOrRegister("http-outgoing-metrics",
-                                                                HttpOutgoingMetricsCollector.class);
-
-        return true;
-    }
+    private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     /**
      * Hook a handler to the channel
@@ -68,7 +58,7 @@ public class HttpClientChannelInitializer$OnChannelInit extends AbstractIntercep
         channel.pipeline()
                .addBefore(NettyPipeline.ReactiveBridge,
                           NettyPipeline.HttpMetricsHandler,
-                          new HttpClientBodySizeCollector(metricsCollector));
+                          new HttpClientBodySizeCollector(metricRegistry));
     }
 
     private static class HttpClientBodySizeCollector extends HttpBodySizeCollector {
@@ -85,10 +75,10 @@ public class HttpClientChannelInitializer$OnChannelInit extends AbstractIntercep
             }
         }
 
-        private final HttpOutgoingMetricsCollector metricsCollector;
+        private final HttpOutgoingMetricsRegistry metricRegistry;
 
-        private HttpClientBodySizeCollector(HttpOutgoingMetricsCollector metricsCollector) {
-            this.metricsCollector = metricsCollector;
+        private HttpClientBodySizeCollector(HttpOutgoingMetricsRegistry metricRegistry) {
+            this.metricRegistry = metricRegistry;
         }
 
         @Override
@@ -97,10 +87,10 @@ public class HttpClientChannelInitializer$OnChannelInit extends AbstractIntercep
                                    long dataSent,
                                    long receivedTimeNs) {
             // resource url is the fully qualified URL
-            metricsCollector.addBytes(((HttpClientInfos) channelOps).resourceUrl(),
-                                      ((HttpClientRequest) channelOps).method().name(),
-                                      dataSent,
-                                      dataReceived);
+            metricRegistry.addBytes(((HttpClientInfos) channelOps).resourceUrl(),
+                                    ((HttpClientRequest) channelOps).method().name(),
+                                    dataSent,
+                                    dataReceived);
         }
 
         @Override

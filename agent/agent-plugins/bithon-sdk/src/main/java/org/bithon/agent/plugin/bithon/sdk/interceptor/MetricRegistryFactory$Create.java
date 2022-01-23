@@ -33,7 +33,6 @@ import org.bithon.component.commons.utils.StringUtils;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -88,9 +87,6 @@ public class MetricRegistryFactory$Create implements IReplacementInterceptor {
         public MetricRegistryInvocationHandler(String name,
                                                List<String> dimensionSpec,
                                                Class<?> metricClass) {
-            dimensionSpec = new ArrayList<>(dimensionSpec);
-            dimensionSpec.add(0, "appName");
-            dimensionSpec.add(1, "instance");
             delegate = new MetricsRegistryDelegate(name,
                                                    dimensionSpec,
                                                    metricClass);

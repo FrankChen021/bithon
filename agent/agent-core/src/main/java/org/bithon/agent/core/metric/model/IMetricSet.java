@@ -16,23 +16,13 @@
 
 package org.bithon.agent.core.metric.model;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/16
+ * @date 2021/3/25 7:34 下午
  */
-public class Min implements IMetricValueUpdater, IMetricValueProvider {
-    private final AtomicLong value = new AtomicLong(Long.MAX_VALUE);
-
-    @Override
-    public long update(long value) {
-        return this.value.accumulateAndGet(value, Math::min);
-    }
-
-    @Override
-    public long get() {
-        long value = this.value.getAndSet(Long.MAX_VALUE);
-        return value == Long.MAX_VALUE ? 0 : value;
-    }
+public interface IMetricSet {
+    /**
+     * TODO: come up a way to automatically generate this method
+     */
+    IMetricValueProvider[] getMetrics();
 }

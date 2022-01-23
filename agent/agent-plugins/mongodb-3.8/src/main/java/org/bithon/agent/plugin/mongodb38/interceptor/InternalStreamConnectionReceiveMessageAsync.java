@@ -21,23 +21,14 @@ import com.mongodb.internal.connection.InternalStreamConnection;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
+import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 
 /**
  * @author frankchen
  */
 public class InternalStreamConnectionReceiveMessageAsync extends AbstractInterceptor {
 
-    private MongoDbMetricCollector metricCollector;
-
-    @Override
-    public boolean initialize() throws Exception {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("mongodb-3.8-metrics", MongoDbMetricCollector.class);
-
-        return super.initialize();
-    }
+    private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     /**
      * interceptor of {@link InternalStreamConnection#receiveMessageAsync(int, SingleResultCallback)}

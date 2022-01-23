@@ -64,7 +64,7 @@ class InterceptorManager {
                 if (!((AbstractInterceptor) interceptor).initialize()) {
                     log.warn("Interceptor not loaded for failure of initialization: [{}.{}]",
                              interceptorProvider,
-                             interceptorClass);
+                             interceptorClass.getSimpleName());
                     return null;
                 }
             }

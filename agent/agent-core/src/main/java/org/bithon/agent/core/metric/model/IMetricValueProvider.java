@@ -17,11 +17,9 @@
 package org.bithon.agent.core.metric.model;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/3/25 7:34 下午
+ * @author Frank Chen
+ * @date 23/1/22 11:12 AM
  */
-public interface ICompositeMetric extends IMetric {
-    default ISimpleMetric[] getMetrics() {
-        return new ISimpleMetric[0];
-    }
+public interface IMetricValueProvider {
+    long get();
 }

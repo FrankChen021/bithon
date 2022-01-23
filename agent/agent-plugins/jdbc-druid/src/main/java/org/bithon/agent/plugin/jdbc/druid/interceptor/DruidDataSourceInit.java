@@ -20,7 +20,6 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.plugin.jdbc.druid.metric.DruidJdbcMetricCollector;
 import org.bithon.agent.plugin.jdbc.druid.metric.MonitoredSourceManager;
 
 /**
@@ -29,13 +28,7 @@ import org.bithon.agent.plugin.jdbc.druid.metric.MonitoredSourceManager;
 public class DruidDataSourceInit extends AbstractInterceptor {
 
     @Override
-    public boolean initialize() {
-        DruidJdbcMetricCollector.getOrCreateInstance();
-        return true;
-    }
-
-    @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
         IBithonObject obj = aopContext.castTargetAs();
         Boolean initialized = (Boolean) obj.getInjectedObject();
         if (initialized != null && initialized) {
@@ -46,7 +39,7 @@ public class DruidDataSourceInit extends AbstractInterceptor {
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) throws Exception {
+    public void onMethodLeave(AopContext aopContext) {
         if (aopContext.hasException()) {
             return;
         }

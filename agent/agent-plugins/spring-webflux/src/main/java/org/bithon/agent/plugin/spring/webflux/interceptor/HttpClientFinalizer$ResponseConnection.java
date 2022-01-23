@@ -20,8 +20,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsCollector;
+import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
 import org.reactivestreams.Publisher;
@@ -41,15 +40,7 @@ import java.util.function.BiFunction;
  */
 public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor {
 
-    private HttpOutgoingMetricsCollector metricCollector;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("http-outgoing-metrics",
-                                                               HttpOutgoingMetricsCollector.class);
-        return true;
-    }
+    private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -83,10 +74,10 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
                 }
 
                 // metrics
-                metricCollector.addRequest(uri,
-                                           method,
-                                           httpClientResponse.status().code(),
-                                           System.nanoTime() - httpClientContext.getStartTimeNs());
+                metricRegistry.addRequest(uri,
+                                          method,
+                                          httpClientResponse.status().code(),
+                                          System.nanoTime() - httpClientContext.getStartTimeNs());
             } catch (Exception ignored) {
             }
 
@@ -135,14 +126,14 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
 
             // metrics
             if (statusCode == null) {
-                metricCollector.addExceptionRequest(uri,
-                                                    method,
-                                                    System.nanoTime() - httpClientContext.getStartTimeNs());
+                metricRegistry.addExceptionRequest(uri,
+                                                   method,
+                                                   System.nanoTime() - httpClientContext.getStartTimeNs());
             } else {
-                metricCollector.addRequest(uri,
-                                           method,
-                                           statusCode,
-                                           System.nanoTime() - httpClientContext.getStartTimeNs());
+                metricRegistry.addRequest(uri,
+                                          method,
+                                          statusCode,
+                                          System.nanoTime() - httpClientContext.getStartTimeNs());
             }
         }));
 
@@ -156,9 +147,9 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
                               .finish();
             }
 
-            metricCollector.addExceptionRequest(uri,
-                                                method,
-                                                System.nanoTime() - httpClientContext.getStartTimeNs());
+            metricRegistry.addExceptionRequest(uri,
+                                               method,
+                                               System.nanoTime() - httpClientContext.getStartTimeNs());
         });
         aopContext.setReturning(replacedReturning);
     }
