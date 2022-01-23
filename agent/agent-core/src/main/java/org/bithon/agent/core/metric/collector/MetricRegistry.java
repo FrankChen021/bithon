@@ -137,6 +137,8 @@ public class MetricRegistry<T extends IMetricSet> {
 
         @Override
         public Object collect(IMessageConverter messageConverter, int interval, long timestamp) {
+            registry.onCollect();
+
             Map<List<String>, IMeasurement> metrics = registry.metricsMap;
             if (registry.clearAfterCollect) {
                 registry.metricsMap = new ConcurrentHashMap<>();
@@ -149,5 +151,8 @@ public class MetricRegistry<T extends IMetricSet> {
             }
             return messageConverter.from(registry.schema, measurements, timestamp, interval);
         }
+    }
+
+    protected void onCollect() {
     }
 }

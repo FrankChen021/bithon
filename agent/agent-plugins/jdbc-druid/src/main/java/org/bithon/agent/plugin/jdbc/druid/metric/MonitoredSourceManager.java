@@ -48,7 +48,7 @@ public class MonitoredSourceManager {
         connectionMap.putIfAbsent(connectionString, monitoredSource);
         dataSourceMap.putIfAbsent(dataSource, monitoredSource);
 
-        DruidJdbcMetricCollector.getOrCreateInstance().register(monitoredSource.getDimensions(), monitoredSource.getJdbcMetric());
+        DruidJdbcMetricRegistry.get().createMetrics(monitoredSource.getDimensions(), monitoredSource.getJdbcMetric());
         return true;
     }
 
@@ -58,7 +58,7 @@ public class MonitoredSourceManager {
             return;
         }
         connectionMap.remove(monitoredSource.getConnectionString());
-        DruidJdbcMetricCollector.getOrCreateInstance().unregister(monitoredSource.getDimensions());
+        DruidJdbcMetricRegistry.get().removeMetrics(monitoredSource.getDimensions());
     }
 
     public MonitoredSource getMonitoredDataSource(DruidDataSource dataSource) {

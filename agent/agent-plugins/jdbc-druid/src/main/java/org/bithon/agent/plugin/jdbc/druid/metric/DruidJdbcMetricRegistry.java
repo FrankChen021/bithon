@@ -16,9 +16,8 @@
 
 package org.bithon.agent.plugin.jdbc.druid.metric;
 
-import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
+import org.bithon.agent.core.metric.collector.MetricRegistry;
+import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
 
 import java.util.Arrays;
@@ -27,29 +26,24 @@ import java.util.Collection;
 /**
  * @author frankchen
  */
-public class DruidJdbcMetricCollector extends IntervalMetricCollector<JdbcPoolMetrics> {
+public class DruidJdbcMetricRegistry extends MetricRegistry<JdbcPoolMetrics> {
 
-    private static final DruidJdbcMetricCollector INSTANCE = new DruidJdbcMetricCollector();
-
-    private DruidJdbcMetricCollector() {
+    private DruidJdbcMetricRegistry() {
         super("jdbc-pool-metrics",
               Arrays.asList("connectionString", "driverClass", "objectId"),
               JdbcPoolMetrics.class,
               null,
               false);
-
-        MetricCollectorManager.getInstance().register("jdbc-druid-metrics", this);
     }
 
-    public static DruidJdbcMetricCollector getOrCreateInstance() {
-        return INSTANCE;
+    public static DruidJdbcMetricRegistry get() {
+        return MetricRegistryFactory.getOrCreateRegistry("jdbc-pool-metrics", DruidJdbcMetricRegistry::new);
     }
 
     @Override
-    public Object collect(IMessageConverter messageConverter, int interval, long timestamp) {
+    protected void onCollect() {
+        // update the metrics
         Collection<MonitoredSource> dataSources = MonitoredSourceManager.getInstance().getMonitoredSources();
         dataSources.forEach((monitoredSource) -> monitoredSource.getDataSource().getStatValueAndReset());
-
-        return super.collect(messageConverter, interval, timestamp);
     }
 }
