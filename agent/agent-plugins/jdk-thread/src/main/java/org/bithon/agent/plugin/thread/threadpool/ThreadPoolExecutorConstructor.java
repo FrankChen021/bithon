@@ -33,14 +33,14 @@ public class ThreadPoolExecutorConstructor extends AbstractInterceptor {
 
     @Override
     public void onConstruct(AopContext aopContext) {
-        ThreadPoolMetricsCollector collector = ThreadPoolMetricsCollector.getInstance();
-        if (collector != null) {
+        ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
+        if (registry != null) {
             try {
                 ThreadPoolExecutor executor = aopContext.castTargetAs();
-                collector.addThreadPool(executor,
-                                        executor.getThreadFactory().getClass().getName(),
-                                        ThreadPoolUtils.getThreadPoolName(executor.getThreadFactory()),
-                                        new ThreadPoolExecutorMetrics(executor));
+                registry.addThreadPool(executor,
+                                       executor.getThreadFactory().getClass().getName(),
+                                       ThreadPoolUtils.getThreadPoolName(executor.getThreadFactory()),
+                                       new ThreadPoolExecutorMetrics(executor));
             } catch (AgentException e) {
                 LOG.error(e.getMessage());
             }

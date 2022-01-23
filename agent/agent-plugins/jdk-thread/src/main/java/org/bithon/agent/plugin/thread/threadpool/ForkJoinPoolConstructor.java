@@ -29,13 +29,13 @@ import java.util.concurrent.ForkJoinPool;
 public class ForkJoinPoolConstructor extends AbstractInterceptor {
     @Override
     public void onConstruct(AopContext aopContext) {
-        ThreadPoolMetricsCollector collector = ThreadPoolMetricsCollector.getInstance();
-        if (collector != null) {
+        ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
+        if (registry != null) {
             ForkJoinPool pool = aopContext.castTargetAs();
-            collector.addThreadPool(pool,
-                                    pool.getClass().getName(),
-                                    ThreadPoolUtils.stripSuffix((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"),
-                                    new ForkJoinPoolMetrics(pool));
+            registry.addThreadPool(pool,
+                                   pool.getClass().getName(),
+                                   ThreadPoolUtils.stripSuffix((String) ReflectionUtils.getFieldValue(pool, "workerNamePrefix"), "-"),
+                                   new ForkJoinPoolMetrics(pool));
         }
     }
 }

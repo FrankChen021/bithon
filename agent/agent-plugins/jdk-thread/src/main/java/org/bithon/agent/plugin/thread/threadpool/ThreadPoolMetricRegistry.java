@@ -16,8 +16,9 @@
 
 package org.bithon.agent.plugin.thread.threadpool;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
+import org.bithon.agent.core.metric.collector.MetricRegistry;
+import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
 
 import java.util.Arrays;
@@ -32,15 +33,15 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 9:13 下午
  */
-public class ThreadPoolMetricsCollector extends IntervalMetricCollector<ThreadPoolMetrics> {
+public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> {
     private static final String[] POOL_CLASS_EXCLUDE_PREFIX_LIST = {
         // a lamda class in the following class. it's a helper class which has no meaning to monitor it
         "org.springframework.cloud.commons.util.InetUtils"
     };
-    static volatile ThreadPoolMetricsCollector INSTANCE;
+    static volatile ThreadPoolMetricRegistry INSTANCE;
     private final Map<AbstractExecutorService, List<String>> executors = new ConcurrentHashMap<>();
 
-    public ThreadPoolMetricsCollector() {
+    public ThreadPoolMetricRegistry() {
         super("thread-pool-metrics",
               Arrays.asList("executorClass", "poolName", "threadPoolId"),
               ThreadPoolMetrics.class,
@@ -48,18 +49,14 @@ public class ThreadPoolMetricsCollector extends IntervalMetricCollector<ThreadPo
               false);
     }
 
-    public static ThreadPoolMetricsCollector getInstance() {
+    public static ThreadPoolMetricRegistry getInstance() {
         // See MetricCollectorManager for more detail to find why there's such a check below
         if (MetricCollectorManager.getInstance() == null) {
             return null;
         }
 
         if (INSTANCE == null) {
-            synchronized (ThreadPoolMetricsCollector.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = MetricCollectorManager.getInstance().getOrRegister("thread-pool", ThreadPoolMetricsCollector.class);
-                }
-            }
+            INSTANCE = MetricRegistryFactory.getOrCreateRegistry("thread-pool-metrics", ThreadPoolMetricRegistry::new);
         }
         return INSTANCE;
     }
@@ -73,7 +70,7 @@ public class ThreadPoolMetricsCollector extends IntervalMetricCollector<ThreadPo
 
         List<String> dimensions = Arrays.asList(executorClassName, poolName, String.valueOf(System.identityHashCode(pool)));
         executors.put(pool, dimensions);
-        this.register(dimensions, metrics);
+        this.createMetrics(dimensions, metrics);
     }
 
     public void deleteThreadPool(AbstractExecutorService executor) {
@@ -81,7 +78,7 @@ public class ThreadPoolMetricsCollector extends IntervalMetricCollector<ThreadPo
         if (dimensions == null) {
             return;
         }
-        this.unregister(dimensions);
+        this.removeMetrics(dimensions);
     }
 
     private Optional<ThreadPoolMetrics> getMetrics(AbstractExecutorService executor) {
