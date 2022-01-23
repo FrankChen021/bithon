@@ -16,18 +16,22 @@
 
 package org.bithon.agent.core.metric.domain.mongo;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
+import org.bithon.agent.core.metric.collector.MetricRegistry;
+import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 
 import java.util.Arrays;
 
 /**
  * @author frankchen
  */
-public class MongoDbMetricCollector extends IntervalMetricCollector<MongoDbMetrics> {
+public class MongoDbMetricRegistry extends MetricRegistry<MongoDbMetrics> {
 
-    protected MongoDbMetricCollector(String name,
-                                     Class<MongoDbMetrics> metricClass) {
-        super(name, Arrays.asList("server", "database"), metricClass, MongoDbMetrics::new);
+    protected MongoDbMetricRegistry() {
+        super("mongodb-metrics", Arrays.asList("server", "database"), MongoDbMetrics.class, MongoDbMetrics::new, true);
+    }
+
+    public static MongoDbMetricRegistry get() {
+        return MetricRegistryFactory.getOrCreateRegistry("mongodb-metrics", MongoDbMetricRegistry::new);
     }
 
     public MongoDbMetrics getOrCreateMetric(String server, String database) {

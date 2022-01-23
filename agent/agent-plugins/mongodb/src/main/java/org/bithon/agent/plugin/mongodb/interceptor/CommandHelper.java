@@ -22,9 +22,8 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
+import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -43,14 +42,7 @@ public class CommandHelper {
 
         private final Map<String, Method> methods = new ConcurrentHashMap<>();
 
-        private MongoDbMetricCollector metricCollector;
-
-        @Override
-        public boolean initialize() {
-            metricCollector = MetricCollectorManager.getInstance()
-                                                    .getOrRegister("mongo-3.x-metrics", MongoDbMetricCollector.class);
-            return true;
-        }
+        private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
         @Override
         public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
@@ -83,8 +75,8 @@ public class CommandHelper {
             }
 
             String server = (String) ((IBithonObject) connection).getInjectedObject();
-            metricCollector.getOrCreateMetric(server, (String) aopContext.getArgs()[0])
-                           .add(aopContext.getCostTime(), aopContext.hasException() ? 1 : 0);
+            metricRegistry.getOrCreateMetric(server, (String) aopContext.getArgs()[0])
+                          .add(aopContext.getCostTime(), aopContext.hasException() ? 1 : 0);
             super.onMethodLeave(aopContext);
         }
     }

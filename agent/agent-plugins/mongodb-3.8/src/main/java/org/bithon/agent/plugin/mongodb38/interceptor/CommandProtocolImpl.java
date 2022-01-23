@@ -24,9 +24,8 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
+import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 
 /**
  * CommandHelper is called before InternalStreamConnection#sendMessage
@@ -56,14 +55,7 @@ public class CommandProtocolImpl {
      */
     public static class Execute extends AbstractInterceptor {
 
-        private MongoDbMetricCollector metricCollector;
-
-        @Override
-        public boolean initialize() {
-            metricCollector = MetricCollectorManager.getInstance()
-                                                    .getOrRegister("mongo-3.8-metrics", MongoDbMetricCollector.class);
-            return true;
-        }
+        private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
         /**
          * set command so that

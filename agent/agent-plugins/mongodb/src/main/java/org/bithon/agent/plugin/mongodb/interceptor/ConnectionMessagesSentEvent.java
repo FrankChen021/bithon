@@ -20,9 +20,8 @@ import com.mongodb.connection.ConnectionId;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
-import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricCollector;
+import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -34,14 +33,7 @@ public class ConnectionMessagesSentEvent {
     private static final ILogAdaptor log = LoggerFactory.getLogger(ConnectionMessagesSentEvent.class);
 
     public static class Constructor extends AbstractInterceptor {
-        private MongoDbMetricCollector metricCollector;
-
-        @Override
-        public boolean initialize() {
-            metricCollector = MetricCollectorManager.getInstance()
-                                                    .getOrRegister("mongo-3.x-metrics", MongoDbMetricCollector.class);
-            return true;
-        }
+        private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
         @Override
         public void onConstruct(AopContext aopContext) {
@@ -55,9 +47,9 @@ public class ConnectionMessagesSentEvent {
             ConnectionId connectionId = aopContext.getArgAs(0);
             int bytesOut = aopContext.getArgAs(2);
 
-            metricCollector.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
-                                              mongoCommand.getDatabase())
-                           .addBytesOut(bytesOut);
+            metricRegistry.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
+                                             mongoCommand.getDatabase())
+                          .addBytesOut(bytesOut);
         }
     }
 }
