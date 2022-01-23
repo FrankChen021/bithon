@@ -21,8 +21,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
@@ -42,15 +41,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class HttpChannel$OnCompleted extends AbstractInterceptor {
 
-    private HttpIncomingMetricsCollector metricsCollector;
-
-    @Override
-    public boolean initialize() {
-
-        metricsCollector = MetricCollectorManager.getInstance().getOrRegister("jetty-web-request-metrics", HttpIncomingMetricsCollector.class);
-
-        return true;
-    }
+    private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -105,8 +96,8 @@ public class HttpChannel$OnCompleted extends AbstractInterceptor {
             responseByteSize = jettyResponse.getContentCount();
         }
 
-        this.metricsCollector.getOrCreateMetrics(srcApplication, uri, httpStatus)
-                             .updateRequest(costTime, count4xx, count5xx)
-                             .updateBytes(requestByteSize, responseByteSize);
+        this.metricRegistry.getOrCreateMetrics(srcApplication, uri, httpStatus)
+                           .updateRequest(costTime, count4xx, count5xx)
+                           .updateBytes(requestByteSize, responseByteSize);
     }
 }

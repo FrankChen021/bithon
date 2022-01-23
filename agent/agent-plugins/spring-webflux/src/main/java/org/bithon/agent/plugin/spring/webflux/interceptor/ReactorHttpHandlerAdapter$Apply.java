@@ -21,9 +21,8 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
@@ -48,17 +47,13 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ReactorHttpHandlerAdapter$Apply.class);
 
-    private HttpIncomingMetricsCollector metricCollector;
+    private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
     private HttpIncomingFilter requestFilter;
     private TraceConfig traceConfig;
 
     @Override
     public boolean initialize() {
         requestFilter = new HttpIncomingFilter();
-
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("webflux-request-metrics",
-                                                               HttpIncomingMetricsCollector.class);
 
         traceConfig = AgentContext.getInstance()
                                   .getAgentConfiguration()
@@ -146,8 +141,8 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         int count4xx = httpStatus >= 400 && httpStatus < 500 ? 1 : 0;
         int count5xx = httpStatus >= 500 ? 1 : 0;
 
-        this.metricCollector.getOrCreateMetrics(srcApplication, uri, httpStatus)
-                            .updateRequest(responseTime, count4xx, count5xx);
+        this.metricRegistry.getOrCreateMetrics(srcApplication, uri, httpStatus)
+                           .updateRequest(responseTime, count4xx, count5xx);
     }
 
     private void finishTrace(HttpServerRequest request, HttpServerResponse response) {

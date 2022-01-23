@@ -209,18 +209,18 @@ public class BrpcMessageConverter implements IMessageConverter {
         messageBuilder.setInterval(interval);
         messageBuilder.setTimestamp(timestamp);
 
-        measurementList.forEach(metricSet -> {
-            BrpcGenericMeasurement.Builder measurement = BrpcGenericMeasurement.newBuilder();
+        measurementList.forEach(measurement -> {
+            BrpcGenericMeasurement.Builder measurementBuilder = BrpcGenericMeasurement.newBuilder();
             // although dimensions are defined as List<String>
             // but it could also store Object
             // we use Object.toString here to get right value
-            for (Object dimension : metricSet.getDimensions()) {
-                measurement.addDimension(dimension.toString());
+            for (Object dimension : measurement.getDimensions()) {
+                measurementBuilder.addDimension(dimension == null ? "" : dimension.toString());
             }
-            for (int i = 0, size = metricSet.getMetricCount(); i < size; i++) {
-                measurement.addMetric(metricSet.getMetricValue(i));
+            for (int i = 0, size = measurement.getMetricCount(); i < size; i++) {
+                measurementBuilder.addMetric(measurement.getMetricValue(i));
             }
-            messageBuilder.addMeasurement(measurement.build());
+            messageBuilder.addMeasurement(measurementBuilder.build());
         });
 
         return messageBuilder.build();

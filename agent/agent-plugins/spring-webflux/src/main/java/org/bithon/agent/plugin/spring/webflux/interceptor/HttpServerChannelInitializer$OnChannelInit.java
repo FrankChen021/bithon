@@ -21,8 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsCollector;
+import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.agent.plugin.spring.webflux.metric.HttpBodySizeCollector;
@@ -43,16 +42,7 @@ import reactor.netty.http.server.HttpServerResponse;
  */
 public class HttpServerChannelInitializer$OnChannelInit extends AbstractInterceptor {
 
-    private HttpIncomingMetricsCollector metricCollector;
-
-    @Override
-    public boolean initialize() {
-        metricCollector = MetricCollectorManager.getInstance()
-                                                .getOrRegister("webflux-request-metrics",
-                                                               HttpIncomingMetricsCollector.class);
-
-        return true;
-    }
+    private final HttpIncomingMetricsRegistry metricsRegistry = HttpIncomingMetricsRegistry.get();
 
     /**
      * Hook a handler to the channel
@@ -71,7 +61,7 @@ public class HttpServerChannelInitializer$OnChannelInit extends AbstractIntercep
         channel.pipeline()
                .addAfter(NettyPipeline.HttpTrafficHandler,
                          NettyPipeline.HttpMetricsHandler,
-                         new HttpServerBodySizeCollector(metricCollector));
+                         new HttpServerBodySizeCollector(metricsRegistry));
     }
 
     private static class HttpServerBodySizeCollector extends HttpBodySizeCollector {
@@ -88,9 +78,9 @@ public class HttpServerChannelInitializer$OnChannelInit extends AbstractIntercep
             }
         }
 
-        private final HttpIncomingMetricsCollector metricCollector;
+        private final HttpIncomingMetricsRegistry metricCollector;
 
-        private HttpServerBodySizeCollector(HttpIncomingMetricsCollector metricCollector) {
+        private HttpServerBodySizeCollector(HttpIncomingMetricsRegistry metricCollector) {
             this.metricCollector = metricCollector;
         }
 

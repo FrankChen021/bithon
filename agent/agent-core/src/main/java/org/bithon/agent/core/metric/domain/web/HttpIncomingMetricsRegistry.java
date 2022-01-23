@@ -16,7 +16,8 @@
 
 package org.bithon.agent.core.metric.domain.web;
 
-import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
+import org.bithon.agent.core.metric.collector.MetricRegistry;
+import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 
 import java.util.Arrays;
 
@@ -24,13 +25,18 @@ import java.util.Arrays;
 /**
  * @author frankchen
  */
-public class HttpIncomingMetricsCollector extends IntervalMetricCollector<HttpIncomingMetrics> {
+public class HttpIncomingMetricsRegistry extends MetricRegistry<HttpIncomingMetrics> {
 
-    public HttpIncomingMetricsCollector() {
+    public HttpIncomingMetricsRegistry() {
         super("http-incoming-metrics",
               Arrays.asList("srcApplication", "uri", "statusCode"),
               HttpIncomingMetrics.class,
-              HttpIncomingMetrics::new);
+              HttpIncomingMetrics::new,
+              true);
+    }
+
+    public static HttpIncomingMetricsRegistry get() {
+        return MetricRegistryFactory.getOrCreateRegistry("http-incoming-metrics", HttpIncomingMetricsRegistry::new);
     }
 
     public HttpIncomingMetrics getOrCreateMetrics(String srcApplication, String uri, int statusCode) {
