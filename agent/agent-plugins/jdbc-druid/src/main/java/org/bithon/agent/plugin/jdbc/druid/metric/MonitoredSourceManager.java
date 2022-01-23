@@ -37,16 +37,13 @@ public class MonitoredSourceManager {
 
     public boolean addDataSource(DruidDataSource dataSource) {
         String connectionString = MiscUtils.cleanupConnectionString(dataSource.getRawJdbcUrl());
-        if (dataSourceMap.containsKey(dataSource)) {
-            return false;
-        }
 
         MonitoredSource monitoredSource = new MonitoredSource(dataSource.getDriverClassName(),
                                                               connectionString,
                                                               dataSource);
-        dataSourceMap.putIfAbsent(dataSource, monitoredSource);
-
-        DruidJdbcMetricRegistry.get().createMetrics(monitoredSource.getDimensions(), monitoredSource.getJdbcMetric());
+        if (dataSourceMap.putIfAbsent(dataSource, monitoredSource) == null) {
+            DruidJdbcMetricRegistry.get().createMetrics(monitoredSource.getDimensions(), monitoredSource.getJdbcMetric());
+        }
         return true;
     }
 
