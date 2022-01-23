@@ -2602,7 +2602,7 @@
                     // If needed to change the parent container
                     const container = ((_c = this._context._options) === null || _c === void 0 ? void 0 : _c.container) || document.body;
                     container.appendChild(this.widget);
-                    this._popperInstance = core.createPopper(this._context._element, this.widget, {
+                    this._popperInstance = new Popper(this._context._element, this.widget, {
                         modifiers: [{ name: 'eventListeners', enabled: true }],
                         //#2400
                         placement: document.documentElement.dir === 'rtl'

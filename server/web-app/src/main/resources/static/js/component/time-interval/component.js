@@ -153,6 +153,8 @@ class TimeInterval {
                     });
             },
             onHidden: () => {
+                $('#intervalPickerStart').tempusDominus().hide();
+                $('#intervalPickerEnd').tempusDominus().hide();
             }
         });
     }
