@@ -14,23 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.config;
+package org.bithon.agent.plugin.jdbc.druid.config;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.bithon.agent.core.config.ConfigurationProperties;
+import shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Annotate a config class.
- *
- * NOTE: fields in the target class should be annotated with {@link shaded.com.fasterxml.jackson.annotation.JsonProperty}
- *
- * @author frank.chen021@outlook.com
- * @date 2021/8/7 09:57
+ * @author Frank Chen
+ * @date 23/1/22 7:20 PM
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface ConfigurationProperties {
-    String prefix();
+@ConfigurationProperties(prefix = "agent.plugin.jdbc.druid")
+public class DruidPluginConfig {
+
+    @JsonProperty
+    private boolean isSQLMetricEnabled = false;
+
+    public void setSQLMetricEnabled(boolean isSQLMetricEnabled) {
+        this.isSQLMetricEnabled = isSQLMetricEnabled;
+    }
+
+    public boolean isSQLMetricEnabled() {
+        return isSQLMetricEnabled;
+    }
 }

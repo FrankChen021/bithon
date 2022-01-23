@@ -26,7 +26,7 @@ import java.util.Collections;
  */
 public class SqlMetricRegistry extends MetricRegistry<SQLMetrics> {
 
-    public static String NAME = "sql-metrics";
+    public static final String NAME = "sql-metrics";
 
     protected SqlMetricRegistry() {
         super(NAME,
@@ -37,7 +37,7 @@ public class SqlMetricRegistry extends MetricRegistry<SQLMetrics> {
     }
 
     public static SqlMetricRegistry get() {
-        return MetricRegistryFactory.getOrCreateRegistry("sql-metrics", SqlMetricRegistry::new);
+        return MetricRegistryFactory.getOrCreateRegistry(NAME, SqlMetricRegistry::new);
     }
 
     public SQLMetrics getOrCreateMetrics(String connectionString) {

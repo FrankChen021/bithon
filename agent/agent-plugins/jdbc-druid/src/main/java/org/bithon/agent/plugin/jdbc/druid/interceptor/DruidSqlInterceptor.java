@@ -19,9 +19,11 @@ package org.bithon.agent.plugin.jdbc.druid.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.core.utils.MiscUtils;
 import org.bithon.agent.plugin.jdbc.druid.DruidPlugin;
+import org.bithon.agent.plugin.jdbc.druid.config.DruidPluginConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
@@ -34,6 +36,12 @@ public class DruidSqlInterceptor extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(DruidSqlInterceptor.class);
 
     final SqlMetricRegistry metricRegistry = SqlMetricRegistry.get();
+
+    @Override
+    public boolean initialize() {
+        DruidPluginConfig config = AgentContext.getInstance().getAgentConfiguration().getConfig(DruidPluginConfig.class);
+        return config.isSQLMetricEnabled();
+    }
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
