@@ -14,20 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jetty.interceptor;
+package org.bithon.agent.core.metric.domain.web;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.plugin.jetty.metric.JettyWebServerMetricCollector;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.bithon.agent.core.metric.collector.IntervalMetricCollector;
+
+import java.util.Collections;
 
 /**
- * @author frankchen
+ * @author frank.chen021@outlook.com
+ * @date 2021/1/14 9:30 下午
  */
-public class QueuedThreadPoolDoStart extends AbstractInterceptor {
-
-    @Override
-    public void onMethodLeave(AopContext context) {
-        JettyWebServerMetricCollector.getInstance().setThreadPool((QueuedThreadPool) context.getTarget());
+public class WebServerMetricCollector extends IntervalMetricCollector<WebServerMetrics> {
+    public WebServerMetricCollector() {
+        super("web-server-metrics",
+              Collections.singletonList("type"),
+              WebServerMetrics.class,
+              null,
+              false);
     }
 }

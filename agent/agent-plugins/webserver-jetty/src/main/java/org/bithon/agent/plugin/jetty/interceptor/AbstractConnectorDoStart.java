@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.jetty.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.plugin.jetty.metric.WebServerMetricCollector;
+import org.bithon.agent.plugin.jetty.metric.JettyWebServerMetricCollector;
 import org.eclipse.jetty.server.AbstractNetworkConnector;
 
 /**
@@ -33,6 +33,6 @@ public class AbstractConnectorDoStart extends AbstractInterceptor {
 
         AgentContext.getInstance().getAppInstance().setPort(connector.getPort());
 
-        WebServerMetricCollector.getInstance().setConnector(connector);
+        JettyWebServerMetricCollector.getInstance().setConnector(connector);
     }
 }

@@ -20,7 +20,7 @@ import io.undertow.UndertowOptions;
 import io.undertow.server.protocol.http.HttpOpenListener;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.plugin.undertow.metric.WebServerMetricCollector;
+import org.bithon.agent.plugin.undertow.metric.UndertowWebServerMetricCollector;
 import org.xnio.OptionMap;
 
 /**
@@ -34,6 +34,6 @@ public class HttpOpenListenerSetRootHandler extends AbstractInterceptor {
         openListener.setUndertowOptions(OptionMap.builder().addAll(openListener.getUndertowOptions())
                                                  .set(UndertowOptions.ENABLE_CONNECTOR_STATISTICS, true)
                                                  .getMap());
-        WebServerMetricCollector.getInstance().setConnectorStatistics(openListener.getConnectorStatistics());
+        UndertowWebServerMetricCollector.getInstance().setConnectorStatistics(openListener.getConnectorStatistics());
     }
 }

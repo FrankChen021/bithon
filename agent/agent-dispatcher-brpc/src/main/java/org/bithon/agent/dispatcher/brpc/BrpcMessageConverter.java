@@ -23,7 +23,6 @@ import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
-import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.model.schema.Schema;
 import org.bithon.agent.core.metric.model.schema.Schema2;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
@@ -37,7 +36,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchemaV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
-import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import shaded.com.fasterxml.jackson.core.JsonProcessingException;
 import shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -99,19 +97,6 @@ public class BrpcMessageConverter implements IMessageConverter {
         builder.setDirectMax(metrics.directMemory.max);
         builder.setDirectUsed(metrics.directMemory.used);
         return builder.build();
-    }
-
-    @Override
-    public Object from(long timestamp, int interval, WebServerMetrics metrics) {
-        return BrpcWebServerMetricMessage.newBuilder()
-                                         .setTimestamp(timestamp)
-                                         .setInterval(interval)
-                                         .setActiveThreads(metrics.getActiveThreads())
-                                         .setConnectionCount(metrics.getConnectionCount())
-                                         .setMaxConnections(metrics.getMaxConnections())
-                                         .setMaxThreads(metrics.getMaxThreads())
-                                         .setType(metrics.getServerType().toString())
-                                         .build();
     }
 
     @Override

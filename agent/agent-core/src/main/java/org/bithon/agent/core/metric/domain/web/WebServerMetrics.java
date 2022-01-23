@@ -16,47 +16,40 @@
 
 package org.bithon.agent.core.metric.domain.web;
 
+import org.bithon.agent.core.metric.model.Gauge;
+import org.bithon.agent.core.metric.model.IMetricSet;
+import org.bithon.agent.core.metric.model.IMetricValueProvider;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/13 10:51 下午
  */
-public class WebServerMetrics {
+public class WebServerMetrics implements IMetricSet {
 
-    private final WebServerType serverType;
-    private final long connectionCount;
-    private final long maxConnections;
-    private final long activeThreads;
-    private final long maxThreads;
+    public final Gauge connectionCount;
+    public final Gauge maxConnections;
+    public final Gauge activeThreads;
+    public final Gauge maxThreads;
+    public final IMetricValueProvider[] metrics;
 
-    public WebServerMetrics(WebServerType serverType,
-                            long connectionCount,
-                            long maxConnections,
-                            long activeThreads,
-                            long maxThreads) {
-        this.serverType = serverType;
+    public WebServerMetrics(Gauge connectionCount,
+                            Gauge maxConnections,
+                            Gauge activeThreads,
+                            Gauge maxThreads) {
         this.connectionCount = connectionCount;
         this.maxConnections = maxConnections;
         this.activeThreads = activeThreads;
         this.maxThreads = maxThreads;
+        metrics = new IMetricValueProvider[]{
+            connectionCount,
+            maxConnections,
+            activeThreads,
+            maxThreads
+        };
     }
 
-    public WebServerType getServerType() {
-        return serverType;
-    }
-
-    public long getConnectionCount() {
-        return connectionCount;
-    }
-
-    public long getMaxConnections() {
-        return maxConnections;
-    }
-
-    public long getActiveThreads() {
-        return activeThreads;
-    }
-
-    public long getMaxThreads() {
-        return maxThreads;
+    @Override
+    public IMetricValueProvider[] getMetrics() {
+        return metrics;
     }
 }

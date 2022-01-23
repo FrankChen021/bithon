@@ -21,7 +21,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.plugin.tomcat.metric.WebServerMetricCollector;
+import org.bithon.agent.plugin.tomcat.metric.TomcatWebServerMetricCollector;
 
 /**
  * @author frankchen
@@ -37,7 +37,7 @@ public class AbstractEndpointStart extends AbstractInterceptor {
 
             AgentContext.getInstance().getAppInstance().setPort(endpoint.getPort());
 
-            MetricCollectorManager.getInstance().register("webserver-tomcat", new WebServerMetricCollector(endpoint));
+            MetricCollectorManager.getInstance().register("webserver-tomcat", new TomcatWebServerMetricCollector(endpoint));
         }
     }
 }

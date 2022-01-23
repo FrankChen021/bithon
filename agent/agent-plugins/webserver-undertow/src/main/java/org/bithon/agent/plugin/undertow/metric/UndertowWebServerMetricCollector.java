@@ -18,58 +18,36 @@ package org.bithon.agent.plugin.undertow.metric;
 
 import io.undertow.server.ConnectorStatistics;
 import org.bithon.agent.bootstrap.expt.AgentException;
-import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.metric.collector.IMetricCollector;
-import org.bithon.agent.core.metric.collector.MetricCollectorManager;
+import org.bithon.agent.core.metric.domain.web.WebServerMetricCollector;
 import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerType;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/14 10:50 下午
  */
-public class WebServerMetricCollector implements IMetricCollector {
+public class UndertowWebServerMetricCollector extends WebServerMetricCollector {
 
-    private static final WebServerMetricCollector INSTANCE = new WebServerMetricCollector();
-
-    public static WebServerMetricCollector getInstance() {
-        return INSTANCE;
-    }
-
-    WebServerMetricCollector() {
-        MetricCollectorManager.getInstance().register("undertow-webserver", this);
-    }
-
+    private static final UndertowWebServerMetricCollector INSTANCE = new UndertowWebServerMetricCollector();
     private TaskPoolAccessor threadPoolAccessor;
     private ConnectorStatistics connectorStatistics;
 
-    @Override
-    public boolean isEmpty() {
-        return connectorStatistics == null && threadPoolAccessor == null;
+    UndertowWebServerMetricCollector() {
+        this.register(Collections.singletonList(WebServerType.UNDERTOW.type()),
+                      new WebServerMetrics(
+                          () -> null == connectorStatistics ? 0 : connectorStatistics.getActiveConnections(),
+                          () -> null == connectorStatistics ? 0 : connectorStatistics.getMaxActiveConnections(),
+                          () -> threadPoolAccessor == null ? 0 : threadPoolAccessor.getActiveCount(),
+                          () -> threadPoolAccessor == null ? 0 : threadPoolAccessor.getMaximumPoolSize()
+                      ));
     }
 
-    @Override
-    public List<Object> collect(IMessageConverter messageConverter,
-                                int interval,
-                                long timestamp) {
-
-        long connectionCount = null == connectorStatistics ? 0 : connectorStatistics.getActiveConnections();
-
-        //TODO: MaxActiveConnection is not maxConnections
-        long maxConnections = null == connectorStatistics ? 0 : connectorStatistics.getMaxActiveConnections();
-
-        return Collections.singletonList(messageConverter.from(timestamp,
-                                                               interval,
-                                                               new WebServerMetrics(WebServerType.UNDERTOW,
-                                                                                    connectionCount,
-                                                                                    maxConnections,
-                                                                                    threadPoolAccessor.getActiveCount(),
-                                                                                    threadPoolAccessor.getMaximumPoolSize())));
+    public static UndertowWebServerMetricCollector getInstance() {
+        return INSTANCE;
     }
 
     public void setThreadPool(Object webRequestThreadPool) {
@@ -98,7 +76,7 @@ public class WebServerMetricCollector implements IMetricCollector {
         }
 
         Method getMethod(Class<?> clazz, String name) {
-            Class thisClass = clazz;
+            Class<?> thisClass = clazz;
             while (thisClass != null) {
                 try {
                     return thisClass.getDeclaredMethod(name);

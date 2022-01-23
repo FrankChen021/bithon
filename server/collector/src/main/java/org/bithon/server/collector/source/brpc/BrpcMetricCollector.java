@@ -25,7 +25,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
-import org.bithon.agent.rpc.brpc.metrics.BrpcWebServerMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.server.common.utils.ReflectionUtils;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
@@ -83,15 +82,6 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         }
 
         metricSink.process("jvm-gc-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
-    }
-
-    @Override
-    public void sendWebServer(BrpcMessageHeader header, List<BrpcWebServerMetricMessage> messages) {
-        if (CollectionUtils.isEmpty(messages)) {
-            return;
-        }
-
-        metricSink.process("web-server-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
     }
 
     @Override
