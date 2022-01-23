@@ -30,6 +30,7 @@ public class Max implements ISimpleMetric {
         return this.value.accumulateAndGet(value, Math::max);
     }
 
+    @Override
     public long get() {
         long value = this.value.getAndSet(Long.MIN_VALUE);
         return value == Long.MIN_VALUE ? 0 : value;

@@ -21,7 +21,6 @@ import org.bithon.agent.core.metric.collector.IMeasurement;
 import org.bithon.agent.core.metric.domain.jdbc.JdbcPoolMetrics;
 import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
-import org.bithon.agent.core.metric.domain.redis.RedisClientMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
 import org.bithon.agent.core.metric.domain.thread.ThreadPoolMetrics;
@@ -49,8 +48,6 @@ public interface IMessageConverter {
     Object from(long timestamp, int interval, WebServerMetrics metrics);
 
     Object from(long timestamp, int interval, SQLStatementMetrics metrics);
-
-    Object from(long timestamp, int interval, List<String> dimensions, RedisClientMetrics metrics);
 
     Object from(long timestamp, int interval, ThreadPoolMetrics metrics);
 

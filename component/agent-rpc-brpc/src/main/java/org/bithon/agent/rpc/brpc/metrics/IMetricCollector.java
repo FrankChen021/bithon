@@ -30,9 +30,6 @@ import java.util.List;
 public interface IMetricCollector {
 
     @BrpcMethod(isOneway = true)
-    void sendIncomingHttp(BrpcMessageHeader header, List<BrpcHttpIncomingMetricMessage> messages);
-
-    @BrpcMethod(isOneway = true)
     void sendJvm(BrpcMessageHeader header, List<BrpcJvmMetricMessage> messages);
 
     @BrpcMethod(isOneway = true)
@@ -42,12 +39,6 @@ public interface IMetricCollector {
     void sendWebServer(BrpcMessageHeader header, List<BrpcWebServerMetricMessage> messages);
 
     @BrpcMethod(isOneway = true)
-    void sendException(BrpcMessageHeader header, List<BrpcExceptionMetricMessage> messages);
-
-    @BrpcMethod(isOneway = true)
-    void sendOutgoingHttp(BrpcMessageHeader header, List<BrpcHttpOutgoingMetricMessage> messages);
-
-    @BrpcMethod(isOneway = true)
     void sendThreadPool(BrpcMessageHeader header, List<BrpcThreadPoolMetricMessage> messages);
 
     @BrpcMethod(isOneway = true)
@@ -55,9 +46,6 @@ public interface IMetricCollector {
 
     @BrpcMethod(isOneway = true)
     void sendSql(BrpcMessageHeader header, List<BrpcSqlMetricMessage> messages);
-
-    @BrpcMethod(isOneway = true)
-    void sendMongoDb(BrpcMessageHeader header, List<BrpcMongoDbMetricMessage> messages);
 
     @BrpcMethod(isOneway = true)
     void sendGenericMetrics(BrpcMessageHeader header, BrpcGenericMetricMessage message);
