@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.metric.domain.redis;
 
-import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.IMetricSet;
 import org.bithon.agent.core.metric.model.IMetricValueProvider;
 import org.bithon.agent.core.metric.model.Max;
 import org.bithon.agent.core.metric.model.Min;
@@ -25,7 +25,7 @@ import org.bithon.agent.core.metric.model.Sum;
 /**
  * @author frankchen
  */
-public class RedisClientMetrics implements ICompositeMetric {
+public class RedisClientMetrics implements IMetricSet {
 
     private final Min minResponseTime = new Min();
     private final Sum responseTime = new Sum();

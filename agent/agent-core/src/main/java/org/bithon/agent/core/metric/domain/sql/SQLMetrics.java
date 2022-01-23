@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.metric.domain.sql;
 
-import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.IMetricSet;
 import org.bithon.agent.core.metric.model.IMetricValueProvider;
 import org.bithon.agent.core.metric.model.Max;
 import org.bithon.agent.core.metric.model.Min;
@@ -26,7 +26,7 @@ import org.bithon.agent.core.metric.model.Sum;
  * @author frank.chen021@outlook.com
  * @date 2021/1/4 11:18 下午
  */
-public class SQLMetrics implements ICompositeMetric {
+public class SQLMetrics implements IMetricSet {
     private final Min minResponseTime = new Min();
     private final Sum responseTime = new Sum();
     private final Max maxResponseTime = new Max();

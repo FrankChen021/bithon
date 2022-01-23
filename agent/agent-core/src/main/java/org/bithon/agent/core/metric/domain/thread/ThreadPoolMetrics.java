@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.metric.domain.thread;
 
-import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.IMetricSet;
 import org.bithon.agent.core.metric.model.IMetricValueProvider;
 import org.bithon.agent.core.metric.model.Sum;
 
@@ -24,7 +24,7 @@ import org.bithon.agent.core.metric.model.Sum;
  * @author frank.chen021@outlook.com
  * @date 2021/2/25 10:48 下午
  */
-public class ThreadPoolMetrics implements ICompositeMetric {
+public class ThreadPoolMetrics implements IMetricSet {
 
     public Sum callerRunTaskCount = new Sum();
     public Sum abortedTaskCount = new Sum();

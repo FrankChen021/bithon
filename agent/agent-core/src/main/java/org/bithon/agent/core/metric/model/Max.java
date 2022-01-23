@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
  */
-public class Max implements ISimpleMetric {
+public class Max implements IMetricValueUpdater, IMetricValueProvider {
     private final AtomicLong value = new AtomicLong(Long.MIN_VALUE);
 
     @Override

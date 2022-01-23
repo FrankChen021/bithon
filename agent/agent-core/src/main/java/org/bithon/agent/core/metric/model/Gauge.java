@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author frank.chen021@outlook.com
  * @date 2021/2/23 9:19 下午
  */
-public class Gauge implements ISimpleMetric {
+public class Gauge implements IMetricValueUpdater, IMetricValueProvider {
     private final AtomicLong value;
 
     public Gauge() {

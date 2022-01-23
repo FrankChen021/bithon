@@ -18,7 +18,7 @@ package org.bithon.agent.core.metric.collector;
 
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.IMetricSet;
 import org.bithon.agent.core.metric.model.IMetricValueProvider;
 import org.bithon.agent.core.metric.model.schema.Schema2;
 
@@ -37,7 +37,7 @@ import java.util.function.Supplier;
  * @author frank.chen021@outlook.com
  * @date 2021/11/06 2:37 下午
  */
-public abstract class IntervalMetricCollector<T extends ICompositeMetric> implements IMetricCollector2 {
+public abstract class IntervalMetricCollector<T extends IMetricSet> implements IMetricCollector2 {
 
     protected final Schema2 schema;
     private final Supplier<T> supplier;
@@ -127,9 +127,9 @@ public abstract class IntervalMetricCollector<T extends ICompositeMetric> implem
 
     class Measurement implements IMeasurement {
         private final List<String> dimensions;
-        private final ICompositeMetric metrics;
+        private final IMetricSet metrics;
 
-        Measurement(List<String> dimensions, ICompositeMetric metrics) {
+        Measurement(List<String> dimensions, IMetricSet metrics) {
             this.dimensions = dimensions;
             this.metrics = metrics;
         }

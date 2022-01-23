@@ -17,8 +17,12 @@
 package org.bithon.agent.core.metric.model;
 
 /**
- * @author frankchen@apache.org
- * @date 2021/3/25 7:36 下午
+ * @author frank.chen021@outlook.com
+ * @date 2021/3/25 7:34 下午
  */
-public interface IMetric {
+public interface IMetricSet {
+    /**
+     * TODO: come up a way to automatically generate this method
+     */
+    IMetricValueProvider[] getMetrics();
 }

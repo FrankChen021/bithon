@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.metric.domain.mongo;
 
-import org.bithon.agent.core.metric.model.ICompositeMetric;
+import org.bithon.agent.core.metric.model.IMetricSet;
 import org.bithon.agent.core.metric.model.IMetricValueProvider;
 import org.bithon.agent.core.metric.model.Max;
 import org.bithon.agent.core.metric.model.Min;
@@ -26,7 +26,7 @@ import org.bithon.agent.core.metric.model.Sum;
  * @author frank.chen021@outlook.com
  * @date 2021/1/4 11:35 下午
  */
-public class MongoDbMetrics implements ICompositeMetric {
+public class MongoDbMetrics implements IMetricSet {
     Min minResponseTime = new Min();
     Sum responseTime = new Sum();
     Max maxResponseTime = new Max();
