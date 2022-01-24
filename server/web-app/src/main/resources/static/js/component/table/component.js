@@ -47,7 +47,15 @@ class TableComponent {
         return this.mQueryParam;
     }
 
+    show() {
+        this.vTable.show();
+    }
+
     clear() {
         this.vTable.bootstrapTable('removeAll');
+    }
+
+    hide() {
+        this.vTable.hide();
     }
 }
