@@ -43,7 +43,9 @@ public class ServiceMessageInDecoder extends ByteToMessageDecoder {
         } else if (messageType == ServiceMessageType.SERVER_RESPONSE) {
             out.add(new ServiceResponseMessageIn().decode(is));
         } else {
-            throw new UnknownMessageException(messageType);
+            throw new UnknownMessageException(ctx.channel().remoteAddress().toString(),
+                                              ctx.channel().localAddress().toString(),
+                                              messageType);
         }
     }
 }

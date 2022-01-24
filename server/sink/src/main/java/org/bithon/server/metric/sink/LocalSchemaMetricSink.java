@@ -17,6 +17,7 @@
 package org.bithon.server.metric.sink;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.component.commons.utils.ThreadUtils;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchemaManager;
@@ -49,7 +50,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
         // load pre-defined handlers
         this.handlers = new ConcurrentHashMap<>(handlers.values()
                                                         .stream()
-                                                        .collect(Collectors.toMap(key -> key.getType(),
+                                                        .collect(Collectors.toMap(AbstractMetricMessageHandler::getType,
                                                                                   v -> v)));
 
         this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);
@@ -86,6 +87,8 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
             Thread.currentThread().setName(oldName + "-" + messageType);
             try {
                 handler.process(message.getMetrics());
+            } catch (Exception e) {
+                log.error(StringUtils.format("Process [%s]", messageType), e);
             } finally {
                 Thread.currentThread().setName(oldName);
             }
@@ -95,33 +98,33 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
 
     private AbstractMetricMessageHandler getMessageHandler(SchemaMetricMessage message) {
         AbstractMetricMessageHandler handler = handlers.get(message.getSchema().getName());
-        if (handler == null) {
-            //
-            // create  a handler
-            //
-            synchronized (this) {
-                handler = handlers.get(message.getSchema().getName());
-                if (handler != null) {
-                    return handler;
-                }
-
-                schemaManager.addDataSourceSchema(message.getSchema());
-                try {
-                    handler = new MetricMessageHandler(message.getSchema().getName(),
-                                                       applicationContext.getBean(IMetaStorage.class),
-                                                       applicationContext.getBean(IMetricStorage.class),
-                                                       schemaManager);
-
-                    handlers.put(message.getSchema().getName(), handler);
-                    return handler;
-                } catch (IOException e) {
-                    log.error("error", e);
-                    return null;
-                }
-            }
-        } else {
+        if (handler != null) {
             // TODO: check if schema is changed
             return handler;
+        }
+        //
+        // create  a handler
+        //
+        synchronized (this) {
+            handler = handlers.get(message.getSchema().getName());
+            if (handler != null) {
+                // double check
+                return handler;
+            }
+
+            schemaManager.addDataSourceSchema(message.getSchema());
+            try {
+                handler = new MetricMessageHandler(message.getSchema().getName(),
+                                                   applicationContext.getBean(IMetaStorage.class),
+                                                   applicationContext.getBean(IMetricStorage.class),
+                                                   schemaManager);
+
+                handlers.put(message.getSchema().getName(), handler);
+                return handler;
+            } catch (Exception e) {
+                log.error("error", e);
+                return null;
+            }
         }
     }
 

@@ -21,6 +21,7 @@ import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceResponseMessageOut;
+import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.io.netty.channel.Channel;
 
 import java.io.IOException;
@@ -100,10 +101,15 @@ public class ServiceInvocationRunnable implements Runnable {
                                                       .build());
             }
         } catch (ServiceInvocationException e) {
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            LoggerFactory.getLogger(ServiceInvocationRunnable.class).warn("Service Invocation on {}.{} exception: {}",
+                                                                          serviceRequest.getServiceName(),
+                                                                          serviceRequest.getMethodName(),
+                                                                          cause.toString());
             sendResponse(ServiceResponseMessageOut.builder()
                                                   .serverResponseAt(System.currentTimeMillis())
                                                   .txId(serviceRequest.getTransactionId())
-                                                  .exception(e.getMessage())
+                                                  .exception(cause.getMessage())
                                                   .build());
         }
     }

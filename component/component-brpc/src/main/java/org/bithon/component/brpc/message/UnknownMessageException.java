@@ -16,12 +16,14 @@
 
 package org.bithon.component.brpc.message;
 
+import org.bithon.component.commons.utils.StringUtils;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/6/28 11:23 上午
  */
 public class UnknownMessageException extends RuntimeException {
-    public UnknownMessageException(int messageType) {
-        super("Unknown message:" + messageType);
+    public UnknownMessageException(String remoteAddress, String localAddress, int messageType) {
+        super(StringUtils.format("Unknown message type [%d], [%s] --> [%s]", messageType, remoteAddress, localAddress));
     }
 }
