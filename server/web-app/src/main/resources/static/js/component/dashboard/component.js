@@ -229,8 +229,7 @@ class Dashboard {
             if (transformerFn != null || formatterFn != null) {
                 column.formatter = (val) => {
                     const t = transformerFn == null ? val : transformerFn(val);
-                    const v = formatterFn == null ? t : formatterFn(t);
-                    return v;
+                    return formatterFn == null ? t : formatterFn(t);
                 };
             }
 
@@ -240,6 +239,13 @@ class Dashboard {
         chartComponent.setSelectionHandler(
             (option, start, end) => {
                 this.#refreshDetailView(chartDescriptor, detailView, option, start, end);
+            },
+            () => {
+                detailView.clear();
+                detailView.show();
+            },
+            () => {
+                detailView.hide();
             },
             () => {
                 detailView.clear();

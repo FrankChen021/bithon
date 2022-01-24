@@ -1,7 +1,9 @@
 class ChartComponent {
 
     constructor(option) {
-        this._selectionHandler = null;
+        this._selectedHandler = null;
+        this._selectionHideHandler = null;
+        this._selectionShowHandler = null;
         this._selectionClearHandler = null;
         this._openHandler = null;
 
@@ -24,7 +26,7 @@ class ChartComponent {
 
         this._chart = echarts.init(document.getElementById(this._chartId));
         this._chart.on('brushEnd', (params) => {
-            if (this._selectionHandler == null) {
+            if (this._selectedHandler == null) {
                 return;
             }
             if (params.areas.length === 0) {
@@ -37,7 +39,7 @@ class ChartComponent {
             if (startIndex === endIndex) {
                 return;
             }
-            this._selectionHandler(this._chart.getOption(), startIndex, endIndex);
+            this._selectedHandler(this._chart.getOption(), startIndex, endIndex);
         });
 
         window.addEventListener("resize", () => {
@@ -100,8 +102,8 @@ class ChartComponent {
         //
         // clear the selection
         //
-        if (this._selectionHandler != null) {
-            this.#clearRangeSelection();
+        if (this._selectedHandler != null) {
+            this.#hideRangeSelection();
         }
 
         // reload the chart
@@ -288,7 +290,7 @@ class ChartComponent {
         return this;
     }
 
-    setSelectionHandler(handler, clearHandler) {
+    setSelectionHandler(selectedHandler, showHandler, hideHandler, clearHandler) {
         const ctrl = $(this._card).find('.tools')
         ctrl.find(".btn-select").css('display', '').click(() => {
             this._chart.dispatchAction({
@@ -302,14 +304,17 @@ class ChartComponent {
             const btn = $(this._card).find('.tools').find('.btn-select');
             if (this._selectionState) {
                 btn.removeClass('btn-primary');
-                this.#clearRangeSelection();
+                this.#hideRangeSelection();
             } else {
                 btn.addClass('btn-primary');
+                this.#showRangeSelection();
             }
             this._selectionState = !this._selectionState;
         });
 
-        this._selectionHandler = handler;
+        this._selectedHandler = selectedHandler;
+        this._selectionShowHandler = showHandler;
+        this._selectionHideHandler = hideHandler;
         this._selectionClearHandler = clearHandler;
         return this;
     }
@@ -334,7 +339,13 @@ class ChartComponent {
         return false;
     }
 
-    #clearRangeSelection() {
+    #showRangeSelection() {
+        if(this._selectionShowHandler != null) {
+            this._selectionShowHandler();
+        }
+    }
+
+    #hideRangeSelection() {
         this._chart.dispatchAction({
             type: 'brush',
             command: 'clear',
@@ -342,8 +353,8 @@ class ChartComponent {
         });
 
         // call clear handler
-        if (this._selectionClearHandler != null) {
-            this._selectionClearHandler();
+        if (this._selectionHideHandler != null) {
+            this._selectionHideHandler();
         }
     }
 }
