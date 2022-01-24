@@ -109,6 +109,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                                              null,
                                                                              null))
                                      .collect(Collectors.toList()));
+        final int userDimensionSpecIndex = 2;
 
         SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();
         DataSourceSchema schema = new DataSourceSchema(message.getSchema().getName(),
@@ -163,7 +164,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
                 int i = 0;
                 for (String dimension : measurement.getDimensionList()) {
-                    IDimensionSpec dimensionSpec = schema.getDimensionsSpec().get(i++);
+                    IDimensionSpec dimensionSpec = schema.getDimensionsSpec().get(userDimensionSpecIndex + i++);
                     metricMessage.put(dimensionSpec.getName(), dimension);
                 }
 
