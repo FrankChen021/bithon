@@ -26,6 +26,7 @@ import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.StringUtils;
 import shaded.io.netty.channel.ChannelHandler;
 import shaded.io.netty.channel.ChannelHandlerContext;
 import shaded.io.netty.channel.ChannelInboundHandlerAdapter;
@@ -90,11 +91,16 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
         }
         if (cause instanceof IOException) {
             // do not log stack trace for known exceptions
-            log.error("Exception({}) occurred when processing message: {}",
+            log.error("Exception({}) occurred on channel({} --> {}) when processing message: {}",
                       cause.getClass().getName(),
+                      ctx.channel().remoteAddress().toString(),
+                      ctx.channel().localAddress().toString(),
                       cause.getMessage());
         } else {
-            log.error("Exception occurred when processing message", cause);
+            log.error(StringUtils.format("Exception occurred on channel(%s ---> %s) when processing message",
+                                         ctx.channel().remoteAddress().toString(),
+                                         ctx.channel().localAddress().toString()),
+                      cause);
         }
     }
 
