@@ -96,7 +96,7 @@ class TracePage {
                 field: 'startTime',
                 title: 'Time',
                 formatter: function (value) {
-                    return new Date(value / 1000).format('yyyy-MM-dd hh:mm:ss');
+                    return new Date(value / 1000).format('MM-dd hh:mm:ss');
                 },
                 sortable: true
             }, {
@@ -108,15 +108,15 @@ class TracePage {
                 sortable: true
             }, {
                 field: 'tags',
-                title: 'URL',
-                formatter: function (value, row) {
-                    return value.uri;
-                }
-            }, {
-                field: 'tags',
                 title: 'Status',
                 formatter: function (value, row) {
                     return value.status;
+                }
+            }, {
+                field: 'tags',
+                title: 'URL',
+                formatter: function (value, row) {
+                    return value.uri;
                 }
             }],
 
