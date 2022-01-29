@@ -44,10 +44,10 @@ Here let's pick Apache Druid as the target application. Apache Druid provides mu
             broker
             historical
             peon
+            test-code
         end
         subgraph macOS#2
             Bithon
-            TestTool
         end
         coordinator --metrics/tracing--> Bithon
         middle-manager --metrics/tracing--> Bithon
@@ -55,8 +55,14 @@ Here let's pick Apache Druid as the target application. Apache Druid provides mu
         broker --metrics/tracing--> Bithon
         historical --metrics/tracing--> Bithon
         peon --metrics/tracing--> Bithon
-        TestTool --requests--> router
+        test-code --requests--> router
 ```
+
+> NOTE
+> 
+> The test-code is running on the same machine of the target applications,
+> this is to eliminate network latency between two macOS which are under same WiFi network.
+> Even they're under the same WiFi 5GHz channel network, the latency is still unstable.
 
 #### Hardware Configurations
 
@@ -80,7 +86,7 @@ Once the application start, grep the 'Started' keyword to see the how long the a
 
 | Process              |  No Agent Attached(ms)  |  Bithon Agent Attached  |  Skywalking 8.8.0 Agent Attached  |
 |----------------------|:-----------------------:|:-----------------------:|:---------------------------------:|
-| Broker               |          11900          |          20639          |               45161               |
+| broker               |          11900          |          20639          |               45161               |
  | coordinator-overlord |          11561          |          19463          |               43820               |
  | historical           |          11145          |          19109          |               43046               |
  | middleManager        |          10521          |          18206          |               42588               |
@@ -125,61 +131,47 @@ The execution flow is demonstrated as follows, which is illustrated on the trace
 
 Following table shows the test result of target application without the agent attached. It can be seen as the baseline.
 
-| Min(ms)   | Max(ms)     | Avg(ms)   | P95(ms)   | P99(ms)    | Total(ms)    | QPS       |
-|-----------|-------------|-----------|-----------|------------|--------------|-----------|
-| 11.521551 | 1570.164795 | 18.105044 | 25.690112 | 35.127296  | 18105.044390 | 55.233226 |
-| 10.037163 | 271.962058  | 18.035038 | 31.981568 | 234.356736 | 18035.038252 | 55.447623 |
-| 9.527078  | 121.700399  | 12.519399 | 14.680064 | 20.447232  | 12519.398663 | 79.876041 |
-| 9.072599  | 188.775564  | 12.434603 | 14.680064 | 19.398656  | 12434.602910 | 80.420743 |
-| 9.415687  | 231.724722  | 12.871435 | 16.252928 | 20.447232  | 12871.434719 | 77.691417 |
-| 8.826839  | 194.161764  | 12.204509 | 15.204352 | 20.447232  | 12204.508674 | 81.936932 |
-| 8.427772  | 114.907242  | 11.866819 | 14.680064 | 17.301504  | 11866.818740 | 84.268583 |
-| 9.140316  | 117.138842  | 12.143304 | 14.680064 | 17.301504  | 12143.304167 | 82.349910 |
-| 9.234472  | 170.801116  | 13.098089 | 18.350080 | 23.592960  | 13098.089207 | 76.347014 |
+| Min(ms)  | Max(ms)    | Avg(ms)   | P95(ms)   | P99(ms)   | Total(ms)    | QPS        |
+|----------|------------|-----------|-----------|-----------|--------------|------------|
+| 6.629687 | 259.565178 | 12.670067 | 24.903680 | 33.292288 | 12670.066548 | 78.926184  |
+| 6.652671 | 63.801387  | 10.232591 | 15.990784 | 21.757952 | 10232.591163 | 97.726957  |
+| 6.571454 | 100.769671 | 10.026595 | 15.466496 | 21.757952 | 10026.595042 | 99.734755  |
+| 6.337419 | 65.668054  | 9.510715  | 13.893632 | 16.515072 | 9510.715252  | 105.144563 |
+| 6.460049 | 68.611847  | 9.548022  | 14.417920 | 19.660800 | 9548.022110  | 104.733733 |
+| 6.339690 | 66.701136  | 9.360598  | 13.893632 | 18.612224 | 9360.598283  | 106.830778 |
+| 6.100043 | 70.867612  | 9.184785  | 13.369344 | 17.563648 | 9184.784936  | 108.875712 |
+| 6.334391 | 66.943560  | 9.180635  | 13.893632 | 17.563648 | 9180.635342  | 108.924923 |
 
 The first row reflects how the target application perform when they receive first batch of requests.
 This means the application run some extra code path to initialize the system such as web container.
 So it does not reflect the best performance of the system, and should be ignored.
 
-### 0% Sample Rate
-
-In this mode, only metrics are collected. Distributed tracing data are not collected.
-
-| Min(ms)   | Max(ms)    | Avg(ms)   | P95(ms)   | P99(ms)   | Total(ms)    | QPS       |
-|-----------|------------|-----------|-----------|-----------|--------------|-----------|
-| 10.139944 | 135.948603 | 13.292974 | 15.728640 | 24.641536 | 13292.974002 | 75.227711 |
-| 9.276753  | 130.915040 | 12.805871 | 17.301504 | 21.495808 | 12805.871101 | 78.089182 |
-| 9.522447  | 168.259115 | 12.837245 | 15.728640 | 18.350080 | 12837.244605 | 77.898337 |
-| 9.390411  | 137.041908 | 12.861528 | 17.301504 | 23.592960 | 12861.527560 | 77.751262 |
-| 8.842841  | 188.844990 | 12.744795 | 16.252928 | 21.495808 | 12744.795291 | 78.463402 |
-
 ### 100% Sample Rate
 
 The agent is configured to collect all tracing data for all requests by setting this parameter `-Dbithon.tracing.sampleRate=100` whose value by default is 0.
 
-  | Min(ms)   | Max(ms)    | Avg(ms)   | P95(ms)   | P99(ms)   | Total(ms)    | QPS       |
-|-----------|------------|-----------|-----------|-----------|--------------|-----------|
- | 9.822966  | 221        | 14.467531 | 19.398656 | 30.932992 | 14467.531074 | 69.120294 |
- | 9.666261  | 184.239250 | 13.756679 | 17.301504 | 22.544384 | 13756.678553 | 72.691965 |
- | 10.593221 | 211.051527 | 14.347612 | 17.301504 | 21.495808 | 14347.612100 | 69.698009 |
- | 9.953338  | 200.668676 | 13.894033 | 17.301504 | 20.447232 | 13894.033482 | 71.973340 |
- | 9.988679  | 146.855961 | 14.310916 | 18.350080 | 23.592960 | 14310.916409 | 69.876727 |
- | 8.848288  | 128.196301 | 12.417677 | 15.728640 | 20.447232 | 12417.676915 | 80.530361 |
+| Min(ms)  | Max(ms)     | Avg(ms)   | P95(ms)   | P99(ms)   | Total(ms)    | QPS        |
+|----------|-------------|-----------|-----------|-----------|--------------|------------|
+| 9.841467 | 1598.517763 | 21.992187 | 37.224448 | 49.807360 | 21992.187414 | 45.470693  |
+| 7.825205 | 68.539659   | 14.186356 | 25.952256 | 33.292288 | 14186.355529 | 70.490268  |
+| 7.454702 | 65.591494   | 12.011027 | 19.660800 | 24.903680 | 12011.026735 | 83.256829  |
+| 7.260074 | 69.390262   | 11.011897 | 16.515072 | 20.709376 | 11011.897113 | 90.810874  |
+| 7.176657 | 65.607880   | 10.691981 | 15.990784 | 23.855104 | 10691.980970 | 93.528038  |
+| 6.867503 | 69.031957   | 10.593516 | 17.563648 | 20.709376 | 10593.516474 | 94.397361  |
+| 6.536093 | 62.991241   | 10.341561 | 17.563648 | 19.660800 | 10341.561371 | 96.697197  |
+| 6.389569 | 70.144868   | 9.916755  | 14.942208 | 17.563648 | 9916.755239, | 100.839435 |
+| 6.590661 | 81.347927   | 9.851637  | 14.942208 | 19.660800 | 9851.637219, | 101.505971 |
 
-If we look at the P99 column, we can see that
+The first row in the table is under test that the system is started, it takes mor time to initialize many code path.
+So it's valueless to compare.
+
+If we look at the `Min` column we can see that even under 100% sample rate, a response can be as soon as 6.38ms, only 0.28ms plus compared to the minimum value of the baseline table.
+And the system can still serve 1000 requests with 9851ms, about 700ms more compared to the lowest total time consumption, 9180ms, of the baseline.
+And only 0.7ms averaged to each request.
+
+According to the rationality of the agent, the extra time spending is only related to a request itself, it can be seen as a fixed value.
+This value does not fluctuate how long a request takes.
+This means, the longer time a request takes, the less QPS impact the agent can cause.
 
 ### CPU Consumption
 
-#### 0% Sample Rate
-Router - ![img_7.png](rate-0-router.png)
-Broker - ![img_5.png](rate-0-broker.png)
-Historical - ![img_6.png](rate-0-historical.png)
-
-#### 100% Sample Rate
-Router
-![img.png](rate-100-router.png)
-Broker
-![img_2.png](rate-100-broker.png)
-Historical
-![img_3.png](rate-100-historical.png)
-Trace ![img_9.png](rate-100-tracing.png)
