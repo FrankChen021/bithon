@@ -22,7 +22,8 @@ Since the injected code are mainly on HTTP request call paths, we can evaluate t
 
 We select target applications without any special purposes. The test can be done on any applications.
 
-Here let's pick Apache Druid as the target application. Apache Druid provides multiple different kinds of processes, we can see how the agent slows the startup for different processes.
+Here let's pick Apache Druid as the target application. 
+Apache Druid is a distributed system which suits for the tracing feature. It's master branch(currently 0.23-SNAPSHOT) is used.
 
 ## Evaluation Steps
 
@@ -175,3 +176,23 @@ This means, the longer time a request takes, the less QPS impact the agent can c
 
 ### CPU Consumption
 
+| Process | Baseline                              | 100% Sampling Rate(After 11:17)           |
+|---------|---------------------------------------|-------------------------------------------|
+| router  | ![img.png](base-cpu-router.png)       | ![img_3.png](rate-100-cpu-router.png)     |
+| broker  | ![img_1.png](base-cpu-broker.png)     | ![img_4.png](rate-100-cpu-broker.png)     |   
+| broker  | ![img_2.png](base-cpu-historical.png) | ![img_5.png](rate-100-cpu-historical.png) |
+
+From the charts we can see that there is about 1 percentage plus after enabling the tracing feature.
+And this 1 percentage is not a relative value, if the target application is deployed on servers with more cores, the increase amount may be is lower than 1 percentage.
+
+### Memory Consumption
+The first part of the charts below show the memory consumption of the application disabling tracing feature,
+while the 2nd part shows the memory consumption when the tracing feature is enaled.
+
+| Process    | Memory Consumption             |
+|------------|--------------------------------|
+| router     | ![img.png](mem-router.png)     |
+| broker     | ![img.png](mem-broker.png)     |
+| historical | ![img.png](mem-historical.png) |
+
+From the charts we can see that during the test, the memory does not consume more.
