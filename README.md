@@ -58,13 +58,13 @@ java -Dspring.profiles.include=dev,storage-jdbc,collector,webapp -jar server/ser
 
 By default, the application opens and listens on following ports at local
 
-|Function|Port|
-| --- | --- |
-| tracing | 9895 |
-| event  | 9896 |
-| metric | 9898 |
-| ctrl | 9899 |
-| web | 9897 |
+| Function | Port |
+|----------|------|
+| tracing  | 9895 |
+| event    | 9896 |
+| metric   | 9898 |
+| ctrl     | 9899 |
+| web      | 9897 |
 
 Once the application has started, visit [http://localhost:9897/web/home](http://localhost:9897/web/home) to view the monitor.
 
@@ -73,7 +73,7 @@ Once the application has started, visit [http://localhost:9897/web/home](http://
 > 
 > You can make changes to `server/server-starter/src/main/resources/application.yml` to reflect your own settings.
 > 
-> You can also use enable [Alibaba Nacos](doc/configuration-nacos.md) as your configuration storage center.
+> You can also use enable [Alibaba Nacos](doc/configuration/configuration-nacos.md) as your configuration storage center.
 
 ## 2. Attach agent to your java application
 
@@ -83,11 +83,11 @@ Attach agent to your java agent by adding following VM arguments.
 -javaagent:<YOUR_PROJECT_DIRECTORY>/agent/agent-distribution/target/agent-distribution/agent-main.jar -Dbithon.application.name=<YOUR_APPLICATION_NAME> -Dbithon.application.env=<YOUR_APPLICATION_ENV>
 ```
 
-|Variable|Description|
-| --- | --- |
-| YOUR_PROJECT_DIRECTORY | the directory where this project saves |
-| YOUR_APPLICATION_NAME  | the name of your application. It could be any string |
-| YOUR_APPLICATION_ENV | the name of your environment to label your application. It could be any string. Usually it could be `dev`, `test`, `prd` |
+| Variable               | Description                                                                                                              |
+|------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| YOUR_PROJECT_DIRECTORY | the directory where this project saves                                                                                   |
+| YOUR_APPLICATION_NAME  | the name of your application. It could be any string                                                                     |
+| YOUR_APPLICATION_ENV   | the name of your environment to label your application. It could be any string. Usually it could be `dev`, `test`, `prd` |
 
 By default, the agent connects collector running at local(127.0.0.1). 
 Collector address could be changed in file `agent/agent-main/src/main/resources/agent.yml`.
@@ -97,18 +97,18 @@ Make sure to re-build the project after changing the configuration file above.
 
 Following matrix lists the JDKs that have been tested on macOS. And in theory, this matrix works both for Windows and Linux.
 
-|JDK| Supported | 
-| --- | --- |
-| JDK 1.8.0_291 | Yes |
-| JDK 9.0.4 | Yes |
-| JDK 10.0.2 | Yes |
-| JDK 11.0.12 | Yes |
-| JDK 12.0.2 | Yes |
-| JDK 13.0.2 | Yes |
-| JDK 14.0.2 | Yes |
-| JDK 15.0.2 | Yes |
-| JDK 16.02 | Yes |
-| JDK 17 | Yes |
+| JDK           | Supported | 
+|---------------|-----------|
+| JDK 1.8.0_291 | Yes       |
+| JDK 9.0.4     | Yes       |
+| JDK 10.0.2    | Yes       |
+| JDK 11.0.12   | Yes       |
+| JDK 12.0.2    | Yes       |
+| JDK 13.0.2    | Yes       |
+| JDK 14.0.2    | Yes       |
+| JDK 15.0.2    | Yes       |
+| JDK 16.02     | Yes       |
+| JDK 17        | Yes       |
 
 # Contribution
 
@@ -116,12 +116,12 @@ To develop for this project, intellij is recommended.
 
 A code style template file(`dev/bithon_intellij_code_style`) must be imported into intellij for coding.
 
-For more information, check the [development doc](doc/development.md).
+For more information, check the [development doc](doc/dev/development.md).
 
 # License
 
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 # User Doc
-1. [Configuration](doc/configuration.md)
-2. [Metrics](doc/metrics.md)
+1. [Configuration](doc/configuration/configuration.md)
+2. [Metrics](doc/sdk/metrics.md)
