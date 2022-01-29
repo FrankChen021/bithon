@@ -10,6 +10,10 @@ It targets application metrics, logging, distributed tracing, alert and applicat
 
 See the [White Paper](doc/misc/white-paper.md) for more detail.
 
+Common Questions:
+
+- [What's the difference between Jaeger and Bithon?](doc/misc/jaeger/comparison.md) 
+
 # Demon
 
 A preview demo is hosted [here](https://www.bithon.org:9897/web/home).
@@ -101,16 +105,16 @@ Following matrix lists the JDKs that have been tested on macOS. And in theory, t
 
 | JDK           | Supported | 
 |---------------|-----------|
-| JDK 1.8.0_291 | Yes       |
-| JDK 9.0.4     | Yes       |
-| JDK 10.0.2    | Yes       |
-| JDK 11.0.12   | Yes       |
-| JDK 12.0.2    | Yes       |
-| JDK 13.0.2    | Yes       |
-| JDK 14.0.2    | Yes       |
-| JDK 15.0.2    | Yes       |
-| JDK 16.02     | Yes       |
-| JDK 17        | Yes       |
+| JDK 1.8.0_291 | &check;   |
+| JDK 9.0.4     | &check;   |
+| JDK 10.0.2    | &check;   |
+| JDK 11.0.12   | &check;   |
+| JDK 12.0.2    | &check;   |
+| JDK 13.0.2    | &check;   |
+| JDK 14.0.2    | &check;   |
+| JDK 15.0.2    | &check;   |
+| JDK 16.02     | &check;   |
+| JDK 17        | &check;   |
 
 # Contribution
 
