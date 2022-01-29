@@ -15,14 +15,20 @@ class TracePage {
         });
 
         // View
-        new AppSelector(this.mApplication).childOf('appSelector').registerAppChangedListener((text, value) => {
+        new AppSelector({
+            parentId: 'filterBar',
+            appName: this.mApplication,
+            dataSource: 'bithon_trace_spans',
+            showInstanceSelector: true,
+            intervalProvider: () => this.#getInterval()
+        }).registerAppChangedListener((text, value) => {
             window.location = `/web/app/trace/${value}`;
         });
 
         const parent = $('#filterBarForm');
 
         // View - Refresh Button
-        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0px;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
+        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
             .find("button").click(() => {
             this.mInterval = this.vIntervalSelector.getInterval();
             this.#refreshPage();
@@ -55,6 +61,11 @@ class TracePage {
             sortName: 'startTime',
             sortOrder: 'desc',
 
+            stickyHeader: true,
+            stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
+            stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
+            theadClasses: 'thead-light',
+
             queryParamsType: '',
             queryParams: (params) => {
                 const interval = this.#getInterval();
@@ -84,7 +95,7 @@ class TracePage {
                 field: 'traceId',
                 title: 'Trace Id',
                 formatter: function (value, row) {
-                    var timestamp = row.startTime / 1000;
+                    let timestamp = row.startTime / 1000;
                     timestamp = Math.floor(timestamp / 1000 / 60) * 1000 * 60;
                     timestamp -= 3600 * 1000; // search the detail from 1 hour before current start time
                     return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}&type=trace&interval=${encodeURI(moment(timestamp).local().toISOString(true) + '/')}">${value}</a>`;

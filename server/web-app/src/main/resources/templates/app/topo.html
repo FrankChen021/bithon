@@ -17,7 +17,7 @@ class TopoComponent {
         //
         // App Filter
         //
-        new AppSelector('[[${appName}]]').childOf('appSelector').registerAppChangedListener((text, value)=>{
+        new AppSelector('[[${appName}]]', 'filterBar', false).registerAppChangedListener((text, value)=>{
             window.location = `/web/app/topo/${value}`;
         });
 

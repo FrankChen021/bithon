@@ -9,7 +9,7 @@ class Dashboard {
         this._containerId = containerId;
         this._container = $('#' + containerId);
         this._stackLayoutRowFill = 0;
-        this._stackLayoutRow = $('<div class="row"></div>');
+        this._stackLayoutRow = $('<div style="display: flex"></div>');
         this._container.append(this._stackLayoutRow);
         this._timeSelector = null;
 
@@ -40,7 +40,13 @@ class Dashboard {
         // Create App Filter
         // The 'appSelector' element is defined in app-layout.html
         //
-        new AppSelector(this._appName).childOf('appSelector').registerAppChangedListener((text, value) => {
+        new AppSelector({
+            parentId: 'filterBar',
+            appName: this._appName,
+            dataSource: this._dashboardName,
+            showInstanceSelector: true,
+            intervalProvider: () => this.getSelectedTimeInterval(),
+        }).registerAppChangedListener((text, value) => {
             window.location = `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`;
 
             // update appName for dimension filters
@@ -125,7 +131,7 @@ class Dashboard {
                         // create dimension filter
                         // Note: first two dimensions MUST be app/instance
                         const filterBar = $('#filterBar');
-                        for (index = 1; index < schema.dimensionsSpec.length; index++) {
+                        for (index = 2; index < schema.dimensionsSpec.length; index++) {
                             const dimension = schema.dimensionsSpec[index];
                             if (!dimension.visible)
                                 continue;
@@ -458,12 +464,12 @@ class Dashboard {
         if (this._stackLayoutRowFill + width > 12) {
             // create a new row
             this._stackLayoutRowFill = 0;
-            this._stackLayoutRow = $('<div class="row"></div>');
+            this._stackLayoutRow = $('<div style="display: flex"></div>');
             this._container.append(this._stackLayoutRow);
         }
         this._stackLayoutRowFill += width;
 
-        return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}" style="margin-bottom: 0;padding-bottom: 10px;padding-left: 5px;padding-right: 5px"></div>`);
+        return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}" style="margin-bottom: 0;padding-bottom: 10px; padding-left: 1px; padding-right: 1px"></div>`);
     }
 
     // PUBLIC

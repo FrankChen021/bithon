@@ -5,7 +5,7 @@ class EventPage {
         this.mInterval = null;
 
         // View
-        new AppSelector(this.mApplication).childOf('appSelector').registerAppChangedListener((text, value) => {
+        new AppSelector(this.mApplication, 'filterBar').registerAppChangedListener((text, value) => {
             window.location = `/web/app/event/${value}`;
         });
 

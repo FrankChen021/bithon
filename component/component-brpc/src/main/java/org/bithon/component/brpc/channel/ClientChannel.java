@@ -133,6 +133,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
         }
     }
 
+    @Override
     public synchronized void disconnect() {
         Channel ch = channel.getAndSet(null);
         if (ch != null) {
