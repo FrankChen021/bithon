@@ -30,18 +30,18 @@ Say we want to disable the `webserver-tomcat` plugin, passing the following prop
 
 Plugin configuration locates each plugin's resource directory with the name 'plugin.yml'q
 
-| configuration | description | default | example |
-|---|---|---|---|
-| agent.plugin.http.incoming.filter.uri.suffixes | comma separated string in lower case |  | .html,.json |
-| agent.plugin.http.incoming.filter.user-agent.matchers | A Matcher list | | |
+| configuration                                         | description                          | default | example     |
+|-------------------------------------------------------|--------------------------------------|---------|-------------|
+| agent.plugin.http.incoming.filter.uri.suffixes        | comma separated string in lower case |         | .html,.json |
+| agent.plugin.http.incoming.filter.user-agent.matchers | A Matcher list                       |         |             |
 
 # Tracing Configurations
 
-| configuration | description | default | example |
-|---|---|---|---|
-| tracing.samplingRate | percentage of requests to be sampled. <br/>Value must be in the range of [0,100]. | 0 | 50(means 50% requests will be sampled) |
+| configuration        | description                                                                       | default | example                                |
+|----------------------|-----------------------------------------------------------------------------------|---------|----------------------------------------|
+| tracing.samplingRate | percentage of requests to be sampled. <br/>Value must be in the range of [0,100]. | 0       | 50(means 50% requests will be sampled) |
 
 
 # Plugin Configurations
 
-- [Alibaba Druid](plugin-configuration/jdbc-druid.md)
+- [Alibaba Druid](agent-plugin/jdbc-druid.md)
