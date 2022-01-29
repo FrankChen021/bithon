@@ -13,6 +13,7 @@ See the [White Paper](doc/misc/white-paper.md) for more detail.
 Common Questions:
 
 - [What's the difference between Jaeger and Bithon?](doc/misc/jaeger/comparison.md) 
+- [What's the difference between OpenTelemetry and Bithon?](doc/misc/opentelemetry/comparison.md)
 
 # Demon
 
