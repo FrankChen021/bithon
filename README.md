@@ -6,7 +6,9 @@
 
 Bithon is a word combining binocular together with python.
 
-It targets application metrics, logging, distributed tracing, alert and application risk governance under micro-service environment.
+It targets application metrics, logging, distributed tracing, alert and application risk governance under microservice environment.
+
+See the [White Paper](doc/misc/white-paper.md) for more detail.
 
 # Demon
 
