@@ -55,10 +55,6 @@ public class HttpRequest$Send extends AbstractInterceptor {
                                                 .propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> headersArgs.put(key, value))
                                                 .start();
 
-        if (span.isNull()) {
-            return InterceptionDecision.SKIP_LEAVE;
-        }
-
         final long startAt = System.nanoTime();
 
         // replace listener to record metrics
@@ -120,10 +116,12 @@ public class HttpRequest$Send extends AbstractInterceptor {
                 // trace
                 //
                 try {
-                    span.tag(result.getFailure())
-                        .tag("status", String.valueOf(result.getResponse().getStatus()))
-                        .finish();
-                    span.context().finish();
+                    if (!span.isNull()) {
+                        span.tag(result.getFailure())
+                            .tag("status", String.valueOf(result.getResponse().getStatus()))
+                            .finish();
+                        span.context().finish();
+                    }
                 } catch (Throwable ignored) {
                 }
 
