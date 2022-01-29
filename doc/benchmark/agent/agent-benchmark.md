@@ -85,13 +85,13 @@ Apache Druid is a distributed system which suits for the tracing feature. It's m
 
 Once the application start, grep the 'Started' keyword to see the how long the application takes to start up. Following tables illustrates the result.
 
-| Process              |  No Agent Attached(ms)  |  Bithon Agent Attached  |  Skywalking 8.8.0 Agent Attached  |
-|----------------------|:-----------------------:|:-----------------------:|:---------------------------------:|
-| broker               |          11900          |          20639          |               45161               |
- | coordinator-overlord |          11561          |          19463          |               43820               |
- | historical           |          11145          |          19109          |               43046               |
- | middleManager        |          10521          |          18206          |               42588               |
-| router               |          10255          |          17888          |               41751               |
+| Process              | No Agent Attached(ms) | Bithon Agent Attached |
+|----------------------|:---------------------:|:---------------------:|
+| broker               |         11900         |         20639         |
+ | coordinator-overlord |         11561         |         19463         |
+ | historical           |         11145         |         19109         |
+ | middleManager        |         10521         |         18206         |
+| router               |         10255         |         17888         |
 
 ## Performance Overhead
 
