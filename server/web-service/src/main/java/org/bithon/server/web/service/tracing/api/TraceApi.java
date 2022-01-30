@@ -59,7 +59,13 @@ public class TraceApi {
 
     @PostMapping("/api/trace/getTraceDistribution")
     public GetTraceDistributionResponse getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
-        return traceService.getTraceDistribution(request.getApplication(),
+        // backward compatibility
+        if (StringUtils.hasText(request.getApplication())) {
+            request.setFilters(new ArrayList<>(request.getFilters()));
+            request.getFilters().add(new DimensionCondition("appName", new EqualMatcher(request.getApplication())));
+        }
+
+        return traceService.getTraceDistribution(request.getFilters(),
                                                  request.getStartTimeISO8601(),
                                                  request.getEndTimeISO8601());
     }

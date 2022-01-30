@@ -17,8 +17,12 @@
 package org.bithon.server.web.service.tracing.api;
 
 import lombok.Data;
+import org.bithon.server.metric.storage.DimensionCondition;
 
 import javax.validation.constraints.NotBlank;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Frank Chen
@@ -32,6 +36,9 @@ public class GetTraceDistributionRequest {
     @NotBlank
     private String endTimeISO8601;
 
+    @Deprecated
     @NotBlank
     private String application;
+
+    private List<DimensionCondition> filters = Collections.emptyList();
 }

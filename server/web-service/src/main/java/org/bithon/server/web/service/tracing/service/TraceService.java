@@ -162,7 +162,7 @@ public class TraceService {
                                         pageNumber, pageSize);
     }
 
-    public GetTraceDistributionResponse getTraceDistribution(String application,
+    public GetTraceDistributionResponse getTraceDistribution(List<DimensionCondition> filters,
                                                              String startTimeISO8601,
                                                              String endTimeISO8601) {
         TimeSpan start = TimeSpan.fromISO8601(startTimeISO8601);
@@ -174,10 +174,10 @@ public class TraceService {
         // create a virtual data source to use current metric API to query
         DataSourceSchema schema = TraceDataSourceSchema.getSchema();
 
+        filters.add(new DimensionCondition("kind", new EqualMatcher("SERVER")));
         TimeseriesQuery query = new TimeseriesQuery(schema,
                                                     Collections.singletonList("count"),
-                                                    Arrays.asList(new DimensionCondition("appName", new EqualMatcher(application)),
-                                                                  new DimensionCondition("kind", new EqualMatcher("SERVER"))),
+                                                    filters,
                                                     interval,
                                                     Collections.emptyList());
 
