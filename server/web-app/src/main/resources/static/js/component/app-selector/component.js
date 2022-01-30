@@ -14,8 +14,9 @@ class AppSelector {
         this.mRequestFilterFn = option.requestFilterFn;
         this.mApplication = option.appName;
         this.mInstance = window.queryParams !== undefined ? window.queryParams['instance'] : null;
-        this._listeners = [];
         this.mSelectionChangedListener = [];
+        this.mLastQuery = null;
+        this.mQueryCache = [];
 
         this._selectedDimensions = {};
         this.addDimension("appName", option.appName);
@@ -40,12 +41,7 @@ class AppSelector {
         this.vAppSelector.append(`<option value="${this.mApplication}">${this.mApplication}</option>`).change();
 
         this.vAppSelector.change((e) => {
-            const text = e.target.selectedOptions[0].text;
-            const value = e.target.selectedOptions[0].value;
-            this.mApplication = value;
-            $.each(this._listeners, (index, listener) => {
-                listener(text, value);
-            });
+            this.mApplication = e.target.selectedOptions[0].value;
 
             this.#onSelectionChanged('application', this.mApplication);
         });
@@ -64,10 +60,8 @@ class AppSelector {
         this.mDataSource = schema.name;
         this.mSchema = schema;
 
-        let index = 0;
-
         // Note: first two dimensions MUST be app/instance
-        for (index = 1; index < schema.dimensionsSpec.length; index++) {
+        for (let index = 1; index < schema.dimensionsSpec.length; index++) {
             const dimension = schema.dimensionsSpec[index];
             if (!dimension.visible)
                 continue;
@@ -157,51 +151,39 @@ class AppSelector {
                         };
                     })
                 };
-            }
+            },
+
+            // following 'transport' function is based on: https://github.com/select2/select2/issues/110#issuecomment-694495292
+            //cache result transport
+            transport: (params, success, failure) => {
+                //retrieve the cached key or default to _ALL_
+                const __cachekey = params.data.q || '_ALL_';
+                if (this.mLastQuery !== __cachekey) {
+                    //remove caches not from last query
+                    this.mQueryCache = [];
+                }
+                this.mLastQuery = __cachekey;
+                if ('undefined' !== typeof this.mQueryCache[__cachekey]) {
+                    // if('undefined' !== typeof params.data.search){
+                    //     success(__cache[__cachekey]));
+                    //     return;
+                    // }
+                    //display the cached results
+                    success(this.mQueryCache[__cachekey]);
+                    return; /* noop */
+                }
+                const $request = $.ajax(params);
+                $request.then((data) => {
+                    //store data in cache
+                    this.mQueryCache[__cachekey] = data;
+                    //display the results
+                    success(this.mQueryCache[__cachekey]);
+                });
+                $request.fail(failure);
+                return $request;
+            },
         };
     }
-
-    // #getDimensionAjaxOptions() {
-    //     return {
-    //         cache: true,
-    //         type: 'POST',
-    //         url: apiHost + '/api/datasource/dimensions',
-    //         data: () => {
-    //             const filters = [{
-    //                 dimension: "appName",
-    //                 matcher: {
-    //                     type: "equal",
-    //                     pattern: this.mApplication
-    //                 }
-    //             }];
-    //
-    //             if (this.mRequestFilterFn !== undefined) {
-    //                 this.mRequestFilterFn(filters);
-    //             }
-    //
-    //             const interval = this.mIntervalProviderFn();
-    //             return JSON.stringify({
-    //                 dataSource: this.mDataSource,
-    //                 dimension: 'instanceName',
-    //                 conditions: filters,
-    //                 startTimeISO8601: interval.start,
-    //                 endTimeISO8601: interval.end,
-    //             })
-    //         },
-    //         dataType: "json",
-    //         contentType: "application/json",
-    //         processResults: (data) => {
-    //             return {
-    //                 results: data.map(dimension => {
-    //                     return {
-    //                         "id": dimension.value,
-    //                         "text": dimension.value
-    //                     };
-    //                 })
-    //             };
-    //         }
-    //     }
-    // }
 
     getDimensionAjaxOptions(dimensionIndex, dimensionName) {
         return {
