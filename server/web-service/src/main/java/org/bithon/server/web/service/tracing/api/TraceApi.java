@@ -16,7 +16,10 @@
 
 package org.bithon.server.web.service.tracing.api;
 
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.common.matcher.EqualMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,9 +69,14 @@ public class TraceApi {
         Timestamp start = TimeSpan.fromISO8601(request.getStartTimeISO8601()).toTimestamp();
         Timestamp end = TimeSpan.fromISO8601(request.getEndTimeISO8601()).toTimestamp();
 
+        if (StringUtils.hasText(request.getApplication())) {
+            request.setFilters(new ArrayList<>(request.getFilters()));
+            request.getFilters().add(new DimensionCondition("appName", new EqualMatcher(request.getApplication())));
+        }
+
         return new GetTraceListResponse(
-            traceService.getTraceListSize(request.getApplication(), start, end),
-            traceService.getTraceList(request.getApplication(),
+            traceService.getTraceListSize(request.getFilters(), start, end),
+            traceService.getTraceList(request.getFilters(),
                                       start,
                                       end,
                                       request.getOrderBy(),

@@ -12,10 +12,13 @@ class AppSelector {
     constructor(option) {
         const vParent = $('#' + option.parentId);
 
-        this.mIntervalProvider = option.intervalProvider;
+        this.mIntervalProviderFn = option.intervalProvider;
+        this.mRequestFilterFn = option.requestFilterFn;
         this.mDataSource = option.dataSource;
-        this.mAppName = option.appName;
+        this.mApplication = option.appName;
+        this.mInstance = window.queryParams !== undefined ? window.queryParams['instance'] : null;
         this._listeners = [];
+        this.mSelectionChangedListener = [];
 
         //
         // create app selector
@@ -35,19 +38,22 @@ class AppSelector {
         //
         if (option.showInstanceSelector) {
             this.vInstanceSelector = $(`<li class="nav-item"><select style="width:150px"></select></li>`).find('select');
-            if (g_SelectedInstance != null) {
-                this.vInstanceSelector.append(`<option value="${g_SelectedInstance}">${g_SelectedInstance}</option>`);
+            console.log(window.queryParams);
+            console.log(this.mInstance);
+            if (this.mInstance != null) {
+                this.vInstanceSelector.append(`<option value="${this.mInstance}">${this.mInstance}</option>`);
                 this.vInstanceSelector.change();
             }
 
             this.vInstanceSelector.on('change', (event) => {
                 if (event.target.selectedIndex == null || event.target.selectedIndex < 0) {
-                    g_SelectedInstance = null;
-                    return;
+                    this.mInstance = null;
+                } else {
+                    // get selected dimension
+                    this.mInstance = event.target.selectedOptions[0].value;
                 }
 
-                // get selected dimension
-                g_SelectedInstance = event.target.selectedOptions[0].value;
+                this.#onSelectionChanged('instance', this.mInstance);
             });
             vParent.append(this.vInstanceSelector);
 
@@ -62,21 +68,61 @@ class AppSelector {
             });
         }
 
-        this.vAppSelector.append(`<option value="${this.mAppName}">${this.mAppName}</option>`).change();
+        this.vAppSelector.append(`<option value="${this.mApplication}">${this.mApplication}</option>`).change();
 
         this.vAppSelector.change((e) => {
             const text = e.target.selectedOptions[0].text;
             const value = e.target.selectedOptions[0].value;
-            this.mAppName = value;
+            this.mApplication = value;
             $.each(this._listeners, (index, listener) => {
                 listener(text, value);
             });
+
+            this.#onSelectionChanged('application', this.mApplication);
         });
     }
 
+    /**
+     * Deprecated
+     * @param listener fn that accepts (text, application)
+     */
     registerAppChangedListener(listener) {
         this._listeners.push(listener);
         return this;
+    }
+
+    /**
+     * @param listener fn that accepts (dimensionName, dimensionValue)
+     */
+    registerChangedListener(listener) {
+        this.mSelectionChangedListener.push(listener);
+        return this;
+    }
+
+    getSelectedFilters() {
+        const filters = [{
+            dimension: 'appName',
+            matcher: {
+                type: 'equal',
+                pattern: this.mApplication
+            }
+        }];
+        if (this.mInstance != null) {
+            filters.push({
+                dimension: 'instanceName',
+                matcher: {
+                    type: 'equal',
+                    pattern: this.mInstance
+                }
+            });
+        }
+        return filters;
+    }
+
+    #onSelectionChanged(name, value) {
+        $.each(this.mSelectionChangedListener, (index, listener) => {
+            listener(name, value);
+        });
     }
 
     #getApplicationOptions() {
@@ -111,11 +157,15 @@ class AppSelector {
                     dimension: "appName",
                     matcher: {
                         type: "equal",
-                        pattern: this.mAppName
+                        pattern: this.mApplication
                     }
                 }];
 
-                const interval = this.mIntervalProvider();
+                if (this.mRequestFilterFn !== undefined) {
+                    this.mRequestFilterFn(filters);
+                }
+
+                const interval = this.mIntervalProviderFn();
                 return JSON.stringify({
                     dataSource: this.mDataSource,
                     dimension: 'instanceName',

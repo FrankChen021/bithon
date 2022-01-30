@@ -19,13 +19,11 @@ package org.bithon.server.web.service.tracing.service;
 import org.bithon.server.common.matcher.EqualMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.TimestampSpec;
-import org.bithon.server.metric.aggregator.spec.CountMetricSpec;
-import org.bithon.server.metric.dimension.StringDimensionSpec;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.Interval;
 import org.bithon.server.metric.storage.TimeseriesQuery;
+import org.bithon.server.tracing.TraceDataSourceSchema;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.tracing.storage.ITraceStorage;
@@ -145,18 +143,18 @@ public class TraceService {
         return rootSpans;
     }
 
-    public int getTraceListSize(String application, Timestamp start, Timestamp end) {
-        return traceReader.getTraceListSize(application, start, end);
+    public int getTraceListSize(List<DimensionCondition> filters, Timestamp start, Timestamp end) {
+        return traceReader.getTraceListSize(filters, start, end);
     }
 
-    public List<TraceSpan> getTraceList(String application,
+    public List<TraceSpan> getTraceList(List<DimensionCondition> filters,
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
                                         String order,
                                         int pageNumber,
                                         int pageSize) {
-        return traceReader.getTraceList(application,
+        return traceReader.getTraceList(filters,
                                         start,
                                         end,
                                         orderBy,
@@ -174,30 +172,7 @@ public class TraceService {
                                         getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).getLength());
 
         // create a virtual data source to use current metric API to query
-        DataSourceSchema schema = new DataSourceSchema("trace_span",
-                                                       "trace_span",
-                                                       new TimestampSpec("timestamp", null, null),
-                                                       Arrays.asList(new StringDimensionSpec("appName",
-                                                                                             "appName",
-                                                                                             true,
-                                                                                             null,
-                                                                                             null,
-                                                                                             null),
-                                                                     new StringDimensionSpec("instanceName",
-                                                                                             "instanceName",
-                                                                                             false,
-                                                                                             null,
-                                                                                             null,
-                                                                                             null),
-                                                                     new StringDimensionSpec("kind",
-                                                                                             "kind",
-                                                                                             false,
-                                                                                             null,
-                                                                                             null,
-                                                                                             null)),
-                                                       Collections.singletonList(CountMetricSpec.INSTANCE),
-                                                       null,
-                                                       null);
+        DataSourceSchema schema = TraceDataSourceSchema.getSchema();
 
         TimeseriesQuery query = new TimeseriesQuery(schema,
                                                     Collections.singletonList("count"),

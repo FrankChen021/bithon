@@ -19,15 +19,6 @@ package org.bithon.server.storage.jdbc.metric;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.matcher.AntPathMatcher;
-import org.bithon.server.common.matcher.ContainsMatcher;
-import org.bithon.server.common.matcher.EndwithMatcher;
-import org.bithon.server.common.matcher.EqualMatcher;
-import org.bithon.server.common.matcher.IContainsMatcher;
-import org.bithon.server.common.matcher.IMatcherVisitor;
-import org.bithon.server.common.matcher.NotEqualMatcher;
-import org.bithon.server.common.matcher.RegexMatcher;
-import org.bithon.server.common.matcher.StartwithMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.aggregator.spec.CountMetricSpec;
@@ -45,6 +36,7 @@ import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.metric.storage.GroupByQuery;
 import org.bithon.server.metric.storage.IMetricReader;
 import org.bithon.server.metric.storage.TimeseriesQuery;
+import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -120,11 +112,7 @@ public class MetricJdbcReader implements IMetricReader {
                                      .map(aggregator -> ", " + aggregator.accept(new QuerableAggregatorSqlVisitor()))
                                      .collect(Collectors.joining());
 
-        String filter = query.getFilters().stream()
-                             .map(dimension -> dimension.getMatcher()
-                                                        .accept(new SQLFilterBuilder(dimension.getDimension()))
-                                               + " AND ")
-                             .collect(Collectors.joining());
+        String filter = SQLFilterBuilder.build(query.getFilters());
 
         String groupByFields = query.getGroupBys().stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
 
@@ -222,73 +210,6 @@ public class MetricJdbcReader implements IMetricReader {
         /*
          * NOTE, H2 does not support timestamp comparison, we have to use ISO8601 format
          */
-    }
-
-    /**
-     * build SQL where clause
-     */
-    static class SQLFilterBuilder implements IMatcherVisitor<String> {
-        private final String name;
-
-        SQLFilterBuilder(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String visit(EqualMatcher matcher) {
-            StringBuilder sb = new StringBuilder(64);
-            sb.append("\"");
-            sb.append(name);
-            sb.append("\"");
-            sb.append("=");
-            sb.append('\'');
-            sb.append(matcher.getPattern());
-            sb.append('\'');
-            return sb.toString();
-        }
-
-        @Override
-        public String visit(NotEqualMatcher matcher) {
-            StringBuilder sb = new StringBuilder(64);
-            sb.append("\"");
-            sb.append(name);
-            sb.append("\"");
-            sb.append("<>");
-            sb.append('\'');
-            sb.append(matcher.getPattern());
-            sb.append('\'');
-            return sb.toString();
-        }
-
-        @Override
-        public String visit(AntPathMatcher antPathMatcher) {
-            return null;
-        }
-
-        @Override
-        public String visit(ContainsMatcher containsMatcher) {
-            return null;
-        }
-
-        @Override
-        public String visit(EndwithMatcher endwithMatcher) {
-            return null;
-        }
-
-        @Override
-        public String visit(IContainsMatcher iContainsMatcher) {
-            return null;
-        }
-
-        @Override
-        public String visit(RegexMatcher regexMatcher) {
-            return null;
-        }
-
-        @Override
-        public String visit(StartwithMatcher startwithMatcher) {
-            return null;
-        }
     }
 
 

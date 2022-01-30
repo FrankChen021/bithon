@@ -15,14 +15,29 @@ class TracePage {
         });
 
         // View
-        new AppSelector({
+        this.vFilters = new AppSelector({
             parentId: 'filterBar',
             appName: this.mApplication,
-            dataSource: 'bithon_trace_spans',
+            dataSource: 'trace_span',
             showInstanceSelector: true,
-            intervalProvider: () => this.#getInterval()
-        }).registerAppChangedListener((text, value) => {
-            window.location = `/web/app/trace/${value}`;
+            intervalProvider: () => this.#getInterval(),
+            requestFilterFn: (filters) => {
+                filters.push(
+                    {
+                        dimension: "kind",
+                        matcher: {
+                            type: "equal",
+                            pattern: "SERVER"
+                        }
+                    }
+                );
+            }
+        }).registerChangedListener((name, value) => {
+            if (name === 'application') {
+                window.location = `/web/app/trace/${value}`;
+            } else {
+                this.#refreshPage();
+            }
         });
 
         const parent = $('#filterBarForm');
@@ -74,6 +89,7 @@ class TracePage {
                     pageNumber: params.pageNumber - 1,
                     traceId: params.searchText,
                     application: g_SelectedApp,
+                    filters: this.vFilters.getSelectedFilters(),
                     startTimeISO8601: interval.start,
                     endTimeISO8601: interval.end,
                     orderBy: params.sortName,
@@ -167,7 +183,8 @@ class TracePage {
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                application: g_SelectedApp
+                application: g_SelectedApp,
+                filters: this.vFilters.getSelectedFilters()
             }),
             processResult: (data) => {
                 this._data = data;
@@ -175,7 +192,7 @@ class TracePage {
                 const labelFormat = data.bucket < 60 ? 'HH:mm:ss' : 'HH:mm';
                 const timeLabels = data.data.map(val => {
                     // it's unix timestamp, so * 1000 is needed to convert it to milliseconds
-                    return moment(val._timestamp * 1000 ).local().format(labelFormat) + "\n"
+                    return moment(val._timestamp * 1000).local().format(labelFormat) + "\n"
                         + moment(val._timestamp * 1000 + data.bucket * 1000).local().format(labelFormat)
                 });
 

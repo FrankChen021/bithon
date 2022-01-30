@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.ThreadUtils;
 import org.bithon.server.metric.storage.ISchemaStorage;
+import org.bithon.server.tracing.TraceDataSourceSchema;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
@@ -144,6 +145,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         log.info("Loading metric schemas");
         try {
             schemas = schemaStorage.getSchemas().stream().collect(Collectors.toConcurrentMap(DataSourceSchema::getName, v -> v));
+            schemas.put(TraceDataSourceSchema.getSchema().getName(), TraceDataSourceSchema.getSchema());
         } catch (Exception e) {
             log.error("Exception occurs when loading schemas", e);
         }
