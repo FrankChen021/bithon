@@ -117,13 +117,14 @@ public class MetricJdbcReader implements IMetricReader {
         String groupByFields = query.getGroupBys().stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
 
         String sql = StringUtils.format(
-            "SELECT %s %s %s %s FROM \"%s\" OUTER WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s",
+            "SELECT %s %s %s %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s",
             groupByFields,
             metricList,
             postAggregatorMetrics,
             aggregatorList,
             sqlTableName,
             filter,
+            StringUtils.hasText(filter) ? "AND" : "",
             sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
             sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
             groupByFields

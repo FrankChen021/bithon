@@ -16,10 +16,15 @@
 
 package org.bithon.server.web.service.event.api;
 
+import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.common.matcher.EqualMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.event.storage.IEventReader;
 import org.bithon.server.event.storage.IEventStorage;
+import org.bithon.server.metric.storage.DimensionCondition;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
 
 /**
  * @author Frank Chen
@@ -39,10 +44,16 @@ public class EventApi implements IEventApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
-        return new GetEventListResponse(eventReader.getEventListSize(request.getApplication(),
+        // backward compatibility
+        if (StringUtils.hasText(request.getApplication())) {
+            request.setFilters(new ArrayList<>(request.getFilters()));
+            request.getFilters().add(new DimensionCondition("appName", new EqualMatcher(request.getApplication())));
+        }
+
+        return new GetEventListResponse(eventReader.getEventListSize(request.getFilters(),
                                                                      start,
                                                                      end),
-                                        eventReader.getEventList(request.getApplication(),
+                                        eventReader.getEventList(request.getFilters(),
                                                                  start,
                                                                  end,
                                                                  request.getPageNumber(),

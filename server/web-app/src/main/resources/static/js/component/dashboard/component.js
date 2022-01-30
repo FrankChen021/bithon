@@ -46,16 +46,10 @@ class Dashboard {
             dataSource: this._dashboardName,
             showInstanceSelector: true,
             intervalProvider: () => this.getSelectedTimeInterval(),
-        }).registerAppChangedListener((text, value) => {
-            window.location = `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`;
-
-            // update appName for dimension filters
-            //this._appName = value;
-
-            // update dimensions for dashboard chart
-            //this.addDimension('appName', value);
-
-            //this.refreshDashboard();
+        }).registerChangedListener((name, value) => {
+            if (name === 'application') {
+                window.location = `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`;
+            }
         });
 
         //

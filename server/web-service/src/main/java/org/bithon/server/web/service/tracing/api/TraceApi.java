@@ -69,6 +69,7 @@ public class TraceApi {
         Timestamp start = TimeSpan.fromISO8601(request.getStartTimeISO8601()).toTimestamp();
         Timestamp end = TimeSpan.fromISO8601(request.getEndTimeISO8601()).toTimestamp();
 
+        // backward compatibility
         if (StringUtils.hasText(request.getApplication())) {
             request.setFilters(new ArrayList<>(request.getFilters()));
             request.getFilters().add(new DimensionCondition("appName", new EqualMatcher(request.getApplication())));

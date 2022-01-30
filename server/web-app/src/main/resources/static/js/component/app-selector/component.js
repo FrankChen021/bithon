@@ -52,7 +52,7 @@ class AppSelector {
                     // get selected dimension
                     this.mInstance = event.target.selectedOptions[0].value;
                 }
-
+                g_SelectedInstance = this.mInstance;
                 this.#onSelectionChanged('instance', this.mInstance);
             });
             vParent.append(this.vInstanceSelector);

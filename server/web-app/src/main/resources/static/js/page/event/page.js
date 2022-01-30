@@ -5,14 +5,24 @@ class EventPage {
         this.mInterval = null;
 
         // View
-        new AppSelector(this.mApplication, 'filterBar').registerAppChangedListener((text, value) => {
-            window.location = `/web/app/event/${value}`;
+        this.vFilter = new AppSelector({
+            appName: appName,
+            parentId: 'filterBar',
+            dataSource: 'event',
+            showInstanceSelector: true,
+            intervalProvider: () => this.#getInterval(),
+        }).registerChangedListener((name, value) => {
+            if (name === 'application') {
+                window.location = `/web/app/event/${value}`;
+            } else {
+                this.#refreshPage();
+            }
         });
 
         const parent = $('#filterBarForm');
 
         // View - Refresh Button
-        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0px;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
+        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
             .find("button").click(() => {
             this.mInterval = this.vIntervalSelector.getInterval();
             this.#refreshPage();
@@ -51,6 +61,7 @@ class EventPage {
                     pageNumber: params.pageNumber - 1,
                     traceId: params.searchText,
                     application: g_SelectedApp,
+                    filters: this.vFilter.getSelectedFilters(),
                     startTimeISO8601: interval.start,
                     endTimeISO8601: interval.end,
                     orderBy: params.sortName,

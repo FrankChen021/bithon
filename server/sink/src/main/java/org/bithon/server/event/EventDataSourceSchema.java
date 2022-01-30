@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.tracing;
+package org.bithon.server.event;
 
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.TimestampSpec;
@@ -26,12 +26,12 @@ import java.util.Collections;
 
 /**
  * @author Frank Chen
- * @date 30/1/22 9:56 AM
+ * @date 30/1/22 11:53 AM
  */
-public class TraceDataSourceSchema {
+public class EventDataSourceSchema {
 
-    private static final DataSourceSchema SCHEMA = new DataSourceSchema("trace_span",
-                                                                        "trace_span",
+    private static final DataSourceSchema SCHEMA = new DataSourceSchema("event",
+                                                                        "event",
                                                                         new TimestampSpec("timestamp", null, null),
                                                                         Arrays.asList(new StringDimensionSpec("appName",
                                                                                                               "appName",
@@ -45,10 +45,10 @@ public class TraceDataSourceSchema {
                                                                                                               null,
                                                                                                               null,
                                                                                                               null),
-                                                                                      new StringDimensionSpec("kind",
-                                                                                                              "kind",
+                                                                                      new StringDimensionSpec("type",
+                                                                                                              "type",
                                                                                                               false,
-                                                                                                              null,
+                                                                                                              true,
                                                                                                               null,
                                                                                                               null)),
                                                                         Collections.singletonList(CountMetricSpec.INSTANCE),
