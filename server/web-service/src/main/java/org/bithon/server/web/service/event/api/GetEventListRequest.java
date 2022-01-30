@@ -22,7 +22,6 @@ import org.bithon.server.metric.storage.DimensionCondition;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
