@@ -21,6 +21,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.server.common.utils.EndPointType;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/20 21:45
@@ -29,6 +31,9 @@ import org.bithon.server.common.utils.EndPointType;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EndpointBo {
+    private static final AtomicLong ID = new AtomicLong();
+
+    private final String id = String.valueOf(ID.addAndGet(1));
     private EndPointType type;
     private String name;
     private long x;

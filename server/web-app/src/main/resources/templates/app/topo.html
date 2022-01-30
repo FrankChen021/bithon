@@ -69,10 +69,14 @@ class TopoComponent {
                             },
                             data: topo.endpoints.map(endpoint => {
                                 return {
-                                    name: endpoint.name,
+                                    name: endpoint.id,
                                     x: endpoint.x,
                                     y: endpoint.y,
-                                    symbol: `image:///images/nodes/${endpoint.type.toLowerCase()}.png`
+                                    text: endpoint.name,
+                                    symbol: `image:///images/nodes/${endpoint.type.toLowerCase()}.png`,
+                                    label: {
+                                        formatter: (node) => node.data.text
+                                    }
                                 };
                             }),
                             links: topo.links.map(link => {
