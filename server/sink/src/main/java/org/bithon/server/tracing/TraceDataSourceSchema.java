@@ -48,7 +48,7 @@ public class TraceDataSourceSchema {
                                                                                       new StringDimensionSpec("kind",
                                                                                                               "kind",
                                                                                                               false,
-                                                                                                              null,
+                                                                                                              false,
                                                                                                               null,
                                                                                                               null)),
                                                                         Collections.singletonList(CountMetricSpec.INSTANCE),
