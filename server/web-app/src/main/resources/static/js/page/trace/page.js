@@ -18,8 +18,6 @@ class TracePage {
         this.vFilters = new AppSelector({
             parentId: 'filterBar',
             appName: this.mApplication,
-            dataSource: 'trace_span',
-            showInstanceSelector: true,
             intervalProvider: () => this.#getInterval(),
             requestFilterFn: (filters) => {
                 filters.push(
@@ -38,7 +36,7 @@ class TracePage {
             } else {
                 this.#refreshPage();
             }
-        });
+        }).createFilter('trace_span');
 
         const parent = $('#filterBarForm');
 

@@ -8,8 +8,6 @@ class EventPage {
         this.vFilter = new AppSelector({
             appName: appName,
             parentId: 'filterBar',
-            dataSource: 'event',
-            showInstanceSelector: true,
             intervalProvider: () => this.#getInterval(),
         }).registerChangedListener((name, value) => {
             if (name === 'application') {
@@ -17,7 +15,7 @@ class EventPage {
             } else {
                 this.#refreshPage();
             }
-        });
+        }).createFilter('event');
 
         const parent = $('#filterBarForm');
 

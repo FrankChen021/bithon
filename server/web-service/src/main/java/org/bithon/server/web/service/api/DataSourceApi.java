@@ -16,6 +16,7 @@
 
 package org.bithon.server.web.service.api;
 
+import org.bithon.agent.core.utils.CollectionUtils;
 import org.bithon.server.common.pojo.DisplayableText;
 import org.bithon.server.common.ttl.TTLConfig;
 import org.bithon.server.common.utils.datetime.TimeSpan;
@@ -69,7 +70,7 @@ public class DataSourceApi {
 
         return dataSourceService.oldTimeseriesQuery(new TimeseriesQuery(schema,
                                                                         request.getMetrics(),
-                                                                        request.getDimensions().values(),
+                                                                        CollectionUtils.isNotEmpty(request.getDimensions()) ? request.getDimensions().values() : request.getFilters(),
                                                                         Interval.of(start, end),
                                                                         request.getGroups()));
     }
