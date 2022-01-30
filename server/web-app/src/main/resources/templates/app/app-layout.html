@@ -75,6 +75,19 @@
     <script th:src="@{/js/component/auto-refresher/component.js}"></script>
     <script th:src="@{/js/component/time-interval/component.js}"></script>
     <script th:src="@{/js/component/app-selector/component.js}"></script>
+
+    <script>
+        function redirect(module, submodule) {
+            let url = `/web/app/${module}/${g_SelectedApp}`;
+            if (submodule !== undefined) {
+                url += `/${submodule}`;
+            }
+            if (g_SelectedInstance != null) {
+                url += `?instance=${g_SelectedInstance}`;
+            }
+            window.location = url;
+        }
+    </script>
 </head>
 <body>
 
@@ -104,14 +117,14 @@
                         </div>
                     </li>
                     <li class="sidebar">
-                        <a th:href="@{'/web/app/trace/' + ${appName}}">
+                        <a href="#" onclick="javascript:redirect('trace')">
                             <i class="fa fa-shopping-cart"></i>
                             <span class="menu-text">Trace</span>
                             <!--                            <span class="badge badge-pill badge-danger">3</span>-->
                         </a>
                     </li>
                     <li class="sidebar">
-                        <a th:href="@{'/web/app/event/' + ${appName}}">
+                        <a href="#" onclick="javascript:redirect('event')">
                             <i class="fa fa-shopping-cart"></i>
                             <span class="menu-text">Event</span>
                         </a>

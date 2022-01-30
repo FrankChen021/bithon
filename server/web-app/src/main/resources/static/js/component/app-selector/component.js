@@ -19,6 +19,10 @@ class AppSelector {
 
         this._selectedDimensions = {};
         this.addDimension("appName", option.appName);
+        if (this.mInstance != null) {
+            this.addDimension("instanceName", this.mInstance);
+            g_SelectedInstance = this.mInstance;
+        }
 
         //
         // create app selector
@@ -45,13 +49,6 @@ class AppSelector {
 
             this.#onSelectionChanged('application', this.mApplication);
         });
-
-        //
-        // create instance selector
-        //
-        if (option.showInstanceSelector) {
-
-        }
     }
 
     createFilter(dataSourceName) {
@@ -81,8 +78,8 @@ class AppSelector {
 
     #createDimensionFilter(dimensionIndex, dimensionName, displayText) {
         const appendedSelect = this.vParent.append(`<li class="nav-item"><select style="width:150px"></select></li>`).find('select').last();
-        if (dimensionIndex === 1 && g_SelectedInstance != null) {
-            appendedSelect.append(`<option value="${g_SelectedInstance}">${g_SelectedInstance}</option>`);
+        if (dimensionIndex === 1 && this.mInstance != null) {
+            appendedSelect.append(`<option value="${this.mDataSource}">${this.mInstance}</option>`).change();
         }
         appendedSelect.select2({
             theme: 'bootstrap4',
@@ -93,25 +90,17 @@ class AppSelector {
         }).on('change', (event) => {
             let dimensionValue = null;
             if (event.target.selectedIndex == null || event.target.selectedIndex < 0) {
-                if (dimensionIndex === 1) {
-                    g_SelectedInstance = null;
-                }
                 this.rmvDimension(dimensionName);
             } else {
                 // get selected dimension
                 dimensionValue = event.target.selectedOptions[0].value;
-
-                if (dimensionIndex === 1) {
-                    g_SelectedInstance = dimensionValue;
-                }
                 this.addDimension(dimensionName, dimensionValue);
+            }
+            if (dimensionIndex === 1) {
+                g_SelectedInstance = dimensionValue;
             }
             this.#onSelectionChanged(dimensionName, dimensionValue);
         });
-
-        if (dimensionIndex === 1 && g_SelectedInstance != null) {
-            appendedSelect.change();
-        }
     }
 
     addDimension(dimensionName, dimensionValue) {

@@ -48,34 +48,10 @@ class SearchBar {
         //
         // Binding input to view and model
         //
-        const queryParameters = this.#getQueryParameter();
-        if (queryParameters["id"] != null) {
-            this._mInputId = queryParameters["id"];
+        if (window.queryParams["id"] != null) {
+            this._mInputId = window.queryParams["id"];
             input.val(this._mInputId);
         }
-        if (queryParameters["interval"] != null) {
-            this._mInputInterval = queryParameters["interval"];
-            navbar.find("select").val(queryParameters["interval"]).trigger('change');
-        }
-    }
-
-    #getQueryParameter() {
-        const parameters = {};
-        const uri = decodeURI(window.location.href);
-        const paramPos = uri.indexOf('?') + 1;
-
-        if (paramPos <= 0) {
-            return parameters;
-        }
-
-        // extract args
-        const args = uri.substring(paramPos).split("&")
-        for(let i = 0; i < args.length; i++) {
-            const pair = args[i].split("=");
-            parameters[pair[0]] = pair[1];
-        }
-
-        return parameters;
     }
 
     #search(id) {
