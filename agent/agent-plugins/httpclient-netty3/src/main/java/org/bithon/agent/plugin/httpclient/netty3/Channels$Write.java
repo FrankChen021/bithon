@@ -113,7 +113,7 @@ public class Channels$Write extends AbstractInterceptor {
             //
             // tracing
             //
-            if (span != null) {
+            if (!span.isNull()) {
                 span.tag(channelFuture.getCause())
                     .tag(Tags.URI, uri)
                     .finish();
