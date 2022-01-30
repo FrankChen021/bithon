@@ -94,8 +94,8 @@ public class TopoApi {
             EndpointBo dstEndpoint = new EndpointBo(dstType, dst, x + 100, y);
             topo.addEndpoint(dstEndpoint);
             topo.addLink(Link.builder()
-                             .srcEndpoint(thisApplication.getName())
-                             .dstEndpoint(dstEndpoint.getName())
+                             .srcEndpoint(thisApplication.getId())
+                             .dstEndpoint(dstEndpoint.getId())
                              .avgResponseTime(inputRow.getColAsDouble("avgResponseTime", 0))
                              .maxResponseTime(inputRow.getColAsLong("maxResponseTime", 0))
                              .minResponseTime(inputRow.getColAsLong("minResponseTime", 0))
@@ -125,8 +125,8 @@ public class TopoApi {
             EndpointBo srcEndpoint = new EndpointBo(srcType, src, x - 100, y);
             topo.addEndpoint(srcEndpoint);
             topo.addLink(Link.builder()
-                             .srcEndpoint(srcEndpoint.getName())
-                             .dstEndpoint(thisApplication.getName())
+                             .srcEndpoint(srcEndpoint.getId())
+                             .dstEndpoint(thisApplication.getId())
                              .avgResponseTime(inputRow.getColAsDouble("avgResponseTime", 0))
                              .maxResponseTime(inputRow.getColAsLong("maxResponseTime", 0))
                              .minResponseTime(inputRow.getColAsLong("minResponseTime", 0))

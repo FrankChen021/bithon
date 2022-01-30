@@ -26,8 +26,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
+import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceCleaner;
@@ -234,7 +236,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         }
 
         @Override
-        public List<TraceSpan> getTraceList(String application,
+        public List<TraceSpan> getTraceList(List<DimensionCondition> filters,
                                             Timestamp start,
                                             Timestamp end,
                                             String orderBy,
@@ -242,10 +244,12 @@ public class TraceJdbcStorage implements ITraceStorage {
                                             int pageNumber,
                                             int pageSize) {
             SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                                       .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
-                                                                       .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
+                                                                       .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
                                                                        .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
                                                                        .and(Tables.BITHON_TRACE_SPAN.KIND.eq("SERVER"));
+
+            sql = sql.and(SQLFilterBuilder.build(filters));
+
             //noinspection rawtypes
             SelectSeekStep1 sql2;
             if ("costTime".equals(orderBy)) {
@@ -269,14 +273,14 @@ public class TraceJdbcStorage implements ITraceStorage {
         }
 
         @Override
-        public int getTraceListSize(String application,
+        public int getTraceListSize(List<DimensionCondition> filters,
                                     Timestamp start,
                                     Timestamp end) {
             return (int) dslContext.select(DSL.count(Tables.BITHON_TRACE_SPAN.TRACEID))
                                    .from(Tables.BITHON_TRACE_SPAN)
-                                   .where(Tables.BITHON_TRACE_SPAN.APPNAME.eq(application))
-                                   .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
+                                   .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
                                    .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
+                                   .and(SQLFilterBuilder.build(filters))
                                    .and(Tables.BITHON_TRACE_SPAN.KIND.eq("SERVER"))
                                    .fetchOne(0);
         }
@@ -348,7 +352,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                                                                         Tables.BITHON_TRACE_SPAN.ENDTIMEUS,
                                                                         Tables.BITHON_TRACE_SPAN.COSTTIMEMS,
                                                                         Tables.BITHON_TRACE_SPAN.TAGS)
-                                                            .values((Timestamp) null,
+                                                            .values(null,
                                                                     null, //app name
                                                                     null, // instance
                                                                     null, //trace id
@@ -358,8 +362,8 @@ public class TraceJdbcStorage implements ITraceStorage {
                                                                     null, // class
                                                                     null, // method
                                                                     null, // kind
-                                                                    (Long) null, // start time
-                                                                    (Long) null, // end time
+                                                                    null, // start time
+                                                                    null, // end time
                                                                     (Long) null, // cost time
                                                                     null));
 

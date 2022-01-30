@@ -56,6 +56,7 @@
     <script th:src="@{/js/chart-component.js}"></script>
     <script th:src="@{/js/utils/number.js}"></script>
     <script th:src="@{/js/utils/time.js}"></script>
+    <script th:src="@{/js/utils/location.js}"></script>
 
     <script th:inline="javascript">
         const apiHost = [[${apiHost}]];
@@ -74,6 +75,19 @@
     <script th:src="@{/js/component/auto-refresher/component.js}"></script>
     <script th:src="@{/js/component/time-interval/component.js}"></script>
     <script th:src="@{/js/component/app-selector/component.js}"></script>
+
+    <script>
+        function redirect(module, submodule) {
+            let url = `/web/app/${module}/${g_SelectedApp}`;
+            if (submodule !== undefined) {
+                url += `/${submodule}`;
+            }
+            if (g_SelectedInstance != null) {
+                url += `?instance=${g_SelectedInstance}`;
+            }
+            window.location = url;
+        }
+    </script>
 </head>
 <body>
 
@@ -103,14 +117,14 @@
                         </div>
                     </li>
                     <li class="sidebar">
-                        <a th:href="@{'/web/app/trace/' + ${appName}}">
+                        <a href="#" onclick="javascript:redirect('trace')">
                             <i class="fa fa-shopping-cart"></i>
                             <span class="menu-text">Trace</span>
                             <!--                            <span class="badge badge-pill badge-danger">3</span>-->
                         </a>
                     </li>
                     <li class="sidebar">
-                        <a th:href="@{'/web/app/event/' + ${appName}}">
+                        <a href="#" onclick="javascript:redirect('event')">
                             <i class="fa fa-shopping-cart"></i>
                             <span class="menu-text">Event</span>
                         </a>
@@ -302,15 +316,10 @@
             <a class="navbar-brand" href="/web/home">Bithon</a>
         </nav>
         <div id="overlay" class="overlay"></div>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light" style="padding-left: 5px; padding-right: 5px">
 
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav mr-auto mt-2 mt-lg-0" id="filterBar">
-                    <li class="nav-item active" id="appSelector">
-                        <!-- App Selector -->
-                    </li>
-                    <li class="nav-item">
-                    </li>
                 </ul>
                 <form class="form-inline my-2 my-lg-0" id="filterBarForm">
                     <!-- Auto Refresher -->
@@ -320,9 +329,7 @@
             </div>
         </nav>
 
-        <div>
-            <div class="container-fluid p-3" layout:fragment="content"></div>
-        </div>
+        <div style="padding-top: 10px; padding-left: 5px; padding-right: 5px" layout:fragment="content"></div>
     </main>
     <!-- page-content" -->
     <script>

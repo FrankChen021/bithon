@@ -17,3 +17,5 @@ function extractQueryParameters() {
 
     return parameters;
 }
+
+window.queryParams = extractQueryParameters();

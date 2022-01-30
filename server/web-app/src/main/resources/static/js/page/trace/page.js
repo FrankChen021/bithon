@@ -15,14 +15,33 @@ class TracePage {
         });
 
         // View
-        new AppSelector(this.mApplication).childOf('appSelector').registerAppChangedListener((text, value) => {
-            window.location = `/web/app/trace/${value}`;
-        });
+        this.vFilters = new AppSelector({
+            parentId: 'filterBar',
+            appName: this.mApplication,
+            intervalProvider: () => this.#getInterval(),
+            requestFilterFn: (filters) => {
+                filters.push(
+                    {
+                        dimension: "kind",
+                        matcher: {
+                            type: "equal",
+                            pattern: "SERVER"
+                        }
+                    }
+                );
+            }
+        }).registerChangedListener((name, value) => {
+            if (name === 'application') {
+                window.location = `/web/app/trace/${value}`;
+            } else {
+                this.#refreshPage();
+            }
+        }).createFilter('trace_span');
 
         const parent = $('#filterBarForm');
 
         // View - Refresh Button
-        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0px;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
+        parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
             .find("button").click(() => {
             this.mInterval = this.vIntervalSelector.getInterval();
             this.#refreshPage();
@@ -55,6 +74,11 @@ class TracePage {
             sortName: 'startTime',
             sortOrder: 'desc',
 
+            stickyHeader: true,
+            stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
+            stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
+            theadClasses: 'thead-light',
+
             queryParamsType: '',
             queryParams: (params) => {
                 const interval = this.#getInterval();
@@ -63,6 +87,7 @@ class TracePage {
                     pageNumber: params.pageNumber - 1,
                     traceId: params.searchText,
                     application: g_SelectedApp,
+                    filters: this.vFilters.getSelectedFilters(),
                     startTimeISO8601: interval.start,
                     endTimeISO8601: interval.end,
                     orderBy: params.sortName,
@@ -84,7 +109,7 @@ class TracePage {
                 field: 'traceId',
                 title: 'Trace Id',
                 formatter: function (value, row) {
-                    var timestamp = row.startTime / 1000;
+                    let timestamp = row.startTime / 1000;
                     timestamp = Math.floor(timestamp / 1000 / 60) * 1000 * 60;
                     timestamp -= 3600 * 1000; // search the detail from 1 hour before current start time
                     return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}&type=trace&interval=${encodeURI(moment(timestamp).local().toISOString(true) + '/')}">${value}</a>`;
@@ -96,7 +121,7 @@ class TracePage {
                 field: 'startTime',
                 title: 'Time',
                 formatter: function (value) {
-                    return new Date(value / 1000).format('yyyy-MM-dd hh:mm:ss');
+                    return new Date(value / 1000).format('MM-dd hh:mm:ss');
                 },
                 sortable: true
             }, {
@@ -108,15 +133,15 @@ class TracePage {
                 sortable: true
             }, {
                 field: 'tags',
-                title: 'URL',
-                formatter: function (value, row) {
-                    return value.uri;
-                }
-            }, {
-                field: 'tags',
                 title: 'Status',
                 formatter: function (value, row) {
                     return value.status;
+                }
+            }, {
+                field: 'tags',
+                title: 'URL',
+                formatter: function (value, row) {
+                    return value.uri;
                 }
             }],
 
@@ -156,7 +181,8 @@ class TracePage {
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                application: g_SelectedApp
+                application: g_SelectedApp,
+                filters: this.vFilters.getSelectedFilters()
             }),
             processResult: (data) => {
                 this._data = data;
@@ -164,7 +190,7 @@ class TracePage {
                 const labelFormat = data.bucket < 60 ? 'HH:mm:ss' : 'HH:mm';
                 const timeLabels = data.data.map(val => {
                     // it's unix timestamp, so * 1000 is needed to convert it to milliseconds
-                    return moment(val._timestamp * 1000 ).local().format(labelFormat) + "\n"
+                    return moment(val._timestamp * 1000).local().format(labelFormat) + "\n"
                         + moment(val._timestamp * 1000 + data.bucket * 1000).local().format(labelFormat)
                 });
 

@@ -17,10 +17,13 @@
 package org.bithon.server.web.service.event.api;
 
 import lombok.Data;
+import org.bithon.server.metric.storage.DimensionCondition;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Frank Chen
@@ -29,6 +32,7 @@ import javax.validation.constraints.NotBlank;
 @Data
 public class GetEventListRequest {
 
+    @Deprecated
     @NotBlank
     private String application;
 
@@ -37,6 +41,8 @@ public class GetEventListRequest {
 
     @NotBlank
     private String endTimeISO8601;
+
+    private List<DimensionCondition> filters = Collections.emptyList();
 
     @Min(0)
     private int pageNumber = 0;

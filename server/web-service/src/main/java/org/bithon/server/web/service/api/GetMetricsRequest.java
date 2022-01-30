@@ -41,9 +41,12 @@ public class GetMetricsRequest {
     @NotEmpty
     private String dataSource;
 
+    @Deprecated
     @Valid
     @Size(min = 1)
     private Map<String, DimensionCondition> dimensions;
+
+    private List<DimensionCondition> filters = Collections.emptyList();
 
     @Size(min = 1)
     private List<String> metrics;

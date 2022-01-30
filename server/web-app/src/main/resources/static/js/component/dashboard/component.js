@@ -9,17 +9,14 @@ class Dashboard {
         this._containerId = containerId;
         this._container = $('#' + containerId);
         this._stackLayoutRowFill = 0;
-        this._stackLayoutRow = $('<div class="row"></div>');
+        this._stackLayoutRow = $('<div style="display: flex"></div>');
         this._container.append(this._stackLayoutRow);
         this._timeSelector = null;
 
         // Model
-        this._schema = {};
         this._chartComponents = {};
         this._chartDescriptors = {};
-        this._selectedDimensions = {};
         this._selectedInterval = null;
-        this.addDimension('appName', appName);
 
         // Y Axis Formatter
         this._formatters = {};
@@ -40,16 +37,16 @@ class Dashboard {
         // Create App Filter
         // The 'appSelector' element is defined in app-layout.html
         //
-        new AppSelector(this._appName).childOf('appSelector').registerAppChangedListener((text, value) => {
-            window.location = `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`;
-
-            // update appName for dimension filters
-            //this._appName = value;
-
-            // update dimensions for dashboard chart
-            //this.addDimension('appName', value);
-
-            //this.refreshDashboard();
+        this.vFilter = new AppSelector({
+            parentId: 'filterBar',
+            appName: this._appName,
+            intervalProvider: () => this.getSelectedTimeInterval(),
+        }).registerChangedListener((name, value) => {
+            if (name === 'application') {
+                window.location = `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`;
+            } else {
+                this.refreshDashboard();
+            }
         });
 
         //
@@ -120,18 +117,8 @@ class Dashboard {
                 (schema) => {
                     let index;
                     if (schema.name === dataSourceFilter) {
-                        this._schema = schema;
-
-                        // create dimension filter
-                        // Note: first two dimensions MUST be app/instance
-                        const filterBar = $('#filterBar');
-                        for (index = 1; index < schema.dimensionsSpec.length; index++) {
-                            const dimension = schema.dimensionsSpec[index];
-                            if (!dimension.visible)
-                                continue;
-
-                            this.createDimensionFilter(filterBar, index, dimension.name, dimension.displayText);
-                        }
+                        // create filters for dimensions
+                        this.vFilter.createFilterFromSchema(schema);
                     }
 
                     //
@@ -264,10 +251,7 @@ class Dashboard {
         const startTimestamp = moment(start + startIndex * interval).utc().toISOString();
         const endTimestamp = moment(start + endIndex * interval).utc().toISOString();
 
-        const filters = [];
-        $.each(this._selectedDimensions, (propName, filter) => {
-            filters.push(filter);
-        });
+        const filters = this.vFilter.getSelectedFilters();
         if (chartDescriptor.filters != null) {
             $.each(chartDescriptor.filters, (index, filter) => {
                 filters.push(filter);
@@ -291,81 +275,6 @@ class Dashboard {
             }
         };
         detailView.load(loadOptions);
-    }
-
-    // PRIVATE
-    createDimensionFilter(filterBar, dimensionIndex, dimensionName, displayText) {
-        const appendedSelect = filterBar.append(`<li class="nav-item"><select style="width:150px"></select></li>`).find('select').last();
-        if (dimensionIndex === 1 && g_SelectedInstance != null) {
-            appendedSelect.append(`<option value="${g_SelectedInstance}">${g_SelectedInstance}</option>`);
-        }
-        appendedSelect.select2({
-            theme: 'bootstrap4',
-            allowClear: true,
-            dropdownAutoWidth: true,
-            placeholder: displayText,
-            ajax: this.getDimensionAjaxOptions(this._dashboard.charts[0].dataSource, dimensionIndex, dimensionName),
-        }).on('change', (event) => {
-            if (event.target.selectedIndex == null || event.target.selectedIndex < 0) {
-                if (dimensionIndex === 1) {
-                    g_SelectedInstance = null;
-                }
-                this.rmvDimension(dimensionName);
-                return;
-            }
-
-            // get selected dimension
-            const dimensionValue = event.target.selectedOptions[0].value;
-
-            if (dimensionIndex === 1) {
-                g_SelectedInstance = dimensionValue;
-            }
-            this.addDimension(dimensionName, dimensionValue);
-        });
-
-        if (dimensionIndex === 1 && g_SelectedInstance != null) {
-            appendedSelect.change();
-        }
-    }
-
-    // PRIVATE
-    getDimensionAjaxOptions(dataSourceName, dimensionIndex, dimensionName) {
-        return {
-            cache: true,
-            type: 'POST',
-            url: apiHost + '/api/datasource/dimensions',
-            data: () => {
-                const filters = [];
-
-                for (let p = 0; p < dimensionIndex; p++) {
-                    const dim = this._schema.dimensionsSpec[p];
-                    if (this._selectedDimensions[dim.name] != null) {
-                        filters.push(this._selectedDimensions[dim.name]);
-                    }
-                }
-
-                const interval = this.getSelectedTimeInterval();
-                return JSON.stringify({
-                    dataSource: dataSourceName,
-                    dimension: dimensionName,
-                    conditions: filters,
-                    startTimeISO8601: interval.start,
-                    endTimeISO8601: interval.end,
-                })
-            },
-            dataType: "json",
-            contentType: "application/json",
-            processResults: (data) => {
-                return {
-                    results: data.map(dimension => {
-                        return {
-                            "id": dimension.value,
-                            "text": dimension.value
-                        };
-                    })
-                };
-            }
-        }
     }
 
     // PRIVATE
@@ -458,12 +367,12 @@ class Dashboard {
         if (this._stackLayoutRowFill + width > 12) {
             // create a new row
             this._stackLayoutRowFill = 0;
-            this._stackLayoutRow = $('<div class="row"></div>');
+            this._stackLayoutRow = $('<div style="display: flex"></div>');
             this._container.append(this._stackLayoutRow);
         }
         this._stackLayoutRowFill += width;
 
-        return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}" style="margin-bottom: 0;padding-bottom: 10px;padding-left: 5px;padding-right: 5px"></div>`);
+        return this._stackLayoutRow.append(`<div class="form-group col-md-${width}" id="${id}" style="margin-bottom: 0;padding-bottom: 10px; padding-left: 1px; padding-right: 1px"></div>`);
     }
 
     // PUBLIC
@@ -477,32 +386,6 @@ class Dashboard {
         for (const id in this._chartComponents) {
             this.refreshChart(this._chartDescriptors[id], this._chartComponents[id], interval);
         }
-    }
-
-    // PUBLIC
-    /*
-     * {
-     *     "dimension": "appName",
-     *     "matcher": {
-     *         "type": "equal",
-     *         "pattern": this._appName
-     *     }
-     * }
-     */
-    addDimension(dimensionName, dimensionValue) {
-        this._selectedDimensions[dimensionName] = {
-            dimension: dimensionName,
-            matcher: {
-                type: 'equal',
-                pattern: dimensionValue
-            }
-        };
-        this.refreshDashboard();
-    }
-
-    rmvDimension(dimensionName) {
-        delete this._selectedDimensions[dimensionName];
-        this.refreshDashboard();
     }
 
     refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
@@ -519,20 +402,20 @@ class Dashboard {
         if (metricNamePrefix == null) {
             metricNamePrefix = '';
         }
-        let dimensions = {};
-        if (chartDescriptor.dimensions === undefined) {
-            dimensions = this._selectedDimensions;
-        } else {
-            Object.assign(dimensions, this._selectedDimensions);
-            Object.assign(dimensions, chartDescriptor.dimensions);
+        const filters = this.vFilter.getSelectedFilters();
+        if (chartDescriptor.dimensions !== undefined) {
+            $.each(chartDescriptor.dimensions, (name, value) => {
+                filters.push(value);
+            });
         }
+
         chartComponent.load({
             url: apiHost + "/api/datasource/metrics",
             ajaxData: JSON.stringify({
                 dataSource: chartDescriptor.dataSource,
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                dimensions: dimensions,
+                filters: filters,
                 groups: chartDescriptor.groupBy,
                 metrics: chartComponent.getOption().metrics
             }),
@@ -578,10 +461,7 @@ class Dashboard {
             metricNamePrefix = '';
         }
 
-        let dimensions = [];
-        $.each(this._selectedDimensions, (index, filter) => {
-            dimensions.push(filter);
-        });
+        let dimensions = this.vFilter.getSelectedFilters();
         if (chartDescriptor.dimensions !== undefined) {
             $.each(chartDescriptor.dimensions, (index, filter) => {
                 dimensions.push(filter);

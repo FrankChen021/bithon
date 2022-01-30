@@ -29,7 +29,9 @@ import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.event.storage.IEventReader;
 import org.bithon.server.event.storage.IEventStorage;
 import org.bithon.server.event.storage.IEventWriter;
+import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.jooq.impl.DSL;
@@ -119,11 +121,11 @@ public class EventJdbcStorage implements IEventStorage {
         }
 
         @Override
-        public List<Event> getEventList(String application, TimeSpan start, TimeSpan end, int pageNumber, int pageSize) {
+        public List<Event> getEventList(List<DimensionCondition> filters, TimeSpan start, TimeSpan end, int pageNumber, int pageSize) {
             return dslContext.selectFrom(Tables.BITHON_EVENT)
                              .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
                              .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()))
-                             .and(Tables.BITHON_EVENT.APPNAME.eq(application))
+                             .and(SQLFilterBuilder.build(filters))
                              .orderBy(Tables.BITHON_EVENT.TIMESTAMP.desc())
                              .offset(pageNumber * pageSize)
                              .limit(pageSize)
@@ -139,12 +141,12 @@ public class EventJdbcStorage implements IEventStorage {
         }
 
         @Override
-        public int getEventListSize(String application, TimeSpan start, TimeSpan end) {
+        public int getEventListSize(List<DimensionCondition> filters, TimeSpan start, TimeSpan end) {
             return (int) dslContext.select(DSL.count())
                                    .from(Tables.BITHON_EVENT)
                                    .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
                                    .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()))
-                                   .and(Tables.BITHON_EVENT.APPNAME.eq(application))
+                                   .and(SQLFilterBuilder.build(filters))
                                    .fetchOne(0);
         }
     }

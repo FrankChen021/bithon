@@ -103,7 +103,7 @@ class ChartComponent {
         // clear the selection
         //
         if (this._selectedHandler != null) {
-            this.#hideRangeSelection();
+            this.#clearRangeSelection();
         }
 
         // reload the chart
@@ -130,19 +130,6 @@ class ChartComponent {
                     return;
                 }
 
-                // if (returnedOption.series != null) {
-                //     //
-                //     // merge series
-                //     //
-                //     $.each(returnedOption.series, (index, s) => {
-                //         this._chartSeries[s.name] = s;
-                //     });
-                //     const series = [];
-                //     for (const name in this._chartSeries) {
-                //         series.push(this._chartSeries[name]);
-                //     }
-                //     returnedOption.series = series;
-                // }
                 const isReplace = returnedOption.replace !== undefined && returnedOption.replace;
                 if (isReplace || (this.option.showLegend && !this.hasUserSelection())) {
                     let legend = {
@@ -162,6 +149,25 @@ class ChartComponent {
                 if (isReplace) {
                     this._chart.setOption(returnedOption, {replaceMerge: ['series', 'legend']});
                 } else {
+                    //
+                    // merge series
+                    //
+                    const oldOption = this.getChartOption();
+                    if (oldOption !== undefined && oldOption !== null && oldOption.series !== undefined) {
+                        const original = {};
+                        $.each(this.getChartOption().series, (index, s) => {
+                            original[s.name] = s;
+                        });
+                        $.each(returnedOption.series, (index, s) => {
+                            original[s.name] = s;
+                        });
+
+                        const newSeries = [];
+                        $.each(original, (name, s) => {
+                            newSeries.push(s);
+                        });
+                        returnedOption.series = newSeries;
+                    }
                     this._chart.setOption(returnedOption);
                 }
             },
@@ -340,8 +346,21 @@ class ChartComponent {
     }
 
     #showRangeSelection() {
-        if(this._selectionShowHandler != null) {
+        if (this._selectionShowHandler != null) {
             this._selectionShowHandler();
+        }
+    }
+
+    #clearRangeSelection() {
+        this._chart.dispatchAction({
+            type: 'brush',
+            command: 'clear',
+            areas: [],
+        });
+
+        // call clear handler
+        if (this._selectionClearHandler != null) {
+            this._selectionClearHandler();
         }
     }
 
