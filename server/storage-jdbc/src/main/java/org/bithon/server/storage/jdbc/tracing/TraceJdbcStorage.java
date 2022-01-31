@@ -41,6 +41,7 @@ import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -53,6 +54,7 @@ import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -80,6 +82,10 @@ public class TraceJdbcStorage implements ITraceStorage {
         dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN)
                   .columns(Tables.BITHON_TRACE_SPAN.fields())
                   .indexes(Tables.BITHON_TRACE_SPAN.getIndexes())
+                  .execute();
+        dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN_SUMMARY)
+                  .columns(Tables.BITHON_TRACE_SPAN_SUMMARY.fields())
+                  .indexes(Tables.BITHON_TRACE_SPAN_SUMMARY.getIndexes())
                   .execute();
         dslContext.createTableIfNotExists(Tables.BITHON_TRACE_MAPPING)
                   .columns(Tables.BITHON_TRACE_MAPPING.fields())
@@ -339,7 +345,16 @@ public class TraceJdbcStorage implements ITraceStorage {
 
         @Override
         public void writeSpans(Collection<TraceSpan> traceSpans) {
-            BatchBindStep step = dslContext.batch(dslContext.insertInto(Tables.BITHON_TRACE_SPAN,
+            List<TraceSpan> rootSpans = traceSpans.stream().filter((span) -> "SERVER".equals(span.getKind())).collect(Collectors.toList());
+            if (!rootSpans.isEmpty()) {
+                writeAllSpans(rootSpans, Tables.BITHON_TRACE_SPAN_SUMMARY);
+            }
+
+            writeAllSpans(traceSpans, Tables.BITHON_TRACE_SPAN);
+        }
+
+        private void writeAllSpans(Collection<TraceSpan> traceSpans, Table<?> table) {
+            BatchBindStep step = dslContext.batch(dslContext.insertInto(table,
                                                                         Tables.BITHON_TRACE_SPAN.TIMESTAMP,
                                                                         Tables.BITHON_TRACE_SPAN.APPNAME,
                                                                         Tables.BITHON_TRACE_SPAN.INSTANCENAME,
@@ -370,8 +385,9 @@ public class TraceJdbcStorage implements ITraceStorage {
                                                                     null, // end time
                                                                     (Long) null, // cost time
                                                                     null,   // tags
-                                                                    null,   // status
-                                                                    null));
+                                                                    null,   // normalized url
+                                                                    null    // status
+                                                            ));
 
             for (TraceSpan span : traceSpans) {
                 String tags;
@@ -394,8 +410,8 @@ public class TraceJdbcStorage implements ITraceStorage {
                           span.endTime,
                           span.costTime,
                           tags,
-                          span.getStatus(),
-                          span.getNormalizeUri());
+                          span.getNormalizeUri(),
+                          span.getStatus());
             }
             step.execute();
         }
