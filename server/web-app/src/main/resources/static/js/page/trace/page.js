@@ -36,7 +36,7 @@ class TracePage {
             } else {
                 this.#refreshPage();
             }
-        }).createFilter('trace_span_summary');
+        }).createFilter('trace_span');
 
         const parent = $('#filterBarForm');
 

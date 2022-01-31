@@ -51,6 +51,7 @@ public class TraceSpan {
     @JsonIgnore
     private Map<String, String> uriParameters;
 
+    @JsonIgnore
     public Map<String, String> getURIParameters() {
         if (uriParameters == null) {
             uriParameters = MiscUtils.parseURLParameters(tags.get("uri"));
