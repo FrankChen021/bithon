@@ -15,6 +15,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaApplicationMetricMap
 import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaSchema;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
@@ -26,7 +27,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = 1986027132;
+    private static final long serialVersionUID = -311348843;
 
     /**
      * The reference instance of <code></code>
@@ -69,6 +70,11 @@ public class DefaultSchema extends SchemaImpl {
     public final BithonTraceSpan BITHON_TRACE_SPAN = org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan.BITHON_TRACE_SPAN;
 
     /**
+     * The table <code>bithon_trace_span_summary</code>.
+     */
+    public final BithonTraceSpanSummary BITHON_TRACE_SPAN_SUMMARY = org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY;
+
+    /**
      * No further instances allowed
      */
     private DefaultSchema() {
@@ -96,6 +102,7 @@ public class DefaultSchema extends SchemaImpl {
             BithonMetaApplicationMetricMap.BITHON_META_APPLICATION_METRIC_MAP,
             BithonMetaSchema.BITHON_META_SCHEMA,
             BithonTraceMapping.BITHON_TRACE_MAPPING,
-            BithonTraceSpan.BITHON_TRACE_SPAN);
+            BithonTraceSpan.BITHON_TRACE_SPAN,
+            BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY);
     }
 }

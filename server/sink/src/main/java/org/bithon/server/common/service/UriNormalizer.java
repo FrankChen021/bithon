@@ -42,14 +42,14 @@ public class UriNormalizer {
     public UriNormalizer() {
         this.configs = new RuleConfigs();
         this.configs.setGlobalRules(new UriNormalizationRuleConfig());
-        this.configs.setInstanceRules(new HashMap<>());
+        this.configs.setApplicationRules(new HashMap<>());
         this.configs.globalRules.partRules.add(new UriPattern(new RegexMatcher("[0-9]+"), "*"));
         this.configs.globalRules.partRules.add(new UriPattern(new RegexMatcher(
             "[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}"), "*"));
         this.configs.globalRules.partRules.add(new UriPattern(new RegexMatcher("[0-9a-f]{32}"), "*"));
     }
 
-    public NormalizedResult normalize(String instanceName, String path) {
+    public NormalizedResult normalize(String applicationName, String path) {
         if (path == null) {
             return new NormalizedResult(false, null);
         }
@@ -57,8 +57,8 @@ public class UriNormalizer {
         //
         // 先使用domain的规则进行处理
         //
-        if (instanceName != null && this.configs.getInstanceRules().containsKey(instanceName)) {
-            path = normalize(this.configs.getInstanceRules().get(instanceName), path).getUri();
+        if (applicationName != null && this.configs.getApplicationRules().containsKey(applicationName)) {
+            path = normalize(this.configs.getApplicationRules().get(applicationName), path).getUri();
         }
 
         //
@@ -150,7 +150,7 @@ public class UriNormalizer {
     @Data
     public static class RuleConfigs {
         private UriNormalizationRuleConfig globalRules;
-        private Map<String, UriNormalizationRuleConfig> instanceRules;
+        private Map<String, UriNormalizationRuleConfig> applicationRules;
     }
 
     @Data
