@@ -182,7 +182,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                 try {
                     log.debug("Flushing [{}] spans into storage...", spans.size());
                     this.writer.writeSpans(spans);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     log.info("Exception when flushing spans into storage", e);
                 }
             }
@@ -199,7 +199,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                 try {
                     log.debug("Flushing [{}] trace id mappings into storage...", mappings.size());
                     this.writer.writeMappings(mappings);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     log.info("Exception when flushing id mapping into storage", e);
                 }
             }
