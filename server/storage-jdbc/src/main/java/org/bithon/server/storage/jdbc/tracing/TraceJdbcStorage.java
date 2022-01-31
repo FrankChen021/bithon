@@ -40,6 +40,7 @@ import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.jooq.BatchBindStep;
+import org.jooq.ContextTransactionalRunnable;
 import org.jooq.DSLContext;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
@@ -97,7 +98,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        return new BatchWriter(new TraceJdbcWriter(), config);
+        return new BatchWriter(new TraceJdbcWriter(dslContext, objectMapper), config);
     }
 
     @Override
@@ -130,7 +131,7 @@ public class TraceJdbcStorage implements ITraceStorage {
      * But for trace, there's no such aggregation layer which may result in high QPS of insert.
      * Since I'm not focusing on the implementation detail now, perfect solution is left in the future.
      */
-    private static class BatchWriter implements ITraceWriter {
+    protected static class BatchWriter implements ITraceWriter {
         private final List<TraceSpan> traceSpans = new ArrayList<>();
         private final List<TraceIdMapping> traceIdMappings = new ArrayList<>();
 
@@ -138,7 +139,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         private final TraceStorageConfig config;
         private final ScheduledExecutorService executor;
 
-        private BatchWriter(ITraceWriter writer, TraceStorageConfig config) {
+        public BatchWriter(ITraceWriter writer, TraceStorageConfig config) {
             this.writer = writer;
             this.config = config;
             this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadUtils.NamedThreadFactory("trace-batch-writer"));
@@ -365,23 +366,47 @@ public class TraceJdbcStorage implements ITraceStorage {
         }
     }
 
-    private class TraceJdbcWriter implements ITraceWriter {
+    protected static class TraceJdbcWriter implements ITraceWriter {
+
+        private final DSLContext dslContext;
+        private final ObjectMapper objectMapper;
+
+        public TraceJdbcWriter(DSLContext dslContext, ObjectMapper objectMapper) {
+            this.dslContext = dslContext;
+            this.objectMapper = objectMapper;
+        }
 
         private String getOrDefault(String v) {
             return v == null ? "" : v;
         }
 
+        protected boolean isTransactionSupported() {
+            return true;
+        }
+
         @Override
         public void writeSpans(Collection<TraceSpan> traceSpans) {
             List<TraceSpan> rootSpans = traceSpans.stream().filter((span) -> "SERVER".equals(span.getKind())).collect(Collectors.toList());
-            if (!rootSpans.isEmpty()) {
-                writeAllSpans(rootSpans, Tables.BITHON_TRACE_SPAN_SUMMARY);
-            }
 
-            writeAllSpans(traceSpans, Tables.BITHON_TRACE_SPAN);
+            ContextTransactionalRunnable runnable = () -> {
+                if (!rootSpans.isEmpty()) {
+                    writeSpans(rootSpans, Tables.BITHON_TRACE_SPAN_SUMMARY);
+                }
+
+                writeSpans(traceSpans, Tables.BITHON_TRACE_SPAN);
+            };
+            if (isTransactionSupported()) {
+                dslContext.transaction(runnable);
+            } else {
+                try {
+                    runnable.run();
+                } catch (Throwable e) {
+                    log.error("Exception when write spans", e);
+                }
+            }
         }
 
-        private void writeAllSpans(Collection<TraceSpan> traceSpans, Table<?> table) {
+        protected void writeSpans(Collection<TraceSpan> traceSpans, Table<?> table) {
             BatchBindStep step = dslContext.batch(dslContext.insertInto(table,
                                                                         Tables.BITHON_TRACE_SPAN.TIMESTAMP,
                                                                         Tables.BITHON_TRACE_SPAN.APPNAME,
