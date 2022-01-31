@@ -28,7 +28,9 @@ import org.bithon.component.commons.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
+import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.sink.TraceSpan;
@@ -249,10 +251,10 @@ public class TraceJdbcStorage implements ITraceStorage {
                                             String order,
                                             int pageNumber,
                                             int pageSize) {
-            SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                                       .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
-                                                                       .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
-                                                                       .and(Tables.BITHON_TRACE_SPAN.KIND.eq("SERVER"));
+            BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
+            SelectConditionStep<BithonTraceSpanSummaryRecord> sql = dslContext.selectFrom(summaryTable)
+                                                                              .where(summaryTable.TIMESTAMP.ge(start))
+                                                                              .and(summaryTable.TIMESTAMP.lt(end));
 
             sql = sql.and(SQLFilterBuilder.build(filters));
 
@@ -260,15 +262,15 @@ public class TraceJdbcStorage implements ITraceStorage {
             SelectSeekStep1 sql2;
             if ("costTime".equals(orderBy)) {
                 if ("desc".equals(order)) {
-                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.COSTTIMEMS.desc());
+                    sql2 = sql.orderBy(summaryTable.COSTTIMEMS.desc());
                 } else {
-                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.COSTTIMEMS.asc());
+                    sql2 = sql.orderBy(summaryTable.COSTTIMEMS.asc());
                 }
             } else {
                 if ("desc".equals(order)) {
-                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc());
+                    sql2 = sql.orderBy(summaryTable.TIMESTAMP.desc());
                 } else {
-                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc());
+                    sql2 = sql.orderBy(summaryTable.TIMESTAMP.asc());
                 }
             }
 
@@ -282,12 +284,13 @@ public class TraceJdbcStorage implements ITraceStorage {
         public int getTraceListSize(List<DimensionCondition> filters,
                                     Timestamp start,
                                     Timestamp end) {
-            return (int) dslContext.select(DSL.count(Tables.BITHON_TRACE_SPAN.TRACEID))
-                                   .from(Tables.BITHON_TRACE_SPAN)
-                                   .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
-                                   .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
+            BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
+
+            return (int) dslContext.select(DSL.count(summaryTable.TRACEID))
+                                   .from(summaryTable)
+                                   .where(summaryTable.TIMESTAMP.ge(start))
+                                   .and(summaryTable.TIMESTAMP.lt(end))
                                    .and(SQLFilterBuilder.build(filters))
-                                   .and(Tables.BITHON_TRACE_SPAN.KIND.eq("SERVER"))
                                    .fetchOne(0);
         }
 
