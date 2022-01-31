@@ -112,9 +112,11 @@ public class TraceJdbcStorage implements ITraceStorage {
             Timestamp before = new Timestamp(beforeTimestamp);
 
             dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
-                      .where(Tables.BITHON_TRACE_SPAN.TRACEID
-                                 .in(dslContext.selectDistinct(Tables.BITHON_TRACE_SPAN.TRACEID)
-                                               .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(before))))
+                      .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(before))
+                      .execute();
+
+            dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN_SUMMARY)
+                      .where(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.le(before))
                       .execute();
 
             dslContext.deleteFrom(Tables.BITHON_TRACE_MAPPING)
