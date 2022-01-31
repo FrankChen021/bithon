@@ -277,7 +277,7 @@ public class TraceJdbcStorage implements ITraceStorage {
             //noinspection unchecked
             return sql2.offset(pageNumber * pageSize)
                        .limit(pageSize)
-                       .fetch(r -> this.toTraceSpan((BithonTraceSpanRecord) r));
+                       .fetch(r -> this.toTraceSpan((BithonTraceSpanSummaryRecord) r));
         }
 
         @Override
@@ -315,6 +315,31 @@ public class TraceJdbcStorage implements ITraceStorage {
         }
 
         private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {
+            TraceSpan span = new TraceSpan();
+            span.appName = record.getAppname();
+            span.instanceName = record.getInstancename();
+            span.traceId = record.getTraceid();
+            span.spanId = record.getSpanid();
+            span.parentSpanId = record.getParentspanid();
+            span.startTime = record.getStarttimeus();
+            span.costTime = record.getCosttimems();
+            span.endTime = record.getEndtimeus();
+            span.name = record.getName();
+            span.kind = record.getKind();
+            span.method = record.getMethod();
+            span.clazz = record.getClazz();
+            span.status = record.getStatus();
+            span.normalizeUri = record.getNormalizedurl();
+            try {
+                span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
+                });
+            } catch (JsonProcessingException ignored) {
+            }
+            span.name = record.getName();
+            return span;
+        }
+
+        private TraceSpan toTraceSpan(BithonTraceSpanSummaryRecord record) {
             TraceSpan span = new TraceSpan();
             span.appName = record.getAppname();
             span.instanceName = record.getInstancename();
