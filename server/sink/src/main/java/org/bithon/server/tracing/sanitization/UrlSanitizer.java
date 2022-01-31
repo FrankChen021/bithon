@@ -53,7 +53,7 @@ public class UrlSanitizer implements ISanitizer {
     public void sanitize(TraceSpan span) {
         boolean sanitized = false;
 
-        Map<String, String> parameters = span.getURLParameters();
+        Map<String, String> parameters = span.getURIParameters();
         for (String sensitiveParameter : sensitiveParameters) {
             if (parameters.containsKey(sensitiveParameter)) {
                 parameters.put(sensitiveParameter, "***MASKED***");

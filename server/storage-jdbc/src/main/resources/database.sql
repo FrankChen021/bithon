@@ -85,6 +85,8 @@ CREATE TABLE `bithon_trace_span`
     `startTimeUs`   BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Micro Second',
     `endTimeUs`     BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Micro Second',
     `tags`          TEXT COMMENT '',
+    `normalizedUrl` VARCHAR(255) DEFAULT '' NOT NULL COMMENT '',
+    `status`        VARCHAR(32)  DEFAULT '' NOT NULL COMMENT '',
     KEY `idx_timestamp` (`timestamp`),
     KEY `idx_app_name` (`appName`),
     KEY `idx_instanceName` (`instanceName`),

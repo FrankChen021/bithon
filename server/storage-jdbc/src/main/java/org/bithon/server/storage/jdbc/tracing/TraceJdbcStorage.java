@@ -319,6 +319,8 @@ public class TraceJdbcStorage implements ITraceStorage {
             span.kind = record.getKind();
             span.method = record.getMethod();
             span.clazz = record.getClazz();
+            span.status = record.getStatus();
+            span.normalizeUri = record.getNormalizedurl();
             try {
                 span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
                 });
@@ -351,7 +353,9 @@ public class TraceJdbcStorage implements ITraceStorage {
                                                                         Tables.BITHON_TRACE_SPAN.STARTTIMEUS,
                                                                         Tables.BITHON_TRACE_SPAN.ENDTIMEUS,
                                                                         Tables.BITHON_TRACE_SPAN.COSTTIMEMS,
-                                                                        Tables.BITHON_TRACE_SPAN.TAGS)
+                                                                        Tables.BITHON_TRACE_SPAN.TAGS,
+                                                                        Tables.BITHON_TRACE_SPAN.NORMALIZEDURL,
+                                                                        Tables.BITHON_TRACE_SPAN.STATUS)
                                                             .values(null,
                                                                     null, //app name
                                                                     null, // instance
@@ -365,6 +369,8 @@ public class TraceJdbcStorage implements ITraceStorage {
                                                                     null, // start time
                                                                     null, // end time
                                                                     (Long) null, // cost time
+                                                                    null,   // tags
+                                                                    null,   // status
                                                                     null));
 
             for (TraceSpan span : traceSpans) {
@@ -386,7 +392,10 @@ public class TraceJdbcStorage implements ITraceStorage {
                           getOrDefault(span.kind),
                           span.startTime,
                           span.endTime,
-                          span.costTime, tags);
+                          span.costTime,
+                          tags,
+                          span.getStatus(),
+                          span.getNormalizeUri());
             }
             step.execute();
         }

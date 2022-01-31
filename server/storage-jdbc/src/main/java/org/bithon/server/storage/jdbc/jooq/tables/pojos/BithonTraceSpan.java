@@ -14,7 +14,7 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan implements Serializable {
 
-    private static final long serialVersionUID = -1658225902;
+    private static final long serialVersionUID = 1636350156;
 
     private Timestamp timestamp;
     private String    appname;
@@ -30,6 +30,8 @@ public class BithonTraceSpan implements Serializable {
     private Long      starttimeus;
     private Long      endtimeus;
     private String    tags;
+    private String    normalizedurl;
+    private String    status;
 
     public BithonTraceSpan() {}
 
@@ -48,6 +50,8 @@ public class BithonTraceSpan implements Serializable {
         this.starttimeus = value.starttimeus;
         this.endtimeus = value.endtimeus;
         this.tags = value.tags;
+        this.normalizedurl = value.normalizedurl;
+        this.status = value.status;
     }
 
     public BithonTraceSpan(
@@ -64,7 +68,9 @@ public class BithonTraceSpan implements Serializable {
         Long      costtimems,
         Long      starttimeus,
         Long      endtimeus,
-        String    tags
+        String    tags,
+        String    normalizedurl,
+        String    status
     ) {
         this.timestamp = timestamp;
         this.appname = appname;
@@ -80,6 +86,8 @@ public class BithonTraceSpan implements Serializable {
         this.starttimeus = starttimeus;
         this.endtimeus = endtimeus;
         this.tags = tags;
+        this.normalizedurl = normalizedurl;
+        this.status = status;
     }
 
     public Timestamp getTimestamp() {
@@ -194,6 +202,22 @@ public class BithonTraceSpan implements Serializable {
         this.tags = tags;
     }
 
+    public String getNormalizedurl() {
+        return this.normalizedurl;
+    }
+
+    public void setNormalizedurl(String normalizedurl) {
+        this.normalizedurl = normalizedurl;
+    }
+
+    public String getStatus() {
+        return this.status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("BithonTraceSpan (");
@@ -212,6 +236,8 @@ public class BithonTraceSpan implements Serializable {
         sb.append(", ").append(starttimeus);
         sb.append(", ").append(endtimeus);
         sb.append(", ").append(tags);
+        sb.append(", ").append(normalizedurl);
+        sb.append(", ").append(status);
 
         sb.append(")");
         return sb.toString();
