@@ -17,6 +17,18 @@
       "required": true
     },
     {
+      "name": "thread",
+      "displayText": "thread",
+      "required": true,
+      "visible": false
+    },
+    {
+      "name": "traceId",
+      "displayText": "Trace Id",
+      "required": true,
+      "visible": false
+    },
+    {
       "name": "exceptionClass",
       "displayText": "Exception Class Name",
       "required": true,

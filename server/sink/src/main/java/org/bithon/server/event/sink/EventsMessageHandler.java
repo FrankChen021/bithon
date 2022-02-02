@@ -62,6 +62,8 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Itera
         private String exceptionClass;
         private String message;
         private String stack;
+        private String traceId;
+        private String thread;
     }
 
     @Override
@@ -82,6 +84,8 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Itera
                 row.updateColumn("message", args.getMessage());
                 row.updateColumn("stack", args.getStack());
                 row.updateColumn("exceptionCount", 1);
+                row.updateColumn("traceId", args.getTraceId());
+                row.updateColumn("thread", args.getThread());
                 exceptionEvents.add(row);
             } else {
                 genericEvents.add(message);

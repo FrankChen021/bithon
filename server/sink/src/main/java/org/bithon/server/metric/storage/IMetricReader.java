@@ -36,6 +36,9 @@ public interface IMetricReader {
      */
     List<Map<String, Object>> groupBy(GroupByQuery groupByQuery);
 
+    List<Map<String, Object>> list(ListQuery listQuery);
+    int listSize(ListQuery listQuery);
+
     List<Map<String, Object>> executeSql(String sql);
 
     List<Map<String, String>> getDimensionValueList(TimeSpan start,

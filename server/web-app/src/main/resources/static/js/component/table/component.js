@@ -10,6 +10,18 @@ class TableComponent {
         this.mCreated = false;
     }
 
+    /**
+     * public interface of component in dashboard
+     */
+    setOpenHandler(openHandler) {
+    }
+
+    /**
+     * public interface of component in dashbard
+     */
+    resize() {
+    }
+
     load(option) {
         console.log(option);
 

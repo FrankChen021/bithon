@@ -19,7 +19,7 @@ package org.bithon.agent.core.metric.collector;
 import org.bithon.agent.core.dispatcher.Dispatcher;
 import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
-import org.bithon.agent.core.utils.CollectionUtils;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.agent.core.utils.concurrent.NamedThreadFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;

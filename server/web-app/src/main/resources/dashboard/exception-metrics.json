@@ -5,12 +5,31 @@
       "dataSource": "exception-metrics",
       "title": "Exceptions",
       "width": 4,
-      "yAxis": [
-        {}
-      ],
-      "metrics": [
+      "type":  "list",
+      "columns": [
         {
-          "name": "exceptionCount"
+          "name": "timestamp"
+        },
+        {
+          "name": "appName"
+        },
+        {
+          "name": "instanceName"
+        },
+        {
+          "name": "thread"
+        },
+        {
+          "name": "traceId"
+        },
+        {
+          "name": "exceptionClass"
+        },
+        {
+          "name": "message"
+        },
+        {
+          "name": "stack"
         }
       ]
     }

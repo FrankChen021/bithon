@@ -22,7 +22,7 @@ import org.bithon.agent.core.metric.collector.IMetricCollector2;
 import org.bithon.agent.core.metric.collector.IMetricCollectorBase;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.plugin.PluginClassLoaderManager;
-import org.bithon.agent.core.utils.CollectionUtils;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.agent.sdk.expt.SdkException;
 import org.bithon.agent.sdk.metric.IMetricsRegistry;
 import org.bithon.agent.sdk.metric.MetricRegistryFactory;
