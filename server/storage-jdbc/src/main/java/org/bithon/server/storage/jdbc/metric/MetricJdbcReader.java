@@ -140,7 +140,7 @@ public class MetricJdbcReader implements IMetricReader {
         String filter = SQLFilterBuilder.build(query.getFilters());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s ORDER BY \"%s\" %s LIMIT %d OFFSET %d",
-            query.getColumns().stream().map(column -> "\"" + column + "\"" ).collect(Collectors.joining(",")),
+            query.getColumns().stream().map(column -> "\"" + column + "\"").collect(Collectors.joining(",")),
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
@@ -171,7 +171,7 @@ public class MetricJdbcReader implements IMetricReader {
         );
 
         Record record = dsl.fetchOne(sql);
-        return ((Number)record.get(0)).intValue();
+        return ((Number) record.get(0)).intValue();
     }
 
     @Override

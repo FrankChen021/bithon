@@ -20,7 +20,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bithon.server.metric.DataSourceSchema;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
