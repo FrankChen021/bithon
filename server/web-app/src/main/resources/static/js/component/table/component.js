@@ -24,15 +24,17 @@ class TableComponent {
             return `<a target="_blank" href="${href}">${val}</a>`;
         };
 
-        for(let i = 0; i < this.mColumns.length; i++) {
+        for (let i = 0; i < this.mColumns.length; i++) {
 
             const column = this.mColumns[i];
 
             this.mColumnMap[column.field] = column;
 
-            column.formatter = this.mFormatters[column.format];
-            if ( column.format === 'detail' ) {
-                this.mDetailViewField = column.field;
+            if (column.format !== undefined) {
+                column.formatter = this.mFormatters[column.format];
+                if (column.format === 'detail') {
+                    this.mDetailViewField = column.field;
+                }
             }
         }
         this.mDetailView = this.mDetailViewField != null;
