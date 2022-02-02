@@ -40,11 +40,11 @@ import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.jooq.BatchBindStep;
-import org.jooq.ContextTransactionalRunnable;
 import org.jooq.DSLContext;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
 import org.jooq.Table;
+import org.jooq.TransactionalRunnable;
 import org.jooq.impl.DSL;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -249,7 +249,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         public void writeSpans(Collection<TraceSpan> traceSpans) {
             List<TraceSpan> rootSpans = traceSpans.stream().filter((span) -> "SERVER".equals(span.getKind())).collect(Collectors.toList());
 
-            ContextTransactionalRunnable runnable = () -> {
+            TransactionalRunnable runnable = (configuration) -> {
                 if (!rootSpans.isEmpty()) {
                     writeSpans(rootSpans, Tables.BITHON_TRACE_SPAN_SUMMARY);
                 }
@@ -260,7 +260,7 @@ public class TraceJdbcStorage implements ITraceStorage {
                 dslContext.transaction(runnable);
             } else {
                 try {
-                    runnable.run();
+                    runnable.run(dslContext.configuration());
                 } catch (Throwable e) {
                     log.error("Exception when write spans", e);
                 }
