@@ -240,7 +240,7 @@ class Dashboard {
     }
 
     #createDetailView(parent, columns) {
-        return new TableComponent(parent, columns);
+        return new TableComponent({parent: parent, columns: columns});
     }
 
     #refreshDetailView(chartDescriptor, detailView, option, startIndex, endIndex) {
@@ -279,13 +279,14 @@ class Dashboard {
 
     createTableComponent(chartId, chartDescriptor) {
         const vParent = $('#' + chartId);
-        const vTable = new TableComponent(vParent,
-            chartDescriptor.columns.map(column => {
-                return {
-                    field: column.name,
-                    title: column.name
-                }
-            })
+
+        const vTable = new TableComponent({
+                tableId: chartId + '_table',
+                parent: vParent,
+                columns: chartDescriptor.columns,
+                pagination: true,
+                detailView: false
+            }
         );
         // const chartComponent = new ChartComponent({
         //     containerId: chartId,
@@ -313,7 +314,7 @@ class Dashboard {
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
                 filters: filters,
-                columns: chartDescriptor.columns.map(column => column.name),
+                columns: chartDescriptor.columns.map(column => column.field),
                 order: 'desc',
                 orderBy: 'timestamp',
                 pageSize: 10,
