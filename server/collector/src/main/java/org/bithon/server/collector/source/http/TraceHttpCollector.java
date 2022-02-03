@@ -79,6 +79,7 @@ public class TraceHttpCollector {
         } else {
             iterator = new Iterator<TraceSpan>() {
                 private final Iterator<TraceSpan> delegate = spans.iterator();
+
                 @Override
                 public boolean hasNext() {
                     return delegate.hasNext();
@@ -115,6 +116,16 @@ public class TraceHttpCollector {
             if ("00".equals(span.getParentSpanId())) {
                 span.setParentSpanId("");
                 span.setKind("SERVER");
+            } else if ("HTTPHandler".equals(span.getClazz()) && "handleRequest".equals(span.getMethod())) {
+                span.setKind("SERVER");
+            } else if ("TCPHandler".equals(span.getClazz())) {
+                span.setKind("SERVER");
+            }
+
+            // discard the input parameters of the method
+            int parameterStart = span.getMethod().indexOf('(');
+            if (parameterStart > 0) {
+                span.setMethod(span.getMethod().substring(0, parameterStart));
             }
 
             //
