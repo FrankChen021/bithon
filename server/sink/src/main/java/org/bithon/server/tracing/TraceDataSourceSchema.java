@@ -48,7 +48,7 @@ public class TraceDataSourceSchema {
                                                                                       new StringDimensionSpec("status",
                                                                                                               "status",
                                                                                                               false,
-                                                                                                              false,
+                                                                                                              true,
                                                                                                               null,
                                                                                                               null)),
                                                                         Collections.singletonList(CountMetricSpec.INSTANCE),
