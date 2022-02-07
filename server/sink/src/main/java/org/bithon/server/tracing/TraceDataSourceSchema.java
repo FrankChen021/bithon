@@ -30,8 +30,8 @@ import java.util.Collections;
  */
 public class TraceDataSourceSchema {
 
-    private static final DataSourceSchema SCHEMA = new DataSourceSchema("trace_span",
-                                                                        "trace_span",
+    private static final DataSourceSchema SCHEMA = new DataSourceSchema("trace_span_summary",
+                                                                        "trace_span_summary",
                                                                         new TimestampSpec("timestamp", null, null),
                                                                         Arrays.asList(new StringDimensionSpec("appName",
                                                                                                               "appName",
