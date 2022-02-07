@@ -28,7 +28,7 @@ import org.bithon.component.commons.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
@@ -375,11 +375,10 @@ public class TraceJdbcStorage implements ITraceStorage {
                                             String order,
                                             int pageNumber,
                                             int pageSize) {
-            BithonTraceSpan summaryTable = Tables.BITHON_TRACE_SPAN;
-            SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(summaryTable)
-                                                                       .where(summaryTable.TIMESTAMP.ge(start))
-                                                                       .and(summaryTable.TIMESTAMP.lt(end))
-                                                                       .and(summaryTable.KIND.eq("SERVER"));
+            BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
+            SelectConditionStep<BithonTraceSpanSummaryRecord> sql = dslContext.selectFrom(summaryTable)
+                                                                              .where(summaryTable.TIMESTAMP.ge(start))
+                                                                              .and(summaryTable.TIMESTAMP.lt(end));
 
             sql = sql.and(SQLFilterBuilder.build(filters));
 
@@ -402,20 +401,19 @@ public class TraceJdbcStorage implements ITraceStorage {
             //noinspection unchecked
             return sql2.offset(pageNumber * pageSize)
                        .limit(pageSize)
-                       .fetch(r -> this.toTraceSpan((BithonTraceSpanRecord) r));
+                       .fetch(r -> this.toTraceSpan((BithonTraceSpanSummaryRecord) r));
         }
 
         @Override
         public int getTraceListSize(List<DimensionCondition> filters,
                                     Timestamp start,
                                     Timestamp end) {
-            BithonTraceSpan summaryTable = Tables.BITHON_TRACE_SPAN;
+            BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
 
             return (int) dslContext.select(DSL.count(summaryTable.TRACEID))
                                    .from(summaryTable)
                                    .where(summaryTable.TIMESTAMP.ge(start))
                                    .and(summaryTable.TIMESTAMP.lt(end))
-                                   .and(summaryTable.KIND.eq("SERVER"))
                                    .and(SQLFilterBuilder.build(filters))
                                    .fetchOne(0);
         }
