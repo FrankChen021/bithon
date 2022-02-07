@@ -17,7 +17,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row14;
+import org.jooq.Row16;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
-    private static final long serialVersionUID = 1057791463;
+    private static final long serialVersionUID = 51326446;
 
     /**
      * The reference instance of <code>bithon_trace_span</code>
@@ -118,6 +118,16 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     public final TableField<BithonTraceSpanRecord, String> TAGS = createField(DSL.name("tags"), org.jooq.impl.SQLDataType.CLOB, this, "");
 
     /**
+     * The column <code>bithon_trace_span.normalizedUrl</code>.
+     */
+    public final TableField<BithonTraceSpanRecord, String> NORMALIZEDURL = createField(DSL.name("normalizedUrl"), org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>bithon_trace_span.status</code>.
+     */
+    public final TableField<BithonTraceSpanRecord, String> STATUS = createField(DSL.name("status"), org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+
+    /**
      * Create a <code>bithon_trace_span</code> table reference
      */
     public BithonTraceSpan() {
@@ -192,11 +202,11 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row14 type methods
+    // Row16 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row14<Timestamp, String, String, String, String, String, String, String, String, String, Long, Long, Long, String> fieldsRow() {
-        return (Row14) super.fieldsRow();
+    public Row16<Timestamp, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String> fieldsRow() {
+        return (Row16) super.fieldsRow();
     }
 }

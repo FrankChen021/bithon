@@ -48,7 +48,7 @@ class SearchBar {
         //
         // Binding input to view and model
         //
-        if (window.queryParams["id"] != null) {
+        if (window.queryParams !== undefined && window.queryParams["id"] != null) {
             this._mInputId = window.queryParams["id"];
             input.val(this._mInputId);
         }

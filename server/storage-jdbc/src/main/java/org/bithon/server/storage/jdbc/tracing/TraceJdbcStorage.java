@@ -29,7 +29,9 @@ import org.bithon.component.commons.utils.ThreadUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
+import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.sink.TraceSpan;
@@ -45,6 +47,8 @@ import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SelectSeekStep1;
+import org.jooq.Table;
+import org.jooq.TransactionalRunnable;
 import org.jooq.impl.DSL;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -58,6 +62,7 @@ import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -86,6 +91,10 @@ public class TraceJdbcStorage implements ITraceStorage {
                   .columns(Tables.BITHON_TRACE_SPAN.fields())
                   .indexes(Tables.BITHON_TRACE_SPAN.getIndexes())
                   .execute();
+        dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN_SUMMARY)
+                  .columns(Tables.BITHON_TRACE_SPAN_SUMMARY.fields())
+                  .indexes(Tables.BITHON_TRACE_SPAN_SUMMARY.getIndexes())
+                  .execute();
         dslContext.createTableIfNotExists(Tables.BITHON_TRACE_MAPPING)
                   .columns(Tables.BITHON_TRACE_MAPPING.fields())
                   .indexes(Tables.BITHON_TRACE_MAPPING.getIndexes())
@@ -94,7 +103,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        return new BatchWriter(new TraceJdbcWriter(), config);
+        return new BatchWriter(new TraceJdbcWriter(dslContext, objectMapper), config);
     }
 
     @Override
@@ -108,9 +117,11 @@ public class TraceJdbcStorage implements ITraceStorage {
             Timestamp before = new Timestamp(beforeTimestamp);
 
             dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
-                      .where(Tables.BITHON_TRACE_SPAN.TRACEID
-                                 .in(dslContext.selectDistinct(Tables.BITHON_TRACE_SPAN.TRACEID)
-                                               .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(before))))
+                      .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(before))
+                      .execute();
+
+            dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN_SUMMARY)
+                      .where(Tables.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP.le(before))
                       .execute();
 
             dslContext.deleteFrom(Tables.BITHON_TRACE_MAPPING)
@@ -127,7 +138,7 @@ public class TraceJdbcStorage implements ITraceStorage {
      * But for trace, there's no such aggregation layer which may result in high QPS of insert.
      * Since I'm not focusing on the implementation detail now, perfect solution is left in the future.
      */
-    private static class BatchWriter implements ITraceWriter {
+    protected static class BatchWriter implements ITraceWriter {
         private final List<TraceSpan> traceSpans = new ArrayList<>();
         private final List<TraceIdMapping> traceIdMappings = new ArrayList<>();
 
@@ -135,7 +146,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         private final TraceStorageConfig config;
         private final ScheduledExecutorService executor;
 
-        private BatchWriter(ITraceWriter writer, TraceStorageConfig config) {
+        public BatchWriter(ITraceWriter writer, TraceStorageConfig config) {
             this.writer = writer;
             this.config = config;
             this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadUtils.NamedThreadFactory("trace-batch-writer"));
@@ -178,8 +189,8 @@ public class TraceJdbcStorage implements ITraceStorage {
                 try {
                     log.debug("Flushing [{}] spans into storage...", spans.size());
                     this.writer.writeSpans(spans);
-                } catch (IOException e) {
-                    log.info("Exception when flushing spans into storage", e);
+                } catch (Exception e) {
+                    log.error("Exception when flushing spans into storage", e);
                 }
             }
         }
@@ -195,8 +206,8 @@ public class TraceJdbcStorage implements ITraceStorage {
                 try {
                     log.debug("Flushing [{}] trace id mappings into storage...", mappings.size());
                     this.writer.writeMappings(mappings);
-                } catch (IOException e) {
-                    log.info("Exception when flushing id mapping into storage", e);
+                } catch (Exception e) {
+                    log.error("Exception when flushing id mapping into storage", e);
                 }
             }
         }
@@ -218,6 +229,127 @@ public class TraceJdbcStorage implements ITraceStorage {
 
             // close underlying writer at last
             this.writer.close();
+        }
+    }
+
+    protected static class TraceJdbcWriter implements ITraceWriter {
+
+        private final DSLContext dslContext;
+        private final ObjectMapper objectMapper;
+
+        public TraceJdbcWriter(DSLContext dslContext, ObjectMapper objectMapper) {
+            this.dslContext = dslContext;
+            this.objectMapper = objectMapper;
+        }
+
+        private String getOrDefault(String v) {
+            return v == null ? "" : v;
+        }
+
+        protected boolean isTransactionSupported() {
+            return true;
+        }
+
+        @Override
+        public void writeSpans(Collection<TraceSpan> traceSpans) {
+            List<TraceSpan> rootSpans = traceSpans.stream().filter((span) -> "SERVER".equals(span.getKind())).collect(Collectors.toList());
+
+            TransactionalRunnable runnable = (configuration) -> {
+                if (!rootSpans.isEmpty()) {
+                    writeSpans(rootSpans, Tables.BITHON_TRACE_SPAN_SUMMARY);
+                }
+
+                writeSpans(traceSpans, Tables.BITHON_TRACE_SPAN);
+            };
+            if (isTransactionSupported()) {
+                dslContext.transaction(runnable);
+            } else {
+                try {
+                    runnable.run(dslContext.configuration());
+                } catch (Throwable e) {
+                    log.error("Exception when write spans", e);
+                }
+            }
+        }
+
+        protected void writeSpans(Collection<TraceSpan> traceSpans, Table<?> table) {
+            BatchBindStep step = dslContext.batch(dslContext.insertInto(table,
+                                                                        Tables.BITHON_TRACE_SPAN.TIMESTAMP,
+                                                                        Tables.BITHON_TRACE_SPAN.APPNAME,
+                                                                        Tables.BITHON_TRACE_SPAN.INSTANCENAME,
+                                                                        Tables.BITHON_TRACE_SPAN.TRACEID,
+                                                                        Tables.BITHON_TRACE_SPAN.SPANID,
+                                                                        Tables.BITHON_TRACE_SPAN.PARENTSPANID,
+                                                                        Tables.BITHON_TRACE_SPAN.NAME,
+                                                                        Tables.BITHON_TRACE_SPAN.CLAZZ,
+                                                                        Tables.BITHON_TRACE_SPAN.METHOD,
+                                                                        Tables.BITHON_TRACE_SPAN.KIND,
+                                                                        Tables.BITHON_TRACE_SPAN.STARTTIMEUS,
+                                                                        Tables.BITHON_TRACE_SPAN.ENDTIMEUS,
+                                                                        Tables.BITHON_TRACE_SPAN.COSTTIMEMS,
+                                                                        Tables.BITHON_TRACE_SPAN.TAGS,
+                                                                        Tables.BITHON_TRACE_SPAN.NORMALIZEDURL,
+                                                                        Tables.BITHON_TRACE_SPAN.STATUS)
+                                                            .values(null,
+                                                                    null, //app name
+                                                                    null, // instance
+                                                                    null, //trace id
+                                                                    null, // span id
+                                                                    null, // parent id
+                                                                    null, // name
+                                                                    null, // class
+                                                                    null, // method
+                                                                    null, // kind
+                                                                    null, // start time
+                                                                    null, // end time
+                                                                    (Long) null, // cost time
+                                                                    null,   // tags
+                                                                    null,   // normalized url
+                                                                    null    // status
+                                                            ));
+
+            for (TraceSpan span : traceSpans) {
+                String tags;
+                try {
+                    tags = span.getTags() == null ? "{}" : objectMapper.writeValueAsString(span.tags);
+                } catch (IOException ignored) {
+                    tags = "{}";
+                }
+                step.bind(new Timestamp(span.startTime / 1000),
+                          span.appName,
+                          span.instanceName,
+                          span.traceId,
+                          span.spanId,
+                          span.parentSpanId,
+                          getOrDefault(span.name),
+                          getOrDefault(span.clazz),
+                          getOrDefault(span.method),
+                          getOrDefault(span.kind),
+                          span.startTime,
+                          span.endTime,
+                          span.costTime,
+                          tags,
+                          span.getNormalizeUri(),
+                          span.getStatus());
+            }
+            step.execute();
+        }
+
+        @Override
+        public void writeMappings(Collection<TraceIdMapping> mappings) {
+            BatchBindStep step = dslContext.batch(dslContext.insertInto(Tables.BITHON_TRACE_MAPPING,
+                                                                        Tables.BITHON_TRACE_MAPPING.TRACE_ID,
+                                                                        Tables.BITHON_TRACE_MAPPING.USER_TX_ID,
+                                                                        Tables.BITHON_TRACE_SPAN.TIMESTAMP).values((String) null, null, null));
+
+            for (TraceIdMapping mapping : mappings) {
+                step.bind(mapping.getTraceId(), mapping.getUserId(), new Timestamp(mapping.getTimestamp()));
+            }
+            try {
+                step.execute();
+            } catch (DuplicateKeyException ignored) {
+                // for database like H2
+            }
         }
     }
 
@@ -248,10 +380,10 @@ public class TraceJdbcStorage implements ITraceStorage {
                                             String order,
                                             int pageNumber,
                                             int pageSize) {
-            SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                                       .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
-                                                                       .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
-                                                                       .and(Tables.BITHON_TRACE_SPAN.KIND.eq("SERVER"));
+            BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
+            SelectConditionStep<BithonTraceSpanSummaryRecord> sql = dslContext.selectFrom(summaryTable)
+                                                                              .where(summaryTable.TIMESTAMP.ge(start))
+                                                                              .and(summaryTable.TIMESTAMP.lt(end));
 
             sql = sql.and(SQLFilterBuilder.build(filters));
 
@@ -259,34 +391,35 @@ public class TraceJdbcStorage implements ITraceStorage {
             SelectSeekStep1 sql2;
             if ("costTime".equals(orderBy)) {
                 if ("desc".equals(order)) {
-                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.COSTTIMEMS.desc());
+                    sql2 = sql.orderBy(summaryTable.COSTTIMEMS.desc());
                 } else {
-                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.COSTTIMEMS.asc());
+                    sql2 = sql.orderBy(summaryTable.COSTTIMEMS.asc());
                 }
             } else {
                 if ("desc".equals(order)) {
-                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc());
+                    sql2 = sql.orderBy(summaryTable.TIMESTAMP.desc());
                 } else {
-                    sql2 = sql.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc());
+                    sql2 = sql.orderBy(summaryTable.TIMESTAMP.asc());
                 }
             }
 
             //noinspection unchecked
             return sql2.offset(pageNumber * pageSize)
                        .limit(pageSize)
-                       .fetch(r -> this.toTraceSpan((BithonTraceSpanRecord) r));
+                       .fetch(r -> this.toTraceSpan((BithonTraceSpanSummaryRecord) r));
         }
 
         @Override
         public int getTraceListSize(List<DimensionCondition> filters,
                                     Timestamp start,
                                     Timestamp end) {
-            return (int) dslContext.select(DSL.count(Tables.BITHON_TRACE_SPAN.TRACEID))
-                                   .from(Tables.BITHON_TRACE_SPAN)
-                                   .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start))
-                                   .and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.lt(end))
+            BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
+
+            return (int) dslContext.select(DSL.count(summaryTable.TRACEID))
+                                   .from(summaryTable)
+                                   .where(summaryTable.TIMESTAMP.ge(start))
+                                   .and(summaryTable.TIMESTAMP.lt(end))
                                    .and(SQLFilterBuilder.build(filters))
-                                   .and(Tables.BITHON_TRACE_SPAN.KIND.eq("SERVER"))
                                    .fetchOne(0);
         }
 
@@ -385,6 +518,8 @@ public class TraceJdbcStorage implements ITraceStorage {
             span.kind = record.getKind();
             span.method = record.getMethod();
             span.clazz = record.getClazz();
+            span.status = record.getStatus();
+            span.normalizeUri = record.getNormalizedurl();
             try {
                 span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
                 });
@@ -393,85 +528,30 @@ public class TraceJdbcStorage implements ITraceStorage {
             span.name = record.getName();
             return span;
         }
-    }
 
-    private class TraceJdbcWriter implements ITraceWriter {
-
-        private String getOrDefault(String v) {
-            return v == null ? "" : v;
-        }
-
-        @Override
-        public void writeSpans(Collection<TraceSpan> traceSpans) {
-            BatchBindStep step = dslContext.batch(dslContext.insertInto(Tables.BITHON_TRACE_SPAN,
-                                                                        Tables.BITHON_TRACE_SPAN.TIMESTAMP,
-                                                                        Tables.BITHON_TRACE_SPAN.APPNAME,
-                                                                        Tables.BITHON_TRACE_SPAN.INSTANCENAME,
-                                                                        Tables.BITHON_TRACE_SPAN.TRACEID,
-                                                                        Tables.BITHON_TRACE_SPAN.SPANID,
-                                                                        Tables.BITHON_TRACE_SPAN.PARENTSPANID,
-                                                                        Tables.BITHON_TRACE_SPAN.NAME,
-                                                                        Tables.BITHON_TRACE_SPAN.CLAZZ,
-                                                                        Tables.BITHON_TRACE_SPAN.METHOD,
-                                                                        Tables.BITHON_TRACE_SPAN.KIND,
-                                                                        Tables.BITHON_TRACE_SPAN.STARTTIMEUS,
-                                                                        Tables.BITHON_TRACE_SPAN.ENDTIMEUS,
-                                                                        Tables.BITHON_TRACE_SPAN.COSTTIMEMS,
-                                                                        Tables.BITHON_TRACE_SPAN.TAGS)
-                                                            .values(null,
-                                                                    null, //app name
-                                                                    null, // instance
-                                                                    null, //trace id
-                                                                    null, // span id
-                                                                    null, // parent id
-                                                                    null, // name
-                                                                    null, // class
-                                                                    null, // method
-                                                                    null, // kind
-                                                                    null, // start time
-                                                                    null, // end time
-                                                                    (Long) null, // cost time
-                                                                    null));
-
-            for (TraceSpan span : traceSpans) {
-                String tags;
-                try {
-                    tags = span.getTags() == null ? "{}" : objectMapper.writeValueAsString(span.tags);
-                } catch (IOException ignored) {
-                    tags = "{}";
-                }
-                step.bind(new Timestamp(span.startTime / 1000),
-                          span.appName,
-                          span.instanceName,
-                          span.traceId,
-                          span.spanId,
-                          span.parentSpanId,
-                          getOrDefault(span.name),
-                          getOrDefault(span.clazz),
-                          getOrDefault(span.method),
-                          getOrDefault(span.kind),
-                          span.startTime,
-                          span.endTime,
-                          span.costTime, tags);
-            }
-            step.execute();
-        }
-
-        @Override
-        public void writeMappings(Collection<TraceIdMapping> mappings) {
-            BatchBindStep step = dslContext.batch(dslContext.insertInto(Tables.BITHON_TRACE_MAPPING,
-                                                                        Tables.BITHON_TRACE_MAPPING.TRACE_ID,
-                                                                        Tables.BITHON_TRACE_MAPPING.USER_TX_ID,
-                                                                        Tables.BITHON_TRACE_SPAN.TIMESTAMP).values((String) null, null, null));
-
-            for (TraceIdMapping mapping : mappings) {
-                step.bind(mapping.getTraceId(), mapping.getUserId(), new Timestamp(mapping.getTimestamp()));
-            }
+        private TraceSpan toTraceSpan(BithonTraceSpanSummaryRecord record) {
+            TraceSpan span = new TraceSpan();
+            span.appName = record.getAppname();
+            span.instanceName = record.getInstancename();
+            span.traceId = record.getTraceid();
+            span.spanId = record.getSpanid();
+            span.parentSpanId = record.getParentspanid();
+            span.startTime = record.getStarttimeus();
+            span.costTime = record.getCosttimems();
+            span.endTime = record.getEndtimeus();
+            span.name = record.getName();
+            span.kind = record.getKind();
+            span.method = record.getMethod();
+            span.clazz = record.getClazz();
+            span.status = record.getStatus();
+            span.normalizeUri = record.getNormalizedurl();
             try {
-                step.execute();
-            } catch (DuplicateKeyException ignored) {
-                // for database like H2
+                span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
+                });
+            } catch (JsonProcessingException ignored) {
             }
+            span.name = record.getName();
+            return span;
         }
     }
 }

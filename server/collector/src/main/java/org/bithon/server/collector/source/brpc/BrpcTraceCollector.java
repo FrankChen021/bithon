@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
+import org.bithon.server.common.service.UriNormalizer;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.sink.ITraceMessageSink;
 import org.bithon.server.tracing.sink.TraceSpan;
@@ -37,9 +38,11 @@ import java.util.List;
 public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
 
     private final ITraceMessageSink traceSink;
+    private final UriNormalizer uriNormalizer;
 
-    public BrpcTraceCollector(ITraceMessageSink traceSink) {
+    public BrpcTraceCollector(ITraceMessageSink traceSink, UriNormalizer uriNormalizer) {
         this.traceSink = traceSink;
+        this.uriNormalizer = uriNormalizer;
     }
 
     @Override
@@ -67,22 +70,23 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
                 BrpcTraceSpanMessage spanMessage = delegate.next();
 
                 TraceSpan traceSpan = new TraceSpan();
-                traceSpan.appName = header.getAppName();
-                traceSpan.instanceName = header.getInstanceName();
-                traceSpan.kind = spanMessage.getKind();
-                traceSpan.name = spanMessage.getName();
-                traceSpan.traceId = spanMessage.getTraceId();
-                traceSpan.spanId = spanMessage.getSpanId();
-                traceSpan.parentSpanId = StringUtils.isEmpty(spanMessage.getParentSpanId())
+                traceSpan.setAppName(header.getAppName());
+                traceSpan.setInstanceName(header.getInstanceName());
+                traceSpan.setKind(spanMessage.getKind());
+                traceSpan.setName(spanMessage.getName());
+                traceSpan.setTraceId(spanMessage.getTraceId());
+                traceSpan.setSpanId(spanMessage.getSpanId());
+                traceSpan.setParentSpanId(StringUtils.isEmpty(spanMessage.getParentSpanId())
                                          ? ""
-                                         : spanMessage.getParentSpanId();
-                traceSpan.parentApplication = spanMessage.getParentAppName();
-                traceSpan.startTime = spanMessage.getStartTime();
-                traceSpan.endTime = spanMessage.getEndTime();
-                traceSpan.costTime = spanMessage.getEndTime() - spanMessage.getStartTime();
-                traceSpan.tags = spanMessage.getTagsMap();
-                traceSpan.clazz = spanMessage.getClazz();
-                traceSpan.method = spanMessage.getMethod();
+                                         : spanMessage.getParentSpanId());
+                traceSpan.setParentApplication(spanMessage.getParentAppName());
+                traceSpan.setStartTime(spanMessage.getStartTime());
+                traceSpan.setEndTime(spanMessage.getEndTime());
+                traceSpan.setCostTime(spanMessage.getEndTime() - spanMessage.getStartTime());
+                traceSpan.setTags(spanMessage.getTagsMap());
+                traceSpan.setClazz(spanMessage.getClazz());
+                traceSpan.setMethod(spanMessage.getMethod());
+                traceSpan.flatten(uriNormalizer);
 
                 return traceSpan;
             }

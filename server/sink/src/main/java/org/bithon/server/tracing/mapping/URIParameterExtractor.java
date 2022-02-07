@@ -52,7 +52,7 @@ public class URIParameterExtractor implements ITraceIdMappingExtractor {
 
     @Override
     public void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback) {
-        Map<String, String> urlParameters = span.getURLParameters();
+        Map<String, String> urlParameters = span.getURIParameters();
 
         for (String parameter : this.parameters) {
             String userTxId = urlParameters.get(parameter);

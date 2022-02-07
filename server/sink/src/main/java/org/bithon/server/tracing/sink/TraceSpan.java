@@ -18,7 +18,9 @@ package org.bithon.server.tracing.sink;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.bithon.server.common.service.UriNormalizer;
 import org.bithon.server.common.utils.MiscUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,15 +45,17 @@ public class TraceSpan {
     public String name;
     public String clazz;
     public String method;
+    public String status = "";
+    public String normalizeUri = "";
 
     @JsonIgnore
-    private Map<String, String> urlParameters;
+    private Map<String, String> uriParameters;
 
-    public Map<String, String> getURLParameters() {
-        if (urlParameters == null) {
-            urlParameters = MiscUtils.parseURLParameters(tags.get("uri"));
+    public Map<String, String> getURIParameters() {
+        if (uriParameters == null) {
+            uriParameters = MiscUtils.parseURLParameters(tags.get("uri"));
         }
-        return urlParameters;
+        return uriParameters;
     }
 
     public boolean containsTag(String name) {
@@ -68,6 +72,17 @@ public class TraceSpan {
         } catch (UnsupportedOperationException e) {
             this.tags = new HashMap<>(this.tags);
             this.tags.put(name, value);
+        }
+    }
+
+    /**
+     * flatten some properties in tags.
+     * SHOULD be called AFTER all properties have been set
+     */
+    public void flatten(UriNormalizer uriNormalizer) {
+        if ("SERVER".equals(this.kind) && !CollectionUtils.isEmpty(this.tags)) {
+            this.status = tags.getOrDefault("status", "");
+            this.normalizeUri = uriNormalizer.normalize(this.appName, tags.getOrDefault("uri", "")).getUri();
         }
     }
 

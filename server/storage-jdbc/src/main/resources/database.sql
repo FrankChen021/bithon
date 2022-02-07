@@ -85,12 +85,43 @@ CREATE TABLE `bithon_trace_span`
     `startTimeUs`   BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Micro Second',
     `endTimeUs`     BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Micro Second',
     `tags`          TEXT COMMENT '',
+    `normalizedUrl` VARCHAR(255) DEFAULT '' NOT NULL COMMENT '',
+    `status`        VARCHAR(32)  DEFAULT '' NOT NULL COMMENT '',
     KEY `idx_timestamp` (`timestamp`),
     KEY `idx_app_name` (`appName`),
     KEY `idx_instanceName` (`instanceName`),
     UNIQUE `idx_key` (`traceId`, `spanId`),
     KEY `idx_parentSpanId` (`parentSpanId`),
     KEY `idx_start_time` (`startTimeUs`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+-- A view that only contains the entry of a trace
+DROP TABLE IF EXISTS `bithon_trace_span_summary`;
+CREATE TABLE `bithon_trace_span_summary`
+(
+    `timestamp`     TIMESTAMP              NOT NULL COMMENT 'Milli Seconds',
+    `appName`       VARCHAR(64)            NOT NULL COMMENT '',
+    `instanceName`  VARCHAR(64)            NOT NULL COMMENT '',
+    `name`          VARCHAR(64)            NOT NULL COMMENT '',
+    `clazz`         varchar(128)           NOT NULL COMMENT '',
+    `method`        VARCHAR(128)           NOT NULL COMMENT '',
+    `traceId`       VARCHAR(64) DEFAULT '' NOT NULL COMMENT '',
+    `spanId`        VARCHAR(64) DEFAULT '' NOT NULL COMMENT '',
+    `parentSpanId`  VARCHAR(64) DEFAULT '' NOT NULL COMMENT '',
+    `kind`          VARCHAR(64)            NOT NULL DEFAULT '' COMMENT '',
+    `costTimeMs`    BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Milli Second',
+    `startTimeUs`   BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Micro Second',
+    `endTimeUs`     BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Micro Second',
+    `tags`          TEXT COMMENT '',
+    `normalizedUrl` VARCHAR(255) DEFAULT '' NOT NULL COMMENT '',
+    `status`        VARCHAR(32)  DEFAULT '' NOT NULL COMMENT '',
+    KEY `idx_tss_timestamp` (`timestamp`),
+    KEY `idx_tss_app_name` (`appName`),
+    KEY `idx_tss_instanceName` (`instanceName`),
+    UNIQUE `idx_tss_key` (`traceId`, `spanId`),
+    KEY `idx_tss_parentSpanId` (`parentSpanId`),
+    KEY `idx_tss_start_time` (`startTimeUs`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 

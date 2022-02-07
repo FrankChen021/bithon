@@ -26,6 +26,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.tracing.storage.ITraceCleaner;
+import org.bithon.server.tracing.storage.ITraceWriter;
 import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.jooq.DSLContext;
 
@@ -52,6 +53,7 @@ public class TraceStorage extends TraceJdbcStorage {
     public void initialize() {
         TableCreator tableCreator = new TableCreator(config, dslContext);
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN, config.getTtlDays());
+        tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN_SUMMARY, config.getTtlDays());
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_MAPPING, config.getTtlDays(), true, true);
     }
 
@@ -66,9 +68,25 @@ public class TraceStorage extends TraceJdbcStorage {
 
             dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
                                                   config.getDatabase(),
+                                                  config.getLocalTableName(Tables.BITHON_TRACE_SPAN_SUMMARY.getName()),
+                                                  config.getClusterExpression(),
+                                                  StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", beforeTimestamp)));
+
+            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
+                                                  config.getDatabase(),
                                                   config.getLocalTableName(Tables.BITHON_TRACE_MAPPING.getName()),
                                                   config.getClusterExpression(),
                                                   StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", beforeTimestamp)));
         };
+    }
+
+    @Override
+    public ITraceWriter createWriter() {
+        return new BatchWriter(new TraceJdbcWriter(dslContext, objectMapper) {
+            @Override
+            protected boolean isTransactionSupported() {
+                return false;
+            }
+        }, super.config);
     }
 }

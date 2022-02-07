@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.bithon.server.common.service.UriNormalizer;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.sink.ITraceMessageSink;
 import org.bithon.server.tracing.sink.TraceSpan;
@@ -45,11 +46,14 @@ public class TraceHttpCollector {
 
     private final ObjectMapper om;
     private final ITraceMessageSink traceSink;
+    private final UriNormalizer uriNormalizer;
 
     public TraceHttpCollector(ObjectMapper om,
-                              ITraceMessageSink traceSink) {
+                              ITraceMessageSink traceSink,
+                              UriNormalizer uriNormalizer) {
         this.om = om;
         this.traceSink = traceSink;
+        this.uriNormalizer = uriNormalizer;
     }
 
     @PostMapping("/api/collector/trace")
@@ -69,14 +73,30 @@ public class TraceHttpCollector {
             unqualifiedName = unqualifiedName.substring(0, idx);
         }
 
-        Iterator<TraceSpan> iterator = spans.iterator();
+        Iterator<TraceSpan> iterator;
         if ("clickhouse".equals(unqualifiedName)) {
-            iterator = new ClickHouseAdaptor(iterator);
+            iterator = new ClickHouseAdaptor(spans.iterator());
+        } else {
+            iterator = new Iterator<TraceSpan>() {
+                private final Iterator<TraceSpan> delegate = spans.iterator();
+
+                @Override
+                public boolean hasNext() {
+                    return delegate.hasNext();
+                }
+
+                @Override
+                public TraceSpan next() {
+                    TraceSpan span = delegate.next();
+                    span.flatten(uriNormalizer);
+                    return span;
+                }
+            };
         }
         this.traceSink.process("trace", IteratorableCollection.of(iterator));
     }
 
-    static class ClickHouseAdaptor implements Iterator<TraceSpan> {
+    class ClickHouseAdaptor implements Iterator<TraceSpan> {
         private final Iterator<TraceSpan> delete;
 
         ClickHouseAdaptor(Iterator<TraceSpan> delete) {
@@ -96,6 +116,16 @@ public class TraceHttpCollector {
             if ("00".equals(span.getParentSpanId())) {
                 span.setParentSpanId("");
                 span.setKind("SERVER");
+            } else if ("HTTPHandler".equals(span.getClazz()) && "handleRequest".equals(span.getMethod())) {
+                span.setKind("SERVER");
+            } else if ("TCPHandler".equals(span.getClazz())) {
+                span.setKind("SERVER");
+            }
+
+            // discard the input parameters of the method
+            int parameterStart = span.getMethod().indexOf('(');
+            if (parameterStart > 0) {
+                span.setMethod(span.getMethod().substring(0, parameterStart));
             }
 
             //
@@ -141,6 +171,7 @@ public class TraceHttpCollector {
 
             span.getTags().clear();
             span.setTags(tags);
+            span.flatten(uriNormalizer);
 
             return span;
         }

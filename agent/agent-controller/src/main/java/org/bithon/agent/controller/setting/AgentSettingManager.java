@@ -18,9 +18,9 @@ package org.bithon.agent.controller.setting;
 
 
 import org.bithon.agent.controller.IAgentController;
-import org.bithon.agent.core.utils.CollectionUtils;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.CollectionUtils;
 import shaded.com.fasterxml.jackson.databind.DeserializationFeature;
 import shaded.com.fasterxml.jackson.databind.JsonNode;
 import shaded.com.fasterxml.jackson.databind.ObjectMapper;

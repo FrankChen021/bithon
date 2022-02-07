@@ -16,15 +16,17 @@
 
 package org.bithon.server.web.service.api;
 
-import org.bithon.agent.core.utils.CollectionUtils;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.common.pojo.DisplayableText;
 import org.bithon.server.common.ttl.TTLConfig;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.storage.GroupByQuery;
+import org.bithon.server.metric.storage.IMetricReader;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.Interval;
+import org.bithon.server.metric.storage.ListQuery;
 import org.bithon.server.metric.storage.MetricStorageConfig;
 import org.bithon.server.metric.storage.TimeseriesQuery;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -70,7 +72,9 @@ public class DataSourceApi {
 
         return dataSourceService.oldTimeseriesQuery(new TimeseriesQuery(schema,
                                                                         request.getMetrics(),
-                                                                        CollectionUtils.isNotEmpty(request.getDimensions()) ? request.getDimensions().values() : request.getFilters(),
+                                                                        CollectionUtils.isNotEmpty(request.getDimensions())
+                                                                        ? request.getDimensions().values()
+                                                                        : request.getFilters(),
                                                                         Interval.of(start, end),
                                                                         request.getGroups()));
     }
@@ -102,6 +106,24 @@ public class DataSourceApi {
                                                                                       request.getFilters(),
                                                                                       Interval.of(start, end),
                                                                                       request.getGroupBy()));
+    }
+
+    @PostMapping("/api/datasource/list")
+    public ListQueryResponse list(@Valid @RequestBody ListQueryRequest request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        ListQuery query = new ListQuery(schema,
+                                        request.getColumns(),
+                                        request.getFilters(),
+                                        Interval.of(TimeSpan.fromISO8601(request.getStartTimeISO8601()), TimeSpan.fromISO8601(request.getEndTimeISO8601())),
+                                        request.getOrder(),
+                                        request.getOrderBy(),
+                                        request.getPageNumber(),
+                                        request.getPageSize());
+
+        // TODO: refactor the storage reader so that the data source is working for all storages
+        IMetricReader reader = this.metricStorage.createMetricReader(schema);
+        return new ListQueryResponse(reader.listSize(query), reader.list(query));
     }
 
     @PostMapping("/api/datasource/schemas")

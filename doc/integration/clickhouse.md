@@ -1,9 +1,26 @@
 
-## Integration with ClickHouse's trace log
+## Collect ClickHouse's trace log
 
 Bithon can be used to collect span logs generated in ClickHouse nodes.
 
-1. Enable span logs on ClickHouse node
+1. Make sure you're using the right ClickHouse
+
+    There are some PRs contributed to ClickHouse to make the tracing inside ClickHouse works well. 
+
+    The latest master branch after 2022-02-03 contains all changes. If you're not using the latest master branch,
+you can cherry-pick these PRs to your own branch.
+
+- [Parse and store opentelemetry trace-id in big-endian order ](https://github.com/ClickHouse/ClickHouse/pull/33723)
+- [Improve the operation name of an opentelemetry span](https://github.com/ClickHouse/ClickHouse/pull/32234)
+- [Allows hex() to work on type of UUID](https://github.com/ClickHouse/ClickHouse/pull/32170)
+- [Ignore parse failure of opentelemetry header](https://github.com/ClickHouse/ClickHouse/pull/32116)
+- [Set Content-Type in HTTP packets issued from URL engine](https://github.com/ClickHouse/ClickHouse/pull/32113)
+- [Returns Content-Type as application/json for JSONEachRow if output_format_json_array_of_rows is enabled](https://github.com/ClickHouse/ClickHouse/pull/32112)
+- [Add exception/exception_code to opentelemetry span log](https://github.com/ClickHouse/ClickHouse/pull/32040)
+- [Fix a bug that opentelemetry span log duration is zero](https://github.com/ClickHouse/ClickHouse/pull/32038)
+
+
+2. Enable span logs on ClickHouse node
    ```xml
    <!--
     OpenTelemetry log contains OpenTelemetry trace spans.
@@ -23,16 +40,20 @@ Bithon can be used to collect span logs generated in ClickHouse nodes.
    engine MergeTree
    partition by toYYYYMM(finish_date)
    order by (finish_date, finish_time_us, trace_id)
+   ttl finish_date + toIntervalDay(1)
    </engine>
    <database>system</database>
    <table>opentelemetry_span_log</table>
    <flush_interval_milliseconds>7500</flush_interval_milliseconds>
    </opentelemetry_span_log>
    ```
-2. create a materialized view to export span logs from ClickHouse to Bithon
+
+   > NOTE: You can change the TTL setting according to your own case. But since the records in this table will be exported via URL engine as below, the TTL in above example is long enough.   
+
+3. create a materialized view to export span logs from ClickHouse to Bithon
    
    ```sql
-   CREATE MATERIALIZED VIEW span_logs_view
+   CREATE MATERIALIZED VIEW system.span_logs_view
     (
         `appName` String,
         `instanceName` String,
@@ -50,7 +71,7 @@ Bithon can be used to collect span logs generated in ClickHouse nodes.
     SELECT
         'clickhouse' AS appName,
         concat(FQDN(), ':8123') AS instanceName,
-        lower(hex(reverse(reinterpretAsFixedString(trace_id)))) AS traceId,
+        lower(hex(trace_id)) AS traceId,
         case when parent_span_id = 0 then '' else lower(hex(parent_span_id)) end AS parentSpanId,
         lower(hex(span_id)) AS spanId,
         operation_name AS method,
@@ -62,5 +83,9 @@ Bithon can be used to collect span logs generated in ClickHouse nodes.
         system.opentelemetry_span_log
    ```
 
-> NOTE: the `appName` field must be either as 'clickhouse' or as a qualified name such as 'clickhouse-{namespace}' 
+> NOTE: 
+> the `appName` field must be either as 'clickhouse' or as a qualified name such as 'clickhouse-{namespace}' 
 > where {namespace} could be a string without the '-' character.
+> 
+> The above example creates the MV under `system` database, this is not mandate, you can change it to any database.
+> 
