@@ -133,7 +133,10 @@ public class TraceService {
             } else {
                 TraceSpanBo parentSpan = boMap.get(span.parentSpanId);
                 if (parentSpan == null) {
-                    //should not happen
+                    // For example, two applications: A --> B
+                    // if span logs of A are not stored in Bithon,
+                    // the root span of B has parentSpanId but of course has no parent span
+                    rootSpans.add(bo);
                 } else {
                     parentSpan.children.add(bo);
                 }
