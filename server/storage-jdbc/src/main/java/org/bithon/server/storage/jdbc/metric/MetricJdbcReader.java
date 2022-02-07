@@ -35,6 +35,7 @@ import org.bithon.server.metric.aggregator.spec.PostAggregatorMetricSpec;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.metric.storage.GroupByQuery;
 import org.bithon.server.metric.storage.IMetricReader;
+import org.bithon.server.metric.storage.ListQuery;
 import org.bithon.server.metric.storage.TimeseriesQuery;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.jooq.DSLContext;
@@ -130,6 +131,47 @@ public class MetricJdbcReader implements IMetricReader {
             groupByFields
         );
         return executeSql(sql);
+    }
+
+    @Override
+    public List<Map<String, Object>> list(ListQuery query) {
+        String sqlTableName = "bithon_" + query.getSchema().getName().replace("-", "_");
+
+        String filter = SQLFilterBuilder.build(query.getFilters());
+        String sql = StringUtils.format(
+            "SELECT %s FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s ORDER BY \"%s\" %s LIMIT %d OFFSET %d",
+            query.getColumns().stream().map(column -> "\"" + column + "\"").collect(Collectors.joining(",")),
+            sqlTableName,
+            filter,
+            StringUtils.hasText(filter) ? "AND" : "",
+            sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
+            sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
+            query.getOrderBy(),
+            query.getOrder(),
+            query.getPageSize(),
+            query.getPageNumber() * query.getPageSize()
+        );
+
+        return executeSql(sql);
+    }
+
+    @Override
+    public int listSize(ListQuery query) {
+        String sqlTableName = "bithon_" + query.getSchema().getName().replace("-", "_");
+
+        String filter = SQLFilterBuilder.build(query.getFilters());
+        String sql = StringUtils.format(
+            "SELECT count(\"%s\") FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s",
+            query.getColumns().get(0),
+            sqlTableName,
+            filter,
+            StringUtils.hasText(filter) ? "AND" : "",
+            sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
+            sqlFormatter.formatTimestamp(query.getInterval().getEndTime())
+        );
+
+        Record record = dsl.fetchOne(sql);
+        return ((Number) record.get(0)).intValue();
     }
 
     @Override

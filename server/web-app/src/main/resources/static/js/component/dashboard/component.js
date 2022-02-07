@@ -98,7 +98,7 @@ class Dashboard {
             this.layout(chartDescriptor.id, chartDescriptor.width * 3);
 
             // create chart
-            const chartComponent = this.createChartComponent(chartDescriptor.id, chartDescriptor)
+            this.createChartComponent(chartDescriptor.id, chartDescriptor)
                 .setOpenHandler(() => {
                     this.openChart(chartDescriptor.id);
                 });
@@ -240,7 +240,7 @@ class Dashboard {
     }
 
     #createDetailView(parent, columns) {
-        return new TableComponent(parent, columns);
+        return new TableComponent({parent: parent, columns: columns});
     }
 
     #refreshDetailView(chartDescriptor, detailView, option, startIndex, endIndex) {
@@ -277,8 +277,58 @@ class Dashboard {
         detailView.load(loadOptions);
     }
 
+    createTableComponent(chartId, chartDescriptor) {
+        const vParent = $('#' + chartId);
+
+        const vTable = new TableComponent({
+                tableId: chartId + '_table',
+                parent: vParent,
+                columns: chartDescriptor.columns,
+                pagination: true,
+                detailView: false
+            }
+        );
+        // const chartComponent = new ChartComponent({
+        //     containerId: chartId,
+        //     metrics: chartDescriptor.metrics.map(metric => metric.name),
+        // }).header('<b>' + chartDescriptor.title + '</b>')
+        //     .setChartOption(chartOption);
+
+        this._chartComponents[chartId] = vTable;
+
+        return vTable;
+    }
+
+    refreshTable(chartDescriptor, tableComponent, interval) {
+        const filters = this.vFilter.getSelectedFilters();
+        if (chartDescriptor.dimensions !== undefined) {
+            $.each(chartDescriptor.dimensions, (name, value) => {
+                filters.push(value);
+            });
+        }
+
+        const loadOptions = {
+            url: apiHost + "/api/datasource/list",
+            ajaxData: {
+                dataSource: chartDescriptor.dataSource,
+                startTimeISO8601: interval.start,
+                endTimeISO8601: interval.end,
+                filters: filters,
+                columns: chartDescriptor.columns.map(column => column.field),
+                order: 'desc',
+                orderBy: 'timestamp',
+                pageSize: 10,
+                pageNumber: 0
+            }
+        };
+        tableComponent.load(loadOptions);
+    }
+
     // PRIVATE
     createChartComponent(chartId, chartDescriptor) {
+        if (chartDescriptor.type === 'list') {
+            return this.createTableComponent(chartId, chartDescriptor);
+        }
 
         const chartOption = this.getDefaultChartOption();
         chartOption.legend.data = chartDescriptor.metrics.map(metric => {
@@ -389,6 +439,11 @@ class Dashboard {
     }
 
     refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
+        if (chartDescriptor.type === 'list') {
+            this.refreshTable(chartDescriptor, chartComponent, interval);
+            return;
+        }
+
         if (mode === undefined) {
             mode = 'refresh';
         }

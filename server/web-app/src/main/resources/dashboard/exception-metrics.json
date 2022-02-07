@@ -5,12 +5,41 @@
       "dataSource": "exception-metrics",
       "title": "Exceptions",
       "width": 4,
-      "yAxis": [
-        {}
-      ],
-      "metrics": [
+      "type":  "list",
+      "columns": [
         {
-          "name": "exceptionCount"
+          "field": "timestamp",
+          "title": "Time",
+          "format": "shortDateTime",
+          "width": 150
+        },
+        {
+          "field": "instanceName",
+          "title": "Instance"
+        },
+        {
+          "field": "thread",
+          "title": "Thread",
+          "width": 150
+        },
+        {
+          "field": "traceId",
+          "title": "Trace Id",
+          "format": "link",
+          "link": "/web/trace/detail?id={val}&type=trace"
+        },
+        {
+          "field": "exceptionClass",
+          "title": "Exception"
+        },
+        {
+          "field": "message",
+          "title": "Message"
+        },
+        {
+          "field": "stack",
+          "title": "Stack Trace",
+          "format": "detail"
         }
       ]
     }
