@@ -22,7 +22,7 @@ Similar architecture from agent to backend servers.
 
 1. Some de-facto standard such as distributed tracing
 2. More clients supported
-3. Less impact on startup time of target applications compared to Bithon. See the [Agent Benchmark](../../benchmark/agent/agent-benchmark.md) to get known the impact of Bithon.
+3. Less impact on startup time of target applications compared to Bithon. See the [Agent Benchmark](../../../benchmark/agent/agent-benchmark.md) to get known the impact of Bithon.
 
 ## Cons
 

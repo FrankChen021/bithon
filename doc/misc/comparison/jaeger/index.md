@@ -2,7 +2,7 @@
 # Different between Jaeger and Bithon
 
 To be frank, I don't like to such comparison since we're not target to replace it.
-I have given a picture of Bithon and the problem domain of in the [white paper](../white-paper.md).
+I have given a picture of Bithon and the problem domain of in the [white paper](../../white-paper.md).
 
 But since there is such a question, I will give a quick description here.
 

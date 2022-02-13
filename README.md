@@ -8,12 +8,12 @@ Bithon is a word combining binocular together with python.
 
 It targets application metrics, logging, distributed tracing, alert and application risk governance under microservice environment.
 
-See the [White Paper](doc/misc/white-paper.md) for more detail.
+Reference:
 
-Common Questions:
-
-- [What's the difference between Jaeger and Bithon?](doc/misc/jaeger/comparison.md) 
-- [What's the difference between OpenTelemetry and Bithon?](doc/misc/opentelemetry/comparison.md)
+- [White Paper](doc/misc/white-paper.md)
+- [How does the agent work](doc/misc/rationale/index.md)
+- [What's the difference between Jaeger and Bithon?](doc/misc/comparison/jaeger/index.md) 
+- [What's the difference between OpenTelemetry and Bithon?](doc/misc/comparison/opentelemetry/index.md)
 
 # Demon
 
