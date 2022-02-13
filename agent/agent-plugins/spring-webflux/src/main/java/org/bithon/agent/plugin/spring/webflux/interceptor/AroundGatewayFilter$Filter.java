@@ -83,21 +83,11 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
         // But for a repeated/retried request, it's scheduled on parallel scheduler threads, so any code that retrieves the context fails
         TraceContextHolder.set(traceContext);
 
-        ITraceSpan span = traceContext.currentSpan()
-                                      .newChildSpan("filter")
-                                      .method(aopContext.getMethod())
-                                      .tag((s) -> {
-                                          GatewayFilterConfigs.Filter filterConfig = configs.get(aopContext.getTargetClass().getName());
-                                          for (String attribName : filterConfig.getAttributes()) {
-                                              Object attribValue = exchange.getAttribute(attribName);
-                                              if (attribValue != null) {
-                                                  s.tag(attribName, attribValue.toString());
-                                              }
-                                          }
-                                      })
-                                      .start();
+        aopContext.setUserContext(traceContext.currentSpan()
+                                              .newChildSpan("filter")
+                                              .method(aopContext.getMethod())
+                                              .start());
 
-        aopContext.setUserContext(span);
         return InterceptionDecision.CONTINUE;
     }
 
@@ -110,6 +100,9 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
             // in case of exception in the Enter interceptor
             return;
         }
+
+        final ServerWebExchange exchange = aopContext.getArgAs(0);
+        FilterUtils.extractAttributesAsTraceTags(exchange, this.configs, aopContext.getTargetClass(), span);
 
         Mono<Void> originalReturning = aopContext.castReturningAs();
         Mono<Void> replacedReturning = originalReturning.doAfterSuccessOrError((success, error) -> span.tag(error)
