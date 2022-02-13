@@ -69,7 +69,7 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
         TraceContextHolder.set(traceContext);
         traceContext.currentSpan()
                     .component("tomcat")
-                    .tag(Tags.URI, request.getRequestURI())
+                    .tag(Tags.HTTP_URI, request.getRequestURI())
                     .tag(Tags.HTTP_METHOD, request.getMethod())
                     .tag(Tags.HTTP_VERSION, request.getProtocol())
                     .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.getHeader(header))))
@@ -87,27 +87,23 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
         InterceptorContext.remove(InterceptorContext.KEY_URI);
 
         ITraceContext traceContext = aopContext.castUserContextAs();
-        ITraceSpan span = null;
+        if (traceContext == null) {
+            //exception occurs in 'Enter'
+            return;
+        }
+
         try {
-            if (traceContext == null) {
-                //exception occurs in 'Enter'
-                return;
-            }
-            span = traceContext.currentSpan();
+            ITraceSpan span = traceContext.currentSpan();
             if (span == null) {
                 // TODO: ERROR
                 return;
             }
 
             Response response = (Response) aopContext.getArgs()[1];
-            span.tag("status", Integer.toString(response.getStatus()));
-            if (aopContext.hasException()) {
-                span.tag("exception", aopContext.getException().toString());
-            }
+            span.tag(Tags.HTTP_STATUS, Integer.toString(response.getStatus()))
+                .tag(aopContext.getException())
+                .finish();
         } finally {
-            if (span != null) {
-                span.finish();
-            }
             traceContext.finish();
             try {
                 TraceContextHolder.remove();

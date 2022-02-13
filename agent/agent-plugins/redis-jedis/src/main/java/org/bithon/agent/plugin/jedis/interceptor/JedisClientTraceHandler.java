@@ -61,7 +61,7 @@ public class JedisClientTraceHandler extends AbstractInterceptor {
 
         aopContext.setUserContext(span.method(command)
                                       .kind(SpanKind.CLIENT)
-                                      .tag(Tags.URI, uri)
+                                      .tag(Tags.TARGET, uri)
                                       .start());
 
         return InterceptionDecision.CONTINUE;

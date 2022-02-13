@@ -132,21 +132,18 @@ class TracePage {
                 },
                 sortable: true
             }, {
-                field: 'tags',
-                title: 'Status',
-                formatter: function (value, row) {
-                    return value.status;
-                }
+                field: 'status',
+                title: 'Status'
             }, {
                 field: 'tags',
                 title: 'URL',
                 formatter: function (value, row) {
-                    return value.uri;
+                    return value['uri'] || value['http.uri'];
                 }
             }],
 
             rowStyle: (row, index) => {
-                if (row.tags.status !== "200") {
+                if (row.status !== "200") {
                     return {
                         classes: 'alert-warning'
                     }

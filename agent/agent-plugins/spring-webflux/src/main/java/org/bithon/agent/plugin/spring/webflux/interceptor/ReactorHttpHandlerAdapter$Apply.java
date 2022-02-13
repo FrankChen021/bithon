@@ -89,7 +89,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
                 traceContext.currentSpan()
                             .component("webflux")
-                            .tag(Tags.URI, request.uri())
+                            .tag(Tags.HTTP_URI, request.uri())
                             .tag(Tags.HTTP_METHOD, request.method().name())
                             .tag(Tags.HTTP_VERSION, request.version().text())
                             .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.requestHeaders().get(header))))
@@ -156,7 +156,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
         ITraceContext traceContext = ((HttpServerContext) injected).getTraceContext();
         if (traceContext != null) {
-            traceContext.currentSpan().tag("status", String.valueOf(response.status().code())).finish();
+            traceContext.currentSpan().tag(Tags.HTTP_STATUS, String.valueOf(response.status().code())).finish();
             traceContext.finish();
         }
     }

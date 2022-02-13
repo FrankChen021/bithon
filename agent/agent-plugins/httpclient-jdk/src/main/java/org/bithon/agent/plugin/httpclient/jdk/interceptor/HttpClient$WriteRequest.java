@@ -50,7 +50,7 @@ public class HttpClient$WriteRequest extends AbstractInterceptor {
          */
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag(Tags.URI, connection.getURL().toString())
+                                      .tag(Tags.HTTP_URI, connection.getURL().toString())
                                       .tag(Tags.HTTP_METHOD, connection.getRequestMethod())
                                       .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))
                                       .start());

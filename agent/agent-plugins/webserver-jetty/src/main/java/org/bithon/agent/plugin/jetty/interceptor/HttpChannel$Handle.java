@@ -71,7 +71,7 @@ public class HttpChannel$Handle extends AbstractInterceptor {
 
                 traceContext.currentSpan()
                             .component("jetty")
-                            .tag(Tags.URI, request.getRequestURI())
+                            .tag(Tags.HTTP_URI, request.getRequestURI())
                             .tag(Tags.HTTP_METHOD, request.getMethod())
                             .tag(Tags.HTTP_VERSION, request.getHttpVersion().toString())
                             .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.getHeader(header))))

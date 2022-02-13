@@ -21,20 +21,23 @@ package org.bithon.agent.core.tracing.context;
  * @date 25/12/21 5:56 PM
  */
 public class Tags {
-    public static final String HTTP_VERSION = "http-version";
-    public static final String HTTP_METHOD = "method";
+    public static final String HTTP_VERSION = "http.version";
+    public static final String HTTP_METHOD = "http.method";
 
     /**
      * For a {@link SpanKind#CLIENT}, the uri must be in the format of URI where the scheme represent the target service
      *
      * For example,
      *  http://localhost:8080
+     */
+    public static final String HTTP_URI = "http.uri";
+    public static final String HTTP_STATUS = "http.status";
+    public static final String SQL = "sql";
+
+    /**
      *  redis://127.0.0.1:6379
      *  mongodb://127.0.0.1:8000
-     *  mysql:127.0.0.1:3309
-     *
+     *  mysql://127.0.0.1:3309
      */
-    public static final String URI = "uri";
-    public static final String STATUS = "status";
-    public static final String SQL = "sql";
+    public static final String TARGET = "target";
 }
