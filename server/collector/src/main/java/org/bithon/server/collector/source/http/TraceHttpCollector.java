@@ -19,7 +19,6 @@ package org.bithon.server.collector.source.http;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.bithon.server.common.service.UriNormalizer;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.sink.ITraceMessageSink;
@@ -29,12 +28,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.InflaterInputStream;
 
 /**
  * @author Frank Chen
@@ -58,10 +59,16 @@ public class TraceHttpCollector {
 
     @PostMapping("/api/collector/trace")
     public void span(HttpServletRequest request) throws IOException {
-        String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
-        log.trace("receive spans:{}", body);
+        InputStream is = request.getInputStream();
 
-        final List<TraceSpan> spans = om.readValue(body, new TypeReference<ArrayList<TraceSpan>>() {
+        String encoding = request.getHeader("Content-Encoding");
+        if ("gzip".equals(encoding)) {
+            is = new GZIPInputStream(is);
+        } else if ("deflate".equals(encoding)) {
+            is = new InflaterInputStream(is);
+        }
+
+        final List<TraceSpan> spans = om.readValue(is, new TypeReference<ArrayList<TraceSpan>>() {
         });
         if (spans.isEmpty()) {
             return;
@@ -163,10 +170,22 @@ public class TraceHttpCollector {
                 tags.put(key, val);
             }
 
-            // standardize the name for SQL
+            //
+            // standardize tag names
+            //
             String sql = tags.remove("statement");
             if (sql != null) {
                 tags.put("sql", sql);
+            }
+
+            String httpStatus = tags.remove("http_status");
+            if (httpStatus != null) {
+                tags.put("http.status", httpStatus);
+            }
+
+            String uri = tags.remove("uri");
+            if (uri != null) {
+                tags.put("http.uri", uri);
             }
 
             span.getTags().clear();

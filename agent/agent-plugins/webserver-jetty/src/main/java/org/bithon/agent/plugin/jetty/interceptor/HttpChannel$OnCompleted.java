@@ -24,6 +24,7 @@ import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.plugin.jetty.context.RequestContext;
@@ -65,7 +66,7 @@ public class HttpChannel$OnCompleted extends AbstractInterceptor {
         if (traceContext != null) {
             ITraceSpan span = traceContext.currentSpan();
             if (span != null) {
-                span.tag("status", Integer.toString(httpChannel.getResponse().getStatus())).finish();
+                span.tag(Tags.HTTP_STATUS, Integer.toString(httpChannel.getResponse().getStatus())).finish();
             }
             traceContext.finish();
         }

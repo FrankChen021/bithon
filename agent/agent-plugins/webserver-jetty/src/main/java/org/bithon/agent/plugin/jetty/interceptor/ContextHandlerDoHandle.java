@@ -72,7 +72,7 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
 
             traceContext.currentSpan()
                         .component("jetty")
-                        .tag(Tags.URI, request.getRequestURI())
+                        .tag(Tags.HTTP_URI, request.getRequestURI())
                         .tag(Tags.HTTP_METHOD, request.getMethod())
                         .tag(Tags.HTTP_VERSION, request.getHttpVersion().toString())
                         .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.getHeader(header))))
@@ -99,24 +99,22 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
 
         ITraceContext traceContext = null;
-        ITraceSpan span = null;
         try {
             traceContext = TraceContextHolder.current();
             if (traceContext == null) {
                 return;
             }
-            span = traceContext.currentSpan();
+            ITraceSpan span = traceContext.currentSpan();
             if (span == null) {
                 // TODO: ERROR
                 return;
             }
 
             HttpServletResponse response = (HttpServletResponse) aopContext.getArgs()[3];
-            span.tag("status", Integer.toString(response.getStatus())).tag(aopContext.getException());
+            span.tag(Tags.HTTP_STATUS, Integer.toString(response.getStatus()))
+                .tag(aopContext.getException())
+                .finish();
         } finally {
-            if (span != null) {
-                span.finish();
-            }
             if (traceContext != null) {
                 traceContext.finish();
             }

@@ -18,6 +18,7 @@ package org.bithon.server.tracing.sanitization;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.tracing.sink.TraceSpan;
 
 import java.net.URI;
@@ -65,8 +66,17 @@ public class UrlSanitizer implements ISanitizer {
         }
 
         // write back the query parameters to uri
+        String uriText = span.getTag("http.uri");
+        if (StringUtils.isBlank(uriText)) {
+            // compatibility
+            uriText = span.getTag("uri");
+        }
+        if (StringUtils.isBlank(uriText)) {
+            return;
+        }
+
         try {
-            URI uri = new URI(span.getTag("uri"));
+            URI uri = new URI(uriText);
 
             StringBuilder query = new StringBuilder();
             parameters.forEach((key, val) -> {
@@ -85,7 +95,7 @@ public class UrlSanitizer implements ISanitizer {
                                    query.toString(),
                                    uri.getFragment());
 
-            span.setTag("uri", modified.toString());
+            span.setTag("http.uri", modified.toString());
         } catch (URISyntaxException ignored) {
         }
     }

@@ -40,7 +40,7 @@ public class FeignClientInterceptor extends AbstractInterceptor {
         }
 
         Request request = (Request) aopContext.getArgs()[0];
-        aopContext.setUserContext(span.tag(Tags.URI, request.url())
+        aopContext.setUserContext(span.tag(Tags.HTTP_URI, request.url())
                                       .start());
 
         return InterceptionDecision.CONTINUE;
@@ -51,7 +51,7 @@ public class FeignClientInterceptor extends AbstractInterceptor {
         ITraceSpan span = aopContext.castUserContextAs();
 
         Response response = aopContext.castReturningAs();
-        span.tag("status", String.valueOf(response.status()));
+        span.tag(Tags.HTTP_STATUS, String.valueOf(response.status()));
         span.finish();
     }
 }

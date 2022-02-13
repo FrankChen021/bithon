@@ -57,7 +57,7 @@ public class HttpClientFinalizer$Send extends AbstractInterceptor {
                                                   .newChildSpan("webflux-httpClient")
                                                   .kind(SpanKind.CLIENT)
                                                   .method(aopContext.getMethod())
-                                                  .tag(Tags.URI, httpClient.configuration().uri())
+                                                  .tag(Tags.HTTP_URI, httpClient.configuration().uri())
                                                   .tag(Tags.HTTP_METHOD, httpClient.configuration().method().name())
                                                   .start());
         }

@@ -50,7 +50,7 @@ public class HttpRequest$Send extends AbstractInterceptor {
         final ITraceSpan span = TraceSpanFactory.newAsyncSpan("httpClient-jetty")
                                                 .method(aopContext.getMethod())
                                                 .kind(SpanKind.CLIENT)
-                                                .tag(Tags.URI, httpRequest.getURI().toString())
+                                                .tag(Tags.HTTP_URI, httpRequest.getURI().toString())
                                                 .tag(Tags.HTTP_METHOD, httpRequest.getMethod())
                                                 .propagate(httpRequest.getHeaders(), (headersArgs, key, value) -> headersArgs.put(key, value))
                                                 .start();
@@ -118,7 +118,7 @@ public class HttpRequest$Send extends AbstractInterceptor {
                 try {
                     if (!span.isNull()) {
                         span.tag(result.getFailure())
-                            .tag("status", String.valueOf(result.getResponse().getStatus()))
+                            .tag(Tags.HTTP_STATUS, String.valueOf(result.getResponse().getStatus()))
                             .finish();
                         span.context().finish();
                     }

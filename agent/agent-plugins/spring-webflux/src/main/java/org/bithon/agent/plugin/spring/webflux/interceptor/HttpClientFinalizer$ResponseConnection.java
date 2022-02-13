@@ -22,6 +22,7 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.plugin.spring.webflux.context.HttpClientContext;
 import org.reactivestreams.Publisher;
 import org.springframework.web.server.ResponseStatusException;
@@ -68,8 +69,8 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
                 // tracing
                 final ITraceSpan httpClientSpan = httpClientContext.getSpan();
                 if (httpClientSpan != null) {
-                    httpClientSpan.tag("status", String.valueOf(httpClientResponse.status().code()))
-                                  .tag("uri", uri)
+                    httpClientSpan.tag(Tags.HTTP_STATUS, String.valueOf(httpClientResponse.status().code()))
+                                  .tag(Tags.HTTP_URI, uri)
                                   .finish();
                 }
 
@@ -117,10 +118,10 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
             final ITraceSpan httpClientSpan = httpClientContext.getSpan();
             if (httpClientSpan != null) {
                 if (statusCode != null) {
-                    httpClientSpan.tag("status", String.valueOf(statusCode));
+                    httpClientSpan.tag(Tags.HTTP_STATUS, String.valueOf(statusCode));
                 }
                 httpClientSpan.tag(throwable)
-                              .tag("uri", uri)
+                              .tag(Tags.HTTP_URI, uri)
                               .finish();
             }
 
@@ -143,7 +144,7 @@ public class HttpClientFinalizer$ResponseConnection extends AbstractInterceptor 
             final ITraceSpan httpClientSpan = httpClientContext.getSpan();
             if (httpClientSpan != null) {
                 httpClientSpan.tag("exception", "Timeout")
-                              .tag("uri", uri)
+                              .tag(Tags.HTTP_URI, uri)
                               .finish();
             }
 
