@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class FilterUtils {
 
-    public static void extractTraceTags(ServerWebExchange exchange, GatewayFilterConfigs configs, Class<?> filterClass, ITraceSpan span) {
+    public static void extractAttributesAsTraceTags(ServerWebExchange exchange, GatewayFilterConfigs configs, Class<?> filterClass, ITraceSpan span) {
         // get configuration of this filter
         final GatewayFilterConfigs.Filter filterConfig = configs.get(filterClass.getName());
         if (CollectionUtils.isEmpty(filterConfig.getAttributes())) {

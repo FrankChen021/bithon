@@ -95,6 +95,6 @@ public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
             return;
         }
 
-        FilterUtils.extractTraceTags(exchange, this.configs, aopContext.getTargetClass(), span);
+        FilterUtils.extractAttributesAsTraceTags(exchange, this.configs, aopContext.getTargetClass(), span);
     }
 }

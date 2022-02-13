@@ -102,7 +102,7 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
         }
 
         final ServerWebExchange exchange = aopContext.getArgAs(0);
-        FilterUtils.extractTraceTags(exchange, this.configs, aopContext.getTargetClass(), span);
+        FilterUtils.extractAttributesAsTraceTags(exchange, this.configs, aopContext.getTargetClass(), span);
 
         Mono<Void> originalReturning = aopContext.castReturningAs();
         Mono<Void> replacedReturning = originalReturning.doAfterSuccessOrError((success, error) -> span.tag(error)
