@@ -66,7 +66,7 @@ you can cherry-pick these PRs to your own branch.
         `costTime` Int64,
         `tags` Map(String, String)
     )
-    ENGINE = URL('http://{YOUR_BITHON_COLLECTOR}:9897/api/collector/trace', 'JSONEachRow')
+    ENGINE = URL('http://{YOUR_BITHON_COLLECTOR}:9897/api/collector/trace', 'JSONEachRow', 'gzip')
     SETTINGS output_format_json_named_tuples_as_objects = 1, output_format_json_array_of_rows = 1 AS
     SELECT
         'clickhouse' AS appName,
@@ -89,3 +89,4 @@ you can cherry-pick these PRs to your own branch.
 > 
 > The above example creates the MV under `system` database, this is not mandate, you can change it to any database.
 > 
+> If the compression is enabled for the URL engine(the 'gzip' parameter), make sure your ClickHouse contains this PR: [Fix compression support in URL engine](https://github.com/ClickHouse/ClickHouse/pull/34524). 
