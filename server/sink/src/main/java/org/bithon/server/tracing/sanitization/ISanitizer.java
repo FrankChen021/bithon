@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.tracing.sink.TraceSpan;
 
 /**
+ * clean up some (sensitive) data in spans
+ *
  * @author Frank Chen
  * @date 10/1/22 2:28 PM
  */

@@ -170,10 +170,22 @@ public class TraceHttpCollector {
                 tags.put(key, val);
             }
 
-            // standardize the name for SQL
+            //
+            // standardize tag names
+            //
             String sql = tags.remove("statement");
             if (sql != null) {
                 tags.put("sql", sql);
+            }
+
+            String httpStatus = tags.remove("http_status");
+            if (httpStatus != null) {
+                tags.put("http.status", httpStatus);
+            }
+
+            String uri = tags.remove("uri");
+            if (uri != null) {
+                tags.put("http.uri", uri);
             }
 
             span.getTags().clear();

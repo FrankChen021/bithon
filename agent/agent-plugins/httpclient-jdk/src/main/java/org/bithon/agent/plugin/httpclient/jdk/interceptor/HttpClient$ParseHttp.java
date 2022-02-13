@@ -22,6 +22,7 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
+import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.component.commons.utils.StringUtils;
 import sun.net.www.MessageHeader;
@@ -60,7 +61,7 @@ public class HttpClient$ParseHttp extends AbstractInterceptor {
             return;
         }
 
-        span.tag("status", statusCode.toString()).finish();
+        span.tag(Tags.HTTP_STATUS, statusCode.toString()).finish();
     }
 
     /**

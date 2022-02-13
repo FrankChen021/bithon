@@ -57,7 +57,7 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
         // create a span and save it in user-context
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag(Tags.URI, uri)
+                                      .tag(Tags.HTTP_URI, uri)
                                       .tag(Tags.HTTP_METHOD, httpRequest.getRequestLine().getMethod())
                                       .propagate(httpRequest, (request, key, value) -> request.setHeader(key, value))
                                       .start());
@@ -75,6 +75,6 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
 
         HttpResponse response = context.castReturningAs();
         String status = response.getStatusLine() == null ? "-1" : Integer.toString(response.getStatusLine().getStatusCode());
-        thisSpan.tag(Tags.STATUS, status).tag(context.getException()).finish();
+        thisSpan.tag(Tags.HTTP_STATUS, status).tag(context.getException()).finish();
     }
 }

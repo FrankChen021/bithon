@@ -81,8 +81,18 @@ public class TraceSpan {
      */
     public void flatten(UriNormalizer uriNormalizer) {
         if ("SERVER".equals(this.kind) && !CollectionUtils.isEmpty(this.tags)) {
-            this.status = tags.getOrDefault("status", "");
-            this.normalizeUri = uriNormalizer.normalize(this.appName, tags.getOrDefault("uri", "")).getUri();
+            this.status = tags.getOrDefault("http.status", "");
+            if ("".equals(this.status)) {
+                // compatibility
+                this.status = tags.getOrDefault("status", "");
+            }
+
+            String uri = tags.getOrDefault("http.uri", "");
+            if ("".equals(uri)) {
+                // compatibility
+                uri = tags.getOrDefault("uri", "");
+            }
+            this.normalizeUri = uriNormalizer.normalize(this.appName, uri).getUri();
         }
     }
 
