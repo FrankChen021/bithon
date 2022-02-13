@@ -20,7 +20,7 @@ import org.bithon.agent.core.config.ConfigurationProperties;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -30,7 +30,7 @@ import java.util.List;
 public class GatewayFilterConfigs extends HashMap<String, GatewayFilterConfigs.Filter> {
     public static class Filter {
         private String mode;
-        private List<String> attributes = Collections.emptyList();
+        private Map<String, String> attributes = Collections.emptyMap();
 
         public String getMode() {
             return mode;
@@ -40,11 +40,15 @@ public class GatewayFilterConfigs extends HashMap<String, GatewayFilterConfigs.F
             this.mode = mode;
         }
 
-        public List<String> getAttributes() {
+        /**
+         * key - the prop name in the ServerExchange.attributes
+         * val - the value that is written into span's tags
+         */
+        public Map<String, String> getAttributes() {
             return attributes;
         }
 
-        public void setAttributes(List<String> attributes) {
+        public void setAttributes(Map<String, String> attributes) {
             this.attributes = attributes;
         }
     }

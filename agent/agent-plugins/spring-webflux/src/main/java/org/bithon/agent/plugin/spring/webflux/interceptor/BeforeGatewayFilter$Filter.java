@@ -74,15 +74,6 @@ public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
         ITraceSpan span = traceContext.currentSpan()
                                       .newChildSpan("filter")
                                       .method(aopContext.getMethod())
-                                      .tag((s) -> {
-                                          GatewayFilterConfigs.Filter filterConfig = configs.get(aopContext.getTargetClass().getName());
-                                          for (String attribName : filterConfig.getAttributes()) {
-                                              Object attribValue = exchange.getAttribute(attribName);
-                                              if (attribValue != null) {
-                                                  s.tag(attribName, attribValue.toString());
-                                              }
-                                          }
-                                      })
                                       .start();
 
         // replace the input argument
@@ -91,6 +82,19 @@ public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
             span.finish();
             return delegate.filter(exchange1);
         };
-        return InterceptionDecision.SKIP_LEAVE;
+
+        aopContext.setUserContext(span);
+        return InterceptionDecision.CONTINUE;
+    }
+
+    @Override
+    public void onMethodLeave(AopContext aopContext) {
+        final ServerWebExchange exchange = aopContext.getArgAs(0);
+        ITraceSpan span = aopContext.castUserContextAs();
+        if (span == null) {
+            return;
+        }
+
+        FilterUtils.extractTraceTags(exchange, this.configs, aopContext.getTargetClass(), span);
     }
 }
