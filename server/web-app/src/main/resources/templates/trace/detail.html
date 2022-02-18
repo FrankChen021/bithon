@@ -81,10 +81,17 @@
                 field: 'clazz',
                 title: 'Method',
                 formatter: function (value, row) {
-                    return row.clazz === "" ? row.method
-                        // clazz holds the full qualified class name
-                        // here, display the simple class name
-                        : row.clazz.split('.').pop() + '.' + row.method;
+                    if (row.clazz === "") {
+                        return row.method;
+                    } else {
+                        // clazz holds the full qualified class name, here, display the simple class name
+
+                        // first check if the name is with generic type info, these names are typically in some c++ applications
+                        const braceIndex = row.clazz.lastIndexOf('<');
+                        const lastDotIndex = row.clazz.lastIndexOf('.', braceIndex === -1 ? row.clazz.length - 1 : braceIndex);
+                        const text = lastDotIndex > 0 ? row.clazz.substring(lastDotIndex + 1) + '.' + row.method : (row.clazz + '.' + row.method);
+                        return text.replace("<", "&lt;").replace(">", "&gt;");
+                    }
                 }
             }, {
                 field: 'costTime',
@@ -98,7 +105,7 @@
                 width: 140,
                 formatter: function (value, row) {
                     // start time is in micro-second
-                    return new Date(value / 1000).format('MM-dd hh:mm:ss');
+                    return new Date(value / 1000).format('MM-dd hh:mm:ss.S');
                 }
             }, {
                 field: 'tags',
