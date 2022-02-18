@@ -24,5 +24,5 @@ import java.lang.annotation.RetentionPolicy;
  * @date 18/2/22 8:01 PM
  */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Interceptor {
+public @interface InterceptorId {
 }

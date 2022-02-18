@@ -17,7 +17,7 @@
 package org.bithon.agent.bootstrap.aop;
 
 import org.bithon.agent.bootstrap.aop.advice.InterceptorManager;
-import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
+import org.bithon.agent.bootstrap.aop.bytebuddy.InterceptorId;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -57,7 +57,7 @@ public class BootstrapMethodAop {
      */
     @Advice.OnMethodEnter
     public static boolean onEnter(
-        final @Interceptor String interceptorClassName,
+        final @InterceptorId String interceptorClassName,
         final @Advice.Origin Method method,
         final @Advice.This(optional = true) Object target,
         @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
@@ -96,7 +96,7 @@ public class BootstrapMethodAop {
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void onExit(final @Interceptor String interceptorClassName,
+    public static void onExit(final @InterceptorId String interceptorClassName,
                               final @Advice.Enter boolean executeOnExit,
                               @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
                               final @Advice.Thrown Throwable exception,

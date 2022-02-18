@@ -25,7 +25,7 @@ import org.bithon.agent.bootstrap.aop.IReplacementInterceptor;
 import org.bithon.agent.bootstrap.aop.ISuperMethod;
 import org.bithon.agent.bootstrap.aop.MethodAop;
 import org.bithon.agent.bootstrap.aop.ReplaceMethodAop;
-import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
+import org.bithon.agent.bootstrap.aop.bytebuddy.InterceptorId;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.aop.AopClassHelper;
 import org.bithon.agent.core.aop.AopDebugger;
@@ -77,17 +77,17 @@ public class InterceptorInstaller {
                                                                DynamicType.Builder<?> builder,
                                                                String interceptorClassName,
                                                                MethodPointCutDescriptor pointCutDescriptor) {
+        String simpleClassName = getSimpleClassName(interceptorClassName);
         switch (pointCutDescriptor.getTargetMethodType()) {
-
             case NON_CONSTRUCTOR:
                 return builder.visit(Advice.withCustomMapping()
-                                           .bind(Interceptor.class, interceptorClassName)
+                                           .bind(InterceptorId.class, interceptorClassName)
                                            .to(BootstrapMethodAop.class)
                                            .on(pointCutDescriptor.getMethodMatcher()));
 
             case CONSTRUCTOR:
                 return builder.visit(Advice.withCustomMapping()
-                                           .bind(Interceptor.class, interceptorClassName)
+                                           .bind(InterceptorId.class, interceptorClassName)
                                            .to(BootstrapConstructorAop.class)
                                            .on(isConstructor().and(pointCutDescriptor.getMethodMatcher())));
             case REPLACEMENT:

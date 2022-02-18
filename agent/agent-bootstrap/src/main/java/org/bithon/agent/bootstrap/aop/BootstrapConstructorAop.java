@@ -18,7 +18,7 @@ package org.bithon.agent.bootstrap.aop;
 
 
 import org.bithon.agent.bootstrap.aop.advice.InterceptorManager;
-import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
+import org.bithon.agent.bootstrap.aop.bytebuddy.InterceptorId;
 import shaded.net.bytebuddy.asm.Advice;
 
 import java.lang.reflect.Constructor;
@@ -57,7 +57,7 @@ public class BootstrapConstructorAop {
     }*/
 
     @Advice.OnMethodExit
-    public static void enter(final @Interceptor String interceptorClassName,
+    public static void enter(final @InterceptorId String interceptorClassName,
                              final @Advice.Origin Constructor method,
                              final @Advice.This Object target,
                              @Advice.AllArguments Object[] args) throws Exception {

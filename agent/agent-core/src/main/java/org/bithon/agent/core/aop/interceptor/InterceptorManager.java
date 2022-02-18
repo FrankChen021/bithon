@@ -37,6 +37,9 @@ class InterceptorManager {
 
     private static final ReentrantLock INTERCEPTOR_INSTANTIATION_LOCK = new ReentrantLock();
 
+    /**
+     * @param classLoader can be null
+     */
     static Object loadInterceptor(String interceptorProvider,
                                   String interceptorClassName,
                                   ClassLoader classLoader) throws Exception {
