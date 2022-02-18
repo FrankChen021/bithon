@@ -32,7 +32,7 @@ public class AopContext {
     private final Object[] args;
     private Object userContext;
     private Object returning;
-    private Exception exception;
+    private Throwable exception;
 
     private long startNanoTime;
     private long endNanoTime;
@@ -126,11 +126,11 @@ public class AopContext {
      * exception thrown by intercepted method
      * Note: only available in {@link AbstractInterceptor#onMethodLeave(AopContext)}
      */
-    public Exception getException() {
+    public Throwable getException() {
         return exception;
     }
 
-    public void setException(Exception exception) {
+    public void setException(Throwable exception) {
         this.exception = exception;
     }
 

@@ -104,6 +104,7 @@ public class PluginAopClassGenerator {
                                   Class<?> baseBootstrapAopClass,
                                   String interceptorClass,
                                   MethodPointCutDescriptor methodPointCutDescriptor) {
+        /*
         String targetAopClassName = bootstrapAopClass(interceptorClass);
 
         byte[] aopClassBytes = AopClassHelper.generateAopClass(baseBootstrapAopClass,
@@ -112,5 +113,6 @@ public class PluginAopClassGenerator {
                                                                methodPointCutDescriptor.isDebug()).getBytes();
 
         classesTypeMap.put(targetAopClassName, aopClassBytes);
+         */
     }
 }

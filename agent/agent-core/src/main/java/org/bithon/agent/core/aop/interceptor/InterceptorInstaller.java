@@ -25,6 +25,7 @@ import org.bithon.agent.bootstrap.aop.IReplacementInterceptor;
 import org.bithon.agent.bootstrap.aop.ISuperMethod;
 import org.bithon.agent.bootstrap.aop.MethodAop;
 import org.bithon.agent.bootstrap.aop.ReplaceMethodAop;
+import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.aop.AopClassHelper;
 import org.bithon.agent.core.aop.AopDebugger;
@@ -33,6 +34,7 @@ import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
+import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.implementation.FieldAccessor;
@@ -50,6 +52,7 @@ import java.util.Set;
 
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.isSynthetic;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 
@@ -74,13 +77,38 @@ public class InterceptorInstaller {
                                                                DynamicType.Builder<?> builder,
                                                                String interceptorClassName,
                                                                MethodPointCutDescriptor pointCutDescriptor) {
+        switch (pointCutDescriptor.getTargetMethodType()) {
+
+            case NON_CONSTRUCTOR:
+                return builder.visit(Advice.withCustomMapping()
+                                           .bind(Interceptor.class, interceptorClassName)
+                                           .to(BootstrapMethodAop.class)
+                                           .on(pointCutDescriptor.getMethodMatcher()));
+
+            case CONSTRUCTOR:
+                return builder.visit(Advice.withCustomMapping()
+                                           .bind(Interceptor.class, interceptorClassName)
+                                           .to(BootstrapConstructorAop.class)
+                                           .on(isConstructor().and(pointCutDescriptor.getMethodMatcher())));
+            case REPLACEMENT:
+                log.error("REPLACEMENT on JDK class [{}] is not allowed", typeDescription.getName());
+                break;
+
+            default:
+                log.warn("Interceptor[{}] ignored due to unknown method type {}", interceptorClassName, pointCutDescriptor.getTargetMethodType().name());
+                break;
+        }
+
+        return builder;
+        /*
         try {
             switch (pointCutDescriptor.getTargetMethodType()) {
                 case NON_CONSTRUCTOR:
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
+                        .
                                      .intercept(MethodDelegation.withDefaultConfiguration()
                                                                 .withBinders(Morph.Binder.install(ISuperMethod.class))
-                                                                .to(getBootstrapAopClass(interceptorClassName)));
+                                                                .to(BootstrapMethodAop.class));
                     break;
 
                 case REPLACEMENT:
@@ -90,7 +118,7 @@ public class InterceptorInstaller {
                 case CONSTRUCTOR:
                     builder = builder.constructor(pointCutDescriptor.getMethodMatcher())
                                      .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation.withDefaultConfiguration()
-                                                                                                 .to(getBootstrapAopClass(interceptorClassName))));
+                                                                                                 .to(BootstrapConstructorAop.class)));
                     break;
 
                 default:
@@ -107,6 +135,7 @@ public class InterceptorInstaller {
         }
 
         return builder;
+         */
     }
 
     /**

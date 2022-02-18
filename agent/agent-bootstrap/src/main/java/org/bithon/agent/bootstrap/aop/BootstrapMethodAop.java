@@ -16,14 +16,12 @@
 
 package org.bithon.agent.bootstrap.aop;
 
-import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
-import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
-import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
-import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
-import shaded.net.bytebuddy.implementation.bind.annotation.This;
+import org.bithon.agent.bootstrap.aop.advice.InterceptorManager;
+import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
+import shaded.net.bytebuddy.asm.Advice;
+import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
 import java.lang.reflect.Method;
-import java.util.Locale;
 
 
 /**
@@ -31,60 +29,99 @@ import java.util.Locale;
  * @date 2021-02-18 20:20
  */
 public class BootstrapMethodAop {
-    /**
-     * assigned by org.bithon.agent.core.aop.AopClassGenerator#generateAopClass
-     */
-    private static String INTERCEPTOR_CLASS_NAME;
 
-    private static AbstractInterceptor INTERCEPTOR;
-    private static IAopLogger log;
-
+    /*
     @RuntimeType
-    public static Object intercept(@Origin Class<?> targetClass,
+    public static Object intercept(@Interceptor String interceptorClassName,
+                                   @Origin Class<?> targetClass,
                                    @Morph ISuperMethod superMethod,
                                    @This(optional = true) Object target,
                                    @Origin Method method,
                                    @AllArguments Object[] args) throws Exception {
-        AbstractInterceptor interceptor = ensureInterceptor();
+        AbstractInterceptor interceptor = InterceptorManager.getOrCreateInterceptor(interceptorClassName);
         if (interceptor == null) {
             return superMethod.invoke(args);
         }
 
         return AroundMethodAopImpl.intercept(log,
-                                             INTERCEPTOR,
+                                             interceptor,
                                              targetClass,
                                              superMethod,
                                              target,
                                              method,
                                              args);
-    }
+    }*/
 
-    private static AbstractInterceptor ensureInterceptor() {
-        if (INTERCEPTOR != null) {
-            return INTERCEPTOR;
+    /**
+     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     */
+    @Advice.OnMethodEnter
+    public static boolean onEnter(
+        final @Interceptor String interceptorClassName,
+        final @Advice.Origin Method method,
+        final @Advice.This(optional = true) Object target,
+        @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
+        @Advice.Local("context") Object context
+    ) {
+        boolean executeOnMethodExit = false;
+
+        AbstractInterceptor interceptor = InterceptorManager.getOrCreateInterceptor(interceptorClassName);
+        if (interceptor == null) {
+            return executeOnMethodExit;
         }
 
-        log = BootstrapHelper.createAopLogger(BootstrapMethodAop.class);
+        AopContext aopContext = new AopContext(method.getClass(), method, target, args);
+        context = aopContext;
 
         try {
-            // load class out of sync to eliminate potential dead lock
-            Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
-                                                      true,
-                                                      BootstrapHelper.getPluginClassLoader());
-            synchronized (INTERCEPTOR_CLASS_NAME) {
-                //double check
-                if (INTERCEPTOR != null) {
-                    return INTERCEPTOR;
-                }
-
-                INTERCEPTOR = (AbstractInterceptor) interceptorClass.newInstance();
-            }
-            INTERCEPTOR.initialize();
-
+            executeOnMethodExit = interceptor.onMethodEnter((AopContext) context) == InterceptionDecision.CONTINUE;
         } catch (Exception e) {
-            log.error(String.format(Locale.ENGLISH, "Failed to instantiate interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
+            e.printStackTrace();
         }
-        return INTERCEPTOR;
+
+        //this assignment must be kept since it tells bytebuddy that args might have been re-written
+        // so that bytebyddy re-map the args to original function input argument
+        args = aopContext.getArgs();
+
+        if (!executeOnMethodExit) {
+            return false;
+        }
+
+        aopContext.onBeforeTargetMethodInvocation();
+
+        return true;
+    }
+
+    /**
+     * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
+     */
+    @Advice.OnMethodExit(onThrowable = Throwable.class)
+    public static void onExit(final @Interceptor String interceptorClassName,
+                              final @Advice.Enter boolean executeOnExit,
+                              @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
+                              final @Advice.Thrown Throwable exception,
+                              final @Advice.Local("context") Object context) {
+        if (!executeOnExit || context == null) {
+            return;
+        }
+
+        AopContext aopContext = (AopContext) context;
+        aopContext.onAfterTargetMethodInvocation();
+        aopContext.setException(exception);
+        aopContext.setReturning(returning);
+
+        AbstractInterceptor interceptor = InterceptorManager.getOrCreateInterceptor(interceptorClassName);
+        if (interceptor == null) {
+            return;
+        }
+
+        try {
+            interceptor.onMethodLeave(aopContext);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        returning = aopContext.getReturning();
     }
 }
 

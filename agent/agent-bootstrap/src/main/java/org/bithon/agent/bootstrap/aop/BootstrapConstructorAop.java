@@ -17,13 +17,11 @@
 package org.bithon.agent.bootstrap.aop;
 
 
-import shaded.net.bytebuddy.implementation.bind.annotation.AllArguments;
-import shaded.net.bytebuddy.implementation.bind.annotation.Origin;
-import shaded.net.bytebuddy.implementation.bind.annotation.RuntimeType;
-import shaded.net.bytebuddy.implementation.bind.annotation.This;
+import org.bithon.agent.bootstrap.aop.advice.InterceptorManager;
+import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
+import shaded.net.bytebuddy.asm.Advice;
 
 import java.lang.reflect.Constructor;
-import java.util.Locale;
 
 
 /**
@@ -31,21 +29,17 @@ import java.util.Locale;
  * @date 2021-02-18 18:03
  */
 public class BootstrapConstructorAop {
-    /**
-     * assigned by org.bithon.agent.core.aop.AopClassGenerator#generateAopClass
-     */
-    private static String INTERCEPTOR_CLASS_NAME;
+    private static final IAopLogger log = BootstrapHelper.createAopLogger(BootstrapMethodAop.class);
 
-    private static AbstractInterceptor INTERCEPTOR;
-    private static IAopLogger log;
-
+    /*
     @RuntimeType
-    public static void onConstruct(@Origin Class<?> targetClass,
+    public static void onConstruct(@Interceptor String interceptorClassName,
+                                   @Origin Class<?> targetClass,
                                    @Origin Constructor<?> constructor,
                                    @This Object targetObject,
                                    @AllArguments Object[] args) {
         try {
-            AbstractInterceptor interceptor = ensureInterceptor();
+            AbstractInterceptor interceptor = InterceptorManager.getOrCreateInterceptor(interceptorClassName);
             if (interceptor == null) {
                 return;
             }
@@ -54,38 +48,23 @@ public class BootstrapConstructorAop {
             if (log != null) {
                 log.error(String.format(Locale.ENGLISH,
                                         "Failed to invoke onConstruct interceptor[%s]",
-                                        INTERCEPTOR_CLASS_NAME),
+                                        interceptorClassName),
                           e);
             } else {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 
-    private static AbstractInterceptor ensureInterceptor() {
-        if (INTERCEPTOR != null) {
-            return INTERCEPTOR;
+    @Advice.OnMethodExit
+    public static void enter(final @Interceptor String interceptorClassName,
+                             final @Advice.Origin Constructor method,
+                             final @Advice.This Object target,
+                             @Advice.AllArguments Object[] args) throws Exception {
+        AbstractInterceptor interceptor = InterceptorManager.getOrCreateInterceptor(interceptorClassName);
+        if (interceptor == null) {
+            return;
         }
-
-        log = BootstrapHelper.createAopLogger(BootstrapMethodAop.class);
-
-        try {
-            // load class out of sync to eliminate potential deadlock
-            Class<?> interceptorClass = Class.forName(INTERCEPTOR_CLASS_NAME,
-                                                      true,
-                                                      BootstrapHelper.getPluginClassLoader());
-            synchronized (INTERCEPTOR_CLASS_NAME) {
-                //double check
-                if (INTERCEPTOR != null) {
-                    return INTERCEPTOR;
-                }
-
-                INTERCEPTOR = (AbstractInterceptor) interceptorClass.getDeclaredConstructor().newInstance();
-            }
-            INTERCEPTOR.initialize();
-        } catch (Exception e) {
-            log.error(String.format(Locale.ENGLISH, "Failed to instantiate interceptor [%s]", INTERCEPTOR_CLASS_NAME), e);
-        }
-        return INTERCEPTOR;
+        interceptor.onConstruct(new AopContext(method.getClass(), method, target, args));
     }
 }
