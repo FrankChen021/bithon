@@ -21,6 +21,7 @@ import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
 import shaded.net.bytebuddy.asm.Advice;
 
 import java.lang.reflect.Constructor;
+import java.util.Locale;
 
 
 /**
@@ -28,15 +29,24 @@ import java.lang.reflect.Constructor;
  * @date 2021-02-18 18:03
  */
 public class BootstrapConstructorAop {
+    private static final IAopLogger log = BootstrapHelper.createAopLogger(BootstrapMethodAop.class);
 
     @Advice.OnMethodExit
     public static void onExit(final @Interceptor AbstractInterceptor interceptor,
                               final @Advice.Origin Constructor<?> method,
                               final @Advice.This Object target,
-                              final @Advice.AllArguments Object[] args) throws Exception {
+                              final @Advice.AllArguments Object[] args) {
         if (interceptor == null) {
             return;
         }
-        interceptor.onConstruct(new AopContext(method.getClass(), method, target, args));
+        try {
+            interceptor.onConstruct(new AopContext(method.getClass(), method, target, args));
+        } catch (Exception e) {
+            log.error(String.format(Locale.ENGLISH,
+                                    "Exception occurs when executing onConstruct on interceptor [%s]: %s",
+                                    interceptor.getClass().getName(),
+                                    e.getMessage()),
+                      e);
+        }
     }
 }

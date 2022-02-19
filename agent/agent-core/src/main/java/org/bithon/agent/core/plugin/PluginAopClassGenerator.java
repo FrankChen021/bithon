@@ -64,7 +64,7 @@ public class PluginAopClassGenerator {
                 continue;
             }
             for (MethodPointCutDescriptor pointCut : interceptor.getMethodPointCutDescriptors()) {
-                generateAopClass(pointCut.getInterceptor(),
+                generateAopClass(pointCut.getInterceptorClassName(),
                                  pointCut);
             }
         }
