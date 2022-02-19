@@ -17,8 +17,7 @@
 package org.bithon.agent.bootstrap.aop;
 
 
-import org.bithon.agent.bootstrap.aop.advice.InterceptorManager;
-import org.bithon.agent.bootstrap.aop.bytebuddy.InterceptorId;
+import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
 import shaded.net.bytebuddy.asm.Advice;
 
 import java.lang.reflect.Constructor;
@@ -29,39 +28,12 @@ import java.lang.reflect.Constructor;
  * @date 2021-02-18 18:03
  */
 public class BootstrapConstructorAop {
-    private static final IAopLogger log = BootstrapHelper.createAopLogger(BootstrapMethodAop.class);
-
-    /*
-    @RuntimeType
-    public static void onConstruct(@Interceptor String interceptorClassName,
-                                   @Origin Class<?> targetClass,
-                                   @Origin Constructor<?> constructor,
-                                   @This Object targetObject,
-                                   @AllArguments Object[] args) {
-        try {
-            AbstractInterceptor interceptor = InterceptorManager.getOrCreateInterceptor(interceptorClassName);
-            if (interceptor == null) {
-                return;
-            }
-            interceptor.onConstruct(new AopContext(targetClass, constructor, targetObject, args));
-        } catch (Throwable e) {
-            if (log != null) {
-                log.error(String.format(Locale.ENGLISH,
-                                        "Failed to invoke onConstruct interceptor[%s]",
-                                        interceptorClassName),
-                          e);
-            } else {
-                e.printStackTrace();
-            }
-        }
-    }*/
 
     @Advice.OnMethodExit
-    public static void enter(final @InterceptorId String interceptorClassName,
-                             final @Advice.Origin Constructor method,
-                             final @Advice.This Object target,
-                             @Advice.AllArguments Object[] args) throws Exception {
-        AbstractInterceptor interceptor = InterceptorManager.getOrCreateInterceptor(interceptorClassName);
+    public static void onExit(final @Interceptor AbstractInterceptor interceptor,
+                              final @Advice.Origin Constructor<?> method,
+                              final @Advice.This Object target,
+                              final @Advice.AllArguments Object[] args) throws Exception {
         if (interceptor == null) {
             return;
         }

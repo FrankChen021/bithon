@@ -16,8 +16,7 @@
 
 package org.bithon.agent.bootstrap.aop;
 
-import org.bithon.agent.bootstrap.aop.advice.InterceptorManager;
-import org.bithon.agent.bootstrap.aop.bytebuddy.InterceptorId;
+import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -30,49 +29,26 @@ import java.lang.reflect.Method;
  */
 public class BootstrapMethodAop {
 
-    /*
-    @RuntimeType
-    public static Object intercept(@Interceptor String interceptorClassName,
-                                   @Origin Class<?> targetClass,
-                                   @Morph ISuperMethod superMethod,
-                                   @This(optional = true) Object target,
-                                   @Origin Method method,
-                                   @AllArguments Object[] args) throws Exception {
-        AbstractInterceptor interceptor = InterceptorManager.getOrCreateInterceptor(interceptorClassName);
-        if (interceptor == null) {
-            return superMethod.invoke(args);
-        }
-
-        return AroundMethodAopImpl.intercept(log,
-                                             interceptor,
-                                             targetClass,
-                                             superMethod,
-                                             target,
-                                             method,
-                                             args);
-    }*/
-
     /**
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodEnter
     public static boolean onEnter(
-        final @InterceptorId String interceptorClassName,
+        final @Interceptor AbstractInterceptor interceptor,
         final @Advice.Origin Method method,
         final @Advice.This(optional = true) Object target,
         @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
         @Advice.Local("context") Object context
     ) {
-        boolean executeOnMethodExit = false;
-
-        AbstractInterceptor interceptor = InterceptorManager.getOrCreateInterceptor(interceptorClassName);
+        //AbstractInterceptor interceptor = (AbstractInterceptor) interceptorClassName; //InterceptorManager.getOrCreateInterceptor(interceptorClassName);
         if (interceptor == null) {
-            return executeOnMethodExit;
+            return false;
         }
 
         AopContext aopContext = new AopContext(method.getClass(), method, target, args);
         context = aopContext;
 
+        boolean executeOnMethodExit = false;
         try {
             executeOnMethodExit = interceptor.onMethodEnter((AopContext) context) == InterceptionDecision.CONTINUE;
         } catch (Exception e) {
@@ -96,7 +72,7 @@ public class BootstrapMethodAop {
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void onExit(final @InterceptorId String interceptorClassName,
+    public static void onExit(final @Interceptor Object interceptorClassName,
                               final @Advice.Enter boolean executeOnExit,
                               @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
                               final @Advice.Thrown Throwable exception,
@@ -110,7 +86,7 @@ public class BootstrapMethodAop {
         aopContext.setException(exception);
         aopContext.setReturning(returning);
 
-        AbstractInterceptor interceptor = InterceptorManager.getOrCreateInterceptor(interceptorClassName);
+        AbstractInterceptor interceptor = (AbstractInterceptor) interceptorClassName; //InterceptorManager.getOrCreateInterceptor(interceptorClassName);
         if (interceptor == null) {
             return;
         }

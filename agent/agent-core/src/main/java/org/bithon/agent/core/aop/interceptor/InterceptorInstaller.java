@@ -25,9 +25,8 @@ import org.bithon.agent.bootstrap.aop.IReplacementInterceptor;
 import org.bithon.agent.bootstrap.aop.ISuperMethod;
 import org.bithon.agent.bootstrap.aop.MethodAop;
 import org.bithon.agent.bootstrap.aop.ReplaceMethodAop;
-import org.bithon.agent.bootstrap.aop.bytebuddy.InterceptorId;
+import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
 import org.bithon.agent.bootstrap.expt.AgentException;
-import org.bithon.agent.core.aop.AopClassHelper;
 import org.bithon.agent.core.aop.AopDebugger;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
@@ -35,9 +34,14 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
+import shaded.net.bytebuddy.description.annotation.AnnotationList;
+import shaded.net.bytebuddy.description.field.FieldDescription;
+import shaded.net.bytebuddy.description.modifier.Ownership;
+import shaded.net.bytebuddy.description.modifier.Visibility;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.implementation.FieldAccessor;
+import shaded.net.bytebuddy.implementation.LoadedTypeInitializer;
 import shaded.net.bytebuddy.implementation.MethodDelegation;
 import shaded.net.bytebuddy.implementation.SuperMethodCall;
 import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
@@ -46,13 +50,14 @@ import shaded.net.bytebuddy.matcher.StringSetMatcher;
 import shaded.net.bytebuddy.utility.JavaModule;
 
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
+import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.isSynthetic;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 
@@ -62,6 +67,8 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
  */
 public class InterceptorInstaller {
     private static final ILogAdaptor log = LoggerFactory.getLogger(InterceptorInstaller.class);
+
+    private static final TypeDescription INTERCEPTOR_TYPE = new TypeDescription.ForLoadedType(AbstractInterceptor.class);
 
     private final Descriptors descriptors;
 
@@ -77,19 +84,24 @@ public class InterceptorInstaller {
                                                                DynamicType.Builder<?> builder,
                                                                String interceptorClassName,
                                                                MethodPointCutDescriptor pointCutDescriptor) {
-        String simpleClassName = getSimpleClassName(interceptorClassName);
+
+        String fieldName = "__" + getSimpleClassName(interceptorClassName);
         switch (pointCutDescriptor.getTargetMethodType()) {
             case NON_CONSTRUCTOR:
-                return builder.visit(Advice.withCustomMapping()
-                                           .bind(InterceptorId.class, interceptorClassName)
+                return builder.defineField(fieldName, INTERCEPTOR_TYPE, Ownership.STATIC, Visibility.PRIVATE)
+                              .initializer(new InterceptorFieldInitializer(fieldName, interceptorClassName))
+                              .visit(Advice.withCustomMapping()
+                                           .bind(Interceptor.class, new DynamicFieldDescription(typeDescription, fieldName))
                                            .to(BootstrapMethodAop.class)
                                            .on(pointCutDescriptor.getMethodMatcher()));
 
             case CONSTRUCTOR:
-                return builder.visit(Advice.withCustomMapping()
-                                           .bind(InterceptorId.class, interceptorClassName)
+                return builder.defineField(fieldName, INTERCEPTOR_TYPE, Ownership.STATIC, Visibility.PRIVATE)
+                              .initializer(new InterceptorFieldInitializer(fieldName, interceptorClassName))
+                              .visit(Advice.withCustomMapping()
+                                           .bind(Interceptor.class, new DynamicFieldDescription(typeDescription, fieldName))
                                            .to(BootstrapConstructorAop.class)
-                                           .on(isConstructor().and(pointCutDescriptor.getMethodMatcher())));
+                                           .on(pointCutDescriptor.getMethodMatcher()));
             case REPLACEMENT:
                 log.error("REPLACEMENT on JDK class [{}] is not allowed", typeDescription.getName());
                 break;
@@ -100,53 +112,6 @@ public class InterceptorInstaller {
         }
 
         return builder;
-        /*
-        try {
-            switch (pointCutDescriptor.getTargetMethodType()) {
-                case NON_CONSTRUCTOR:
-                    builder = builder.method(pointCutDescriptor.getMethodMatcher())
-                        .
-                                     .intercept(MethodDelegation.withDefaultConfiguration()
-                                                                .withBinders(Morph.Binder.install(ISuperMethod.class))
-                                                                .to(BootstrapMethodAop.class));
-                    break;
-
-                case REPLACEMENT:
-                    log.error("REPLACEMENT on JDK class [{}] is not allowed", typeDescription.getName());
-                    break;
-
-                case CONSTRUCTOR:
-                    builder = builder.constructor(pointCutDescriptor.getMethodMatcher())
-                                     .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation.withDefaultConfiguration()
-                                                                                                 .to(BootstrapConstructorAop.class)));
-                    break;
-
-                default:
-                    log.warn("Interceptor[{}] ignored due to unknown method type {}", interceptorClassName, pointCutDescriptor.getTargetMethodType().name());
-                    break;
-            }
-        } catch (Exception e) {
-            log.error(String.format(Locale.ENGLISH, "Failed to load interceptor[%s] due to [%s]", interceptorClassName, e.getMessage()), e);
-            return builder;
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Interceptor[{}] loaded for target method[{}]", interceptorClassName, pointCutDescriptor.toString());
-        }
-
-        return builder;
-         */
-    }
-
-    /**
-     * get generated AOP class that has been injected into bootstrap class loader during startup
-     */
-    private Class<?> getBootstrapAopClass(String methodsInterceptor) {
-        try {
-            return Class.forName(AopClassHelper.bootstrapAopClass(methodsInterceptor));
-        } catch (ClassNotFoundException e) {
-            throw new AgentException(e.getMessage(), e);
-        }
     }
 
     private DynamicType.Builder<?> installInterceptor(DynamicType.Builder<?> builder,
@@ -239,7 +204,7 @@ public class InterceptorInstaller {
                 }
 
                 //
-                // install interceptor
+                // install interceptors for current matched type
                 //
                 for (Descriptors.MethodPointCuts mp : descriptor.getMethodPointCuts()) {
                     builder = installInterceptor(mp, builder, typeDescription, classLoader);
@@ -273,6 +238,7 @@ public class InterceptorInstaller {
                      getSimpleClassName(pointCut.getInterceptor()),
                      getSimpleClassName(typeDescription.getName()),
                      pointCut);
+
             if (classLoader == null) {
                 builder = installBootstrapInterceptor(typeDescription, builder, pointCut.getInterceptor(), pointCut);
             } else {
@@ -280,5 +246,85 @@ public class InterceptorInstaller {
             }
         }
         return builder;
+    }
+
+    static class DynamicFieldDescription extends FieldDescription.InDefinedShape.AbstractBase {
+        private final TypeDescription declaringType;
+        private final String fieldName;
+
+        DynamicFieldDescription(TypeDescription declaringType, String fieldName) {
+            this.declaringType = declaringType;
+            this.fieldName = fieldName;
+        }
+
+        @Override
+        public TypeDescription getDeclaringType() {
+            return declaringType;
+        }
+
+        @Override
+        public TypeDescription.Generic getType() {
+            return INTERCEPTOR_TYPE.asGenericType();
+        }
+
+        @Override
+        public int getModifiers() {
+            return ACC_PRIVATE | ACC_STATIC;
+        }
+
+        @Override
+        public String getName() {
+            return fieldName;
+        }
+
+        @Override
+        public AnnotationList getDeclaredAnnotations() {
+            return null;
+        }
+    }
+
+    private static class InterceptorFieldInitializer implements LoadedTypeInitializer {
+        private final String simpleClassName;
+        private final String interceptorClassName;
+
+        public InterceptorFieldInitializer(String simpleClassName, String interceptorClassName) {
+            this.simpleClassName = simpleClassName;
+            this.interceptorClassName = interceptorClassName;
+        }
+
+        @Override
+        public void onLoad(Class<?> type) {
+            try {
+                Field field = type.getDeclaredField(simpleClassName);
+                field.setAccessible(true);
+
+                Object interceptor;
+                try {
+                    interceptor = InterceptorManager.loadInterceptor("", interceptorClassName, null);
+                    if (interceptor == null) {
+                        log.info("Interceptor[{}] initial failed, interceptor ignored", interceptorClassName);
+                        return;
+                    }
+                } catch (Exception e) {
+                    log.error(String.format(Locale.ENGLISH,
+                                            "Failed to load interceptor[%s] due to %s",
+                                            interceptorClassName,
+                                            e.getMessage()), e);
+                    return;
+                }
+                field.set(null, interceptor);
+
+            } catch (Exception e) {
+                log.error(String.format(Locale.ENGLISH,
+                                        "Failed to load interceptor[%s] due to %s",
+                                        interceptorClassName,
+                                        e.getMessage()), e);
+            }
+        }
+
+        @Override
+        public boolean isAlive() {
+            return true;
+        }
     }
 }
