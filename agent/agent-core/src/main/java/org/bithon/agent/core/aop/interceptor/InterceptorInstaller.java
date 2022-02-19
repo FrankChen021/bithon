@@ -17,13 +17,15 @@
 package org.bithon.agent.core.aop.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.BootstrapConstructorAop;
-import org.bithon.agent.bootstrap.aop.BootstrapMethodAop;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.IReplacementInterceptor;
 import org.bithon.agent.bootstrap.aop.ISuperMethod;
 import org.bithon.agent.bootstrap.aop.ReplaceMethodAop;
-import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
+import org.bithon.agent.bootstrap.aop.advice.ConstructorInterceptorAdvice;
+import org.bithon.agent.bootstrap.aop.advice.Interceptor;
+import org.bithon.agent.bootstrap.aop.advice.MethodInterceptorAdvice;
+import org.bithon.agent.bootstrap.aop.advice.StaticFieldDescription;
+import org.bithon.agent.bootstrap.aop.advice.StaticFieldInitializer;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.aop.AopDebugger;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
@@ -32,12 +34,9 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
-import shaded.net.bytebuddy.description.annotation.AnnotationList;
-import shaded.net.bytebuddy.description.field.FieldDescription;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.implementation.FieldAccessor;
-import shaded.net.bytebuddy.implementation.LoadedTypeInitializer;
 import shaded.net.bytebuddy.implementation.MethodDelegation;
 import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
 import shaded.net.bytebuddy.matcher.NameMatcher;
@@ -45,7 +44,6 @@ import shaded.net.bytebuddy.matcher.StringSetMatcher;
 import shaded.net.bytebuddy.utility.JavaModule;
 
 import java.lang.instrument.Instrumentation;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -65,7 +63,7 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 public class InterceptorInstaller {
     private static final ILogAdaptor log = LoggerFactory.getLogger(InterceptorInstaller.class);
 
-    private static final TypeDescription INTERCEPTOR_TYPE = new TypeDescription.ForLoadedType(AbstractInterceptor.class);
+    private final TypeDescription INTERCEPTOR_TYPE = new TypeDescription.ForLoadedType(AbstractInterceptor.class);
 
     private final Descriptors descriptors;
 
@@ -113,7 +111,7 @@ public class InterceptorInstaller {
             .with(new AopDebugger(types)).installOn(inst);
     }
 
-    public static class Installer {
+    public class Installer {
         private final Map<String, InterceptorStruct> interceptors = new HashMap<>();
         private final Descriptors.MethodPointCuts mp;
         private final TypeDescription typeDescription;
@@ -195,14 +193,20 @@ public class InterceptorInstaller {
             switch (pointCutDescriptor.getTargetMethodType()) {
                 case NON_CONSTRUCTOR:
                     builder = builder.visit(Advice.withCustomMapping()
-                                                  .bind(Interceptor.class, new StaticFieldDescription(typeDescription, interceptor.getFieldName()))
-                                                  .to(BootstrapMethodAop.class)
+                                                  .bind(Interceptor.class,
+                                                        new StaticFieldDescription(typeDescription,
+                                                                                   interceptor.getFieldName(),
+                                                                                   INTERCEPTOR_TYPE.asGenericType()))
+                                                  .to(MethodInterceptorAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
                     break;
                 case CONSTRUCTOR:
                     builder = builder.visit(Advice.withCustomMapping()
-                                                  .bind(Interceptor.class, new StaticFieldDescription(typeDescription, interceptor.getFieldName()))
-                                                  .to(BootstrapConstructorAop.class)
+                                                  .bind(Interceptor.class,
+                                                        new StaticFieldDescription(typeDescription,
+                                                                                   interceptor.getFieldName(),
+                                                                                   INTERCEPTOR_TYPE.asGenericType()))
+                                                  .to(ConstructorInterceptorAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
                     break;
                 case REPLACEMENT:
@@ -233,7 +237,7 @@ public class InterceptorInstaller {
             return dot == -1 ? className : className.substring(dot + 1);
         }
 
-        static class InterceptorStruct {
+        class InterceptorStruct {
             private final String fieldName;
             private final Object interceptor;
 
@@ -249,70 +253,6 @@ public class InterceptorInstaller {
             public Object getInterceptor() {
                 return interceptor;
             }
-        }
-    }
-
-    static class StaticFieldDescription extends FieldDescription.InDefinedShape.AbstractBase {
-        private final TypeDescription declaringType;
-        private final String fieldName;
-
-        StaticFieldDescription(TypeDescription declaringType, String fieldName) {
-            this.declaringType = declaringType;
-            this.fieldName = fieldName;
-        }
-
-        @Override
-        public TypeDescription getDeclaringType() {
-            return declaringType;
-        }
-
-        @Override
-        public TypeDescription.Generic getType() {
-            return INTERCEPTOR_TYPE.asGenericType();
-        }
-
-        @Override
-        public int getModifiers() {
-            return ACC_PRIVATE | ACC_STATIC;
-        }
-
-        @Override
-        public String getName() {
-            return fieldName;
-        }
-
-        @Override
-        public AnnotationList getDeclaredAnnotations() {
-            return null;
-        }
-    }
-
-    private static class StaticFieldInitializer implements LoadedTypeInitializer {
-        private final String fieldName;
-        private final Object value;
-
-        public StaticFieldInitializer(String fieldName, Object value) {
-            this.fieldName = fieldName;
-            this.value = value;
-        }
-
-        @Override
-        public void onLoad(Class<?> type) {
-            try {
-                Field field = type.getDeclaredField(fieldName);
-                field.setAccessible(true);
-                field.set(null, value);
-            } catch (Exception e) {
-                log.error(String.format(Locale.ENGLISH,
-                                        "Failed to inject interceptor[%s] due to %s",
-                                        value.getClass().getName(),
-                                        e.getMessage()), e);
-            }
-        }
-
-        @Override
-        public boolean isAlive() {
-            return true;
         }
     }
 }

@@ -17,6 +17,8 @@
 package org.bithon.agent.core.aop;
 
 
+import org.bithon.agent.bootstrap.aop.advice.ConstructorInterceptorAdvice;
+import org.bithon.agent.bootstrap.aop.advice.MethodInterceptorAdvice;
 import shaded.net.bytebuddy.ByteBuddy;
 import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.dynamic.loading.ClassInjector;
@@ -29,8 +31,8 @@ import java.util.Map;
  * Create an Aop class based on a class template.
  * Such template can be one of following:
  * {@link org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate}
- * {@link org.bithon.agent.bootstrap.aop.BootstrapConstructorAop}
- * {@link org.bithon.agent.bootstrap.aop.BootstrapMethodAop}
+ * {@link ConstructorInterceptorAdvice}
+ * {@link MethodInterceptorAdvice}
  *
  * @author frankchen
  * @date 2021-02-18 19:23

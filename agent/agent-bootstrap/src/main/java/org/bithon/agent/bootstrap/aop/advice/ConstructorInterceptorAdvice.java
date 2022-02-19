@@ -14,10 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.bootstrap.aop;
+package org.bithon.agent.bootstrap.aop.advice;
 
 
-import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
+import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.BootstrapHelper;
+import org.bithon.agent.bootstrap.aop.IAopLogger;
 import shaded.net.bytebuddy.asm.Advice;
 
 import java.lang.reflect.Constructor;
@@ -28,8 +31,8 @@ import java.util.Locale;
  * @author frankchen
  * @date 2021-02-18 18:03
  */
-public class BootstrapConstructorAop {
-    private static final IAopLogger log = BootstrapHelper.createAopLogger(BootstrapMethodAop.class);
+public class ConstructorInterceptorAdvice {
+    private static final IAopLogger log = BootstrapHelper.createAopLogger(MethodInterceptorAdvice.class);
 
     @Advice.OnMethodExit
     public static void onExit(final @Interceptor AbstractInterceptor interceptor,

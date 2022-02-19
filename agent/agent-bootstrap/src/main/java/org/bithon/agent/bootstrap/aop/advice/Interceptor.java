@@ -14,12 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.bootstrap.aop.bytebuddy;
+package org.bithon.agent.bootstrap.aop.advice;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
+ * Custom annotation used on Advice classes to reference the {@link org.bithon.agent.bootstrap.aop.AbstractInterceptor} object
+ * or the {@link org.bithon.agent.bootstrap.aop.IReplacementInterceptor} object
+ *
  * @author Frank Chen
  * @date 18/2/22 8:01 PM
  */

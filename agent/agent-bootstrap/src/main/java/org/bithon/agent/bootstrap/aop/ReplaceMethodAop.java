@@ -32,7 +32,7 @@ public class ReplaceMethodAop {
     }
 
     @RuntimeType
-    public Object intercept(@AllArguments Object[] args) throws Exception {
+    public Object intercept(@AllArguments Object[] args) {
         return interceptor.onExecute(args);
     }
 }

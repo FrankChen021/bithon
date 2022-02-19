@@ -14,9 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.bootstrap.aop;
+package org.bithon.agent.bootstrap.aop.advice;
 
-import org.bithon.agent.bootstrap.aop.bytebuddy.Interceptor;
+import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
@@ -27,7 +29,7 @@ import java.lang.reflect.Method;
  * @author frankchen
  * @date 2021-02-18 20:20
  */
-public class BootstrapMethodAop {
+public class MethodInterceptorAdvice {
 
     /**
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class

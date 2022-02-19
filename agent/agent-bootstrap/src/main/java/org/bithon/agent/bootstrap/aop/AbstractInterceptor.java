@@ -46,11 +46,4 @@ public abstract class AbstractInterceptor {
      */
     public void onMethodLeave(AopContext aopContext) throws Exception {
     }
-
-    /**
-     * Replacement interceptor
-     */
-    public Object onExecute(Object[] args) {
-        return null;
-    }
 }
