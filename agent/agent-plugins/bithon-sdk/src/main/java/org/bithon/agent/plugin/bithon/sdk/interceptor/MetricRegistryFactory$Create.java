@@ -41,7 +41,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021-10-01
  */
-public class MetricRegistryFactory$Create implements IReplacementInterceptor {
+public class MetricRegistryFactory$Create extends IReplacementInterceptor {
 
     private static final ILogAdaptor log = LoggerFactory.getLogger(MetricRegistryFactory$Create.class);
 

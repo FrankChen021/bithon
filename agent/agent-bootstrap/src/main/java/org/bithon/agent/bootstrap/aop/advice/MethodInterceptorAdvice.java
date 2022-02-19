@@ -42,7 +42,6 @@ public class MethodInterceptorAdvice {
         @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
         @Advice.Local("context") Object context
     ) {
-        //AbstractInterceptor interceptor = (AbstractInterceptor) interceptorClassName; //InterceptorManager.getOrCreateInterceptor(interceptorClassName);
         if (interceptor == null) {
             return false;
         }
@@ -74,12 +73,12 @@ public class MethodInterceptorAdvice {
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
      */
     @Advice.OnMethodExit(onThrowable = Throwable.class)
-    public static void onExit(final @Interceptor Object interceptorClassName,
-                              final @Advice.Enter boolean executeOnExit,
+    public static void onExit(final @Interceptor AbstractInterceptor interceptor,
+                              final @Advice.Enter boolean shouldExecute,
                               @Advice.Return(typing = Assigner.Typing.DYNAMIC, readOnly = false) Object returning,
                               final @Advice.Thrown Throwable exception,
                               final @Advice.Local("context") Object context) {
-        if (!executeOnExit || context == null) {
+        if (!shouldExecute || context == null) {
             return;
         }
 
@@ -88,7 +87,6 @@ public class MethodInterceptorAdvice {
         aopContext.setException(exception);
         aopContext.setReturning(returning);
 
-        AbstractInterceptor interceptor = (AbstractInterceptor) interceptorClassName; //InterceptorManager.getOrCreateInterceptor(interceptorClassName);
         if (interceptor == null) {
             return;
         }

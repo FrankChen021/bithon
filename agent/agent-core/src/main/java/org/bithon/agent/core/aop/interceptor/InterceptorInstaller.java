@@ -74,6 +74,24 @@ public class InterceptorInstaller {
     public void installOn(AgentBuilder agentBuilder, Instrumentation inst) {
         Set<String> types = new HashSet<>(descriptors.getTypes());
 
+        /**
+        {
+            DynamicType.Builder<?> builder = new ByteBuddy().makeRecord()
+                                                            .name("org.bithon.agent.bootstrap.aop.Interceptors");
+            for (String type : types) {
+                for (Descriptors.MethodPointCuts pointCuts : descriptors.get(type).getMethodPointCuts()) {
+                    for (MethodPointCutDescriptor descriptor : pointCuts.getMethodInterceptors()) {
+                        String fieldName = "intcep" + getSimpleClassName(descriptor.getInterceptorClassName());
+                        builder = builder.defineField(fieldName, INTERCEPTOR_TYPE, ACC_PRIVATE | ACC_STATIC);
+                    }
+                }
+            }
+            DynamicType.Unloaded<?> interceptors = builder.make();
+            AopClassHelper.inject(interceptors);
+        }
+        Class interceptorsHolderClass = Class.forName();
+         */
+
         agentBuilder
             .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(nameStartsWith("shaded.").or(isSynthetic())))
             .type(new NameMatcher<>(new StringSetMatcher(types)))
@@ -232,11 +250,6 @@ public class InterceptorInstaller {
             }
         }
 
-        private String getSimpleClassName(String className) {
-            int dot = className.lastIndexOf('.');
-            return dot == -1 ? className : className.substring(dot + 1);
-        }
-
         class InterceptorStruct {
             private final String fieldName;
             private final Object interceptor;
@@ -254,5 +267,11 @@ public class InterceptorInstaller {
                 return interceptor;
             }
         }
+    }
+
+
+    private static String getSimpleClassName(String className) {
+        int dot = className.lastIndexOf('.');
+        return dot == -1 ? className : className.substring(dot + 1);
     }
 }

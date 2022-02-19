@@ -20,6 +20,20 @@ package org.bithon.agent.bootstrap.aop;
  * @author Frank Chen
  * @date 3/10/21 16:23
  */
-public interface IReplacementInterceptor {
-    Object onExecute(Object[] args);
+public abstract class IReplacementInterceptor extends AbstractInterceptor {
+
+    @Override
+    public final void onConstruct(AopContext aopContext) throws Exception {
+    }
+
+    @Override
+    public final InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+        return super.onMethodEnter(aopContext);
+    }
+
+    @Override
+    public final void onMethodLeave(AopContext aopContext) throws Exception {
+    }
+
+    public abstract Object onExecute(Object[] args);
 }
