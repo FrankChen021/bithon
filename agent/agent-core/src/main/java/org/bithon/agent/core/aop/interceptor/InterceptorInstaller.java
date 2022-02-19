@@ -176,7 +176,7 @@ public class InterceptorInstaller {
                 return;
             }
 
-            String fieldName = "__" + getSimpleClassName(interceptorClass);
+            String fieldName = "intcep" + getSimpleClassName(interceptorClass);
             builder = builder.defineField(fieldName, INTERCEPTOR_TYPE, ACC_PRIVATE | ACC_STATIC)
                              .initializer(new StaticFieldInitializer(fieldName, interceptor));
             this.interceptors.put(interceptorClass, new InterceptorStruct(fieldName, interceptor));

@@ -32,7 +32,9 @@ public class StaticFieldDescription extends FieldDescription.InDefinedShape.Abst
     private final String fieldName;
     private final TypeDescription.Generic fieldType;
 
-    public StaticFieldDescription(TypeDescription declaringType, String fieldName, TypeDescription.Generic fieldType) {
+    public StaticFieldDescription(TypeDescription declaringType,
+                                  String fieldName,
+                                  TypeDescription.Generic fieldType) {
         this.declaringType = declaringType;
         this.fieldName = fieldName;
         this.fieldType = fieldType;
