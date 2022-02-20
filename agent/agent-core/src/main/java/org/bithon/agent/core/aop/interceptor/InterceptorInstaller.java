@@ -20,12 +20,12 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.IReplacementInterceptor;
 import org.bithon.agent.bootstrap.aop.ISuperMethod;
+import org.bithon.agent.bootstrap.aop.Interceptors;
 import org.bithon.agent.bootstrap.aop.ReplaceMethodAop;
 import org.bithon.agent.bootstrap.aop.advice.ConstructorInterceptorAdvice;
 import org.bithon.agent.bootstrap.aop.advice.Interceptor;
 import org.bithon.agent.bootstrap.aop.advice.MethodInterceptorAdvice;
 import org.bithon.agent.bootstrap.aop.advice.StaticFieldDescription;
-import org.bithon.agent.bootstrap.aop.advice.StaticFieldInitializer;
 import org.bithon.agent.bootstrap.expt.AgentException;
 import org.bithon.agent.core.aop.AopDebugger;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
@@ -34,11 +34,14 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
+import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.implementation.FieldAccessor;
+import shaded.net.bytebuddy.implementation.MethodCall;
 import shaded.net.bytebuddy.implementation.MethodDelegation;
 import shaded.net.bytebuddy.implementation.bind.annotation.Morph;
+import shaded.net.bytebuddy.matcher.ElementMatchers;
 import shaded.net.bytebuddy.matcher.NameMatcher;
 import shaded.net.bytebuddy.matcher.StringSetMatcher;
 import shaded.net.bytebuddy.utility.JavaModule;
@@ -55,6 +58,7 @@ import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_VOLATILE;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.isSynthetic;
 import static shaded.net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
+import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
 
 /**
  * @author frank.chen021@outlook.com
@@ -71,25 +75,30 @@ public class InterceptorInstaller {
         this.descriptors = descriptors;
     }
 
+    private static String getSimpleClassName(String className) {
+        int dot = className.lastIndexOf('.');
+        return dot == -1 ? className : className.substring(dot + 1);
+    }
+
     public void installOn(AgentBuilder agentBuilder, Instrumentation inst) {
         Set<String> types = new HashSet<>(descriptors.getTypes());
 
         /**
-        {
-            DynamicType.Builder<?> builder = new ByteBuddy().makeRecord()
-                                                            .name("org.bithon.agent.bootstrap.aop.Interceptors");
-            for (String type : types) {
-                for (Descriptors.MethodPointCuts pointCuts : descriptors.get(type).getMethodPointCuts()) {
-                    for (MethodPointCutDescriptor descriptor : pointCuts.getMethodInterceptors()) {
-                        String fieldName = "intcep" + getSimpleClassName(descriptor.getInterceptorClassName());
-                        builder = builder.defineField(fieldName, INTERCEPTOR_TYPE, ACC_PRIVATE | ACC_STATIC);
-                    }
-                }
-            }
-            DynamicType.Unloaded<?> interceptors = builder.make();
-            AopClassHelper.inject(interceptors);
-        }
-        Class interceptorsHolderClass = Class.forName();
+         {
+         DynamicType.Builder<?> builder = new ByteBuddy().makeRecord()
+         .name("org.bithon.agent.bootstrap.aop.Interceptors");
+         for (String type : types) {
+         for (Descriptors.MethodPointCuts pointCuts : descriptors.get(type).getMethodPointCuts()) {
+         for (MethodPointCutDescriptor descriptor : pointCuts.getMethodInterceptors()) {
+         String fieldName = "intcep" + getSimpleClassName(descriptor.getInterceptorClassName());
+         builder = builder.defineField(fieldName, INTERCEPTOR_TYPE, ACC_PRIVATE | ACC_STATIC);
+         }
+         }
+         }
+         DynamicType.Unloaded<?> interceptors = builder.make();
+         AopClassHelper.inject(interceptors);
+         }
+         Class interceptorsHolderClass = Class.forName();
          */
 
         agentBuilder
@@ -130,6 +139,7 @@ public class InterceptorInstaller {
     }
 
     public class Installer {
+        final MethodDescription f;
         private final Map<String, InterceptorStruct> interceptors = new HashMap<>();
         private final Descriptors.MethodPointCuts mp;
         private final TypeDescription typeDescription;
@@ -147,6 +157,11 @@ public class InterceptorInstaller {
             this.mp = mp;
             this.typeDescription = typeDescription;
             this.classLoader = classLoader;
+
+            f = new TypeDescription.ForLoadedType(Interceptors.class)
+                .getDeclaredMethods()
+                .filter(named("getInterceptor"))
+                .getOnly();
         }
 
         public DynamicType.Builder<?> install() {
@@ -196,7 +211,11 @@ public class InterceptorInstaller {
 
             String fieldName = "intcep" + getSimpleClassName(interceptorClass);
             builder = builder.defineField(fieldName, INTERCEPTOR_TYPE, ACC_PRIVATE | ACC_STATIC)
-                             .initializer(new StaticFieldInitializer(fieldName, interceptor));
+                             .invokable(ElementMatchers.isTypeInitializer())
+                             .intercept(MethodCall.invoke(f)
+                                                  .with(pointCutDescriptor.getInterceptorClassName())
+                                                  .with(typeDescription).setsField(named(fieldName)));
+
             this.interceptors.put(interceptorClass, new InterceptorStruct(fieldName, interceptor));
         }
 
@@ -267,11 +286,5 @@ public class InterceptorInstaller {
                 return interceptor;
             }
         }
-    }
-
-
-    private static String getSimpleClassName(String className) {
-        int dot = className.lastIndexOf('.');
-        return dot == -1 ? className : className.substring(dot + 1);
     }
 }
