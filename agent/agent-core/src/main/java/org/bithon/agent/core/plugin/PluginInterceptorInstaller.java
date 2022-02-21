@@ -18,6 +18,7 @@ package org.bithon.agent.core.plugin;
 
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.loader.JarClassLoader;
+import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.interceptor.InterceptorInstaller;
 import org.bithon.agent.core.context.AgentContext;

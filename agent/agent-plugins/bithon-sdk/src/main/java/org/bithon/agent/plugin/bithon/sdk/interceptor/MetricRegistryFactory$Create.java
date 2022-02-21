@@ -17,11 +17,11 @@
 package org.bithon.agent.plugin.bithon.sdk.interceptor;
 
 import org.bithon.agent.bootstrap.aop.IReplacementInterceptor;
+import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector2;
 import org.bithon.agent.core.metric.collector.IMetricCollectorBase;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.plugin.PluginClassLoaderManager;
 import org.bithon.agent.sdk.expt.SdkException;
 import org.bithon.agent.sdk.metric.IMetricsRegistry;
 import org.bithon.agent.sdk.metric.MetricRegistryFactory;
