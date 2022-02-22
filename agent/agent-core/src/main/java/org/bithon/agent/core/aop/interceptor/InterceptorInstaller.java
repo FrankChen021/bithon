@@ -21,8 +21,8 @@ import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptorManager;
 import org.bithon.agent.bootstrap.aop.advice.ConstructorInterceptorAdvice;
 import org.bithon.agent.bootstrap.aop.advice.Interceptor;
+import org.bithon.agent.bootstrap.aop.advice.InterceptorResolver;
 import org.bithon.agent.bootstrap.aop.advice.MethodInterceptorAdvice;
-import org.bithon.agent.bootstrap.aop.advice.StaticFieldDescription;
 import org.bithon.agent.bootstrap.aop.advice.TargetMethod;
 import org.bithon.agent.bootstrap.aop.advice.TargetMethodResolver;
 import org.bithon.agent.core.aop.AopDebugger;
@@ -185,20 +185,14 @@ public class InterceptorInstaller {
             switch (pointCutDescriptor.getTargetMethodType()) {
                 case NON_CONSTRUCTOR:
                     builder = builder.visit(Advice.withCustomMapping()
-                                                  .bind(Interceptor.class,
-                                                        new StaticFieldDescription(typeDescription,
-                                                                                   fieldName,
-                                                                                   INTERCEPTOR_TYPE.asGenericType()))
+                                                  .bind(Interceptor.class, new InterceptorResolver(typeDescription, fieldName))
                                                   .bind(TargetMethod.class, new TargetMethodResolver())
                                                   .to(MethodInterceptorAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
                     break;
                 case CONSTRUCTOR:
                     builder = builder.visit(Advice.withCustomMapping()
-                                                  .bind(Interceptor.class,
-                                                        new StaticFieldDescription(typeDescription,
-                                                                                   fieldName,
-                                                                                   INTERCEPTOR_TYPE.asGenericType()))
+                                                  .bind(Interceptor.class, new InterceptorResolver(typeDescription, fieldName))
                                                   .bind(TargetMethod.class, new TargetMethodResolver())
                                                   .to(ConstructorInterceptorAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));

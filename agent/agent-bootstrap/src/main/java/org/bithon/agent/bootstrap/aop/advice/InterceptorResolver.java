@@ -16,6 +16,7 @@
 
 package org.bithon.agent.bootstrap.aop.advice;
 
+import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import shaded.net.bytebuddy.description.annotation.AnnotationList;
 import shaded.net.bytebuddy.description.field.FieldDescription;
 import shaded.net.bytebuddy.description.type.TypeDescription;
@@ -27,17 +28,16 @@ import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
  * @author Frank Chen
  * @date 19/2/22 3:47 PM
  */
-public class StaticFieldDescription extends FieldDescription.InDefinedShape.AbstractBase {
+public class InterceptorResolver extends FieldDescription.InDefinedShape.AbstractBase {
+    private static final TypeDescription.Generic INTERCEPTOR_TYPE = new TypeDescription.ForLoadedType(AbstractInterceptor.class).asGenericType();
+
     private final TypeDescription declaringType;
     private final String fieldName;
-    private final TypeDescription.Generic fieldType;
 
-    public StaticFieldDescription(TypeDescription declaringType,
-                                  String fieldName,
-                                  TypeDescription.Generic fieldType) {
+    public InterceptorResolver(TypeDescription declaringType,
+                               String fieldName) {
         this.declaringType = declaringType;
         this.fieldName = fieldName;
-        this.fieldType = fieldType;
     }
 
     @Override
@@ -47,7 +47,7 @@ public class StaticFieldDescription extends FieldDescription.InDefinedShape.Abst
 
     @Override
     public TypeDescription.Generic getType() {
-        return fieldType;
+        return INTERCEPTOR_TYPE;
     }
 
     @Override
