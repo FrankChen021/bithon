@@ -16,6 +16,7 @@
 
 package org.bithon.agent.bootstrap.aop.advice;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -27,5 +28,6 @@ import java.lang.annotation.RetentionPolicy;
  * @date 18/2/22 8:01 PM
  */
 @Retention(RetentionPolicy.RUNTIME)
+@java.lang.annotation.Target(ElementType.PARAMETER)
 public @interface Interceptor {
 }

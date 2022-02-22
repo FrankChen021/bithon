@@ -36,6 +36,10 @@ public class InterceptorManager {
 
     private static final ReentrantLock INTERCEPTOR_INSTANTIATION_LOCK = new ReentrantLock();
 
+    /**
+     * Called by injected code in static initializer for target classes
+     * see org.bithon.agent.core.aop.interceptor.InterceptorInstall for more detail
+     */
     public static AbstractInterceptor getInterceptor(String interceptorClassName, Class<?> fromClass) {
         // get interceptor from cache first
         String interceptorId = generateInterceptorId(interceptorClassName, fromClass.getClassLoader());

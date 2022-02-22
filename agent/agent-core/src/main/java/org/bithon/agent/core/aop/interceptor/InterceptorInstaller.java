@@ -34,6 +34,7 @@ import shaded.net.bytebuddy.description.method.MethodDescription;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.implementation.FieldAccessor;
+import shaded.net.bytebuddy.implementation.Implementation;
 import shaded.net.bytebuddy.implementation.MethodCall;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
 import shaded.net.bytebuddy.matcher.NameMatcher;
@@ -57,7 +58,8 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.named;
  * @date 2021/1/24 9:24 下午
  */
 public class InterceptorInstaller {
-    private static final ILogAdaptor log = LoggerFactory.getLogger(InterceptorInstaller.class);
+    // No need to define it as static since this class has very short lifecycle
+    private final ILogAdaptor log = LoggerFactory.getLogger(InterceptorInstaller.class);
 
     private final TypeDescription INTERCEPTOR_TYPE = new TypeDescription.ForLoadedType(AbstractInterceptor.class);
 
@@ -74,24 +76,6 @@ public class InterceptorInstaller {
 
     public void installOn(AgentBuilder agentBuilder, Instrumentation inst) {
         Set<String> types = new HashSet<>(descriptors.getTypes());
-
-        /**
-         {
-         DynamicType.Builder<?> builder = new ByteBuddy().makeRecord()
-         .name("org.bithon.agent.bootstrap.aop.Interceptors");
-         for (String type : types) {
-         for (Descriptors.MethodPointCuts pointCuts : descriptors.get(type).getMethodPointCuts()) {
-         for (MethodPointCutDescriptor descriptor : pointCuts.getMethodInterceptors()) {
-         String fieldName = "intcep" + getSimpleClassName(descriptor.getInterceptorClassName());
-         builder = builder.defineField(fieldName, INTERCEPTOR_TYPE, ACC_PRIVATE | ACC_STATIC);
-         }
-         }
-         }
-         DynamicType.Unloaded<?> interceptors = builder.make();
-         AopClassHelper.inject(interceptors);
-         }
-         Class interceptorsHolderClass = Class.forName();
-         */
 
         agentBuilder
             .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(nameStartsWith("shaded.").or(isSynthetic())))
@@ -131,11 +115,12 @@ public class InterceptorInstaller {
     }
 
     public class Installer {
-        final MethodDescription getInterceptorMethod;
+        private final MethodDescription getInterceptorMethod;
         private final Descriptors.MethodPointCuts mp;
         private final TypeDescription typeDescription;
         private final ClassLoader classLoader;
         private DynamicType.Builder<?> builder;
+        private Implementation.Composable interceptorInitializers;
 
         /**
          * @param classLoader can be NULL. If is NULL, it's Bootstrap class loader
@@ -171,8 +156,11 @@ public class InterceptorInstaller {
                          getSimpleClassName(pointCut.getInterceptorClassName()),
                          getSimpleClassName(typeDescription.getName()),
                          pointCut);
-
                 installInterceptor(pointCut);
+            }
+            if (interceptorInitializers != null) {
+                builder = builder.invokable(ElementMatchers.isTypeInitializer())
+                                 .intercept(interceptorInitializers);
             }
 
             return builder;
@@ -181,11 +169,16 @@ public class InterceptorInstaller {
         private void installInterceptor(MethodPointCutDescriptor pointCutDescriptor) {
 
             String fieldName = "intcep" + getSimpleClassName(pointCutDescriptor.getInterceptorClassName()) + "_" + RandomString.make();
-            builder = builder.defineField(fieldName, INTERCEPTOR_TYPE, ACC_PRIVATE | ACC_STATIC)
-                             .invokable(ElementMatchers.isTypeInitializer())
-                             .intercept(MethodCall.invoke(getInterceptorMethod)
-                                                  .with(pointCutDescriptor.getInterceptorClassName())
-                                                  .with(typeDescription).setsField(named(fieldName)));
+            builder = builder.defineField(fieldName, INTERCEPTOR_TYPE, ACC_PRIVATE | ACC_STATIC);
+
+            MethodCall.FieldSetting interceptorFieldInitializer = MethodCall.invoke(getInterceptorMethod)
+                                                                            .with(pointCutDescriptor.getInterceptorClassName())
+                                                                            .with(typeDescription).setsField(named(fieldName));
+            if (interceptorInitializers == null) {
+                interceptorInitializers = interceptorFieldInitializer;
+            } else {
+                interceptorInitializers = interceptorInitializers.andThen(interceptorFieldInitializer);
+            }
 
             switch (pointCutDescriptor.getTargetMethodType()) {
                 case NON_CONSTRUCTOR:
