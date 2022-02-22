@@ -36,7 +36,7 @@ public class ConstructorInterceptorAdvice {
 
     @Advice.OnMethodExit
     public static void onExit(final @Interceptor AbstractInterceptor interceptor,
-                              final @Advice.Origin Constructor<?> method,
+                              final @TargetMethod Constructor<?> method,
                               final @Advice.This Object target,
                               final @Advice.AllArguments Object[] args) {
         if (interceptor == null) {

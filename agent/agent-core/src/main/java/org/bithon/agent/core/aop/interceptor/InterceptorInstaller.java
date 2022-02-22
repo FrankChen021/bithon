@@ -23,6 +23,8 @@ import org.bithon.agent.bootstrap.aop.advice.ConstructorInterceptorAdvice;
 import org.bithon.agent.bootstrap.aop.advice.Interceptor;
 import org.bithon.agent.bootstrap.aop.advice.MethodInterceptorAdvice;
 import org.bithon.agent.bootstrap.aop.advice.StaticFieldDescription;
+import org.bithon.agent.bootstrap.aop.advice.TargetMethod;
+import org.bithon.agent.bootstrap.aop.advice.TargetMethodResolver;
 import org.bithon.agent.core.aop.AopDebugger;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
@@ -187,6 +189,7 @@ public class InterceptorInstaller {
                                                         new StaticFieldDescription(typeDescription,
                                                                                    fieldName,
                                                                                    INTERCEPTOR_TYPE.asGenericType()))
+                                                  .bind(TargetMethod.class, new TargetMethodResolver())
                                                   .to(MethodInterceptorAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
                     break;
@@ -196,6 +199,7 @@ public class InterceptorInstaller {
                                                         new StaticFieldDescription(typeDescription,
                                                                                    fieldName,
                                                                                    INTERCEPTOR_TYPE.asGenericType()))
+                                                  .bind(TargetMethod.class, new TargetMethodResolver())
                                                   .to(ConstructorInterceptorAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
                     break;

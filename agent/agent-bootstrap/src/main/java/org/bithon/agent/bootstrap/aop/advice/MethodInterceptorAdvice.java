@@ -37,7 +37,7 @@ public class MethodInterceptorAdvice {
     @Advice.OnMethodEnter
     public static boolean onEnter(
         final @Interceptor AbstractInterceptor interceptor,
-        final @Advice.Origin Method method,
+        final @TargetMethod Method method,
         final @Advice.This(optional = true) Object target,
         @Advice.AllArguments(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object[] args,
         @Advice.Local("context") Object context
