@@ -33,6 +33,9 @@ public abstract class AbstractInterceptor {
         return true;
     }
 
+    /**
+     * post processing of a ctor.
+     */
     public void onConstruct(AopContext aopContext) throws Exception {
     }
 
@@ -45,5 +48,13 @@ public abstract class AbstractInterceptor {
      * If {@link #onMethodEnter} returns {@link InterceptionDecision#SKIP_LEAVE}, call of this method will be skipped
      */
     public void onMethodLeave(AopContext aopContext) throws Exception {
+    }
+
+    /**
+     * Replacement of a target method.
+     * Will be executed only when the interceptor is defined as replacement
+     */
+    public Object onExecute(Object[] args) {
+        return null;
     }
 }

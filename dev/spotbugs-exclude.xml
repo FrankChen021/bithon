@@ -23,7 +23,7 @@
         <Class name="~org\.bithon\.agent\.rpc\.thrift.*" />
     </Match>
     <Match>
-        <Class name="org.bithon.agent.bootstrap.aop.advice.ConstructorInterceptorAdvice"/>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.ConstructorDecoratorAdvice"/>
         <Bug pattern="UWF_UNWRITTEN_FIELD" />
     </Match>
     <Match>

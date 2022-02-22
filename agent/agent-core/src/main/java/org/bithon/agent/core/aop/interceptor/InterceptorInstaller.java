@@ -19,10 +19,11 @@ package org.bithon.agent.core.aop.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptorManager;
-import org.bithon.agent.bootstrap.aop.advice.ConstructorInterceptorAdvice;
+import org.bithon.agent.bootstrap.aop.advice.ConstructorDecoratorAdvice;
 import org.bithon.agent.bootstrap.aop.advice.Interceptor;
 import org.bithon.agent.bootstrap.aop.advice.InterceptorResolver;
-import org.bithon.agent.bootstrap.aop.advice.MethodInterceptorAdvice;
+import org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice;
+import org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice;
 import org.bithon.agent.bootstrap.aop.advice.TargetMethod;
 import org.bithon.agent.bootstrap.aop.advice.TargetMethodResolver;
 import org.bithon.agent.core.aop.AopDebugger;
@@ -38,6 +39,7 @@ import shaded.net.bytebuddy.dynamic.DynamicType;
 import shaded.net.bytebuddy.implementation.FieldAccessor;
 import shaded.net.bytebuddy.implementation.Implementation;
 import shaded.net.bytebuddy.implementation.MethodCall;
+import shaded.net.bytebuddy.implementation.StubMethod;
 import shaded.net.bytebuddy.matcher.ElementMatchers;
 import shaded.net.bytebuddy.matcher.NameMatcher;
 import shaded.net.bytebuddy.matcher.StringSetMatcher;
@@ -187,14 +189,14 @@ public class InterceptorInstaller {
                     builder = builder.visit(Advice.withCustomMapping()
                                                   .bind(Interceptor.class, new InterceptorResolver(typeDescription, fieldName))
                                                   .bind(TargetMethod.class, new TargetMethodResolver())
-                                                  .to(MethodInterceptorAdvice.class)
+                                                  .to(MethodDecoratorAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
                     break;
                 case CONSTRUCTOR:
                     builder = builder.visit(Advice.withCustomMapping()
                                                   .bind(Interceptor.class, new InterceptorResolver(typeDescription, fieldName))
                                                   .bind(TargetMethod.class, new TargetMethodResolver())
-                                                  .to(ConstructorInterceptorAdvice.class)
+                                                  .to(ConstructorDecoratorAdvice.class)
                                                   .on(pointCutDescriptor.getMethodMatcher()));
                     break;
                 case REPLACEMENT:
@@ -202,15 +204,10 @@ public class InterceptorInstaller {
                         log.error("REPLACEMENT on JDK class [{}] is not allowed", typeDescription.getName());
                         return;
                     }
-/*
-                    if (!(interceptor.getInterceptor() instanceof IReplacementInterceptor)) {
-                        throw new AgentException("interceptor [%s] does not implement [IReplacementInterceptor]", pointCutDescriptor.getInterceptorClassName());
-                    }
                     builder = builder.method(pointCutDescriptor.getMethodMatcher())
-                                     .intercept(MethodDelegation.withDefaultConfiguration()
-                                                                .withBinders(Morph.Binder.install(ISuperMethod.class))
-                                                                 .to(new ReplaceMethodAop((IReplacementInterceptor) interceptor.getInterceptor())));
- */
+                                     .intercept(Advice.withCustomMapping()
+                                                      .bind(Interceptor.class, new InterceptorResolver(typeDescription, fieldName))
+                                                      .to(MethodReplacementAdvice.class).wrap(StubMethod.INSTANCE));
                     break;
 
                 default:

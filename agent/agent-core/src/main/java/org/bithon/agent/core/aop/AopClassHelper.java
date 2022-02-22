@@ -29,17 +29,14 @@ import java.util.Map;
  * Create an Aop class based on a class template.
  * Such template can be one of following:
  * {@link org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate}
- * {@link org.bithon.agent.bootstrap.aop.advice.ConstructorInterceptorAdvice}
- * {@link org.bithon.agent.bootstrap.aop.advice.MethodInterceptorAdvice}
+ * {@link org.bithon.agent.bootstrap.aop.advice.ConstructorDecoratorAdvice}
+ * {@link org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice}
+ * {@link org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice}
  *
  * @author frankchen
  * @date 2021-02-18 19:23
  */
 public class AopClassHelper {
-
-    public static String bootstrapAopClass(String methodsInterceptor) {
-        return methodsInterceptor + "Aop";
-    }
 
     public static DynamicType.Unloaded<?> generateAopClass(Class<?> aopTemplateClass,
                                                            String targetAopClassName,

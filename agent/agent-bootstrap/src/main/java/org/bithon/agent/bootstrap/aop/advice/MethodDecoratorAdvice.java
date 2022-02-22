@@ -29,7 +29,7 @@ import java.lang.reflect.Method;
  * @author frankchen
  * @date 2021-02-18 20:20
  */
-public class MethodInterceptorAdvice {
+public class MethodDecoratorAdvice {
 
     /**
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
