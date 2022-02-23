@@ -27,7 +27,7 @@ package org.bithon.agent.bootstrap.aop;
  */
 public interface IAopLogger {
 
+    void warn(String messageFormat, Object... args);
     void warn(String message, Throwable e);
-
     void error(String message, Throwable e);
 }

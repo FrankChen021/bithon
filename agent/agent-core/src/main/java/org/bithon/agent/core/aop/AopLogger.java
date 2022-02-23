@@ -41,6 +41,11 @@ public class AopLogger implements IAopLogger {
     }
 
     @Override
+    public void warn(String messageFormat, Object... args) {
+        log.warn(messageFormat, args);
+    }
+
+    @Override
     public void warn(String message, Throwable e) {
         log.warn(message, e);
     }

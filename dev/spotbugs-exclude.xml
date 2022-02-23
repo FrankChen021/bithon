@@ -47,6 +47,18 @@
         <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
     </Match>
     <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice"/>
+        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice"/>
+        <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    </Match>
+    <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice"/>
+        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
+    </Match>
+    <Match>
         <Class name="org.bithon.agent.plugin.tomcat.interceptor.StandardWrapperValve$Exception"/>
         <Bug pattern="NM_CLASS_NOT_EXCEPTION" />
     </Match>
