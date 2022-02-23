@@ -45,7 +45,7 @@ public class BootstrapHelper {
             return new IAopLogger() {
                 @Override
                 public void warn(String messageFormat, Object... args) {
-                    System.err.printf(messageFormat, args);
+                    System.err.printf(Locale.ENGLISH, messageFormat, args);
                 }
 
                 @Override
@@ -63,11 +63,11 @@ public class BootstrapHelper {
         }
     }
 
-    public static void setPluginClassLoader(ClassLoader classLoader) {
-        BootstrapHelper.classLoader = classLoader;
-    }
-
     public static ClassLoader getPluginClassLoader() {
         return classLoader;
+    }
+
+    public static void setPluginClassLoader(ClassLoader classLoader) {
+        BootstrapHelper.classLoader = classLoader;
     }
 }
