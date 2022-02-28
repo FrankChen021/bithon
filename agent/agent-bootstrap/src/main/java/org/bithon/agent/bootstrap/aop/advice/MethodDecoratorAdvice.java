@@ -46,7 +46,7 @@ public class MethodDecoratorAdvice {
             return false;
         }
 
-        AopContext aopContext = new AopContext(method.getClass(), method, target, args);
+        AopContext aopContext = new AopContext(method, target, args);
         context = aopContext;
 
         boolean executeOnMethodExit = false;

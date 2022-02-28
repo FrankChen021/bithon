@@ -43,7 +43,7 @@ public class ConstructorDecoratorAdvice {
             return;
         }
         try {
-            interceptor.onConstruct(new AopContext(method.getClass(), method, target, args));
+            interceptor.onConstruct(new AopContext(method, target, args));
         } catch (Exception e) {
             log.error(String.format(Locale.ENGLISH,
                                     "Exception occurs when executing onConstruct on interceptor [%s]: %s",
