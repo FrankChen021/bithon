@@ -119,16 +119,6 @@ public class TraceHttpCollector {
         public TraceSpan next() {
             TraceSpan span = delete.next();
 
-            // update parentSpanId
-            if ("00".equals(span.getParentSpanId())) {
-                span.setParentSpanId("");
-                span.setKind("SERVER");
-            } else if ("HTTPHandler".equals(span.getClazz()) && "handleRequest".equals(span.getMethod())) {
-                span.setKind("SERVER");
-            } else if ("TCPHandler".equals(span.getClazz())) {
-                span.setKind("SERVER");
-            }
-
             // discard the input parameters of the method
             int parameterStart = span.getMethod().indexOf('(');
             if (parameterStart > 0) {
@@ -168,6 +158,16 @@ public class TraceHttpCollector {
                     key = key.substring(dotIndex + 1);
                 }
                 tags.put(key, val);
+            }
+
+            // update parentSpanId
+            if ("00".equals(span.getParentSpanId())) {
+                span.setParentSpanId("");
+                span.setKind("SERVER");
+            } else if ("HTTPHandler".equals(span.getClazz()) && "handleRequest".equals(span.getMethod())) {
+                span.setKind("SERVER");
+            } else if ("TCPHandler".equals(span.getClazz())) {
+                span.setKind("SERVER");
             }
 
             //
