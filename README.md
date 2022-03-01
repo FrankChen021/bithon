@@ -131,4 +131,6 @@ For more information, check the [development doc](doc/dev/development.md).
 
 # User Doc
 1. [Configuration](doc/configuration/configuration.md)
-2. [Metrics](doc/sdk/metrics.md)
+2. SDK
+   1. [Metrics](doc/sdk/metrics.md)
+   2. [Tracing](doc/sdk/tracing.md)
