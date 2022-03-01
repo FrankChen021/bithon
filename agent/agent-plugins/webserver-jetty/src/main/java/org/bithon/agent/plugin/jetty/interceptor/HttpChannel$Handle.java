@@ -29,6 +29,7 @@ import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
+import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.agent.plugin.jetty.context.RequestContext;
 import org.eclipse.jetty.server.HttpChannel;
 import org.eclipse.jetty.server.HttpChannelState;
@@ -54,6 +55,9 @@ public class HttpChannel$Handle extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        TraceContextHolder.remove();
+        InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
+
         HttpChannel httpChannel = aopContext.castTargetAs();
 
         Request request = httpChannel.getRequest();
@@ -74,10 +78,15 @@ public class HttpChannel$Handle extends AbstractInterceptor {
                             .tag(Tags.HTTP_URI, request.getRequestURI())
                             .tag(Tags.HTTP_METHOD, request.getMethod())
                             .tag(Tags.HTTP_VERSION, request.getHttpVersion().toString())
-                            .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.getHeader(header))))
+                            .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
                             .method(aopContext.getMethod())
                             .kind(SpanKind.SERVER)
                             .start();
+
+                // put the trace id in the header so that the applications have chance to know whether this request is being sampled
+                if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+                    request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
+                }
             }
 
             ((IBithonObject) request).setInjectedObject(new RequestContext(System.nanoTime(), traceContext));
