@@ -31,6 +31,7 @@ import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
+import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 
@@ -57,6 +58,9 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        TraceContextHolder.remove();
+        InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
+
         Request request = (Request) aopContext.getArgs()[1];
         boolean filtered = this.requestFilter.shouldBeExcluded(request.getRequestURI(), request.getHeader("User-Agent"));
         if (filtered) {
@@ -65,7 +69,7 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
 
         InterceptorContext.set(InterceptorContext.KEY_URI, request.getRequestURI());
 
-        ITraceContext traceContext = Tracer.get().propagator().extract(request, (carrier, key) -> carrier.getHeader(key));
+        ITraceContext traceContext = Tracer.get().propagator().extract(request, Request::getHeader);
         if (traceContext != null) {
             TraceContextHolder.set(traceContext);
             InterceptorContext.set(InterceptorContext.KEY_TRACEID, traceContext.traceId());
@@ -75,10 +79,15 @@ public class ContextHandlerDoHandle extends AbstractInterceptor {
                         .tag(Tags.HTTP_URI, request.getRequestURI())
                         .tag(Tags.HTTP_METHOD, request.getMethod())
                         .tag(Tags.HTTP_VERSION, request.getHttpVersion().toString())
-                        .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("header." + header, request.getHeader(header))))
+                        .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("http.header." + header, request.getHeader(header))))
                         .method(aopContext.getMethod())
                         .kind(SpanKind.SERVER)
                         .start();
+
+            // put the trace id in the header so that the applications have chance to know whether this request is being sampled
+            if (traceContext.traceMode().equals(TraceMode.TRACE)) {
+                request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
+            }
         }
 
         return InterceptionDecision.CONTINUE;

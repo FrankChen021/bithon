@@ -54,6 +54,14 @@ public class UriNormalizer {
             return new NormalizedResult(false, null);
         }
 
+        // strip parameters
+        boolean striped = false;
+        int paramStartIndex = path.indexOf('?');
+        if (paramStartIndex > 0) {
+            path = path.substring(0, paramStartIndex);
+            striped = true;
+        }
+
         //
         // 先使用domain的规则进行处理
         //
@@ -64,7 +72,11 @@ public class UriNormalizer {
         //
         // 再使用全局规则进行处理
         //
-        return normalize(this.configs.getGlobalRules(), path);
+        NormalizedResult result = normalize(this.configs.getGlobalRules(), path);
+        if (striped && !result.isNormalized()) {
+            result.setNormalized(true);
+        }
+        return result;
     }
 
     private NormalizedResult normalize(UriNormalizationRuleConfig matchers, String path) {

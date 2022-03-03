@@ -16,6 +16,8 @@
 
 package org.bithon.agent.core.tracing.context;
 
+import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
+
 import java.lang.reflect.Executable;
 import java.util.Map;
 
@@ -25,7 +27,12 @@ import java.util.Map;
  */
 public class NullTraceSpan implements ITraceSpan {
 
-    public static final ITraceSpan INSTANCE = new NullTraceSpan();
+    public static final ITraceSpan INSTANCE = new NullTraceSpan() {
+        @Override
+        public <T> ITraceSpan propagate(T injectedTo, PropagationSetter<T> setter) {
+            return this;
+        }
+    };
 
     @Override
     public ITraceContext context() {
@@ -75,16 +82,6 @@ public class NullTraceSpan implements ITraceSpan {
     @Override
     public ITraceSpan tag(Throwable exception) {
         return this;
-    }
-
-    @Override
-    public ITraceSpan arg(String name, String value) {
-        return this;
-    }
-
-    @Override
-    public Map<String, String> args() {
-        return null;
     }
 
     @Override
