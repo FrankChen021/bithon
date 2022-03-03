@@ -134,7 +134,7 @@ CREATE TABLE `bithon_trace_span_tag_index`
     `name`          VARCHAR(64) DEFAULT '' NOT NULL COMMENT 'tag name',
     `value`          VARCHAR(64) DEFAULT '' NOT NULL COMMENT 'tag value',
     `traceId`       VARCHAR(64) DEFAULT '' NOT NULL COMMENT '',
-    KEY `idx_tst_timestamp` (`timestamp`),
+    KEY `idx_tst__timestamp` (`timestamp`) COMMENT 'index name starts with underscore so that in the generated code, it is the first',
     KEY `idx_tst_app_name` (`appName`),
     KEY `idx_tst_name` (`name`)
 ) ENGINE = InnoDB
