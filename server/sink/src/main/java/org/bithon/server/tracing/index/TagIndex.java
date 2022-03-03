@@ -31,7 +31,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TagIndex {
     private long timestamp;
-    private String application;
     private String traceId;
     private String name;
     private String value;

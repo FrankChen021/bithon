@@ -55,7 +55,6 @@ public class TagIndexBuilder {
                 }
                 indexes.add(TagIndex.builder()
                                     .timestamp(span.getStartTime() / 1000)
-                                    .application(span.getAppName())
                                     .traceId(span.getTraceId())
                                     .name(name)
                                     .value(value)

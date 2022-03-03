@@ -77,7 +77,6 @@ public class TagIndexBuilderTest {
                                                                                   .build()));
 
         Assert.assertEquals(1, indexes.size());
-        Assert.assertEquals("bithon-test", indexes.get(0).getApplication());
         Assert.assertEquals("trace-id-123", indexes.get(0).getTraceId());
         Assert.assertEquals("status", indexes.get(0).getName());
         Assert.assertEquals("200", indexes.get(0).getValue());

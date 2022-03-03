@@ -176,15 +176,13 @@ public class TraceJdbcWriter implements ITraceWriter {
 
         BatchBindStep sql = dslContext.batch(dslContext.insertInto(Tables.BITHON_TRACE_SPAN_TAG_INDEX,
                                                                    Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP,
-                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.APPNAME,
                                                                    Tables.BITHON_TRACE_SPAN_TAG_INDEX.NAME,
                                                                    Tables.BITHON_TRACE_SPAN_TAG_INDEX.VALUE,
                                                                    Tables.BITHON_TRACE_SPAN_TAG_INDEX.TRACEID)
-                                                       .values((Timestamp) null, null, null, null, null));
+                                                       .values((Timestamp) null, null, null, null));
 
         for (TagIndex index : tagIndices) {
             sql.bind(new Timestamp(index.getTimestamp()),
-                     index.getApplication(),
                      index.getName(),
                      index.getValue(),
                      index.getTraceId());

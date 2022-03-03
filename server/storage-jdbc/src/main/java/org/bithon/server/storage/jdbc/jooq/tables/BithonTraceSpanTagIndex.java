@@ -16,7 +16,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row5;
+import org.jooq.Row4;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRecord> {
 
-    private static final long serialVersionUID = -542078485;
+    private static final long serialVersionUID = 1885817462;
 
     /**
      * The reference instance of <code>bithon_trace_span_tag_index</code>
@@ -49,11 +49,6 @@ public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRe
      * The column <code>bithon_trace_span_tag_index.timestamp</code>. Milli Seconds
      */
     public final TableField<BithonTraceSpanTagIndexRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Milli Seconds");
-
-    /**
-     * The column <code>bithon_trace_span_tag_index.appName</code>.
-     */
-    public final TableField<BithonTraceSpanTagIndexRecord, String> APPNAME = createField(DSL.name("appName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>bithon_trace_span_tag_index.name</code>. tag name
@@ -110,7 +105,7 @@ public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRe
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST__TIMESTAMP, Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_APP_NAME, Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_NAME);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST__TIMESTAMP, Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_NAME);
     }
 
     @Override
@@ -140,11 +135,11 @@ public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRe
     }
 
     // -------------------------------------------------------------------------
-    // Row5 type methods
+    // Row4 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row5<Timestamp, String, String, String, String> fieldsRow() {
-        return (Row5) super.fieldsRow();
+    public Row4<Timestamp, String, String, String> fieldsRow() {
+        return (Row4) super.fieldsRow();
     }
 }
