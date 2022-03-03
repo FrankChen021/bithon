@@ -16,7 +16,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row6;
+import org.jooq.Row5;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRecord> {
 
-    private static final long serialVersionUID = -1980949244;
+    private static final long serialVersionUID = 462119344;
 
     /**
      * The reference instance of <code>bithon_trace_span_tag_index</code>
@@ -54,11 +54,6 @@ public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRe
      * The column <code>bithon_trace_span_tag_index.appName</code>.
      */
     public final TableField<BithonTraceSpanTagIndexRecord, String> APPNAME = createField(DSL.name("appName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
-
-    /**
-     * The column <code>bithon_trace_span_tag_index.instanceName</code>.
-     */
-    public final TableField<BithonTraceSpanTagIndexRecord, String> INSTANCENAME = createField(DSL.name("instanceName"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
      * The column <code>bithon_trace_span_tag_index.name</code>. tag name
@@ -115,7 +110,7 @@ public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRe
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_APP_NAME, Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_NAME, Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_TIMESTAMP);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_APP_NAME, Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_NAME, Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_TIMESTAMP);
     }
 
     @Override
@@ -145,11 +140,11 @@ public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRe
     }
 
     // -------------------------------------------------------------------------
-    // Row6 type methods
+    // Row5 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<Timestamp, String, String, String, String, String> fieldsRow() {
-        return (Row6) super.fieldsRow();
+    public Row5<Timestamp, String, String, String, String> fieldsRow() {
+        return (Row5) super.fieldsRow();
     }
 }

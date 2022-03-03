@@ -53,7 +53,6 @@ public class Indexes {
     public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME = Indexes0.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME;
     public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP = Indexes0.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP;
     public static final Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_APP_NAME = Indexes0.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_APP_NAME;
-    public static final Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_INSTANCENAME = Indexes0.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_INSTANCENAME;
     public static final Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_NAME = Indexes0.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_NAME;
     public static final Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_TIMESTAMP = Indexes0.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_TIMESTAMP;
 
@@ -87,7 +86,6 @@ public class Indexes {
         public static Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME = Internal.createIndex("idx_tss_start_time", BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS }, false);
         public static Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP = Internal.createIndex("idx_tss_timestamp", BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP }, false);
         public static Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_APP_NAME = Internal.createIndex("idx_tst_app_name", BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX, new OrderField[] { BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX.APPNAME }, false);
-        public static Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_INSTANCENAME = Internal.createIndex("idx_tst_instanceName", BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX, new OrderField[] { BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX.INSTANCENAME }, false);
         public static Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_NAME = Internal.createIndex("idx_tst_name", BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX, new OrderField[] { BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX.NAME }, false);
         public static Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_TIMESTAMP = Internal.createIndex("idx_tst_timestamp", BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX, new OrderField[] { BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP }, false);
     }

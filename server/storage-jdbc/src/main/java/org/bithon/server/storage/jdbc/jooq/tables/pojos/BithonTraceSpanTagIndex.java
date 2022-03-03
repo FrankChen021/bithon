@@ -14,11 +14,10 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanTagIndex implements Serializable {
 
-    private static final long serialVersionUID = 688081358;
+    private static final long serialVersionUID = -2069940862;
 
     private Timestamp timestamp;
     private String    appname;
-    private String    instancename;
     private String    name;
     private String    value;
     private String    traceid;
@@ -28,7 +27,6 @@ public class BithonTraceSpanTagIndex implements Serializable {
     public BithonTraceSpanTagIndex(BithonTraceSpanTagIndex value) {
         this.timestamp = value.timestamp;
         this.appname = value.appname;
-        this.instancename = value.instancename;
         this.name = value.name;
         this.value = value.value;
         this.traceid = value.traceid;
@@ -37,14 +35,12 @@ public class BithonTraceSpanTagIndex implements Serializable {
     public BithonTraceSpanTagIndex(
         Timestamp timestamp,
         String    appname,
-        String    instancename,
         String    name,
         String    value,
         String    traceid
     ) {
         this.timestamp = timestamp;
         this.appname = appname;
-        this.instancename = instancename;
         this.name = name;
         this.value = value;
         this.traceid = traceid;
@@ -64,14 +60,6 @@ public class BithonTraceSpanTagIndex implements Serializable {
 
     public void setAppname(String appname) {
         this.appname = appname;
-    }
-
-    public String getInstancename() {
-        return this.instancename;
-    }
-
-    public void setInstancename(String instancename) {
-        this.instancename = instancename;
     }
 
     public String getName() {
@@ -104,7 +92,6 @@ public class BithonTraceSpanTagIndex implements Serializable {
 
         sb.append(timestamp);
         sb.append(", ").append(appname);
-        sb.append(", ").append(instancename);
         sb.append(", ").append(name);
         sb.append(", ").append(value);
         sb.append(", ").append(traceid);
