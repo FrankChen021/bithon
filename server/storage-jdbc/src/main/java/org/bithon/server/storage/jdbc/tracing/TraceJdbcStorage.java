@@ -71,7 +71,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        return new BatchWriter(new TraceJdbcWriter(dslContext, objectMapper), config);
+        return new TraceJdbcBatchWriter(new TraceJdbcWriter(dslContext, objectMapper), config);
     }
 
     @Override

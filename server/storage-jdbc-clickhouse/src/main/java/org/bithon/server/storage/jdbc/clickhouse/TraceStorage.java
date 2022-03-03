@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.jdbc.tracing.BatchWriter;
+import org.bithon.server.storage.jdbc.tracing.TraceJdbcBatchWriter;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
 import org.bithon.server.tracing.storage.ITraceCleaner;
@@ -87,7 +87,7 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        return new BatchWriter(new TraceJdbcWriter(dslContext, objectMapper) {
+        return new TraceJdbcBatchWriter(new TraceJdbcWriter(dslContext, objectMapper) {
             @Override
             protected boolean isTransactionSupported() {
                 return false;

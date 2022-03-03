@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * @date 24/12/21
  */
 @Slf4j
-public class BatchWriter implements ITraceWriter {
+public class TraceJdbcBatchWriter implements ITraceWriter {
     private final List<TraceSpan> traceSpans = new ArrayList<>();
     private final List<TraceIdMapping> traceIdMappings = new ArrayList<>();
     private final List<TagIndex> tagIndexes = new ArrayList<>();
@@ -36,7 +36,7 @@ public class BatchWriter implements ITraceWriter {
     private final TraceStorageConfig config;
     private final ScheduledExecutorService executor;
 
-    public BatchWriter(ITraceWriter writer, TraceStorageConfig config) {
+    public TraceJdbcBatchWriter(ITraceWriter writer, TraceStorageConfig config) {
         this.writer = writer;
         this.config = config;
         this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadUtils.NamedThreadFactory("trace-batch-writer"));
