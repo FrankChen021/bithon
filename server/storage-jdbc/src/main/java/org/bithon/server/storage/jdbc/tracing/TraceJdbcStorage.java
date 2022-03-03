@@ -67,6 +67,10 @@ public class TraceJdbcStorage implements ITraceStorage {
                   .columns(Tables.BITHON_TRACE_MAPPING.fields())
                   .indexes(Tables.BITHON_TRACE_MAPPING.getIndexes())
                   .execute();
+        dslContext.createTableIfNotExists(Tables.BITHON_TRACE_SPAN_TAG_INDEX)
+                  .columns(Tables.BITHON_TRACE_SPAN_TAG_INDEX.fields())
+                  .indexes(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getIndexes())
+                  .execute();
     }
 
     @Override
@@ -94,6 +98,10 @@ public class TraceJdbcStorage implements ITraceStorage {
 
             dslContext.deleteFrom(Tables.BITHON_TRACE_MAPPING)
                       .where(Tables.BITHON_TRACE_MAPPING.TIMESTAMP.le(before))
+                      .execute();
+
+            dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN_TAG_INDEX)
+                      .where(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.le(before))
                       .execute();
         };
     }

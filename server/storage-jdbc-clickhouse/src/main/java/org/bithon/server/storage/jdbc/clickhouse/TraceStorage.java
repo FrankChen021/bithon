@@ -32,6 +32,7 @@ import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.jooq.DSLContext;
+import org.jooq.Table;
 
 /**
  * @author frank.chen021@outlook.com
@@ -58,31 +59,30 @@ public class TraceStorage extends TraceJdbcStorage {
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN, config.getTtlDays());
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN_SUMMARY, config.getTtlDays());
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_MAPPING, config.getTtlDays(), true, true);
+        tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN_TAG_INDEX, config.getTtlDays());
     }
 
     @Override
     public ITraceCleaner createCleaner() {
         return beforeTimestamp -> {
             String timestamp = DateTime.toYYYYMMDDhhmmss(beforeTimestamp);
-
-            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                  config.getDatabase(),
-                                                  config.getLocalTableName(Tables.BITHON_TRACE_SPAN.getName()),
-                                                  config.getClusterExpression(),
-                                                  timestamp));
-
-            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                  config.getDatabase(),
-                                                  config.getLocalTableName(Tables.BITHON_TRACE_SPAN_SUMMARY.getName()),
-                                                  config.getClusterExpression(),
-                                                  timestamp));
-
-            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                  config.getDatabase(),
-                                                  config.getLocalTableName(Tables.BITHON_TRACE_MAPPING.getName()),
-                                                  config.getClusterExpression(),
-                                                  timestamp));
+            clean(Tables.BITHON_TRACE_SPAN, timestamp);
+            clean(Tables.BITHON_TRACE_SPAN_SUMMARY, timestamp);
+            clean(Tables.BITHON_TRACE_MAPPING, timestamp);
+            clean(Tables.BITHON_TRACE_SPAN_TAG_INDEX, timestamp);
         };
+    }
+
+    private void clean(Table<?> table, String timestamp) {
+        try {
+            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
+                                                  config.getDatabase(),
+                                                  config.getLocalTableName(table.getName()),
+                                                  config.getClusterExpression(),
+                                                  timestamp));
+        } catch (Throwable e) {
+            log.error(StringUtils.format("Exception occurred when clean table[%s]:%s", table.getName(), e.getMessage()), e);
+        }
     }
 
     @Override
