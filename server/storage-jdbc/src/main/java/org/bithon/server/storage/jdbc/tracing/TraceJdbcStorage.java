@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.storage.jdbc.jooq.Tables;
@@ -32,6 +33,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
+import org.bithon.server.tracing.index.TagIndex;
 import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceCleaner;
@@ -149,61 +151,38 @@ public class TraceJdbcStorage implements ITraceStorage {
         }
 
         @Override
-        public void writeSpans(Collection<TraceSpan> spans) {
+        public void write(Collection<TraceSpan> spans,
+                          Collection<TraceIdMapping> mappings,
+                          Collection<TagIndex> tagIndices) {
             synchronized (this) {
                 this.traceSpans.addAll(spans);
+                this.traceIdMappings.addAll(mappings);
+                this.tagIndexes.addAll(tagIndices);
             }
             if (traceSpans.size() > config.getBatchSize()) {
-                flushSpans();
-            }
-        }
-
-        @Override
-        public void writeMappings(Collection<TraceIdMapping> mappings) {
-            synchronized (this) {
-                this.traceIdMappings.addAll(mappings);
-            }
-            if (this.traceIdMappings.size() > config.getBatchSize()) {
-                flushMappings();
+                flush();
             }
         }
 
         private void flush() {
-            flushSpans();
-            flushMappings();
-        }
-
-        private void flushSpans() {
             List<TraceSpan> spans;
+            List<TraceIdMapping> idMappings;
+            List<TagIndex> tagIndexes;
             synchronized (this) {
-                spans = new ArrayList<>(traceSpans);
-                traceSpans.clear();
+                spans = new ArrayList<>(this.traceSpans);
+                idMappings = new ArrayList<>(this.traceIdMappings);
+                tagIndexes = new ArrayList<>(this.tagIndexes);
+
+                this.traceSpans.clear();
+                this.traceIdMappings.clear();
+                this.tagIndexes.clear();
             }
 
-            if (!spans.isEmpty()) {
-                try {
-                    log.debug("Flushing [{}] spans into storage...", spans.size());
-                    this.writer.writeSpans(spans);
-                } catch (Exception e) {
-                    log.error("Exception when flushing spans into storage", e);
-                }
-            }
-        }
-
-        private void flushMappings() {
-            List<TraceIdMapping> mappings;
-            synchronized (this) {
-                mappings = new ArrayList<>(traceIdMappings);
-                traceIdMappings.clear();
-            }
-
-            if (!mappings.isEmpty()) {
-                try {
-                    log.debug("Flushing [{}] trace id mappings into storage...", mappings.size());
-                    this.writer.writeMappings(mappings);
-                } catch (Exception e) {
-                    log.error("Exception when flushing id mapping into storage", e);
-                }
+            try {
+                log.debug("Flushing [{}] spans into storage...", spans.size());
+                this.writer.write(spans, idMappings, tagIndexes);
+            } catch (Exception e) {
+                log.error("Exception when flushing spans into storage", e);
             }
         }
 
@@ -245,29 +224,11 @@ public class TraceJdbcStorage implements ITraceStorage {
             return true;
         }
 
-        @Override
-        public void writeSpans(Collection<TraceSpan> traceSpans) {
-            List<TraceSpan> rootSpans = traceSpans.stream().filter((span) -> "SERVER".equals(span.getKind())).collect(Collectors.toList());
-
-            TransactionalRunnable runnable = (configuration) -> {
-                if (!rootSpans.isEmpty()) {
-                    writeSpans(rootSpans, Tables.BITHON_TRACE_SPAN_SUMMARY);
-                }
-
-                writeSpans(traceSpans, Tables.BITHON_TRACE_SPAN);
-            };
-            if (isTransactionSupported()) {
-                dslContext.transaction(runnable);
-            } else {
-                try {
-                    runnable.run(dslContext.configuration());
-                } catch (Throwable e) {
-                    log.error("Exception when write spans", e);
-                }
+        private void writeSpans(Collection<TraceSpan> traceSpans, Table<?> table) {
+            if (traceSpans.isEmpty()) {
+                return;
             }
-        }
 
-        protected void writeSpans(Collection<TraceSpan> traceSpans, Table<?> table) {
             BatchBindStep step = dslContext.batch(dslContext.insertInto(table,
                                                                         Tables.BITHON_TRACE_SPAN.TIMESTAMP,
                                                                         Tables.BITHON_TRACE_SPAN.APPNAME,
@@ -330,8 +291,11 @@ public class TraceJdbcStorage implements ITraceStorage {
             step.execute();
         }
 
-        @Override
-        public void writeMappings(Collection<TraceIdMapping> mappings) {
+        private void writeMappings(Collection<TraceIdMapping> mappings) {
+            if (CollectionUtils.isEmpty(mappings)) {
+                return;
+            }
+
             BatchBindStep step = dslContext.batch(dslContext.insertInto(Tables.BITHON_TRACE_MAPPING,
                                                                         Tables.BITHON_TRACE_MAPPING.TRACE_ID,
                                                                         Tables.BITHON_TRACE_MAPPING.USER_TX_ID,
@@ -342,6 +306,56 @@ public class TraceJdbcStorage implements ITraceStorage {
             }
             try {
                 step.execute();
+            } catch (DuplicateKeyException ignored) {
+                // for database like H2
+            }
+        }
+
+        @Override
+        public void write(Collection<TraceSpan> spans,
+                          Collection<TraceIdMapping> mappings,
+                          Collection<TagIndex> tagIndices) {
+
+            TransactionalRunnable runnable = (configuration) -> {
+                List<TraceSpan> summary = spans.stream().filter((span) -> "SERVER".equals(span.getKind())).collect(Collectors.toList());
+                this.writeSpans(summary, Tables.BITHON_TRACE_SPAN_SUMMARY);
+                this.writeSpans(spans, Tables.BITHON_TRACE_SPAN);
+                this.writeMappings(mappings);
+                this.writeTagIndices(tagIndices);
+            };
+            if (isTransactionSupported()) {
+                dslContext.transaction(runnable);
+            } else {
+                try {
+                    runnable.run(dslContext.configuration());
+                } catch (Throwable e) {
+                    log.error("Exception when write spans", e);
+                }
+            }
+        }
+
+        private void writeTagIndices(Collection<TagIndex> tagIndices) {
+            if (CollectionUtils.isEmpty(tagIndices)) {
+                return;
+            }
+
+            BatchBindStep sql = dslContext.batch(dslContext.insertInto(Tables.BITHON_TRACE_SPAN_TAG_INDEX,
+                                                                       Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP,
+                                                                       Tables.BITHON_TRACE_SPAN_TAG_INDEX.APPNAME,
+                                                                       Tables.BITHON_TRACE_SPAN_TAG_INDEX.NAME,
+                                                                       Tables.BITHON_TRACE_SPAN_TAG_INDEX.VALUE,
+                                                                       Tables.BITHON_TRACE_SPAN_TAG_INDEX.TRACEID)
+                                                           .values((Timestamp) null, null, null, null, null));
+
+            for (TagIndex index : tagIndices) {
+                sql.bind(new Timestamp(index.getTimestamp()),
+                         index.getApplication(),
+                         index.getName(),
+                         index.getValue(),
+                         index.getTraceId());
+            }
+            try {
+                sql.execute();
             } catch (DuplicateKeyException ignored) {
                 // for database like H2
             }

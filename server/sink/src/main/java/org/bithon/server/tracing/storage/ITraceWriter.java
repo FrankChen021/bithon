@@ -16,6 +16,7 @@
 
 package org.bithon.server.tracing.storage;
 
+import org.bithon.server.tracing.index.TagIndex;
 import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.sink.TraceSpan;
 
@@ -32,6 +33,7 @@ public interface ITraceWriter extends AutoCloseable {
     default void close() {
     }
 
-    void writeSpans(Collection<TraceSpan> traceSpans) throws IOException;
-    void writeMappings(Collection<TraceIdMapping> mappings) throws IOException;
+    void write(Collection<TraceSpan> spans,
+               Collection<TraceIdMapping> mappings,
+               Collection<TagIndex> tagIndices) throws IOException;
 }

@@ -45,6 +45,7 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<Iterat
     private final ITraceWriter traceWriter;
     private final Function<Collection<TraceSpan>, List<TraceIdMapping>> mappingExtractor;
     private final SanitizerFactory sanitizerFactory;
+    private final TagIndexBuilder tagIndexBuilder;
 
     public TraceMessageHandler(ApplicationContext applicationContext) {
         super("trace", 2, 10, Duration.ofMinutes(1), 2048);
@@ -53,16 +54,17 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<Iterat
         this.mappingExtractor = TraceMappingFactory.create(applicationContext);
         this.sanitizerFactory = new SanitizerFactory(applicationContext.getBean(ObjectMapper.class),
                                                      applicationContext.getBean(TraceConfig.class));
+
+        this.tagIndexBuilder = new TagIndexBuilder(applicationContext.getBean(TraceConfig.class));
     }
 
     @Override
     protected void onMessage(IteratorableCollection<TraceSpan> traceSpans) throws IOException {
         sanitizerFactory.sanitize(traceSpans);
 
-        traceWriter.writeSpans(traceSpans.toCollection());
-        traceWriter.writeMappings(mappingExtractor.apply(traceSpans.toCollection()));
-        TagIndexBuilder extractor = null;
-        extractor.build(traceSpans.toCollection());;
+        traceWriter.write(traceSpans.toCollection(),
+                          mappingExtractor.apply(traceSpans.toCollection()),
+                          tagIndexBuilder.build(traceSpans.toCollection()));
     }
 
     @Override
