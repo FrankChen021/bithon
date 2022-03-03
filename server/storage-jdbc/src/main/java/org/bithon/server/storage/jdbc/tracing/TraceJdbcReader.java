@@ -1,7 +1,24 @@
+/*
+ *    Copyright 2020 bithon.org
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package org.bithon.server.storage.jdbc.tracing;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.storage.jdbc.jooq.Tables;
@@ -11,6 +28,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummary
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceReader;
+import org.jooq.DSLContext;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
 import org.jooq.impl.DSL;
@@ -23,17 +41,19 @@ import java.util.TreeMap;
  * @author Frank Chen
  * @date 30/12/20
  */
-class TraceJdbcReader implements ITraceReader {
-    private final TraceJdbcStorage traceJdbcStorage;
+public class TraceJdbcReader implements ITraceReader {
+    private final DSLContext dslContext;
+    private final ObjectMapper objectMapper;
 
-    public TraceJdbcReader(TraceJdbcStorage traceJdbcStorage) {
-        this.traceJdbcStorage = traceJdbcStorage;
+    public TraceJdbcReader(DSLContext dslContext, ObjectMapper objectMapper) {
+        this.dslContext = dslContext;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end) {
-        SelectConditionStep<BithonTraceSpanRecord> sql = traceJdbcStorage.dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                                                                    .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
+        SelectConditionStep<BithonTraceSpanRecord> sql = dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
+                                                                   .where(Tables.BITHON_TRACE_SPAN.TRACEID.eq(traceId));
         if (start != null) {
             sql = sql.and(Tables.BITHON_TRACE_SPAN.TIMESTAMP.ge(start.toTimestamp()));
         }
@@ -57,9 +77,9 @@ class TraceJdbcReader implements ITraceReader {
                                         int pageNumber,
                                         int pageSize) {
         BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
-        SelectConditionStep<BithonTraceSpanSummaryRecord> sql = traceJdbcStorage.dslContext.selectFrom(summaryTable)
-                                                                                           .where(summaryTable.TIMESTAMP.ge(start))
-                                                                                           .and(summaryTable.TIMESTAMP.lt(end));
+        SelectConditionStep<BithonTraceSpanSummaryRecord> sql = dslContext.selectFrom(summaryTable)
+                                                                          .where(summaryTable.TIMESTAMP.ge(start))
+                                                                          .and(summaryTable.TIMESTAMP.lt(end));
 
         sql = sql.and(SQLFilterBuilder.build(filters));
 
@@ -91,32 +111,32 @@ class TraceJdbcReader implements ITraceReader {
                                 Timestamp end) {
         BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
 
-        return (int) traceJdbcStorage.dslContext.select(DSL.count(summaryTable.TRACEID))
-                                                .from(summaryTable)
-                                                .where(summaryTable.TIMESTAMP.ge(start))
-                                                .and(summaryTable.TIMESTAMP.lt(end))
-                                                .and(SQLFilterBuilder.build(filters))
-                                                .fetchOne(0);
+        return (int) dslContext.select(DSL.count(summaryTable.TRACEID))
+                               .from(summaryTable)
+                               .where(summaryTable.TIMESTAMP.ge(start))
+                               .and(summaryTable.TIMESTAMP.lt(end))
+                               .and(SQLFilterBuilder.build(filters))
+                               .fetchOne(0);
     }
 
     @Override
     public List<TraceSpan> getTraceByParentSpanId(String parentSpanId) {
-        return traceJdbcStorage.dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
-                                          .where(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(parentSpanId))
-                                          // for spans coming from a same application instance, sort them by the start time
-                                          .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
-                                                   Tables.BITHON_TRACE_SPAN.INSTANCENAME,
-                                                   Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
-                                          .fetch(this::toTraceSpan);
+        return dslContext.selectFrom(Tables.BITHON_TRACE_SPAN)
+                         .where(Tables.BITHON_TRACE_SPAN.PARENTSPANID.eq(parentSpanId))
+                         // for spans coming from a same application instance, sort them by the start time
+                         .orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc(),
+                                  Tables.BITHON_TRACE_SPAN.INSTANCENAME,
+                                  Tables.BITHON_TRACE_SPAN.STARTTIMEUS)
+                         .fetch(this::toTraceSpan);
     }
 
     @Override
     public String getTraceIdByMapping(String id) {
-        return traceJdbcStorage.dslContext.select(Tables.BITHON_TRACE_MAPPING.TRACE_ID)
-                                          .from(Tables.BITHON_TRACE_MAPPING)
-                                          .where(Tables.BITHON_TRACE_MAPPING.USER_TX_ID.eq(id))
-                                          .limit(1)
-                                          .fetchOne(Tables.BITHON_TRACE_MAPPING.TRACE_ID);
+        return dslContext.select(Tables.BITHON_TRACE_MAPPING.TRACE_ID)
+                         .from(Tables.BITHON_TRACE_MAPPING)
+                         .where(Tables.BITHON_TRACE_MAPPING.USER_TX_ID.eq(id))
+                         .limit(1)
+                         .fetchOne(Tables.BITHON_TRACE_MAPPING.TRACE_ID);
     }
 
     private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {
@@ -136,7 +156,7 @@ class TraceJdbcReader implements ITraceReader {
         span.status = record.getStatus();
         span.normalizeUri = record.getNormalizedurl();
         try {
-            span.tags = traceJdbcStorage.objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
+            span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
             });
         } catch (JsonProcessingException ignored) {
         }
@@ -161,7 +181,7 @@ class TraceJdbcReader implements ITraceReader {
         span.status = record.getStatus();
         span.normalizeUri = record.getNormalizedurl();
         try {
-            span.tags = traceJdbcStorage.objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
+            span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
             });
         } catch (JsonProcessingException ignored) {
         }
