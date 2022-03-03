@@ -125,6 +125,23 @@ CREATE TABLE `bithon_trace_span_summary`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
+-- An inverted index for tags
+DROP TABLE IF EXISTS `bithon_trace_span_tag_index`;
+CREATE TABLE `bithon_trace_span_tag_index`
+(
+    `timestamp`     TIMESTAMP              NOT NULL COMMENT 'Milli Seconds',
+    `appName`       VARCHAR(64)            NOT NULL COMMENT '',
+    `instanceName`  VARCHAR(64)            NOT NULL COMMENT '',
+    `name`          VARCHAR(64) DEFAULT '' NOT NULL COMMENT 'tag name',
+    `value`          VARCHAR(64) DEFAULT '' NOT NULL COMMENT 'tag value',
+    `traceId`       VARCHAR(64) DEFAULT '' NOT NULL COMMENT '',
+    KEY `idx_tst_timestamp` (`timestamp`),
+    KEY `idx_tst_app_name` (`appName`),
+    KEY `idx_tst_instanceName` (`instanceName`),
+    KEY `idx_tst_name` (`name`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
 DROP TABLE IF EXISTS `bithon_trace_mapping`;
 CREATE TABLE `bithon_trace_mapping`
 (

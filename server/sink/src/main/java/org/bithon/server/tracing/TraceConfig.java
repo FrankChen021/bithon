@@ -17,6 +17,7 @@
 package org.bithon.server.tracing;
 
 import lombok.Data;
+import org.bithon.server.tracing.index.TagIndexConfig;
 import org.bithon.server.tracing.mapping.TraceIdMappingConfig;
 import org.bithon.server.tracing.sanitization.SanitizerConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -37,4 +38,6 @@ public class TraceConfig {
 
     private SanitizerConfig globalSanitizer;
     private Map<String, SanitizerConfig> applicationSanitizer;
+
+    private TagIndexConfig tagIndex;
 }

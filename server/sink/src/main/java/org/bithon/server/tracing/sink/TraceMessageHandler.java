@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.TraceConfig;
+import org.bithon.server.tracing.index.TagIndexBuilder;
 import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.mapping.TraceMappingFactory;
 import org.bithon.server.tracing.sanitization.SanitizerFactory;
@@ -42,14 +43,14 @@ import java.util.function.Function;
 public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<IteratorableCollection<TraceSpan>> {
 
     private final ITraceWriter traceWriter;
-    private final Function<Collection<TraceSpan>, List<TraceIdMapping>> extractor;
+    private final Function<Collection<TraceSpan>, List<TraceIdMapping>> mappingExtractor;
     private final SanitizerFactory sanitizerFactory;
 
     public TraceMessageHandler(ApplicationContext applicationContext) {
         super("trace", 2, 10, Duration.ofMinutes(1), 2048);
         this.traceWriter = applicationContext.getBean(ITraceStorage.class).createWriter();
 
-        this.extractor = TraceMappingFactory.create(applicationContext);
+        this.mappingExtractor = TraceMappingFactory.create(applicationContext);
         this.sanitizerFactory = new SanitizerFactory(applicationContext.getBean(ObjectMapper.class),
                                                      applicationContext.getBean(TraceConfig.class));
     }
@@ -59,7 +60,9 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<Iterat
         sanitizerFactory.sanitize(traceSpans);
 
         traceWriter.writeSpans(traceSpans.toCollection());
-        traceWriter.writeMappings(extractor.apply(traceSpans.toCollection()));
+        traceWriter.writeMappings(mappingExtractor.apply(traceSpans.toCollection()));
+        TagIndexBuilder extractor = null;
+        extractor.build(traceSpans.toCollection());;
     }
 
     @Override
