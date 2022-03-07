@@ -18,6 +18,7 @@ package org.bithon.server.tracing.sink;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.common.service.UriNormalizer;
 import org.bithon.server.common.utils.MiscUtils;
 import org.springframework.util.CollectionUtils;
@@ -53,7 +54,12 @@ public class TraceSpan {
 
     public Map<String, String> getURIParameters() {
         if (uriParameters == null) {
-            uriParameters = MiscUtils.parseURLParameters(tags.get("uri"));
+            String uri = tags.get("http.uri");
+            if (StringUtils.isBlank(uri)) {
+                // compatibility
+                uri = tags.get("uri");
+            }
+            uriParameters = MiscUtils.parseURLParameters(uri);
         }
         return uriParameters;
     }
