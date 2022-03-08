@@ -14,7 +14,7 @@
 #   limitations under the License.
 #
 
-FROM maven:3.8.1-jdk-8-slim as builder
+FROM maven:3.8.4-jdk-8-slim as builder
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get -qq update \
@@ -27,9 +27,7 @@ RUN --mount=type=cache,target=/root/.m2 \
 
 WORKDIR /src
 RUN --mount=type=cache,target=/root/.m2 \
-      mvn -pl agent -am clean package \
-      -T 1C \
-      -DskipTests
+      mvn -P!server clean install -DskipTests
 
 FROM amd64/busybox:1.30.0-glibc as busybox
 FROM gcr.io/distroless/java:8
