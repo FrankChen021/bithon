@@ -25,4 +25,4 @@ jobs:
       - name: Compilation
         run: mvn clean install --activate-profiles all -Dmaven.javadoc.skip=true -DskipTests
       - name: Code Check
-        run: mvn -T 1C animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:4.2.2:check
+        run: mvn animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:4.2.2:check
