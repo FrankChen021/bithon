@@ -20,7 +20,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Build image
-        run: docker build -t frankchen021/bithon-agent -f docker/Dockerfile-agent .
+        run: DOCKER_BUILDKIT=1 docker build -t frankchen021/bithon-agent -f docker/Dockerfile-agent .
 
       - name: Log into registry
         run: echo "${{ secrets.DOCKER_ACCESS_CODE }}" | docker login -u frankchen021 --password-stdin
