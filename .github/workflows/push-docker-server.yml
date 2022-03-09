@@ -1,4 +1,4 @@
-name: Push Agent Image
+name: Push Server Image
 
 on:
   push:
@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout repository and submodules
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       - name: Setup JDK8
         uses: actions/setup-java@v2
@@ -18,10 +20,9 @@ jobs:
           distribution: 'adopt'
 
       - name: Build image
-        run: DOCKER_BUILDKIT=1 docker build -t bithon/agent -f docker/Dockerfile-agent .
-
+        run: DOCKER_BUILDKIT=1 docker build -t bithon/server -f docker/Dockerfile-server .
       - name: Log into registry
         run: echo "${{ secrets.DOCKER_ACCESS_CODE }}" | docker login -u bithon --password-stdin
 
       - name: Push image
-        run:  docker push bithon/agent:latest
+        run:  docker push bithon/server:latest
