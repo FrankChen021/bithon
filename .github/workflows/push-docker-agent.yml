@@ -1,7 +1,9 @@
-name: Push Agent Docker
+name: Push Agent Image
 
 on:
   push:
+    branches: [ master ]
+  pull_request:
     branches: [ master ]
 
 jobs:
@@ -18,10 +20,10 @@ jobs:
           distribution: 'adopt'
 
       - name: Build image
-        run: DOCKER_BUILDKIT=1 docker build -t frankchen021/bithon-agent -f docker/Dockerfile-agent .
+        run: DOCKER_BUILDKIT=1 docker build -t bithon/agent -f docker/Dockerfile-agent .
 
       - name: Log into registry
-        run: echo "${{ secrets.DOCKER_ACCESS_CODE }}" | docker login -u frankchen021 --password-stdin
+        run: echo "${{ secrets.DOCKER_ACCESS_CODE }}" | docker login -u bithon --password-stdin
 
       - name: Push image
-        run:  docker push frankchen021/bithon-agent:latest
+        run:  docker push bithon/agent:latest
