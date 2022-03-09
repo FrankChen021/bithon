@@ -17,7 +17,8 @@ Reference:
 
 # Demon
 
-A preview demo is hosted [here](https://www.bithon.org:9897/web/home).
+A demo distributed services is provided by this [demo repo](https://github.com/FrankChen021/bithon-demo) with a docker-compose file.
+You can follow the README on that demo repo to start the demo within just 3 steps.
 
 # Build
 
