@@ -366,14 +366,19 @@
         <module>server/server-starter</module>
       </modules>
     </profile>
-
     <profile>
-      <id>all</id>
+      <id>shaded</id>
       <modules>
         <module>shaded</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>jooq</id>
+      <modules>
         <module>server/jOOQ</module>
       </modules>
     </profile>
+
     <profile>
       <id>dist</id>
       <build>
