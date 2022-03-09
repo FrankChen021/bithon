@@ -46,10 +46,10 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home
 For the first time to build this project, use following command to build all modules including its dependencies. 
 
 ```bash
-mvn clean install --activate-profiles all
+mvn clean install --activate-profiles shaded,jooq,server
 ```
 
-After the first build, we can remove the `--activate-profiles all` to speed up the following build.
+After the first build, we can remove the `--activate-profiles shaded,jooq,server` to speed up the following build.
 
 # Run
 

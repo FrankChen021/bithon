@@ -27,4 +27,4 @@ else
   echo "Starting application WITHOUT agent: $JAVA_OPTS"
 fi
 
-exec java ${JAVA_OPTS} -jar /opt/bithon-server-starter.jar
+exec java ${JAVA_OPTS} -jar /opt/bithon-server-starter.jar ${APP_OPTS}

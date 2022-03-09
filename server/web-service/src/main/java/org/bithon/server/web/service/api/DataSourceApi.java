@@ -138,7 +138,7 @@ public class DataSourceApi {
 
     @PostMapping("/api/datasource/schema/update")
     public void updateSchema(@RequestBody DataSourceSchema schema) {
-        schemaManager.updateDataSourceSchmea(schema);
+        schemaManager.updateDataSourceSchema(schema);
     }
 
     @PostMapping("/api/datasource/name")
