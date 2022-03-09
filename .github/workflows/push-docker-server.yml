@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository and submodules
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       - name: Setup JDK8
         uses: actions/setup-java@v2
