@@ -18,11 +18,14 @@ package org.bithon.agent.bootstrap.aop.advice;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.BootstrapHelper;
+import org.bithon.agent.bootstrap.aop.IAopLogger;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
 import java.lang.reflect.Method;
+import java.util.Locale;
 
 
 /**
@@ -30,6 +33,7 @@ import java.lang.reflect.Method;
  * @date 2021-02-18 20:20
  */
 public class MethodDecoratorAdvice {
+    public static final IAopLogger LOG = BootstrapHelper.createAopLogger(MethodDecoratorAdvice.class);
 
     /**
      * this method is only used for bytebuddy method advice. Have no use during the execution since the code has been injected into target class
@@ -49,20 +53,23 @@ public class MethodDecoratorAdvice {
         AopContext aopContext = new AopContext(method, target, args);
         context = aopContext;
 
-        boolean executeOnMethodExit = false;
         try {
-            executeOnMethodExit = interceptor.onMethodEnter((AopContext) context) == InterceptionDecision.CONTINUE;
-        } catch (Exception e) {
-            e.printStackTrace();
+            if (interceptor.onMethodEnter((AopContext) context) == InterceptionDecision.SKIP_LEAVE) {
+                return false;
+            }
+        } catch (Throwable e) {
+            LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
+                                    interceptor.getClass().getSimpleName(),
+                                    method.getDeclaringClass().getSimpleName(),
+                                    e.getMessage()),
+                      e);
+
+            // continue to execute
         }
 
         //this assignment must be kept since it tells bytebuddy that args might have been re-written
         // so that bytebyddy re-map the args to original function input argument
         args = aopContext.getArgs();
-
-        if (!executeOnMethodExit) {
-            return false;
-        }
 
         aopContext.onBeforeTargetMethodInvocation();
 
@@ -93,8 +100,12 @@ public class MethodDecoratorAdvice {
 
         try {
             interceptor.onMethodLeave(aopContext);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable e) {
+            LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onExit of [%s] for [%s]: %s",
+                                    interceptor.getClass().getSimpleName(),
+                                    aopContext.getTargetClass().getSimpleName(),
+                                    e.getMessage()),
+                      e);
         }
 
         returning = aopContext.getReturning();

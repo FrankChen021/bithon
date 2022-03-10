@@ -32,7 +32,7 @@ import java.util.Locale;
  * @date 2021-02-18 18:03
  */
 public class ConstructorDecoratorAdvice {
-    private static final IAopLogger log = BootstrapHelper.createAopLogger(MethodDecoratorAdvice.class);
+    public static final IAopLogger LOG = BootstrapHelper.createAopLogger(ConstructorDecoratorAdvice.class);
 
     @Advice.OnMethodExit
     public static void onExit(final @Interceptor AbstractInterceptor interceptor,
@@ -45,7 +45,7 @@ public class ConstructorDecoratorAdvice {
         try {
             interceptor.onConstruct(new AopContext(method, target, args));
         } catch (Exception e) {
-            log.error(String.format(Locale.ENGLISH,
+            LOG.error(String.format(Locale.ENGLISH,
                                     "Exception occurs when executing onConstruct on interceptor [%s]: %s",
                                     interceptor.getClass().getName(),
                                     e.getMessage()),
