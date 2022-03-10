@@ -25,6 +25,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -94,6 +95,14 @@ public class UrlSanitizer implements ISanitizer {
                                    uri.getPath(),
                                    query.toString(),
                                    uri.getFragment());
+
+            // for backward compatibility
+            if (span.getTags().containsKey("uri")) {
+                // original tag is unmodifiable
+                Map<String, String> newTags = new HashMap<>(span.getTags());
+                newTags.remove("uri");
+                span.setTags(newTags);
+            }
 
             span.setTag("http.uri", modified.toString());
         } catch (URISyntaxException ignored) {

@@ -57,10 +57,6 @@ public interface ITraceSpan {
         return this;
     }
 
-    ITraceSpan arg(String name, String value);
-
-    Map<String, String> args();
-
     String parentApplication();
 
     ITraceSpan parentApplication(String sourceApp);

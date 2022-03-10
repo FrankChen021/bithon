@@ -20,6 +20,12 @@
       <version>1.4.12.Final</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>io.undertow</groupId>
+      <artifactId>undertow-servlet</artifactId>
+      <version>1.4.12.Final</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>

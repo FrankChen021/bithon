@@ -97,16 +97,6 @@ class PropagationTraceSpan implements ITraceSpan {
     }
 
     @Override
-    public ITraceSpan arg(String name, String value) {
-        return this;
-    }
-
-    @Override
-    public Map<String, String> args() {
-        return null;
-    }
-
-    @Override
     public String parentApplication() {
         return null;
     }

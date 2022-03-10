@@ -32,7 +32,6 @@ class TraceSpan implements ITraceSpan {
     private final String spanId;
     private final String parentSpanId;
     private final Map<String, String> tags = new HashMap<>();
-    private final Map<String, String> args = new HashMap<>();
 
     /**
      * in micro-seconds
@@ -112,17 +111,6 @@ class TraceSpan implements ITraceSpan {
             tags.put("exception", exception.toString());
         }
         return this;
-    }
-
-    @Override
-    public TraceSpan arg(String name, String value) {
-        args.put(name, value);
-        return this;
-    }
-
-    @Override
-    public Map<String, String> args() {
-        return this.args;
     }
 
     @Override

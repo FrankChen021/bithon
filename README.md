@@ -17,7 +17,8 @@ Reference:
 
 # Demon
 
-A preview demo is hosted [here](https://www.bithon.org:9897/web/home).
+A demo distributed services is provided by this [demo repo](https://github.com/FrankChen021/bithon-demo) with a docker-compose file.
+You can follow the README on that demo repo to start the demo within just 3 steps.
 
 # Build
 
@@ -46,10 +47,10 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home
 For the first time to build this project, use following command to build all modules including its dependencies. 
 
 ```bash
-mvn clean install --activate-profiles all
+mvn clean install --activate-profiles shaded,jooq,server
 ```
 
-After the first build, we can remove the `--activate-profiles all` to speed up the following build.
+After the first build, we can remove the `--activate-profiles shaded,jooq,server` to speed up the following build.
 
 # Run
 
@@ -131,4 +132,6 @@ For more information, check the [development doc](doc/dev/development.md).
 
 # User Doc
 1. [Configuration](doc/configuration/configuration.md)
-2. [Metrics](doc/sdk/metrics.md)
+2. SDK
+   1. [Metrics](doc/sdk/metrics.md)
+   2. [Tracing](doc/sdk/tracing.md)

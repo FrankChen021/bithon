@@ -90,7 +90,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         }
     }
 
-    public void updateDataSourceSchmea(DataSourceSchema schema) {
+    public void updateDataSourceSchema(DataSourceSchema schema) {
         try {
             this.schemaStorage.update(schema.getName(), schema);
         } catch (IOException e) {
