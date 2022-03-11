@@ -80,7 +80,6 @@ public class AgentContext {
     public static final String BITHON_APPLICATION_NAME = "bithon.application.name";
 
     public static final String CONF_DIR = "conf";
-    public static final String PLUGIN_DIR = "plugins";
     public static final String TMP_DIR = "tmp";
     private static AgentContext INSTANCE;
     private String agentDirectory;
