@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.spring.bean.installer;
 
 import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
 import org.bithon.agent.core.aop.AopClassHelper;
-import org.bithon.agent.core.aop.interceptor.BeanMethodAopInstaller;
+import org.bithon.agent.core.aop.installer.BeanMethodAopInstaller;
 import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.plugin.spring.bean.SpringBeanPlugin;
 import org.bithon.agent.plugin.spring.bean.interceptor.BeanMethod$Invoke;

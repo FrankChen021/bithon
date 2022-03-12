@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.guice.installer;
 
 import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
 import org.bithon.agent.core.aop.AopClassHelper;
-import org.bithon.agent.core.aop.interceptor.BeanMethodAopInstaller;
+import org.bithon.agent.core.aop.installer.BeanMethodAopInstaller;
 import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.plugin.guice.GuicePlugin;
 import org.bithon.agent.plugin.guice.interceptor.GuiceBeanMethod$Invoke;

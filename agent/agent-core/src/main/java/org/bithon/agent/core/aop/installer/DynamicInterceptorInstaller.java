@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.aop.interceptor;
+package org.bithon.agent.core.aop.installer;
 
 import org.bithon.agent.core.aop.AopDebugger;
 import org.bithon.agent.core.aop.InstrumentationHelper;
