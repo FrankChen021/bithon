@@ -16,12 +16,12 @@
 
 package org.bithon.agent.plugin.bithon.sdk.interceptor;
 
-import org.bithon.agent.bootstrap.aop.IReplacementInterceptor;
+import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector2;
 import org.bithon.agent.core.metric.collector.IMetricCollectorBase;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
-import org.bithon.agent.core.plugin.PluginClassLoaderManager;
 import org.bithon.agent.sdk.expt.SdkException;
 import org.bithon.agent.sdk.metric.IMetricsRegistry;
 import org.bithon.agent.sdk.metric.MetricRegistryFactory;
@@ -41,7 +41,7 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021-10-01
  */
-public class MetricRegistryFactory$Create implements IReplacementInterceptor {
+public class MetricRegistryFactory$Create extends AbstractInterceptor {
 
     private static final ILogAdaptor log = LoggerFactory.getLogger(MetricRegistryFactory$Create.class);
 

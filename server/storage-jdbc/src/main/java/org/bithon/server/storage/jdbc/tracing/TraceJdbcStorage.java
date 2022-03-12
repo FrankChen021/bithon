@@ -24,7 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.utils.ThreadUtils;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.storage.jdbc.jooq.Tables;
@@ -144,7 +144,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         public BatchWriter(ITraceWriter writer, TraceStorageConfig config) {
             this.writer = writer;
             this.config = config;
-            this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadUtils.NamedThreadFactory("trace-batch-writer"));
+            this.executor = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("trace-batch-writer"));
             this.executor.scheduleWithFixedDelay(this::flush, 5, 1, TimeUnit.SECONDS);
         }
 

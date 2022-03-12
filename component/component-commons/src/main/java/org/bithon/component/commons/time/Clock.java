@@ -14,19 +14,31 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.utils.time;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+package org.bithon.component.commons.time;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/14 5:20 下午
+ * @date 2021/2/5 9:13 下午
  */
-public class DateTime {
+public class Clock {
+    final long millis;
+    final long nanos;
 
-    public static String toISO8601(long milliSeconds) {
-        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ENGLISH).format(new Date(milliSeconds));
+    public Clock() {
+        this.millis = System.currentTimeMillis();
+        this.nanos = System.nanoTime();
+    }
+
+    public long currentMicroseconds() {
+        return (System.nanoTime() - this.nanos) / 1000L + this.millis * 1000;
+    }
+
+    public long currentMilliseconds() {
+        return this.millis;
+    }
+
+    @Override
+    public String toString() {
+        return "Clock{millis=" + this.millis + ", nanos=" + this.nanos + "}";
     }
 }

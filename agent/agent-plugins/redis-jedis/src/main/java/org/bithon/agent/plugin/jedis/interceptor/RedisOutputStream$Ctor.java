@@ -19,9 +19,9 @@ package org.bithon.agent.plugin.jedis.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.utils.ReflectionUtils;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;

@@ -44,13 +44,18 @@ public class BootstrapHelper {
             System.out.printf(Locale.ENGLISH, "[%s] could not be found, AopLogger falls back to Console Logger%n", loggerName);
             return new IAopLogger() {
                 @Override
+                public void warn(String messageFormat, Object... args) {
+                    System.err.printf(Locale.ENGLISH, messageFormat, args);
+                }
+
+                @Override
                 public void warn(String message, Throwable e) {
-                    System.out.printf(Locale.ENGLISH, "[WARN] %s: %s%n", message, e.toString());
+                    System.err.printf(Locale.ENGLISH, "[WARN] %s: %s%n", message, e.toString());
                 }
 
                 @Override
                 public void error(String message, Throwable e) {
-                    System.out.printf(Locale.ENGLISH, "[ERROR] %s: %s%n", message, e.toString());
+                    System.err.printf(Locale.ENGLISH, "[ERROR] %s: %s%n", message, e.toString());
                 }
             };
         } catch (Exception e) {
@@ -58,11 +63,11 @@ public class BootstrapHelper {
         }
     }
 
-    public static void setPluginClassLoader(ClassLoader classLoader) {
-        BootstrapHelper.classLoader = classLoader;
-    }
-
     public static ClassLoader getPluginClassLoader() {
         return classLoader;
+    }
+
+    public static void setPluginClassLoader(ClassLoader classLoader) {
+        BootstrapHelper.classLoader = classLoader;
     }
 }

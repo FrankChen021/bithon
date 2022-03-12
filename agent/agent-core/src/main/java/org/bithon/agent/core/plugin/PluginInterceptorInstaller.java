@@ -18,8 +18,9 @@ package org.bithon.agent.core.plugin;
 
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.loader.JarClassLoader;
+import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
-import org.bithon.agent.core.aop.interceptor.InterceptorInstaller;
+import org.bithon.agent.core.aop.installer.InterceptorInstaller;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
@@ -50,11 +51,10 @@ public class PluginInterceptorInstaller {
         // find all plugins first
         List<IPlugin> plugins = loadPlugins();
 
-        // install interceptors for bootstrap classes
-        AgentBuilder agentBuilder = new PluginAopClassGenerator(inst, createAgentBuilder(inst)).generate(plugins);
-
         // install interceptors
-        install(agentBuilder, inst, plugins);
+        Descriptors descriptors = mergeInterceptorDescriptors(plugins);
+
+        new InterceptorInstaller(descriptors).installOn(createAgentBuilder(inst), inst);
 
         // start plugins
         plugins.forEach(IPlugin::start);
@@ -71,7 +71,7 @@ public class PluginInterceptorInstaller {
         return builder;
     }
 
-    private static void install(AgentBuilder agentBuilder, Instrumentation inst, List<IPlugin> plugins) {
+    private static Descriptors mergeInterceptorDescriptors(List<IPlugin> plugins) {
         Descriptors descriptors = new Descriptors();
         for (IPlugin plugin : plugins) {
             String pluginName = plugin.getClass().getSimpleName();
@@ -80,8 +80,7 @@ public class PluginInterceptorInstaller {
 
             descriptors.merge(pluginName, plugin.getPreconditions(), plugin.getInterceptors());
         }
-
-        new InterceptorInstaller(descriptors).installOn(agentBuilder, inst);
+        return descriptors;
     }
 
     private static List<IPlugin> loadPlugins() {

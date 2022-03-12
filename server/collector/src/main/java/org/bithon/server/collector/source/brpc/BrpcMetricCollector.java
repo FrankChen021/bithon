@@ -26,7 +26,7 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
-import org.bithon.server.common.utils.ReflectionUtils;
+import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.TimestampSpec;

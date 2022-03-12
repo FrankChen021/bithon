@@ -14,8 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.aop;
+package org.bithon.agent.core.aop.installer;
 
+import org.bithon.agent.core.aop.AopDebugger;
+import org.bithon.agent.core.aop.InstrumentationHelper;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
@@ -45,8 +47,25 @@ public class DynamicInterceptorInstaller {
         return INSTANCE;
     }
 
-    private DynamicType.Builder<?> install(AopDescriptor descriptor, DynamicType.Builder<?> builder) {
+    private DynamicType.Builder<?> install(AopDescriptor descriptor,
+                                           TypeDescription typeDescription,
+                                           ClassLoader classLoader,
+                                           DynamicType.Builder<?> builder) {
+
         log.info("Dynamically install interceptor for [{}]", descriptor.targetClass);
+
+        /*
+           TODO: Use the unified install
+           Problem: the unified installer injects static fields and static initializer for these fields,
+                    but for dynamic class injection, the class format changes has been disabled, it's not possible to do that
+                    So, in the future it's better to inject those interceptor object via customer Advice annotation
+        new InterceptorInstaller.Installer(builder, typeDescription, classLoader)
+            .install("Dynamic",
+                     MethodPointCutDescriptorBuilder.build()
+                                                    .onMethod(descriptor.getMethodMatcher())
+                                                    .to(descriptor.interceptorClass)
+            );
+         */
         return builder.visit(descriptor.advice.on(descriptor.methodMatcher));
     }
 
@@ -56,7 +75,7 @@ public class DynamicInterceptorInstaller {
                                   .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
                                   .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                                   .type(ElementMatchers.named(descriptor.targetClass))
-                                  .transform((builder, typeDescription, classLoader, javaModule) -> install(descriptor, builder))
+                                  .transform((builder, typeDescription, classLoader, javaModule) -> install(descriptor, typeDescription, classLoader, builder))
                                   .with(new AopDebugger(new HashSet<>(Collections.singletonList(descriptor.getTargetClass()))))
                                   .installOn(InstrumentationHelper.getInstance());
     }
@@ -77,7 +96,7 @@ public class DynamicInterceptorInstaller {
                                           return builder;
                                       }
 
-                                      return install(descriptor, builder);
+                                      return install(descriptor, typeDescription, classLoader, builder);
 
                                   })
                                   .with(new AopDebugger(new HashSet<>(descriptors.keySet())))
@@ -86,11 +105,16 @@ public class DynamicInterceptorInstaller {
 
     public static class AopDescriptor {
         private final String targetClass;
+        private final String interceptorClass;
         private final Advice advice;
-        private final ElementMatcher<? super MethodDescription> methodMatcher;
+        private final ElementMatcher.Junction<MethodDescription> methodMatcher;
 
-        public AopDescriptor(String targetClass, Advice advice, ElementMatcher<? super MethodDescription> methodMatcher) {
+        public AopDescriptor(String targetClass,
+                             String interceptor,
+                             Advice advice,
+                             ElementMatcher.Junction<MethodDescription> methodMatcher) {
             this.targetClass = targetClass;
+            this.interceptorClass = interceptor;
             this.advice = advice;
             this.methodMatcher = methodMatcher;
         }
@@ -103,7 +127,7 @@ public class DynamicInterceptorInstaller {
             return advice;
         }
 
-        public ElementMatcher<? super MethodDescription> getMethodMatcher() {
+        public ElementMatcher.Junction<MethodDescription> getMethodMatcher() {
             return methodMatcher;
         }
     }

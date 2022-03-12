@@ -14,14 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.plugin;
+package org.bithon.agent.bootstrap.loader;
 
 import org.bithon.agent.bootstrap.aop.BootstrapHelper;
-import org.bithon.agent.bootstrap.loader.AgentClassLoader;
-import org.bithon.agent.bootstrap.loader.CascadingClassLoader;
-import org.bithon.agent.bootstrap.loader.JarClassLoader;
-import org.bithon.agent.bootstrap.loader.JarResolver;
-import org.bithon.agent.core.context.AgentContext;
 
 import java.io.File;
 import java.util.List;
@@ -56,7 +51,7 @@ public final class PluginClassLoaderManager {
     }
 
     public static void createDefault(String agentPath) {
-        List<JarFile> pluginJars = JarResolver.resolve(new File(agentPath + "/" + AgentContext.PLUGIN_DIR));
+        List<JarFile> pluginJars = JarResolver.resolve(new File(agentPath + "/plugins"));
 
         defaultLoader = new JarClassLoader("plugin", pluginJars, AgentClassLoader.getClassLoader());
 

@@ -23,7 +23,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.core.utils.MiscUtils;
-import org.bithon.agent.core.utils.ReflectionUtils;
+import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.lang.reflect.Method;
 

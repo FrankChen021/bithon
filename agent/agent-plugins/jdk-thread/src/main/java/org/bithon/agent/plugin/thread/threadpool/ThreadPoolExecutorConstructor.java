@@ -42,7 +42,7 @@ public class ThreadPoolExecutorConstructor extends AbstractInterceptor {
                                        ThreadPoolUtils.getThreadPoolName(executor.getThreadFactory()),
                                        new ThreadPoolExecutorMetrics(executor));
             } catch (AgentException e) {
-                LOG.error(e.getMessage());
+                LOG.warn(e.getMessage());
             }
         }
     }

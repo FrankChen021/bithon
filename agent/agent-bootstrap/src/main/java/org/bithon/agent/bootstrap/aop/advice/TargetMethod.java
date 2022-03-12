@@ -14,12 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.bootstrap.aop;
+package org.bithon.agent.bootstrap.aop.advice;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
+ * DO NOT USE on Advice which is used for re-transformation.
+ * See <a href="https://github.com/raphw/byte-buddy/issues/1210">this issue</a> on github for more details
+ *
+ * Work with {@link TargetMethodResolver}
+ *
  * @author Frank Chen
- * @date 3/10/21 16:23
+ * @date 22/2/22 8:21 PM
  */
-public interface IReplacementInterceptor {
-    Object onExecute(Object[] args);
+@Retention(RetentionPolicy.RUNTIME)
+@java.lang.annotation.Target(ElementType.PARAMETER)
+public @interface TargetMethod {
 }

@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.spring.bean.installer;
 
 import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
 import org.bithon.agent.core.aop.AopClassHelper;
-import org.bithon.agent.core.aop.BeanMethodAopInstaller;
+import org.bithon.agent.core.aop.installer.BeanMethodAopInstaller;
 import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.plugin.spring.bean.SpringBeanPlugin;
 import org.bithon.agent.plugin.spring.bean.interceptor.BeanMethod$Invoke;
@@ -55,6 +55,7 @@ public class BeanMethodAopInstallerHelper {
 
     public static void install(Class<?> targetClass) {
         BeanMethodAopInstaller.install(targetClass,
+                                       BeanMethod$Invoke.class.getName(),
                                        Advice.to(targetAopClass.getTypeDescription(), ClassFileLocator.Simple.of(targetAopClass.getAllTypes())),
                                        transformationConfig);
     }

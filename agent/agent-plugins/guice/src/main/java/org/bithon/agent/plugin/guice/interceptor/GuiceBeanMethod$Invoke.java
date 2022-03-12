@@ -30,7 +30,7 @@ import java.lang.reflect.Method;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class BeanMethod$Invoke implements IAdviceInterceptor {
+public class GuiceBeanMethod$Invoke implements IAdviceInterceptor {
 
     @Override
     public Object onMethodEnter(
@@ -38,13 +38,12 @@ public class BeanMethod$Invoke implements IAdviceInterceptor {
         final Object target,
         final Object[] args
     ) {
-        ITraceSpan span = TraceSpanFactory.newSpan("");
+        ITraceSpan span = TraceSpanFactory.newSpan("guiceBean");
         if (span == null) {
             return null;
         }
 
-        return span.component("bean")
-                   .method(method)
+        return span.method(method)
                    .start();
     }
 

@@ -21,7 +21,7 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.core.utils.HostAndPort;
-import org.bithon.agent.core.utils.ReflectionUtils;
+import org.bithon.component.commons.utils.ReflectionUtils;
 
 
 /**

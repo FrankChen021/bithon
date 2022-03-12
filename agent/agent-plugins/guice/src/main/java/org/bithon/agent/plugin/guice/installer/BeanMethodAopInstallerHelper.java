@@ -18,10 +18,10 @@ package org.bithon.agent.plugin.guice.installer;
 
 import org.bithon.agent.bootstrap.aop.advice.IAdviceAopTemplate;
 import org.bithon.agent.core.aop.AopClassHelper;
-import org.bithon.agent.core.aop.BeanMethodAopInstaller;
+import org.bithon.agent.core.aop.installer.BeanMethodAopInstaller;
 import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.plugin.guice.GuicePlugin;
-import org.bithon.agent.plugin.guice.interceptor.BeanMethod$Invoke;
+import org.bithon.agent.plugin.guice.interceptor.GuiceBeanMethod$Invoke;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.dynamic.ClassFileLocator;
 import shaded.net.bytebuddy.dynamic.DynamicType;
@@ -48,13 +48,14 @@ public class BeanMethodAopInstallerHelper {
 
         targetAopClass = AopClassHelper.generateAopClass(IAdviceAopTemplate.class,
                                                          targetAopClassName,
-                                                         BeanMethod$Invoke.class.getName(),
+                                                         GuiceBeanMethod$Invoke.class.getName(),
                                                          true);
         AopClassHelper.inject(targetAopClass);
     }
 
     public static void install(Class<?> targetClass) {
         BeanMethodAopInstaller.install(targetClass,
+                                       GuiceBeanMethod$Invoke.class.getName(),
                                        Advice.to(targetAopClass.getTypeDescription(), ClassFileLocator.Simple.of(targetAopClass.getAllTypes())),
                                        transformationConfig);
     }

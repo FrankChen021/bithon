@@ -33,6 +33,9 @@ public abstract class AbstractInterceptor {
         return true;
     }
 
+    /**
+     * post-processing of a ctor.
+     */
     public void onConstruct(AopContext aopContext) throws Exception {
     }
 
@@ -48,7 +51,8 @@ public abstract class AbstractInterceptor {
     }
 
     /**
-     * Replacement interceptor
+     * Replacement of a target method.
+     * Will be executed only when the interceptor is defined as replacement
      */
     public Object onExecute(Object[] args) {
         return null;

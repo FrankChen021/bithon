@@ -25,7 +25,7 @@ import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.core.metric.domain.web.WebServerMetricRegistry;
 import org.bithon.agent.core.metric.domain.web.WebServerMetrics;
 import org.bithon.agent.core.metric.domain.web.WebServerType;
-import org.bithon.agent.core.utils.ReflectionUtils;
+import org.bithon.component.commons.utils.ReflectionUtils;
 import org.xnio.XnioWorker;
 
 import java.lang.reflect.InvocationTargetException;
