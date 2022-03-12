@@ -58,9 +58,6 @@ public class Descriptors {
             String targetClass = interceptor.getTargetClass();
 
             Descriptor descriptor = this.descriptors.computeIfAbsent(targetClass, v -> new Descriptor(targetClass));
-            if (interceptor.isBootstrapClass()) {
-                descriptor.isBootstrapClass = interceptor.isBootstrapClass();
-            }
             if (interceptor.isDebug()) {
                 descriptor.isDebuggingOn = interceptor.isDebug();
             }
@@ -77,7 +74,6 @@ public class Descriptors {
     public static class Descriptor {
         private final String targetClass;
         private final List<MethodPointCuts> methodPointCuts = new ArrayList<>();
-        private boolean isBootstrapClass;
         private boolean isDebuggingOn;
 
         Descriptor(String targetClass) {
@@ -90,10 +86,6 @@ public class Descriptors {
 
         public String getTargetClass() {
             return targetClass;
-        }
-
-        public boolean isBootstrapClass() {
-            return isBootstrapClass;
         }
 
         public boolean isDebuggingOn() {

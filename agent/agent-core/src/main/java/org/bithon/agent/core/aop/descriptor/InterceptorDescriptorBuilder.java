@@ -24,17 +24,9 @@ public class InterceptorDescriptorBuilder {
 
     private String targetClass;
     private boolean debug;
-    private boolean isBootstrapClass;
 
     public static InterceptorDescriptorBuilder forClass(String targetClass) {
         return new InterceptorDescriptorBuilder().targetClass(targetClass);
-    }
-
-    /**
-     * for classes which are loaded by bootstrap class loader
-     */
-    public static InterceptorDescriptorBuilder forBootstrapClass(String targetClass) {
-        return new InterceptorDescriptorBuilder().targetClass(targetClass).isBootstrapClass(true);
     }
 
     public InterceptorDescriptor methods(MethodPointCutDescriptor... pointCuts) {
@@ -43,8 +35,7 @@ public class InterceptorDescriptorBuilder {
                 pointCut.setDebug(debug);
             }
         }
-        return new InterceptorDescriptor(debug, isBootstrapClass, targetClass, pointCuts);
-
+        return new InterceptorDescriptor(debug, targetClass, pointCuts);
     }
 
     public InterceptorDescriptorBuilder targetClass(String targetClass) {
@@ -54,11 +45,6 @@ public class InterceptorDescriptorBuilder {
 
     public InterceptorDescriptorBuilder debug() {
         this.debug = true;
-        return this;
-    }
-
-    public InterceptorDescriptorBuilder isBootstrapClass(boolean isBootstrapClass) {
-        this.isBootstrapClass = isBootstrapClass;
         return this;
     }
 }
