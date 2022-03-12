@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.utils;
+package org.bithon.component.commons.utils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -25,10 +25,38 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/12 9:34 下午
+ * @author frankchen
  */
 public class ReflectionUtils {
+
+    public static Object getFieldValue(Object obj,
+                                       String fieldName) {
+        Object result = null;
+        Field field;
+        try {
+            field = getField(obj.getClass(), fieldName);
+        } catch (NoSuchFieldException e) {
+            return null;
+        }
+        field.setAccessible(true);
+        try {
+            result = field.get(obj);
+        } catch (IllegalAccessException ignored) {
+        }
+        return result;
+    }
+
+    public static Field getField(Class<?> clazz,
+                                 String fieldName) throws NoSuchFieldException {
+        while (clazz != null) {
+            try {
+                return clazz.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException ignored) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException(fieldName);
+    }
 
     public static Map<String, Object> getFields(Object object) {
         return getFields(object, new HashMap<>(16));

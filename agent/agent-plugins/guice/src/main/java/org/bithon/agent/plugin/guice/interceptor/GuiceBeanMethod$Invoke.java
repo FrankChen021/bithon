@@ -16,11 +16,11 @@
 
 package org.bithon.agent.plugin.guice.interceptor;
 
-import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
-import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
+
+import java.lang.reflect.Method;
 
 /**
  * NOTE:
@@ -30,27 +30,31 @@ import org.bithon.agent.core.tracing.context.TraceSpanFactory;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class GuiceBeanMethod$Invoke extends AbstractInterceptor {
+public class GuiceBeanMethod$Invoke implements IAdviceInterceptor {
 
     @Override
-    public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        ITraceSpan span = TraceSpanFactory.newSpan("");
+    public Object onMethodEnter(
+        final Method method,
+        final Object target,
+        final Object[] args
+    ) {
+        ITraceSpan span = TraceSpanFactory.newSpan("guiceBean");
         if (span == null) {
-            return InterceptionDecision.SKIP_LEAVE;
+            return null;
         }
 
-        aopContext.setUserContext(span.component("bean")
-                                      .method(aopContext.getMethod())
-                                      .start());
-
-        return InterceptionDecision.CONTINUE;
+        return span.method(method)
+                   .start();
     }
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
-        ITraceSpan span = aopContext.castUserContextAs();
-        if (span != null) {
-            span.tag(aopContext.getException()).finish();
-        }
+    public Object onMethodExit(final Method method,
+                               final Object target,
+                               final Object[] args,
+                               final Object returning,
+                               final Throwable exception,
+                               final Object context) {
+        ((ITraceSpan) context).tag(exception).finish();
+        return returning;
     }
 }

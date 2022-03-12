@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.common.ttl.TTLConfig;
-import org.bithon.server.common.utils.datetime.DateTimeUtils;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.storage.IMetricCleaner;

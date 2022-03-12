@@ -1,7 +1,7 @@
 agent:
   plugin:
     guice:
-      disabled: false
+      disabled: true
       bean:
         excludedClasses:
           - type: endwith

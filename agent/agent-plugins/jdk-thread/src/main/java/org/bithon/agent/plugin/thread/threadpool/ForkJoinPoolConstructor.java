@@ -18,7 +18,7 @@ package org.bithon.agent.plugin.thread.threadpool;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.utils.ReflectionUtils;
+import org.bithon.component.commons.utils.ReflectionUtils;
 
 import java.util.concurrent.ForkJoinPool;
 
