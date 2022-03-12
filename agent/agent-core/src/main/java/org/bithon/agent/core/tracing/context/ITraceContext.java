@@ -21,7 +21,7 @@ import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
 import org.bithon.agent.core.tracing.reporter.ITraceReporter;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
-import org.bithon.agent.core.utils.time.Clock;
+import org.bithon.component.commons.time.Clock;
 
 /**
  * @author frank.chen021@outlook.com

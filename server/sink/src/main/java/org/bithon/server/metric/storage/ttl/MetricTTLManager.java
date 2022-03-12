@@ -18,6 +18,7 @@ package org.bithon.server.metric.storage.ttl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.common.ttl.TTLConfig;
 import org.bithon.server.common.utils.datetime.DateTimeUtils;
 import org.bithon.server.metric.DataSourceSchema;
@@ -80,7 +81,7 @@ public class MetricTTLManager implements SmartLifecycle {
     private void cleanDataSource(DataSourceSchema schema) {
         long older = System.currentTimeMillis() - ttlConfig.getTtl().getMilliseconds();
 
-        log.info("Clean [{}] before {}", schema.getName(), DateTimeUtils.toISO8601(older));
+        log.info("Clean [{}] before {}", schema.getName(), DateTime.toISO8601(older));
         try (IMetricCleaner cleaner = metricStorage.createMetricCleaner(schema)) {
             cleaner.clean(older);
         } catch (Exception e) {

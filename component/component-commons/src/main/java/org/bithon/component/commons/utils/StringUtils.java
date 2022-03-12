@@ -50,13 +50,6 @@ public class StringUtils {
         return !hasText(str);
     }
 
-    /**
-     * @param timestamp timestamp in millisecond
-     */
-    public static String formatDateTime(String pattern, long timestamp) {
-        return new SimpleDateFormat(pattern, Locale.ENGLISH).format(new Date(timestamp));
-    }
-
     private static boolean containsText(CharSequence str) {
         int strLen = str.length();
         for (int i = 0; i < strLen; i++) {

@@ -26,7 +26,7 @@ import org.bithon.agent.core.metric.collector.IMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
 import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
-import org.bithon.agent.core.utils.time.DateTime;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.agent.plugin.jvm.gc.GcMetricCollector;
 import org.bithon.agent.plugin.jvm.mem.ClassMetricCollector;
 import org.bithon.agent.plugin.jvm.mem.MemoryMetricCollector;

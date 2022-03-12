@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
@@ -60,6 +61,6 @@ public class EventStorage extends EventJdbcStorage {
                                                                         config.getDatabase(),
                                                                         config.getLocalTableName(Tables.BITHON_EVENT.getName()),
                                                                         config.getClusterExpression(),
-                                                                        StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", beforeTimestamp)));
+                                                                        DateTime.toYYYYMMDDhhmmss(beforeTimestamp)));
     }
 }
