@@ -66,4 +66,9 @@ public class StringUtils {
         }
         return false;
     }
+
+    public static String getSimpleClassName(String qualifiedClassName) {
+        int dot = qualifiedClassName.lastIndexOf('.');
+        return dot == -1 ? qualifiedClassName : qualifiedClassName.substring(dot + 1);
+    }
 }

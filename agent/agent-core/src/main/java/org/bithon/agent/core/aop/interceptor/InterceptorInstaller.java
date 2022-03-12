@@ -31,6 +31,7 @@ import org.bithon.agent.core.aop.descriptor.Descriptors;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptor;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.StringUtils;
 import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.description.method.MethodDescription;
@@ -65,17 +66,10 @@ public class InterceptorInstaller {
     // No need to define it as static since this class has very short lifecycle
     private final ILogAdaptor log = LoggerFactory.getLogger(InterceptorInstaller.class);
 
-    private final TypeDescription INTERCEPTOR_TYPE = new TypeDescription.ForLoadedType(AbstractInterceptor.class);
-
     private final Descriptors descriptors;
 
     public InterceptorInstaller(Descriptors descriptors) {
         this.descriptors = descriptors;
-    }
-
-    private static String getSimpleClassName(String className) {
-        int dot = className.lastIndexOf('.');
-        return dot == -1 ? className : className.substring(dot + 1);
     }
 
     public void installOn(AgentBuilder agentBuilder, Instrumentation inst) {
@@ -110,7 +104,18 @@ public class InterceptorInstaller {
                 // install interceptors for current matched type
                 //
                 for (Descriptors.MethodPointCuts mp : descriptor.getMethodPointCuts()) {
-                    builder = new Installer(builder, mp, typeDescription, classLoader).install();
+                    //
+                    // Run checkers first to see if an interceptor can be installed
+                    //
+                    if (mp.getPrecondition() != null) {
+                        if (!mp.getPrecondition().canInstall(mp.getPlugin(), classLoader, typeDescription)) {
+                            return builder;
+                        }
+                    }
+
+                    builder = new Installer(builder,
+                                            typeDescription,
+                                            classLoader).install(mp.getPlugin(), mp.getMethodInterceptors());
                 }
 
                 return builder;
@@ -118,23 +123,23 @@ public class InterceptorInstaller {
             .with(new AopDebugger(types)).installOn(inst);
     }
 
-    public class Installer {
+    public static class Installer {
         private final MethodDescription getInterceptorMethod;
-        private final Descriptors.MethodPointCuts mp;
         private final TypeDescription typeDescription;
         private final ClassLoader classLoader;
         private DynamicType.Builder<?> builder;
         private Implementation.Composable interceptorInitializers;
 
+        private final TypeDescription interceptorTypeDescription = new TypeDescription.ForLoadedType(AbstractInterceptor.class);
+        private final ILogAdaptor log = LoggerFactory.getLogger(InterceptorInstaller.class);
+
         /**
          * @param classLoader can be NULL. If is NULL, it's Bootstrap class loader
          */
         public Installer(DynamicType.Builder<?> builder,
-                         Descriptors.MethodPointCuts mp,
                          TypeDescription typeDescription,
                          ClassLoader classLoader) {
             this.builder = builder;
-            this.mp = mp;
             this.typeDescription = typeDescription;
             this.classLoader = classLoader;
 
@@ -144,24 +149,17 @@ public class InterceptorInstaller {
                 .getOnly();
         }
 
-        public DynamicType.Builder<?> install() {
-            //
-            // Run checkers first to see if an interceptor can be installed
-            //
-            if (mp.getPrecondition() != null) {
-                if (!mp.getPrecondition().canInstall(mp.getPlugin(), classLoader, typeDescription)) {
-                    return builder;
-                }
+        public DynamicType.Builder<?> install(String providerName, MethodPointCutDescriptor... mps) {
+            for (MethodPointCutDescriptor pointCut : mps) {
+                log.info("Install interceptor [{}#{}] to [{}#{}]",
+                         providerName,
+                         StringUtils.getSimpleClassName(pointCut.getInterceptorClassName()),
+                         StringUtils.getSimpleClassName(typeDescription.getName()),
+                         pointCut);
+                install(pointCut);
             }
 
-            for (MethodPointCutDescriptor pointCut : mp.getMethodInterceptors()) {
-                log.info("Install interceptor [{}#{}] to [{}#{}]",
-                         mp.getPlugin(),
-                         getSimpleClassName(pointCut.getInterceptorClassName()),
-                         getSimpleClassName(typeDescription.getName()),
-                         pointCut);
-                installInterceptor(pointCut);
-            }
+            // create initializers for all injected interceptor fields
             if (interceptorInitializers != null) {
                 builder = builder.invokable(ElementMatchers.isTypeInitializer())
                                  .intercept(interceptorInitializers);
@@ -170,17 +168,23 @@ public class InterceptorInstaller {
             return builder;
         }
 
-        private void installInterceptor(MethodPointCutDescriptor pointCutDescriptor) {
+        private void install(MethodPointCutDescriptor pointCutDescriptor) {
+            // Add a field to hold the interceptor object
+            String fieldName = "intcep" + StringUtils.getSimpleClassName(pointCutDescriptor.getInterceptorClassName()) + "_" + RandomString.make();
+            builder = builder.defineField(fieldName, interceptorTypeDescription, ACC_PRIVATE | ACC_STATIC);
 
-            String fieldName = "intcep" + getSimpleClassName(pointCutDescriptor.getInterceptorClassName()) + "_" + RandomString.make();
-            builder = builder.defineField(fieldName, INTERCEPTOR_TYPE, ACC_PRIVATE | ACC_STATIC);
-
+            // generate assignment to the static field
             MethodCall.FieldSetting interceptorFieldInitializer = MethodCall.invoke(getInterceptorMethod)
+                                                                            // 1st argument
                                                                             .with(pointCutDescriptor.getInterceptorClassName())
-                                                                            .with(typeDescription).setsField(named(fieldName));
+                                                                            // 2nd argument
+                                                                            .with(typeDescription)
+                                                                            // assignment
+                                                                            .setsField(named(fieldName));
             if (interceptorInitializers == null) {
                 interceptorInitializers = interceptorFieldInitializer;
             } else {
+                // Chain initializers for multiple interceptors in one target class together
                 interceptorInitializers = interceptorInitializers.andThen(interceptorFieldInitializer);
             }
 

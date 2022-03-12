@@ -16,7 +16,9 @@
 
 package org.bithon.agent.plugin.spring.bean.interceptor;
 
-import org.bithon.agent.bootstrap.aop.advice.IAdviceInterceptor;
+import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.springframework.stereotype.Component;
@@ -25,7 +27,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,22 +38,18 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frank.chen021@outlook.com
  * @date 2021/7/10 18:46
  */
-public class BeanMethod$Invoke implements IAdviceInterceptor {
+public class BeanMethod$Invoke extends AbstractInterceptor {
 
     private final Map<Class<?>, String> componentNames = new ConcurrentHashMap<>();
 
     @Override
-    public Object onMethodEnter(
-        final Method method,
-        final Object target,
-        final Object[] args
-    ) {
+    public InterceptionDecision onMethodEnter(AopContext aopContext) {
         ITraceSpan span = TraceSpanFactory.newSpan("");
         if (span == null) {
             return null;
         }
 
-        String component = componentNames.computeIfAbsent(method.getDeclaringClass(), beanClass -> {
+        String component = componentNames.computeIfAbsent(aopContext.getTargetClass(), beanClass -> {
             if (beanClass.isAnnotationPresent(RestController.class)) {
                 return "restController";
             } else if (beanClass.isAnnotationPresent(Controller.class)) {
@@ -68,19 +65,18 @@ public class BeanMethod$Invoke implements IAdviceInterceptor {
             }
         });
 
-        return span.component(component)
-                   .method(method)
-                   .start();
+        aopContext.setUserContext(span.component(component)
+                                      .method(aopContext.getMethod())
+                                      .start());
+
+        return InterceptionDecision.CONTINUE;
     }
 
     @Override
-    public Object onMethodExit(final Method method,
-                               final Object target,
-                               final Object[] args,
-                               final Object returning,
-                               final Throwable exception,
-                               final Object context) {
-        ((ITraceSpan) context).tag(exception).finish();
-        return returning;
+    public void onMethodLeave(AopContext aopContext) {
+        ITraceSpan span = aopContext.castUserContextAs();
+        if (span != null) {
+            span.tag(aopContext.getException()).finish();
+        }
     }
 }

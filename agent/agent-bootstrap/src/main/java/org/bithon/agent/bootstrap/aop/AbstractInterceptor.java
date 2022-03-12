@@ -34,7 +34,7 @@ public abstract class AbstractInterceptor {
     }
 
     /**
-     * post processing of a ctor.
+     * post-processing of a ctor.
      */
     public void onConstruct(AopContext aopContext) throws Exception {
     }
