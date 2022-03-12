@@ -18,7 +18,7 @@ package org.bithon.server.metric;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.utils.ThreadUtils;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.event.EventDataSourceSchema;
 import org.bithon.server.metric.storage.ISchemaStorage;
 import org.bithon.server.tracing.TraceDataSourceSchema;
@@ -54,7 +54,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
     public DataSourceSchemaManager(ISchemaStorage schemaStorage, ObjectMapper objectMapper) {
         this.schemaStorage = schemaStorage;
         this.objectMapper = objectMapper;
-        loaderScheduler = Executors.newSingleThreadScheduledExecutor(new ThreadUtils.NamedThreadFactory("schema-loader"));
+        loaderScheduler = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("schema-loader"));
     }
 
     public boolean addDataSourceSchema(DataSourceSchema schema) {

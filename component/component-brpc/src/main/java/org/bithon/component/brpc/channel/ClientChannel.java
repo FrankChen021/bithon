@@ -25,9 +25,9 @@ import org.bithon.component.brpc.exception.ServiceInvocationException;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import org.bithon.component.commons.utils.ThreadUtils;
 import shaded.io.netty.bootstrap.Bootstrap;
 import shaded.io.netty.channel.Channel;
 import shaded.io.netty.channel.ChannelHandlerContext;
@@ -89,7 +89,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
         this.maxRetry = MAX_RETRY;
         this.retryInterval = Duration.ofMillis(100);
 
-        bossGroup = new NioEventLoopGroup(nThreads, new ThreadUtils.NamedThreadFactory("brpc-client"));
+        bossGroup = new NioEventLoopGroup(nThreads, NamedThreadFactory.of("brpc-client"));
         bootstrap = new Bootstrap();
         bootstrap.group(bossGroup)
                  .channel(NioSocketChannel.class)

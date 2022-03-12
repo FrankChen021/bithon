@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.utils.ThreadUtils;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.springframework.context.ApplicationContext;
 
@@ -55,7 +55,7 @@ public class LocalMetricSink implements IMetricMessageSink {
                                           1,
                                           TimeUnit.MINUTES,
                                           new LinkedBlockingQueue<>(4096),
-                                          new ThreadUtils.NamedThreadFactory(name),
+                                          NamedThreadFactory.of(name),
                                           new ThreadPoolExecutor.DiscardOldestPolicy());
         log.info("Starting executor [{}]", name);
     }
