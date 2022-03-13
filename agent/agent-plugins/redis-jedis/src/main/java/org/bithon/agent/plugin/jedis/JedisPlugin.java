@@ -93,6 +93,29 @@ public class JedisPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.jedis.interceptor.OnCommand")
                 ),
 
+            forClass("redis.clients.jedis.BinaryJedis")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(ElementMatchers.isPublic()
+                                                                            .and(ElementMatchers.not(ElementMatchers.isDefaultMethod()))
+                                                                            .and(ElementMatchers.isOverriddenFrom(ElementMatchers.namedOneOf(
+                                                                                // 2.9
+                                                                                "redis.clients.jedis.BasicCommands",
+                                                                                "redis.clients.jedis.BinaryJedisCommands",
+                                                                                "redis.clients.jedis.MultiKeyBinaryCommands",
+                                                                                "redis.clients.jedis.AdvancedBinaryJedisCommands",
+                                                                                "redis.clients.jedis.BinaryScriptingCommands",
+
+                                                                                // 3.x
+                                                                                "redis.clients.jedis.commands.BasicCommands",
+                                                                                "redis.clients.jedis.commands.BinaryJedisCommands",
+                                                                                "redis.clients.jedis.commands.MultiKeyBinaryCommands",
+                                                                                "redis.clients.jedis.commands.AdvancedBinaryJedisCommands",
+                                                                                "redis.clients.jedis.commands.BinaryScriptingCommands"
+                                                                            ))))
+                                                   .to("org.bithon.agent.plugin.jedis.interceptor.OnCommand")
+                ),
+
             forClass("redis.clients.util.RedisOutputStream")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
