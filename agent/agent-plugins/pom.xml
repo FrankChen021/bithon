@@ -38,6 +38,7 @@
     <module>logging-logback</module>
     <module>spring-bean</module>
     <module>spring-mvc</module>
+    <module>spring-scheduling</module>
     <module>spring-webflux</module>
     <module>webserver-tomcat</module>
     <module>webserver-undertow</module>
@@ -188,6 +189,11 @@
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-spring-mvc</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-spring-scheduling</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
