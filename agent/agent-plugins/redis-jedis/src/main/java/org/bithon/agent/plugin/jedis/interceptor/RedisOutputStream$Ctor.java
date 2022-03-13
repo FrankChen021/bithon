@@ -36,7 +36,7 @@ public class RedisOutputStream$Ctor extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(RedisOutputStream$Ctor.class);
 
     @Override
-    public void onConstruct(AopContext aopContext) throws Exception {
+    public void onConstruct(AopContext aopContext) {
         OutputStream os = aopContext.getArgAs(0);
 
         try {
@@ -62,7 +62,8 @@ public class RedisOutputStream$Ctor extends AbstractInterceptor {
                 if (ctx != null) {
                     ctx.getMetrics().addRequestBytes(len);
                 } else {
-                    log.warn("Redis command is not instrumented", new RuntimeException());
+                    // log the stack trace to help get known which command is not instrumented
+                    log.warn("Redis command is not instrumented.", new RuntimeException());
                 }
             } catch (Throwable ignored) {
             }
