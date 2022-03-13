@@ -83,4 +83,20 @@ public class BeanMethod$Invoke implements IAdviceInterceptor {
         ((ITraceSpan) context).tag(exception).finish();
         return returning;
     }
+
+    public static boolean isInterceptable(Class<?> beanClass) {
+        if (beanClass.isAnnotationPresent(RestController.class)) {
+            return true;
+        } else if (beanClass.isAnnotationPresent(Controller.class)) {
+            return true;
+        } else if (beanClass.isAnnotationPresent(Service.class)) {
+            return true;
+        } else if (beanClass.isAnnotationPresent(Repository.class)) {
+            return true;
+        } else if (beanClass.isAnnotationPresent(Component.class)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
