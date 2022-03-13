@@ -54,9 +54,11 @@ public class BeanMethodAopInstallerHelper {
     }
 
     public static void install(Class<?> targetClass) {
-        BeanMethodAopInstaller.install(targetClass,
-                                       BeanMethod$Invoke.class.getName(),
-                                       Advice.to(targetAopClass.getTypeDescription(), ClassFileLocator.Simple.of(targetAopClass.getAllTypes())),
-                                       transformationConfig);
+        if (BeanMethod$Invoke.isInterceptable(targetClass)) {
+            BeanMethodAopInstaller.install(targetClass,
+                                           BeanMethod$Invoke.class.getName(),
+                                           Advice.to(targetAopClass.getTypeDescription(), ClassFileLocator.Simple.of(targetAopClass.getAllTypes())),
+                                           transformationConfig);
+        }
     }
 }

@@ -17,30 +17,42 @@
 package org.bithon.agent.plugin.spring.mvc;
 
 
-import feign.Request;
-import feign.Response;
+import feign.MethodMetadata;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.Tags;
+import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 
 /**
+ * {@link feign.SynchronousMethodHandler#invoke(Object[])}
+ *
  * @author frankchen
  * @date 2021-02-16 14:41
  */
-public class FeignClientInterceptor extends AbstractInterceptor {
+public class SynchronousMethodHandler$Invoke extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
+        if (!(aopContext.getTarget() instanceof IBithonObject)) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
+        IBithonObject methodHandler = aopContext.castTargetAs();
+        MethodMetadata metadata = (MethodMetadata) methodHandler.getInjectedObject();
+        if (metadata == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
+
         ITraceSpan span = TraceSpanFactory.newSpan("feignClient");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        Request request = (Request) aopContext.getArgs()[0];
-        aopContext.setUserContext(span.tag(Tags.HTTP_URI, request.url())
+        aopContext.setUserContext(span.kind(SpanKind.CLIENT)
+                                      .method(metadata.method())
                                       .start());
 
         return InterceptionDecision.CONTINUE;
@@ -50,8 +62,7 @@ public class FeignClientInterceptor extends AbstractInterceptor {
     public void onMethodLeave(AopContext aopContext) {
         ITraceSpan span = aopContext.castUserContextAs();
 
-        Response response = aopContext.castReturningAs();
-        span.tag(Tags.HTTP_STATUS, String.valueOf(response.status()));
-        span.finish();
+        span.tag(aopContext.getException())
+            .finish();
     }
 }
