@@ -20,6 +20,7 @@ import lombok.Data;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.api.IQuerableAggregator;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
@@ -38,18 +39,21 @@ public class GroupByQuery {
     private final Interval interval;
 
     private final List<String> groupBys;
+    private final OrderBy orderBy;
 
     public GroupByQuery(DataSourceSchema dataSource,
                         List<String> metrics,
                         List<IQuerableAggregator> aggregators,
                         Collection<DimensionCondition> filters,
                         Interval interval,
-                        List<String> groupBys) {
+                        List<String> groupBys,
+                        @Nullable OrderBy orderBy) {
         this.dataSource = dataSource;
         this.metrics = metrics;
         this.aggregators = aggregators;
         this.filters = filters;
         this.interval = interval;
         this.groupBys = groupBys;
+        this.orderBy = orderBy;
     }
 }

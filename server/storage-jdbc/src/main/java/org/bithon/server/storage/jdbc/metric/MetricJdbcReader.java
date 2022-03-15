@@ -36,6 +36,7 @@ import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.metric.storage.GroupByQuery;
 import org.bithon.server.metric.storage.IMetricReader;
 import org.bithon.server.metric.storage.ListQuery;
+import org.bithon.server.metric.storage.OrderBy;
 import org.bithon.server.metric.storage.TimeseriesQuery;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.jooq.DSLContext;
@@ -90,8 +91,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                                                       "OUTER",
                                                                                       query.getDataSource(),
                                                                                       ImmutableMap.of("interval",
-                                                                                                      query.getInterval()
-                                                                                                           .getGranularity()));
+                                                                                                      query.getInterval().getLength()));
 
         // put non-post aggregator metrics before the post
         String metricList = query.getMetrics()
@@ -118,7 +118,7 @@ public class MetricJdbcReader implements IMetricReader {
         String groupByFields = query.getGroupBys().stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
 
         String sql = StringUtils.format(
-            "SELECT %s %s %s %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s",
+            "SELECT %s %s %s %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s %s",
             groupByFields,
             metricList,
             postAggregatorMetrics,
@@ -128,9 +128,17 @@ public class MetricJdbcReader implements IMetricReader {
             StringUtils.hasText(filter) ? "AND" : "",
             sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
             sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
-            groupByFields
+            groupByFields,
+            getOrderBySQL(query.getOrderBy())
         );
         return executeSql(sql);
+    }
+
+    private String getOrderBySQL(OrderBy orderBy) {
+        if (orderBy == null) {
+            return "";
+        }
+        return "ORDER BY " + orderBy.getName() + " " + orderBy.getOrder();
     }
 
     @Override

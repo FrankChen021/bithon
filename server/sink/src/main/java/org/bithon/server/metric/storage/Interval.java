@@ -83,4 +83,11 @@ public class Interval {
     public int getGranularity() {
         return granularity;
     }
+
+    /**
+     * @return the length of interval
+     */
+    public int getLength() {
+        return (int) (endTime.getMilliseconds() - startTime.getMilliseconds()) / 1000;
+    }
 }
