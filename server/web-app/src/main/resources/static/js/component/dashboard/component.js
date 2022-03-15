@@ -206,7 +206,7 @@ class Dashboard {
                 const yAxis = metricDef.yAxis == null ? 0 : metricDef.yAxis;
                 formatterFn = this._formatters[chartDescriptor.yAxis[yAxis].format];
             }
-            if ( formatterFn == null ) {
+            if (formatterFn == null) {
                 // if this metric is not found, format in default ways
                 formatterFn = (v) => {
                     return v.formatCompactNumber();
