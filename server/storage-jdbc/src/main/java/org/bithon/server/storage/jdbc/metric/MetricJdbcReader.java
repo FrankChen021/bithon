@@ -75,10 +75,10 @@ public class MetricJdbcReader implements IMetricReader {
                                                     query.getInterval().getStartTime(),
                                                     query.getInterval().getEndTime(),
                                                     query.getDataSource(),
-                                                    query.getInterval().getGranularity()).filters(query.getFilters())
-                                                                                         .metrics(query.getMetrics())
-                                                                                         .groupBy(query.getGroupBys())
-                                                                                         .build();
+                                                    query.getInterval().getStepLength()).filters(query.getFilters())
+                                                                                        .metrics(query.getMetrics())
+                                                                                        .groupBy(query.getGroupBys())
+                                                                                        .build();
         return executeSql(sql);
     }
 
@@ -91,7 +91,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                                                       "OUTER",
                                                                                       query.getDataSource(),
                                                                                       ImmutableMap.of("interval",
-                                                                                                      query.getInterval().getLength()));
+                                                                                                      query.getInterval().getTotalLength()));
 
         // put non-post aggregator metrics before the post
         String metricList = query.getMetrics()

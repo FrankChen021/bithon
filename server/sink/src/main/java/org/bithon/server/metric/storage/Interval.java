@@ -30,16 +30,16 @@ public class Interval {
     /**
      * in second
      */
-    private final int granularity;
+    private final int step;
 
     private Interval(TimeSpan startTime, TimeSpan endTime, int step) {
         this.startTime = startTime;
         this.endTime = endTime;
-        this.granularity = step;
+        this.step = step;
     }
 
     public static Interval of(TimeSpan start, TimeSpan end) {
-        return of(start, end, getGranularity(start, end));
+        return of(start, end, getStepLength(start, end));
     }
 
     public static Interval of(TimeSpan start, TimeSpan end, int step) {
@@ -49,7 +49,7 @@ public class Interval {
     /**
      * TODO: interval should be consistent with retention rules
      */
-    private static int getGranularity(TimeSpan start, TimeSpan end) {
+    private static int getStepLength(TimeSpan start, TimeSpan end) {
         long length = end.diff(start) / 1000;
         if (length >= 7 * 24 * 3600) {
             return 15 * 60;
@@ -80,14 +80,14 @@ public class Interval {
     /**
      * @return query granularity in seconds
      */
-    public int getGranularity() {
-        return granularity;
+    public int getStepLength() {
+        return step;
     }
 
     /**
      * @return the length of interval
      */
-    public int getLength() {
+    public int getTotalLength() {
         return (int) (endTime.getMilliseconds() - startTime.getMilliseconds()) / 1000;
     }
 }
