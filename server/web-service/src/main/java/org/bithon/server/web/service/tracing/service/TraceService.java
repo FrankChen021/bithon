@@ -184,7 +184,7 @@ public class TraceService {
                                                     Collections.emptyList());
 
         return new GetTraceDistributionResponse(metricStorage.createMetricReader(schema).timeseries(query),
-                                                interval.getGranularity());
+                                                interval.getStepLength());
     }
 
     static class Bucket {

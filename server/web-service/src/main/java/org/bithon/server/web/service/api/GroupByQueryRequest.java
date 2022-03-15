@@ -19,6 +19,7 @@ package org.bithon.server.web.service.api;
 import lombok.Data;
 import org.bithon.server.metric.api.IQuerableAggregator;
 import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.OrderBy;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -49,4 +50,6 @@ public class GroupByQueryRequest {
     @Valid
     @Size(min = 1)
     private List<String> groupBy;
+
+    private OrderBy orderBy;
 }

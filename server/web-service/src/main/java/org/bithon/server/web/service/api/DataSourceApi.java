@@ -105,7 +105,8 @@ public class DataSourceApi {
                                                                                       request.getAggregators(),
                                                                                       request.getFilters(),
                                                                                       Interval.of(start, end),
-                                                                                      request.getGroupBy()));
+                                                                                      request.getGroupBy(),
+                                                                                      request.getOrderBy()));
     }
 
     @PostMapping("/api/datasource/list")
