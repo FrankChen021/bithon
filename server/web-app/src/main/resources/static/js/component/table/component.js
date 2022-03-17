@@ -14,9 +14,12 @@ class TableComponent {
         this.mDetailViewField = null;
         this.mColumnMap = {};
 
+        this.mDefaultOrder = option.order;
+        this.mDefaultOrderBy = option.orderBy;
+
         this.mFormatters = {};
         this.mFormatters['shortDateTime'] = (v) => new Date(v).format('MM-dd hh:mm:ss');
-        this.mFormatters['detail'] = (val, row, index) => `<button class="btn btn-sm btn-outline-info" onclick="javascript:toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>`;
+        this.mFormatters['detail'] = (val, row, index) => `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>`;
         this.mFormatters['block'] = (val, row, index) => `<pre>${val}</pre>`;
         this.mFormatters['link'] = (val, row, index, field) => {
             const column = this.mColumnMap[field];
@@ -74,7 +77,10 @@ class TableComponent {
 
                 sidePagination: "server",
                 pagination: this.mPagination,
+
                 serverSort: false,
+                sortName: this.mDefaultOrderBy,
+                sortOrder: this.mDefaultOrder,
 
                 queryParamsType: '',
                 queryParams: (params) => this.#getQueryParams(params),

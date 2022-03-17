@@ -117,7 +117,6 @@ public class DataSourceApi {
                                         request.getColumns(),
                                         request.getFilters(),
                                         Interval.of(TimeSpan.fromISO8601(request.getStartTimeISO8601()), TimeSpan.fromISO8601(request.getEndTimeISO8601())),
-                                        request.getOrder(),
                                         request.getOrderBy(),
                                         request.getPageNumber(),
                                         request.getPageSize());

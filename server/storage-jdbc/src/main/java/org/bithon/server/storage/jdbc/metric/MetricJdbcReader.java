@@ -138,7 +138,7 @@ public class MetricJdbcReader implements IMetricReader {
         if (orderBy == null) {
             return "";
         }
-        return "ORDER BY " + orderBy.getName() + " " + orderBy.getOrder();
+        return "ORDER BY \"" + orderBy.getName() + "\" " + orderBy.getOrder();
     }
 
     @Override
@@ -147,15 +147,14 @@ public class MetricJdbcReader implements IMetricReader {
 
         String filter = SQLFilterBuilder.build(query.getFilters());
         String sql = StringUtils.format(
-            "SELECT %s FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s ORDER BY \"%s\" %s LIMIT %d OFFSET %d",
+            "SELECT %s FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s %s LIMIT %d OFFSET %d",
             query.getColumns().stream().map(column -> "\"" + column + "\"").collect(Collectors.joining(",")),
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
             sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
             sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
-            query.getOrderBy(),
-            query.getOrder(),
+            getOrderBySQL(query.getOrderBy()),
             query.getPageSize(),
             query.getPageNumber() * query.getPageSize()
         );
