@@ -58,8 +58,11 @@
         const vTreeTable = new TreeTable('#pills-trace', {
             treeColumn: 3,
             headerStyle: 'thead-light',
-            rowStyle: (rowDatas, rowIndex) => {
-                if (rowIndex === 0 || rowDatas[rowIndex].appName !== rowDatas[rowIndex - 1].appName) {
+            rowStyle: (rows, rowIndex) => {
+                if (rowIndex === 0
+                    || rows[rowIndex].appName !== rows[rowIndex - 1].appName
+                    || rows[rowIndex].instanceName !== rows[rowIndex - 1].instanceName
+                ) {
                     return 'table-active';
                 }
                 return null;
@@ -70,7 +73,7 @@
                 formatter: (value, row, index) => (index + 1)
             }, {
                 field: 'appName',
-                title: 'Application',
+                title: 'Application'
             }, {
                 field: 'instanceName',
                 title: 'Instance'
