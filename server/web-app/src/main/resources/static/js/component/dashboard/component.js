@@ -340,23 +340,46 @@ class Dashboard {
                 icon: 'circle'
             }
         });
+
+        let yAxisFormatters = null;
         if (chartDescriptor.yAxis != null) {
-            const formatterFns = chartDescriptor.yAxis.map(y => this.getFormatter(y.format));
-            for (let i = 1; i < formatterFns.length; i++) {
-                if (formatterFns[i] == null)
-                    formatterFns[i] = formatterFns[i - 1]; //default to prev config
+            yAxisFormatters = chartDescriptor.yAxis.map(y => this.getFormatter(y.format));
+            for (let i = 1; i < yAxisFormatters.length; i++) {
+                if (yAxisFormatters[i] == null)
+                    yAxisFormatters[i] = yAxisFormatters[i - 1]; //default to prev config
             }
-            chartOption.tooltip.formatter = params => {
-                const currentChartOption = this.getChartCurrentOption(chartId);
-                let result = (params[0] || params).axisValue;
-                params.forEach(p => {
-                    const yAxisIndex = currentChartOption.series[p.seriesIndex].yAxisIndex;
-                    const formatterFn = formatterFns[yAxisIndex];
-                    const s = formatterFn != null ? formatterFn(p.data) : p.data.toFixed(2);
-                    result += `<br />${p.marker}${p.seriesName}: ${s}`;
-                });
-                return result;
-            };
+        }
+        chartOption.tooltip.formatter = series => {
+            const currentChartOption = this.getChartCurrentOption(chartId);
+
+            const start = currentChartOption.timestamp.start;
+            const interval = currentChartOption.timestamp.interval;
+            const dataIndex = series[0].dataIndex;
+            const timeText = moment(start + dataIndex * interval).local().format('yyyy-MM-DD HH:mm:ss');
+
+            let tooltip = timeText;
+            series.forEach(s => {
+                //Use the yAxis defined formatter to format the data
+                const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
+
+                let formatterFn = null;
+                if (yAxisFormatters != null) {
+                    // use yAxis formatter, maybe null
+                    formatterFn = yAxisFormatters[yAxisIndex];
+                }
+                if (formatterFn == null) {
+                    formatterFn = this._formatters['compact_number'];
+                }
+
+                const text = formatterFn(s.data);
+
+                //Concat the tooltip
+                //marker can be seen as the style of legend of this series
+                tooltip += `<br />${s.marker}${s.seriesName}: ${text}`;
+            });
+            return tooltip;
+        };
+        if (chartDescriptor.yAxis != null) {
             $.each(chartDescriptor.yAxis, (index, y) => {
                 chartOption.yAxis.push({
                     type: 'value',
@@ -370,7 +393,7 @@ class Dashboard {
                         show: false,
                     },
                     axisLabel: {
-                        formatter: formatterFns[index]
+                        formatter: yAxisFormatters[index]
                     },
                 });
             });
