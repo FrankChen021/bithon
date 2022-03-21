@@ -10,7 +10,6 @@ class TreeTable {
             '            <div class="fixed-table-loading table table-bordered table-hover" style="top: 50px;">\n' +
             '               <span class="loading-wrap" style="margin-top: 50px">\n' +
             '                   <span class="loading-text" style="font-size: 32px;">Loading, please wait</span>\n' +
-            '                   <span class="animation-wrap"><span class="animation-dot"></span></span>' +
             '               </span>\n' +
             '            </div>\n' +
             '            <table class="table table-bordered table-hover"></table>\n' +
@@ -63,7 +62,7 @@ class TreeTable {
         if (data instanceof Function) {
             data = data.apply();
         }
-        this.vLoading.toggleClass('open', true);
+        this.#showLoading("Loading, please wait...");
         $.ajax({
             url: option.url,
             data: JSON.stringify(data),
@@ -72,22 +71,36 @@ class TreeTable {
             dataType: "json",
             contentType: "application/json",
             success: (data) => {
-                this.#renderTable(option.responseHandler(data));
-                this.vLoading.toggleClass('open', false);
+                const rows = option.responseHandler(data);
+                if (rows.length === 0) {
+                    this.#showLoading("No tracing logs found for this trace");
+                } else {
+                    this.#renderTable(rows);
+                    this.#closeLoading();
+                }
             },
             error: (data) => {
-                this.vLoading.toggleClass('open', false);
+                this.#closeLoading();
             }
         });
 
         return this;
     }
 
-    #defaultFormatter(cellValue, row, rowIndex) {
+    #showLoading(text, showing) {
+        this.vLoading.find(".loading-text").text(text);
+        this.vLoading.toggleClass('open', true);
+    }
+
+    #closeLoading() {
+        this.vLoading.toggleClass('open', false);
+    }
+
+    #defaultFormatter(cellValue, row, rowIndex, rows) {
         return cellValue;
     }
 
-    #renderTable(roots, depth) {
+    #renderTable(roots) {
         let globalRowIndex = -1;
         for (let i = 0; i < roots.length; i++) {
             globalRowIndex = this.#renderRow(roots[i], ++globalRowIndex, 0, (i + 1));
@@ -127,7 +140,7 @@ class TreeTable {
                 cellHTML += this.#createExpander(children.length > 0);
             }
 
-            cellHTML += col.formatter(rowData[col.field], rowData, globalRowIndex);
+            cellHTML += col.formatter(rowData[col.field], rowData, globalRowIndex, this.mRowDatas);
 
             const vCell = this.vDocElement.createElement('td');
             vCell.innerHTML = cellHTML;

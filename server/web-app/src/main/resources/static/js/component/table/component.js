@@ -21,9 +21,12 @@ class TableComponent {
         this.mDetailViewField = null;
         this.mColumnMap = {};
 
+        this.mDefaultOrder = option.order;
+        this.mDefaultOrderBy = option.orderBy;
+
         this.mFormatters = {};
         this.mFormatters['shortDateTime'] = (v) => new Date(v).format('MM-dd hh:mm:ss');
-        this.mFormatters['detail'] = (val, row, index) => `<button class="btn btn-sm btn-outline-info" onclick="javascript:toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>`;
+        this.mFormatters['detail'] = (val, row, index) => `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>`;
         this.mFormatters['block'] = (val, row, index) => `<pre>${val}</pre>`;
         this.mFormatters['link'] = (val, row, index, field) => {
             const column = this.mColumnMap[field];
@@ -38,11 +41,17 @@ class TableComponent {
             this.mColumnMap[column.field] = column;
 
             if (column.format !== undefined) {
+                // formatter is an option provided by bootstrap-table
                 column.formatter = this.mFormatters[column.format];
                 if (column.format === 'detail') {
                     this.mDetailViewField = column.field;
                 }
             }
+
+            // original sorter uses string.localeCompare
+            // That comparator returns different order from the result ordered by the server
+            // So here we define a new comparator
+            column.sorter = (a, b) => this.#compare(a, b);
         }
         this.mDetailView = this.mDetailViewField != null;
 
@@ -99,7 +108,10 @@ class TableComponent {
 
                 sidePagination: "server",
                 pagination: this.mPagination,
+
                 serverSort: false,
+                sortName: this.mDefaultOrderBy,
+                sortOrder: this.mDefaultOrder,
 
                 queryParamsType: '',
                 queryParams: (params) => this.#getQueryParams(params),
@@ -128,6 +140,14 @@ class TableComponent {
         }
     }
 
+    #compare(a, b) {
+        if (a === b) {
+            return 0;
+        } else {
+            return a < b ? -1 : 1;
+        }
+    }
+
     #showDetail(index, row) {
         return '<pre>' + row[this.mDetailViewField] + '</pre>';
     }
@@ -135,6 +155,14 @@ class TableComponent {
     #getQueryParams(params) {
         this.mQueryParam.pageNumber = params.pageNumber - 1;
         this.mQueryParam.pageSize = params.pageSize;
+        if (params.sortName === undefined) {
+            delete this.mQueryParam.orderBy;
+        } else {
+            this.mQueryParam.orderBy = {
+                name: params.sortName,
+                order: params.sortOrder
+            };
+        }
         return this.mQueryParam;
     }
 

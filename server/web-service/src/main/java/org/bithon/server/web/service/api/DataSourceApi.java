@@ -105,7 +105,8 @@ public class DataSourceApi {
                                                                                       request.getAggregators(),
                                                                                       request.getFilters(),
                                                                                       Interval.of(start, end),
-                                                                                      request.getGroupBy()));
+                                                                                      request.getGroupBy(),
+                                                                                      request.getOrderBy()));
     }
 
     @PostMapping("/api/datasource/list")
@@ -116,7 +117,6 @@ public class DataSourceApi {
                                         request.getColumns(),
                                         request.getFilters(),
                                         Interval.of(TimeSpan.fromISO8601(request.getStartTimeISO8601()), TimeSpan.fromISO8601(request.getEndTimeISO8601())),
-                                        request.getOrder(),
                                         request.getOrderBy(),
                                         request.getPageNumber(),
                                         request.getPageSize());
@@ -138,7 +138,7 @@ public class DataSourceApi {
 
     @PostMapping("/api/datasource/schema/update")
     public void updateSchema(@RequestBody DataSourceSchema schema) {
-        schemaManager.updateDataSourceSchmea(schema);
+        schemaManager.updateDataSourceSchema(schema);
     }
 
     @PostMapping("/api/datasource/name")

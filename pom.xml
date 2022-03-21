@@ -18,22 +18,15 @@
     <java.version>8</java.version>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
+
     <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
     <spring-cloud.version>Hoxton.SR12</spring-cloud.version>
   </properties>
 
   <modules>
-    <module>component/component-commons</module>
-    <module>component/component-brpc</module>
-    <module>component/agent-rpc-brpc</module>
+    <module>component</module>
     <module>agent</module>
-    <module>server/sink</module>
-    <module>server/storage-jdbc</module>
-    <module>server/storage-jdbc-clickhouse</module>
-    <module>server/collector</module>
-    <module>server/web-service</module>
-    <module>server/web-app</module>
-    <module>server/server-starter</module>
+    <!--server modules are defined in the profiles-->
   </modules>
 
   <!-- Required info for sonatype -->
@@ -226,7 +219,7 @@
                 <exclude>**/jOOQ/**</exclude>
                 <exclude>**/jooq/**</exclude>
                 <exclude>src/test/java/org/bithon/component/brpc/example/protobuf</exclude>
-                <exclude>src/main/resources/static/**</exclude>
+                <exclude>**/src/main/resources/static/**</exclude>
                 <exclude>**/*.properties</exclude>
                 <exclude>**/*.sh</exclude>
                 <exclude>**/*.yml</exclude>
@@ -274,7 +267,7 @@
         <artifactId>forbiddenapis</artifactId>
         <version>3.2</version>
         <configuration>
-          <failOnUnresolvableSignatures>false</failOnUnresolvableSignatures>
+          <ignoreSignaturesOfMissingClasses>true</ignoreSignaturesOfMissingClasses>
           <!--
           <bundledSignatures>
               This will automatically choose the right
@@ -353,13 +346,39 @@
   </build>
 
   <profiles>
+
     <profile>
-      <id>all</id>
+      <!--
+      Include all server modules by default.
+      Use -P!server to exclude server modules.
+      -->
+      <id>server</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>server/sink</module>
+        <module>server/storage-jdbc</module>
+        <module>server/storage-jdbc-clickhouse</module>
+        <module>server/collector</module>
+        <module>server/web-service</module>
+        <module>server/web-app</module>
+        <module>server/server-starter</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>shaded</id>
       <modules>
         <module>shaded</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>jooq</id>
+      <modules>
         <module>server/jOOQ</module>
       </modules>
     </profile>
+
     <profile>
       <id>dist</id>
       <build>

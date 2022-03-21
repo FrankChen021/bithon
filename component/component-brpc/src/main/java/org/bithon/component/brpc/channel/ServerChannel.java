@@ -25,7 +25,7 @@ import org.bithon.component.brpc.message.ServiceMessageType;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.in.ServiceRequestMessageIn;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
-import org.bithon.component.commons.utils.ThreadUtils;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import shaded.io.netty.bootstrap.ServerBootstrap;
 import shaded.io.netty.buffer.PooledByteBufAllocator;
 import shaded.io.netty.channel.Channel;
@@ -72,8 +72,8 @@ public class ServerChannel implements Closeable {
     }
 
     public ServerChannel(int nThreadCount) {
-        bossGroup = new NioEventLoopGroup(1, new ThreadUtils.NamedThreadFactory("brpc-server"));
-        workerGroup = new NioEventLoopGroup(nThreadCount, new ThreadUtils.NamedThreadFactory("brpc-s-worker"));
+        bossGroup = new NioEventLoopGroup(1, NamedThreadFactory.of("brpc-server"));
+        workerGroup = new NioEventLoopGroup(nThreadCount, NamedThreadFactory.of("brpc-s-worker"));
     }
 
     /**

@@ -18,6 +18,7 @@ package org.bithon.server.common.utils.datetime;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.metric.parser.DateTimes;
 
 import java.sql.Timestamp;
@@ -66,7 +67,7 @@ public class TimeSpan {
     }
 
     public String toISO8601() {
-        return DateTimeUtils.toISO8601(this.milliseconds);
+        return DateTime.toISO8601(this.milliseconds);
     }
 
     public long diff(TimeSpan timeSpan) {

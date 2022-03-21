@@ -16,9 +16,6 @@
 
 package org.bithon.server.common.utils.datetime;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -75,9 +72,5 @@ public class DateTimeUtils {
             default:
                 throw new RuntimeException("not supported");
         }
-    }
-
-    public static String toISO8601(long milliseconds) {
-        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH).format(new Date(milliseconds));
     }
 }

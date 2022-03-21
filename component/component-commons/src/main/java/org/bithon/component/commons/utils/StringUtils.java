@@ -16,8 +16,6 @@
 
 package org.bithon.component.commons.utils;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -50,13 +48,6 @@ public class StringUtils {
         return !hasText(str);
     }
 
-    /**
-     * @param timestamp timestamp in millisecond
-     */
-    public static String formatDateTime(String pattern, long timestamp) {
-        return new SimpleDateFormat(pattern, Locale.ENGLISH).format(new Date(timestamp));
-    }
-
     private static boolean containsText(CharSequence str) {
         int strLen = str.length();
         for (int i = 0; i < strLen; i++) {
@@ -65,5 +56,10 @@ public class StringUtils {
             }
         }
         return false;
+    }
+
+    public static String getSimpleClassName(String qualifiedClassName) {
+        int dot = qualifiedClassName.lastIndexOf('.');
+        return dot == -1 ? qualifiedClassName : qualifiedClassName.substring(dot + 1);
     }
 }

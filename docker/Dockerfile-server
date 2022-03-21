@@ -59,6 +59,8 @@ RUN chmod +x /startup.sh \
   && mkdir -p /opt/shared/conf
 
 ENV JAVA_OPTS ""
+ENV APP_OPTS ""
+ENV WITH_AGENT=true
 ENV AGENT_URI https://repo1.maven.org/maven2/org/bithon/agent/agent-distribution/1.1.0-RELEASE/agent-distribution-1.1.0-RELEASE.zip
 
 VOLUME /opt/shared/conf

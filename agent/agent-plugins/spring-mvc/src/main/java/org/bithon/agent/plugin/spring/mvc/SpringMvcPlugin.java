@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.spring.mvc;
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.core.aop.matcher.Matchers;
 import org.bithon.agent.core.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -34,7 +35,21 @@ public class SpringMvcPlugin implements IPlugin {
     public List<InterceptorDescriptor> getInterceptors() {
 
         return Arrays.asList(
+            forClass("feign.SynchronousMethodHandler$Factory")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethod(Matchers.withName("create")
+                                                                     .and(Matchers.takesArgument(1, "feign.MethodMetadata")))
+                                                   .to("org.bithon.agent.plugin.spring.mvc.SynchronousMethodHandlerFactory$Create")
+                ),
+            forClass("feign.SynchronousMethodHandler")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("invoke")
+                                                   .to("org.bithon.agent.plugin.spring.mvc.SynchronousMethodHandler$Invoke")
+                )
 
+            /*
             forClass(
                 "org.springframework.web.servlet.handler.AbstractHandlerMethodMapping")
                 .methods(
@@ -54,6 +69,7 @@ public class SpringMvcPlugin implements IPlugin {
                                                        "execute")
                                                    .to("org.bithon.agent.plugin.spring.mvc.RestTemplateExecuteInterceptor")
                 )
+             */
         );
     }
 }

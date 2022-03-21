@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
@@ -60,23 +61,25 @@ public class TraceStorage extends TraceJdbcStorage {
     @Override
     public ITraceCleaner createCleaner() {
         return beforeTimestamp -> {
+            String timestamp = DateTime.toYYYYMMDDhhmmss(beforeTimestamp);
+
             dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
                                                   config.getDatabase(),
                                                   config.getLocalTableName(Tables.BITHON_TRACE_SPAN.getName()),
                                                   config.getClusterExpression(),
-                                                  StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", beforeTimestamp)));
+                                                  timestamp));
 
             dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
                                                   config.getDatabase(),
                                                   config.getLocalTableName(Tables.BITHON_TRACE_SPAN_SUMMARY.getName()),
                                                   config.getClusterExpression(),
-                                                  StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", beforeTimestamp)));
+                                                  timestamp));
 
             dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
                                                   config.getDatabase(),
                                                   config.getLocalTableName(Tables.BITHON_TRACE_MAPPING.getName()),
                                                   config.getClusterExpression(),
-                                                  StringUtils.formatDateTime("yyyy-MM-dd HH:mm:ss", beforeTimestamp)));
+                                                  timestamp));
         };
     }
 

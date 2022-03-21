@@ -25,22 +25,15 @@ package org.bithon.agent.core.aop.descriptor;
 public class InterceptorDescriptor {
 
     private final boolean debug;
-    private final boolean isBootstrapClass;
     private final String targetClass;
     private final MethodPointCutDescriptor[] methodPointCutDescriptors;
 
     public InterceptorDescriptor(boolean debug,
-                                 boolean isBootstrapClass,
                                  String targetClass,
                                  MethodPointCutDescriptor[] methodPointCutDescriptors) {
         this.debug = debug;
-        this.isBootstrapClass = isBootstrapClass;
         this.targetClass = targetClass;
         this.methodPointCutDescriptors = methodPointCutDescriptors;
-    }
-
-    public boolean isBootstrapClass() {
-        return isBootstrapClass;
     }
 
     public String getTargetClass() {

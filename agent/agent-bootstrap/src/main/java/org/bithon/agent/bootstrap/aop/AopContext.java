@@ -26,24 +26,21 @@ import java.lang.reflect.Executable;
  */
 public class AopContext {
 
-    private final Class<?> targetClass;
     private final Object target;
     private final Executable method;
     private final Object[] args;
     private Object userContext;
     private Object returning;
-    private Exception exception;
+    private Throwable exception;
 
     private long startNanoTime;
     private long endNanoTime;
     private long startTimestamp;
     private long endTimestamp;
 
-    public AopContext(Class<?> targetClass,
-                      Executable method,
+    public AopContext(Executable method,
                       Object target,
                       Object[] args) {
-        this.targetClass = targetClass;
         this.target = target;
         this.method = method;
         this.args = args;
@@ -54,7 +51,7 @@ public class AopContext {
     }
 
     public Class<?> getTargetClass() {
-        return targetClass;
+        return this.method.getDeclaringClass();
     }
 
     /**
@@ -126,11 +123,11 @@ public class AopContext {
      * exception thrown by intercepted method
      * Note: only available in {@link AbstractInterceptor#onMethodLeave(AopContext)}
      */
-    public Exception getException() {
+    public Throwable getException() {
         return exception;
     }
 
-    public void setException(Exception exception) {
+    public void setException(Throwable exception) {
         this.exception = exception;
     }
 

@@ -23,7 +23,7 @@ import org.bithon.agent.core.plugin.IPlugin;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forBootstrapClass;
+import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
  * @author frankchen
@@ -35,7 +35,7 @@ public class ThreadPlugin implements IPlugin {
 
         return Arrays.asList(
 
-            forBootstrapClass("java.util.concurrent.ThreadPoolExecutor")
+            forClass("java.util.concurrent.ThreadPoolExecutor")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(
@@ -57,34 +57,34 @@ public class ThreadPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.thread.threadpool.ThreadPoolExecutorShutdown")
                 ),
 
-            forBootstrapClass("java.util.concurrent.ThreadPoolExecutor$AbortPolicy")
+            forClass("java.util.concurrent.ThreadPoolExecutor$AbortPolicy")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("rejectedExecution")
                                                    .to("org.bithon.agent.plugin.thread.threadpool.ThreadPoolExecutorAbort")
                 ),
 
-            forBootstrapClass("java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy")
+            forClass("java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("rejectedExecution")
                                                    .to("org.bithon.agent.plugin.thread.threadpool.ThreadPoolExecutorCallerRun")
                 ),
 
-            forBootstrapClass("java.util.concurrent.ThreadPoolExecutor$DiscardOldestPolicy")
+            forClass("java.util.concurrent.ThreadPoolExecutor$DiscardOldestPolicy")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("rejectedExecution")
                                                    .to("org.bithon.agent.plugin.thread.threadpool.ThreadPoolExecutorDiscardOldestPolicy")),
 
-            forBootstrapClass("java.util.concurrent.ThreadPoolExecutor$DiscardOldestPolicy")
+            forClass("java.util.concurrent.ThreadPoolExecutor$DiscardOldestPolicy")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("rejectedExecution")
                                                    .to("org.bithon.agent.plugin.thread.threadpool.ThreadPoolExecutorDiscardPolicy")
                 ),
 
-            forBootstrapClass("java.util.concurrent.ForkJoinPool")
+            forClass("java.util.concurrent.ForkJoinPool")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor("int",

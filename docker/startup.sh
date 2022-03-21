@@ -1,16 +1,19 @@
 #!/bin/sh
 
-echo "Downloading agent from ${AGENT_URI}"
-wget -T 10 -O agent.zip "${AGENT_URI}"
+# shellcheck disable=SC2039
+if [ "$WITH_AGENT" = true ] ; then
+  echo "Downloading agent from ${AGENT_URI}"
+  wget -T 10 -O agent.zip "${AGENT_URI}"
 
-if [ -f agent.zip ] ; then
-  echo "Cleaning up agent..."
-  rm -fr /opt/agent-distribution
+  if [ -f agent.zip ] ; then
+    echo "Cleaning up agent..."
+    rm -fr /opt/agent-distribution
 
-  echo "Unzip agent compress file..."
-  unzip agent.zip
-else
-  echo "Failed to downloading agent..."
+    echo "Unzip agent compress file..."
+    unzip agent.zip
+  else
+    echo "Failed to downloading agent..."
+  fi
 fi
 
 if [ -f /opt/shared/conf/jvm.config ] ; then
@@ -27,4 +30,4 @@ else
   echo "Starting application WITHOUT agent: $JAVA_OPTS"
 fi
 
-exec java ${JAVA_OPTS} -jar /opt/bithon-server-starter.jar
+exec java ${JAVA_OPTS} -jar /opt/bithon-server-starter.jar ${APP_OPTS}

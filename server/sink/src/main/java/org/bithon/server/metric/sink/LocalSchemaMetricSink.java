@@ -17,8 +17,8 @@
 package org.bithon.server.metric.sink;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.component.commons.utils.ThreadUtils;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.storage.IMetricStorage;
@@ -62,7 +62,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
                                           1,
                                           TimeUnit.MINUTES,
                                           new LinkedBlockingQueue<>(4096),
-                                          new ThreadUtils.NamedThreadFactory(name),
+                                          NamedThreadFactory.of(name),
                                           new ThreadPoolExecutor.DiscardPolicy());
         log.info("Starting executor [{}]", name);
 

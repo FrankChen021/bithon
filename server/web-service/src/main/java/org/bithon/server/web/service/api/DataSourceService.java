@@ -60,7 +60,7 @@ public class DataSourceService {
         int j = 0;
         TimeSpan start = query.getInterval().getStartTime();
         TimeSpan end = query.getInterval().getEndTime();
-        int step = query.getInterval().getGranularity();
+        int step = query.getInterval().getStepLength();
         for (long bucket = start.toSeconds() / step * step, endBucket = end.toSeconds() / step * step;
              bucket < endBucket;
              bucket += step) {
@@ -103,7 +103,7 @@ public class DataSourceService {
 
         TimeSpan start = query.getInterval().getStartTime();
         TimeSpan end = query.getInterval().getEndTime();
-        int step = query.getInterval().getGranularity();
+        int step = query.getInterval().getStepLength();
         long startSecond = start.toSeconds() / step * step;
         long endSecond = end.toSeconds() / step * step;
         int bucketCount = (int) (endSecond - startSecond) / step;

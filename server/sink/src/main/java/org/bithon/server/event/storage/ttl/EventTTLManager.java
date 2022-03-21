@@ -17,9 +17,9 @@
 package org.bithon.server.event.storage.ttl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.utils.ThreadUtils;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.common.ttl.TTLConfig;
-import org.bithon.server.common.utils.datetime.DateTimeUtils;
 import org.bithon.server.event.storage.EventStorageConfig;
 import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.event.storage.IEventStorage;
@@ -54,7 +54,7 @@ public class EventTTLManager implements SmartLifecycle {
     @Override
     public void start() {
         log.info("Starting Event ttl manager and schedule cleanup task for every {}", ttlConfig.getCleanPeriod());
-        this.executor = new ScheduledThreadPoolExecutor(1, new ThreadUtils.NamedThreadFactory("event-ttl-manager"));
+        this.executor = new ScheduledThreadPoolExecutor(1, NamedThreadFactory.of("event-ttl-manager"));
         this.executor.scheduleAtFixedRate(this::clean,
                                           3,
                                           ttlConfig.getCleanPeriod().getMilliseconds(),
@@ -65,7 +65,7 @@ public class EventTTLManager implements SmartLifecycle {
         log.info("Event clean up starts...");
         long start = System.currentTimeMillis();
         long older = start - ttlConfig.getTtl().getMilliseconds();
-        log.info("Clean events before {}", DateTimeUtils.toISO8601(older));
+        log.info("Clean events before {}", DateTime.toISO8601(older));
         try (IEventCleaner cleaner = eventStorage.createCleaner()) {
             cleaner.clean(older);
         } catch (Exception e) {

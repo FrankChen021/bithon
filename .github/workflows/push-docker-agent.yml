@@ -1,0 +1,27 @@
+name: Push Agent Image
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+
+      - name: Setup JDK8
+        uses: actions/setup-java@v2
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+
+      - name: Build image
+        run: DOCKER_BUILDKIT=1 docker build -t bithon/agent -f docker/Dockerfile-agent .
+
+      - name: Log into registry
+        run: echo "${{ secrets.DOCKER_ACCESS_CODE }}" | docker login -u bithon --password-stdin
+
+      - name: Push image
+        run:  docker push bithon/agent:latest

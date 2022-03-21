@@ -33,8 +33,7 @@ public class ListQuery {
     private final List<String> columns;
     private final List<DimensionCondition> filters;
     private final Interval interval;
-    private final String order;
-    private final String orderBy;
+    private final OrderBy orderBy;
     private final int pageNumber;
     private final int pageSize;
 }
