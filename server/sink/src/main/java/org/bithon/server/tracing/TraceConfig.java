@@ -39,5 +39,5 @@ public class TraceConfig {
     private SanitizerConfig globalSanitizer;
     private Map<String, SanitizerConfig> applicationSanitizer;
 
-    private TagIndexConfig tagIndex;
+    private TagIndexConfig tagIndexConfig;
 }

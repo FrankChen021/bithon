@@ -17,7 +17,7 @@
 package org.bithon.server.storage.jdbc.tracing;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.utils.ThreadUtils;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.tracing.index.TagIndex;
 import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.sink.TraceSpan;
@@ -55,7 +55,7 @@ public class TraceJdbcBatchWriter implements ITraceWriter {
     public TraceJdbcBatchWriter(ITraceWriter writer, TraceStorageConfig config) {
         this.writer = writer;
         this.config = config;
-        this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadUtils.NamedThreadFactory("trace-batch-writer"));
+        this.executor = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.of("trace-batch-writer"));
         this.executor.scheduleWithFixedDelay(this::flush, 5, 1, TimeUnit.SECONDS);
     }
 
@@ -87,6 +87,9 @@ public class TraceJdbcBatchWriter implements ITraceWriter {
             this.tagIndexes.clear();
         }
 
+        if (spans.isEmpty() && idMappings.isEmpty() && tagIndexes.isEmpty()) {
+            return;
+        }
         try {
             log.debug("Flushing [{}] spans into storage...", spans.size());
             this.writer.write(spans, idMappings, tagIndexes);

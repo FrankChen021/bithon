@@ -26,37 +26,39 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * Generate tag index for given span logs
+ *
  * @author Frank Chen
  * @date 3/3/22 12:06 PM
  */
-public class TagIndexBuilder {
+public class TagIndexGenerator {
     /**
      * use TraceConfig so that if the configuration changes dynamically, the latest configuration can be used immediately.
      */
     private final TraceConfig config;
 
-    public TagIndexBuilder(TraceConfig config) {
+    public TagIndexGenerator(TraceConfig config) {
         this.config = config;
     }
 
-    public List<TagIndex> build(Collection<TraceSpan> spans) {
-        if (this.config.getTagIndex() == null || spans.isEmpty()) {
+    public List<TagIndex> generate(Collection<TraceSpan> spans) {
+        if (this.config.getTagIndexConfig() == null || spans.isEmpty()) {
             return Collections.emptyList();
         }
 
         List<TagIndex> indexes = new ArrayList<>();
 
-        List<String> names = this.config.getTagIndex().getNames();
+        Collection<String> tagNames = this.config.getTagIndexConfig().getIndexes().keySet();
         for (TraceSpan span : spans) {
-            for (String name : names) {
-                String value = span.getTag(name);
+            for (String tagName : tagNames) {
+                String value = span.getTag(tagName);
                 if (!StringUtils.hasText(value)) {
                     continue;
                 }
                 indexes.add(TagIndex.builder()
                                     .timestamp(span.getStartTime() / 1000)
                                     .traceId(span.getTraceId())
-                                    .name(name)
+                                    .name(tagName)
                                     .value(value)
                                     .build());
             }

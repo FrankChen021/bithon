@@ -19,7 +19,7 @@ package org.bithon.server.tracing.index;
 import lombok.Data;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -29,11 +29,14 @@ import java.util.List;
 public class TagIndexConfig {
     /**
      * for which tags we're building indexes.
-     *
+     * <p>
      * Currently, we define a list of tag names to make this index module work in minimal work.
-     *
+     * <p>
      * Since the names may be the same in different span logs, if we only want to build indexes for some specific span logs,
      * a filter for span is needed. That might be the future work if necessary.
+     * <p>
+     * key: tag name
+     * val: column name in bithon_trace_span_tag_index table ranging from 1 to 16. Different tag names SHOULD NOT share a same column name.
      */
-    private List<String> names = Collections.emptyList();
+    private Map<String, Integer> indexes = Collections.emptyMap();
 }

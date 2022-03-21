@@ -35,11 +35,11 @@ public class TagIndexBuilderTest {
     @Test
     public void testEmptyConfig() {
         TraceConfig config = new TraceConfig();
-        TagIndexBuilder builder = new TagIndexBuilder(config);
-        Collection<TagIndex> indexes = builder.build(Collections.singletonList(TraceSpan.builder()
-                                                                                        .startTime(1000)
-                                                                                        .appName("bithon-test")
-                                                                                        .build()));
+        TagIndexGenerator builder = new TagIndexGenerator(config);
+        Collection<TagIndex> indexes = builder.generate(Collections.singletonList(TraceSpan.builder()
+                                                                                           .startTime(1000)
+                                                                                           .appName("bithon-test")
+                                                                                           .build()));
 
         Assert.assertTrue(indexes.isEmpty());
     }
@@ -47,16 +47,16 @@ public class TagIndexBuilderTest {
     @Test
     public void testTagNotMatched() {
         TagIndexConfig indexConfig = new TagIndexConfig();
-        indexConfig.setNames(Collections.singletonList("status"));
+        indexConfig.setIndexes(ImmutableMap.of("status", 1));
         TraceConfig config = new TraceConfig();
-        config.setTagIndex(indexConfig);
+        config.setTagIndexConfig(indexConfig);
 
-        TagIndexBuilder builder = new TagIndexBuilder(config);
-        Collection<TagIndex> indexes = builder.build(Collections.singletonList(TraceSpan.builder()
-                                                                                        .startTime(1000)
-                                                                                        .appName("bithon-test")
-                                                                                        .tags(ImmutableMap.of("status1", "200"))
-                                                                                        .build()));
+        TagIndexGenerator builder = new TagIndexGenerator(config);
+        Collection<TagIndex> indexes = builder.generate(Collections.singletonList(TraceSpan.builder()
+                                                                                           .startTime(1000)
+                                                                                           .appName("bithon-test")
+                                                                                           .tags(ImmutableMap.of("status1", "200"))
+                                                                                           .build()));
 
         Assert.assertTrue(indexes.isEmpty());
     }
@@ -64,17 +64,17 @@ public class TagIndexBuilderTest {
     @Test
     public void testTagMatched() {
         TagIndexConfig indexConfig = new TagIndexConfig();
-        indexConfig.setNames(Collections.singletonList("status"));
+        indexConfig.setIndexes(ImmutableMap.of("status", 1));
         TraceConfig config = new TraceConfig();
-        config.setTagIndex(indexConfig);
+        config.setTagIndexConfig(indexConfig);
 
-        TagIndexBuilder builder = new TagIndexBuilder(config);
-        List<TagIndex> indexes = builder.build(Collections.singletonList(TraceSpan.builder()
-                                                                                  .startTime(1000)
-                                                                                  .appName("bithon-test")
-                                                                                  .traceId("trace-id-123")
-                                                                                  .tags(ImmutableMap.of("status", "200"))
-                                                                                  .build()));
+        TagIndexGenerator builder = new TagIndexGenerator(config);
+        List<TagIndex> indexes = builder.generate(Collections.singletonList(TraceSpan.builder()
+                                                                                     .startTime(1000)
+                                                                                     .appName("bithon-test")
+                                                                                     .traceId("trace-id-123")
+                                                                                     .tags(ImmutableMap.of("status", "200"))
+                                                                                     .build()));
 
         Assert.assertEquals(1, indexes.size());
         Assert.assertEquals("trace-id-123", indexes.get(0).getTraceId());

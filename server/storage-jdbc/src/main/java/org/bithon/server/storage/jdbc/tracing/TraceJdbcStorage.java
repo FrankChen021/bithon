@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.tracing.TraceConfig;
 import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.tracing.storage.ITraceStorage;
@@ -43,14 +44,17 @@ public class TraceJdbcStorage implements ITraceStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig config;
+    protected final TraceConfig traceConfig;
 
     @JsonCreator
     public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
-                            @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig) {
+                            @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
+                            @JacksonInject(useInput = OptBoolean.FALSE) TraceConfig traceConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.config = storageConfig;
+        this.traceConfig = traceConfig;
     }
 
     @Override
@@ -75,7 +79,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public ITraceWriter createWriter() {
-        return new TraceJdbcBatchWriter(new TraceJdbcWriter(dslContext, objectMapper), config);
+        return new TraceJdbcBatchWriter(new TraceJdbcWriter(dslContext, objectMapper, traceConfig), config);
     }
 
     @Override

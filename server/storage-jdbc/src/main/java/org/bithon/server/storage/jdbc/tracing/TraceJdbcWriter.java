@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.tracing.TraceConfig;
 import org.bithon.server.tracing.index.TagIndex;
 import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.sink.TraceSpan;
@@ -33,7 +34,9 @@ import org.springframework.dao.DuplicateKeyException;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -45,10 +48,12 @@ public class TraceJdbcWriter implements ITraceWriter {
 
     private final DSLContext dslContext;
     private final ObjectMapper objectMapper;
+    private final TraceConfig traceConfig;
 
-    public TraceJdbcWriter(DSLContext dslContext, ObjectMapper objectMapper) {
+    public TraceJdbcWriter(DSLContext dslContext, ObjectMapper objectMapper, TraceConfig traceConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
+        this.traceConfig = traceConfig;
     }
 
     private String getOrDefault(String v) {
@@ -158,14 +163,14 @@ public class TraceJdbcWriter implements ITraceWriter {
             this.writeMappings(mappings);
             this.writeTagIndices(tagIndices);
         };
-        if (isTransactionSupported()) {
-            dslContext.transaction(runnable);
-        } else {
-            try {
+        try {
+            if (isTransactionSupported()) {
+                dslContext.transaction(runnable);
+            } else {
                 runnable.run(dslContext.configuration());
-            } catch (Throwable e) {
-                log.error("Exception when write spans", e);
             }
+        } catch (Throwable e) {
+            log.error("Exception when write spans", e);
         }
     }
 
@@ -176,17 +181,60 @@ public class TraceJdbcWriter implements ITraceWriter {
 
         BatchBindStep sql = dslContext.batch(dslContext.insertInto(Tables.BITHON_TRACE_SPAN_TAG_INDEX,
                                                                    Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP,
-                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.NAME,
-                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.VALUE,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F1,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F2,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F3,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F4,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F5,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F6,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F7,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F8,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F9,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F10,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F11,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F12,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F13,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F14,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F15,
+                                                                   Tables.BITHON_TRACE_SPAN_TAG_INDEX.F16,
                                                                    Tables.BITHON_TRACE_SPAN_TAG_INDEX.TRACEID)
-                                                       .values((Timestamp) null, null, null, null));
+                                                       .values((Timestamp) null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null,
+                                                               null));
 
+        Map<String, Object[]> batchValues = new HashMap<>(tagIndices.size());
         for (TagIndex index : tagIndices) {
-            sql.bind(new Timestamp(index.getTimestamp()),
-                     index.getName(),
-                     index.getValue(),
-                     index.getTraceId());
+            Object[] values = batchValues.computeIfAbsent(index.getTraceId(), k -> {
+                Object[] r = new Object[18];
+                r[0] = new Timestamp(index.getTimestamp());
+                r[17] = index.getTraceId();
+                return r;
+            });
+
+            int fieldIndex = this.traceConfig.getTagIndexConfig().getIndexes().getOrDefault(index.getName(), 0);
+            if (fieldIndex == 0 || fieldIndex >= values.length) {
+                // TODO: log error
+                continue;
+            }
+            values[fieldIndex] = index.getValue();
         }
+        batchValues.forEach((traceId, values) -> sql.bind(values));
+
         try {
             sql.execute();
         } catch (DuplicateKeyException ignored) {

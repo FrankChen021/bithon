@@ -16,7 +16,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row4;
+import org.jooq.Row18;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRecord> {
 
-    private static final long serialVersionUID = 1885817462;
+    private static final long serialVersionUID = 1738197232;
 
     /**
      * The reference instance of <code>bithon_trace_span_tag_index</code>
@@ -51,14 +51,84 @@ public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRe
     public final TableField<BithonTraceSpanTagIndexRecord, Timestamp> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.TIMESTAMP.nullable(false), this, "Milli Seconds");
 
     /**
-     * The column <code>bithon_trace_span_tag_index.name</code>. tag name
+     * The column <code>bithon_trace_span_tag_index.f1</code>. tag value1
      */
-    public final TableField<BithonTraceSpanTagIndexRecord, String> NAME = createField(DSL.name("name"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag name");
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F1 = createField(DSL.name("f1"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value1");
 
     /**
-     * The column <code>bithon_trace_span_tag_index.value</code>. tag value
+     * The column <code>bithon_trace_span_tag_index.f2</code>. tag value2
      */
-    public final TableField<BithonTraceSpanTagIndexRecord, String> VALUE = createField(DSL.name("value"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value");
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F2 = createField(DSL.name("f2"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value2");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f3</code>. tag value3
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F3 = createField(DSL.name("f3"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value3");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f4</code>. tag value4
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F4 = createField(DSL.name("f4"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value4");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f5</code>. tag value5
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F5 = createField(DSL.name("f5"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value5");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f6</code>. tag value6
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F6 = createField(DSL.name("f6"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value6");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f7</code>. tag value7
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F7 = createField(DSL.name("f7"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value7");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f8</code>. tag value8
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F8 = createField(DSL.name("f8"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value8");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f9</code>. tag value9
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F9 = createField(DSL.name("f9"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value9");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f10</code>. tag value10
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F10 = createField(DSL.name("f10"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value10");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f11</code>. tag value11
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F11 = createField(DSL.name("f11"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value11");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f12</code>. tag value12
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F12 = createField(DSL.name("f12"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value12");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f13</code>. tag value13
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F13 = createField(DSL.name("f13"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value13");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f14</code>. tag value14
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F14 = createField(DSL.name("f14"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value14");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f15</code>. tag value15
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F15 = createField(DSL.name("f15"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value15");
+
+    /**
+     * The column <code>bithon_trace_span_tag_index.f16</code>. tag value16
+     */
+    public final TableField<BithonTraceSpanTagIndexRecord, String> F16 = createField(DSL.name("f16"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "tag value16");
 
     /**
      * The column <code>bithon_trace_span_tag_index.traceId</code>.
@@ -105,7 +175,7 @@ public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRe
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST__TIMESTAMP, Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST_NAME);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST__TIMESTAMP);
     }
 
     @Override
@@ -135,11 +205,11 @@ public class BithonTraceSpanTagIndex extends TableImpl<BithonTraceSpanTagIndexRe
     }
 
     // -------------------------------------------------------------------------
-    // Row4 type methods
+    // Row18 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row4<Timestamp, String, String, String> fieldsRow() {
-        return (Row4) super.fieldsRow();
+    public Row18<Timestamp, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String> fieldsRow() {
+        return (Row18) super.fieldsRow();
     }
 }

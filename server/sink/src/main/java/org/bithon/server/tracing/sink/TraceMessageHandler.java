@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.TraceConfig;
-import org.bithon.server.tracing.index.TagIndexBuilder;
+import org.bithon.server.tracing.index.TagIndexGenerator;
 import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.mapping.TraceMappingFactory;
 import org.bithon.server.tracing.sanitization.SanitizerFactory;
@@ -45,7 +45,7 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<Iterat
     private final ITraceWriter traceWriter;
     private final Function<Collection<TraceSpan>, List<TraceIdMapping>> mappingExtractor;
     private final SanitizerFactory sanitizerFactory;
-    private final TagIndexBuilder tagIndexBuilder;
+    private final TagIndexGenerator tagIndexBuilder;
 
     public TraceMessageHandler(ApplicationContext applicationContext) {
         super("trace", 2, 10, Duration.ofMinutes(1), 2048);
@@ -55,7 +55,7 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<Iterat
         this.sanitizerFactory = new SanitizerFactory(applicationContext.getBean(ObjectMapper.class),
                                                      applicationContext.getBean(TraceConfig.class));
 
-        this.tagIndexBuilder = new TagIndexBuilder(applicationContext.getBean(TraceConfig.class));
+        this.tagIndexBuilder = new TagIndexGenerator(applicationContext.getBean(TraceConfig.class));
     }
 
     @Override
@@ -64,7 +64,7 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<Iterat
 
         traceWriter.write(traceSpans.toCollection(),
                           mappingExtractor.apply(traceSpans.toCollection()),
-                          tagIndexBuilder.build(traceSpans.toCollection()));
+                          tagIndexBuilder.generate(traceSpans.toCollection()));
     }
 
     @Override

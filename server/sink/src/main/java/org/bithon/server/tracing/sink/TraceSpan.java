@@ -47,6 +47,10 @@ public class TraceSpan {
     public String parentApplication;
     public Map<String, String> tags;
     public long costTime;
+
+    /**
+     * in us
+     */
     public long startTime;
     public long endTime;
     public String name;
