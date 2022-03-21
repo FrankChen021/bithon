@@ -102,7 +102,6 @@ public class TraceApi {
                                                              end,
                                                              request.getConditions(),
                                                              request.getOrderBy(),
-                                                             request.getOrder(),
                                                              request.getPageNumber(),
                                                              request.getPageSize());
 

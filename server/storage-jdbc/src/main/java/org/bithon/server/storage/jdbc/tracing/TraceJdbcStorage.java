@@ -25,8 +25,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.OrderBy;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
@@ -446,8 +448,7 @@ public class TraceJdbcStorage implements ITraceStorage {
         public List<TraceSpan> searchTrace(Timestamp start,
                                            Timestamp end,
                                            Map<String, String> conditions,
-                                           String orderBy,
-                                           String order,
+                                           OrderBy orderBy,
                                            int pageNumber,
                                            int pageSize) {
             SelectConditionStep<Record1<String>> sql = dslContext.selectDistinct(Tables.BITHON_TRACE_SPAN.TRACEID)
@@ -479,17 +480,17 @@ public class TraceJdbcStorage implements ITraceStorage {
                                                                           .and(Tables.BITHON_TRACE_SPAN.KIND.eq("SERVER"));
 
             SelectLimitStep<BithonTraceSpanRecord> sql2 = select;
-            if (order != null) {
-                switch (orderBy) {
+            if (orderBy != null) {
+                switch (orderBy.getName()) {
                     case "startTime":
-                        if ("desc".equals(order)) {
+                        if ("desc".equals(orderBy.getOrder())) {
                             sql2 = select.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.desc());
                         } else {
                             sql2 = select.orderBy(Tables.BITHON_TRACE_SPAN.TIMESTAMP.asc());
                         }
                         break;
                     case "costTime":
-                        if ("desc".equals(order)) {
+                        if ("desc".equals(orderBy.getOrder())) {
                             sql2 = select.orderBy(Tables.BITHON_TRACE_SPAN.COSTTIMEMS.desc());
                         } else {
                             sql2 = select.orderBy(Tables.BITHON_TRACE_SPAN.COSTTIMEMS.asc());

@@ -17,6 +17,7 @@
 package org.bithon.server.web.service.tracing.api;
 
 import lombok.Data;
+import org.bithon.server.metric.storage.OrderBy;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
@@ -38,8 +39,7 @@ public class SearchTraceRequest {
     @NotEmpty
     private Map<String, String> conditions = Collections.emptyMap();
 
-    private String order;
-    private String orderBy;
+    private OrderBy orderBy;
     private int pageNumber = 0;
     private int pageSize = 10;
 }

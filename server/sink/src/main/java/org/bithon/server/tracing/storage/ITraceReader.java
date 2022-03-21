@@ -18,6 +18,7 @@ package org.bithon.server.tracing.storage;
 
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.OrderBy;
 import org.bithon.server.tracing.sink.TraceSpan;
 
 import java.sql.Timestamp;
@@ -47,5 +48,8 @@ public interface ITraceReader {
 
     List<TraceSpan> searchTrace(Timestamp start,
                                 Timestamp end,
-                                Map<String, String> conditions, String orderBy, String order, int pageNumber, int pageSize);
+                                Map<String, String> conditions,
+                                OrderBy orderBy,
+                                int pageNumber,
+                                int pageSize);
 }
