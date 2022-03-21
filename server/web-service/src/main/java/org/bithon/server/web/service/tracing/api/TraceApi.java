@@ -93,21 +93,6 @@ public class TraceApi {
         );
     }
 
-    @PostMapping("/api/trace/search")
-    public GetTraceListResponse search(@Valid @RequestBody SearchTraceRequest request) {
-        Timestamp start = TimeSpan.fromISO8601(request.getStartTimeISO8601()).toTimestamp();
-        Timestamp end = TimeSpan.fromISO8601(request.getEndTimeISO8601()).toTimestamp();
-
-        List<TraceSpan> rootSpans = traceService.searchTrace(start,
-                                                             end,
-                                                             request.getConditions(),
-                                                             request.getOrderBy(),
-                                                             request.getPageNumber(),
-                                                             request.getPageSize());
-
-        return new GetTraceListResponse(rootSpans.size(), rootSpans);
-    }
-
     @PostMapping("/api/trace/getChildSpans")
     public List<TraceSpan> getChildSpans(@Valid @RequestBody GetChildSpansRequest request) {
         return traceService.getTraceByParentSpanId(request.getParentSpanId());

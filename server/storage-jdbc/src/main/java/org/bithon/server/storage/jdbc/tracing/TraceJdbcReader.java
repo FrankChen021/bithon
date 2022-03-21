@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.tracing;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.storage.jdbc.jooq.Tables;
@@ -26,14 +27,17 @@ import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
+import org.bithon.server.tracing.TraceConfig;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.jooq.DSLContext;
+import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
 import org.jooq.impl.DSL;
 
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -42,12 +46,16 @@ import java.util.TreeMap;
  * @date 30/12/20
  */
 public class TraceJdbcReader implements ITraceReader {
+
+    public static final String SPAN_TAGS_PREFIX = "tags.";
     private final DSLContext dslContext;
     private final ObjectMapper objectMapper;
+    private final TraceConfig traceConfig;
 
-    public TraceJdbcReader(DSLContext dslContext, ObjectMapper objectMapper) {
+    public TraceJdbcReader(DSLContext dslContext, ObjectMapper objectMapper, TraceConfig traceConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
+        this.traceConfig = traceConfig;
     }
 
     @Override
@@ -77,32 +85,41 @@ public class TraceJdbcReader implements ITraceReader {
                                         int pageNumber,
                                         int pageSize) {
         BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
-        SelectConditionStep<BithonTraceSpanSummaryRecord> sql = dslContext.selectFrom(summaryTable)
-                                                                          .where(summaryTable.TIMESTAMP.ge(start))
-                                                                          .and(summaryTable.TIMESTAMP.lt(end));
+        SelectConditionStep<BithonTraceSpanSummaryRecord> listQuery = dslContext.selectFrom(summaryTable)
+                                                                                .where(summaryTable.TIMESTAMP.ge(start))
+                                                                                .and(summaryTable.TIMESTAMP.lt(end));
 
-        sql = sql.and(SQLFilterBuilder.build(filters));
+        String moreFilter = SQLFilterBuilder.build(filters.stream().filter(filter -> !filter.getDimension().startsWith(SPAN_TAGS_PREFIX)));
+        if (StringUtils.hasText(moreFilter)) {
+            listQuery = listQuery.and(moreFilter);
+        }
+
+        // build tag query
+        SelectConditionStep<Record1<String>> tagQuery = buildTagQuery(start, end, filters);
+        if (tagQuery != null) {
+            listQuery = listQuery.and(summaryTable.TRACEID.in(tagQuery));
+        }
 
         //noinspection rawtypes
-        SelectSeekStep1 sql2;
+        SelectSeekStep1 orderedListQuery;
         if ("costTime".equals(orderBy)) {
             if ("desc".equals(order)) {
-                sql2 = sql.orderBy(summaryTable.COSTTIMEMS.desc());
+                orderedListQuery = listQuery.orderBy(summaryTable.COSTTIMEMS.desc());
             } else {
-                sql2 = sql.orderBy(summaryTable.COSTTIMEMS.asc());
+                orderedListQuery = listQuery.orderBy(summaryTable.COSTTIMEMS.asc());
             }
         } else {
             if ("desc".equals(order)) {
-                sql2 = sql.orderBy(summaryTable.TIMESTAMP.desc());
+                orderedListQuery = listQuery.orderBy(summaryTable.TIMESTAMP.desc());
             } else {
-                sql2 = sql.orderBy(summaryTable.TIMESTAMP.asc());
+                orderedListQuery = listQuery.orderBy(summaryTable.TIMESTAMP.asc());
             }
         }
 
         //noinspection unchecked
-        return sql2.offset(pageNumber * pageSize)
-                   .limit(pageSize)
-                   .fetch(r -> this.toTraceSpan((BithonTraceSpanSummaryRecord) r));
+        return orderedListQuery.offset(pageNumber * pageSize)
+                               .limit(pageSize)
+                               .fetch(r -> this.toTraceSpan((BithonTraceSpanSummaryRecord) r));
     }
 
     @Override
@@ -111,12 +128,23 @@ public class TraceJdbcReader implements ITraceReader {
                                 Timestamp end) {
         BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
 
-        return (int) dslContext.select(DSL.count(summaryTable.TRACEID))
-                               .from(summaryTable)
-                               .where(summaryTable.TIMESTAMP.ge(start))
-                               .and(summaryTable.TIMESTAMP.lt(end))
-                               .and(SQLFilterBuilder.build(filters))
-                               .fetchOne(0);
+        SelectConditionStep<Record1<Integer>> countQuery = dslContext.select(DSL.count(summaryTable.TRACEID))
+                                                                     .from(summaryTable)
+                                                                     .where(summaryTable.TIMESTAMP.ge(start))
+                                                                     .and(summaryTable.TIMESTAMP.lt(end));
+
+        String moreFilter = SQLFilterBuilder.build(filters.stream().filter(filter -> !filter.getDimension().startsWith(SPAN_TAGS_PREFIX)));
+        if (StringUtils.hasText(moreFilter)) {
+            countQuery = countQuery.and(moreFilter);
+        }
+
+        // build tag query
+        SelectConditionStep<Record1<String>> tagQuery = buildTagQuery(start, end, filters);
+        if (tagQuery != null) {
+            countQuery = countQuery.and(summaryTable.TRACEID.in(tagQuery));
+        }
+
+        return (int) countQuery.fetchOne(0);
     }
 
     @Override
@@ -137,6 +165,46 @@ public class TraceJdbcReader implements ITraceReader {
                          .where(Tables.BITHON_TRACE_MAPPING.USER_TX_ID.eq(id))
                          .limit(1)
                          .fetchOne(Tables.BITHON_TRACE_MAPPING.TRACE_ID);
+    }
+
+    /**
+     * TODO:
+     *  1. If a given tag name is not in the index list, the query on that name should fall back to BITHON_TRACE_SPAN table to match
+     *  2. For multiple tags which are not in the same group, nested query should be applied
+     */
+    private SelectConditionStep<Record1<String>> buildTagQuery(Timestamp start, Timestamp end, Collection<DimensionCondition> filters) {
+        SelectConditionStep<Record1<String>> tagQuery = null;
+
+        for (DimensionCondition filter : filters) {
+            if (!filter.getDimension().startsWith(SPAN_TAGS_PREFIX)) {
+                continue;
+            }
+            String tagName = filter.getDimension().substring(SPAN_TAGS_PREFIX.length());
+            if (!StringUtils.hasText(tagName)) {
+                throw new RuntimeException(StringUtils.format("Wrong tag name [%s]", filter.getDimension()));
+            }
+
+            int tagIndex = this.traceConfig.getIndexes().getMap().getOrDefault(tagName, 0);
+            if (tagIndex == 0) {
+                throw new RuntimeException(StringUtils.format("Can't search on tag [%s] because it is not configured in the index.", tagName));
+            }
+            if (tagIndex > Tables.BITHON_TRACE_SPAN_TAG_INDEX.fieldsRow().size() - 2) {
+                throw new RuntimeException(StringUtils.format("Tag [%s] is configured to use wrong index [%d]. Should be in the range [1, %d]",
+                                                              tagName,
+                                                              tagIndex,
+                                                              Tables.BITHON_TRACE_SPAN_TAG_INDEX.fieldsRow().size() - 2));
+            }
+
+            if (tagQuery == null) {
+                tagQuery = dslContext.select(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TRACEID)
+                                     .from(Tables.BITHON_TRACE_SPAN_TAG_INDEX)
+                                     .where(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.ge(start))
+                                     .and(Tables.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP.lt(end));
+            }
+            tagQuery = tagQuery.and(filter.getMatcher().accept(new SQLFilterBuilder("f" + tagIndex)));
+        }
+
+        return tagQuery;
     }
 
     private TraceSpan toTraceSpan(BithonTraceSpanRecord record) {

@@ -84,7 +84,7 @@ public class TraceJdbcStorage implements ITraceStorage {
 
     @Override
     public ITraceReader createReader() {
-        return new TraceJdbcReader(this.dslContext, this.objectMapper);
+        return new TraceJdbcReader(this.dslContext, this.objectMapper, traceConfig);
     }
 
     @Override

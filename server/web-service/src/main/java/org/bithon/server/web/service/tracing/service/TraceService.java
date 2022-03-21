@@ -22,7 +22,6 @@ import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.Interval;
-import org.bithon.server.metric.storage.OrderBy;
 import org.bithon.server.metric.storage.TimeseriesQuery;
 import org.bithon.server.tracing.TraceDataSourceSchema;
 import org.bithon.server.tracing.sink.TraceSpan;
@@ -186,15 +185,6 @@ public class TraceService {
 
         return new GetTraceDistributionResponse(metricStorage.createMetricReader(schema).timeseries(query),
                                                 interval.getStepLength());
-    }
-
-    public List<TraceSpan> searchTrace(Timestamp start,
-                                       Timestamp end,
-                                       Map<String, String> conditions,
-                                       OrderBy orderBy,
-                                       int pageNumber,
-                                       int pageSize) {
-        return this.traceReader.searchTrace(start, end, conditions, orderBy, pageNumber, pageSize);
     }
 
     static class Bucket {

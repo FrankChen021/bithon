@@ -29,29 +29,33 @@ import org.bithon.server.metric.storage.DimensionCondition;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * build SQL where clause
  */
 public class SQLFilterBuilder implements IMatcherVisitor<String> {
-    private final String name;
+    private final String fieldName;
 
-    public SQLFilterBuilder(String name) {
-        this.name = name;
+    public SQLFilterBuilder(String fieldName) {
+        this.fieldName = fieldName;
     }
 
     public static String build(Collection<DimensionCondition> filters) {
-        return filters.stream()
-                      .map(dimension -> dimension.getMatcher()
-                                                 .accept(new SQLFilterBuilder(dimension.getDimension())))
-                      .collect(Collectors.joining(" AND "));
+        return build(filters.stream());
+    }
+
+    public static String build(Stream<DimensionCondition> stream) {
+        return stream.map(dimension -> dimension.getMatcher()
+                                                .accept(new SQLFilterBuilder(dimension.getDimension())))
+                     .collect(Collectors.joining(" AND "));
     }
 
     @Override
     public String visit(EqualMatcher matcher) {
         StringBuilder sb = new StringBuilder(64);
         sb.append("\"");
-        sb.append(name);
+        sb.append(fieldName);
         sb.append("\"");
         sb.append("=");
         sb.append('\'');
@@ -64,7 +68,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     public String visit(NotEqualMatcher matcher) {
         StringBuilder sb = new StringBuilder(64);
         sb.append("\"");
-        sb.append(name);
+        sb.append(fieldName);
         sb.append("\"");
         sb.append("<>");
         sb.append('\'');
@@ -75,31 +79,31 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
     @Override
     public String visit(AntPathMatcher antPathMatcher) {
-        return null;
+        throw new RuntimeException("Not Supported Now");
     }
 
     @Override
     public String visit(ContainsMatcher containsMatcher) {
-        return null;
+        throw new RuntimeException("Not Supported Now");
     }
 
     @Override
     public String visit(EndwithMatcher endwithMatcher) {
-        return null;
+        throw new RuntimeException("Not Supported Now");
     }
 
     @Override
     public String visit(IContainsMatcher iContainsMatcher) {
-        return null;
+        throw new RuntimeException("Not Supported Now");
     }
 
     @Override
     public String visit(RegexMatcher regexMatcher) {
-        return null;
+        throw new RuntimeException("Not Supported Now");
     }
 
     @Override
     public String visit(StartwithMatcher startwithMatcher) {
-        return null;
+        throw new RuntimeException("Not Supported Now");
     }
 }
