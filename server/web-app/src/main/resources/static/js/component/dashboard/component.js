@@ -257,8 +257,8 @@ class Dashboard {
             });
     }
 
-    #createDetailView(parent, columns, buttons) {
-        return new TableComponent({parent: parent, columns: columns, buttons: buttons});
+    #createDetailView(id, parent, columns, buttons) {
+        return new TableComponent({tableId: id, parent: parent, columns: columns, buttons: buttons});
     }
 
     #refreshDetailView(chartDescriptor, detailView, option, startIndex, endIndex) {
@@ -301,38 +301,33 @@ class Dashboard {
     }
 
     #openTraceSearchPage(chartDescriptor, start, end, row) {
-        const startTimeISO8601 = moment(start).utc().toISOString(true);
-        const endIimeISO8601 = moment(end).utc().toISOString(true);
+        const startTimeISO8601 = moment(start).local().toISOString(true);
+        const endIimeISO8601 = moment(end).local().toISOString(true);
 
         let url = `/web/trace/search?appName=${this._appName}&`;
-        const instanceFilter = this._selectedDimensions["instanceName"];
-        if(instanceFilter != null) {
+
+        const instanceFilter = this.vFilter.getSelectedFilter("instanceName");
+        if (instanceFilter != null) {
             url += `instanceName=${encodeURI(instanceFilter.matcher.pattern)}&`;
         }
         url += `startTime=${encodeURI(startTimeISO8601)}&endTime=${encodeURI(endIimeISO8601)}&`;
 
+        //
+        // tracing object example
         // "tracing": {
-        //     "filters": {
-        //         "mapping": {
-        //             "uri": "tags.uri",
-        //                 "statusCode": "tags.status"
-        //         },
-        //         "kind": "SERVER"
+        //     "dimensionMaps": {
+        //         "cluster": "tag.clickhouse.cluster",
+        //             "user": "tag.clickhouse.user",
+        //             "queryType": "tag.clickhouse.queryType"
         //     }
         // }
-        const tracingFilters = chartDescriptor.details.tracing.filters;
+        const tracingSpec = chartDescriptor.details.tracing;
 
         $.each(chartDescriptor.details.groupBy, (index, dimension) => {
-            const mapTo = tracingFilters.mapping[dimension];
+            const mapTo = tracingSpec.dimensionMaps[dimension];
             if (mapTo != null) {
                 url += `${mapTo}=${encodeURI(row[dimension])}&`;
-            } else {
-                url += `${dimension}=${encodeURI(row[dimension])}&`;
             }
-        });
-
-        $.each(tracingFilters.extra, (prop, value) => {
-            url += `${prop}=${encodeURIComponent(value)}&`;
         });
 
         window.open(url);

@@ -4,7 +4,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{_common/layout}">
 <head>
-    <title>Bithon</title>
+    <title>Bithon Tracing Logs</title>
 
     <!-- tree grid style -->
     <link rel="stylesheet" type="text/css" th:href="@{/lib/jquery-treegrid-0.2/css/jquery-treegrid.min.css}"/>
@@ -41,9 +41,7 @@
     <script>
         let traceData = [];
 
-        // parse interval from the url
-        const queryParams = extractQueryParameters();
-        let interval = queryParams['interval'];
+        let interval = window.queryParams['interval'];
         if (interval != null) {
             const parts = interval.split('/');
             interval = {
@@ -136,8 +134,8 @@
             contentType: "application/json",
             data: () => {
                 return {
-                    id: queryParams['id'],
-                    type: queryParams['type'],
+                    id: window.queryParams['id'],
+                    type: window.queryParams['type'],
                     startTimeISO8601: interval === null ? null : interval.start,
                     endTimeISO8601: interval === null ? null : interval.end,
                     hierachy: true
@@ -247,7 +245,7 @@
                 size: 'xl',
                 onEscape: true,
                 backdrop: true,
-                message: `<pre id="tagValueView">${text}</pre>`,
+                message: `<pre id="tagValueView">${text}\n</pre>`,
                 // buttons: {
                 //     copy: {
                 //         label: "Copy",

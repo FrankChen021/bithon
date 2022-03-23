@@ -1,6 +1,6 @@
 function onTableComponentButtonClick(id, rowIndex, buttonIndex) {
-    const tableComponent = window.gDetailTables[id];
-    if ( tableComponent != null ) {
+    const tableComponent = window.gTableComponents[id];
+    if (tableComponent != null) {
         tableComponent.onButtonClick(rowIndex, buttonIndex);
     }
 }
@@ -12,6 +12,7 @@ class TableComponent {
      *     parent: p,
      *     columns: columns
      *     pagination: [true/false]
+     *     tableId: an unique id for the table component
      */
     constructor(option) {
         this.vTable = option.parent.append(`<table id="${option.tableId}"></table>`).find('table');
@@ -64,15 +65,15 @@ class TableComponent {
                     align: 'center',
                     visible: button.visible,
                     formatter: (cell, row, rowIndex, field) => {
-                        return `<a href="#" class="badge badge-info" onclick="javascript:onTableComponentButtonClick('${id}', ${rowIndex}, ${buttonIndex})">&gt;</a>`;
+                        return `<a href="#" class="badge badge-info" onclick="onTableComponentButtonClick('${option.tableId}', ${rowIndex}, ${buttonIndex})">&gt;</a>`;
                     }
                 }
             );
         })
-        if (window.gDetailTables === undefined) {
-            window.gDetailTables = {};
+        if (window.gTableComponents === undefined) {
+            window.gTableComponents = {};
         }
-        window.gDetailTables[id] = this;
+        window.gTableComponents[option.tableId] = this;
     }
 
     onButtonClick(rowIndex, buttonIndex) {
@@ -95,6 +96,8 @@ class TableComponent {
     load(option) {
         console.log(option);
 
+        this.mStartTimestamp = option.start;
+        this.mEndTimestamp = option.end;
         this.mQueryParam = option.ajaxData;
 
         if (!this.mCreated) {

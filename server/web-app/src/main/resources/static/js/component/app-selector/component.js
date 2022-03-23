@@ -127,6 +127,10 @@ class AppSelector {
         return filters;
     }
 
+    getSelectedFilter(name) {
+        return this._selectedDimensions[name];
+    }
+
     #onSelectionChanged(name, value) {
         $.each(this.mSelectionChangedListener, (index, listener) => {
             listener(name, value);
