@@ -18,7 +18,7 @@ package org.bithon.server.tracing.index;
 
 import lombok.Data;
 
-import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -39,5 +39,14 @@ public class TagIndexConfig {
      *
      * LinkedHashMap is used to keep the order of the configuration
      */
-    private LinkedHashMap<String, Integer> map;
+    private Map<String, Integer> map;
+
+    /**
+     * Get the column position for given tag name.
+     * The position should start from 1, not 0.
+     * If it's zero, it means there's no index configured for this tag
+     */
+    public int getColumnPos(String tagName) {
+        return map.getOrDefault(tagName, 0);
+    }
 }

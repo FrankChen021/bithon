@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.tracing;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
@@ -184,7 +185,9 @@ public class TraceJdbcReader implements ITraceReader {
                 throw new RuntimeException(StringUtils.format("Wrong tag name [%s]", filter.getDimension()));
             }
 
-            int tagIndex = this.traceConfig.getIndexes().getMap().getOrDefault(tagName, 0);
+            Preconditions.checkNotNull(this.traceConfig.getIndexes(), "No index configured for 'tags' attribute.");
+
+            int tagIndex = this.traceConfig.getIndexes().getColumnPos(tagName);
             if (tagIndex == 0) {
                 throw new RuntimeException(StringUtils.format("Can't search on tag [%s] because it is not configured in the index.", tagName));
             }
