@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -135,7 +136,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
     }
 
     public Map<String, DataSourceSchema> getDataSources() {
-        return new HashMap<>(schemas);
+        return new TreeMap<>(schemas);
     }
 
     public void addListener(IDataSourceSchemaListener listener) {

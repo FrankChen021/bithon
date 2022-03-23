@@ -51,9 +51,7 @@ public class TraceDataSourceSchema {
                                                                                                               true,
                                                                                                               null,
                                                                                                               null)),
-                                                                        Collections.singletonList(CountMetricSpec.INSTANCE),
-                                                                        null,
-                                                                        null);
+                                                                        Collections.singletonList(CountMetricSpec.INSTANCE));
 
     public static DataSourceSchema getSchema() {
         return SCHEMA;
