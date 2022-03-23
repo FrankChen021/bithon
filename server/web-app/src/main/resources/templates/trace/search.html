@@ -4,53 +4,56 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{_common/layout}">
 <head>
-    <title>Bithon</title>
-
-    <!-- tree grid -->
-    <link rel="stylesheet" type="text/css" th:href="@{/lib/jquery-treegrid-0.2/css/jquery-treegrid.min.css}"/>
-    <script th:src="@{/lib/jquery-treegrid-0.2/js/jquery-treegrid.min.js}"></script>
-    <script th:src="@{/lib/bootstrap-table/extensions/treegrid/bootstrap-table-treegrid.min.js}"></script>
-    <script th:src="@{/lib/sql-formatter-4.0.2/sql-formatter.min.js}"></script>
-
-    <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
-    <script th:src="@{/js/chart-component.js}"></script>
-    <script th:src="@{/js/component/trace/trace-list.js}"></script>
+    <title>Bithon Tracing List</title>
+    <script th:src="@{/js/component/trace/trace-list-component.js}"></script>
     <script th:src="@{/js/utils/location.js}"></script>
 </head>
 <body>
-<div style="padding:20px;" layout:fragment="content">
+<div layout:fragment="content">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <!-- Navbar content -->
         <a class="navbar-brand" href="/web/home">Bithon</a>
     </nav>
     <div class="tab-content" id="trace-list" style="padding-top:50px">
-
     </div>
 
-    <script th:inline="javascript">
-        let id = [[${id}]];
-        let type = [[${type}]];
-        let traceData = [];
-    </script>
     <script>
-        const queryParams = toQueryParameters(window.location.href);
-        const startTime = queryParams["startTime"];
-        const endTime = queryParams["endTime"];
-        delete  queryParams["startTime"];
-        delete queryParams["endTime"];
-        new TraceListComponent(
-            $('#trace-list'),
-            {
-                showApplicationName: true,
-                url: "/api/trace/search",
-                getQueryParams: (params) =>{
-                    return {
-                        conditions: queryParams,
-                        startTimeISO8601: startTime,
-                        endTimeISO8601: endTime,
-                    };
-                }
+        $(document).ready(() => {
+            const startTime = window.queryParams["startTime"];
+            const endTime = window.queryParams["endTime"];
+
+            const filters = [];
+            $.each(window.queryParams, (name, value) => {
+                if (name === "startTime")
+                    return;
+                if (name === "endTime")
+                    return;
+                if(name === "appName")
+                    return;
+                filters.push({
+                        dimension: name,
+                        matcher: {
+                            type: "equal",
+                            pattern: value
+                        }
+                    }
+                );
             });
+            new TraceListComponent(
+                $('#trace-list'),
+                {
+                    showApplicationName: true,
+
+                    getQueryParams: (params) => {
+                        return {
+                            application: window.queryParams['appName'],
+                            filters: filters,
+                            startTimeISO8601: startTime,
+                            endTimeISO8601: endTime
+                        };
+                    }
+                });
+        });
     </script>
 </div>
 </body>

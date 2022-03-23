@@ -4,7 +4,7 @@ class TraceListComponent {
         this.vTable = $(parent).append('<table></table>').find('table');
 
         this.vTable.bootstrapTable({
-            url: apiOption.url,
+            url: apiHost + '/api/trace/getTraceList',
             method: 'post',
             contentType: "application/json",
             showRefresh: false,
@@ -19,6 +19,11 @@ class TraceListComponent {
             pageList: [10, 25, 50, 100],
             // sortName: 'startTime',
             // sortOrder: 'desc',
+
+            stickyHeader: true,
+            stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
+            stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
+            theadClasses: 'thead-light',
 
             queryParamsType: '',
             queryParams: (params) => {
@@ -37,16 +42,13 @@ class TraceListComponent {
             search: false,
             showSearchClearButton: false,
             searchOnEnterKey: true,
-            formatSearch: function () {
-                return 'search by Trace Id';
-            },
 
             uniqueId: 'traceId',
             columns: [{
                 field: 'traceId',
                 title: 'Trace Id',
                 formatter: function (value, row) {
-                    return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}">${value}</a>`;
+                    return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}&type=trace">${value}</a>`;
                 },
             }, {
                 field: 'appName',
@@ -59,32 +61,29 @@ class TraceListComponent {
                 field: 'startTime',
                 title: 'Time',
                 formatter: function (value) {
-                    return new Date(value / 1000).format('yyyy-MM-dd hh:mm:ss');
+                    return new Date(value / 1000).format('yyyy-MM-dd hh:mm:ss.S');
                 },
                 sortable: true
             }, {
                 field: 'costTime',
                 title: 'Duration',
-                formatter: function (value, row) {
+                formatter: function (value) {
                     return nanoFormat(value * 1000);
                 },
                 sortable: true
             }, {
                 field: 'tags',
                 title: 'URL',
-                formatter: function (value, row) {
-                    return value.uri;
+                formatter: function (value) {
+                    return value['uri'] || value['http.uri'];
                 }
             }, {
-                field: 'tags',
-                title: 'Status',
-                formatter: function (value, row) {
-                    return value.status;
-                }
+                field: 'status',
+                title: 'Status'
             }],
 
             rowStyle: (row, index) => {
-                if (row.tags.status !== "200") {
+                if (row.status !== "200") {
                     return {
                         classes: 'alert-warning'
                     }
@@ -95,6 +94,6 @@ class TraceListComponent {
     }
 
     refresh() {
-
+        this.vTable.bootstrapTable('refresh');
     }
 }

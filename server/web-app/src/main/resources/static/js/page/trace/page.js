@@ -55,102 +55,19 @@ class TracePage {
         this.mInterval = this.vIntervalSelector.getInterval();
 
         // View, will also trigger refresh automatically
-        $('#table').bootstrapTable({
-            toolbar: '#toolbar',//工具栏
-
-            url: apiHost + '/api/trace/getTraceList',
-            method: 'post',
-            contentType: "application/json",
-            showRefresh: false,
-
-            buttonsAlign: 'right',
-            sidePagination: "server",
-            pagination: true,
-            paginationPreText: '<',              //上一页按钮样式
-            paginationNextText: '>',             //下一页按钮样式
-            pageNumber: 1,
-            pageSize: 10,
-            pageList: [10, 25, 50, 100],
-            sortName: 'startTime',
-            sortOrder: 'desc',
-
-            stickyHeader: true,
-            stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
-            stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
-            theadClasses: 'thead-light',
-
-            queryParamsType: '',
-            queryParams: (params) => {
-                const interval = this.#getInterval();
-                return {
-                    pageSize: params.pageSize,
-                    pageNumber: params.pageNumber - 1,
-                    traceId: params.searchText,
-                    application: g_SelectedApp,
-                    filters: this.vFilters.getSelectedFilters(),
-                    startTimeISO8601: interval.start,
-                    endTimeISO8601: interval.end,
-                    orderBy: params.sortName,
-                    order: params.sortOrder
-                };
-            },
-
-            filterControl: false,
-            filterShowClear: false,
-            search: false,
-            showSearchClearButton: false,
-            searchOnEnterKey: true,
-            formatSearch: function () {
-                return 'search by Trace Id';
-            },
-
-            uniqueId: 'traceId',
-            columns: [{
-                field: 'traceId',
-                title: 'Trace Id',
-                formatter: function (value, row) {
-                    let timestamp = row.startTime / 1000;
-                    timestamp = Math.floor(timestamp / 1000 / 60) * 1000 * 60;
-                    timestamp -= 3600 * 1000; // search the detail from 1 hour before current start time
-                    return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}&type=trace&interval=${encodeURI(moment(timestamp).local().toISOString(true) + '/')}">${value}</a>`;
-                },
-            }, {
-                field: 'instanceName',
-                title: 'Instance'
-            }, {
-                field: 'startTime',
-                title: 'Time',
-                formatter: function (value) {
-                    return new Date(value / 1000).format('MM-dd hh:mm:ss');
-                },
-                sortable: true
-            }, {
-                field: 'costTime',
-                title: 'Duration',
-                formatter: function (value, row) {
-                    return nanoFormat(value * 1000);
-                },
-                sortable: true
-            }, {
-                field: 'status',
-                title: 'Status'
-            }, {
-                field: 'tags',
-                title: 'URL',
-                formatter: function (value, row) {
-                    return value['uri'] || value['http.uri'];
-                }
-            }],
-
-            rowStyle: (row, index) => {
-                if (row.status !== "200") {
+        this.vTraceList = new TraceListComponent(
+            $('#table'),
+            {
+                showApplicationName: false,
+                getQueryParams: (params) => {
                     return {
-                        classes: 'alert-warning'
-                    }
+                        filters: this.vFilters.getSelectedFilters(),
+                        startTimeISO8601: this.mInterval.start,
+                        endTimeISO8601: this.mInterval.end
+                    };
                 }
-                return {};
             }
-        });
+        );
 
         this.#refreshChart();
     }
@@ -163,7 +80,7 @@ class TracePage {
         //
         // refresh the list
         //
-        $('#table').bootstrapTable('refresh');
+        this.vTraceList.refresh();
 
         //
         // refresh the distribution chart
