@@ -16,6 +16,7 @@
 
 package org.bithon.agent.plugin.spring.webflux.interceptor;
 
+import io.netty.handler.codec.http.HttpHeaders;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
@@ -23,6 +24,7 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingFilter;
 import org.bithon.agent.core.metric.domain.web.HttpIncomingMetricsRegistry;
+import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
@@ -31,12 +33,17 @@ import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.agent.plugin.spring.webflux.SpringWebFluxPlugin;
+import org.bithon.agent.plugin.spring.webflux.config.ResponseConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.CollectionUtils;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
+
+import java.util.Map;
 
 /**
  * {@link org.springframework.http.server.reactive.ReactorHttpHandlerAdapter#apply}
@@ -51,6 +58,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
     private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
     private HttpIncomingFilter requestFilter;
     private TraceConfig traceConfig;
+    private ResponseConfigs responseConfigs;
 
     @Override
     public boolean initialize() {
@@ -59,6 +67,9 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         traceConfig = AgentContext.getInstance()
                                   .getAgentConfiguration()
                                   .getConfig(TraceConfig.class);
+
+        responseConfigs = PluginConfigurationManager.load(SpringWebFluxPlugin.class)
+                                                    .getConfig(ResponseConfigs.class);
 
         return true;
     }
@@ -93,7 +104,8 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
                             .tag(Tags.HTTP_URI, request.uri())
                             .tag(Tags.HTTP_METHOD, request.method().name())
                             .tag(Tags.HTTP_VERSION, request.version().text())
-                            .tag((span) -> traceConfig.getHeaders().forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
+                            .tag((span) -> traceConfig.getHeaders()
+                                                      .forEach((header) -> span.tag("http.header." + header, request.requestHeaders().get(header))))
                             .method(aopContext.getMethod())
                             .kind(SpanKind.SERVER)
                             .start();
@@ -162,7 +174,24 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
         ITraceContext traceContext = ((HttpServerContext) injected).getTraceContext();
         if (traceContext != null) {
-            traceContext.currentSpan().tag(Tags.HTTP_STATUS, String.valueOf(response.status().code())).finish();
+            traceContext.currentSpan()
+                        .tag(Tags.HTTP_STATUS, String.valueOf(response.status().code()))
+                        .tag((span -> {
+                            if (CollectionUtils.isEmpty(responseConfigs.getHeaders())) {
+                                return;
+                            }
+
+                            // extract headers in the response to tag
+                            HttpHeaders httpHeaders = response.responseHeaders();
+                            for (Map.Entry<String, String> entry : responseConfigs.getHeaders().entrySet()) {
+                                String tagName = entry.getValue();
+                                String tagValue = httpHeaders.get(entry.getKey());
+                                if (tagValue != null) {
+                                    span.tag(tagName, tagValue);
+                                }
+                            }
+                        }))
+                        .finish();
             traceContext.finish();
         }
     }
