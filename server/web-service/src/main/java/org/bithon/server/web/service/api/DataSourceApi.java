@@ -152,6 +152,9 @@ public class DataSourceApi {
                             .collect(Collectors.toList());
     }
 
+    /**
+     * @deprecated
+     */
     @PostMapping("/api/datasource/dimensions")
     public Collection<Map<String, String>> getDimensions(@Valid @RequestBody GetDimensionRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
@@ -165,6 +168,29 @@ public class DataSourceApi {
             TimeSpan.fromISO8601(request.getEndTimeISO8601()),
             schema,
             request.getConditions(),
+            dimensionSpec.getName()
+        );
+    }
+
+    @PostMapping("/api/datasource/dimensions/v2")
+    public Collection<Map<String, String>> getDimensions(@Valid @RequestBody GetDimensionRequestV2 request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        IDimensionSpec dimensionSpec = null;
+        if ("name".equals(request.getType())) {
+            dimensionSpec = schema.getDimensionSpecByName(request.getName());
+        } else if ("alias".equals(request.getType())) {
+            dimensionSpec = schema.getDimensionSpecByAlias(request.getName());
+        } else {
+            throw new Preconditions.InvalidValueException("'type' should be one of (name, alias)");
+        }
+        Preconditions.checkNotNull(dimensionSpec, "dimension [%s] not defined.", request.getName());
+
+        return this.metricStorage.createMetricReader(schema).getDimensionValueList(
+            TimeSpan.fromISO8601(request.getStartTimeISO8601()),
+            TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+            schema,
+            request.getFilters(),
             dimensionSpec.getName()
         );
     }

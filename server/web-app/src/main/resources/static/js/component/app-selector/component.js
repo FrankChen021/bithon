@@ -210,7 +210,7 @@ class AppSelector {
         return {
             cache: true,
             type: 'POST',
-            url: apiHost + '/api/datasource/dimensions',
+            url: apiHost + '/api/datasource/dimensions/v2',
             data: () => {
                 const filters = [];
 
@@ -227,8 +227,9 @@ class AppSelector {
                 const interval = this.mIntervalProviderFn();
                 return JSON.stringify({
                     dataSource: this.mDataSource,
-                    dimension: dimensionName,
-                    conditions: filters,
+                    name: dimensionName,
+                    filters: filters,
+                    type: "alias",
                     startTimeISO8601: interval.start,
                     endTimeISO8601: interval.end,
                 })

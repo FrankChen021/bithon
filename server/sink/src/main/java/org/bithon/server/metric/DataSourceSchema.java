@@ -81,9 +81,9 @@ public class DataSourceSchema {
         this.metricsSpec = metricsSpec;
 
         for (IDimensionSpec dimensionSpec : this.dimensionsSpec) {
-            dimensionMap.put(dimensionSpec.getAlias(), dimensionSpec);
+            dimensionMap.put(dimensionSpec.getName(), dimensionSpec);
             if (dimensionSpec.getTransformer() != null) {
-                dimensionTransformers.put(dimensionSpec.getAlias(), dimensionSpec.getTransformer());
+                dimensionTransformers.put(dimensionSpec.getName(), dimensionSpec.getTransformer());
             }
         }
         this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));
@@ -110,6 +110,15 @@ public class DataSourceSchema {
 
     public IDimensionSpec getDimensionSpecByName(String name) {
         return dimensionMap.get(name);
+    }
+
+    public IDimensionSpec getDimensionSpecByAlias(String alias) {
+        for (IDimensionSpec dimSpec : this.dimensionsSpec) {
+            if (alias.equals(dimSpec.getAlias())) {
+                return dimSpec;
+            }
+        }
+        return null;
     }
 
     @Override
