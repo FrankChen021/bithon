@@ -1,7 +1,7 @@
 class TracePage {
-    constructor(appName) {
+    constructor(queryParams) {
         // Model
-        this.mApplication = appName;
+        this.mQueryParams = queryParams;
         this.mInterval = null;
 
         // View
@@ -17,26 +17,24 @@ class TracePage {
         // View
         this.vFilters = new AppSelector({
             parentId: 'filterBar',
-            appName: this.mApplication,
-            intervalProvider: () => this.#getInterval(),
-            requestFilterFn: (filters) => {
-                filters.push(
-                    {
-                        dimension: "kind",
-                        matcher: {
-                            type: "equal",
-                            pattern: "SERVER"
-                        }
-                    }
-                );
-            }
+            intervalProvider: () => this.#getInterval()
         }).registerChangedListener((name, value) => {
             if (name === 'application') {
                 window.location = `/web/app/trace/${value}`;
             } else {
                 this.#refreshPage();
             }
-        }).createFilter('trace_span_summary');
+        }).createAppSelector(this.mQueryParams['appName'])
+          .createFilter('trace_span_summary');
+
+        // View, tag filter
+        this.vTagFilter = new AppSelector({
+            parentId: 'filterBar',
+            queryVariablePrefix: 'tags.',
+            intervalProvider: () => this.#getInterval()
+        }).registerChangedListener((name, value) => {
+            this.#refreshPage();
+        }).createFilter('trace_span_tag_index');
 
         const parent = $('#filterBarForm');
 
@@ -48,7 +46,7 @@ class TracePage {
         });
 
         // View
-        this.vIntervalSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
+        this.vIntervalSelector = new TimeInterval(window.queryParams['interval']).childOf(parent).registerIntervalChangedListener((selectedModel) => {
             this.mInterval = this.vIntervalSelector.getInterval();
             this.#refreshPage();
         });
@@ -61,7 +59,7 @@ class TracePage {
                 showApplicationName: false,
                 getQueryParams: (params) => {
                     return {
-                        filters: this.vFilters.getSelectedFilters(),
+                        filters: this.#getFilters(),
                         startTimeISO8601: this.mInterval.start,
                         endTimeISO8601: this.mInterval.end
                     };
@@ -74,6 +72,11 @@ class TracePage {
 
     #getInterval() {
         return this.mInterval;//this.mInterval != null ? this.mInterval : this.vIntervalSelector.getInterval();
+    }
+
+    #getFilters() {
+        let filters = this.vFilters.getSelectedFilters();
+        return filters.concat(this.vTagFilter.getSelectedFilters());
     }
 
     #refreshPage() {
@@ -95,8 +98,7 @@ class TracePage {
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                application: g_SelectedApp,
-                filters: this.vFilters.getSelectedFilters()
+                filters: this.#getFilters()
             }),
             processResult: (data) => {
                 this._data = data;

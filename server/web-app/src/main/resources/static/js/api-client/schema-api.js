@@ -18,19 +18,23 @@ class SchemaApi {
         });
     }
 
-    getSchema(name, successCallback, errorCallback) {
+    /**
+     * name, async, successCallback, errorCallback
+     * @param option
+     */
+    getSchema(option) {
         $.ajax({
             type: 'POST',
-            url: apiHost + "/api/datasource/schema/" + name,
+            url: apiHost + "/api/datasource/schema/" + option.name,
             data: JSON.stringify({}),
-            async: true,
+            async: option.async === undefined ? true : option.async,
             dataType: "json",
             contentType: "application/json",
             success: (data) => {
-                successCallback(data);
+                option.successCallback(data);
             },
             error: (data) => {
-                errorCallback(data);
+                option.errorCallback(data);
             }
         });
     }

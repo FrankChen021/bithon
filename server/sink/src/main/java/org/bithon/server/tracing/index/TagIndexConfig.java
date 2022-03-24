@@ -27,7 +27,7 @@ import java.util.Map;
 @Data
 public class TagIndexConfig {
     /**
-     * for which tags we're building indexes.
+     * For which tags we're building indexes.
      * <p>
      * Currently, we define a list of tag names to make this index module work in minimal work.
      * <p>

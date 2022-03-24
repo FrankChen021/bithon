@@ -5,15 +5,47 @@
       layout:decorate="~{_common/layout}">
 <head>
     <title>Bithon Tracing List</title>
+    <!-- bootstrap select -->
+    <script th:src="@{/lib/select2-4.0.13/js/select2.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/lib/select2-4.0.13/css/select2.min.css}">
+    <link rel="stylesheet" th:href="@{/lib/select2-4.0.13/css/select2-bootstrap4.min.css}">
+
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+
+    <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
+    <script th:src="@{/js/api-client/schema-api.js}"></script>
     <script th:src="@{/js/component/trace/trace-list-component.js}"></script>
+    <script th:src="@{/js/component/auto-refresher/component.js}"></script>
+    <script th:src="@{/js/component/time-interval/component.js}"></script>
+    <script th:src="@{/js/component/app-selector/component.js}"></script>
     <script th:src="@{/js/utils/location.js}"></script>
+    <script th:src="@{/js/chart-component.js}"></script>
+    <script th:src="@{/js/page/trace/page.js}"></script>
+    <script>
+        let g_SelectedApp;
+    </script>
 </head>
 <body>
+
 <div layout:fragment="content">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-        <!-- Navbar content -->
-        <a class="navbar-brand" href="/web/home">Bithon</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light" style="padding-left: 5px; padding-right: 5px">
+
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0" id="filterBar">
+            </ul>
+            <form class="form-inline my-2 my-lg-0" id="filterBarForm">
+                <!-- Auto Refresher -->
+
+                <!-- TimeInterval Component -->
+            </form>
+        </div>
     </nav>
+
+    <div id="appList"></div>
+
+    <div id="distribution"></div>
+    <table id="table" style="width: 100%"></table>
+
     <div class="tab-content" id="trace-list" style="padding-top:50px">
     </div>
 
@@ -39,20 +71,23 @@
                     }
                 );
             });
-            new TraceListComponent(
-                $('#trace-list'),
-                {
-                    showApplicationName: true,
 
-                    getQueryParams: (params) => {
-                        return {
-                            application: window.queryParams['appName'],
-                            filters: filters,
-                            startTimeISO8601: startTime,
-                            endTimeISO8601: endTime
-                        };
-                    }
-                });
+            new TracePage(window.queryParams);
+
+            // new TraceListComponent(
+            //     $('#trace-list'),
+            //     {
+            //         showApplicationName: true,
+            //
+            //         getQueryParams: (params) => {
+            //             return {
+            //                 application: window.queryParams['appName'],
+            //                 filters: filters,
+            //                 startTimeISO8601: startTime,
+            //                 endTimeISO8601: endTime
+            //             };
+            //         }
+            //     });
         });
     </script>
 </div>

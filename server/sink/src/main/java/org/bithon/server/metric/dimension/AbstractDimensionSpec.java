@@ -30,9 +30,21 @@ import javax.validation.constraints.NotNull;
 @Data
 public abstract class AbstractDimensionSpec implements IDimensionSpec {
 
+    /**
+     * this is the name that is used at the underlying storage
+     */
     @Getter
     @NotNull
     private final String name;
+
+    /**
+     * This is the name that is used at business layer
+     * If it's not specified, it's default to {@link #name}.
+     *
+     * Some underlying storage uses some meaningless name, and the business layer maps a business name to that meaningless name.
+     */
+    @Getter
+    private final String alias;
 
     @Getter
     @NotNull
@@ -48,11 +60,13 @@ public abstract class AbstractDimensionSpec implements IDimensionSpec {
     private final IDimensionTransformer transformer;
 
     public AbstractDimensionSpec(@NotNull String name,
+                                 @Nullable String alias,
                                  @NotNull String displayText,
                                  @Nullable Boolean required,
                                  @Nullable Boolean visible,
                                  @Nullable IDimensionTransformer transformer) {
         this.name = name;
+        this.alias = alias == null ? name : alias;
         this.displayText = displayText;
         this.required = required == null ? true : required;
         this.visible = visible == null ? true : visible;

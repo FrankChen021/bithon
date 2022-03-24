@@ -61,11 +61,11 @@ class TableComponent {
             this.mColumns.push(
                 {
                     field: 'id',
-                    title: button.text,
+                    title: button.title,
                     align: 'center',
                     visible: button.visible,
                     formatter: (cell, row, rowIndex, field) => {
-                        return `<a href="#" class="badge badge-info" onclick="onTableComponentButtonClick('${option.tableId}', ${rowIndex}, ${buttonIndex})">&gt;</a>`;
+                        return `<a href="#" onclick="onTableComponentButtonClick('${option.tableId}', ${rowIndex}, ${buttonIndex})"><span class="fa fa-forward"></span></a>`;
                     }
                 }
             );

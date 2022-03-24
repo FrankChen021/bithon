@@ -17,8 +17,23 @@ class TimeInterval {
             {id: "today", value: "today", unit: "day", text: "Today"},
             {id: "yesterday", value: "yesterday", unit: "day", text: "Yesterday"},
             {id: "custom", value: "", text: "Customer Range"}
-            // {id: "user", value: "user", text: "Customer"}
+            // {id: "user", value: "user", text: "Customer", start, end}
         ];
+
+        if (defaultIntervalId !== undefined && defaultIntervalId.startsWith("c:")) {
+            const interval = defaultIntervalId.substring(2);
+            const parts = interval.split("/");
+            const start = moment(parts[0]);
+            const end = moment(parts[1]);
+            this._viewModel.push({
+                id: "user",
+                value: "user",
+                start: start,
+                end: end,
+                text: parts[0] + '~' + parts[1]
+            });
+            defaultIntervalId = "user";
+        }
 
         if (includeAll) {
             this._viewModel.push({id: "all", value: "all", unit: "day", text: "All"});

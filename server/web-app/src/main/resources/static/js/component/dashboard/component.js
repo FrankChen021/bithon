@@ -39,7 +39,6 @@ class Dashboard {
         //
         this.vFilter = new AppSelector({
             parentId: 'filterBar',
-            appName: this._appName,
             intervalProvider: () => this.getSelectedTimeInterval(),
         }).registerChangedListener((name, value) => {
             if (name === 'application') {
@@ -47,7 +46,7 @@ class Dashboard {
             } else {
                 this.refreshDashboard();
             }
-        });
+        }).createAppSelector(this._appName);
 
         //
         // dataSource --> Charts
@@ -112,9 +111,9 @@ class Dashboard {
         // Loaded Dimension Filter
         //
         for (const dataSourceName in dataSource2Charts) {
-            this._schemaApi.getSchema(
-                dataSourceName,
-                (schema) => {
+            this._schemaApi.getSchema({
+                name: dataSourceName,
+                successCallback: (schema) => {
                     let index;
                     if (schema.name === dataSourceFilter) {
                         // create filters for dimensions
@@ -151,9 +150,9 @@ class Dashboard {
                         this.#initChartDetail(chartDescriptor);
                     });
                 },
-                (error) => {
+                errorCallback: (error) => {
                 }
-            );
+            });
         }
     }
 
@@ -168,8 +167,9 @@ class Dashboard {
         const columns = [
             {
                 field: 'id',
-                title: 'No',
+                title: 'No.',
                 align: 'center',
+                width: 20,
                 formatter: (cell, row, index, field) => {
                     return (index + 1);
                 }
@@ -223,12 +223,10 @@ class Dashboard {
             }
 
             let transformerFn = metricDef == null ? null : metricDef.transformer;
-            if (transformerFn != null || formatterFn != null) {
-                column.formatter = (val) => {
-                    const t = transformerFn == null ? val : transformerFn(val);
-                    return formatterFn == null ? t : formatterFn(t);
-                };
-            }
+            column.formatter = (val) => {
+                const t = transformerFn == null ? val : transformerFn(val);
+                return formatterFn == null ? t : formatterFn(t);
+            };
 
             columns.push(column);
         });
@@ -237,7 +235,8 @@ class Dashboard {
             chartComponent.getUIContainer(),
             columns,
             [{
-                text: "Trace",
+                title: "Tracing Log",
+                text: "Search...",
                 visible: chartDescriptor.details.tracing !== undefined,
                 onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
             }]);
@@ -310,7 +309,7 @@ class Dashboard {
         if (instanceFilter != null) {
             url += `instanceName=${encodeURI(instanceFilter.matcher.pattern)}&`;
         }
-        url += `startTime=${encodeURI(startTimeISO8601)}&endTime=${encodeURI(endIimeISO8601)}&`;
+        url += `interval=c:${encodeURI(startTimeISO8601)}/${encodeURI(endIimeISO8601)}&`;
 
         //
         // tracing object example

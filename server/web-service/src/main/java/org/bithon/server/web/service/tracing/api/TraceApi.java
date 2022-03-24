@@ -16,10 +16,11 @@
 
 package org.bithon.server.web.service.tracing.api;
 
-import org.bithon.component.brpc.exception.BadRequestException;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.common.matcher.EqualMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.metric.dimension.IDimensionSpec;
 import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.tracing.TraceConfig;
 import org.bithon.server.tracing.TraceDataSourceSchema;
@@ -89,14 +90,15 @@ public class TraceApi {
         // check if filters exists
         for (DimensionCondition filter : request.getFilters()) {
             if (filter.getDimension().startsWith("tags.")) {
-                String tagName = filter.getDimension().substring("tags".length());
-                if (traceConfig.getTagIndexConfig().getColumnPos(tagName) == 0) {
-                    throw new BadRequestException("Can't search on tag [%s] because there's no index defined for this tag.", tagName);
-                }
+                String tagName = filter.getDimension().substring("tags.".length());
+                Preconditions.checkIf(traceConfig.getTagIndexConfig().getColumnPos(tagName) > 0,
+                                      "Can't search on tag [%s] because there's no index defined for this tag.",
+                                      tagName);
             } else {
-                if (TraceDataSourceSchema.getSchema().getDimensionSpecByName(filter.getDimension()) == null) {
-                    throw new BadRequestException("There's no dimension [%s] defined.", filter.getDimension());
-                }
+                IDimensionSpec dimSpec = TraceDataSourceSchema.getTraceSpanSchema().getDimensionSpecByName(filter.getDimension());
+                Preconditions.checkNotNull(dimSpec,
+                                           "There's no dimension [%s] defined.",
+                                           filter.getDimension());
             }
         }
 

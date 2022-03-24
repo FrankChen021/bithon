@@ -174,15 +174,16 @@ public class TraceService {
                                         getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).getLength());
 
         // create a virtual data source to use current metric API to query
-        DataSourceSchema schema = TraceDataSourceSchema.getSchema();
+        DataSourceSchema schema = TraceDataSourceSchema.getTraceSpanSchema();
 
-        filters.add(new DimensionCondition("kind", new EqualMatcher("SERVER")));
         TimeseriesQuery query = new TimeseriesQuery(schema,
                                                     Collections.singletonList("count"),
                                                     filters,
                                                     interval,
                                                     Collections.emptyList());
 
+        // TODO：Provide a custom query
+        // OR implement a new interface
         return new GetTraceDistributionResponse(metricStorage.createMetricReader(schema).timeseries(query),
                                                 interval.getStepLength());
     }

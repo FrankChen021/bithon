@@ -35,6 +35,25 @@ public class Preconditions {
         return value;
     }
 
+    public static <T> T checkNotNull(T value, String messageFormat, Object... args) {
+        if (value == null) {
+            throw new InvalidValueException(messageFormat, args);
+        }
+        return value;
+    }
+
+    public static void checkIf(boolean expression, String message) {
+        if (!expression) {
+            throw new InvalidValueException(message);
+        }
+    }
+
+    public static void checkIf(boolean expression, String messageFormat, Object... args) {
+        if (!expression) {
+            throw new InvalidValueException(messageFormat, args);
+        }
+    }
+
     public static class InvalidValueException extends RuntimeException {
         public InvalidValueException(String message) {
             super(message);

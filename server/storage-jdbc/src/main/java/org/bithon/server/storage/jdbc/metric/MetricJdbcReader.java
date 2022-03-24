@@ -206,10 +206,11 @@ public class MetricJdbcReader implements IMetricReader {
                                                            Collection<DimensionCondition> conditions,
                                                            String dimension) {
         String condition = conditions.stream()
-                                     .map(d -> d.getMatcher().accept(new SQLFilterBuilder(d.getDimension())))
-                                     .collect(Collectors.joining(" AND "));
+                                     .map(d -> d.getMatcher().accept(new SQLFilterBuilder(d.getDimension())) + " AND ")
+                                     .collect(Collectors.joining());
+
         String sql = StringUtils.format(
-            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s ORDER BY \"%s\"",
+            "SELECT DISTINCT(\"%s\") \"%s\" FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s ORDER BY \"%s\"",
             dimension,
             dimension,
             "bithon_" + dataSourceSchema.getName().replace("-", "_"),

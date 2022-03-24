@@ -33,11 +33,12 @@ public class LongDimensionSpec extends AbstractDimensionSpec {
 
     @JsonCreator
     public LongDimensionSpec(@JsonProperty("name") @NotNull String name,
+                             @JsonProperty("alias") @Nullable String alias,
                              @JsonProperty("displayText") @NotNull String displayText,
                              @JsonProperty("required") @Nullable Boolean required,
                              @JsonProperty("visible") @Nullable Boolean visible,
                              @JsonProperty("transformer") @Nullable IDimensionTransformer transformer) {
-        super(name, displayText, required, visible, transformer);
+        super(name, alias, displayText, required, visible, transformer);
     }
 
     @Override

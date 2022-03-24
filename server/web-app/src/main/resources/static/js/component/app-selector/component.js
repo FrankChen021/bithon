@@ -12,18 +12,16 @@ class AppSelector {
 
         this.mIntervalProviderFn = option.intervalProvider;
         this.mRequestFilterFn = option.requestFilterFn;
-        this.mApplication = option.appName;
-        this.mInstance = window.queryParams !== undefined ? window.queryParams['instance'] : null;
         this.mSelectionChangedListener = [];
         this.mLastQuery = null;
         this.mQueryCache = [];
+        this.mQueryVariablepPrefix = option.queryVariablePrefix || '';
 
         this._selectedDimensions = {};
-        this.addDimension("appName", option.appName);
-        if (this.mInstance != null) {
-            this.addDimension("instanceName", this.mInstance);
-            g_SelectedInstance = this.mInstance;
-        }
+    }
+
+    createAppSelector(appName) {
+        this.addDimension("appName", appName);
 
         //
         // create app selector
@@ -38,21 +36,23 @@ class AppSelector {
             });
         });
 
-        this.vAppSelector.append(`<option value="${this.mApplication}">${this.mApplication}</option>`).change();
+        this.vAppSelector.append(`<option value="${appName}">${appName}</option>`).change();
 
         this.vAppSelector.change((e) => {
-            this.mApplication = e.target.selectedOptions[0].value;
-
-            this.#onSelectionChanged('application', this.mApplication);
+            const application = e.target.selectedOptions[0].value;
+            this.#onSelectionChanged('application', application);
         });
+
+        return this;
     }
 
     createFilter(dataSourceName) {
         this.mDataSource = dataSourceName;
-        new SchemaApi().getSchema(
-            dataSourceName,
-            (schema) => this.createFilterFromSchema(schema)
-        );
+        new SchemaApi().getSchema({
+            name: dataSourceName,
+            async: false,
+            successCallback: (schema) => this.createFilterFromSchema(schema)
+        });
         return this;
     }
 
@@ -61,20 +61,34 @@ class AppSelector {
         this.mSchema = schema;
 
         // Note: first two dimensions MUST be app/instance
-        for (let index = 1; index < schema.dimensionsSpec.length; index++) {
+        for (let index = 0; index < schema.dimensionsSpec.length; index++) {
             const dimension = schema.dimensionsSpec[index];
             if (!dimension.visible)
                 continue;
 
-            this.#createDimensionFilter(index, dimension.name, dimension.displayText);
+            if (index === 0 && dimension.alias === 'appName') {
+                // for appName filter, createAppSelector should be explicitly called
+                continue;
+            }
+
+            this.#createDimensionFilter(index, dimension.alias, dimension.displayText);
         }
     }
 
     #createDimensionFilter(dimensionIndex, dimensionName, displayText) {
+        const filterName = this.mQueryVariablepPrefix + dimensionName;
+
+        // create selector
         const appendedSelect = this.vParent.append(`<li class="nav-item"><select style="width:150px"></select></li>`).find('select').last();
-        if (dimensionIndex === 1 && this.mInstance != null) {
-            appendedSelect.append(`<option value="${this.mDataSource}">${this.mInstance}</option>`).change();
+
+        // bind query params if applicable
+        const queryValue = window.queryParams[filterName];
+        if (queryValue != null) {
+            appendedSelect.append(`<option value="${this.mDataSource}">${queryValue}</option>`).change();
+
+            this.addDimension(filterName, queryValue);
         }
+
         appendedSelect.select2({
             theme: 'bootstrap4',
             allowClear: true,
@@ -84,16 +98,16 @@ class AppSelector {
         }).on('change', (event) => {
             let dimensionValue = null;
             if (event.target.selectedIndex == null || event.target.selectedIndex < 0) {
-                this.rmvDimension(dimensionName);
+                this.rmvDimension(filterName);
             } else {
                 // get selected dimension
                 dimensionValue = event.target.selectedOptions[0].value;
-                this.addDimension(dimensionName, dimensionValue);
+                this.addDimension(filterName, dimensionValue);
             }
             if (dimensionIndex === 1) {
                 g_SelectedInstance = dimensionValue;
             }
-            this.#onSelectionChanged(dimensionName, dimensionValue);
+            this.#onSelectionChanged(filterName, dimensionValue);
         });
     }
 
@@ -119,6 +133,9 @@ class AppSelector {
         return this;
     }
 
+    /**
+     * @returns an array of filters
+     */
     getSelectedFilters() {
         const filters = [];
         $.each(this._selectedDimensions, (name, value) => {
