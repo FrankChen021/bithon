@@ -65,7 +65,8 @@ public class DataSourceSchema {
      */
     @Getter
     @Setter
-    private boolean enforceDuplicationCheck = true;
+    @JsonIgnore
+    private boolean enforceDuplicationCheck = false;
 
     @JsonCreator
     public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,

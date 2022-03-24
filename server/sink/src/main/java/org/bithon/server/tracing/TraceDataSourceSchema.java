@@ -50,6 +50,12 @@ public class TraceDataSourceSchema {
                                                                                                               false,
                                                                                                               true,
                                                                                                               null,
+                                                                                                              null),
+                                                                                      new StringDimensionSpec("normalizedUrl",
+                                                                                                              "url",
+                                                                                                              false,
+                                                                                                              true,
+                                                                                                              128,
                                                                                                               null)),
                                                                         Collections.singletonList(CountMetricSpec.INSTANCE));
 

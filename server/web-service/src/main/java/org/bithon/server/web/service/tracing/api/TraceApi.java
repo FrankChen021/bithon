@@ -16,10 +16,13 @@
 
 package org.bithon.server.web.service.tracing.api;
 
+import org.bithon.component.brpc.exception.BadRequestException;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.common.matcher.EqualMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.tracing.TraceConfig;
+import org.bithon.server.tracing.TraceDataSourceSchema;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -40,9 +43,11 @@ import java.util.List;
 @RestController
 public class TraceApi {
 
+    private final TraceConfig traceConfig;
     private final TraceService traceService;
 
-    public TraceApi(TraceService traceService) {
+    public TraceApi(TraceConfig traceConfig, TraceService traceService) {
+        this.traceConfig = traceConfig;
         this.traceService = traceService;
     }
 
@@ -79,6 +84,20 @@ public class TraceApi {
         if (StringUtils.hasText(request.getApplication())) {
             request.setFilters(new ArrayList<>(request.getFilters()));
             request.getFilters().add(new DimensionCondition("appName", new EqualMatcher(request.getApplication())));
+        }
+
+        // check if filters exists
+        for (DimensionCondition filter : request.getFilters()) {
+            if (filter.getDimension().startsWith("tags.")) {
+                String tagName = filter.getDimension().substring("tags".length());
+                if (traceConfig.getTagIndexConfig().getColumnPos(tagName) == 0) {
+                    throw new BadRequestException("Can't search on tag [%s] because there's no index defined for this tag.", tagName);
+                }
+            } else {
+                if (TraceDataSourceSchema.getSchema().getDimensionSpecByName(filter.getDimension()) == null) {
+                    throw new BadRequestException("There's no dimension [%s] defined.", filter.getDimension());
+                }
+            }
         }
 
         return new GetTraceListResponse(
