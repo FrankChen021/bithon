@@ -17,7 +17,10 @@
 package org.bithon.server.tracing.sink;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.common.service.UriNormalizer;
 import org.bithon.server.common.utils.MiscUtils;
@@ -31,6 +34,9 @@ import java.util.Map;
  * @date 2021/2/4 8:28 下午
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class TraceSpan {
     public String appName;
     public String instanceName;
@@ -41,6 +47,10 @@ public class TraceSpan {
     public String parentApplication;
     public Map<String, String> tags;
     public long costTime;
+
+    /**
+     * in us
+     */
     public long startTime;
     public long endTime;
     public String name;

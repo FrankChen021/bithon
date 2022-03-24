@@ -44,7 +44,7 @@ public class TableCreator {
         createIfNotExist(table, ttlDays, false, true);
     }
 
-    public void createIfNotExist(Table<?> table, int ttlDays, boolean useReplacingMergeTree, boolean partitionBy) {
+    public void createIfNotExist(Table<?> table, int ttlDays, boolean useReplacingMergeTree, boolean hasPartitionByExpression) {
         //
         // create local table
         //
@@ -83,7 +83,7 @@ public class TableCreator {
             sb.append(StringUtils.format(") ENGINE=%s(%s) ",
                                          engine,
                                          useReplacingMergeTree ? "timestamp" : ""));
-            if (partitionBy) {
+            if (hasPartitionByExpression) {
                 sb.append("PARTITION BY toYYYYMMDD(timestamp) ");
             }
 

@@ -33,14 +33,15 @@ import java.util.function.Function;
 public class URIParameterExtractorTest {
     @Test
     public void testUpstreamTraceId() {
-        TraceSpan span = new TraceSpan();
-        span.setTraceId("1");
-        span.setStartTime(System.currentTimeMillis());
-        span.setKind("SERVER");
-        span.setTags(ImmutableMap.of("upstreamTraceId",
-                                     "123456",
-                                     "status",
-                                     "200"));
+        TraceSpan span = TraceSpan.builder()
+                                  .traceId("1")
+                                  .startTime(System.currentTimeMillis())
+                                  .kind("SERVER")
+                                  .tags(ImmutableMap.of("upstreamTraceId",
+                                                        "123456",
+                                                        "status",
+                                                        "200")).build();
+
 
         Function<Collection<TraceSpan>, List<TraceIdMapping>> extractor = TraceMappingFactory.create(new URIParameterExtractor(Collections.singletonList("query_id")));
         List<TraceIdMapping> mappings = extractor.apply(Collections.singletonList(span));
