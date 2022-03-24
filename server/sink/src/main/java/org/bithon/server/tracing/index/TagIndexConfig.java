@@ -19,6 +19,7 @@ package org.bithon.server.tracing.index;
 import lombok.Data;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -37,6 +38,8 @@ public class TagIndexConfig {
      * <p>
      * key: tag name
      * val: column name in bithon_trace_span_tag_index table ranging from 1 to 16. Different tag names SHOULD NOT share a same column name.
+     *
+     * LinkedHashMap is used to keep the order of the configuration
      */
-    private Map<String, Integer> indexes = Collections.emptyMap();
+    private LinkedHashMap<String, Integer> indexes;
 }

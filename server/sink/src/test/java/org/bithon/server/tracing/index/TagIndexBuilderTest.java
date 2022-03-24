@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -47,7 +48,7 @@ public class TagIndexBuilderTest {
     @Test
     public void testTagNotMatched() {
         TagIndexConfig indexConfig = new TagIndexConfig();
-        indexConfig.setIndexes(ImmutableMap.of("status", 1));
+        indexConfig.setIndexes(new LinkedHashMap<>(ImmutableMap.of("status", 1)));
         TraceConfig config = new TraceConfig();
         config.setTagIndexConfig(indexConfig);
 
@@ -64,7 +65,7 @@ public class TagIndexBuilderTest {
     @Test
     public void testTagMatched() {
         TagIndexConfig indexConfig = new TagIndexConfig();
-        indexConfig.setIndexes(ImmutableMap.of("status", 1));
+        indexConfig.setIndexes(new LinkedHashMap<>(ImmutableMap.of("status", 1)));
         TraceConfig config = new TraceConfig();
         config.setTagIndexConfig(indexConfig);
 

@@ -16,6 +16,7 @@
 
 package org.bithon.server.tracing.index;
 
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.tracing.TraceConfig;
 import org.bithon.server.tracing.sink.TraceSpan;
@@ -35,20 +36,20 @@ public class TagIndexGenerator {
     /**
      * use TraceConfig so that if the configuration changes dynamically, the latest configuration can be used immediately.
      */
-    private final TraceConfig config;
+    private final TagIndexConfig config;
 
     public TagIndexGenerator(TraceConfig config) {
-        this.config = config;
+        this.config = config.getTagIndexConfig();
     }
 
     public List<TagIndex> generate(Collection<TraceSpan> spans) {
-        if (this.config.getTagIndexConfig() == null || spans.isEmpty()) {
+        if (this.config == null || CollectionUtils.isEmpty(config.getIndexes()) || spans.isEmpty()) {
             return Collections.emptyList();
         }
 
         List<TagIndex> indexes = new ArrayList<>();
 
-        Collection<String> tagNames = this.config.getTagIndexConfig().getIndexes().keySet();
+        Collection<String> tagNames = this.config.getIndexes().keySet();
         for (TraceSpan span : spans) {
             for (String tagName : tagNames) {
                 String value = span.getTag(tagName);
