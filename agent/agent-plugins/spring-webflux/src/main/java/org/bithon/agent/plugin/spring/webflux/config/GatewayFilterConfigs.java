@@ -30,6 +30,10 @@ import java.util.Map;
 public class GatewayFilterConfigs extends HashMap<String, GatewayFilterConfigs.Filter> {
     public static class Filter {
         private String mode;
+
+        /**
+         * defines which attributes on the {@link import org.springframework.web.server.ServerWebExchange} object should be recorded to the span log
+         */
         private Map<String, String> attributes = Collections.emptyMap();
 
         public String getMode() {

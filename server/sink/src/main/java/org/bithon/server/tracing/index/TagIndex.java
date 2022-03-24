@@ -14,26 +14,24 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.tracing.storage;
+package org.bithon.server.tracing.index;
 
-import org.bithon.server.tracing.index.TagIndex;
-import org.bithon.server.tracing.mapping.TraceIdMapping;
-import org.bithon.server.tracing.sink.TraceSpan;
-
-import java.io.IOException;
-import java.util.Collection;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/4 8:25 下午
+ * @author Frank Chen
+ * @date 3/3/22 1:53 PM
  */
-public interface ITraceWriter extends AutoCloseable {
-
-    @Override
-    default void close() {
-    }
-
-    void write(Collection<TraceSpan> spans,
-               Collection<TraceIdMapping> mappings,
-               Collection<TagIndex> tagIndices) throws IOException;
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TagIndex {
+    private long timestamp;
+    private String traceId;
+    private String name;
+    private String value;
 }

@@ -14,26 +14,26 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.tracing.storage;
+package org.bithon.agent.plugin.spring.webflux.config;
 
-import org.bithon.server.tracing.index.TagIndex;
-import org.bithon.server.tracing.mapping.TraceIdMapping;
-import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.agent.core.config.ConfigurationProperties;
 
-import java.io.IOException;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/2/4 8:25 下午
+ * @author Frank Chen
+ * @date 24/3/22 12:25 PM
  */
-public interface ITraceWriter extends AutoCloseable {
+@ConfigurationProperties(prefix = "agent.plugin.spring.webflux.response")
+public class ResponseConfigs {
+    private Map<String, String> headers = Collections.emptyMap();
 
-    @Override
-    default void close() {
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
     }
 
-    void write(Collection<TraceSpan> spans,
-               Collection<TraceIdMapping> mappings,
-               Collection<TagIndex> tagIndices) throws IOException;
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
 }

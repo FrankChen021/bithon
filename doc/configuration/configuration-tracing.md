@@ -24,10 +24,10 @@ bithon:
 
 ### Explanations
 
-| mapping type | args |
-| --- | --- |
-| uri | array of parameter names that are used to extract user id from the uri |
-| name | name of the name-value pair in trace span's `tag` property |
+| mapping type | args                                                                   |
+|--------------|------------------------------------------------------------------------|
+| uri          | array of parameter names that are used to extract user id from the uri |
+| name         | name of the name-value pair in trace span's `tag` property             |
 
 Say we have a span log whose `tag` property contains following data:
 ```json
@@ -44,9 +44,32 @@ Also the `name` type mapping matches the `query_id` property in the `tag`, and i
 
 Given this trace id of this span is `aabbccddeeff`, following mapping will be saved into the storage.
 
-| user id | trace id |
-| ---- | --- |
-| abcd | aabbccddeeff |
-| cdef | aabbccddeeff |
+| user id | trace id     |
+|---------|--------------|
+| abcd    | aabbccddeeff |
+| cdef    | aabbccddeeff |
 
 So, you can search the trace either by given `abcd` or `cdef` or `aabbccddeeff` to get the trace logs.
+
+
+## Indexes for Span Log Tag
+
+To support fast search on some tags, we need to first define the indexes for the tag names that we want to search on.
+
+### Examples
+
+```yaml
+bithon:
+  tracing:
+    indexes:
+      map:
+        http.status: 1
+        http.uri : 2
+```
+
+A map is supported on `bithon.tracing.tagIndexConfig.indexes`.
+- key, the tag name in the span log
+- val, an integer that is in [1, 16]. And different keys should have different values.
+
+By above configuration, whenever a span log contains `http.status` or `http.uri` in the `tags` property, their values will be extracted from the log and kept as index.
+After that, we can search the span log by passing a filter with these two names.

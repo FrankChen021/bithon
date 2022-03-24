@@ -25,11 +25,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.tracing.TraceJdbcBatchWriter;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
+import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
+import org.bithon.server.tracing.TraceConfig;
 import org.bithon.server.tracing.storage.ITraceCleaner;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.jooq.DSLContext;
+import org.jooq.Table;
 
 /**
  * @author frank.chen021@outlook.com
@@ -45,8 +49,9 @@ public class TraceStorage extends TraceJdbcStorage {
     public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
+                        @JacksonInject(useInput = OptBoolean.FALSE) TraceConfig traceConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
-        super(dslContext, objectMapper, storageConfig);
+        super(dslContext, objectMapper, storageConfig, traceConfig);
         this.config = config;
     }
 
@@ -56,36 +61,35 @@ public class TraceStorage extends TraceJdbcStorage {
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN, config.getTtlDays());
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN_SUMMARY, config.getTtlDays());
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_MAPPING, config.getTtlDays(), true, true);
+        tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN_TAG_INDEX, config.getTtlDays());
     }
 
     @Override
     public ITraceCleaner createCleaner() {
         return beforeTimestamp -> {
             String timestamp = DateTime.toYYYYMMDDhhmmss(beforeTimestamp);
-
-            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                  config.getDatabase(),
-                                                  config.getLocalTableName(Tables.BITHON_TRACE_SPAN.getName()),
-                                                  config.getClusterExpression(),
-                                                  timestamp));
-
-            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                  config.getDatabase(),
-                                                  config.getLocalTableName(Tables.BITHON_TRACE_SPAN_SUMMARY.getName()),
-                                                  config.getClusterExpression(),
-                                                  timestamp));
-
-            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                  config.getDatabase(),
-                                                  config.getLocalTableName(Tables.BITHON_TRACE_MAPPING.getName()),
-                                                  config.getClusterExpression(),
-                                                  timestamp));
+            clean(Tables.BITHON_TRACE_SPAN, timestamp);
+            clean(Tables.BITHON_TRACE_SPAN_SUMMARY, timestamp);
+            clean(Tables.BITHON_TRACE_MAPPING, timestamp);
+            clean(Tables.BITHON_TRACE_SPAN_TAG_INDEX, timestamp);
         };
+    }
+
+    private void clean(Table<?> table, String timestamp) {
+        try {
+            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
+                                                  config.getDatabase(),
+                                                  config.getLocalTableName(table.getName()),
+                                                  config.getClusterExpression(),
+                                                  timestamp));
+        } catch (Throwable e) {
+            log.error(StringUtils.format("Exception occurred when clean table[%s]:%s", table.getName(), e.getMessage()), e);
+        }
     }
 
     @Override
     public ITraceWriter createWriter() {
-        return new BatchWriter(new TraceJdbcWriter(dslContext, objectMapper) {
+        return new TraceJdbcBatchWriter(new TraceJdbcWriter(dslContext, objectMapper, traceConfig) {
             @Override
             protected boolean isTransactionSupported() {
                 return false;
