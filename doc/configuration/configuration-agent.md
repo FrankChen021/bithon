@@ -45,3 +45,4 @@ Plugin configuration locates each plugin's resource directory with the name 'plu
 # Plugin Configurations
 
 - [Alibaba Druid](agent-plugin/jdbc-druid.md)
+- [Spring WebFlux](agent-plugin/spring-webflux.md)
