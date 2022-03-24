@@ -324,9 +324,30 @@ class Dashboard {
         const tracingSpec = chartDescriptor.details.tracing;
 
         $.each(chartDescriptor.details.groupBy, (index, dimension) => {
-            const mapTo = tracingSpec.dimensionMaps[dimension];
-            if (mapTo != null) {
-                url += `${mapTo}=${encodeURI(row[dimension])}&`;
+            const mappingField = tracingSpec.dimensionMaps[dimension];
+            if (mappingField == null) {
+                return;
+            }
+
+            const val = row[dimension];
+            if (typeof mappingField === "string") {
+                url += `${mappingField}=${encodeURI(val)}&`;
+            } else {
+                const val = row[dimension];
+                if (mappingField.type === 'switch') {
+                    let f = mappingField.cases[val];
+                    if (f == null) {
+                        // use the default case
+                        f = mappingField.cases.default;
+                    }
+                    const fType = $.type(f);
+                    if (fType === 'array') {
+                        // f is a pair, f[0] is the field name, f[1] is the value
+                        url += `${f[0]}=${encodeURI(f[1])}&`;
+                    } else if (fType === 'string') {
+                        url += `${f}=${encodeURI(val)}&`;
+                    }
+                }
             }
         });
 

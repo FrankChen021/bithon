@@ -29,7 +29,13 @@
         "metrics": [
           "qps",
           "totalCount"
-        ]
+        ],
+        "tracing": {
+          "dimensionMaps": {
+            "uri": "normalizedUrl",
+            "statusCode": "status"
+          }
+        }
       }
     },
     {
@@ -63,14 +69,9 @@
           "maxResponseTime"
         ],
         "tracing": {
-          "filters": {
-            "mapping": {
-              "uri": "tags.uri",
-              "statusCode": "tags.status"
-            },
-            "extra": {
-              "kind": "SERVER"
-            }
+          "dimensionMaps": {
+            "uri": "normalizedUrl",
+            "statusCode": "status"
           }
         }
       }
@@ -110,16 +111,10 @@
             }
           }
         ],
-
         "tracing": {
-          "filters": {
-            "mapping": {
-              "uri": "tags.uri",
-              "statusCode": "tags.status"
-            },
-            "extra": {
-              "kind": "SERVER"
-            }
+          "dimensionMaps": {
+            "uri": "normalizedUrl",
+            "statusCode": "status"
           }
         }
       }

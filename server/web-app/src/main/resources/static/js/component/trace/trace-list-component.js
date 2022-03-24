@@ -89,6 +89,21 @@ class TraceListComponent {
                     }
                 }
                 return {};
+            },
+
+            onLoadError: (status, jqXHR) => {
+                let message;
+                if (jqXHR.responseJSON != null) {
+                    message = JSON.stringify(jqXHR.responseJSON, null, 2);
+                } else {
+                    message = jqXHR.responseText;
+                }
+                bootbox.alert({
+                    title: "Error",
+                    size: "large",
+                    message: "<pre>" + message + "</pre>",
+                    backdrop: true
+                });
             }
         });
     }
