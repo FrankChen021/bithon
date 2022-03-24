@@ -18,9 +18,7 @@ package org.bithon.server.tracing.index;
 
 import lombok.Data;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * @author Frank Chen
@@ -41,5 +39,5 @@ public class TagIndexConfig {
      *
      * LinkedHashMap is used to keep the order of the configuration
      */
-    private LinkedHashMap<String, Integer> indexes;
+    private LinkedHashMap<String, Integer> map;
 }

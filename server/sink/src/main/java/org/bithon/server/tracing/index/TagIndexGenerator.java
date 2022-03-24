@@ -39,17 +39,17 @@ public class TagIndexGenerator {
     private final TagIndexConfig config;
 
     public TagIndexGenerator(TraceConfig config) {
-        this.config = config.getTagIndexConfig();
+        this.config = config.getIndexes();
     }
 
     public List<TagIndex> generate(Collection<TraceSpan> spans) {
-        if (this.config == null || CollectionUtils.isEmpty(config.getIndexes()) || spans.isEmpty()) {
+        if (this.config == null || CollectionUtils.isEmpty(config.getMap()) || spans.isEmpty()) {
             return Collections.emptyList();
         }
 
         List<TagIndex> indexes = new ArrayList<>();
 
-        Collection<String> tagNames = this.config.getIndexes().keySet();
+        Collection<String> tagNames = this.config.getMap().keySet();
         for (TraceSpan span : spans) {
             for (String tagName : tagNames) {
                 String value = span.getTag(tagName);

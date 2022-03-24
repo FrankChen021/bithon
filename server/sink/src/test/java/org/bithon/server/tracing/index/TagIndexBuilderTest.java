@@ -48,9 +48,9 @@ public class TagIndexBuilderTest {
     @Test
     public void testTagNotMatched() {
         TagIndexConfig indexConfig = new TagIndexConfig();
-        indexConfig.setIndexes(new LinkedHashMap<>(ImmutableMap.of("status", 1)));
+        indexConfig.setMap(new LinkedHashMap<>(ImmutableMap.of("status", 1)));
         TraceConfig config = new TraceConfig();
-        config.setTagIndexConfig(indexConfig);
+        config.setIndexes(indexConfig);
 
         TagIndexGenerator builder = new TagIndexGenerator(config);
         Collection<TagIndex> indexes = builder.generate(Collections.singletonList(TraceSpan.builder()
@@ -65,9 +65,9 @@ public class TagIndexBuilderTest {
     @Test
     public void testTagMatched() {
         TagIndexConfig indexConfig = new TagIndexConfig();
-        indexConfig.setIndexes(new LinkedHashMap<>(ImmutableMap.of("status", 1)));
+        indexConfig.setMap(new LinkedHashMap<>(ImmutableMap.of("status", 1)));
         TraceConfig config = new TraceConfig();
-        config.setTagIndexConfig(indexConfig);
+        config.setIndexes(indexConfig);
 
         TagIndexGenerator builder = new TagIndexGenerator(config);
         List<TagIndex> indexes = builder.generate(Collections.singletonList(TraceSpan.builder()

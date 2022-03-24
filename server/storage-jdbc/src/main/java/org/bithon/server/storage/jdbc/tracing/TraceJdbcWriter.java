@@ -226,7 +226,7 @@ public class TraceJdbcWriter implements ITraceWriter {
                 return r;
             });
 
-            int fieldIndex = this.traceConfig.getTagIndexConfig().getIndexes().getOrDefault(index.getName(), 0);
+            int fieldIndex = this.traceConfig.getIndexes().getMap().getOrDefault(index.getName(), 0);
             if (fieldIndex == 0 || fieldIndex >= values.length) {
                 // TODO: log error
                 continue;
