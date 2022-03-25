@@ -81,7 +81,7 @@ CREATE TABLE `bithon_trace_span`
     `spanId`        VARCHAR(64) DEFAULT '' NOT NULL COMMENT '',
     `parentSpanId`  VARCHAR(64) DEFAULT '' NOT NULL COMMENT '',
     `kind`          VARCHAR(64)            NOT NULL DEFAULT '' COMMENT '',
-    `costTimeMs`    BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Milli Second',
+    `costTimeMs`    BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Micro Second, suffix is wrong',
     `startTimeUs`   BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Micro Second',
     `endTimeUs`     BIGINT                 NOT NULL DEFAULT 0 COMMENT 'Micro Second',
     `tags`          TEXT COMMENT '',

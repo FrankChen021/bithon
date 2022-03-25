@@ -3,6 +3,7 @@ class TracePage {
         // Model
         this.mQueryParams = queryParams;
         this.mInterval = null;
+        this.metricFilters = [];
 
         // View
         this.vChartComponent = new ChartComponent({
@@ -41,8 +42,14 @@ class TracePage {
         // View - Refresh Button
         parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
             .find("button").click(() => {
-            this.mInterval = this.vIntervalSelector.getInterval();
-            this.#refreshPage();
+                // reset the metric filter
+                this.metricFilters = [];
+
+                // get new interval
+                this.mInterval = this.vIntervalSelector.getInterval();
+
+                // refresh the page
+                this.#refreshPage();
         });
 
         // View
@@ -71,12 +78,13 @@ class TracePage {
     }
 
     #getInterval() {
-        return this.mInterval;//this.mInterval != null ? this.mInterval : this.vIntervalSelector.getInterval();
+        return this.mInterval;
     }
 
     #getFilters() {
-        let filters = this.vFilters.getSelectedFilters();
-        return filters.concat(this.vTagFilter.getSelectedFilters());
+        let summaryTableFilter = this.vFilters.getSelectedFilters();
+        let tagFilters = this.vTagFilter.getSelectedFilters();
+        return summaryTableFilter.concat(tagFilters);
     }
 
     #refreshPage() {
@@ -94,7 +102,7 @@ class TracePage {
     #refreshChart() {
         const interval = this.#getInterval();
         this.vChartComponent.load({
-            url: apiHost + '/api/trace/getTraceDistribution',
+            url: apiHost + '/api/trace/getTraceDistribution/v2',
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
@@ -103,15 +111,15 @@ class TracePage {
             processResult: (data) => {
                 this._data = data;
 
-                const labelFormat = data.bucket < 60 ? 'HH:mm:ss' : 'HH:mm';
-                const timeLabels = data.data.map(val => {
-                    // it's unix timestamp, so * 1000 is needed to convert it to milliseconds
-                    return moment(val._timestamp * 1000).local().format(labelFormat) + "\n"
-                        + moment(val._timestamp * 1000 + data.bucket * 1000).local().format(labelFormat)
+                const timeLabels = data.map(val => {
+                    // the unit of original data is micro-seconds
+                    // turn it into milliseconds by dividing 1000
+                    return (val.lower/1000).toFixed(2) + "ms\n"
+                         + (val.upper/1000).toFixed(2) + "ms";
                 });
 
                 const series = [{
-                    name: "count",
+                    name: "height",
                     displayName: "count",
                     chartType: "bar"
                 }].map(metric => {
@@ -119,7 +127,7 @@ class TracePage {
                         name: (metric.displayName === undefined ? metric.name : metric.displayName),
                         type: metric.chartType || 'bar',
                         //areaStyle: {opacity: 0.3},
-                        data: data.data.map(d => d[metric.name]),
+                        data: data.map(d => d[metric.name]),
                         //lineStyle: {width: 1},
                         //itemStyle: {opacity: 0},
                         //yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
@@ -193,14 +201,20 @@ class TracePage {
     }
 
     #onClickChart(e) {
-        const s = moment(this._data.data[e.dataIndex]._timestamp * 1000).utc();
-        const interval = {
-            start: s.toISOString(),
-            end: s.add(this._data.bucket, 'second').toISOString()
-        }
-        if (this.mInterval == null || (this.mInterval.start !== interval.start || this.mInterval.end !== interval.end)) {
-            this.mInterval = interval;
-            this.#refreshPage();
-        }
+        const lower = this._data[e.dataIndex].lower;
+        const upper = this._data[e.dataIndex].upper;
+
+        this.metricFilters = [
+            {
+                isMetric: true,
+                name: 'costTimeMs',
+                matcher: {
+                    type: 'between',
+                    lower: lower,
+                    upper: upper
+                }
+            }
+        ];
+        this.#refreshPage();
     }
 }

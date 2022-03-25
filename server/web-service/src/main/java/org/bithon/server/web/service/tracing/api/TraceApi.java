@@ -26,6 +26,7 @@ import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.tracing.TraceConfig;
 import org.bithon.server.tracing.TraceDataSourceSchema;
 import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -64,6 +65,7 @@ public class TraceApi {
         return new GetTraceByIdResponse(spanList, traceService.buildMap(spanList));
     }
 
+    @Deprecated
     @PostMapping("/api/trace/getTraceDistribution")
     public GetTraceDistributionResponse getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
         // backward compatibility
@@ -75,6 +77,17 @@ public class TraceApi {
         return traceService.getTraceDistribution(request.getFilters(),
                                                  request.getStartTimeISO8601(),
                                                  request.getEndTimeISO8601());
+    }
+
+    @Deprecated
+    @PostMapping("/api/trace/getTraceDistribution/v2")
+    public List<ITraceReader.Histogram> getTraceDistributionV2(@Valid @RequestBody GetTraceDistributionRequest request) {
+        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
+
+        return traceService.getTraceDistributionV2(request.getFilters(),
+                                                   start,
+                                                   end);
     }
 
     @PostMapping("/api/trace/getTraceList")

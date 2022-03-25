@@ -40,6 +40,7 @@ import org.jooq.impl.DSL;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -126,6 +127,11 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
+    public List<Histogram> getTraceDistribution(List<DimensionCondition> filters, Timestamp start, Timestamp end) {
+        return Collections.emptyList();
+    }
+
+    @Override
     public int getTraceListSize(List<DimensionCondition> filters,
                                 Timestamp start,
                                 Timestamp end) {
@@ -176,7 +182,7 @@ public class TraceJdbcReader implements ITraceReader {
      *  1. If a given tag name is not in the index list, the query on that name should fall back to BITHON_TRACE_SPAN table to match
      *  2. For multiple tags which are not in the same group, nested query should be applied
      */
-    private SelectConditionStep<Record1<String>> buildTagQuery(Timestamp start, Timestamp end, Collection<DimensionCondition> filters) {
+    protected SelectConditionStep<Record1<String>> buildTagQuery(Timestamp start, Timestamp end, Collection<DimensionCondition> filters) {
         SelectConditionStep<Record1<String>> tagQuery = null;
 
         for (DimensionCondition filter : filters) {

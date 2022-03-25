@@ -16,7 +16,6 @@
 
 package org.bithon.server.web.service.tracing.service;
 
-import org.bithon.server.common.matcher.EqualMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.storage.DimensionCondition;
@@ -164,6 +163,7 @@ public class TraceService {
                                         pageNumber, pageSize);
     }
 
+    @Deprecated
     public GetTraceDistributionResponse getTraceDistribution(List<DimensionCondition> filters,
                                                              String startTimeISO8601,
                                                              String endTimeISO8601) {
@@ -182,10 +182,18 @@ public class TraceService {
                                                     interval,
                                                     Collections.emptyList());
 
-        // TODO：Provide a custom query
+        // TODO 2：Provide a custom query
         // OR implement a new interface
         return new GetTraceDistributionResponse(metricStorage.createMetricReader(schema).timeseries(query),
                                                 interval.getStepLength());
+    }
+
+
+    @Deprecated
+    public List<ITraceReader.Histogram> getTraceDistributionV2(List<DimensionCondition> filters,
+                                                               TimeSpan start,
+                                                               TimeSpan end) {
+        return traceReader.getTraceDistribution(filters, start.toTimestamp(), end.toTimestamp());
     }
 
     static class Bucket {
