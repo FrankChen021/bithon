@@ -77,10 +77,10 @@ public class TraceDataSourceSchema {
                                  TraceConfig traceConfig) {
 
         // initialize dimensions
-        TagIndexConfig indexConfig = traceConfig.getTagIndexConfig();
+        TagIndexConfig indexConfig = traceConfig.getIndexes();
         List<IDimensionSpec> dimensionSpecs = new ArrayList<>();
-        if (indexConfig != null && !CollectionUtils.isEmpty(indexConfig.getIndexes())) {
-            for (Map.Entry<String, Integer> entry : indexConfig.getIndexes().entrySet()) {
+        if (indexConfig != null && !CollectionUtils.isEmpty(indexConfig.getMap())) {
+            for (Map.Entry<String, Integer> entry : indexConfig.getMap().entrySet()) {
                 String tagName = entry.getKey();
                 Integer indexPos = entry.getValue();
                 dimensionSpecs.add(new StringDimensionSpec("f" + indexPos,

@@ -29,6 +29,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.tracing.TraceConfig;
+import org.bithon.server.tracing.TraceDataSourceSchema;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.jooq.DSLContext;
@@ -90,7 +91,8 @@ public class TraceJdbcReader implements ITraceReader {
                                                                                 .where(summaryTable.TIMESTAMP.ge(start))
                                                                                 .and(summaryTable.TIMESTAMP.lt(end));
 
-        String moreFilter = SQLFilterBuilder.build(filters.stream().filter(filter -> !filter.getDimension().startsWith(SPAN_TAGS_PREFIX)));
+        String moreFilter = SQLFilterBuilder.build(TraceDataSourceSchema.getTraceSpanSchema(),
+                                                   filters.stream().filter(filter -> !filter.getDimension().startsWith(SPAN_TAGS_PREFIX)));
         if (StringUtils.hasText(moreFilter)) {
             listQuery = listQuery.and(moreFilter);
         }
@@ -134,7 +136,8 @@ public class TraceJdbcReader implements ITraceReader {
                                                                      .where(summaryTable.TIMESTAMP.ge(start))
                                                                      .and(summaryTable.TIMESTAMP.lt(end));
 
-        String moreFilter = SQLFilterBuilder.build(filters.stream().filter(filter -> !filter.getDimension().startsWith(SPAN_TAGS_PREFIX)));
+        String moreFilter = SQLFilterBuilder.build(TraceDataSourceSchema.getTraceSpanSchema(),
+                                                   filters.stream().filter(filter -> !filter.getDimension().startsWith(SPAN_TAGS_PREFIX)));
         if (StringUtils.hasText(moreFilter)) {
             countQuery = countQuery.and(moreFilter);
         }

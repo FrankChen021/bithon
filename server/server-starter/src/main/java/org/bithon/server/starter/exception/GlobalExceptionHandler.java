@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler({BadRequestException.class, Preconditions.InvalidValueException.class})
-    public ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, BadRequestException exception) {
+    public ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, RuntimeException exception) {
         return ResponseEntity.badRequest().body(ErrorResponse.builder()
                                                              .path(request.getRequestURI())
                                                              .message(exception.getMessage())

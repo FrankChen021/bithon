@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.jdbc.utils;
 
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.common.matcher.AntPathMatcher;
 import org.bithon.server.common.matcher.ContainsMatcher;
 import org.bithon.server.common.matcher.EndwithMatcher;
@@ -25,6 +26,8 @@ import org.bithon.server.common.matcher.IMatcherVisitor;
 import org.bithon.server.common.matcher.NotEqualMatcher;
 import org.bithon.server.common.matcher.RegexMatcher;
 import org.bithon.server.common.matcher.StartwithMatcher;
+import org.bithon.server.metric.DataSourceSchema;
+import org.bithon.server.metric.dimension.IDimensionSpec;
 import org.bithon.server.metric.storage.DimensionCondition;
 
 import java.util.Collection;
@@ -41,13 +44,24 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
         this.fieldName = fieldName;
     }
 
-    public static String build(Collection<DimensionCondition> filters) {
-        return build(filters.stream());
+    public SQLFilterBuilder(DataSourceSchema schema, DimensionCondition dimension) {
+        IDimensionSpec dimSpec = null;
+        if ( "name".equals(dimension.getType()) ) {
+            dimSpec = schema.getDimensionSpecByName(dimension.getDimension());
+        } else if ( "alias".equals(dimension.getType())) {
+            dimSpec = schema.getDimensionSpecByAlias(dimension.getDimension());
+        }
+        Preconditions.checkNotNull(dimSpec, "dimension [%s] is not defined in data source [%s]", dimension.getDimension(), schema.getName());
+        this.fieldName = dimSpec.getName();
     }
 
-    public static String build(Stream<DimensionCondition> stream) {
-        return stream.map(dimension -> dimension.getMatcher()
-                                                .accept(new SQLFilterBuilder(dimension.getDimension())))
+    public static String build(DataSourceSchema schema, Collection<DimensionCondition> filters) {
+        return build(schema, filters.stream());
+    }
+
+    public static String build(DataSourceSchema schema, Stream<DimensionCondition> stream) {
+        return stream.map(cond -> cond.getMatcher()
+                                      .accept(new SQLFilterBuilder(schema, cond)))
                      .collect(Collectors.joining(" AND "));
     }
 

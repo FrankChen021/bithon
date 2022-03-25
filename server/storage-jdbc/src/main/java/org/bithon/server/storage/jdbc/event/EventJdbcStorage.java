@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.event.EventDataSourceSchema;
 import org.bithon.server.event.sink.EventMessage;
 import org.bithon.server.event.storage.Event;
 import org.bithon.server.event.storage.IEventCleaner;
@@ -125,7 +126,7 @@ public class EventJdbcStorage implements IEventStorage {
             return dslContext.selectFrom(Tables.BITHON_EVENT)
                              .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
                              .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()))
-                             .and(SQLFilterBuilder.build(filters))
+                             .and(SQLFilterBuilder.build(EventDataSourceSchema.getSchema(), filters))
                              .orderBy(Tables.BITHON_EVENT.TIMESTAMP.desc())
                              .offset(pageNumber * pageSize)
                              .limit(pageSize)
@@ -146,7 +147,7 @@ public class EventJdbcStorage implements IEventStorage {
                                    .from(Tables.BITHON_EVENT)
                                    .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
                                    .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()))
-                                   .and(SQLFilterBuilder.build(filters))
+                                   .and(SQLFilterBuilder.build(EventDataSourceSchema.getSchema(), filters))
                                    .fetchOne(0);
         }
     }

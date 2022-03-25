@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.common.matcher.IStringMatcher;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -33,14 +34,27 @@ public class DimensionCondition {
     @Getter
     private final String dimension;
 
+    /**
+     * type can be one of [name, alias]
+     */
+    @Nullable
+    @Getter
+    private final String type;
+
     @NotNull
     @Getter
     private final IStringMatcher matcher;
 
     @JsonCreator
     public DimensionCondition(@JsonProperty("dimension") String dimension,
+                              @JsonProperty("type") String type,
                               @JsonProperty("matcher") IStringMatcher matcher) {
         this.dimension = dimension;
+        this.type = type == null ? "name" : type;
         this.matcher = matcher;
+    }
+
+    public DimensionCondition(String dimension, IStringMatcher matcher) {
+        this(dimension, null, matcher);
     }
 }
