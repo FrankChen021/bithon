@@ -31,7 +31,7 @@ import java.util.List;
 public class ListQuery {
     private final DataSourceSchema schema;
     private final List<String> columns;
-    private final List<DimensionCondition> filters;
+    private final List<IFilter> filters;
     private final Interval interval;
     private final OrderBy orderBy;
     private final int pageNumber;

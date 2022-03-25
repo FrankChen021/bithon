@@ -16,32 +16,29 @@
 
 package org.bithon.server.common.matcher;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
-import java.util.regex.Pattern;
+import javax.validation.constraints.NotNull;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/13 9:45 下午
+ * @author Frank Chen
+ * @date 8/1/22 2:41 PM
  */
-public class RegexMatcher implements IStringMatcher {
-
-    @JsonIgnore
-    private final Pattern regex;
-
+public class StringNotEqualMatcher implements IMatcher {
     @Getter
+    @NotNull
     private final String pattern;
 
-    public RegexMatcher(@JsonProperty("pattern") String pattern) {
-        this.regex = Pattern.compile(pattern);
+    @JsonCreator
+    public StringNotEqualMatcher(@JsonProperty("pattern") @NotNull String pattern) {
         this.pattern = pattern;
     }
 
     @Override
-    public boolean matches(String input) {
-        return regex.matcher(input).matches();
+    public boolean matches(Object input) {
+        return !pattern.equals(input);
     }
 
     @Override

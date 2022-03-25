@@ -21,6 +21,7 @@ import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.TimestampSpec;
 import org.bithon.server.metric.aggregator.spec.CountMetricSpec;
+import org.bithon.server.metric.aggregator.spec.LongSumMetricSpec;
 import org.bithon.server.metric.dimension.IDimensionSpec;
 import org.bithon.server.metric.dimension.StringDimensionSpec;
 import org.bithon.server.tracing.index.TagIndexConfig;
@@ -70,7 +71,12 @@ public class TraceDataSourceSchema {
                                                                                                                          true,
                                                                                                                          128,
                                                                                                                          null)),
-                                                                                   Collections.singletonList(CountMetricSpec.INSTANCE));
+                                                                                   Arrays.asList(CountMetricSpec.INSTANCE,
+                                                                                                 new LongSumMetricSpec("costTimeMs",
+                                                                                                                       "costTimeMs",
+                                                                                                                       "us",
+                                                                                                                       true)
+                                                                                   ));
     private final DataSourceSchema TRACE_SPAN_TAG_SCHEMA;
 
     public TraceDataSourceSchema(DataSourceSchemaManager dataSourceSchemaManager,

@@ -18,7 +18,7 @@ package org.bithon.server.web.service.tracing.service;
 
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.Interval;
 import org.bithon.server.metric.storage.TimeseriesQuery;
@@ -144,11 +144,11 @@ public class TraceService {
         return rootSpans;
     }
 
-    public int getTraceListSize(List<DimensionCondition> filters, Timestamp start, Timestamp end) {
+    public int getTraceListSize(List<IFilter> filters, Timestamp start, Timestamp end) {
         return traceReader.getTraceListSize(filters, start, end);
     }
 
-    public List<TraceSpan> getTraceList(List<DimensionCondition> filters,
+    public List<TraceSpan> getTraceList(List<IFilter> filters,
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
@@ -164,7 +164,7 @@ public class TraceService {
     }
 
     @Deprecated
-    public GetTraceDistributionResponse getTraceDistribution(List<DimensionCondition> filters,
+    public GetTraceDistributionResponse getTraceDistribution(List<IFilter> filters,
                                                              String startTimeISO8601,
                                                              String endTimeISO8601) {
         TimeSpan start = TimeSpan.fromISO8601(startTimeISO8601);
@@ -190,7 +190,7 @@ public class TraceService {
 
 
     @Deprecated
-    public List<ITraceReader.Histogram> getTraceDistributionV2(List<DimensionCondition> filters,
+    public List<ITraceReader.Histogram> getTraceDistributionV2(List<IFilter> filters,
                                                                TimeSpan start,
                                                                TimeSpan end) {
         return traceReader.getTraceDistribution(filters, start.toTimestamp(), end.toTimestamp());

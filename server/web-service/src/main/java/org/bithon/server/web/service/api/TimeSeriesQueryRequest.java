@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.api;
 
 import lombok.Data;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -42,7 +42,7 @@ public class TimeSeriesQueryRequest {
 
     @Valid
     @Size(min = 1)
-    private List<DimensionCondition> dimensions;
+    private List<IFilter> dimensions;
 
     @Size(min = 1)
     private List<String> metrics;

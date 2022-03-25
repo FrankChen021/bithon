@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.tracing.api;
 
 import lombok.Data;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 
 import javax.validation.constraints.NotBlank;
 import java.util.Collections;
@@ -39,5 +39,5 @@ public class GetTraceDistributionRequest {
     @NotBlank
     private String application;
 
-    private List<DimensionCondition> filters = Collections.emptyList();
+    private List<IFilter> filters = Collections.emptyList();
 }

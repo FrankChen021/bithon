@@ -32,8 +32,8 @@ import org.bithon.server.metric.aggregator.spec.LongMinMetricSpec;
 import org.bithon.server.metric.aggregator.spec.LongSumMetricSpec;
 import org.bithon.server.metric.aggregator.spec.PostAggregatorExpressionVisitor;
 import org.bithon.server.metric.aggregator.spec.PostAggregatorMetricSpec;
-import org.bithon.server.metric.storage.DimensionCondition;
 import org.bithon.server.metric.storage.GroupByQuery;
+import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.metric.storage.IMetricReader;
 import org.bithon.server.metric.storage.ListQuery;
 import org.bithon.server.metric.storage.OrderBy;
@@ -203,7 +203,7 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, String>> getDimensionValueList(TimeSpan start,
                                                            TimeSpan end,
                                                            DataSourceSchema dataSourceSchema,
-                                                           Collection<DimensionCondition> conditions,
+                                                           Collection<IFilter> conditions,
                                                            String dimension) {
         String condition = conditions.stream()
                                      .map(d -> d.getMatcher().accept(new SQLFilterBuilder(dataSourceSchema, d)) + " AND ")
@@ -559,7 +559,7 @@ public class MetricJdbcReader implements IMetricReader {
             return this;
         }
 
-        TimeSeriesSqlClauseBuilder filters(Collection<DimensionCondition> filters) {
+        TimeSeriesSqlClauseBuilder filters(Collection<IFilter> filters) {
             this.filters = filters.stream()
                                   .map(cond -> cond.getMatcher()
                                                    .accept(new SQLFilterBuilder(this.schema, cond)))

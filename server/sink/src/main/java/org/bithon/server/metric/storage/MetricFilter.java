@@ -14,33 +14,31 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.matcher;
+package org.bithon.server.metric.storage;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import org.bithon.server.common.matcher.IMatcher;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/13 9:47 下午
+ * @author Frank Chen
+ * @date 25/3/22 5:15 PM
  */
-public class EndwithMatcher implements IStringMatcher {
-
-    @Getter
-    private final String pattern;
+@Getter
+public class MetricFilter implements IFilter {
+    private final IMatcher matcher;
+    private final String name;
 
     @JsonCreator
-    public EndwithMatcher(@JsonProperty("pattern") String pattern) {
-        this.pattern = pattern;
+    public MetricFilter(@JsonProperty("name") String name,
+                        @JsonProperty("matcher") IMatcher matcher) {
+        this.name = name;
+        this.matcher = matcher;
     }
 
     @Override
-    public boolean matches(String input) {
-        return input.endsWith(pattern);
-    }
-
-    @Override
-    public <T> T accept(IMatcherVisitor<T> visitor) {
-        return visitor.visit(this);
+    public String getType() {
+        return "metric";
     }
 }

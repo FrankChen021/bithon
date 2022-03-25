@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.tracing.api;
 
 import lombok.Data;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -40,7 +40,7 @@ public class GetTraceListRequest {
     @NotBlank
     private String endTimeISO8601;
 
-    private List<DimensionCondition> filters = Collections.emptyList();
+    private List<IFilter> filters = Collections.emptyList();
 
     private String order = "desc";
     private String orderBy = "";

@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.event.api;
 
 import lombok.Data;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -42,7 +42,7 @@ public class GetEventListRequest {
     @NotBlank
     private String endTimeISO8601;
 
-    private List<DimensionCondition> filters = Collections.emptyList();
+    private List<IFilter> filters = Collections.emptyList();
 
     @Min(0)
     private int pageNumber = 0;

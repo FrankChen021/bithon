@@ -17,7 +17,7 @@
 package org.bithon.server.event.storage;
 
 import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ import java.util.List;
  * @date 2021/2/14 4:18 下午
  */
 public interface IEventReader extends AutoCloseable {
-    List<Event> getEventList(List<DimensionCondition> filters, TimeSpan start, TimeSpan end, int pageNumber, int pageSize);
+    List<Event> getEventList(List<IFilter> filters, TimeSpan start, TimeSpan end, int pageNumber, int pageSize);
 
-    int getEventListSize(List<DimensionCondition> filters, TimeSpan start, TimeSpan end);
+    int getEventListSize(List<IFilter> filters, TimeSpan start, TimeSpan end);
 }

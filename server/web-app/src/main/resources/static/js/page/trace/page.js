@@ -84,7 +84,7 @@ class TracePage {
     #getFilters() {
         let summaryTableFilter = this.vFilters.getSelectedFilters();
         let tagFilters = this.vTagFilter.getSelectedFilters();
-        return summaryTableFilter.concat(tagFilters);
+        return summaryTableFilter.concat(tagFilters, this.metricFilters);
     }
 
     #refreshPage() {
@@ -206,7 +206,7 @@ class TracePage {
 
         this.metricFilters = [
             {
-                isMetric: true,
+                type: 'metric',
                 name: 'costTimeMs',
                 matcher: {
                     type: 'between',

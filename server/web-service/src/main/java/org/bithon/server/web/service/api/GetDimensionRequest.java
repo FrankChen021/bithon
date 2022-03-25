@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.api;
 
 import lombok.Data;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
@@ -44,7 +44,7 @@ public class GetDimensionRequest {
     private String dataSource;
 
     @Valid
-    private Collection<DimensionCondition> conditions = Collections.emptyList();
+    private Collection<IFilter> conditions = Collections.emptyList();
 
     @NotNull
     private String dimension;

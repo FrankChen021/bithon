@@ -16,13 +16,13 @@
 
 package org.bithon.server.web.service.topo.api;
 
-import org.bithon.server.common.matcher.EqualMatcher;
+import org.bithon.server.common.matcher.StringEqualMatcher;
 import org.bithon.server.common.utils.EndPointType;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.input.InputRow;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.DimensionFilter;
 import org.bithon.server.metric.storage.GroupByQuery;
 import org.bithon.server.metric.storage.IMetricReader;
 import org.bithon.server.metric.storage.IMetricStorage;
@@ -68,10 +68,10 @@ public class TopoApi {
         GroupByQuery calleeQuery = new GroupByQuery(topoSchema,
                                                     Arrays.asList("callCount", "avgResponseTime", "maxResponseTime", "minResponseTime"),
                                                     Collections.emptyList(),
-                                                    Arrays.asList(new DimensionCondition("srcEndpoint",
-                                                                                         new EqualMatcher(request.getApplication())),
-                                                                  new DimensionCondition("srcEndpointType",
-                                                                                         new EqualMatcher(EndPointType.APPLICATION.name()))),
+                                                    Arrays.asList(new DimensionFilter("srcEndpoint",
+                                                                                      new StringEqualMatcher(request.getApplication())),
+                                                                  new DimensionFilter("srcEndpointType",
+                                                                                      new StringEqualMatcher(EndPointType.APPLICATION.name()))),
                                                     Interval.of(start, end),
                                                     Arrays.asList("dstEndpoint", "dstEndpointType"),
                                                     null);
@@ -109,10 +109,10 @@ public class TopoApi {
         GroupByQuery callerQuery = new GroupByQuery(topoSchema,
                                                     Arrays.asList("callCount", "avgResponseTime", "maxResponseTime", "minResponseTime"),
                                                     Collections.emptyList(),
-                                                    Arrays.asList(new DimensionCondition("dstEndpoint",
-                                                                                         new EqualMatcher(request.getApplication())),
-                                                                  new DimensionCondition("dstEndpointType",
-                                                                                         new EqualMatcher(EndPointType.APPLICATION.name()))),
+                                                    Arrays.asList(new DimensionFilter("dstEndpoint",
+                                                                                      new StringEqualMatcher(request.getApplication())),
+                                                                  new DimensionFilter("dstEndpointType",
+                                                                                      new StringEqualMatcher(EndPointType.APPLICATION.name()))),
                                                     Interval.of(start, end),
                                                     Arrays.asList("srcEndpoint", "srcEndpointType"),
                                                     null);

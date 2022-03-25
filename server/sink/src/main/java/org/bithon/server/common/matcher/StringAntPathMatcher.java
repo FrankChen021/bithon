@@ -22,21 +22,21 @@ import lombok.Getter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/13 9:42 下午
+ * @date 2021/1/13 9:50 下午
  */
-public class ContainsMatcher implements IStringMatcher {
+public class StringAntPathMatcher implements IMatcher {
 
     @Getter
     private final String pattern;
 
     @JsonCreator
-    public ContainsMatcher(@JsonProperty("pattern") String pattern) {
+    public StringAntPathMatcher(@JsonProperty("pattern") String pattern) {
         this.pattern = pattern;
     }
 
     @Override
-    public boolean matches(String input) {
-        return input.contains(pattern);
+    public boolean matches(Object input) {
+        return new org.springframework.util.AntPathMatcher().match(pattern, input.toString());
     }
 
     @Override

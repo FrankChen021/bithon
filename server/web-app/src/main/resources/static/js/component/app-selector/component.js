@@ -111,7 +111,8 @@ class AppSelector {
     #addFilter(dimensionName, dimensionValue) {
         this.mSelectedFilters[dimensionName] = {
             dimension: dimensionName,
-            type: 'alias',
+            type: 'dimension',
+            nameType: 'alias',
             matcher: {
                 type: 'equal',
                 pattern: dimensionValue

@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcBatchWriter;
@@ -112,7 +112,7 @@ public class TraceStorage extends TraceJdbcStorage {
     public ITraceReader createReader() {
         return new TraceJdbcReader(this.dslContext, this.objectMapper, traceConfig) {
             @Override
-            public List<Histogram> getTraceDistribution(List<DimensionCondition> filters, Timestamp start, Timestamp end) {
+            public List<Histogram> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end) {
                 BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
 
                 StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT arrayJoin(histogram(200)(%s)) AS histogram FROM %s", summaryTable.COSTTIMEMS.getName(), summaryTable.getQualifiedName()));
@@ -123,7 +123,7 @@ public class TraceStorage extends TraceJdbcStorage {
                                                      DateTime.toYYYYMMDDhhmmss(end.getTime())));
 
                 String moreFilter = SQLFilterBuilder.build(TraceDataSourceSchema.getTraceSpanSchema(),
-                                                           filters.stream().filter(filter -> !filter.getDimension().startsWith(SPAN_TAGS_PREFIX)));
+                                                           filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
                 if (StringUtils.hasText(moreFilter)) {
                     sqlBuilder.append(" AND ");
                     sqlBuilder.append(moreFilter);
@@ -133,7 +133,7 @@ public class TraceStorage extends TraceJdbcStorage {
                 SelectConditionStep<Record1<String>> tagQuery = buildTagQuery(start, end, filters);
                 if (tagQuery != null) {
                     sqlBuilder.append(" AND ");
-                    sqlBuilder.append(summaryTable.TRACEID.in(tagQuery).toString());
+                    sqlBuilder.append(dslContext.renderInlined(summaryTable.TRACEID.in(tagQuery)));
                 }
 
                 String finalSqlBuilder = "SELECT histogram.1 AS lower, histogram.2 AS upper, histogram.3 AS height FROM ("

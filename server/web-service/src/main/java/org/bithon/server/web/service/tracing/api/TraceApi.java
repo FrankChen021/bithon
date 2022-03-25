@@ -18,13 +18,11 @@ package org.bithon.server.web.service.tracing.api;
 
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.matcher.EqualMatcher;
+import org.bithon.server.common.matcher.StringEqualMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.dimension.IDimensionSpec;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.DimensionFilter;
+import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.tracing.TraceConfig;
-import org.bithon.server.tracing.TraceDataSourceSchema;
 import org.bithon.server.tracing.sink.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.web.service.tracing.service.TraceService;
@@ -71,7 +69,7 @@ public class TraceApi {
         // backward compatibility
         if (StringUtils.hasText(request.getApplication())) {
             request.setFilters(new ArrayList<>(request.getFilters()));
-            request.getFilters().add(new DimensionCondition("appName", new EqualMatcher(request.getApplication())));
+            request.getFilters().add(new DimensionFilter("appName", new StringEqualMatcher(request.getApplication())));
         }
 
         return traceService.getTraceDistribution(request.getFilters(),
@@ -98,25 +96,16 @@ public class TraceApi {
         // backward compatibility
         if (StringUtils.hasText(request.getApplication())) {
             request.setFilters(new ArrayList<>(request.getFilters()));
-            request.getFilters().add(new DimensionCondition("appName", new EqualMatcher(request.getApplication())));
+            request.getFilters().add(new DimensionFilter("appName", new StringEqualMatcher(request.getApplication())));
         }
 
         // check if filters exists
-        for (DimensionCondition filter : request.getFilters()) {
-            if (filter.getDimension().startsWith("tags.")) {
-                String tagName = filter.getDimension().substring("tags.".length());
+        for (IFilter filter : request.getFilters()) {
+            if (filter.getName().startsWith("tags.")) {
+                String tagName = filter.getName().substring("tags.".length());
                 Preconditions.checkIf(traceConfig.getIndexes().getColumnPos(tagName) > 0,
                                       "Can't search on tag [%s] because there's no index defined for this tag.",
                                       tagName);
-            } else {
-                DataSourceSchema schema = TraceDataSourceSchema.getTraceSpanSchema();
-                IDimensionSpec dimSpec = schema.getDimensionSpecByName(filter.getDimension());
-                if (dimSpec == null) {
-                    dimSpec = schema.getDimensionSpecByAlias(filter.getDimension());
-                }
-                Preconditions.checkNotNull(dimSpec,
-                                           "There's no dimension [%s] defined.",
-                                           filter.getDimension());
             }
         }
 

@@ -18,7 +18,7 @@ package org.bithon.server.web.service.api;
 
 import lombok.Data;
 import org.bithon.server.metric.api.IQuerableAggregator;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.metric.storage.OrderBy;
 
 import javax.validation.Valid;
@@ -42,7 +42,7 @@ public class GroupByQueryRequest {
     @NotEmpty
     private String dataSource;
 
-    private List<DimensionCondition> filters = Collections.emptyList();
+    private List<IFilter> filters = Collections.emptyList();
 
     private List<String> metrics = Collections.emptyList();
     private List<IQuerableAggregator> aggregators = Collections.emptyList();

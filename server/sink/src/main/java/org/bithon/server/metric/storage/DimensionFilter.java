@@ -19,42 +19,35 @@ package org.bithon.server.metric.storage;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import org.bithon.server.common.matcher.IStringMatcher;
+import org.bithon.server.common.matcher.IMatcher;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/30 4:43 下午
+ * @author Frank Chen
+ * @date 25/3/22 5:15 PM
  */
-public class DimensionCondition {
-
-    @NotNull
-    @Getter
-    private final String dimension;
-
-    /**
-     * type can be one of [name, alias]
-     */
-    @Nullable
-    @Getter
-    private final String type;
-
-    @NotNull
-    @Getter
-    private final IStringMatcher matcher;
+@Getter
+public class DimensionFilter implements IFilter {
+    private final IMatcher matcher;
+    private final String name;
+    private final String nameType;
 
     @JsonCreator
-    public DimensionCondition(@JsonProperty("dimension") String dimension,
-                              @JsonProperty("type") String type,
-                              @JsonProperty("matcher") IStringMatcher matcher) {
-        this.dimension = dimension;
-        this.type = type == null ? "name" : type;
+    public DimensionFilter(@JsonProperty("dimension") String name,
+                           @JsonProperty("nameType") @Nullable String nameType,
+                           @JsonProperty("matcher") IMatcher matcher) {
+        this.name = name;
+        this.nameType = nameType == null ? "name" : "alias";
         this.matcher = matcher;
     }
 
-    public DimensionCondition(String dimension, IStringMatcher matcher) {
+    public DimensionFilter(String dimension, IMatcher matcher) {
         this(dimension, null, matcher);
+    }
+
+    @Override
+    public String getType() {
+        return "dimension";
     }
 }

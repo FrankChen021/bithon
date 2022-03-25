@@ -44,6 +44,6 @@ public interface IMetricReader {
     List<Map<String, String>> getDimensionValueList(TimeSpan start,
                                                     TimeSpan end,
                                                     DataSourceSchema dataSourceSchema,
-                                                    Collection<DimensionCondition> dimensions,
+                                                    Collection<IFilter> dimensions,
                                                     String dimension);
 }

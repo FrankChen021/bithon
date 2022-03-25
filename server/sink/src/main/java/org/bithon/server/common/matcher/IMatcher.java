@@ -25,17 +25,18 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "contains", value = ContainsMatcher.class),
-    @JsonSubTypes.Type(name = "equal", value = EqualMatcher.class),
-    @JsonSubTypes.Type(name = "notEqual", value = NotEqualMatcher.class),
-    @JsonSubTypes.Type(name = "icontains", value = IContainsMatcher.class),
-    @JsonSubTypes.Type(name = "startwith", value = StartwithMatcher.class),
-    @JsonSubTypes.Type(name = "endwith", value = EndwithMatcher.class),
-    @JsonSubTypes.Type(name = "regex", value = RegexMatcher.class),
-    @JsonSubTypes.Type(name = "antPath", value = AntPathMatcher.class),
+    @JsonSubTypes.Type(name = "contains", value = StringContainsMatcher.class),
+    @JsonSubTypes.Type(name = "equal", value = StringEqualMatcher.class),
+    @JsonSubTypes.Type(name = "notEqual", value = StringNotEqualMatcher.class),
+    @JsonSubTypes.Type(name = "icontains", value = StringIContainsMatcher.class),
+    @JsonSubTypes.Type(name = "startwith", value = StringStartsWithMatcher.class),
+    @JsonSubTypes.Type(name = "endwith", value = StringEndWithMatcher.class),
+    @JsonSubTypes.Type(name = "regex", value = StringRegexMatcher.class),
+    @JsonSubTypes.Type(name = "antPath", value = StringAntPathMatcher.class),
+    @JsonSubTypes.Type(name = "between", value = BetweenMatcher.class),
 })
-public interface IStringMatcher {
-    boolean matches(String input);
+public interface IMatcher {
+    boolean matches(Object input);
 
     <T> T accept(IMatcherVisitor<T> visitor);
 }

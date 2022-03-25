@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.api;
 
 import lombok.Data;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -44,9 +44,9 @@ public class GetMetricsRequest {
     @Deprecated
     @Valid
     @Size(min = 1)
-    private Map<String, DimensionCondition> dimensions;
+    private Map<String, IFilter> dimensions;
 
-    private List<DimensionCondition> filters = Collections.emptyList();
+    private List<IFilter> filters = Collections.emptyList();
 
     @Size(min = 1)
     private List<String> metrics;

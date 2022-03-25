@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
@@ -80,7 +80,7 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<TraceSpan> getTraceList(List<DimensionCondition> filters,
+    public List<TraceSpan> getTraceList(List<IFilter> filters,
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
@@ -93,7 +93,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                                 .and(summaryTable.TIMESTAMP.lt(end));
 
         String moreFilter = SQLFilterBuilder.build(TraceDataSourceSchema.getTraceSpanSchema(),
-                                                   filters.stream().filter(filter -> !filter.getDimension().startsWith(SPAN_TAGS_PREFIX)));
+                                                   filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
         if (StringUtils.hasText(moreFilter)) {
             listQuery = listQuery.and(moreFilter);
         }
@@ -127,12 +127,12 @@ public class TraceJdbcReader implements ITraceReader {
     }
 
     @Override
-    public List<Histogram> getTraceDistribution(List<DimensionCondition> filters, Timestamp start, Timestamp end) {
+    public List<Histogram> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end) {
         return Collections.emptyList();
     }
 
     @Override
-    public int getTraceListSize(List<DimensionCondition> filters,
+    public int getTraceListSize(List<IFilter> filters,
                                 Timestamp start,
                                 Timestamp end) {
         BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
@@ -143,7 +143,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                      .and(summaryTable.TIMESTAMP.lt(end));
 
         String moreFilter = SQLFilterBuilder.build(TraceDataSourceSchema.getTraceSpanSchema(),
-                                                   filters.stream().filter(filter -> !filter.getDimension().startsWith(SPAN_TAGS_PREFIX)));
+                                                   filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
         if (StringUtils.hasText(moreFilter)) {
             countQuery = countQuery.and(moreFilter);
         }
@@ -182,16 +182,16 @@ public class TraceJdbcReader implements ITraceReader {
      *  1. If a given tag name is not in the index list, the query on that name should fall back to BITHON_TRACE_SPAN table to match
      *  2. For multiple tags which are not in the same group, nested query should be applied
      */
-    protected SelectConditionStep<Record1<String>> buildTagQuery(Timestamp start, Timestamp end, Collection<DimensionCondition> filters) {
+    protected SelectConditionStep<Record1<String>> buildTagQuery(Timestamp start, Timestamp end, Collection<IFilter> filters) {
         SelectConditionStep<Record1<String>> tagQuery = null;
 
-        for (DimensionCondition filter : filters) {
-            if (!filter.getDimension().startsWith(SPAN_TAGS_PREFIX)) {
+        for (IFilter filter : filters) {
+            if (!filter.getName().startsWith(SPAN_TAGS_PREFIX)) {
                 continue;
             }
-            String tagName = filter.getDimension().substring(SPAN_TAGS_PREFIX.length());
+            String tagName = filter.getName().substring(SPAN_TAGS_PREFIX.length());
             if (!StringUtils.hasText(tagName)) {
-                throw new RuntimeException(StringUtils.format("Wrong tag name [%s]", filter.getDimension()));
+                throw new RuntimeException(StringUtils.format("Wrong tag name [%s]", filter.getName()));
             }
 
             Preconditions.checkNotNull(this.traceConfig.getIndexes(), "No index configured for 'tags' attribute.");

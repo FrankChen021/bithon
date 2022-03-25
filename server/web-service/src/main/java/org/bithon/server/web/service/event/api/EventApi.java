@@ -17,11 +17,11 @@
 package org.bithon.server.web.service.event.api;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.matcher.EqualMatcher;
+import org.bithon.server.common.matcher.StringEqualMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.event.storage.IEventReader;
 import org.bithon.server.event.storage.IEventStorage;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.DimensionFilter;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ public class EventApi implements IEventApi {
         // backward compatibility
         if (StringUtils.hasText(request.getApplication())) {
             request.setFilters(new ArrayList<>(request.getFilters()));
-            request.getFilters().add(new DimensionCondition("appName", new EqualMatcher(request.getApplication())));
+            request.getFilters().add(new DimensionFilter("appName", new StringEqualMatcher(request.getApplication())));
         }
 
         return new GetEventListResponse(eventReader.getEventListSize(request.getFilters(),

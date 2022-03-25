@@ -30,7 +30,7 @@ import org.bithon.server.event.storage.IEventCleaner;
 import org.bithon.server.event.storage.IEventReader;
 import org.bithon.server.event.storage.IEventStorage;
 import org.bithon.server.event.storage.IEventWriter;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.jooq.DSLContext;
@@ -122,7 +122,7 @@ public class EventJdbcStorage implements IEventStorage {
         }
 
         @Override
-        public List<Event> getEventList(List<DimensionCondition> filters, TimeSpan start, TimeSpan end, int pageNumber, int pageSize) {
+        public List<Event> getEventList(List<IFilter> filters, TimeSpan start, TimeSpan end, int pageNumber, int pageSize) {
             return dslContext.selectFrom(Tables.BITHON_EVENT)
                              .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
                              .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()))
@@ -142,7 +142,7 @@ public class EventJdbcStorage implements IEventStorage {
         }
 
         @Override
-        public int getEventListSize(List<DimensionCondition> filters, TimeSpan start, TimeSpan end) {
+        public int getEventListSize(List<IFilter> filters, TimeSpan start, TimeSpan end) {
             return (int) dslContext.select(DSL.count())
                                    .from(Tables.BITHON_EVENT)
                                    .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
