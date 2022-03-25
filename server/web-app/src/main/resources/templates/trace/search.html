@@ -31,8 +31,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light" style="padding-left: 5px; padding-right: 5px">
 
         <div class="collapse navbar-collapse">
-            <ul class="navbar-nav mr-auto mt-2 mt-lg-0" id="filterBar">
-            </ul>
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0" id="filterBar"></ul>
             <form class="form-inline my-2 my-lg-0" id="filterBarForm">
                 <!-- Auto Refresher -->
 
@@ -50,44 +49,9 @@
     </div>
 
     <script>
+        let g_SelectedInstance = null;
         $(document).ready(() => {
-            const startTime = window.queryParams["startTime"];
-            const endTime = window.queryParams["endTime"];
-
-            const filters = [];
-            $.each(window.queryParams, (name, value) => {
-                if (name === "startTime")
-                    return;
-                if (name === "endTime")
-                    return;
-                if(name === "appName")
-                    return;
-                filters.push({
-                        dimension: name,
-                        matcher: {
-                            type: "equal",
-                            pattern: value
-                        }
-                    }
-                );
-            });
-
             new TracePage(window.queryParams);
-
-            // new TraceListComponent(
-            //     $('#trace-list'),
-            //     {
-            //         showApplicationName: true,
-            //
-            //         getQueryParams: (params) => {
-            //             return {
-            //                 application: window.queryParams['appName'],
-            //                 filters: filters,
-            //                 startTimeISO8601: startTime,
-            //                 endTimeISO8601: endTime
-            //             };
-            //         }
-            //     });
         });
     </script>
 </div>

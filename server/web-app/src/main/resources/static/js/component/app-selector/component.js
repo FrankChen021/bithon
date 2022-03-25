@@ -17,11 +17,11 @@ class AppSelector {
         this.mQueryCache = [];
         this.mQueryVariablepPrefix = option.queryVariablePrefix || '';
 
-        this._selectedDimensions = {};
+        this.mSelectedFilters = {};
     }
 
     createAppSelector(appName) {
-        this.addDimension("appName", appName);
+        this.#addFilter("appName", appName);
 
         //
         // create app selector
@@ -86,7 +86,7 @@ class AppSelector {
         if (queryValue != null) {
             appendedSelect.append(`<option value="${this.mDataSource}">${queryValue}</option>`).change();
 
-            this.addDimension(filterName, queryValue);
+            this.#addFilter(filterName, queryValue);
         }
 
         appendedSelect.select2({
@@ -98,22 +98,20 @@ class AppSelector {
         }).on('change', (event) => {
             let dimensionValue = null;
             if (event.target.selectedIndex == null || event.target.selectedIndex < 0) {
-                this.rmvDimension(filterName);
+                this.#rmvFilter(filterName);
             } else {
                 // get selected dimension
                 dimensionValue = event.target.selectedOptions[0].value;
-                this.addDimension(filterName, dimensionValue);
-            }
-            if (dimensionIndex === 1) {
-                g_SelectedInstance = dimensionValue;
+                this.#addFilter(filterName, dimensionValue);
             }
             this.#onSelectionChanged(filterName, dimensionValue);
         });
     }
 
-    addDimension(dimensionName, dimensionValue) {
-        this._selectedDimensions[dimensionName] = {
+    #addFilter(dimensionName, dimensionValue) {
+        this.mSelectedFilters[dimensionName] = {
             dimension: dimensionName,
+            type: 'alias',
             matcher: {
                 type: 'equal',
                 pattern: dimensionValue
@@ -121,8 +119,8 @@ class AppSelector {
         };
     }
 
-    rmvDimension(dimensionName) {
-        delete this._selectedDimensions[dimensionName];
+    #rmvFilter(dimensionName) {
+        delete this.mSelectedFilters[dimensionName];
     }
 
     /**
@@ -138,17 +136,20 @@ class AppSelector {
      */
     getSelectedFilters() {
         const filters = [];
-        $.each(this._selectedDimensions, (name, value) => {
+        $.each(this.mSelectedFilters, (name, value) => {
             filters.push(value);
         });
         return filters;
     }
 
     getSelectedFilter(name) {
-        return this._selectedDimensions[name];
+        return this.mSelectedFilters[name];
     }
 
     #onSelectionChanged(name, value) {
+        if (name === 'instanceName') {
+            g_SelectedInstance = value;
+        }
         $.each(this.mSelectionChangedListener, (index, listener) => {
             listener(name, value);
         });
@@ -216,8 +217,8 @@ class AppSelector {
 
                 for (let p = 0; p < dimensionIndex; p++) {
                     const dim = this.mSchema.dimensionsSpec[p];
-                    if (this._selectedDimensions[dim.name] != null) {
-                        filters.push(this._selectedDimensions[dim.name]);
+                    if (this.mSelectedFilters[dim.name] != null) {
+                        filters.push(this.mSelectedFilters[dim.name]);
                     }
                 }
                 if (this.mRequestFilterFn !== undefined) {

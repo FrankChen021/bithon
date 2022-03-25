@@ -299,9 +299,31 @@ class Dashboard {
         detailView.load(loadOptions);
     }
 
+    /**
+     * Tracing Spec Example On Dashboard
+     *
+     *  "tracing": {
+     *    "dimensionMaps": {
+     *      "cluster": "tags.clickhouse.cluster",
+     *      "user": "tags.clickhouse.user",
+     *      "queryType": "tags.clickhouse.queryType",
+     *      "exceptionCode": {
+     *        "type" : "switch",
+     *        "cases" : {
+     *          "-400": ["status", "400"],
+     *          "-404": ["status", "404"],
+     *          "-500": ["status", "500"],
+     *          "-504": ["status", "504"],
+     *          "0":    ["status", "200"],
+     *          "default": "tags.clickhouse.exceptionCode"
+     *        }
+     *      }
+     *    }
+     *  }
+     */
     #openTraceSearchPage(chartDescriptor, start, end, row) {
-        const startTimeISO8601 = moment(start).local().toISOString(true);
-        const endIimeISO8601 = moment(end).local().toISOString(true);
+        const startTime = moment(start).local().format('yyyy-MM-DD HH:mm:ss');
+        const endTime = moment(end).local().format('yyyy-MM-DD HH:mm:ss');
 
         let url = `/web/trace/search?appName=${this._appName}&`;
 
@@ -309,17 +331,8 @@ class Dashboard {
         if (instanceFilter != null) {
             url += `instanceName=${encodeURI(instanceFilter.matcher.pattern)}&`;
         }
-        url += `interval=c:${encodeURI(startTimeISO8601)}/${encodeURI(endIimeISO8601)}&`;
+        url += `interval=c:${encodeURI(startTime)}/${encodeURI(endTime)}&`;
 
-        //
-        // tracing object example
-        // "tracing": {
-        //     "dimensionMaps": {
-        //         "cluster": "tag.clickhouse.cluster",
-        //             "user": "tag.clickhouse.user",
-        //             "queryType": "tag.clickhouse.queryType"
-        //     }
-        // }
         const tracingSpec = chartDescriptor.details.tracing;
 
         $.each(chartDescriptor.details.groupBy, (index, dimension) => {
@@ -332,11 +345,12 @@ class Dashboard {
             if (typeof mappingField === "string") {
                 url += `${mappingField}=${encodeURI(val)}&`;
             } else {
+                // the mapping is an object
                 const val = row[dimension];
-                if (mappingField.type === 'switch') {
+                if (mappingField.type === 'switch') { // currently, only switch is supported
                     let f = mappingField.cases[val];
                     if (f == null) {
-                        // use the default case
+                        // case not found, use the default case
                         f = mappingField.cases.default;
                     }
                     const fType = $.type(f);
@@ -404,6 +418,9 @@ class Dashboard {
 
     // PRIVATE
     createChartComponent(chartId, chartDescriptor) {
+        if (chartDescriptor.type === 'list') {
+            return this.createTableComponent(chartId, chartDescriptor);
+        }
 
         const chartOption = this.getDefaultChartOption();
         chartOption.legend.data = chartDescriptor.metrics.map(metric => {

@@ -32,7 +32,7 @@
         ],
         "tracing": {
           "dimensionMaps": {
-            "uri": "normalizedUrl",
+            "uri": "url",
             "statusCode": "status"
           }
         }
