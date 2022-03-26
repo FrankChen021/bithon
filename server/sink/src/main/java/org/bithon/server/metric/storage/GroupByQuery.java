@@ -35,7 +35,7 @@ public class GroupByQuery {
     private final List<String> metrics;
     private final List<IQuerableAggregator> aggregators;
 
-    private final Collection<DimensionCondition> filters;
+    private final Collection<IFilter> filters;
     private final Interval interval;
 
     private final List<String> groupBys;
@@ -44,7 +44,7 @@ public class GroupByQuery {
     public GroupByQuery(DataSourceSchema dataSource,
                         List<String> metrics,
                         List<IQuerableAggregator> aggregators,
-                        Collection<DimensionCondition> filters,
+                        Collection<IFilter> filters,
                         Interval interval,
                         List<String> groupBys,
                         @Nullable OrderBy orderBy) {

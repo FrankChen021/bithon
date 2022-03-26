@@ -61,7 +61,7 @@
     <script th:inline="javascript">
         const apiHost = [[${apiHost}]];
         const g_SelectedApp = [[${appName}]];
-        let g_SelectedInstance = [[${instance}]];
+        let g_SelectedInstance = window.queryParams['instanceName'];
         let g_MetricSelectedInterval = [[${interval} ?: '5m']];
     </script>
     <script th:src="@{/js/api-client/schema-api.js}"></script>
@@ -83,7 +83,7 @@
                 url += `/${submodule}`;
             }
             if (g_SelectedInstance != null) {
-                url += `?instance=${g_SelectedInstance}`;
+                url += `?instanceName=${g_SelectedInstance}`;
             }
             window.location = url;
         }

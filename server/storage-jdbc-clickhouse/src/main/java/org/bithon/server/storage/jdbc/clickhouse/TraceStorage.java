@@ -24,16 +24,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcBatchWriter;
+import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
+import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.tracing.TraceConfig;
+import org.bithon.server.tracing.TraceDataSourceSchema;
 import org.bithon.server.tracing.storage.ITraceCleaner;
+import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.tracing.storage.ITraceWriter;
 import org.bithon.server.tracing.storage.TraceStorageConfig;
 import org.jooq.DSLContext;
+import org.jooq.Record1;
+import org.jooq.SelectConditionStep;
 import org.jooq.Table;
+
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -95,5 +107,58 @@ public class TraceStorage extends TraceJdbcStorage {
                 return false;
             }
         }, super.config);
+    }
+
+    @Override
+    public ITraceReader createReader() {
+        return new TraceJdbcReader(this.dslContext, this.objectMapper, traceConfig) {
+            @Override
+            public List<Histogram> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end) {
+                BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
+
+                StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT arrayJoin(histogram(100)(%s)) AS histogram FROM %s",
+                                                                                summaryTable.COSTTIMEMS.getName(),
+                                                                                summaryTable.getQualifiedName()));
+                sqlBuilder.append(StringUtils.format(" WHERE %s >= '%s' AND %s < '%s'",
+                                                     summaryTable.TIMESTAMP.getName(),
+                                                     DateTime.toYYYYMMDDhhmmss(start.getTime()),
+                                                     summaryTable.TIMESTAMP.getName(),
+                                                     DateTime.toYYYYMMDDhhmmss(end.getTime())));
+
+                String moreFilter = SQLFilterBuilder.build(TraceDataSourceSchema.getTraceSpanSchema(),
+                                                           filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
+                if (StringUtils.hasText(moreFilter)) {
+                    sqlBuilder.append(" AND ");
+                    sqlBuilder.append(moreFilter);
+                }
+
+                // build tag query
+                SelectConditionStep<Record1<String>> tagQuery = buildTagQuery(start, end, filters);
+                if (tagQuery != null) {
+                    sqlBuilder.append(" AND ");
+                    sqlBuilder.append(dslContext.renderInlined(summaryTable.TRACEID.in(tagQuery)));
+                }
+
+                String finalSqlBuilder = "SELECT histogram.1 AS lower, histogram.2 AS upper, histogram.3 AS height FROM ("
+                                         + sqlBuilder
+                                         + " )";
+
+                List<Histogram> histograms = dslContext.fetch(finalSqlBuilder).into(Histogram.class);
+
+                //
+                // convert to height to percentage.
+                // The final value is multiplied 100 times
+                // so the value is in range [1, 10000]
+                //
+                double total = 0;
+                for (Histogram histogram : histograms) {
+                    total += histogram.getHeight();
+                }
+                for (Histogram histogram : histograms) {
+                    histogram.setHeight((int) (histogram.getHeight() / total * 10000));
+                }
+                return histograms.stream().filter(histogram -> histogram.getHeight() > 0).collect(Collectors.toList());
+            }
+        };
     }
 }

@@ -35,11 +35,13 @@ public class EventDataSourceSchema {
                                                                         new TimestampSpec("timestamp", null, null),
                                                                         Arrays.asList(new StringDimensionSpec("appName",
                                                                                                               "appName",
+                                                                                                              "appName",
                                                                                                               true,
                                                                                                               null,
                                                                                                               null,
                                                                                                               null),
                                                                                       new StringDimensionSpec("instanceName",
+                                                                                                              "instanceName",
                                                                                                               "instanceName",
                                                                                                               false,
                                                                                                               null,
@@ -47,13 +49,12 @@ public class EventDataSourceSchema {
                                                                                                               null),
                                                                                       new StringDimensionSpec("type",
                                                                                                               "type",
+                                                                                                              "type",
                                                                                                               false,
                                                                                                               true,
                                                                                                               null,
                                                                                                               null)),
-                                                                        Collections.singletonList(CountMetricSpec.INSTANCE),
-                                                                        null,
-                                                                        null);
+                                                                        Collections.singletonList(CountMetricSpec.INSTANCE));
 
     public static DataSourceSchema getSchema() {
         return SCHEMA;

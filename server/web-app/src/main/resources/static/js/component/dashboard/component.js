@@ -39,7 +39,6 @@ class Dashboard {
         //
         this.vFilter = new AppSelector({
             parentId: 'filterBar',
-            appName: this._appName,
             intervalProvider: () => this.getSelectedTimeInterval(),
         }).registerChangedListener((name, value) => {
             if (name === 'application') {
@@ -47,7 +46,7 @@ class Dashboard {
             } else {
                 this.refreshDashboard();
             }
-        });
+        }).createAppSelector(this._appName);
 
         //
         // dataSource --> Charts
@@ -112,9 +111,9 @@ class Dashboard {
         // Loaded Dimension Filter
         //
         for (const dataSourceName in dataSource2Charts) {
-            this._schemaApi.getSchema(
-                dataSourceName,
-                (schema) => {
+            this._schemaApi.getSchema({
+                name: dataSourceName,
+                successCallback: (schema) => {
                     let index;
                     if (schema.name === dataSourceFilter) {
                         // create filters for dimensions
@@ -151,9 +150,9 @@ class Dashboard {
                         this.#initChartDetail(chartDescriptor);
                     });
                 },
-                (error) => {
+                errorCallback: (error) => {
                 }
-            );
+            });
         }
     }
 
@@ -168,17 +167,23 @@ class Dashboard {
         const columns = [
             {
                 field: 'id',
-                title: 'No',
+                title: 'No.',
                 align: 'center',
+                width: 20,
                 formatter: (cell, row, index, field) => {
                     return (index + 1);
                 }
             }
         ];
 
+        //
+        // create columns for dimensions
+        //
         $.each(chartDescriptor.details.groupBy, (index, dimension) => {
-            // set up lookup for this dimension
+
             const column = {field: dimension, title: dimension, align: 'center', sortable: true};
+
+            // set up lookup for this dimension
             if (chartDescriptor.details.lookup !== undefined) {
                 const dimensionLookup = chartDescriptor.details.lookup[dimension];
                 if (dimensionLookup != null) {
@@ -195,6 +200,10 @@ class Dashboard {
 
             columns.push(column);
         });
+
+        //
+        // create columns for metrics
+        //
         $.each(chartDescriptor.details.metrics, (index, metric) => {
             // set up transformer and formatter for this metric
             const column = {field: metric, title: metric, align: 'center', sortable: true};
@@ -214,16 +223,23 @@ class Dashboard {
             }
 
             let transformerFn = metricDef == null ? null : metricDef.transformer;
-            if (transformerFn != null || formatterFn != null) {
-                column.formatter = (val) => {
-                    const t = transformerFn == null ? val : transformerFn(val);
-                    return formatterFn == null ? t : formatterFn(t);
-                };
-            }
+            column.formatter = (val) => {
+                const t = transformerFn == null ? val : transformerFn(val);
+                return formatterFn == null ? t : formatterFn(t);
+            };
 
             columns.push(column);
         });
-        const detailView = this.#createDetailView(chartComponent.getUIContainer(), columns);
+
+        const detailView = this.#createDetailView(chartDescriptor.id + '_detailView',
+            chartComponent.getUIContainer(),
+            columns,
+            [{
+                title: "Tracing Log",
+                text: "Search...",
+                visible: chartDescriptor.details.tracing !== undefined,
+                onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
+            }]);
         chartComponent.setSelectionHandler(
             (option, start, end) => {
                 this.#refreshDetailView(chartDescriptor, detailView, option, start, end);
@@ -240,8 +256,8 @@ class Dashboard {
             });
     }
 
-    #createDetailView(parent, columns) {
-        return new TableComponent({parent: parent, columns: columns});
+    #createDetailView(id, parent, columns, buttons) {
+        return new TableComponent({tableId: id, parent: parent, columns: columns, buttons: buttons});
     }
 
     #refreshDetailView(chartDescriptor, detailView, option, startIndex, endIndex) {
@@ -249,8 +265,11 @@ class Dashboard {
         const start = option.timestamp.start;
         const interval = option.timestamp.interval;
 
-        const startTimestamp = moment(start + startIndex * interval).utc().toISOString();
-        const endTimestamp = moment(start + endIndex * interval).utc().toISOString();
+        const startTimestamp = start + startIndex * interval;
+        const endTimestamp = start + endIndex * interval;
+
+        const startISO8601 = moment(startTimestamp).utc().toISOString();
+        const endISO8601 = moment(endTimestamp).utc().toISOString();
 
         const filters = this.vFilter.getSelectedFilters();
         if (chartDescriptor.filters != null) {
@@ -266,16 +285,86 @@ class Dashboard {
 
         const loadOptions = {
             url: apiHost + "/api/datasource/groupBy",
+            start: startTimestamp,
+            end: endTimestamp,
             ajaxData: {
                 dataSource: chartDescriptor.dataSource,
-                startTimeISO8601: startTimestamp,
-                endTimeISO8601: endTimestamp,
+                startTimeISO8601: startISO8601,
+                endTimeISO8601: endISO8601,
                 filters: filters,
                 metrics: chartDescriptor.details.metrics,
                 groupBy: chartDescriptor.details.groupBy
             }
         };
         detailView.load(loadOptions);
+    }
+
+    /**
+     * Tracing Spec Example On Dashboard
+     *
+     *  "tracing": {
+     *    "dimensionMaps": {
+     *      "cluster": "tags.clickhouse.cluster",
+     *      "user": "tags.clickhouse.user",
+     *      "queryType": "tags.clickhouse.queryType",
+     *      "exceptionCode": {
+     *        "type" : "switch",
+     *        "cases" : {
+     *          "-400": ["status", "400"],
+     *          "-404": ["status", "404"],
+     *          "-500": ["status", "500"],
+     *          "-504": ["status", "504"],
+     *          "0":    ["status", "200"],
+     *          "default": "tags.clickhouse.exceptionCode"
+     *        }
+     *      }
+     *    }
+     *  }
+     */
+    #openTraceSearchPage(chartDescriptor, start, end, row) {
+        const startTime = moment(start).local().format('yyyy-MM-DD HH:mm:ss');
+        const endTime = moment(end).local().format('yyyy-MM-DD HH:mm:ss');
+
+        let url = `/web/trace/search?appName=${this._appName}&`;
+
+        const instanceFilter = this.vFilter.getSelectedFilter("instanceName");
+        if (instanceFilter != null) {
+            url += `instanceName=${encodeURI(instanceFilter.matcher.pattern)}&`;
+        }
+        url += `interval=c:${encodeURI(startTime)}/${encodeURI(endTime)}&`;
+
+        const tracingSpec = chartDescriptor.details.tracing;
+
+        $.each(chartDescriptor.details.groupBy, (index, dimension) => {
+            const mappingField = tracingSpec.dimensionMaps[dimension];
+            if (mappingField == null) {
+                return;
+            }
+
+            const val = row[dimension];
+            if (typeof mappingField === "string") {
+                url += `${mappingField}=${encodeURI(val)}&`;
+            } else {
+                // the mapping is an object
+                const val = row[dimension];
+                if (mappingField.type === 'switch') { // currently, only switch is supported
+                    let f = mappingField.cases[val];
+                    if (f == null) {
+                        // case not found, use the default case
+                        f = mappingField.cases.default;
+                    }
+                    const fType = $.type(f);
+                    if (fType === 'array') {
+                        // f is a pair, f[0] is the field name, f[1] is the value
+                        url += `${f[0]}=${encodeURI(f[1])}&`;
+                    } else if (fType === 'string') {
+                        url += `${f}=${encodeURI(val)}&`;
+                    }
+                }
+            }
+        });
+
+        window.open(url);
     }
 
     createTableComponent(chartId, chartDescriptor) {

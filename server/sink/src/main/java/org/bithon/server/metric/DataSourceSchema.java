@@ -25,11 +25,8 @@ import org.bithon.server.metric.aggregator.spec.CountMetricSpec;
 import org.bithon.server.metric.aggregator.spec.IMetricSpec;
 import org.bithon.server.metric.dimension.IDimensionSpec;
 import org.bithon.server.metric.dimension.transformer.IDimensionTransformer;
-import org.bithon.server.metric.filter.IFilter;
-import org.bithon.server.metric.flatten.IFlattener;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,12 +51,6 @@ public class DataSourceSchema {
     private final List<IMetricSpec> metricsSpec;
 
     @Getter
-    private final List<IFilter> filtersSpec;
-
-    @Getter
-    private final List<IFlattener> flattenSpec;
-
-    @Getter
     @JsonIgnore
     private final Map<String, IDimensionTransformer> dimensionTransformers = new HashMap<>();
 
@@ -74,23 +65,20 @@ public class DataSourceSchema {
      */
     @Getter
     @Setter
-    private boolean enforceDuplicationCheck = true;
+    @JsonIgnore
+    private boolean enforceDuplicationCheck = false;
 
     @JsonCreator
     public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,
                             @JsonProperty("name") String name,
                             @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
                             @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
-                            @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
-                            @JsonProperty("filtersSpec") @Nullable List<IFilter> filtersSpec,
-                            @JsonProperty("flattenSpec") @Nullable List<IFlattener> flattenSpec) {
+                            @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
         this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
-        this.filtersSpec = filtersSpec == null ? Collections.emptyList() : filtersSpec;
-        this.flattenSpec = flattenSpec == null ? Collections.emptyList() : flattenSpec;
 
         for (IDimensionSpec dimensionSpec : this.dimensionsSpec) {
             dimensionMap.put(dimensionSpec.getName(), dimensionSpec);
@@ -124,8 +112,13 @@ public class DataSourceSchema {
         return dimensionMap.get(name);
     }
 
-    public Map<String, IDimensionSpec> cloneDimensions() {
-        return new HashMap<>(this.dimensionMap);
+    public IDimensionSpec getDimensionSpecByAlias(String alias) {
+        for (IDimensionSpec dimSpec : this.dimensionsSpec) {
+            if (alias.equals(dimSpec.getAlias())) {
+                return dimSpec;
+            }
+        }
+        return null;
     }
 
     @Override

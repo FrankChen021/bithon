@@ -57,8 +57,8 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     private final IMessageSink<SchemaMetricMessage> schemaMetricSink;
     private final IMetricMessageSink metricSink;
-    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", true, true, 128, null);
-    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", true, true, 128, null);
+    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName", true, true, 128, null);
+    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName", true, true, 128, null);
 
     public BrpcMetricCollector(IMessageSink<SchemaMetricMessage> schemaMetricSink,
                                IMetricMessageSink metricSink) {
@@ -104,6 +104,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                      .stream()
                                      .map(dimSpec -> new StringDimensionSpec(dimSpec.getName(),
                                                                              dimSpec.getName(),
+                                                                             dimSpec.getName(),
                                                                              true,
                                                                              true,
                                                                              null,
@@ -145,9 +146,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                                   }
 
                                                                   return null;
-                                                              }).collect(Collectors.toList()),
-                                                       null,
-                                                       null);
+                                                              }).collect(Collectors.toList()));
 
         Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
         schemaMetricMessage.setSchema(schema);
@@ -185,7 +184,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     @Override
     public void sendGenericMetricsV2(BrpcMessageHeader header, BrpcGenericMetricMessageV2 message) {
-        Iterator<MetricMessage> mesageIterator = new Iterator<MetricMessage>() {
+        Iterator<MetricMessage> messageIterator = new Iterator<MetricMessage>() {
             final Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
 
             @Override
@@ -216,7 +215,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                 return metricMessage;
             }
         };
-        metricSink.process(message.getSchema().getName(), IteratorableCollection.of(mesageIterator));
+        metricSink.process(message.getSchema().getName(), IteratorableCollection.of(messageIterator));
     }
 
     @Override

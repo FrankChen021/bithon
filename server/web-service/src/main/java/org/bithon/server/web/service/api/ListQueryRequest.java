@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.api;
 
 import lombok.Data;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.metric.storage.OrderBy;
 
 import javax.validation.constraints.NotBlank;
@@ -40,7 +40,7 @@ public class ListQueryRequest {
     @NotBlank
     private String dataSource;
 
-    private List<DimensionCondition> filters = Collections.emptyList();
+    private List<IFilter> filters = Collections.emptyList();
 
     @Size(min = 1)
     private List<String> columns;

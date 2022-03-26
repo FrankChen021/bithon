@@ -18,8 +18,8 @@ package org.bithon.server.common.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bithon.server.common.matcher.IStringMatcher;
-import org.bithon.server.common.matcher.RegexMatcher;
+import org.bithon.server.common.matcher.IMatcher;
+import org.bithon.server.common.matcher.StringRegexMatcher;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -43,10 +43,10 @@ public class UriNormalizer {
         this.configs = new RuleConfigs();
         this.configs.setGlobalRules(new UriNormalizationRuleConfig());
         this.configs.setApplicationRules(new HashMap<>());
-        this.configs.globalRules.partRules.add(new UriPattern(new RegexMatcher("[0-9]+"), "*"));
-        this.configs.globalRules.partRules.add(new UriPattern(new RegexMatcher(
+        this.configs.globalRules.partRules.add(new UriPattern(new StringRegexMatcher("[0-9]+"), "*"));
+        this.configs.globalRules.partRules.add(new UriPattern(new StringRegexMatcher(
             "[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}"), "*"));
-        this.configs.globalRules.partRules.add(new UriPattern(new RegexMatcher("[0-9a-f]{32}"), "*"));
+        this.configs.globalRules.partRules.add(new UriPattern(new StringRegexMatcher("[0-9a-f]{32}"), "*"));
     }
 
     public NormalizedResult normalize(String applicationName, String path) {
@@ -148,7 +148,7 @@ public class UriNormalizer {
     @Data
     @AllArgsConstructor
     public static class UriPattern {
-        private IStringMatcher matcher;
+        private IMatcher matcher;
         private String replacement;
     }
 
@@ -156,7 +156,7 @@ public class UriNormalizer {
     public static class UriNormalizationRuleConfig {
         private List<UriPattern> pathRules = new ArrayList<>();
         private List<UriPattern> partRules = new ArrayList<>();
-        private List<IStringMatcher> filters = new ArrayList<>();
+        private List<IMatcher> filters = new ArrayList<>();
     }
 
     @Data

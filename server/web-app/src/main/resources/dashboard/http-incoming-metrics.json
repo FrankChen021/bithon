@@ -29,7 +29,13 @@
         "metrics": [
           "qps",
           "totalCount"
-        ]
+        ],
+        "tracing": {
+          "dimensionMaps": {
+            "uri": "url",
+            "statusCode": "status"
+          }
+        }
       }
     },
     {
@@ -61,7 +67,13 @@
           "minResponseTime",
           "avgResponseTime",
           "maxResponseTime"
-        ]
+        ],
+        "tracing": {
+          "dimensionMaps": {
+            "uri": "normalizedUrl",
+            "statusCode": "status"
+          }
+        }
       }
     },
     {
@@ -98,7 +110,13 @@
               "pattern": "200"
             }
           }
-        ]
+        ],
+        "tracing": {
+          "dimensionMaps": {
+            "uri": "normalizedUrl",
+            "statusCode": "status"
+          }
+        }
       }
     },
     {

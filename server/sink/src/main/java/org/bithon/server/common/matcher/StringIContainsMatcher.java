@@ -20,23 +20,25 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
+import java.util.Locale;
+
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/13 9:47 下午
+ * @date 2021/1/13 9:44 下午
  */
-public class StartwithMatcher implements IStringMatcher {
+public class StringIContainsMatcher implements IMatcher {
 
     @Getter
     private final String pattern;
 
     @JsonCreator
-    public StartwithMatcher(@JsonProperty("pattern") String pattern) {
-        this.pattern = pattern;
+    public StringIContainsMatcher(@JsonProperty("pattern") String pattern) {
+        this.pattern = pattern.toLowerCase(Locale.ENGLISH);
     }
 
     @Override
-    public boolean matches(String input) {
-        return input.startsWith(pattern);
+    public boolean matches(Object input) {
+        return input.toString().toLowerCase(Locale.ENGLISH).contains(pattern);
     }
 
     @Override

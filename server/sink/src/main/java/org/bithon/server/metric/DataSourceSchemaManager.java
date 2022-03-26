@@ -28,10 +28,10 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -135,7 +135,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
     }
 
     public Map<String, DataSourceSchema> getDataSources() {
-        return new HashMap<>(schemas);
+        return new TreeMap<>(schemas);
     }
 
     public void addListener(IDataSourceSchemaListener listener) {
@@ -146,7 +146,14 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         log.info("Loading metric schemas");
         try {
             schemas = schemaStorage.getSchemas().stream().collect(Collectors.toConcurrentMap(DataSourceSchema::getName, v -> v));
-            schemas.put(TraceDataSourceSchema.getSchema().getName(), TraceDataSourceSchema.getSchema());
+            for (IDataSourceSchemaListener listener : listeners) {
+                try {
+                    listener.onLoad();
+                } catch (Exception e) {
+                    log.error("notify onRmv exception", e);
+                }
+            }
+            schemas.put(TraceDataSourceSchema.getTraceSpanSchema().getName(), TraceDataSourceSchema.getTraceSpanSchema());
             schemas.put(EventDataSourceSchema.getSchema().getName(), EventDataSourceSchema.getSchema());
         } catch (Exception e) {
             log.error("Exception occurs when loading schemas", e);
@@ -172,5 +179,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
         void onRmv(DataSourceSchema dataSourceSchema);
 
         void onAdd(DataSourceSchema dataSourceSchema);
+
+        void onLoad();
     }
 }

@@ -1,8 +1,9 @@
 class TracePage {
-    constructor(appName) {
+    constructor(queryParams) {
         // Model
-        this.mApplication = appName;
+        this.mQueryParams = queryParams;
         this.mInterval = null;
+        this.metricFilters = [];
 
         // View
         this.vChartComponent = new ChartComponent({
@@ -17,153 +18,80 @@ class TracePage {
         // View
         this.vFilters = new AppSelector({
             parentId: 'filterBar',
-            appName: this.mApplication,
-            intervalProvider: () => this.#getInterval(),
-            requestFilterFn: (filters) => {
-                filters.push(
-                    {
-                        dimension: "kind",
-                        matcher: {
-                            type: "equal",
-                            pattern: "SERVER"
-                        }
-                    }
-                );
-            }
+            intervalProvider: () => this.#getInterval()
         }).registerChangedListener((name, value) => {
             if (name === 'application') {
                 window.location = `/web/app/trace/${value}`;
             } else {
                 this.#refreshPage();
             }
-        }).createFilter('trace_span_summary');
+        }).createAppSelector(this.mQueryParams['appName'])
+          .createFilter('trace_span_summary');
+
+        // View, tag filter
+        this.vTagFilter = new AppSelector({
+            parentId: 'filterBar',
+            queryVariablePrefix: 'tags.',
+            intervalProvider: () => this.#getInterval()
+        }).registerChangedListener((name, value) => {
+            this.#refreshPage();
+        }).createFilter('trace_span_tag_index');
 
         const parent = $('#filterBarForm');
 
         // View - Refresh Button
         parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
             .find("button").click(() => {
+            // reset the metric filter
+            this.metricFilters = [];
+
+            // get new interval
             this.mInterval = this.vIntervalSelector.getInterval();
+
+            // refresh the page
             this.#refreshPage();
         });
 
         // View
-        this.vIntervalSelector = new TimeInterval(this._defaultInterval).childOf(parent).registerIntervalChangedListener((selectedModel) => {
+        this.vIntervalSelector = new TimeInterval(window.queryParams['interval']).childOf(parent).registerIntervalChangedListener((selectedModel) => {
             this.mInterval = this.vIntervalSelector.getInterval();
             this.#refreshPage();
         });
         this.mInterval = this.vIntervalSelector.getInterval();
 
         // View, will also trigger refresh automatically
-        $('#table').bootstrapTable({
-            toolbar: '#toolbar',//工具栏
-
-            url: apiHost + '/api/trace/getTraceList',
-            method: 'post',
-            contentType: "application/json",
-            showRefresh: false,
-
-            buttonsAlign: 'right',
-            sidePagination: "server",
-            pagination: true,
-            paginationPreText: '<',              //上一页按钮样式
-            paginationNextText: '>',             //下一页按钮样式
-            pageNumber: 1,
-            pageSize: 10,
-            pageList: [10, 25, 50, 100],
-            sortName: 'startTime',
-            sortOrder: 'desc',
-
-            stickyHeader: true,
-            stickyHeaderOffsetLeft: parseInt($('body').css('padding-left'), 10),
-            stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
-            theadClasses: 'thead-light',
-
-            queryParamsType: '',
-            queryParams: (params) => {
-                const interval = this.#getInterval();
-                return {
-                    pageSize: params.pageSize,
-                    pageNumber: params.pageNumber - 1,
-                    traceId: params.searchText,
-                    application: g_SelectedApp,
-                    filters: this.vFilters.getSelectedFilters(),
-                    startTimeISO8601: interval.start,
-                    endTimeISO8601: interval.end,
-                    orderBy: params.sortName,
-                    order: params.sortOrder
-                };
-            },
-
-            filterControl: false,
-            filterShowClear: false,
-            search: false,
-            showSearchClearButton: false,
-            searchOnEnterKey: true,
-            formatSearch: function () {
-                return 'search by Trace Id';
-            },
-
-            uniqueId: 'traceId',
-            columns: [{
-                field: 'traceId',
-                title: 'Trace Id',
-                formatter: function (value, row) {
-                    let timestamp = row.startTime / 1000;
-                    timestamp = Math.floor(timestamp / 1000 / 60) * 1000 * 60;
-                    timestamp -= 3600 * 1000; // search the detail from 1 hour before current start time
-                    return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}&type=trace&interval=${encodeURI(moment(timestamp).local().toISOString(true) + '/')}">${value}</a>`;
-                },
-            }, {
-                field: 'instanceName',
-                title: 'Instance'
-            }, {
-                field: 'startTime',
-                title: 'Time',
-                formatter: function (value) {
-                    return new Date(value / 1000).format('MM-dd hh:mm:ss');
-                },
-                sortable: true
-            }, {
-                field: 'costTime',
-                title: 'Duration',
-                formatter: function (value, row) {
-                    return nanoFormat(value * 1000);
-                },
-                sortable: true
-            }, {
-                field: 'status',
-                title: 'Status'
-            }, {
-                field: 'tags',
-                title: 'URL',
-                formatter: function (value, row) {
-                    return value['uri'] || value['http.uri'];
-                }
-            }],
-
-            rowStyle: (row, index) => {
-                if (row.status !== "200") {
+        this.vTraceList = new TraceListComponent(
+            $('#table'),
+            {
+                showApplicationName: false,
+                getQueryParams: (params) => {
                     return {
-                        classes: 'alert-warning'
-                    }
+                        filters: this.#getFilters(),
+                        startTimeISO8601: this.mInterval.start,
+                        endTimeISO8601: this.mInterval.end
+                    };
                 }
-                return {};
             }
-        });
+        );
 
         this.#refreshChart();
     }
 
     #getInterval() {
-        return this.mInterval;//this.mInterval != null ? this.mInterval : this.vIntervalSelector.getInterval();
+        return this.mInterval;
+    }
+
+    #getFilters() {
+        let summaryTableFilter = this.vFilters.getSelectedFilters();
+        let tagFilters = this.vTagFilter.getSelectedFilters();
+        return summaryTableFilter.concat(tagFilters, this.metricFilters);
     }
 
     #refreshPage() {
         //
         // refresh the list
         //
-        $('#table').bootstrapTable('refresh');
+        this.vTraceList.refresh();
 
         //
         // refresh the distribution chart
@@ -174,47 +102,31 @@ class TracePage {
     #refreshChart() {
         const interval = this.#getInterval();
         this.vChartComponent.load({
-            url: apiHost + '/api/trace/getTraceDistribution',
+            url: apiHost + '/api/trace/getTraceDistribution/v2',
             ajaxData: JSON.stringify({
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                application: g_SelectedApp,
-                filters: this.vFilters.getSelectedFilters()
+                filters: this.#getFilters()
             }),
             processResult: (data) => {
                 this._data = data;
 
-                const labelFormat = data.bucket < 60 ? 'HH:mm:ss' : 'HH:mm';
-                const timeLabels = data.data.map(val => {
-                    // it's unix timestamp, so * 1000 is needed to convert it to milliseconds
-                    return moment(val._timestamp * 1000).local().format(labelFormat) + "\n"
-                        + moment(val._timestamp * 1000 + data.bucket * 1000).local().format(labelFormat)
+                const timeLabels = data.map(val => {
+                    return microFormat(val.lower) + "\n" + microFormat(val.upper);
                 });
 
                 const series = [{
-                    name: "count",
-                    displayName: "count",
-                    chartType: "bar"
-                }].map(metric => {
-                    return {
-                        name: (metric.displayName === undefined ? metric.name : metric.displayName),
-                        type: metric.chartType || 'bar',
-                        //areaStyle: {opacity: 0.3},
-                        data: data.data.map(d => d[metric.name]),
-                        //lineStyle: {width: 1},
-                        //itemStyle: {opacity: 0},
-                        //yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
-                        label: {
-                            show: true,
-                            formatter: (obj) => {
-                                return obj.value > 0 ? "" + obj.value : "";
-                            }
-                        },
-                        // selected is not a property of series
-                        // this is used to render default selected state of legend by chart-component
-                        selected: metric.selected === undefined ? true : metric.selected
+                    name: 'percentage',
+                    type: 'bar',
+                    data: data.map(d => d['height']),
+                    label: {
+                        show: false,
+                        formatter: (obj) => {
+                            return obj.value > 0 ? "" + obj.value : "";
+                        }
                     }
-                });
+                }];
+
                 const op = this.getDefaultChartOption();
                 op.xAxis = {data: timeLabels, type: 'category'};
                 op.series = series;
@@ -242,6 +154,17 @@ class TracePage {
                     label: {
                         backgroundColor: '#283b56',
                     }
+                },
+                formatter: (series) => {
+                    const dataIndex = series[0].dataIndex;
+
+                    let tooltip = '';
+                    series.forEach(s => {
+                        //Concat the tooltip
+                        //marker can be seen as the style of legend of this series
+                        tooltip += `${s.axisValueLabel}<br />${s.marker}${s.seriesName}: ${s.data / 100.0}%`;
+                    });
+                    return tooltip;
                 }
             },
             legend: {
@@ -267,21 +190,28 @@ class TracePage {
                 data: [],
             },
             yAxis: {
-                type: 'value',
-                show: false
+                type: 'log',
+                show: false,
+                logBase: 10
             }
         };
     }
 
     #onClickChart(e) {
-        const s = moment(this._data.data[e.dataIndex]._timestamp * 1000).utc();
-        const interval = {
-            start: s.toISOString(),
-            end: s.add(this._data.bucket, 'second').toISOString()
-        }
-        if (this.mInterval == null || (this.mInterval.start !== interval.start || this.mInterval.end !== interval.end)) {
-            this.mInterval = interval;
-            this.#refreshPage();
-        }
+        const lower = this._data[e.dataIndex].lower;
+        const upper = this._data[e.dataIndex].upper;
+
+        this.metricFilters = [
+            {
+                type: 'metric',
+                name: 'costTimeMs',
+                matcher: {
+                    type: 'between',
+                    lower: lower,
+                    upper: upper
+                }
+            }
+        ];
+        this.#refreshPage();
     }
 }

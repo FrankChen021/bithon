@@ -32,6 +32,8 @@ import org.bithon.server.metric.typing.IValueType;
 })
 public interface IDimensionSpec {
 
+    String getAlias();
+
     String getName();
 
     String getDisplayText();

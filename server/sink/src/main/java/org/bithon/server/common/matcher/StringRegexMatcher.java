@@ -16,27 +16,32 @@
 
 package org.bithon.server.common.matcher;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
+import java.util.regex.Pattern;
+
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/13 9:50 下午
+ * @date 2021/1/13 9:45 下午
  */
-public class AntPathMatcher implements IStringMatcher {
+public class StringRegexMatcher implements IMatcher {
+
+    @JsonIgnore
+    private final Pattern regex;
 
     @Getter
     private final String pattern;
 
-    @JsonCreator
-    public AntPathMatcher(@JsonProperty("pattern") String pattern) {
+    public StringRegexMatcher(@JsonProperty("pattern") String pattern) {
+        this.regex = Pattern.compile(pattern);
         this.pattern = pattern;
     }
 
     @Override
-    public boolean matches(String input) {
-        return new org.springframework.util.AntPathMatcher().match(pattern, input);
+    public boolean matches(Object input) {
+        return regex.matcher(input.toString()).matches();
     }
 
     @Override

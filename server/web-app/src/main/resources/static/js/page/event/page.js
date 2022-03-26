@@ -15,7 +15,8 @@ class EventPage {
             } else {
                 this.#refreshPage();
             }
-        }).createFilter('event');
+        }).createAppSelector(appName)
+          .createFilter('event');
 
         const parent = $('#filterBarForm');
 

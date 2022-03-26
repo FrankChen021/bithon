@@ -20,25 +20,30 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
-import javax.validation.constraints.NotNull;
-
 /**
  * @author Frank Chen
- * @date 8/1/22 2:41 PM
+ * @date 25/3/22 4:54 PM
  */
-public class NotEqualMatcher implements IStringMatcher {
+public class BetweenMatcher implements IMatcher {
     @Getter
-    @NotNull
-    private final String pattern;
+    private final Number upper;
+
+    @Getter
+    private final Number lower;
 
     @JsonCreator
-    public NotEqualMatcher(@JsonProperty("pattern") @NotNull String pattern) {
-        this.pattern = pattern;
+    public BetweenMatcher(@JsonProperty("lower") Number lower,
+                          @JsonProperty("upper") Number upper) {
+        this.lower = lower;
+        this.upper = upper;
     }
 
     @Override
-    public boolean matches(String input) {
-        return !pattern.equals(input);
+    public boolean matches(Object input) {
+        if (input instanceof Integer || input instanceof Long) {
+            return ((Number) input).longValue() >= lower.longValue() && ((Number) input).longValue() <= upper.longValue();
+        }
+        return ((Number) input).doubleValue() >= lower.doubleValue() && ((Number) input).doubleValue() <= upper.doubleValue();
     }
 
     @Override

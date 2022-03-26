@@ -17,11 +17,13 @@
 package org.bithon.server.web.service.api;
 
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.common.pojo.DisplayableText;
 import org.bithon.server.common.ttl.TTLConfig;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.DataSourceSchemaManager;
+import org.bithon.server.metric.dimension.IDimensionSpec;
 import org.bithon.server.metric.storage.GroupByQuery;
 import org.bithon.server.metric.storage.IMetricReader;
 import org.bithon.server.metric.storage.IMetricStorage;
@@ -150,16 +152,46 @@ public class DataSourceApi {
                             .collect(Collectors.toList());
     }
 
+    /**
+     * @deprecated
+     */
     @PostMapping("/api/datasource/dimensions")
     public Collection<Map<String, String>> getDimensions(@Valid @RequestBody GetDimensionRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        String dim = request.getDimension();
+        IDimensionSpec dimensionSpec = schema.getDimensionSpecByName(dim);
+        Preconditions.checkNotNull(dimensionSpec, "dimension [%s] not defined.", dim);
 
         return this.metricStorage.createMetricReader(schema).getDimensionValueList(
             TimeSpan.fromISO8601(request.getStartTimeISO8601()),
             TimeSpan.fromISO8601(request.getEndTimeISO8601()),
             schema,
             request.getConditions(),
-            request.getDimension()
+            dimensionSpec.getName()
+        );
+    }
+
+    @PostMapping("/api/datasource/dimensions/v2")
+    public Collection<Map<String, String>> getDimensions(@Valid @RequestBody GetDimensionRequestV2 request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        IDimensionSpec dimensionSpec = null;
+        if ("name".equals(request.getType())) {
+            dimensionSpec = schema.getDimensionSpecByName(request.getName());
+        } else if ("alias".equals(request.getType())) {
+            dimensionSpec = schema.getDimensionSpecByAlias(request.getName());
+        } else {
+            throw new Preconditions.InvalidValueException("'type' should be one of (name, alias)");
+        }
+        Preconditions.checkNotNull(dimensionSpec, "dimension [%s] not defined.", request.getName());
+
+        return this.metricStorage.createMetricReader(schema).getDimensionValueList(
+            TimeSpan.fromISO8601(request.getStartTimeISO8601()),
+            TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+            schema,
+            request.getFilters(),
+            dimensionSpec.getName()
         );
     }
 

@@ -16,8 +16,9 @@
 
 package org.bithon.server.tracing.storage;
 
+import lombok.Data;
 import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.tracing.sink.TraceSpan;
 
 import java.sql.Timestamp;
@@ -30,7 +31,7 @@ import java.util.List;
 public interface ITraceReader {
     List<TraceSpan> getTraceByTraceId(String traceId, TimeSpan start, TimeSpan end);
 
-    List<TraceSpan> getTraceList(List<DimensionCondition> filters,
+    List<TraceSpan> getTraceList(List<IFilter> filters,
                                  Timestamp start,
                                  Timestamp end,
                                  String orderBy,
@@ -38,9 +39,20 @@ public interface ITraceReader {
                                  int pageNumber,
                                  int pageSize);
 
-    int getTraceListSize(List<DimensionCondition> filters, Timestamp start, Timestamp end);
+    List<Histogram> getTraceDistribution(List<IFilter> filters,
+                                         Timestamp start,
+                                         Timestamp end);
+
+    int getTraceListSize(List<IFilter> filters, Timestamp start, Timestamp end);
 
     List<TraceSpan> getTraceByParentSpanId(String parentSpanId);
 
     String getTraceIdByMapping(String id);
+
+    @Data
+    class Histogram {
+        private double lower;
+        private double upper;
+        private double height;
+    }
 }

@@ -1,3 +1,10 @@
+function onTableComponentButtonClick(id, rowIndex, buttonIndex) {
+    const tableComponent = window.gTableComponents[id];
+    if (tableComponent != null) {
+        tableComponent.onButtonClick(rowIndex, buttonIndex);
+    }
+}
+
 class TableComponent {
     /**
      *
@@ -5,6 +12,7 @@ class TableComponent {
      *     parent: p,
      *     columns: columns
      *     pagination: [true/false]
+     *     tableId: an unique id for the table component
      */
     constructor(option) {
         this.vTable = option.parent.append(`<table id="${option.tableId}"></table>`).find('table');
@@ -47,6 +55,30 @@ class TableComponent {
             column.sorter = (a, b) => this.#compare(a, b);
         }
         this.mDetailView = this.mDetailViewField != null;
+
+        this.mButtons = option.buttons;
+        $.each(this.mButtons, (buttonIndex, button) => {
+            this.mColumns.push(
+                {
+                    field: 'id',
+                    title: button.title,
+                    align: 'center',
+                    visible: button.visible,
+                    formatter: (cell, row, rowIndex, field) => {
+                        return `<a href="#" onclick="onTableComponentButtonClick('${option.tableId}', ${rowIndex}, ${buttonIndex})"><span class="fa fa-forward"></span></a>`;
+                    }
+                }
+            );
+        })
+        if (window.gTableComponents === undefined) {
+            window.gTableComponents = {};
+        }
+        window.gTableComponents[option.tableId] = this;
+    }
+
+    onButtonClick(rowIndex, buttonIndex) {
+        const row = this.vTable.bootstrapTable('getData')[rowIndex];
+        this.mButtons[buttonIndex].onClick(rowIndex, row, this.mStartTimestamp, this.mEndTimestamp);
     }
 
     /**
@@ -64,6 +96,8 @@ class TableComponent {
     load(option) {
         console.log(option);
 
+        this.mStartTimestamp = option.start;
+        this.mEndTimestamp = option.end;
         this.mQueryParam = option.ajaxData;
 
         if (!this.mCreated) {

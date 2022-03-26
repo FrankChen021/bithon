@@ -23,7 +23,7 @@ class MetricSidebar {
         const i = $(`<a href="#">${item.text}</a>`).click(() => {
             let url = `/web/app/metric/${this._appName}/${item.id}?interval=${g_MetricSelectedInterval}`;
             if ( g_SelectedInstance != null ) {
-                url += `&instance=${g_SelectedInstance}`;
+                url += `&instanceName=${g_SelectedInstance}`;
             }
             window.location = url;
         });

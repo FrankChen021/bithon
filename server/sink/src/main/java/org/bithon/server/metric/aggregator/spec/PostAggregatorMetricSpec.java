@@ -26,6 +26,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.aggregator.NumberAggregator;
 import org.bithon.server.metric.aggregator.ast.PostAggregatorExpressionBaseVisitor;
@@ -81,7 +82,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
         this.name = name;
         this.displayText = displayText;
         this.unit = unit;
-        this.expression = expression.trim();
+        this.expression = Preconditions.checkArgumentNotNull("expression", expression).trim();
         this.valueType = "long".equalsIgnoreCase(valueType) ? LongValueType.INSTANCE : DoubleValueType.INSTANCE;
         this.visible = visible == null ? true : visible;
 

@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{_common/layout}">
+<head>
+    <title>Bithon Tracing List</title>
+    <!-- bootstrap select -->
+    <script th:src="@{/lib/select2-4.0.13/js/select2.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/lib/select2-4.0.13/css/select2.min.css}">
+    <link rel="stylesheet" th:href="@{/lib/select2-4.0.13/css/select2-bootstrap4.min.css}">
+
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+
+    <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
+    <script th:src="@{/js/api-client/schema-api.js}"></script>
+    <script th:src="@{/js/component/trace/trace-list-component.js}"></script>
+    <script th:src="@{/js/component/auto-refresher/component.js}"></script>
+    <script th:src="@{/js/component/time-interval/component.js}"></script>
+    <script th:src="@{/js/component/app-selector/component.js}"></script>
+    <script th:src="@{/js/utils/location.js}"></script>
+    <script th:src="@{/js/chart-component.js}"></script>
+    <script th:src="@{/js/page/trace/page.js}"></script>
+    <script>
+        let g_SelectedApp;
+    </script>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light" style="padding-left: 5px; padding-right: 5px">
+
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0" id="filterBar"></ul>
+            <form class="form-inline my-2 my-lg-0" id="filterBarForm">
+                <!-- Auto Refresher -->
+
+                <!-- TimeInterval Component -->
+            </form>
+        </div>
+    </nav>
+    <div id="distribution"></div>
+    <table id="table" style="width: 100%;"></table>
+    <script>
+        let g_SelectedInstance = null;
+        $(document).ready(() => {
+            new TracePage(window.queryParams);
+        });
+    </script>
+</div>
+</body>
+</html>

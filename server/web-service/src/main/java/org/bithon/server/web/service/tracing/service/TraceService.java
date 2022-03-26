@@ -16,10 +16,9 @@
 
 package org.bithon.server.web.service.tracing.service;
 
-import org.bithon.server.common.matcher.EqualMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.Interval;
 import org.bithon.server.metric.storage.TimeseriesQuery;
@@ -145,11 +144,11 @@ public class TraceService {
         return rootSpans;
     }
 
-    public int getTraceListSize(List<DimensionCondition> filters, Timestamp start, Timestamp end) {
+    public int getTraceListSize(List<IFilter> filters, Timestamp start, Timestamp end) {
         return traceReader.getTraceListSize(filters, start, end);
     }
 
-    public List<TraceSpan> getTraceList(List<DimensionCondition> filters,
+    public List<TraceSpan> getTraceList(List<IFilter> filters,
                                         Timestamp start,
                                         Timestamp end,
                                         String orderBy,
@@ -164,7 +163,8 @@ public class TraceService {
                                         pageNumber, pageSize);
     }
 
-    public GetTraceDistributionResponse getTraceDistribution(List<DimensionCondition> filters,
+    @Deprecated
+    public GetTraceDistributionResponse getTraceDistribution(List<IFilter> filters,
                                                              String startTimeISO8601,
                                                              String endTimeISO8601) {
         TimeSpan start = TimeSpan.fromISO8601(startTimeISO8601);
@@ -174,17 +174,26 @@ public class TraceService {
                                         getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).getLength());
 
         // create a virtual data source to use current metric API to query
-        DataSourceSchema schema = TraceDataSourceSchema.getSchema();
+        DataSourceSchema schema = TraceDataSourceSchema.getTraceSpanSchema();
 
-        filters.add(new DimensionCondition("kind", new EqualMatcher("SERVER")));
         TimeseriesQuery query = new TimeseriesQuery(schema,
                                                     Collections.singletonList("count"),
                                                     filters,
                                                     interval,
                                                     Collections.emptyList());
 
+        // TODO 2：Provide a custom query
+        // OR implement a new interface
         return new GetTraceDistributionResponse(metricStorage.createMetricReader(schema).timeseries(query),
                                                 interval.getStepLength());
+    }
+
+
+    @Deprecated
+    public List<ITraceReader.Histogram> getTraceDistributionV2(List<IFilter> filters,
+                                                               TimeSpan start,
+                                                               TimeSpan end) {
+        return traceReader.getTraceDistribution(filters, start.toTimestamp(), end.toTimestamp());
     }
 
     static class Bucket {

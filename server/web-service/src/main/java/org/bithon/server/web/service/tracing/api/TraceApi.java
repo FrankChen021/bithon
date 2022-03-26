@@ -16,11 +16,15 @@
 
 package org.bithon.server.web.service.tracing.api;
 
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.matcher.EqualMatcher;
+import org.bithon.server.common.matcher.StringEqualMatcher;
 import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.metric.storage.DimensionCondition;
+import org.bithon.server.metric.storage.DimensionFilter;
+import org.bithon.server.metric.storage.IFilter;
+import org.bithon.server.tracing.TraceConfig;
 import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.web.service.tracing.service.TraceService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,9 +44,11 @@ import java.util.List;
 @RestController
 public class TraceApi {
 
+    private final TraceConfig traceConfig;
     private final TraceService traceService;
 
-    public TraceApi(TraceService traceService) {
+    public TraceApi(TraceConfig traceConfig, TraceService traceService) {
+        this.traceConfig = traceConfig;
         this.traceService = traceService;
     }
 
@@ -57,17 +63,29 @@ public class TraceApi {
         return new GetTraceByIdResponse(spanList, traceService.buildMap(spanList));
     }
 
+    @Deprecated
     @PostMapping("/api/trace/getTraceDistribution")
     public GetTraceDistributionResponse getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
         // backward compatibility
         if (StringUtils.hasText(request.getApplication())) {
             request.setFilters(new ArrayList<>(request.getFilters()));
-            request.getFilters().add(new DimensionCondition("appName", new EqualMatcher(request.getApplication())));
+            request.getFilters().add(new DimensionFilter("appName", new StringEqualMatcher(request.getApplication())));
         }
 
         return traceService.getTraceDistribution(request.getFilters(),
                                                  request.getStartTimeISO8601(),
                                                  request.getEndTimeISO8601());
+    }
+
+    @Deprecated
+    @PostMapping("/api/trace/getTraceDistribution/v2")
+    public List<ITraceReader.Histogram> getTraceDistributionV2(@Valid @RequestBody GetTraceDistributionRequest request) {
+        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
+
+        return traceService.getTraceDistributionV2(request.getFilters(),
+                                                   start,
+                                                   end);
     }
 
     @PostMapping("/api/trace/getTraceList")
@@ -78,7 +96,17 @@ public class TraceApi {
         // backward compatibility
         if (StringUtils.hasText(request.getApplication())) {
             request.setFilters(new ArrayList<>(request.getFilters()));
-            request.getFilters().add(new DimensionCondition("appName", new EqualMatcher(request.getApplication())));
+            request.getFilters().add(new DimensionFilter("appName", new StringEqualMatcher(request.getApplication())));
+        }
+
+        // check if filters exists
+        for (IFilter filter : request.getFilters()) {
+            if (filter.getName().startsWith("tags.")) {
+                String tagName = filter.getName().substring("tags.".length());
+                Preconditions.checkIf(traceConfig.getIndexes().getColumnPos(tagName) > 0,
+                                      "Can't search on tag [%s] because there's no index defined for this tag.",
+                                      tagName);
+            }
         }
 
         return new GetTraceListResponse(

@@ -32,7 +32,7 @@ public class TimeseriesQuery {
 
     private final List<String> metrics;
 
-    private final Collection<DimensionCondition> filters;
+    private final Collection<IFilter> filters;
     private final Interval interval;
 
     /**
@@ -42,7 +42,7 @@ public class TimeseriesQuery {
 
     public TimeseriesQuery(DataSourceSchema dataSource,
                            List<String> metrics,
-                           Collection<DimensionCondition> filters,
+                           Collection<IFilter> filters,
                            Interval interval,
                            List<String> groupBys) {
         this.dataSource = dataSource;

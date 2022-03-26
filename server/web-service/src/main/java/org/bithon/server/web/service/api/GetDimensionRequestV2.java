@@ -14,33 +14,43 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.metric.storage;
+package org.bithon.server.web.service.api;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import org.bithon.server.common.matcher.IStringMatcher;
+import lombok.Data;
+import org.bithon.server.metric.storage.IFilter;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/30 4:43 下午
+ * @author Frank Chen
+ * @date 24/3/22 11:42 PM
  */
-public class DimensionCondition {
+@Data
+public class GetDimensionRequestV2 {
+
+    @NotEmpty
+    private String startTimeISO8601;
+
+    @NotEmpty
+    private String endTimeISO8601;
 
     @NotNull
-    @Getter
-    private final String dimension;
+    private String dataSource;
+
+    @Valid
+    private Collection<IFilter> filters = Collections.emptyList();
 
     @NotNull
-    @Getter
-    private final IStringMatcher matcher;
+    private String name;
 
-    @JsonCreator
-    public DimensionCondition(@JsonProperty("dimension") String dimension,
-                              @JsonProperty("matcher") IStringMatcher matcher) {
-        this.dimension = dimension;
-        this.matcher = matcher;
-    }
+    /**
+     * Indicate the type of {@link #name}
+     * name
+     * alias
+     */
+    private String type = "name";
 }
