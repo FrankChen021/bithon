@@ -45,6 +45,7 @@ import org.jooq.Table;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -115,7 +116,9 @@ public class TraceStorage extends TraceJdbcStorage {
             public List<Histogram> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end) {
                 BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
 
-                StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT arrayJoin(histogram(200)(%s)) AS histogram FROM %s", summaryTable.COSTTIMEMS.getName(), summaryTable.getQualifiedName()));
+                StringBuilder sqlBuilder = new StringBuilder(StringUtils.format("SELECT arrayJoin(histogram(100)(%s)) AS histogram FROM %s",
+                                                                                summaryTable.COSTTIMEMS.getName(),
+                                                                                summaryTable.getQualifiedName()));
                 sqlBuilder.append(StringUtils.format(" WHERE %s >= '%s' AND %s < '%s'",
                                                      summaryTable.TIMESTAMP.getName(),
                                                      DateTime.toYYYYMMDDhhmmss(start.getTime()),
@@ -140,7 +143,21 @@ public class TraceStorage extends TraceJdbcStorage {
                                          + sqlBuilder
                                          + " )";
 
-                return dslContext.fetch(finalSqlBuilder).into(Histogram.class);
+                List<Histogram> histograms = dslContext.fetch(finalSqlBuilder).into(Histogram.class);
+
+                //
+                // convert to height to percentage.
+                // The final value is multiplied 100 times
+                // so the value is in range [1, 10000]
+                //
+                double total = 0;
+                for (Histogram histogram : histograms) {
+                    total += histogram.getHeight();
+                }
+                for (Histogram histogram : histograms) {
+                    histogram.setHeight((int) (histogram.getHeight() / total * 10000));
+                }
+                return histograms.stream().filter(histogram -> histogram.getHeight() > 0).collect(Collectors.toList());
             }
         };
     }

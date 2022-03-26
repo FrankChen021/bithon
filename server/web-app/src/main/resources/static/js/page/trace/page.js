@@ -42,14 +42,14 @@ class TracePage {
         // View - Refresh Button
         parent.append('<button class="btn btn-outline-secondary" style="border-radius:0;border-color: #ced4da" type="button"><i class="fas fa-sync-alt"></i></button>')
             .find("button").click(() => {
-                // reset the metric filter
-                this.metricFilters = [];
+            // reset the metric filter
+            this.metricFilters = [];
 
-                // get new interval
-                this.mInterval = this.vIntervalSelector.getInterval();
+            // get new interval
+            this.mInterval = this.vIntervalSelector.getInterval();
 
-                // refresh the page
-                this.#refreshPage();
+            // refresh the page
+            this.#refreshPage();
         });
 
         // View
@@ -112,36 +112,21 @@ class TracePage {
                 this._data = data;
 
                 const timeLabels = data.map(val => {
-                    // the unit of original data is micro-seconds
-                    // turn it into milliseconds by dividing 1000
-                    return (val.lower/1000).toFixed(2) + "ms\n"
-                         + (val.upper/1000).toFixed(2) + "ms";
+                    return microFormat(val.lower) + "\n" + microFormat(val.upper);
                 });
 
                 const series = [{
-                    name: "height",
-                    displayName: "count",
-                    chartType: "bar"
-                }].map(metric => {
-                    return {
-                        name: (metric.displayName === undefined ? metric.name : metric.displayName),
-                        type: metric.chartType || 'bar',
-                        //areaStyle: {opacity: 0.3},
-                        data: data.map(d => d[metric.name]),
-                        //lineStyle: {width: 1},
-                        //itemStyle: {opacity: 0},
-                        //yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
-                        label: {
-                            show: true,
-                            formatter: (obj) => {
-                                return obj.value > 0 ? "" + obj.value : "";
-                            }
-                        },
-                        // selected is not a property of series
-                        // this is used to render default selected state of legend by chart-component
-                        selected: metric.selected === undefined ? true : metric.selected
+                    name: 'percentage',
+                    type: 'bar',
+                    data: data.map(d => d['height']),
+                    label: {
+                        show: false,
+                        formatter: (obj) => {
+                            return obj.value > 0 ? "" + obj.value : "";
+                        }
                     }
-                });
+                }];
+
                 const op = this.getDefaultChartOption();
                 op.xAxis = {data: timeLabels, type: 'category'};
                 op.series = series;
@@ -169,6 +154,17 @@ class TracePage {
                     label: {
                         backgroundColor: '#283b56',
                     }
+                },
+                formatter: (series) => {
+                    const dataIndex = series[0].dataIndex;
+
+                    let tooltip = '';
+                    series.forEach(s => {
+                        //Concat the tooltip
+                        //marker can be seen as the style of legend of this series
+                        tooltip += `${s.axisValueLabel}<br />${s.marker}${s.seriesName}: ${s.data / 100.0}%`;
+                    });
+                    return tooltip;
                 }
             },
             legend: {
@@ -194,8 +190,9 @@ class TracePage {
                 data: [],
             },
             yAxis: {
-                type: 'value',
-                show: false
+                type: 'log',
+                show: false,
+                logBase: 10
             }
         };
     }

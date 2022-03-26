@@ -218,10 +218,17 @@ class AppSelector {
 
                 for (let p = 0; p < dimensionIndex; p++) {
                     const dim = this.mSchema.dimensionsSpec[p];
-                    if (this.mSelectedFilters[dim.name] != null) {
-                        filters.push(this.mSelectedFilters[dim.name]);
+                    const dimFilter = this.mSelectedFilters[this.mQueryVariablepPrefix + dim.alias];
+                    if (dimFilter != null) {
+                        filters.push({
+                            // use name instead of alias to query dimensions
+                            dimension: dim.name,
+                            matcher: dimFilter.matcher
+                        });
                     }
                 }
+
+                // merge user-provided filters
                 if (this.mRequestFilterFn !== undefined) {
                     this.mRequestFilterFn(filters);
                 }

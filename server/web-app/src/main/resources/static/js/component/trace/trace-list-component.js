@@ -72,14 +72,14 @@ class TraceListComponent {
                 },
                 sortable: true
             }, {
+                field: 'status',
+                title: 'Status'
+            }, {
                 field: 'tags',
                 title: 'URL',
                 formatter: function (value) {
                     return value['uri'] || value['http.uri'];
                 }
-            }, {
-                field: 'status',
-                title: 'Status'
             }],
 
             rowStyle: (row, index) => {
