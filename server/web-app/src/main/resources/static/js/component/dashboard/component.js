@@ -42,10 +42,11 @@ class Dashboard {
             intervalProvider: () => this.getSelectedTimeInterval(),
         }).registerChangedListener((name, value) => {
             if (name === 'application') {
-                window.location = `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`;
-            } else {
-                this.refreshDashboard();
+                g_SelectedApp = value;
+                window.history.pushState('', '', `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`);
             }
+
+            this.refreshDashboard();
         }).createAppSelector(this._appName);
 
         //

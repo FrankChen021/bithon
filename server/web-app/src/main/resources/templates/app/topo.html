@@ -18,11 +18,13 @@ class TopoComponent {
         // App Filter
         //
         new AppSelector({
-            appName: '[[${appName}]]',
             parentId:   'filterBar'
         }).registerChangedListener((name, value)=>{
-            window.location = `/web/app/topo/${value}`;
-        });
+            window.history.pushState('', '', `/web/app/topo/${value}`);
+            g_SelectedApp = value;
+
+            this.refreshTopo();
+        }).createAppSelector('[[${appName}]]');
 
         //
         // Create TimeInterval

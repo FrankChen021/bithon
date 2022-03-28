@@ -11,10 +11,11 @@ class EventPage {
             intervalProvider: () => this.#getInterval(),
         }).registerChangedListener((name, value) => {
             if (name === 'application') {
-                window.location = `/web/app/event/${value}`;
-            } else {
-                this.#refreshPage();
+                g_SelectedApp = value;
+                window.history.pushState('', '', `/web/app/event/${value}`);
             }
+
+            this.#refreshPage();
         }).createAppSelector(appName)
           .createFilter('event');
 

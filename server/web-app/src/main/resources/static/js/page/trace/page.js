@@ -21,10 +21,10 @@ class TracePage {
             intervalProvider: () => this.#getInterval()
         }).registerChangedListener((name, value) => {
             if (name === 'application') {
-                window.location = `/web/app/trace/${value}`;
-            } else {
-                this.#refreshPage();
+                g_SelectedApp = value;
+                window.history.pushState('', '', `/web/app/trace/${value}`);
             }
+            this.#refreshPage();
         }).createAppSelector(this.mQueryParams['appName'])
           .createFilter('trace_span_summary');
 
