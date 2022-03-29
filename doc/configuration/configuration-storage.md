@@ -24,9 +24,9 @@ bithon:
       type: jdbc
     setting:
       type: jdbc
-    provider:
-      type: jdbc
-      parameters:
+    providers:
+      jdbc:
+        enabled: true
         # data source parameters
         url: jdbc:your_jdbc_connection_string
         username: your_user_name
@@ -77,9 +77,9 @@ bithon:
       type: clickhouse
     setting:
       type: clickhouse
-    provider:
-      type: clickhouse
-      parameters:
+    providers:
+      clickhouse:
+        enabled: true
         # data source parameters
         url: jdbc:clickhouse://your_clickhouse_addr:8123/your_clickhouse_databases
         driverClassName: ru.yandex.clickhouse.ClickHouseDriver
@@ -96,8 +96,8 @@ bithon:
 ```yaml
 bithon:
   storage:
-    provider:
-      parameters:
+    providers:
+      clickhouse:
         cluster: your_cluster_name
 ```
 
@@ -108,7 +108,7 @@ By default, `MergeTree` engine is used. You can configure to use other `MergeTre
 ```yaml
 bithon:
   storage:
-    provider:
-      parameters:
+    providers:
+      clickhouse:
         engine: your_merge_tree_engine
 ```

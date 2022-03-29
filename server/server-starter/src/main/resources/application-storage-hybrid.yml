@@ -1,5 +1,5 @@
 #
-# This file demonstrates configuring the Bithon server to use ClickHouse as underlying storage
+# This configuration file demonstrates configuring the server with both clickhouse and H2 databases as storage
 #
 bithon:
   storage:
@@ -24,8 +24,12 @@ bithon:
     meta:
       type: clickhouse
     setting:
-      type: clickhouse
+      type: jdbc
     providers:
+      jdbc:
+        enabled: true
+        url: jdbc:h2:mem:bithon;MODE=mysql;
+        username: sa
       clickhouse:
         enabled: true
         # data source parameters
@@ -33,6 +37,13 @@ bithon:
         driverClassName: ru.yandex.clickhouse.ClickHouseDriver
         username: default
         password:
-        # ------More parameters----
+        # cluster parameters
         # cluster: test_cluster_two_shards_localhost
         # engine: MergeTree
+spring:
+  h2:
+    console:
+      enabled: true
+      path: /h2-ui
+      settings:
+        web-allow-others: true

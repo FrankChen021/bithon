@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
+
 /**
  * @author Frank Chen
  * @date 7/1/22 1:44 PM
@@ -43,7 +45,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
 
-    public SchemaJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public SchemaJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;

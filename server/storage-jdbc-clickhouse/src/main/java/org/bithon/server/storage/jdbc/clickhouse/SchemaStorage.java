@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageAutoConfiguration.BITHON_CLICKHOUSE_DSL;
+
 /**
  * @author Frank Chen
  * @date 7/1/22 3:06 PM
@@ -45,7 +47,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public SchemaStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public SchemaStorage(@JacksonInject(value = BITHON_CLICKHOUSE_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
         super(dslContext, objectMapper);

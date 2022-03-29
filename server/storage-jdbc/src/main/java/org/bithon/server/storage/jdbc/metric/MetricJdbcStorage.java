@@ -31,6 +31,8 @@ import org.jooq.SQLDialect;
 
 import java.sql.Timestamp;
 
+import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/31 1:37 下午
@@ -41,7 +43,7 @@ public class MetricJdbcStorage implements IMetricStorage {
     protected final DSLContext dslContext;
 
     @JsonCreator
-    public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext) {
+    public MetricJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 
