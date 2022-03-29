@@ -36,7 +36,6 @@ public class GetTraceDistributionRequest {
     private String endTimeISO8601;
 
     @Deprecated
-    @NotBlank
     private String application;
 
     private List<IFilter> filters = Collections.emptyList();

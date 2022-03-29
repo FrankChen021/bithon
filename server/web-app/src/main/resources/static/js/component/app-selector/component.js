@@ -40,6 +40,8 @@ class AppSelector {
 
         this.vAppSelector.change((e) => {
             const application = e.target.selectedOptions[0].value;
+
+            this.#addFilter("appName", application);
             this.#onSelectionChanged('application', application);
         });
 
