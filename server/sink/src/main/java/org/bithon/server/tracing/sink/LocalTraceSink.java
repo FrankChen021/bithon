@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.server.tracing.TraceSpan;
 import org.springframework.context.ApplicationContext;
 
 /**

@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.api;
 
 import lombok.Data;
-import org.bithon.server.common.utils.datetime.Period;
+import org.bithon.server.commons.time.Period;
 
 import javax.validation.constraints.NotNull;
 

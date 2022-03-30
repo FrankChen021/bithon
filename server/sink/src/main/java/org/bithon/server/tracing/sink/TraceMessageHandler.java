@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.TraceConfig;
+import org.bithon.server.tracing.TraceSpan;
 import org.bithon.server.tracing.index.TagIndexGenerator;
 import org.bithon.server.tracing.mapping.TraceIdMapping;
 import org.bithon.server.tracing.mapping.TraceMappingFactory;

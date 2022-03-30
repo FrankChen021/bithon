@@ -19,7 +19,7 @@ package org.bithon.server.tracing.mapping;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.server.tracing.TraceSpan;
 
 import java.util.ArrayList;
 import java.util.Collection;

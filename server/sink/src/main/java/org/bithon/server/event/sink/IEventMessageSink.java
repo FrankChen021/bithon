@@ -19,6 +19,7 @@ package org.bithon.server.event.sink;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.server.event.storage.EventMessage;
 
 /**
  * @author Frank Chen

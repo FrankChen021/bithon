@@ -17,7 +17,7 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.commons.time.TimeSpan;
 
 /**
  * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS

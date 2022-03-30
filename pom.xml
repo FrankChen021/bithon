@@ -85,9 +85,22 @@
         <artifactId>component-commons</artifactId>
         <version>${project.version}</version>
       </dependency>
+
+      <dependency>
+        <groupId>org.bithon</groupId>
+        <artifactId>bithon-server-commons</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
         <artifactId>bithon-server-collector</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <!-- Storage -->
+      <dependency>
+        <groupId>org.bithon</groupId>
+        <artifactId>bithon-storage</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -100,6 +113,7 @@
         <artifactId>bithon-storage-jdbc-clickhouse</artifactId>
         <version>${project.version}</version>
       </dependency>
+
       <dependency>
         <groupId>org.bithon</groupId>
         <artifactId>bithon-sink</artifactId>
@@ -357,7 +371,9 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
+        <module>server/server-commons</module>
         <module>server/sink</module>
+        <module>server/storage</module>
         <module>server/storage-jdbc</module>
         <module>server/storage-jdbc-clickhouse</module>
         <module>server/collector</module>

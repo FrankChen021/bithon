@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.server.tracing.TraceSpan;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +52,7 @@ public class URIParameterExtractor implements ITraceIdMappingExtractor {
 
     @Override
     public void extract(TraceSpan span, BiConsumer<TraceSpan, String> callback) {
-        Map<String, String> urlParameters = span.getURIParameters();
+        Map<String, String> urlParameters = span.getUriParameters();
 
         for (String parameter : this.parameters) {
             String userTxId = urlParameters.get(parameter);

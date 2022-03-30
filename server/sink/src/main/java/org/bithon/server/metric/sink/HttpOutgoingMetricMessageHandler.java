@@ -18,8 +18,8 @@ package org.bithon.server.metric.sink;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.service.UriNormalizer;
-import org.bithon.server.common.utils.EndPointType;
 import org.bithon.server.common.utils.NetworkUtils;
+import org.bithon.server.meta.EndPointType;
 import org.bithon.server.meta.storage.IMetaStorage;
 import org.bithon.server.metric.DataSourceSchemaManager;
 import org.bithon.server.metric.input.Measurement;

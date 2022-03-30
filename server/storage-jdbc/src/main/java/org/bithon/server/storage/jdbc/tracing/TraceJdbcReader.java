@@ -21,7 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
@@ -30,7 +30,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummary
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.tracing.TraceConfig;
 import org.bithon.server.tracing.TraceDataSourceSchema;
-import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.server.tracing.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.jooq.DSLContext;
 import org.jooq.Record1;

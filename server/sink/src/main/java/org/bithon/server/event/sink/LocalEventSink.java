@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.server.event.storage.EventMessage;
 import org.springframework.context.ApplicationContext;
 
 import java.io.IOException;

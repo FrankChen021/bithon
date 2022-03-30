@@ -22,8 +22,9 @@ import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.server.common.service.UriNormalizer;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.server.tracing.TraceSpan;
+import org.bithon.server.tracing.TraceSpanHelper;
 import org.bithon.server.tracing.sink.ITraceMessageSink;
-import org.bithon.server.tracing.sink.TraceSpan;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -77,8 +78,8 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
                 traceSpan.setTraceId(spanMessage.getTraceId());
                 traceSpan.setSpanId(spanMessage.getSpanId());
                 traceSpan.setParentSpanId(StringUtils.isEmpty(spanMessage.getParentSpanId())
-                                         ? ""
-                                         : spanMessage.getParentSpanId());
+                                          ? ""
+                                          : spanMessage.getParentSpanId());
                 traceSpan.setParentApplication(spanMessage.getParentAppName());
                 traceSpan.setStartTime(spanMessage.getStartTime());
                 traceSpan.setEndTime(spanMessage.getEndTime());
@@ -86,7 +87,8 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
                 traceSpan.setTags(spanMessage.getTagsMap());
                 traceSpan.setClazz(spanMessage.getClazz());
                 traceSpan.setMethod(spanMessage.getMethod());
-                traceSpan.flatten(uriNormalizer);
+
+                TraceSpanHelper.flatten(traceSpan, uriNormalizer);
 
                 return traceSpan;
             }

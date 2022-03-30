@@ -18,7 +18,7 @@ package org.bithon.server.web.service.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.aggregator.spec.IMetricSpec;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.TimeseriesQuery;

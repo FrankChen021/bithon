@@ -21,8 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.service.UriNormalizer;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.server.tracing.TraceSpan;
+import org.bithon.server.tracing.TraceSpanHelper;
 import org.bithon.server.tracing.sink.ITraceMessageSink;
-import org.bithon.server.tracing.sink.TraceSpan;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -95,7 +96,7 @@ public class TraceHttpCollector {
                 @Override
                 public TraceSpan next() {
                     TraceSpan span = delegate.next();
-                    span.flatten(uriNormalizer);
+                    TraceSpanHelper.flatten(span, uriNormalizer);
                     return span;
                 }
             };
@@ -190,7 +191,7 @@ public class TraceHttpCollector {
 
             span.getTags().clear();
             span.setTags(tags);
-            span.flatten(uriNormalizer);
+            TraceSpanHelper.flatten(span, uriNormalizer);
 
             return span;
         }

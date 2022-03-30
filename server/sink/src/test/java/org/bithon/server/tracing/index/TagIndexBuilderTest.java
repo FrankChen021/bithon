@@ -18,7 +18,7 @@ package org.bithon.server.tracing.index;
 
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.tracing.TraceConfig;
-import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.server.tracing.TraceSpan;
 import org.junit.Assert;
 import org.junit.Test;
 

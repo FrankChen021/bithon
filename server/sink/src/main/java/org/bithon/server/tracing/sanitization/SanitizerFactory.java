@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.tracing.TraceConfig;
-import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.server.tracing.TraceSpan;
 
 import java.io.IOException;
 import java.util.HashMap;

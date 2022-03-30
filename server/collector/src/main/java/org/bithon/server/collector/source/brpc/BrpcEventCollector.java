@@ -21,8 +21,8 @@ import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.event.BrpcEventMessage;
 import org.bithon.agent.rpc.brpc.event.IEventCollector;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
-import org.bithon.server.event.sink.EventMessage;
 import org.bithon.server.event.sink.IEventMessageSink;
+import org.bithon.server.event.storage.EventMessage;
 
 import java.util.Collections;
 import java.util.Iterator;

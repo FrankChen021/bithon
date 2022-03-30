@@ -18,7 +18,7 @@ package org.bithon.server.tracing.sanitization;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.server.tracing.TraceSpan;
 
 /**
  * clean up some (sensitive) data in spans

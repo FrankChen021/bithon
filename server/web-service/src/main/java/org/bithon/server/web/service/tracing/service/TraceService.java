@@ -16,14 +16,14 @@
 
 package org.bithon.server.web.service.tracing.service;
 
-import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.storage.IFilter;
 import org.bithon.server.metric.storage.IMetricStorage;
 import org.bithon.server.metric.storage.Interval;
 import org.bithon.server.metric.storage.TimeseriesQuery;
 import org.bithon.server.tracing.TraceDataSourceSchema;
-import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.server.tracing.TraceSpan;
 import org.bithon.server.tracing.storage.ITraceReader;
 import org.bithon.server.tracing.storage.ITraceStorage;
 import org.bithon.server.web.service.tracing.api.GetTraceDistributionResponse;

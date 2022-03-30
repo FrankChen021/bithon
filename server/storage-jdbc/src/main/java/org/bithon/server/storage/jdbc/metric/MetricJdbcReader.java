@@ -19,7 +19,7 @@ package org.bithon.server.storage.jdbc.metric;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.aggregator.spec.CountMetricSpec;
 import org.bithon.server.metric.aggregator.spec.DoubleLastMetricSpec;
