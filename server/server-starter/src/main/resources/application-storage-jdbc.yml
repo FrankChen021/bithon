@@ -1,3 +1,7 @@
+#
+# This file demonstrates configuring the Bithon server to use those databases that support JDBC as underlying storage.
+# Currently, only H2 has been tested, so H2 is configured in this file.
+#
 bithon:
   storage:
     tracing:
@@ -22,9 +26,9 @@ bithon:
       type: jdbc
     setting:
       type: jdbc
-    provider:
-      type: jdbc
-      parameters:
+    providers:
+      jdbc:
+        enabled: true
         url: jdbc:h2:mem:bithon;MODE=mysql;
         username: sa
 

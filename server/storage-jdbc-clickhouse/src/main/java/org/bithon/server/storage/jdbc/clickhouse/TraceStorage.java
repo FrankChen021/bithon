@@ -47,6 +47,8 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageAutoConfiguration.BITHON_CLICKHOUSE_DSL;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/10/27 9:34 下午
@@ -58,7 +60,7 @@ public class TraceStorage extends TraceJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public TraceStorage(@JacksonInject(value = BITHON_CLICKHOUSE_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceConfig traceConfig,

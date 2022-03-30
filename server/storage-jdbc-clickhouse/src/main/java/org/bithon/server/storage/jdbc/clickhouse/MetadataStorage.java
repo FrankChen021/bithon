@@ -24,6 +24,8 @@ import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.jooq.DSLContext;
 
+import static org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageAutoConfiguration.BITHON_CLICKHOUSE_DSL;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/10/27 9:56 下午
@@ -34,7 +36,7 @@ public class MetadataStorage extends MetadataJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public MetadataStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dsl,
+    public MetadataStorage(@JacksonInject(value = BITHON_CLICKHOUSE_DSL, useInput = OptBoolean.FALSE) DSLContext dsl,
                            @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
         super(dsl);
         this.config = config;

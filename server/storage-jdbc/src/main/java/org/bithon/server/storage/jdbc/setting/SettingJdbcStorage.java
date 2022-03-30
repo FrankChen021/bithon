@@ -24,6 +24,8 @@ import org.bithon.server.setting.storage.ISettingStorage;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.jooq.DSLContext;
 
+import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
+
 /**
  * @author Frank Chen
  * @date 4/11/21 3:18 pm
@@ -33,7 +35,7 @@ public class SettingJdbcStorage implements ISettingStorage {
 
     protected final DSLContext dslContext;
 
-    public SettingJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext) {
+    public SettingJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 

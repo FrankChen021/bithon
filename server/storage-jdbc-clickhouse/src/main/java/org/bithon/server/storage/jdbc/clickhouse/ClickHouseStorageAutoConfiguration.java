@@ -19,8 +19,12 @@ package org.bithon.server.storage.jdbc.clickhouse;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,18 +37,25 @@ import java.net.URI;
  * @date 27/10/21 9:45 pm
  */
 @Configuration
-@ConditionalOnProperty(prefix = "bithon.storage.provider", name = "type", havingValue = "clickhouse")
+@ConditionalOnProperty(prefix = "bithon.storage.providers.clickhouse", name = "enabled", havingValue = "true")
 public class ClickHouseStorageAutoConfiguration {
 
-    @Bean
-    @ConfigurationProperties(prefix = "bithon.storage.provider.parameters")
+    public static final String BITHON_CLICKHOUSE_DSL = "bithon-clickhouse-dslContext";
+
+    @Bean("bithon-clickhouse-dataSource")
+    @ConfigurationProperties(prefix = "bithon.storage.providers.clickhouse")
     DataSource createDataSource() {
         return new DruidDataSource();
     }
 
+    @Bean(BITHON_CLICKHOUSE_DSL)
+    DSLContext createDSL(@Qualifier("bithon-clickhouse-dataSource") DataSource dataSource) {
+        JooqProperties p = new JooqProperties();
+        return DSL.using(dataSource, p.determineSqlDialect(dataSource));
+    }
+
     @Bean
-    @ConfigurationProperties(prefix = "bithon.storage.provider.parameters")
-    ClickHouseConfig clickHouseConfig(@Value("${bithon.storage.provider.parameters.url}") String jdbc) throws Exception {
+    ClickHouseConfig clickHouseConfig(@Value("${bithon.storage.providers.clickhouse.url}") String jdbc) throws Exception {
         if (!jdbc.startsWith("jdbc:")) {
             throw new RuntimeException("jdbc format is wrong.");
         }

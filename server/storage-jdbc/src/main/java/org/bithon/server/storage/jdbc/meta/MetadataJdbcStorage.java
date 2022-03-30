@@ -32,6 +32,8 @@ import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 
+import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/11 10:56 下午
@@ -42,7 +44,7 @@ public class MetadataJdbcStorage implements IMetaStorage {
     protected final DSLContext dslContext;
 
     @JsonCreator
-    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dsl) {
+    public MetadataJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dsl) {
         this.dslContext = dsl;
     }
 

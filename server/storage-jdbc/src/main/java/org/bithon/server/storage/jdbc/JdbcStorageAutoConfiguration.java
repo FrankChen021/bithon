@@ -25,12 +25,17 @@ import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
 
@@ -39,14 +44,23 @@ import javax.sql.DataSource;
  * @date 25/10/21 9:45 pm
  */
 @Configuration
-@ConditionalOnProperty(prefix = "bithon.storage.provider", name = "type", havingValue = "jdbc")
+@ConditionalOnProperty(prefix = "bithon.storage.providers.jdbc", name = "enabled", havingValue = "true")
 @AutoConfigureBefore({DataSourceAutoConfiguration.class})
 public class JdbcStorageAutoConfiguration {
 
-    @Bean
-    @ConfigurationProperties(prefix = "bithon.storage.provider.parameters")
+    public static final String BITHON_JDBC_DSL = "bithon-jdbc-dsl";
+
+    @Primary
+    @Bean("bithon-jdbc-dataSource")
+    @ConfigurationProperties(prefix = "bithon.storage.providers.jdbc")
     DataSource createDataSource() {
         return new DruidDataSource();
+    }
+
+    @Bean(BITHON_JDBC_DSL)
+    DSLContext createDSL(@Qualifier("bithon-jdbc-dataSource") DataSource dataSource) {
+        JooqProperties p = new JooqProperties();
+        return DSL.using(dataSource, p.determineSqlDialect(dataSource));
     }
 
     @Bean

@@ -24,6 +24,8 @@ import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.jooq.DSLContext;
 
+import static org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageAutoConfiguration.BITHON_CLICKHOUSE_DSL;
+
 /**
  * @author Frank Chen
  * @date 4/11/21 3:34 pm
@@ -34,7 +36,7 @@ public class SettingStorage extends SettingJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public SettingStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public SettingStorage(@JacksonInject(value = BITHON_CLICKHOUSE_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
                           @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
         super(dslContext);
         this.config = config;

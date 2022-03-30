@@ -33,6 +33,8 @@ import org.jooq.DSLContext;
 
 import java.sql.Timestamp;
 
+import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/4 8:34 下午
@@ -41,13 +43,14 @@ import java.sql.Timestamp;
 @JsonTypeName("jdbc")
 public class TraceJdbcStorage implements ITraceStorage {
 
+
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
     protected final TraceStorageConfig config;
     protected final TraceConfig traceConfig;
 
     @JsonCreator
-    public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public TraceJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceConfig traceConfig) {
