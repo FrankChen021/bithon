@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.metric.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;

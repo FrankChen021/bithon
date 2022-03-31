@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-import org.bithon.server.metric.aggregator.spec.IMetricSpec;
-import org.bithon.server.metric.aggregator.spec.PostAggregatorExpressionVisitor;
-import org.bithon.server.metric.aggregator.spec.PostAggregatorMetricSpec;
+import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.aggregator.spec.PostAggregatorExpressionVisitor;
+import org.bithon.server.storage.datasource.aggregator.spec.PostAggregatorMetricSpec;
 import org.junit.Assert;
 import org.junit.Test;
 

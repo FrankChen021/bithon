@@ -17,14 +17,14 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import lombok.Getter;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.aggregator.spec.IMetricSpec;
-import org.bithon.server.metric.aggregator.spec.PostAggregatorMetricSpec;
-import org.bithon.server.metric.dimension.IDimensionSpec;
-import org.bithon.server.metric.typing.DoubleValueType;
-import org.bithon.server.metric.typing.IValueType;
-import org.bithon.server.metric.typing.LongValueType;
-import org.bithon.server.metric.typing.StringValueType;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.aggregator.spec.PostAggregatorMetricSpec;
+import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.typing.DoubleValueType;
+import org.bithon.server.storage.datasource.typing.IValueType;
+import org.bithon.server.storage.datasource.typing.LongValueType;
+import org.bithon.server.storage.datasource.typing.StringValueType;
 import org.jooq.Field;
 import org.jooq.Index;
 import org.jooq.impl.DSL;

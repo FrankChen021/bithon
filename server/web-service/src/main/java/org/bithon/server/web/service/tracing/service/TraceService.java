@@ -17,8 +17,8 @@
 package org.bithon.server.web.service.tracing.service;
 
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.sink.tracing.TraceDataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;

@@ -18,9 +18,9 @@ package org.bithon.server.collector.source.http;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.DataSourceSchemaManager;
-import org.bithon.server.metric.input.InputRow;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.springframework.web.bind.annotation.PostMapping;

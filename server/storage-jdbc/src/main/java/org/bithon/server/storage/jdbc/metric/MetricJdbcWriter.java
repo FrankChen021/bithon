@@ -17,8 +17,8 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.metric.input.InputRow;
-import org.bithon.server.metric.input.Measurement;
+import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.jooq.DSLContext;
 import org.jooq.Field;

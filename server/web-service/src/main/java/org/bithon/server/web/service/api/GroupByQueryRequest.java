@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.api;
 
 import lombok.Data;
-import org.bithon.server.metric.api.IQuerableAggregator;
+import org.bithon.server.storage.datasource.api.IQuerableAggregator;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.OrderBy;
 

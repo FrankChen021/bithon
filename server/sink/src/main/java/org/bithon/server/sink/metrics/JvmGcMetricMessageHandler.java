@@ -17,7 +17,7 @@
 package org.bithon.server.sink.metrics;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.metric.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.stereotype.Service;

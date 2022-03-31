@@ -17,14 +17,14 @@
 package org.bithon.server.sink.tracing;
 
 import org.bithon.component.commons.utils.CollectionUtils;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.DataSourceSchemaManager;
-import org.bithon.server.metric.TimestampSpec;
-import org.bithon.server.metric.aggregator.spec.CountMetricSpec;
-import org.bithon.server.metric.aggregator.spec.LongSumMetricSpec;
-import org.bithon.server.metric.dimension.IDimensionSpec;
-import org.bithon.server.metric.dimension.StringDimensionSpec;
 import org.bithon.server.sink.tracing.index.TagIndexConfig;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.TimestampSpec;
+import org.bithon.server.storage.datasource.aggregator.spec.CountMetricSpec;
+import org.bithon.server.storage.datasource.aggregator.spec.LongSumMetricSpec;
+import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.dimension.StringDimensionSpec;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ import java.util.Map;
 @Component
 public class TraceDataSourceSchema {
 
-    private static final DataSourceSchema TRACE_SPAN_SCHEMA = new DataSourceSchema("trace_span_summary",
+    public static final DataSourceSchema TRACE_SPAN_SCHEMA = new DataSourceSchema("trace_span_summary",
                                                                                    "trace_span_summary",
                                                                                    new TimestampSpec("timestamp", null, null),
                                                                                    Arrays.asList(new StringDimensionSpec("appName",
@@ -77,7 +77,7 @@ public class TraceDataSourceSchema {
                                                                                                                        "us",
                                                                                                                        true)
                                                                                    ));
-    private final DataSourceSchema TRACE_SPAN_TAG_SCHEMA;
+    private DataSourceSchema TRACE_SPAN_TAG_SCHEMA;
 
     public TraceDataSourceSchema(DataSourceSchemaManager dataSourceSchemaManager,
                                  TraceConfig traceConfig) {

@@ -17,8 +17,8 @@
 package org.bithon.server.sink.metrics;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.metric.DataSourceSchemaManager;
-import org.bithon.server.metric.input.Measurement;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.meta.EndPointType;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;

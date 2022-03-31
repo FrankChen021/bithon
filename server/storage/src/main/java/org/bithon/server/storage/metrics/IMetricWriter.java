@@ -16,8 +16,8 @@
 
 package org.bithon.server.storage.metrics;
 
-import org.bithon.server.metric.input.InputRow;
-import org.bithon.server.metric.input.Measurement;
+import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.Measurement;
 
 import java.io.IOException;
 import java.util.Collection;

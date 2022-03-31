@@ -17,8 +17,8 @@
 package org.bithon.server.storage.metrics;
 
 import lombok.Data;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.api.IQuerableAggregator;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.api.IQuerableAggregator;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

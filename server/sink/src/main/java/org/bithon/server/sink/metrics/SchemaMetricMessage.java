@@ -18,7 +18,7 @@ package org.bithon.server.sink.metrics;
 
 import lombok.Data;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
-import org.bithon.server.metric.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchema;
 
 /**
  * @author Frank Chen

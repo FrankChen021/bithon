@@ -17,7 +17,7 @@
 package org.bithon.server.storage.metrics;
 
 import lombok.Data;
-import org.bithon.server.metric.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchema;
 
 import java.util.Collection;
 import java.util.List;

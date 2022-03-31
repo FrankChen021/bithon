@@ -16,7 +16,7 @@
 
 package org.bithon.server.sink.metrics;
 
-import org.bithon.server.metric.input.Measurement;
+import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.meta.EndPointType;
 
 import java.util.HashMap;

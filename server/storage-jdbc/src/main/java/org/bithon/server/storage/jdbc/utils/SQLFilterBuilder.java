@@ -27,8 +27,8 @@ import org.bithon.server.commons.matcher.StringIContainsMatcher;
 import org.bithon.server.commons.matcher.StringNotEqualMatcher;
 import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 

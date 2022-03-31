@@ -18,9 +18,9 @@ package org.bithon.server.web.service.topo.api;
 
 import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.DataSourceSchemaManager;
-import org.bithon.server.metric.input.InputRow;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.meta.EndPointType;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.GroupByQuery;
