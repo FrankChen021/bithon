@@ -22,9 +22,9 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.storage.ISchemaStorage;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonMetaSchemaRecord;
+import org.bithon.server.storage.metrics.ISchemaStorage;
 import org.jooq.DSLContext;
 import org.springframework.dao.DuplicateKeyException;
 

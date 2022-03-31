@@ -16,8 +16,8 @@
 
 package org.bithon.server.web.service.meta.api;
 
-import org.bithon.server.meta.Metadata;
-import org.bithon.server.meta.storage.IMetaStorage;
+import org.bithon.server.storage.meta.IMetaStorage;
+import org.bithon.server.storage.meta.Metadata;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -18,7 +18,7 @@ package org.bithon.server.web.service.tracing.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bithon.server.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.util.List;
 

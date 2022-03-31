@@ -18,11 +18,11 @@ package org.bithon.server.storage.jdbc.tracing;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
-import org.bithon.server.tracing.TraceSpan;
-import org.bithon.server.tracing.index.TagIndex;
-import org.bithon.server.tracing.mapping.TraceIdMapping;
-import org.bithon.server.tracing.storage.ITraceWriter;
-import org.bithon.server.tracing.storage.TraceStorageConfig;
+import org.bithon.server.storage.tracing.ITraceWriter;
+import org.bithon.server.storage.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceStorageConfig;
+import org.bithon.server.storage.tracing.index.TagIndex;
+import org.bithon.server.storage.tracing.mapping.TraceIdMapping;
 
 import java.util.ArrayList;
 import java.util.Collection;

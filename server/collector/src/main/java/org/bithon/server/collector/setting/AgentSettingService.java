@@ -16,8 +16,8 @@
 
 package org.bithon.server.collector.setting;
 
-import org.bithon.server.setting.storage.ISettingReader;
-import org.bithon.server.setting.storage.ISettingStorage;
+import org.bithon.server.storage.setting.ISettingReader;
+import org.bithon.server.storage.setting.ISettingStorage;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;

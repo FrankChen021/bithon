@@ -18,17 +18,17 @@ package org.bithon.server.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.event.storage.EventStorageConfig;
-import org.bithon.server.event.storage.IEventStorage;
-import org.bithon.server.meta.storage.CachableMetadataStorage;
-import org.bithon.server.meta.storage.IMetaStorage;
-import org.bithon.server.metric.storage.IMetricStorage;
-import org.bithon.server.metric.storage.ISchemaStorage;
-import org.bithon.server.metric.storage.MetricStorageConfig;
-import org.bithon.server.setting.storage.ISettingStorage;
-import org.bithon.server.setting.storage.SettingStorageConfig;
-import org.bithon.server.tracing.storage.ITraceStorage;
-import org.bithon.server.tracing.storage.TraceStorageConfig;
+import org.bithon.server.sink.meta.CachableMetadataStorage;
+import org.bithon.server.storage.event.EventStorageConfig;
+import org.bithon.server.storage.event.IEventStorage;
+import org.bithon.server.storage.meta.IMetaStorage;
+import org.bithon.server.storage.metrics.IMetricStorage;
+import org.bithon.server.storage.metrics.ISchemaStorage;
+import org.bithon.server.storage.metrics.MetricStorageConfig;
+import org.bithon.server.storage.setting.ISettingStorage;
+import org.bithon.server.storage.setting.SettingStorageConfig;
+import org.bithon.server.storage.tracing.ITraceStorage;
+import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

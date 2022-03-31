@@ -18,7 +18,7 @@ package org.bithon.server.common.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.bithon.server.meta.EndPointType;
+import org.bithon.server.storage.meta.EndPointType;
 import org.springframework.util.StringUtils;
 
 import java.net.URI;

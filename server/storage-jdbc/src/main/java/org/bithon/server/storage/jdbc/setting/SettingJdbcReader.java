@@ -16,8 +16,8 @@
 
 package org.bithon.server.storage.jdbc.setting;
 
-import org.bithon.server.setting.storage.ISettingReader;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.setting.ISettingReader;
 import org.jooq.DSLContext;
 
 import java.sql.Timestamp;

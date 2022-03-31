@@ -21,9 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.common.service.UriNormalizer;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
-import org.bithon.server.tracing.TraceSpan;
-import org.bithon.server.tracing.TraceSpanHelper;
-import org.bithon.server.tracing.sink.ITraceMessageSink;
+import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.sink.tracing.TraceSpanHelper;
+import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 

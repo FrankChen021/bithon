@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.tracing.api;
 
 import lombok.Data;
-import org.bithon.server.metric.storage.OrderBy;
+import org.bithon.server.storage.metrics.OrderBy;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;

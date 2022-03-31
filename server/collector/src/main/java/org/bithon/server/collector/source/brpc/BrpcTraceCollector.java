@@ -22,9 +22,9 @@ import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.server.common.service.UriNormalizer;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
-import org.bithon.server.tracing.TraceSpan;
-import org.bithon.server.tracing.TraceSpanHelper;
-import org.bithon.server.tracing.sink.ITraceMessageSink;
+import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.sink.tracing.TraceSpanHelper;
+import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 

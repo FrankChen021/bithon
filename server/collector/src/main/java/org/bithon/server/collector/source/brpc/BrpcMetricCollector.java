@@ -37,10 +37,10 @@ import org.bithon.server.metric.aggregator.spec.LongMinMetricSpec;
 import org.bithon.server.metric.aggregator.spec.LongSumMetricSpec;
 import org.bithon.server.metric.dimension.IDimensionSpec;
 import org.bithon.server.metric.dimension.StringDimensionSpec;
-import org.bithon.server.metric.sink.IMessageSink;
-import org.bithon.server.metric.sink.IMetricMessageSink;
-import org.bithon.server.metric.sink.MetricMessage;
-import org.bithon.server.metric.sink.SchemaMetricMessage;
+import org.bithon.server.sink.metrics.IMessageSink;
+import org.bithon.server.sink.metrics.IMetricMessageSink;
+import org.bithon.server.sink.metrics.MetricMessage;
+import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;

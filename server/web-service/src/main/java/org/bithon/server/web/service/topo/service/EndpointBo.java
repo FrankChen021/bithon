@@ -19,7 +19,7 @@ package org.bithon.server.web.service.topo.service;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.server.meta.EndPointType;
+import org.bithon.server.storage.meta.EndPointType;
 
 import java.util.concurrent.atomic.AtomicLong;
 

@@ -21,7 +21,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.bithon.server.meta.EndPointType;
+import org.bithon.server.storage.meta.EndPointType;
 
 import java.util.Arrays;
 import java.util.List;

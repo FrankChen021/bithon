@@ -17,8 +17,8 @@
 package org.bithon.server.kafka;
 
 import org.bithon.server.common.utils.collection.IteratorableCollection;
-import org.bithon.server.event.sink.LocalEventSink;
-import org.bithon.server.event.storage.EventMessage;
+import org.bithon.server.sink.event.LocalEventSink;
+import org.bithon.server.storage.event.EventMessage;
 
 /**
  * @author frank.chen021@outlook.com

@@ -27,8 +27,8 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
-import org.bithon.server.metric.sink.IMetricMessageSink;
-import org.bithon.server.metric.sink.MetricMessage;
+import org.bithon.server.sink.metrics.IMetricMessageSink;
+import org.bithon.server.sink.metrics.MetricMessage;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 

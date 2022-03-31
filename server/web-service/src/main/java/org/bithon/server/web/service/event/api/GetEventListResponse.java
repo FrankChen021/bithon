@@ -18,7 +18,7 @@ package org.bithon.server.web.service.event.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bithon.server.event.storage.Event;
+import org.bithon.server.storage.event.Event;
 
 import java.util.List;
 

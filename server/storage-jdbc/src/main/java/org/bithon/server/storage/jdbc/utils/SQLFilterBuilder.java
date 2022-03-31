@@ -29,8 +29,8 @@ import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.bithon.server.commons.matcher.StringStartsWithMatcher;
 import org.bithon.server.metric.DataSourceSchema;
 import org.bithon.server.metric.dimension.IDimensionSpec;
-import org.bithon.server.metric.storage.DimensionFilter;
-import org.bithon.server.metric.storage.IFilter;
+import org.bithon.server.storage.metrics.DimensionFilter;
+import org.bithon.server.storage.metrics.IFilter;
 
 import java.util.Collection;
 import java.util.stream.Collectors;

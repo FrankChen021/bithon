@@ -19,9 +19,9 @@ package org.bithon.server.storage.jdbc.setting;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.setting.storage.ISettingReader;
-import org.bithon.server.setting.storage.ISettingStorage;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.setting.ISettingReader;
+import org.bithon.server.storage.setting.ISettingStorage;
 import org.jooq.DSLContext;
 
 import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;

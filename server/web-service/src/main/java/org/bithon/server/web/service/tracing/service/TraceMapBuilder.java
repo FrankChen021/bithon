@@ -18,7 +18,7 @@ package org.bithon.server.web.service.tracing.service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.tracing.TraceSpan;
+import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.web.service.tracing.api.TraceMap;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
