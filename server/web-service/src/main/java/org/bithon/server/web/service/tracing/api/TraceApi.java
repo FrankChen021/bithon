@@ -18,7 +18,7 @@ package org.bithon.server.web.service.tracing.api;
 
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.matcher.StringEqualMatcher;
+import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.metric.storage.DimensionFilter;
 import org.bithon.server.metric.storage.IFilter;

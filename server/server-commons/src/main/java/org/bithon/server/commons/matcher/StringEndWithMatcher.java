@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.matcher;
+package org.bithon.server.commons.matcher;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,21 +22,21 @@ import lombok.Getter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/13 9:50 下午
+ * @date 2021/1/13 9:47 下午
  */
-public class StringAntPathMatcher implements IMatcher {
+public class StringEndWithMatcher implements IMatcher {
 
     @Getter
     private final String pattern;
 
     @JsonCreator
-    public StringAntPathMatcher(@JsonProperty("pattern") String pattern) {
+    public StringEndWithMatcher(@JsonProperty("pattern") String pattern) {
         this.pattern = pattern;
     }
 
     @Override
     public boolean matches(Object input) {
-        return new org.springframework.util.AntPathMatcher().match(pattern, input.toString());
+        return input.toString().endsWith(pattern);
     }
 
     @Override

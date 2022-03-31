@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.event.api;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.matcher.StringEqualMatcher;
+import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.event.storage.IEventReader;
 import org.bithon.server.event.storage.IEventStorage;

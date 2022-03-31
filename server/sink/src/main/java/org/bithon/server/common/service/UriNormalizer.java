@@ -18,8 +18,8 @@ package org.bithon.server.common.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bithon.server.common.matcher.IMatcher;
-import org.bithon.server.common.matcher.StringRegexMatcher;
+import org.bithon.server.commons.matcher.IMatcher;
+import org.bithon.server.commons.matcher.StringRegexMatcher;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 

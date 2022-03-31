@@ -14,29 +14,31 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.matcher;
+package org.bithon.server.commons.matcher;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
-/**
- * @author frank.chen021@outlook.com
- * @date 2021/1/13 9:47 下午
- */
-public class StringStartsWithMatcher implements IMatcher {
+import javax.validation.constraints.NotNull;
 
+/**
+ * @author Frank Chen
+ * @date 8/1/22 2:41 PM
+ */
+public class StringNotEqualMatcher implements IMatcher {
     @Getter
+    @NotNull
     private final String pattern;
 
     @JsonCreator
-    public StringStartsWithMatcher(@JsonProperty("pattern") String pattern) {
+    public StringNotEqualMatcher(@JsonProperty("pattern") @NotNull String pattern) {
         this.pattern = pattern;
     }
 
     @Override
     public boolean matches(Object input) {
-        return (input.toString()).startsWith(pattern);
+        return !pattern.equals(input);
     }
 
     @Override

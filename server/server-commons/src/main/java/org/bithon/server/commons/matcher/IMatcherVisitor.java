@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.matcher;
+package org.bithon.server.commons.matcher;
 
 /**
  * @author frank.chen021@outlook.com

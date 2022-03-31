@@ -14,34 +14,29 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.matcher;
+package org.bithon.server.commons.matcher;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
-import java.util.regex.Pattern;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/13 9:45 下午
+ * @date 2021/1/13 9:47 下午
  */
-public class StringRegexMatcher implements IMatcher {
-
-    @JsonIgnore
-    private final Pattern regex;
+public class StringStartsWithMatcher implements IMatcher {
 
     @Getter
     private final String pattern;
 
-    public StringRegexMatcher(@JsonProperty("pattern") String pattern) {
-        this.regex = Pattern.compile(pattern);
+    @JsonCreator
+    public StringStartsWithMatcher(@JsonProperty("pattern") String pattern) {
         this.pattern = pattern;
     }
 
     @Override
     public boolean matches(Object input) {
-        return regex.matcher(input.toString()).matches();
+        return (input.toString()).startsWith(pattern);
     }
 
     @Override

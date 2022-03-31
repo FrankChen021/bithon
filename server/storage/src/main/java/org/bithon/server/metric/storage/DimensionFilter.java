@@ -19,7 +19,7 @@ package org.bithon.server.metric.storage;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import org.bithon.server.common.matcher.IMatcher;
+import org.bithon.server.commons.matcher.IMatcher;
 
 import javax.annotation.Nullable;
 

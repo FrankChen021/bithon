@@ -14,31 +14,34 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.matcher;
+package org.bithon.server.commons.matcher;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
-import javax.validation.constraints.NotNull;
+import java.util.regex.Pattern;
 
 /**
- * @author Frank Chen
- * @date 8/1/22 2:41 PM
+ * @author frank.chen021@outlook.com
+ * @date 2021/1/13 9:45 下午
  */
-public class StringNotEqualMatcher implements IMatcher {
+public class StringRegexMatcher implements IMatcher {
+
+    @JsonIgnore
+    private final Pattern regex;
+
     @Getter
-    @NotNull
     private final String pattern;
 
-    @JsonCreator
-    public StringNotEqualMatcher(@JsonProperty("pattern") @NotNull String pattern) {
+    public StringRegexMatcher(@JsonProperty("pattern") String pattern) {
+        this.regex = Pattern.compile(pattern);
         this.pattern = pattern;
     }
 
     @Override
     public boolean matches(Object input) {
-        return !pattern.equals(input);
+        return regex.matcher(input.toString()).matches();
     }
 
     @Override

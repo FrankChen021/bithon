@@ -18,7 +18,7 @@ package org.bithon.server.metric.storage;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.common.matcher.IMatcher;
+import org.bithon.server.commons.matcher.IMatcher;
 
 /**
  * @author frank.chen021@outlook.com
