@@ -22,13 +22,11 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.CountMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.LongSumMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.dimension.StringDimensionSpec;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -39,45 +37,6 @@ import java.util.Map;
  */
 @Component
 public class TraceDataSourceSchema {
-
-    public static final DataSourceSchema TRACE_SPAN_SCHEMA = new DataSourceSchema("trace_span_summary",
-                                                                                   "trace_span_summary",
-                                                                                   new TimestampSpec("timestamp", null, null),
-                                                                                   Arrays.asList(new StringDimensionSpec("appName",
-                                                                                                                         "appName",
-                                                                                                                         "appName",
-                                                                                                                         true,
-                                                                                                                         null,
-                                                                                                                         null,
-                                                                                                                         null),
-                                                                                                 new StringDimensionSpec("instanceName",
-                                                                                                                         "instanceName",
-                                                                                                                         "instanceName",
-                                                                                                                         false,
-                                                                                                                         null,
-                                                                                                                         null,
-                                                                                                                         null),
-                                                                                                 new StringDimensionSpec("status",
-                                                                                                                         "status",
-                                                                                                                         "status",
-                                                                                                                         false,
-                                                                                                                         true,
-                                                                                                                         null,
-                                                                                                                         null),
-                                                                                                 new StringDimensionSpec("normalizedUrl",
-                                                                                                                         "url",
-                                                                                                                         "url",
-                                                                                                                         false,
-                                                                                                                         true,
-                                                                                                                         128,
-                                                                                                                         null)),
-                                                                                   Arrays.asList(CountMetricSpec.INSTANCE,
-                                                                                                 new LongSumMetricSpec("costTimeMs",
-                                                                                                                       "costTimeMs",
-                                                                                                                       "us",
-                                                                                                                       true)
-                                                                                   ));
-    private DataSourceSchema TRACE_SPAN_TAG_SCHEMA;
 
     public TraceDataSourceSchema(DataSourceSchemaManager dataSourceSchemaManager,
                                  TraceConfig traceConfig) {
@@ -99,11 +58,11 @@ public class TraceDataSourceSchema {
             }
         }
 
-        TRACE_SPAN_TAG_SCHEMA = new DataSourceSchema("trace_span_tag_index",
-                                                     "trace_span_tag_index",
-                                                     new TimestampSpec("timestamp", null, null),
-                                                     dimensionSpecs,
-                                                     Collections.singletonList(CountMetricSpec.INSTANCE));
+        final DataSourceSchema spanTagSchema = new DataSourceSchema("trace_span_tag_index",
+                                                                    "trace_span_tag_index",
+                                                                    new TimestampSpec("timestamp", null, null),
+                                                                    dimensionSpecs,
+                                                                    Collections.singletonList(CountMetricSpec.INSTANCE));
 
         dataSourceSchemaManager.addListener(new DataSourceSchemaManager.IDataSourceSchemaListener() {
             @Override
@@ -115,14 +74,9 @@ public class TraceDataSourceSchema {
             }
 
             @Override
-            public void onLoad() {
-                dataSourceSchemaManager.addDataSourceSchema(TRACE_SPAN_SCHEMA);
-                dataSourceSchemaManager.addDataSourceSchema(TRACE_SPAN_TAG_SCHEMA);
+            public void onRefreshed() {
+                dataSourceSchemaManager.addDataSourceSchema(spanTagSchema);
             }
         });
-    }
-
-    public static DataSourceSchema getTraceSpanSchema() {
-        return TRACE_SPAN_SCHEMA;
     }
 }

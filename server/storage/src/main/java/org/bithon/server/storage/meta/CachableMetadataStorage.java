@@ -14,13 +14,10 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.meta;
+package org.bithon.server.storage.meta;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.bithon.server.storage.meta.IMetaStorage;
-import org.bithon.server.storage.meta.Metadata;
-import org.bithon.server.storage.meta.MetadataType;
 
 import java.time.Duration;
 import java.util.Collection;

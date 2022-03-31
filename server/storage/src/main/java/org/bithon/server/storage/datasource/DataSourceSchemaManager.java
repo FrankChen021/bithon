@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.storage.meta.ISchemaStorage;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,7 +40,6 @@ import java.util.stream.Collectors;
  * @date 2020-08-21 15:13:41
  */
 @Slf4j
-@Service
 public class DataSourceSchemaManager implements SmartLifecycle {
     private final List<IDataSourceSchemaListener> listeners = new ArrayList<>();
     private final ISchemaStorage schemaStorage;
@@ -146,7 +144,7 @@ public class DataSourceSchemaManager implements SmartLifecycle {
             schemas = schemaStorage.getSchemas().stream().collect(Collectors.toConcurrentMap(DataSourceSchema::getName, v -> v));
             for (IDataSourceSchemaListener listener : listeners) {
                 try {
-                    listener.onLoad();
+                    listener.onRefreshed();
                 } catch (Exception e) {
                     log.error("notify onRmv exception", e);
                 }
@@ -178,6 +176,6 @@ public class DataSourceSchemaManager implements SmartLifecycle {
 
         void onAdd(DataSourceSchema dataSourceSchema);
 
-        void onLoad();
+        void onRefreshed();
     }
 }

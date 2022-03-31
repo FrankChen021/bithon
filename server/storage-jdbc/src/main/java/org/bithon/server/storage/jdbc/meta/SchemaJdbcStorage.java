@@ -104,13 +104,11 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     public void putIfNotExist(String name, DataSourceSchema schema) throws IOException {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String schemaText = objectMapper.writeValueAsString(schema);
-        try {
-            dslContext.insertInto(Tables.BITHON_META_SCHEMA)
-                      .set(Tables.BITHON_META_SCHEMA.NAME, name)
-                      .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
-                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
-                      .execute();
-        } catch (DuplicateKeyException ignored) {
-        }
+        dslContext.insertInto(Tables.BITHON_META_SCHEMA)
+                  .set(Tables.BITHON_META_SCHEMA.NAME, name)
+                  .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
+                  .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
+                  .onDuplicateKeyIgnore()
+                  .execute();
     }
 }

@@ -17,8 +17,8 @@
 package org.bithon.server.web.service.tracing.service;
 
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.sink.tracing.TraceDataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
@@ -49,10 +49,12 @@ public class TraceService {
 
     private final ITraceReader traceReader;
     private final IMetricStorage metricStorage;
+    private final DataSourceSchemaManager schemaManager;
 
-    public TraceService(ITraceStorage traceStorage, IMetricStorage metricStorage) {
+    public TraceService(ITraceStorage traceStorage, IMetricStorage metricStorage, DataSourceSchemaManager schemaManager) {
         this.traceReader = traceStorage.createReader();
         this.metricStorage = metricStorage;
+        this.schemaManager = schemaManager;
     }
 
     /**
@@ -174,7 +176,7 @@ public class TraceService {
                                         getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).getLength());
 
         // create a virtual data source to use current metric API to query
-        DataSourceSchema schema = TraceDataSourceSchema.getTraceSpanSchema();
+        DataSourceSchema schema = this.schemaManager.getDataSourceSchema("trace_span_summary");
 
         TimeseriesQuery query = new TimeseriesQuery(schema,
                                                     Collections.singletonList("count"),

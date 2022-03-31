@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.tracing.TraceConfig;
-import org.bithon.server.sink.tracing.TraceDataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcBatchWriter;
@@ -64,8 +64,9 @@ public class TraceStorage extends TraceJdbcStorage {
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceConfig traceConfig,
-                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
-        super(dslContext, objectMapper, storageConfig, traceConfig);
+                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
+                        @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
+        super(dslContext, objectMapper, storageConfig, traceConfig, schemaManager);
         this.config = config;
     }
 
@@ -113,7 +114,7 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public ITraceReader createReader() {
-        return new TraceJdbcReader(this.dslContext, this.objectMapper, traceConfig) {
+        return new TraceJdbcReader(this.dslContext, this.objectMapper, traceSpanSchema, traceConfig) {
             @Override
             public List<Histogram> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end) {
                 BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
@@ -127,7 +128,7 @@ public class TraceStorage extends TraceJdbcStorage {
                                                      summaryTable.TIMESTAMP.getName(),
                                                      DateTime.toYYYYMMDDhhmmss(end.getTime())));
 
-                String moreFilter = SQLFilterBuilder.build(TraceDataSourceSchema.getTraceSpanSchema(),
+                String moreFilter = SQLFilterBuilder.build(traceSpanSchema,
                                                            filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
                 if (StringUtils.hasText(moreFilter)) {
                     sqlBuilder.append(" AND ");

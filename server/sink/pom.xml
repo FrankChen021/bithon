@@ -49,12 +49,6 @@
       <artifactId>bithon-storage</artifactId>
     </dependency>
 
-    <!-- Caffeine Cache -->
-    <dependency>
-      <groupId>com.github.ben-manes.caffeine</groupId>
-      <artifactId>caffeine</artifactId>
-    </dependency>
-
     <!-- DataSource submodule -->
     <dependency>
       <groupId>javax.validation</groupId>
