@@ -50,6 +50,6 @@ public class TraceSpanHelper {
             // compatibility
             uri = tags.getOrDefault("uri", "");
         }
-        span.setNormalizeUri(uriNormalizer.normalize(span.getAppName(), uri).getUri());
+        span.setNormalizedUri(uriNormalizer.normalize(span.getAppName(), uri).getUri());
     }
 }

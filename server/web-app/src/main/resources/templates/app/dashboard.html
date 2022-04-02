@@ -6,7 +6,7 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://www.ultraq.net.nz/thymeleaf/layout ">
 <head>
-    <title>Bithon</title>
+    <title>Bithon Metrics Dashboard</title>
 </head>
 <body>
 
@@ -20,7 +20,7 @@
                     const dashboard = new Dashboard('dashboard',
                         [[${appName}]],
                         dashboardName,
-                        g_MetricSelectedInterval,
+                        window.queryParams['interval'],
                         new SchemaApi());
                     dashboard.load(boardConfig);
 

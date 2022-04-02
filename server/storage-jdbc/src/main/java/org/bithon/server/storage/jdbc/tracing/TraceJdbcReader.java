@@ -33,6 +33,7 @@ import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSeekStep1;
@@ -109,23 +110,21 @@ public class TraceJdbcReader implements ITraceReader {
             listQuery = listQuery.and(summaryTable.TRACEID.in(tagQuery));
         }
 
-        //noinspection rawtypes
-        SelectSeekStep1 orderedListQuery;
+        Field<?> orderField;
         if ("costTime".equals(orderBy)) {
-            if ("desc".equals(order)) {
-                orderedListQuery = listQuery.orderBy(summaryTable.COSTTIMEMS.desc());
-            } else {
-                orderedListQuery = listQuery.orderBy(summaryTable.COSTTIMEMS.asc());
-            }
+            orderField = summaryTable.COSTTIMEMS;
+        } else if ("startTime".equals(orderBy)) {
+            orderField = summaryTable.STARTTIMEUS;
         } else {
-            if ("desc".equals(order)) {
-                orderedListQuery = listQuery.orderBy(summaryTable.TIMESTAMP.desc());
-            } else {
-                orderedListQuery = listQuery.orderBy(summaryTable.TIMESTAMP.asc());
-            }
+            orderField = summaryTable.TIMESTAMP;
+        }
+        SelectSeekStep1<?, ?> orderedListQuery;
+        if ("desc".equals(order)) {
+            orderedListQuery = listQuery.orderBy(orderField.desc());
+        } else {
+            orderedListQuery = listQuery.orderBy(orderField.asc());
         }
 
-        //noinspection unchecked
         return orderedListQuery.offset(pageNumber * pageSize)
                                .limit(pageSize)
                                .fetch(r -> this.toTraceSpan((BithonTraceSpanSummaryRecord) r));
@@ -239,7 +238,7 @@ public class TraceJdbcReader implements ITraceReader {
         span.method = record.getMethod();
         span.clazz = record.getClazz();
         span.status = record.getStatus();
-        span.normalizeUri = record.getNormalizedurl();
+        span.normalizedUri = record.getNormalizedurl();
         try {
             span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
             });
@@ -264,7 +263,7 @@ public class TraceJdbcReader implements ITraceReader {
         span.method = record.getMethod();
         span.clazz = record.getClazz();
         span.status = record.getStatus();
-        span.normalizeUri = record.getNormalizedurl();
+        span.normalizedUri = record.getNormalizedurl();
         try {
             span.tags = objectMapper.readValue(record.getTags(), new TypeReference<TreeMap<String, String>>() {
             });

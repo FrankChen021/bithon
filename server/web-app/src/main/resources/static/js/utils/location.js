@@ -20,6 +20,13 @@ function toQueryParameters(query) {
         parameters[name] = value;
     }
 
+    if (parameters['appName'] != null) {
+        g_SelectedApp = parameters['appName'];
+    }
+    if(parameters['instanceName'] != null) {
+        g_SelectedInstance = parameters['instanceName'];
+    }
+
     return parameters;
 }
 

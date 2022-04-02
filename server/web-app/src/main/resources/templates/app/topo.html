@@ -4,7 +4,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{app/app-layout}">
 <head>
-    <title>Bithon</title>
+    <title>Bithon Application Topo</title>
     <script th:src="@{/lib/bootstrap-table/extensions/treegrid/bootstrap-table-treegrid.min.js}"></script>
 </head>
 <body>
@@ -18,11 +18,13 @@ class TopoComponent {
         // App Filter
         //
         new AppSelector({
-            appName: '[[${appName}]]',
             parentId:   'filterBar'
         }).registerChangedListener((name, value)=>{
-            window.location = `/web/app/topo/${value}`;
-        });
+            window.history.pushState('', '', `/web/app/topo/${value}`);
+            g_SelectedApp = value;
+
+            this.refreshTopo();
+        }).createAppSelector('[[${appName}]]');
 
         //
         // Create TimeInterval

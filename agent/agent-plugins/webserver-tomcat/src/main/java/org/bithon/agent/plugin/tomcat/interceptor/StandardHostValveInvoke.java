@@ -59,6 +59,10 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
         InterceptorContext.remove(InterceptorContext.KEY_TRACEID);
 
         Request request = (Request) aopContext.getArgs()[0];
+        String uri = request.getRequestURI();
+        if (uri == null) {
+            return InterceptionDecision.SKIP_LEAVE;
+        }
 
         if (requestFilter.shouldBeExcluded(request.getRequestURI(), request.getHeader("User-Agent"))) {
             return InterceptionDecision.SKIP_LEAVE;
