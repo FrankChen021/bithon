@@ -32,7 +32,6 @@ import java.io.IOException;
  * @date 2021/3/21 21:37
  */
 @Slf4j
-@Service
 public class SqlMetricMessageHandler extends AbstractMetricMessageHandler {
     public SqlMetricMessageHandler(IMetaStorage metaStorage,
                                    IMetricStorage metricStorage,

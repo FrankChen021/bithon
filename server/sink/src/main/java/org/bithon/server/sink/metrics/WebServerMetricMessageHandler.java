@@ -29,7 +29,6 @@ import java.io.IOException;
  * @date 2021/1/13 11:06 下午
  */
 @Slf4j
-@Service
 public class WebServerMetricMessageHandler extends AbstractMetricMessageHandler {
 
     public WebServerMetricMessageHandler(IMetaStorage metaStorage,

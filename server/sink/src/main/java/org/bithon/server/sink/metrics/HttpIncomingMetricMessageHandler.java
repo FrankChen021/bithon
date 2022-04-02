@@ -33,7 +33,6 @@ import java.io.IOException;
  * @date 2021/1/10 4:55 下午
  */
 @Slf4j
-@Service
 public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandler {
 
     private final UriNormalizer uriNormalizer;

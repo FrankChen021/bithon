@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
@@ -29,7 +28,6 @@ import java.io.IOException;
  * @date 2021/1/16 9:31 下午
  */
 @Slf4j
-@Service
 public class ExceptionMetricMessageHandler extends AbstractMetricMessageHandler {
 
     public ExceptionMetricMessageHandler(IMetaStorage metaStorage,

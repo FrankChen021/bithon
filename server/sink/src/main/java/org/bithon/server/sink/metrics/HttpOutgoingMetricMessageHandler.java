@@ -35,7 +35,6 @@ import java.net.URI;
  * @date 2021/1/10 4:55 下午
  */
 @Slf4j
-@Service
 public class HttpOutgoingMetricMessageHandler extends AbstractMetricMessageHandler {
 
     private final UriNormalizer uriNormalizer;

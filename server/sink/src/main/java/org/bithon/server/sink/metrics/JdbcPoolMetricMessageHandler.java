@@ -30,7 +30,6 @@ import java.io.IOException;
  * @date 2021/1/10 4:31 下午
  */
 @Slf4j
-@Service
 public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler {
 
     public JdbcPoolMetricMessageHandler(IMetaStorage metaStorage,

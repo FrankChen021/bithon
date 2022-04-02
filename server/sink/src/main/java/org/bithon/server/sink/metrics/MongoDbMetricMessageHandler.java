@@ -31,7 +31,6 @@ import java.io.IOException;
  * @date 2021/3/28 12:36
  */
 @Slf4j
-@Service
 public class MongoDbMetricMessageHandler extends AbstractMetricMessageHandler {
 
     public MongoDbMetricMessageHandler(IMetaStorage metaStorage,

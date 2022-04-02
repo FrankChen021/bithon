@@ -47,7 +47,23 @@ public class LocalMetricSink implements IMetricMessageSink {
 
     @JsonCreator
     public LocalMetricSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-        applicationContext.getBeansOfType(AbstractMetricMessageHandler.class).values().forEach(this::add);
+
+        Class<? extends AbstractMetricMessageHandler>[] handlers = new Class[]{
+            ExceptionMetricMessageHandler.class,
+            HttpIncomingMetricMessageHandler.class,
+            HttpOutgoingMetricMessageHandler.class,
+            JdbcPoolMetricMessageHandler.class,
+            JvmMetricMessageHandler.class,
+            JvmGcMetricMessageHandler.class,
+            MongoDbMetricMessageHandler.class,
+            RedisMetricMessageHandler.class,
+            SqlMetricMessageHandler.class,
+            ThreadPoolMetricMessageHandler.class,
+            WebServerMetricMessageHandler.class
+        };
+        for (Class<? extends AbstractMetricMessageHandler> handlerClass : handlers) {
+            this.add(applicationContext.getAutowireCapableBeanFactory().createBean(handlerClass));
+        }
 
         final String name = "metric-sink";
         executor = new ThreadPoolExecutor(2,
