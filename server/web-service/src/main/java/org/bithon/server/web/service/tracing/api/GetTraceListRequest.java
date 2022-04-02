@@ -31,7 +31,7 @@ import java.util.List;
  */
 @Data
 public class GetTraceListRequest {
-    @NotBlank
+    @Deprecated
     private String application;
 
     @NotBlank

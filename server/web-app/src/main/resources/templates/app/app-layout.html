@@ -60,7 +60,7 @@
 
     <script th:inline="javascript">
         const apiHost = [[${apiHost}]];
-        const g_SelectedApp = [[${appName}]];
+        let g_SelectedApp = [[${appName}]];
         let g_SelectedInstance = window.queryParams['instanceName'];
         let g_MetricSelectedInterval = [[${interval} ?: '5m']];
     </script>
