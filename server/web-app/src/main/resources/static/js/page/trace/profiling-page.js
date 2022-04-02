@@ -243,7 +243,7 @@ class ProfilingPage {
                 min: 0,
                 scale: true,
                 axisLabel: {
-                    formatter: (val) => microFormat(val) + '\n' + new Date(this.mStartTime / 1000 + val).format('MM-dd hh:mm:ss')
+                    formatter: (val) => microFormat(val) + '\n' + new Date((this.mStartTime + val) / 1000).format('MM-dd hh:mm:ss')
                 }
             },
             series: [
