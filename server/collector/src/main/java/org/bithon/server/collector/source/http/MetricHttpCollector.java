@@ -18,19 +18,18 @@ package org.bithon.server.collector.source.http;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.server.sink.metrics.IMessageSink;
+import org.bithon.server.sink.metrics.MetricMessage;
+import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.input.InputRow;
-import org.bithon.server.storage.metrics.IMetricStorage;
-import org.bithon.server.storage.metrics.IMetricWriter;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
@@ -40,32 +39,39 @@ import java.util.stream.Collectors;
 @RestController
 public class MetricHttpCollector {
 
-    private final DataSourceSchemaManager schemaManager;
-    private final IMetricStorage metricStorage;
+    private final IMessageSink<SchemaMetricMessage> sink;
 
-    public MetricHttpCollector(DataSourceSchemaManager schemaManager, IMetricStorage metricStorage) {
-        this.schemaManager = schemaManager;
-        this.metricStorage = metricStorage;
+    public MetricHttpCollector(IMessageSink<SchemaMetricMessage> sink) {
+        this.sink = sink;
     }
 
     @PostMapping(path = "/api/collector/metrics")
     public void saveMetrics(@RequestBody MetricOverHttp metrics) {
         log.trace("receive metrics:{}", metrics);
-        schemaManager.addDataSourceSchema(metrics.schema);
-        try (IMetricWriter metricWriter = metricStorage.createMetricWriter(metrics.schema)) {
 
-            List<InputRow> rows = metrics.metrics.stream().map(m -> {
-                Map<String, Object> row = new HashMap<>();
-                row.putAll(m.dimensions);
-                row.putAll(m.metrics);
-                row.put("timestamp", m.timestamp);
-                return new InputRow(row);
-            }).collect(Collectors.toList());
-            metricWriter.write(rows);
+        final Iterator<Measurement> delegate = metrics.metrics.iterator();
+        IteratorableCollection<MetricMessage> i = IteratorableCollection.of(new Iterator<MetricMessage>() {
+            @Override
+            public boolean hasNext() {
+                return delegate.hasNext();
+            }
 
-        } catch (Exception e) {
-            log.error("error to write metrics ", e);
-        }
+            @Override
+            public MetricMessage next() {
+                Measurement m = delegate.next();
+
+                MetricMessage message = new MetricMessage();
+                message.putAll(m.getDimensions());
+                message.putAll(m.getMetrics());
+                return message;
+            }
+        });
+
+        sink.process(metrics.getSchema().getName(),
+                     SchemaMetricMessage.builder()
+                                        .schema(metrics.getSchema())
+                                        .metrics(i)
+                                        .build());
     }
 
     @Data

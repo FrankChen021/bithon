@@ -112,7 +112,6 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                      .collect(Collectors.toList()));
         final int userDimensionSpecIndex = 2;
 
-        SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();
         DataSourceSchema schema = new DataSourceSchema(message.getSchema().getName(),
                                                        message.getSchema().getName(),
                                                        new TimestampSpec("timestamp", "auto", null),
@@ -149,6 +148,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                               }).collect(Collectors.toList()));
 
         Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
+        SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();
         schemaMetricMessage.setSchema(schema);
         schemaMetricMessage.setMetrics(IteratorableCollection.of(new Iterator<MetricMessage>() {
             @Override

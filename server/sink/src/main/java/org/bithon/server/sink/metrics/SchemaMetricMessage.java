@@ -16,7 +16,10 @@
 
 package org.bithon.server.sink.metrics;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 
@@ -25,6 +28,9 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
  * @date 3/10/21 14:07
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SchemaMetricMessage {
     private DataSourceSchema schema;
     private IteratorableCollection<MetricMessage> metrics;
