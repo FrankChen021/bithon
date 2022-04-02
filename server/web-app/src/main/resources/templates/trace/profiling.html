@@ -1,0 +1,21 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{app/app-layout}">
+<head>
+    <title>Bithon Tracing Profiling</title>
+    <script th:src="@{/js/page/trace/profiling-page.js}"></script>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div id="profiling"></div>
+    <script>
+        $(document).ready(() => {
+            new ProfilingPage(window.queryParams);
+        });
+    </script>
+</div>
+</body>
+</html>

@@ -17,6 +17,8 @@ class AppSelector {
         this.mQueryCache = [];
         this.mQueryVariablepPrefix = option.queryVariablePrefix || '';
 
+        this.mFilterNames = [];
+
         this.mSelectedFilters = {};
     }
 
@@ -48,17 +50,17 @@ class AppSelector {
         return this;
     }
 
-    createFilter(dataSourceName) {
+    createFilter(dataSourceName, keepAppFilter = false) {
         this.mDataSource = dataSourceName;
         new SchemaApi().getSchema({
             name: dataSourceName,
             async: false,
-            successCallback: (schema) => this.createFilterFromSchema(schema)
+            successCallback: (schema) => this.createFilterFromSchema(schema, keepAppFilter)
         });
         return this;
     }
 
-    createFilterFromSchema(schema) {
+    createFilterFromSchema(schema, keepAppFilter = false) {
         this.mDataSource = schema.name;
         this.mSchema = schema;
 
@@ -68,7 +70,7 @@ class AppSelector {
             if (!dimension.visible)
                 continue;
 
-            if (index === 0 && dimension.alias === 'appName') {
+            if (index === 0 && dimension.alias === 'appName' && !keepAppFilter) {
                 // for appName filter, createAppSelector should be explicitly called
                 continue;
             }
@@ -77,7 +79,13 @@ class AppSelector {
         }
     }
 
+    getFilterName() {
+        return this.mFilterNames;
+    }
+
     #createDimensionFilter(dimensionIndex, dimensionName, displayText) {
+        this.mFilterNames.push(dimensionName);
+
         const filterName = this.mQueryVariablepPrefix + dimensionName;
 
         // create selector

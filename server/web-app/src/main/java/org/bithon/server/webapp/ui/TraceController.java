@@ -45,4 +45,10 @@ public class TraceController {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         return "trace/search";
     }
+
+    @GetMapping("/web/trace/profiling")
+    public String profiling(Model model) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
+        return "trace/profiling";
+    }
 }
