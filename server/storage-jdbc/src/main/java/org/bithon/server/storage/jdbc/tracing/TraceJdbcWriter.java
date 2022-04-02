@@ -125,7 +125,7 @@ public class TraceJdbcWriter implements ITraceWriter {
                       span.endTime,
                       span.costTime,
                       tags,
-                      span.getNormalizeUri(),
+                      span.getNormalizedUri(),
                       span.getStatus());
         }
         step.execute();

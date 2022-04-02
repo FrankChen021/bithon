@@ -57,7 +57,7 @@ public class TraceSpan {
     public String clazz;
     public String method;
     public String status = "";
-    public String normalizeUri = "";
+    public String normalizedUri = "";
 
     @JsonIgnore
     private Map<String, String> uriParameters;
