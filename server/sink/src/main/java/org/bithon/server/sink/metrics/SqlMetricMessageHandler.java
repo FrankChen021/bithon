@@ -23,7 +23,6 @@ import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.meta.EndPointType;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
