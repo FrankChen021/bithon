@@ -24,6 +24,8 @@ import org.bithon.server.storage.datasource.TimestampSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.dimension.StringDimensionSpec;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ import java.util.Map;
  * @date 30/1/22 9:56 AM
  */
 @Component
+@ConditionalOnBean(DataSourceSchemaManager.class)
 public class TraceDataSourceSchema {
 
     public TraceDataSourceSchema(DataSourceSchemaManager dataSourceSchemaManager,

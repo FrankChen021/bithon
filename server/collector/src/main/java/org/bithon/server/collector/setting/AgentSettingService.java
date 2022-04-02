@@ -28,7 +28,7 @@ import java.util.Map;
  * @date 2021/1/16 7:37 下午
  */
 @Service
-@ConditionalOnProperty(value = "collector-brpc", havingValue = "true")
+@ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
 public class AgentSettingService {
 
     private final ISettingReader settingReader;
