@@ -34,6 +34,12 @@ public class TraceController {
         this.serviceDiscovery = serviceDiscovery;
     }
 
+    @GetMapping("/web/trace/list")
+    public String traceList(Model model) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
+        return "app/trace";
+    }
+
     @GetMapping("/web/trace/detail")
     public String traceHome(Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
@@ -44,5 +50,11 @@ public class TraceController {
     public String search(Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         return "trace/search";
+    }
+
+    @GetMapping("/web/trace/profiling")
+    public String profiling(Model model) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
+        return "trace/profiling";
     }
 }

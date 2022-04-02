@@ -1,7 +1,6 @@
 class MetricSidebar {
     constructor(containerId, appName) {
         this._container = $('#' + containerId);
-        this._appName = appName;
     }
 
     load() {
@@ -20,8 +19,8 @@ class MetricSidebar {
 
     // PRIVATE
     addDashboardItem(item) {
-        const i = $(`<a href="#">${item.text}</a>`).click(() => {
-            let url = `/web/app/metric/${g_SelectedApp}/${item.id}?interval=${g_MetricSelectedInterval}`;
+        const i = $(`<a>${item.text}</a>`).click(() => {
+            let url = `/web/metrics/${item.id}?appName=${g_SelectedApp}&interval=${g_MetricSelectedInterval}`;
             if ( g_SelectedInstance != null ) {
                 url += `&instanceName=${g_SelectedInstance}`;
             }

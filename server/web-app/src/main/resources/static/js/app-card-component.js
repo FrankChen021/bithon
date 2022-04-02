@@ -44,7 +44,7 @@ class AppCardComponent {
 
         card.find('.card').attr('id', appName);
         card.find('.app-name').html('<a href="#">' + appName + '</a>').click(() => {
-            window.location.href = '/web/app/metric/' + appName + '/jvm-metrics';
+            window.location.href = '/web/metrics/jvm-metrics?appName=' + appName;
         });
         this._container.append(card);
     }
