@@ -5,26 +5,31 @@ bithon:
   storage:
     tracing:
       type: clickhouse
+      enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     metric:
       type: clickhouse
+      enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     event:
       type: clickhouse
+      enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     meta:
       type: clickhouse
+      enabled: true
     setting:
       type: jdbc
+      enabled: true
     providers:
       jdbc:
         enabled: true
