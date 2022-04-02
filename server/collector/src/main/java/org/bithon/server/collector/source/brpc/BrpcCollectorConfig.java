@@ -16,22 +16,11 @@
 
 package org.bithon.server.collector.source.brpc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.bithon.server.collector.sink.SinkConfig;
-import org.bithon.server.sink.event.IEventMessageSink;
-import org.bithon.server.sink.metrics.IMessageSink;
-import org.bithon.server.sink.metrics.IMetricMessageSink;
-import org.bithon.server.sink.metrics.LocalSchemaMetricSink;
-import org.bithon.server.sink.metrics.SchemaMetricMessage;
-import org.bithon.server.sink.tracing.ITraceMessageSink;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -41,37 +30,7 @@ import java.util.Map;
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "collector-brpc")
-@ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true", matchIfMissing = false)
 public class BrpcCollectorConfig {
     private Map<String, Integer> port;
     private SinkConfig sink;
-
-    @Bean("schemaMetricSink")
-    public IMessageSink<SchemaMetricMessage> metricSink(BrpcCollectorConfig config,
-                                                        ApplicationContext applicationContext) {
-        if ("local".equals(config.getSink().getType())) {
-            return new LocalSchemaMetricSink(applicationContext);
-        } else {
-            // TODO
-            return null;
-        }
-    }
-
-    @Bean
-    public IMetricMessageSink metricSink(BrpcCollectorConfig config,
-                                         ObjectMapper om) throws IOException {
-        return SinkConfig.createSink(config.getSink(), om, IMetricMessageSink.class);
-    }
-
-    @Bean
-    public IEventMessageSink eventSink(BrpcCollectorConfig config,
-                                       ObjectMapper om) throws IOException {
-        return SinkConfig.createSink(config.getSink(), om, IEventMessageSink.class);
-    }
-
-    @Bean
-    public ITraceMessageSink traceSink(BrpcCollectorConfig config,
-                                       ObjectMapper om) throws IOException {
-        return SinkConfig.createSink(config.getSink(), om, ITraceMessageSink.class);
-    }
 }

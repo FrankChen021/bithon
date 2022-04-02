@@ -18,6 +18,7 @@ package org.bithon.server.collector.setting;
 
 import org.bithon.server.storage.setting.ISettingReader;
 import org.bithon.server.storage.setting.ISettingStorage;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Map;
  * @date 2021/1/16 7:37 下午
  */
 @Service
+@ConditionalOnProperty(value = "collector-brpc", havingValue = "true")
 public class AgentSettingService {
 
     private final ISettingReader settingReader;

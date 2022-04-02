@@ -24,6 +24,7 @@ import org.bithon.server.common.utils.collection.IteratorableCollection;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.TraceSpanHelper;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,6 +45,7 @@ import java.util.zip.InflaterInputStream;
  */
 @Slf4j
 @RestController
+@ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
 public class TraceHttpCollector {
 
     private final ObjectMapper om;

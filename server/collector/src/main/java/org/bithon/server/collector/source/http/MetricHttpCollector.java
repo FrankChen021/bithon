@@ -23,6 +23,7 @@ import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,6 +38,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
+@ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
 public class MetricHttpCollector {
 
     private final IMessageSink<SchemaMetricMessage> sink;

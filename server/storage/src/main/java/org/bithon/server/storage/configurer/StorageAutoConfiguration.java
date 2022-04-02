@@ -29,12 +29,15 @@ import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.meta.CachableMetadataStorage;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.meta.ISchemaStorage;
+import org.bithon.server.storage.meta.MetaStorageConfig;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.storage.setting.ISettingStorage;
 import org.bithon.server.storage.setting.SettingStorageConfig;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -51,6 +54,7 @@ import java.util.Locale;
 public class StorageAutoConfiguration {
 
     @Bean
+    @ConditionalOnProperty(value = "bithon.storage.metric.enabled", havingValue = "true")
     public IMetricStorage createMetricStorage(ObjectMapper om, MetricStorageConfig storageConfig) throws IOException {
         InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
                                               "[%s] can't be blank",
@@ -64,6 +68,7 @@ public class StorageAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(value = "bithon.storage.metric.enabled", havingValue = "true")
     public ISchemaStorage createSchemaStorage(ObjectMapper om, MetricStorageConfig storageConfig) throws IOException {
         InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
                                               "[%s] can't be blank",
@@ -77,7 +82,8 @@ public class StorageAutoConfiguration {
     }
 
     @Bean
-    public IMetaStorage metaStorage(ObjectMapper om, MetricStorageConfig storageConfig) throws IOException {
+    @ConditionalOnProperty(value = "bithon.storage.meta.enabled", havingValue = "true")
+    public IMetaStorage metaStorage(ObjectMapper om, MetaStorageConfig storageConfig) throws IOException {
         InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
                                               "[%s] can't be blank",
                                               storageConfig.getClass(),
@@ -90,6 +96,7 @@ public class StorageAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(value = "bithon.storage.tracing.enabled", havingValue = "true")
     public ITraceStorage traceStorage(ObjectMapper om, TraceStorageConfig storageConfig) throws IOException {
         InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
                                               "[%s] can't be blank",
@@ -103,6 +110,7 @@ public class StorageAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(value = "bithon.storage.event.enabled", havingValue = "true")
     public IEventStorage eventStorage(ObjectMapper om, EventStorageConfig storageConfig) throws IOException {
         InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
                                               "[%s] can't be blank",
@@ -116,6 +124,7 @@ public class StorageAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(value = "bithon.storage.setting.enabled", havingValue = "true")
     public ISettingStorage settingStorage(ObjectMapper om, SettingStorageConfig storageConfig) throws IOException {
         InvalidConfigurationException.throwIf(!StringUtils.hasText(storageConfig.getType()),
                                               "[%s] can't be blank",
@@ -198,6 +207,7 @@ public class StorageAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean(ISchemaStorage.class)
     DataSourceSchemaManager schemaManager(ISchemaStorage schemaStorage, ObjectMapper objectMapper) {
         final DataSourceSchema eventTableSchema = createEventTableSchema();
         final DataSourceSchema traceTableSchema = createTraceSpanSchema();

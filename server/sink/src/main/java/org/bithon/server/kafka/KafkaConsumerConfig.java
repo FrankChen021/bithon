@@ -30,5 +30,5 @@ import java.util.Map;
 @Configuration
 @ConfigurationProperties(prefix = "collector-kafka")
 public class KafkaConsumerConfig {
-    private Map<String, Object> consumer;
+    private Map<String, Object> source;
 }

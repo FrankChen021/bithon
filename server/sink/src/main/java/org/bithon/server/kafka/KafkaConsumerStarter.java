@@ -53,7 +53,7 @@ public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextA
     @Override
     public void start() {
         KafkaConsumerConfig config = this.context.getBean(KafkaConsumerConfig.class);
-        Map<String, Object> consumerProps = config.getConsumer();
+        Map<String, Object> consumerProps = config.getSource();
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 
