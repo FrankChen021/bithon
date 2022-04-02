@@ -6,26 +6,31 @@ bithon:
   storage:
     tracing:
       type: jdbc
+      enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT3M
     metric:
       type: jdbc
+      enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT3M
     event:
       type: jdbc
+      enabled: true
       ttl:
         enabled: true
         ttl: P1D
         cleanPeriod: PT3M
     meta:
       type: jdbc
+      enabled: true
     setting:
       type: jdbc
+      enabled: true
     providers:
       jdbc:
         enabled: true
