@@ -22,8 +22,9 @@ class AppSelector {
         this.mSelectedFilters = {};
     }
 
-    createAppSelector(appName) {
-        this.#addFilter("appName", appName);
+    createAppSelector() {
+        g_SelectedApp = window.queryParams['appName'];
+        this.#addFilter("appName", g_SelectedApp);
 
         //
         // create app selector
@@ -38,11 +39,11 @@ class AppSelector {
             });
         });
 
-        this.vAppSelector.append(`<option value="${appName}">${appName}</option>`).change();
+        this.vAppSelector.append(`<option value="${g_SelectedApp}">${g_SelectedApp}</option>`).change();
 
         this.vAppSelector.change((e) => {
             const application = e.target.selectedOptions[0].value;
-
+            g_SelectedApp = application;
             this.#addFilter("appName", application);
             this.#onSelectionChanged('application', application);
         });

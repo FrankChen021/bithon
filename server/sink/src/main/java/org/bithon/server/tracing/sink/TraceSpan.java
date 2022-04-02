@@ -108,7 +108,7 @@ public class TraceSpan {
                 // compatibility
                 uri = tags.getOrDefault("uri", "");
             }
-            this.normalizeUri = uriNormalizer.normalize(this.appName, uri).getUri();
+            this.normalizedUri = uriNormalizer.normalize(this.appName, uri).getUri();
         }
     }
 

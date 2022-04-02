@@ -43,11 +43,11 @@ class Dashboard {
         }).registerChangedListener((name, value) => {
             if (name === 'application') {
                 g_SelectedApp = value;
-                window.history.pushState('', '', `/web/app/metric/${value}/${this._dashboardName}?interval=${g_MetricSelectedInterval}`);
+                window.history.pushState('', '', `/web/metrics/${this._dashboardName}?appName=${value}&interval=${g_MetricSelectedInterval}`);
             }
 
             this.refreshDashboard();
-        }).createAppSelector(this._appName);
+        }).createAppSelector();
 
         //
         // dataSource --> Charts
@@ -326,7 +326,7 @@ class Dashboard {
         const startTime = moment(start).local().format('yyyy-MM-DD HH:mm:ss');
         const endTime = moment(end).local().format('yyyy-MM-DD HH:mm:ss');
 
-        let url = `/web/trace/search?appName=${this._appName}&`;
+        let url = `/web/trace/search?appName=${g_SelectedApp}&`;
 
         const instanceFilter = this.vFilter.getSelectedFilter("instanceName");
         if (instanceFilter != null) {

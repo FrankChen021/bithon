@@ -21,10 +21,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.webapp.services.ServiceDiscovery;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,6 +51,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 public class DashboardController {
+
+    private final ServiceDiscovery serviceDiscovery;
 
     @Getter
     @AllArgsConstructor
@@ -125,7 +129,8 @@ public class DashboardController {
         }
     }
 
-    public DashboardController(ObjectMapper om, ResourceLoader resourceLoader) {
+    public DashboardController(ServiceDiscovery serviceDiscovery, ObjectMapper om, ResourceLoader resourceLoader) {
+        this.serviceDiscovery = serviceDiscovery;
         this.dashboardConfigs = new DashboardLoader(om, resourceLoader).loadDashboard();
         this.dashboardNames = this.dashboardConfigs.values()
                                                    .stream()

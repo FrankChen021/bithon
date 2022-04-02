@@ -60,9 +60,9 @@
 
     <script th:inline="javascript">
         const apiHost = [[${apiHost}]];
-        let g_SelectedApp = [[${appName}]];
+        let g_SelectedApp = window.queryParams['appName'];
         let g_SelectedInstance = window.queryParams['instanceName'];
-        let g_MetricSelectedInterval = [[${interval} ?: '5m']];
+        let g_MetricSelectedInterval = window.queryParams['interval'];
     </script>
     <script th:src="@{/js/api-client/schema-api.js}"></script>
     <script th:src="@{/js/component/dashboard/component.js}"></script>
@@ -76,14 +76,19 @@
     <script th:src="@{/js/component/time-interval/component.js}"></script>
     <script th:src="@{/js/component/app-selector/component.js}"></script>
 
+    <style>
+        li a {
+            cursor: pointer
+        }
+    </style>
     <script>
-        function redirect(module, submodule) {
-            let url = `/web/app/${module}/${g_SelectedApp}`;
-            if (submodule !== undefined) {
-                url += `/${submodule}`;
+        function redirect(url) {
+            url += '/?';
+            if (g_SelectedApp != null) {
+                url += 'appName=' + g_SelectedApp;
             }
             if (g_SelectedInstance != null) {
-                url += `?instanceName=${g_SelectedInstance}`;
+                url += `&instanceName=${g_SelectedInstance}`;
             }
             window.location = url;
         }
@@ -98,18 +103,18 @@
             <div class=" sidebar-item sidebar-menu">
                 <ul>
                     <li class="sidebar">
-                        <a th:href="@{'/web/app/topo/' + ${appName}}">
+                        <a href="#" onclick="redirect('/web/topo/')">
                             <i class="fa fa-tachometer-alt"></i>
                             <span class="menu-text">Topo</span>
                         </a>
                     </li>
-                    <li class="sidebar-dropdown active">
-                        <a href="#">
+                    <li class="sidebar-dropdown">
+                        <a class="metrics-anchor" href="#">
                             <i class="fa fa-tachometer-alt"></i>
                             <span class="menu-text">Metrics</span>
                             <!--                            <span class="badge badge-pill badge-warning">New</span>-->
                         </a>
-                        <div class="sidebar-submenu" style="display:block">
+                        <div class="sidebar-submenu">
                             <ul>
                                 <li id="metricSidebar">
                                 </li>
@@ -117,25 +122,25 @@
                         </div>
                     </li>
 
-                    <li class="sidebar-dropdown">
-                        <a href="#">
+                    <li class="sidebar-dropdown tracing">
+                        <a class="tracing-anchor" href="#">
                             <i class="far fa-gem"></i>
                             <span class="menu-text">Tracing</span>
                         </a>
                         <div class="sidebar-submenu">
                             <ul>
                                 <li>
-                                    <a href="#" onclick="javascript:redirect('trace')">Span Logs</a>
+                                    <a onclick="redirect('/web/trace/list')">Log View</a>
                                 </li>
                                 <li>
-                                    <a href="#" onclick="">Profile</a>
+                                    <a onclick="redirect('/web/trace/profiling')">Profiling View</a>
                                 </li>
                             </ul>
                         </div>
                     </li>
 
                     <li class="sidebar">
-                        <a href="#" onclick="javascript:redirect('event')">
+                        <a onclick="redirect('/web/event')">
                             <i class="fa fa-shopping-cart"></i>
                             <span class="menu-text">Event</span>
                         </a>
@@ -350,6 +355,11 @@
 </body>
 <script th:inline="javascript">
     $(document).ready(() => {
+        if (window.location.href.indexOf('/web/metrics/') > 0) {
+            $('.metrics-anchor').click();
+        } else if (window.location.href.indexOf('/web/trace/') > 0) {
+            $('.tracing-anchor').click();
+        }
         $('.page-wrapper').bind('pinned', () => {
             const handler = window.setInterval(() => {
                 $(window).trigger('resize');

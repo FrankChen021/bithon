@@ -42,6 +42,10 @@ public class AppController {
         return "app/index";
     }
 
+    /**
+     * use {@link #dashBoardPage}
+     */
+    @Deprecated
     @GetMapping("/web/app/metric/{appName}/{dashboardName}")
     public String webServerPage(@PathVariable("appName") String appName,
                                 @PathVariable("dashboardName") String dashboardName,
@@ -56,6 +60,18 @@ public class AppController {
         return "app/dashboard";
     }
 
+    @GetMapping("/web/metrics/{dashboardName}")
+    public String dashBoardPage(@PathVariable("dashboardName") String dashboardName,
+                                Model model) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
+        model.addAttribute("dashboardName", dashboardName);
+        return "app/dashboard";
+    }
+
+    /**
+     * use TraceController
+     */
+    @Deprecated
     @GetMapping("/web/app/trace/{appName}")
     public String traceHomePage(@PathVariable("appName") String appName,
                                 Model model) {
@@ -64,6 +80,7 @@ public class AppController {
         return "app/trace";
     }
 
+    @Deprecated
     @GetMapping("/web/app/topo/{appName}")
     public String topoHome(@PathVariable("appName") String appName,
                            Model model) {
@@ -72,10 +89,23 @@ public class AppController {
         return "app/topo";
     }
 
+    @GetMapping("/web/topo")
+    public String topoHome(Model model) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
+        return "app/topo";
+    }
+
+    @Deprecated
     @GetMapping("/web/app/event/{appName}")
     public String eventHome(@PathVariable("appName") String appName, Model model) {
         model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         model.addAttribute("appName", appName);
+        return "app/event";
+    }
+
+    @GetMapping("/web/event")
+    public String eventHome(Model model) {
+        model.addAttribute("apiHost", serviceDiscovery.getApiHost());
         return "app/event";
     }
 }
