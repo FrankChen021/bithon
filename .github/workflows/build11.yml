@@ -24,6 +24,4 @@ jobs:
           distribution: 'adopt'
       - name: Compilation
         run: mvn clean install -T 1C --activate-profiles shaded,jooq,server -Dmaven.javadoc.skip=true -DskipTests
-      - name: Test
-        run: mvn test
-  
+
