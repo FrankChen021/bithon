@@ -44,3 +44,10 @@ spring:
       path: /h2-ui
       settings:
         web-allow-others: true
+
+#
+# Suppress useless and boring error logging
+#
+logging:
+  level:
+    org.springframework.boot.autoconfigure.jooq.JooqExceptionTranslator: OFF

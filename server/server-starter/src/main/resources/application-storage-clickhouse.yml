@@ -41,3 +41,10 @@ bithon:
         # ------More parameters----
         # cluster: test_cluster_two_shards_localhost
         # engine: MergeTree
+
+#
+# Suppress useless and boring error logging
+#
+logging:
+  level:
+    org.springframework.boot.autoconfigure.jooq.JooqExceptionTranslator: OFF
