@@ -102,7 +102,15 @@ public class LocalMetricSink implements IMetricMessageSink {
 
     @Override
     public void close() throws Exception {
+        if (executor.isShutdown() || executor.isTerminated() || executor.isTerminating()) {
+            return;
+        }
+
         log.info("Shutting down executor [{}]", "metric-sink");
         executor.shutdown();
+        try {
+            executor.awaitTermination(30, TimeUnit.SECONDS);
+        } catch (InterruptedException ignored) {
+        }
     }
 }

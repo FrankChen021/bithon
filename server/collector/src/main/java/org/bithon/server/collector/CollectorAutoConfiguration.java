@@ -30,11 +30,13 @@ import org.bithon.server.sink.metrics.IMetricMessageSink;
 import org.bithon.server.sink.metrics.LocalSchemaMetricSink;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 
 import java.io.IOException;
 
@@ -43,6 +45,7 @@ import java.io.IOException;
  * @date 9/12/21 5:23 PM
  */
 @Configuration
+@AutoConfigureOrder(Ordered.LOWEST_PRECEDENCE)
 public class CollectorAutoConfiguration {
 
     @Bean
@@ -95,7 +98,7 @@ public class CollectorAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnExpression(value = "${collector-brpc.enabled.enabled: false} or ${collector-http.enabled: false}")
+    @ConditionalOnExpression(value = "${collector-brpc.enabled: false} or ${collector-http.enabled: false}")
     public ITraceMessageSink traceSink(BrpcCollectorConfig config,
                                        ObjectMapper om) throws IOException {
         return SinkConfig.createSink(config.getSink(), om, ITraceMessageSink.class);

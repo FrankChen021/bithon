@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonMetaSchemaRecord;
@@ -40,6 +41,7 @@ import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON
  * @author Frank Chen
  * @date 7/1/22 1:44 PM
  */
+@Slf4j
 @JsonTypeName("jdbc")
 public class SchemaJdbcStorage implements ISchemaStorage {
     protected final DSLContext dslContext;
@@ -102,13 +104,17 @@ public class SchemaJdbcStorage implements ISchemaStorage {
 
     @Override
     public void putIfNotExist(String name, DataSourceSchema schema) throws IOException {
-        Timestamp now = new Timestamp(System.currentTimeMillis());
         String schemaText = objectMapper.writeValueAsString(schema);
-        dslContext.insertInto(Tables.BITHON_META_SCHEMA)
-                  .set(Tables.BITHON_META_SCHEMA.NAME, name)
-                  .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
-                  .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
-                  .onDuplicateKeyIgnore()
-                  .execute();
+
+        // onDuplicateKeyIgnore is not supported on all DB
+        // use try-catch instead
+        try {
+            dslContext.insertInto(Tables.BITHON_META_SCHEMA)
+                      .set(Tables.BITHON_META_SCHEMA.NAME, name)
+                      .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
+                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                      .execute();
+        } catch (DuplicateKeyException ignored) {
+        }
     }
 }

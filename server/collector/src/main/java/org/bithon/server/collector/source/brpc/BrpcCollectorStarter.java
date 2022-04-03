@@ -119,6 +119,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
 
     @Override
     public void stop() {
+        log.info("Shutdown Brpc collector...");
         serviceGroups.values().forEach((ServiceGroup::close));
         isRunning = false;
     }
@@ -154,16 +155,19 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
         private final List<ServiceProvider> services = new ArrayList<>();
         private boolean isCtrl;
         private ServerChannel channel;
+        private int port;
 
         public void start(Integer port) {
             for (ServiceProvider service : services) {
                 channel.bindService(service.getImplementation());
             }
             channel.start(port);
+            this.port = port;
         }
 
         public void close() {
             // close channel first
+            log.info("Closing channel hosting on {}", port);
             try {
                 channel.close();
             } catch (Exception ignored) {

@@ -70,6 +70,9 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
      */
     @Override
     public void close() throws Exception {
+        if (executor.isShutdown() || executor.isTerminated() || executor.isTerminating()) {
+            return;
+        }
         log.info("Shutting down executor [{}]", this.getType());
         executor.shutdown();
         if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {

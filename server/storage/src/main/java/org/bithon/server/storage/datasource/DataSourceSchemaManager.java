@@ -20,7 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.storage.meta.ISchemaStorage;
-import org.springframework.context.SmartLifecycle;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
  * @date 2020-08-21 15:13:41
  */
 @Slf4j
-public class DataSourceSchemaManager implements SmartLifecycle {
+public class DataSourceSchemaManager implements InitializingBean, DisposableBean {
     private final List<IDataSourceSchemaListener> listeners = new ArrayList<>();
     private final ISchemaStorage schemaStorage;
     private final ObjectMapper objectMapper;
@@ -146,29 +147,23 @@ public class DataSourceSchemaManager implements SmartLifecycle {
                 try {
                     listener.onRefreshed();
                 } catch (Exception e) {
-                    log.error("notify onRmv exception", e);
+                    log.error("notify onRefresh exception", e);
                 }
             }
-            //schemas.put(TraceDataSourceSchema.getTraceSpanSchema().getName(), TraceDataSourceSchema.getTraceSpanSchema());
-            //schemas.put(EventDataSourceSchema.getSchema().getName(), EventDataSourceSchema.getSchema());
         } catch (Exception e) {
             log.error("Exception occurs when loading schemas", e);
         }
     }
 
     @Override
-    public void start() {
+    public void afterPropertiesSet() {
         loaderScheduler.scheduleWithFixedDelay(this::loadSchema, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override
-    public void stop() {
+    public void destroy() {
+        log.info("Shutting down Schema Manager...");
         loaderScheduler.shutdown();
-    }
-
-    @Override
-    public boolean isRunning() {
-        return false;
     }
 
     public interface IDataSourceSchemaListener {
