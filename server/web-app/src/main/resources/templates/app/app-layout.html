@@ -13,7 +13,7 @@
     <script type="text/javascript" th:src="@{/lib/jquery-validation.1.19.2/jquery.validate.js}"></script>
 
     <!-- moment -->
-    <script type="text/javascript" th:src="@{/lib/moment/moment.js}"></script>
+    <script type="text/javascript" th:src="@{/lib/moment/moment-with-locales.min-2.29.1.js}"></script>
     <script type="text/javascript" th:src="@{/lib/moment-timezone/moment-timezone.js}"></script>
 
     <!-- Bootstrap -->
@@ -103,7 +103,7 @@
             <div class=" sidebar-item sidebar-menu">
                 <ul>
                     <li class="sidebar">
-                        <a href="#" onclick="redirect('/web/topo/')">
+                        <a onclick="redirect('/web/topo')">
                             <i class="fa fa-tachometer-alt"></i>
                             <span class="menu-text">Topo</span>
                         </a>
