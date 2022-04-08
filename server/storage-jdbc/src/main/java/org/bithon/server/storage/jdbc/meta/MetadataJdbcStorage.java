@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -32,8 +33,6 @@ import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 
-import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/11 10:56 下午
@@ -44,8 +43,12 @@ public class MetadataJdbcStorage implements IMetaStorage {
     protected final DSLContext dslContext;
 
     @JsonCreator
-    public MetadataJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dsl) {
-        this.dslContext = dsl;
+    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder) {
+        this(dslContextHolder.getDslContext());
+    }
+
+    public MetadataJdbcStorage(DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     @Override

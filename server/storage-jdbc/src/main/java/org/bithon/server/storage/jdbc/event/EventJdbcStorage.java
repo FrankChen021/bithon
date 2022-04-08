@@ -44,8 +44,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:19 下午
@@ -58,7 +56,7 @@ public class EventJdbcStorage implements IEventStorage {
     protected final DataSourceSchema eventTableSchema;
 
     @JsonCreator
-    public EventJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
         this.dslContext = dslContext;

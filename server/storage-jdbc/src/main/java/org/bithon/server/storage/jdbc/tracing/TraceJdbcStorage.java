@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.tracing.ITraceCleaner;
 import org.bithon.server.storage.tracing.ITraceReader;
@@ -34,8 +35,6 @@ import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.jooq.DSLContext;
 
 import java.sql.Timestamp;
-
-import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
 
 /**
  * @author frank.chen021@outlook.com
@@ -53,11 +52,19 @@ public class TraceJdbcStorage implements ITraceStorage {
     protected final DataSourceSchema traceSpanSchema;
 
     @JsonCreator
-    public TraceJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public TraceJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
                             @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                             @JacksonInject(useInput = OptBoolean.FALSE) TraceConfig traceConfig,
-                            @JacksonInject(useInput = OptBoolean.FALSE)DataSourceSchemaManager schemaManager) {
+                            @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
+        this(dslContextHolder.getDslContext(), objectMapper, storageConfig, traceConfig, schemaManager);
+    }
+
+    public TraceJdbcStorage(DSLContext dslContext,
+                            ObjectMapper objectMapper,
+                            TraceStorageConfig storageConfig,
+                            TraceConfig traceConfig,
+                            DataSourceSchemaManager schemaManager) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.config = storageConfig;

@@ -38,7 +38,6 @@ import org.bithon.server.storage.tracing.ITraceCleaner;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
-import org.jooq.DSLContext;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.Table;
@@ -46,8 +45,6 @@ import org.jooq.Table;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageAutoConfiguration.BITHON_CLICKHOUSE_DSL;
 
 /**
  * @author frank.chen021@outlook.com
@@ -60,13 +57,13 @@ public class TraceStorage extends TraceJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public TraceStorage(@JacksonInject(value = BITHON_CLICKHOUSE_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceConfig traceConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
                         @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
-        super(dslContext, objectMapper, storageConfig, traceConfig, schemaManager);
+        super(dslContextHolder.getDslContext(), objectMapper, storageConfig, traceConfig, schemaManager);
         this.config = config;
     }
 

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.metrics.IMetricCleaner;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -30,8 +31,6 @@ import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 
 import java.sql.Timestamp;
-
-import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
 
 /**
  * @author frank.chen021@outlook.com
@@ -43,7 +42,11 @@ public class MetricJdbcStorage implements IMetricStorage {
     protected final DSLContext dslContext;
 
     @JsonCreator
-    public MetricJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext) {
+    public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder) {
+        this(dslContextHolder.getDslContext());
+    }
+
+    public MetricJdbcStorage(DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 

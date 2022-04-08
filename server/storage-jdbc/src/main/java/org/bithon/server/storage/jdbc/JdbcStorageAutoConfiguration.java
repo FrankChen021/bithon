@@ -25,7 +25,6 @@ import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
-import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -50,8 +49,6 @@ import javax.sql.DataSource;
 @AutoConfigureBefore({DataSourceAutoConfiguration.class})
 public class JdbcStorageAutoConfiguration {
 
-    public static final String BITHON_JDBC_DSL = "bithon-jdbc-dsl";
-
     @Primary
     @Bean("bithon-jdbc-dataSource")
     @ConfigurationProperties(prefix = "bithon.storage.providers.jdbc")
@@ -59,13 +56,13 @@ public class JdbcStorageAutoConfiguration {
         return new DruidDataSource();
     }
 
-    @Bean(BITHON_JDBC_DSL)
-    DSLContext dslContext(@Qualifier("bithon-jdbc-dataSource") DataSource dataSource) {
+    @Bean
+    JdbcJooqContextHolder jdbcJooqContextHolder(@Qualifier("bithon-jdbc-dataSource") DataSource dataSource) {
         JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
-        return DSL.using(new DefaultConfiguration()
-                             .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
-                             .set(new JooqProperties().determineSqlDialect(dataSource))
-                             .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider()));
+        return new JdbcJooqContextHolder(DSL.using(new DefaultConfiguration()
+                                                       .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
+                                                       .set(new JooqProperties().determineSqlDialect(dataSource))
+                                                       .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider())));
     }
 
     @Bean
