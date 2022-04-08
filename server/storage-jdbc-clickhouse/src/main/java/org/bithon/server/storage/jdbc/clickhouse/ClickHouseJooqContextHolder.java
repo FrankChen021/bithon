@@ -17,7 +17,6 @@
 package org.bithon.server.storage.jdbc.clickhouse;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import org.jooq.DSLContext;
 
