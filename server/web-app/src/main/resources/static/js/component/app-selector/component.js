@@ -13,7 +13,7 @@ class AppSelector {
         this.mIntervalProviderFn = option.intervalProvider;
         this.mRequestFilterFn = option.requestFilterFn;
         this.mSelectionChangedListener = [];
-        this.mLastQuery = null;
+        this.mLastQuery = {};
         this.mQueryCache = [];
         this.mQueryVariablepPrefix = option.queryVariablePrefix || '';
 
@@ -171,52 +171,62 @@ class AppSelector {
         return {
             cache: true,
             url: apiHost + "/api/meta/getMetadataList",
-            data: JSON.stringify({type: 'APPLICATION'}),
+            data: (params) => {
+                return {type: 'APPLICATION', search: params.term};
+            },
             type: "POST",
             async: true,
             dataType: "json",
             contentType: "application/json",
-            processResults: (appList) => {
-                return {
-                    results: appList.map(app => {
-                        return {
-                            "id": app.applicationName,
-                            "text": app.applicationName
-                        };
-                    })
-                };
-            },
 
-            // following 'transport' function is based on: https://github.com/select2/select2/issues/110#issuecomment-694495292
-            //cache result transport
-            transport: (params, success, failure) => {
-                //retrieve the cached key or default to _ALL_
-                const __cachekey = params.data.q || '_ALL_';
-                if (this.mLastQuery !== __cachekey) {
-                    //remove caches not from last query
-                    this.mQueryCache = [];
-                }
-                this.mLastQuery = __cachekey;
-                if ('undefined' !== typeof this.mQueryCache[__cachekey]) {
-                    // if('undefined' !== typeof params.data.search){
-                    //     success(__cache[__cachekey]));
-                    //     return;
-                    // }
-                    //display the cached results
-                    success(this.mQueryCache[__cachekey]);
-                    return; /* noop */
-                }
-                const $request = $.ajax(params);
-                $request.then((data) => {
-                    //store data in cache
-                    this.mQueryCache[__cachekey] = data;
-                    //display the results
-                    success(this.mQueryCache[__cachekey]);
-                });
-                $request.fail(failure);
-                return $request;
-            },
+            transport: (params, success, failure) => this.#getAndCache('applications',
+                params,
+                success,
+                failure,
+                (appList) => {
+                    return {
+                        results: appList.map(app => {
+                            return {
+                                "id": app.applicationName,
+                                "text": app.applicationName
+                            };
+                        })
+                    };
+                }),
         };
+    }
+
+    // following 'transport' function is based on: https://github.com/select2/select2/issues/110#issuecomment-694495292
+    #getAndCache(cacheName, params, success, failure, processResults) {
+        const search = params.data['search'];
+        delete params.data['search'];
+        params.data = JSON.stringify(params.data);
+
+        if (this.mLastQuery[cacheName] !== params.data) {
+            // remove cache for this type
+            delete this.mQueryCache[cacheName];
+        }
+        this.mLastQuery[cacheName] = params.data;
+
+        if ('undefined' !== typeof this.mQueryCache[cacheName]) {
+            success(this.#filterUserInput(search, this.mQueryCache[cacheName]));
+            return; /* noop */
+        }
+
+        const $request = $.ajax(params);
+        $request.then((data) => {
+            if (processResults !== undefined) {
+                data = processResults(data);
+            }
+
+            //store data in cache
+            this.mQueryCache[cacheName] = data;
+
+            //display the results
+            success(this.mQueryCache[cacheName]);
+        });
+        $request.fail(failure);
+        return $request;
     }
 
     getDimensionAjaxOptions(dimensionIndex, dimensionName) {
@@ -224,7 +234,7 @@ class AppSelector {
             cache: true,
             type: 'POST',
             url: apiHost + '/api/datasource/dimensions/v2',
-            data: () => {
+            data: (params) => {
                 const filters = [];
 
                 for (let p = 0; p < dimensionIndex; p++) {
@@ -245,27 +255,56 @@ class AppSelector {
                 }
 
                 const interval = this.mIntervalProviderFn();
-                return JSON.stringify({
+                return {
+                    search: params.term,
+
                     dataSource: this.mDataSource,
                     name: dimensionName,
                     filters: filters,
                     type: "alias",
                     startTimeISO8601: interval.start,
-                    endTimeISO8601: interval.end,
-                })
+                    endTimeISO8601: interval.end
+                };
             },
             dataType: "json",
             contentType: "application/json",
-            processResults: (data) => {
-                return {
-                    results: data.map(dimension => {
-                        return {
-                            "id": dimension.value,
-                            "text": dimension.value
-                        };
-                    })
-                };
+
+            transport: (params, success, failure) => this.#getAndCache(dimensionName,
+                params,
+                success,
+                failure,
+                (data) => {
+                    return {
+                        results: data.map(dimension => {
+                            return {
+                                "id": dimension.value,
+                                "text": dimension.value
+                            };
+                        })
+                    };
+                }),
+        }
+    }
+
+    /**
+     * @param search keyword of the search
+     * @param data { results: [] }
+     */
+    #filterUserInput(search, data) {
+        if (search === undefined || search == null || search.length === 0) {
+            return data;
+        }
+
+        const newItems = [];
+        for (let i = 0; i < data.results.length; i++) {
+            const item = data.results[i];
+            if (item.text.indexOf(search) > -1) {
+                newItems.push(item);
             }
         }
+
+        // because the 'data' has been cached, we can't change it
+        // So, return a new object instead
+        return {results: newItems};
     }
 }
