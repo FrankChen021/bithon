@@ -18,8 +18,8 @@ package org.bithon.server.sink.tracing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.common.handler.AbstractThreadPoolMessageHandler;
-import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.component.commons.collection.IteratorableCollection;
+import org.bithon.server.sink.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.sink.tracing.index.TagIndexGenerator;
 import org.bithon.server.sink.tracing.mapping.TraceMappingFactory;
 import org.bithon.server.sink.tracing.sanitization.SanitizerFactory;

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.pojo;
+package org.bithon.server.web.service.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -9,20 +9,25 @@ Currently, two types of storages are supported:
 bithon:
   storage:
     tracing:
+      enabled: true
       type: jdbc
       ttl: P1D
       cleanPeriod: PT3M
     metric:
+      enabled: true
       type: jdbc
       ttl: P1D
       cleanPeriod: PT3M
     event:
+      enabled: true
       type: jdbc
       ttl: P1D
       cleanPeriod: PT3M
     meta:
+      enabled: true
       type: jdbc
     setting:
+      enabled: true
       type: jdbc
     providers:
       jdbc:

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.utils;
+package org.bithon.server.sink.common.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

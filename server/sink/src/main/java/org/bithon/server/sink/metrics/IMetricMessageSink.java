@@ -18,7 +18,7 @@ package org.bithon.server.sink.metrics;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.component.commons.collection.IteratorableCollection;
 
 /**
  * @author Frank Chen

@@ -18,7 +18,7 @@ package org.bithon.server.sink.tracing.sanitization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.storage.tracing.TraceSpan;
 

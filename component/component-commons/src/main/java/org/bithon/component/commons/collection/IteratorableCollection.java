@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.utils.collection;
+package org.bithon.component.commons.collection;
 
 import java.util.ArrayList;
 import java.util.Collection;

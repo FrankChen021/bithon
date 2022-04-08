@@ -19,7 +19,7 @@ package org.bithon.server.sink.tracing.sanitization;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.utils.MiscUtils;
+import org.bithon.server.sink.common.utils.MiscUtils;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.net.URI;

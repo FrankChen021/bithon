@@ -27,7 +27,7 @@ import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.server.collector.cmd.api.CommandService;
 import org.bithon.server.collector.setting.AgentSettingService;
 import org.bithon.server.collector.setting.BrpcSettingFetcher;
-import org.bithon.server.common.service.UriNormalizer;
+import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.event.IEventMessageSink;
 import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;

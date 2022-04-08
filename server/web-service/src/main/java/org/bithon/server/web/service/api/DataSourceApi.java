@@ -18,7 +18,6 @@ package org.bithon.server.web.service.api;
 
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.common.pojo.DisplayableText;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.TTLConfig;
 import org.bithon.server.storage.datasource.DataSourceSchema;

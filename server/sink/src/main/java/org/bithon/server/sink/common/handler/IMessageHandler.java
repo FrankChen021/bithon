@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.handler;
+package org.bithon.server.sink.common.handler;
 
 /**
  * @author frank.chen021@outlook.com

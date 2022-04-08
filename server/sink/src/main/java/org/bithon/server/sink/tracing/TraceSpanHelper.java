@@ -16,7 +16,7 @@
 
 package org.bithon.server.sink.tracing;
 
-import org.bithon.server.common.service.UriNormalizer;
+import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.util.CollectionUtils;
 

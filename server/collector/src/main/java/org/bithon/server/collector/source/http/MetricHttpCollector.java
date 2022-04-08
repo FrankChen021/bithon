@@ -18,7 +18,7 @@ package org.bithon.server.collector.source.http;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;

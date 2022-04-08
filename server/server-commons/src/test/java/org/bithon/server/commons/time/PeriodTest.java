@@ -14,24 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics;
+package org.bithon.server.commons.time;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.bithon.component.commons.collection.IteratorableCollection;
-import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author Frank Chen
- * @date 3/10/21 14:07
+ * @date 8/4/22 2:08 PM
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class SchemaMetricMessage {
-    private DataSourceSchema schema;
-    private IteratorableCollection<MetricMessage> metrics;
+public class PeriodTest {
+
+    @Test
+    public void testZeroDay() {
+        Period period = new Period("P0D");
+
+        Assert.assertEquals(0, period.getMilliseconds());
+    }
+
+    @Test
+    public void testZeroHour() {
+        Assert.assertThrows(IllegalArgumentException.class, () -> new Period("P0H"));
+    }
+
 }

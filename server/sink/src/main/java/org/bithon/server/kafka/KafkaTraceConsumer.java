@@ -16,7 +16,7 @@
 
 package org.bithon.server.kafka;
 
-import org.bithon.server.common.utils.collection.IteratorableCollection;
+import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.storage.tracing.TraceSpan;
 

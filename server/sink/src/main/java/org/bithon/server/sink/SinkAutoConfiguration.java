@@ -33,7 +33,7 @@ public class SinkAutoConfiguration {
      * Use bean initialization mechanism to initialize the related data source schema
      */
     @Bean
-    TraceDataSourceSchemaInitializer test(TraceConfig traceConfig) {
+    TraceDataSourceSchemaInitializer traceDataSourceSchemaInitializer(TraceConfig traceConfig) {
         return new TraceDataSourceSchemaInitializer(traceConfig);
     }
 }

@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.common.utils.collection;
+package org.bithon.component.commons.collection;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -55,7 +54,6 @@ public interface CloseableIterator<T> extends Iterator<T>, Closeable {
         return new CloseableIterator<R>() {
             CloseableIterator<R> iterator = findNextIteratorIfNecessary();
 
-            @Nullable
             private CloseableIterator<R> findNextIteratorIfNecessary() {
                 while ((iterator == null || !iterator.hasNext()) && delegate.hasNext()) {
                     if (iterator != null) {
