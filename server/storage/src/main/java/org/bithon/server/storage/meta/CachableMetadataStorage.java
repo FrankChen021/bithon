@@ -18,6 +18,7 @@ package org.bithon.server.storage.meta;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -29,14 +30,15 @@ import java.util.Collection;
 public class CachableMetadataStorage implements IMetaStorage {
 
     private final IMetaStorage delegate;
+    private final LoadingCache<String, Boolean> applicationCache;
     // TODO: replace with LoadingCache
     private final Cache<Metadata, Long> metaCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build();
-    private final Cache<String, String> instanceCache = Caffeine.newBuilder()
-                                                                .expireAfterWrite(Duration.ofMinutes(5))
-                                                                .build();
+    private final Cache<String, String> instanceCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(5)).build();
 
     public CachableMetadataStorage(IMetaStorage delegate) {
         this.delegate = delegate;
+
+        applicationCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build(this.delegate::isApplicationExist);
     }
 
     // TODO:
@@ -78,8 +80,8 @@ public class CachableMetadataStorage implements IMetaStorage {
 
     @Override
     public boolean isApplicationExist(String applicationName) {
-        //TODO: cache
-        return delegate.isApplicationExist(applicationName);
+        Boolean exists = applicationCache.get(applicationName);
+        return exists != null && exists;
     }
 
     @Override
