@@ -24,7 +24,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.metric.storage.IFilter;
+import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcBatchWriter;
@@ -32,13 +33,11 @@ import org.bithon.server.storage.jdbc.tracing.TraceJdbcReader;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.tracing.TraceConfig;
-import org.bithon.server.tracing.TraceDataSourceSchema;
-import org.bithon.server.tracing.storage.ITraceCleaner;
-import org.bithon.server.tracing.storage.ITraceReader;
-import org.bithon.server.tracing.storage.ITraceWriter;
-import org.bithon.server.tracing.storage.TraceStorageConfig;
-import org.jooq.DSLContext;
+import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.tracing.ITraceCleaner;
+import org.bithon.server.storage.tracing.ITraceReader;
+import org.bithon.server.storage.tracing.ITraceWriter;
+import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
 import org.jooq.Table;
@@ -46,8 +45,6 @@ import org.jooq.Table;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageAutoConfiguration.BITHON_CLICKHOUSE_DSL;
 
 /**
  * @author frank.chen021@outlook.com
@@ -60,12 +57,13 @@ public class TraceStorage extends TraceJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public TraceStorage(@JacksonInject(value = BITHON_CLICKHOUSE_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public TraceStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceStorageConfig storageConfig,
                         @JacksonInject(useInput = OptBoolean.FALSE) TraceConfig traceConfig,
-                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
-        super(dslContext, objectMapper, storageConfig, traceConfig);
+                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
+                        @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
+        super(dslContextHolder.getDslContext(), objectMapper, storageConfig, traceConfig, schemaManager);
         this.config = config;
     }
 
@@ -113,7 +111,7 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public ITraceReader createReader() {
-        return new TraceJdbcReader(this.dslContext, this.objectMapper, traceConfig) {
+        return new TraceJdbcReader(this.dslContext, this.objectMapper, traceSpanSchema, traceConfig) {
             @Override
             public List<Histogram> getTraceDistribution(List<IFilter> filters, Timestamp start, Timestamp end) {
                 BithonTraceSpanSummary summaryTable = Tables.BITHON_TRACE_SPAN_SUMMARY;
@@ -127,7 +125,7 @@ public class TraceStorage extends TraceJdbcStorage {
                                                      summaryTable.TIMESTAMP.getName(),
                                                      DateTime.toYYYYMMDDhhmmss(end.getTime())));
 
-                String moreFilter = SQLFilterBuilder.build(TraceDataSourceSchema.getTraceSpanSchema(),
+                String moreFilter = SQLFilterBuilder.build(traceSpanSchema,
                                                            filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
                 if (StringUtils.hasText(moreFilter)) {
                     sqlBuilder.append(" AND ");

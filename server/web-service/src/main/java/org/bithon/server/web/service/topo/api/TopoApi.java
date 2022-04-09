@@ -16,17 +16,17 @@
 
 package org.bithon.server.web.service.topo.api;
 
-import org.bithon.server.common.matcher.StringEqualMatcher;
-import org.bithon.server.common.utils.EndPointType;
-import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.DataSourceSchemaManager;
-import org.bithon.server.metric.input.InputRow;
-import org.bithon.server.metric.storage.DimensionFilter;
-import org.bithon.server.metric.storage.GroupByQuery;
-import org.bithon.server.metric.storage.IMetricReader;
-import org.bithon.server.metric.storage.IMetricStorage;
-import org.bithon.server.metric.storage.Interval;
+import org.bithon.server.commons.matcher.StringEqualMatcher;
+import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.meta.EndPointType;
+import org.bithon.server.storage.metrics.DimensionFilter;
+import org.bithon.server.storage.metrics.GroupByQuery;
+import org.bithon.server.storage.metrics.IMetricReader;
+import org.bithon.server.storage.metrics.IMetricStorage;
+import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.web.service.topo.service.EndpointBo;
 import org.bithon.server.web.service.topo.service.Link;
 import org.bithon.server.web.service.topo.service.Topo;

@@ -22,17 +22,18 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.event.EventDataSourceSchema;
-import org.bithon.server.event.sink.EventMessage;
-import org.bithon.server.event.storage.Event;
-import org.bithon.server.event.storage.IEventCleaner;
-import org.bithon.server.event.storage.IEventReader;
-import org.bithon.server.event.storage.IEventStorage;
-import org.bithon.server.event.storage.IEventWriter;
-import org.bithon.server.metric.storage.IFilter;
+import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.event.Event;
+import org.bithon.server.storage.event.EventMessage;
+import org.bithon.server.storage.event.IEventCleaner;
+import org.bithon.server.storage.event.IEventReader;
+import org.bithon.server.storage.event.IEventStorage;
+import org.bithon.server.storage.event.IEventWriter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
+import org.bithon.server.storage.metrics.IFilter;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.jooq.impl.DSL;
@@ -43,8 +44,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:19 下午
@@ -54,12 +53,15 @@ public class EventJdbcStorage implements IEventStorage {
 
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
+    protected final DataSourceSchema eventTableSchema;
 
     @JsonCreator
-    public EventJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
-                            @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+    public EventJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) DSLContext dslContext,
+                            @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
+                            @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
+        this.eventTableSchema = schemaManager.getDataSourceSchema("event");
     }
 
     @Override
@@ -69,12 +71,12 @@ public class EventJdbcStorage implements IEventStorage {
 
     @Override
     public IEventWriter createWriter() {
-        return new EventWriter(dslContext, objectMapper);
+        return new EventWriter(dslContext);
     }
 
     @Override
     public IEventReader createReader() {
-        return new EventReader(dslContext);
+        return new EventReader(dslContext, eventTableSchema);
     }
 
     @Override
@@ -84,12 +86,9 @@ public class EventJdbcStorage implements IEventStorage {
 
     private static class EventWriter implements IEventWriter {
         private final DSLContext dslContext;
-        private final ObjectMapper om;
 
-        private EventWriter(DSLContext dslContext, ObjectMapper om) {
+        private EventWriter(DSLContext dslContext) {
             this.dslContext = DSL.using(dslContext.configuration().derive(new ThreadLocalTransactionProvider(dslContext.configuration().connectionProvider())));
-
-            this.om = om;
         }
 
         @Override
@@ -113,9 +112,11 @@ public class EventJdbcStorage implements IEventStorage {
 
     private static class EventReader implements IEventReader {
         private final DSLContext dslContext;
+        private final DataSourceSchema eventTableSchema;
 
-        private EventReader(DSLContext dslContext) {
+        private EventReader(DSLContext dslContext, DataSourceSchema eventTableSchema) {
             this.dslContext = dslContext;
+            this.eventTableSchema = eventTableSchema;
         }
 
         @Override
@@ -128,7 +129,7 @@ public class EventJdbcStorage implements IEventStorage {
             return dslContext.selectFrom(Tables.BITHON_EVENT)
                              .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
                              .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()))
-                             .and(SQLFilterBuilder.build(EventDataSourceSchema.getSchema(), filters))
+                             .and(SQLFilterBuilder.build(eventTableSchema, filters))
                              .orderBy(Tables.BITHON_EVENT.TIMESTAMP.desc())
                              .offset(pageNumber * pageSize)
                              .limit(pageSize)
@@ -149,7 +150,7 @@ public class EventJdbcStorage implements IEventStorage {
                                    .from(Tables.BITHON_EVENT)
                                    .where(Tables.BITHON_EVENT.TIMESTAMP.ge(start.toTimestamp()))
                                    .and(Tables.BITHON_EVENT.TIMESTAMP.lt(end.toTimestamp()))
-                                   .and(SQLFilterBuilder.build(EventDataSourceSchema.getSchema(), filters))
+                                   .and(SQLFilterBuilder.build(eventTableSchema, filters))
                                    .fetchOne(0);
         }
     }

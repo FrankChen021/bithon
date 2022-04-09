@@ -16,16 +16,16 @@
 
 package org.bithon.server.web.service.tracing.service;
 
-import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.storage.IFilter;
-import org.bithon.server.metric.storage.IMetricStorage;
-import org.bithon.server.metric.storage.Interval;
-import org.bithon.server.metric.storage.TimeseriesQuery;
-import org.bithon.server.tracing.TraceDataSourceSchema;
-import org.bithon.server.tracing.sink.TraceSpan;
-import org.bithon.server.tracing.storage.ITraceReader;
-import org.bithon.server.tracing.storage.ITraceStorage;
+import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.metrics.IMetricStorage;
+import org.bithon.server.storage.metrics.Interval;
+import org.bithon.server.storage.metrics.TimeseriesQuery;
+import org.bithon.server.storage.tracing.ITraceReader;
+import org.bithon.server.storage.tracing.ITraceStorage;
+import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.web.service.tracing.api.GetTraceDistributionResponse;
 import org.bithon.server.web.service.tracing.api.TraceMap;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
@@ -49,10 +49,12 @@ public class TraceService {
 
     private final ITraceReader traceReader;
     private final IMetricStorage metricStorage;
+    private final DataSourceSchemaManager schemaManager;
 
-    public TraceService(ITraceStorage traceStorage, IMetricStorage metricStorage) {
+    public TraceService(ITraceStorage traceStorage, IMetricStorage metricStorage, DataSourceSchemaManager schemaManager) {
         this.traceReader = traceStorage.createReader();
         this.metricStorage = metricStorage;
+        this.schemaManager = schemaManager;
     }
 
     /**
@@ -174,7 +176,7 @@ public class TraceService {
                                         getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).getLength());
 
         // create a virtual data source to use current metric API to query
-        DataSourceSchema schema = TraceDataSourceSchema.getTraceSpanSchema();
+        DataSourceSchema schema = this.schemaManager.getDataSourceSchema("trace_span_summary");
 
         TimeseriesQuery query = new TimeseriesQuery(schema,
                                                     Collections.singletonList("count"),

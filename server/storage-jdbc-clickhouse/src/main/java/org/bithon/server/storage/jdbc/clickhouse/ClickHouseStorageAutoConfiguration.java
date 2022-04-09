@@ -19,11 +19,12 @@ package org.bithon.server.storage.jdbc.clickhouse;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
-import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -40,18 +41,19 @@ import java.net.URI;
 @ConditionalOnProperty(prefix = "bithon.storage.providers.clickhouse", name = "enabled", havingValue = "true")
 public class ClickHouseStorageAutoConfiguration {
 
-    public static final String BITHON_CLICKHOUSE_DSL = "bithon-clickhouse-dslContext";
-
     @Bean("bithon-clickhouse-dataSource")
     @ConfigurationProperties(prefix = "bithon.storage.providers.clickhouse")
     DataSource createDataSource() {
         return new DruidDataSource();
     }
 
-    @Bean(BITHON_CLICKHOUSE_DSL)
-    DSLContext createDSL(@Qualifier("bithon-clickhouse-dataSource") DataSource dataSource) {
-        JooqProperties p = new JooqProperties();
-        return DSL.using(dataSource, p.determineSqlDialect(dataSource));
+    @Bean
+    ClickHouseJooqContextHolder clickHouseDSLContextHolder(@Qualifier("bithon-clickhouse-dataSource") DataSource dataSource) {
+        JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
+        return new ClickHouseJooqContextHolder(DSL.using(new DefaultConfiguration()
+                                                             .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
+                                                             .set(new JooqProperties().determineSqlDialect(dataSource))
+                                                             .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider())));
     }
 
     @Bean

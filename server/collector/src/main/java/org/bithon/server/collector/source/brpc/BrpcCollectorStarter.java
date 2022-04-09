@@ -27,11 +27,11 @@ import org.bithon.component.brpc.channel.ServerChannel;
 import org.bithon.server.collector.cmd.api.CommandService;
 import org.bithon.server.collector.setting.AgentSettingService;
 import org.bithon.server.collector.setting.BrpcSettingFetcher;
-import org.bithon.server.common.service.UriNormalizer;
-import org.bithon.server.event.sink.IEventMessageSink;
-import org.bithon.server.metric.sink.IMessageSink;
-import org.bithon.server.metric.sink.IMetricMessageSink;
-import org.bithon.server.tracing.sink.ITraceMessageSink;
+import org.bithon.server.sink.common.service.UriNormalizer;
+import org.bithon.server.sink.event.IEventMessageSink;
+import org.bithon.server.sink.metrics.IMessageSink;
+import org.bithon.server.sink.metrics.IMetricMessageSink;
+import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
@@ -119,6 +119,7 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
 
     @Override
     public void stop() {
+        log.info("Shutdown Brpc collector...");
         serviceGroups.values().forEach((ServiceGroup::close));
         isRunning = false;
     }
@@ -154,16 +155,19 @@ public class BrpcCollectorStarter implements SmartLifecycle, ApplicationContextA
         private final List<ServiceProvider> services = new ArrayList<>();
         private boolean isCtrl;
         private ServerChannel channel;
+        private int port;
 
         public void start(Integer port) {
             for (ServiceProvider service : services) {
                 channel.bindService(service.getImplementation());
             }
             channel.start(port);
+            this.port = port;
         }
 
         public void close() {
             // close channel first
+            log.info("Closing channel hosting on {}", port);
             try {
                 channel.close();
             } catch (Exception ignored) {

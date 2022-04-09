@@ -18,11 +18,11 @@ package org.bithon.server.web.service.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.metric.aggregator.spec.IMetricSpec;
-import org.bithon.server.metric.storage.IMetricStorage;
-import org.bithon.server.metric.storage.TimeseriesQuery;
-import org.bithon.server.metric.typing.DoubleValueType;
+import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.typing.DoubleValueType;
+import org.bithon.server.storage.metrics.IMetricStorage;
+import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

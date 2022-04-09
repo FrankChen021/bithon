@@ -17,14 +17,17 @@
 package org.bithon.server.storage.jdbc.meta;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.storage.ISchemaStorage;
+import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonMetaSchemaRecord;
+import org.bithon.server.storage.meta.ISchemaStorage;
 import org.jooq.DSLContext;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -34,19 +37,24 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
-
 /**
  * @author Frank Chen
  * @date 7/1/22 1:44 PM
  */
+@Slf4j
 @JsonTypeName("jdbc")
 public class SchemaJdbcStorage implements ISchemaStorage {
     protected final DSLContext dslContext;
     protected final ObjectMapper objectMapper;
 
-    public SchemaJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
+    @JsonCreator
+    public SchemaJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder,
                              @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        this(dslContextHolder.getDslContext(), objectMapper);
+    }
+
+    public SchemaJdbcStorage(DSLContext dslContext,
+                             ObjectMapper objectMapper) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
     }
@@ -102,13 +110,15 @@ public class SchemaJdbcStorage implements ISchemaStorage {
 
     @Override
     public void putIfNotExist(String name, DataSourceSchema schema) throws IOException {
-        Timestamp now = new Timestamp(System.currentTimeMillis());
         String schemaText = objectMapper.writeValueAsString(schema);
+
+        // onDuplicateKeyIgnore is not supported on all DB
+        // use try-catch instead
         try {
             dslContext.insertInto(Tables.BITHON_META_SCHEMA)
                       .set(Tables.BITHON_META_SCHEMA.NAME, name)
                       .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
-                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
+                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
                       .execute();
         } catch (DuplicateKeyException ignored) {
         }

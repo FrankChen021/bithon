@@ -26,21 +26,21 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
+import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.utils.ReflectionUtils;
-import org.bithon.server.common.utils.collection.IteratorableCollection;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.TimestampSpec;
-import org.bithon.server.metric.aggregator.spec.IMetricSpec;
-import org.bithon.server.metric.aggregator.spec.LongLastMetricSpec;
-import org.bithon.server.metric.aggregator.spec.LongMaxMetricSpec;
-import org.bithon.server.metric.aggregator.spec.LongMinMetricSpec;
-import org.bithon.server.metric.aggregator.spec.LongSumMetricSpec;
-import org.bithon.server.metric.dimension.IDimensionSpec;
-import org.bithon.server.metric.dimension.StringDimensionSpec;
-import org.bithon.server.metric.sink.IMessageSink;
-import org.bithon.server.metric.sink.IMetricMessageSink;
-import org.bithon.server.metric.sink.MetricMessage;
-import org.bithon.server.metric.sink.SchemaMetricMessage;
+import org.bithon.server.sink.metrics.IMessageSink;
+import org.bithon.server.sink.metrics.IMetricMessageSink;
+import org.bithon.server.sink.metrics.MetricMessage;
+import org.bithon.server.sink.metrics.SchemaMetricMessage;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.TimestampSpec;
+import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.aggregator.spec.LongLastMetricSpec;
+import org.bithon.server.storage.datasource.aggregator.spec.LongMaxMetricSpec;
+import org.bithon.server.storage.datasource.aggregator.spec.LongMinMetricSpec;
+import org.bithon.server.storage.datasource.aggregator.spec.LongSumMetricSpec;
+import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.dimension.StringDimensionSpec;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -112,7 +112,6 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                      .collect(Collectors.toList()));
         final int userDimensionSpecIndex = 2;
 
-        SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();
         DataSourceSchema schema = new DataSourceSchema(message.getSchema().getName(),
                                                        message.getSchema().getName(),
                                                        new TimestampSpec("timestamp", "auto", null),
@@ -149,6 +148,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                               }).collect(Collectors.toList()));
 
         Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
+        SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();
         schemaMetricMessage.setSchema(schema);
         schemaMetricMessage.setMetrics(IteratorableCollection.of(new Iterator<MetricMessage>() {
             @Override

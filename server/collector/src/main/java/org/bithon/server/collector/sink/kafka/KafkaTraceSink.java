@@ -26,9 +26,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.bithon.server.common.utils.collection.IteratorableCollection;
-import org.bithon.server.tracing.sink.ITraceMessageSink;
-import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.component.commons.collection.IteratorableCollection;
+import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 

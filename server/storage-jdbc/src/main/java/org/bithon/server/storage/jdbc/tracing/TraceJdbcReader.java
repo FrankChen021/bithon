@@ -21,17 +21,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.metric.storage.IFilter;
+import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.tracing.TraceConfig;
-import org.bithon.server.tracing.TraceDataSourceSchema;
-import org.bithon.server.tracing.sink.TraceSpan;
-import org.bithon.server.tracing.storage.ITraceReader;
+import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.tracing.ITraceReader;
+import org.bithon.server.storage.tracing.TraceSpan;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -55,11 +55,16 @@ public class TraceJdbcReader implements ITraceReader {
     private final DSLContext dslContext;
     private final ObjectMapper objectMapper;
     private final TraceConfig traceConfig;
+    private final DataSourceSchema traceSpanSchema;
 
-    public TraceJdbcReader(DSLContext dslContext, ObjectMapper objectMapper, TraceConfig traceConfig) {
+    public TraceJdbcReader(DSLContext dslContext,
+                           ObjectMapper objectMapper,
+                           DataSourceSchema traceSpanSchema,
+                           TraceConfig traceConfig) {
         this.dslContext = dslContext;
         this.objectMapper = objectMapper;
         this.traceConfig = traceConfig;
+        this.traceSpanSchema = traceSpanSchema;
     }
 
     @Override
@@ -93,7 +98,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                                 .where(summaryTable.TIMESTAMP.ge(start))
                                                                                 .and(summaryTable.TIMESTAMP.lt(end));
 
-        String moreFilter = SQLFilterBuilder.build(TraceDataSourceSchema.getTraceSpanSchema(),
+        String moreFilter = SQLFilterBuilder.build(traceSpanSchema,
                                                    filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
         if (StringUtils.hasText(moreFilter)) {
             listQuery = listQuery.and(moreFilter);
@@ -141,7 +146,7 @@ public class TraceJdbcReader implements ITraceReader {
                                                                      .where(summaryTable.TIMESTAMP.ge(start))
                                                                      .and(summaryTable.TIMESTAMP.lt(end));
 
-        String moreFilter = SQLFilterBuilder.build(TraceDataSourceSchema.getTraceSpanSchema(),
+        String moreFilter = SQLFilterBuilder.build(traceSpanSchema,
                                                    filters.stream().filter(filter -> !filter.getName().startsWith(SPAN_TAGS_PREFIX)));
         if (StringUtils.hasText(moreFilter)) {
             countQuery = countQuery.and(moreFilter);

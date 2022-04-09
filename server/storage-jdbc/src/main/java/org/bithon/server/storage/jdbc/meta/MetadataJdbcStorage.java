@@ -20,19 +20,18 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.meta.Metadata;
-import org.bithon.server.meta.MetadataType;
-import org.bithon.server.meta.storage.IMetaStorage;
+import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonApplicationInstanceRecord;
+import org.bithon.server.storage.meta.IMetaStorage;
+import org.bithon.server.storage.meta.Metadata;
+import org.bithon.server.storage.meta.MetadataType;
 import org.jooq.DSLContext;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
-
-import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
 
 /**
  * @author frank.chen021@outlook.com
@@ -44,8 +43,12 @@ public class MetadataJdbcStorage implements IMetaStorage {
     protected final DSLContext dslContext;
 
     @JsonCreator
-    public MetadataJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dsl) {
-        this.dslContext = dsl;
+    public MetadataJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder) {
+        this(dslContextHolder.getDslContext());
+    }
+
+    public MetadataJdbcStorage(DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     @Override

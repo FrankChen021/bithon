@@ -17,9 +17,9 @@
 package org.bithon.server.web.service.api;
 
 import lombok.Data;
-import org.bithon.server.metric.api.IQuerableAggregator;
-import org.bithon.server.metric.storage.IFilter;
-import org.bithon.server.metric.storage.OrderBy;
+import org.bithon.server.storage.datasource.api.IQuerableAggregator;
+import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.metrics.OrderBy;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;

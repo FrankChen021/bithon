@@ -5,26 +5,31 @@ bithon:
   storage:
     tracing:
       type: clickhouse
+      enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     metric:
       type: clickhouse
+      enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     event:
       type: clickhouse
+      enabled: true
       ttl:
         enabled: true
         ttl: P7D
         cleanPeriod: PT30M
     meta:
       type: clickhouse
+      enabled: true
     setting:
       type: clickhouse
+      enabled: true
     providers:
       clickhouse:
         enabled: true
@@ -36,3 +41,10 @@ bithon:
         # ------More parameters----
         # cluster: test_cluster_two_shards_localhost
         # engine: MergeTree
+
+#
+# Suppress useless and boring error logging
+#
+logging:
+  level:
+    org.springframework.boot.autoconfigure.jooq.JooqExceptionTranslator: OFF

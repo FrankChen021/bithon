@@ -16,7 +16,7 @@
 
 package org.bithon.server.web.service.topo.service;
 
-import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.commons.time.TimeSpan;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.Max;

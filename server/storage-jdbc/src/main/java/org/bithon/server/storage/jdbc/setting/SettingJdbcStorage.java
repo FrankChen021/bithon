@@ -17,14 +17,14 @@
 package org.bithon.server.storage.jdbc.setting;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.setting.storage.ISettingReader;
-import org.bithon.server.setting.storage.ISettingStorage;
+import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
+import org.bithon.server.storage.setting.ISettingReader;
+import org.bithon.server.storage.setting.ISettingStorage;
 import org.jooq.DSLContext;
-
-import static org.bithon.server.storage.jdbc.JdbcStorageAutoConfiguration.BITHON_JDBC_DSL;
 
 /**
  * @author Frank Chen
@@ -35,7 +35,12 @@ public class SettingJdbcStorage implements ISettingStorage {
 
     protected final DSLContext dslContext;
 
-    public SettingJdbcStorage(@JacksonInject(value = BITHON_JDBC_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext) {
+    @JsonCreator
+    public SettingJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder) {
+        this.dslContext = dslContextHolder.getDslContext();
+    }
+
+    public SettingJdbcStorage(DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 

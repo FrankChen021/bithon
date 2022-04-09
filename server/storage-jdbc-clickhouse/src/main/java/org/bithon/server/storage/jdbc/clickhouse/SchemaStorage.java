@@ -22,10 +22,9 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.metric.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
-import org.jooq.DSLContext;
 import org.jooq.Record;
 
 import java.io.IOException;
@@ -34,8 +33,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageAutoConfiguration.BITHON_CLICKHOUSE_DSL;
 
 /**
  * @author Frank Chen
@@ -47,10 +44,10 @@ public class SchemaStorage extends SchemaJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public SchemaStorage(@JacksonInject(value = BITHON_CLICKHOUSE_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public SchemaStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
                          @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
-        super(dslContext, objectMapper);
+        super(dslContextHolder.getDslContext(), objectMapper);
         this.config = config;
     }
 

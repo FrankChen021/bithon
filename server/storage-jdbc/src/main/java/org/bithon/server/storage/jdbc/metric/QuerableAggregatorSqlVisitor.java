@@ -17,8 +17,8 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.metric.api.CardinalityAggregator;
-import org.bithon.server.metric.api.IQuerableAggregatorVisitor;
+import org.bithon.server.storage.datasource.api.CardinalityAggregator;
+import org.bithon.server.storage.datasource.api.IQuerableAggregatorVisitor;
 
 /**
  * @author Frank Chen

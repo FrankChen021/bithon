@@ -19,9 +19,9 @@ package org.bithon.server.kafka;
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.bithon.server.event.sink.LocalEventSink;
-import org.bithon.server.metric.sink.LocalMetricSink;
-import org.bithon.server.tracing.sink.LocalTraceSink;
+import org.bithon.server.sink.event.LocalEventSink;
+import org.bithon.server.sink.metrics.LocalMetricSink;
+import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
@@ -53,7 +53,7 @@ public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextA
     @Override
     public void start() {
         KafkaConsumerConfig config = this.context.getBean(KafkaConsumerConfig.class);
-        Map<String, Object> consumerProps = config.getConsumer();
+        Map<String, Object> consumerProps = config.getSource();
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 

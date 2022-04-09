@@ -17,20 +17,20 @@
 package org.bithon.server.storage.jdbc.utils;
 
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.common.matcher.BetweenMatcher;
-import org.bithon.server.common.matcher.IMatcherVisitor;
-import org.bithon.server.common.matcher.StringAntPathMatcher;
-import org.bithon.server.common.matcher.StringContainsMatcher;
-import org.bithon.server.common.matcher.StringEndWithMatcher;
-import org.bithon.server.common.matcher.StringEqualMatcher;
-import org.bithon.server.common.matcher.StringIContainsMatcher;
-import org.bithon.server.common.matcher.StringNotEqualMatcher;
-import org.bithon.server.common.matcher.StringRegexMatcher;
-import org.bithon.server.common.matcher.StringStartsWithMatcher;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.dimension.IDimensionSpec;
-import org.bithon.server.metric.storage.DimensionFilter;
-import org.bithon.server.metric.storage.IFilter;
+import org.bithon.server.commons.matcher.BetweenMatcher;
+import org.bithon.server.commons.matcher.IMatcherVisitor;
+import org.bithon.server.commons.matcher.StringAntPathMatcher;
+import org.bithon.server.commons.matcher.StringContainsMatcher;
+import org.bithon.server.commons.matcher.StringEndWithMatcher;
+import org.bithon.server.commons.matcher.StringEqualMatcher;
+import org.bithon.server.commons.matcher.StringIContainsMatcher;
+import org.bithon.server.commons.matcher.StringNotEqualMatcher;
+import org.bithon.server.commons.matcher.StringRegexMatcher;
+import org.bithon.server.commons.matcher.StringStartsWithMatcher;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.metrics.DimensionFilter;
+import org.bithon.server.storage.metrics.IFilter;
 
 import java.util.Collection;
 import java.util.stream.Collectors;

@@ -17,7 +17,7 @@
 package org.bithon.server.storage.jdbc.clickhouse;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.utils.datetime.TimeSpan;
+import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
 
 /**

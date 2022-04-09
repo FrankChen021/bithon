@@ -24,12 +24,10 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.event.storage.IEventCleaner;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.event.IEventCleaner;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.jooq.DSLContext;
-
-import static org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageAutoConfiguration.BITHON_CLICKHOUSE_DSL;
 
 /**
  * @author frank.chen021@outlook.com
@@ -41,10 +39,11 @@ public class EventStorage extends EventJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public EventStorage(@JacksonInject(value = BITHON_CLICKHOUSE_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public EventStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
                         @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper,
-                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
-        super(dslContext, objectMapper);
+                        @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config,
+                        @JacksonInject(useInput = OptBoolean.FALSE) DataSourceSchemaManager schemaManager) {
+        super(dslContextHolder.getDslContext(), objectMapper, schemaManager);
         this.config = config;
     }
 

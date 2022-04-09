@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.tracing.api;
 
 import lombok.Data;
-import org.bithon.server.metric.storage.IFilter;
+import org.bithon.server.storage.metrics.IFilter;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;

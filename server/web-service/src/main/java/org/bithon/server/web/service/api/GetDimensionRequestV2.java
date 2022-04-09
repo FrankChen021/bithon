@@ -17,7 +17,7 @@
 package org.bithon.server.web.service.api;
 
 import lombok.Data;
-import org.bithon.server.metric.storage.IFilter;
+import org.bithon.server.storage.metrics.IFilter;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;

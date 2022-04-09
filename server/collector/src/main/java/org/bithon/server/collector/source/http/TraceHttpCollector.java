@@ -19,10 +19,12 @@ package org.bithon.server.collector.source.http;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.common.service.UriNormalizer;
-import org.bithon.server.common.utils.collection.IteratorableCollection;
-import org.bithon.server.tracing.sink.ITraceMessageSink;
-import org.bithon.server.tracing.sink.TraceSpan;
+import org.bithon.component.commons.collection.IteratorableCollection;
+import org.bithon.server.sink.common.service.UriNormalizer;
+import org.bithon.server.sink.tracing.ITraceMessageSink;
+import org.bithon.server.sink.tracing.TraceSpanHelper;
+import org.bithon.server.storage.tracing.TraceSpan;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -43,6 +45,7 @@ import java.util.zip.InflaterInputStream;
  */
 @Slf4j
 @RestController
+@ConditionalOnProperty(value = "collector-http.enabled", havingValue = "true")
 public class TraceHttpCollector {
 
     private final ObjectMapper om;
@@ -95,7 +98,7 @@ public class TraceHttpCollector {
                 @Override
                 public TraceSpan next() {
                     TraceSpan span = delegate.next();
-                    span.flatten(uriNormalizer);
+                    TraceSpanHelper.flatten(span, uriNormalizer);
                     return span;
                 }
             };
@@ -190,7 +193,7 @@ public class TraceHttpCollector {
 
             span.getTags().clear();
             span.setTags(tags);
-            span.flatten(uriNormalizer);
+            TraceSpanHelper.flatten(span, uriNormalizer);
 
             return span;
         }

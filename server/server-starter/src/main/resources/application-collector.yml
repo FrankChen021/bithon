@@ -18,9 +18,12 @@ collector-brpc:
 
 collector-kafka:
   enabled: false
-  consumer:
+  source:
     "[bootstrap.servers]": localhost:9092
     "[fetch.min.bytes]": 1024
+
+collector-http:
+  enabled: true
 
 logging:
   level:

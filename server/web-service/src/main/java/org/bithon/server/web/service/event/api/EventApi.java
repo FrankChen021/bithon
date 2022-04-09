@@ -17,11 +17,11 @@
 package org.bithon.server.web.service.event.api;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.common.matcher.StringEqualMatcher;
-import org.bithon.server.common.utils.datetime.TimeSpan;
-import org.bithon.server.event.storage.IEventReader;
-import org.bithon.server.event.storage.IEventStorage;
-import org.bithon.server.metric.storage.DimensionFilter;
+import org.bithon.server.commons.matcher.StringEqualMatcher;
+import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.event.IEventReader;
+import org.bithon.server.storage.event.IEventStorage;
+import org.bithon.server.storage.metrics.DimensionFilter;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;

@@ -22,14 +22,11 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.metric.DataSourceSchema;
-import org.bithon.server.metric.storage.IMetricCleaner;
+import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
-import org.jooq.DSLContext;
-
-import static org.bithon.server.storage.jdbc.clickhouse.ClickHouseStorageAutoConfiguration.BITHON_CLICKHOUSE_DSL;
+import org.bithon.server.storage.metrics.IMetricCleaner;
 
 /**
  * @author frank.chen021@outlook.com
@@ -42,10 +39,10 @@ public class MetricStorage extends MetricJdbcStorage {
     private final ClickHouseConfig config;
 
     @JsonCreator
-    public MetricStorage(@JacksonInject(value = BITHON_CLICKHOUSE_DSL, useInput = OptBoolean.FALSE) DSLContext dslContext,
+    public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlExpressionFormatter formatter,
                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
-        super(dslContext);
+        super(dslContextHolder.getDslContext());
         this.formatter = formatter;
         this.config = config;
     }
