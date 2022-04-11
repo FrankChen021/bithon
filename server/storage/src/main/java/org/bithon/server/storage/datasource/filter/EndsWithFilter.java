@@ -28,7 +28,7 @@ import java.util.function.Function;
  * @author frank.chen021@outlook.com
  * @date 2021/1/14
  */
-public class EndwithFilter implements IFilter {
+public class EndsWithFilter implements IInputRowFilter {
     @Getter
     @NotNull
     private final String field;
@@ -39,8 +39,8 @@ public class EndwithFilter implements IFilter {
 
     private final Function<String, Boolean> shouldIncludeExpr;
 
-    public EndwithFilter(@JsonProperty("field") String field,
-                         @JsonProperty("suffix") @NotNull Object suffix) {
+    public EndsWithFilter(@JsonProperty("field") String field,
+                          @JsonProperty("suffix") @NotNull Object suffix) {
         this.field = field;
         this.suffix = suffix;
 

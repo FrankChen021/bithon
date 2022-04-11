@@ -26,18 +26,18 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2021/1/19
  */
-public class OrFilter implements IFilter {
+public class OrFilter implements IInputRowFilter {
 
     @NotNull
-    private final List<IFilter> filters;
+    private final List<IInputRowFilter> filters;
 
-    public OrFilter(@JsonProperty("filters") List<IFilter> filters) {
+    public OrFilter(@JsonProperty("filters") List<IInputRowFilter> filters) {
         this.filters = filters;
     }
 
     @Override
     public boolean shouldInclude(IInputRow inputRow) {
-        for (IFilter filter : this.filters) {
+        for (IInputRowFilter filter : this.filters) {
             if (filter.shouldInclude(inputRow)) {
                 return true;
             }

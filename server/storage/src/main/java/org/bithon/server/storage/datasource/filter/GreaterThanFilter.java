@@ -25,7 +25,7 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2021/1/14
  */
-public class GreaterThanFilter implements IFilter {
+public class GreaterThanFilter implements IInputRowFilter {
 
     @NotNull
     private final String field;

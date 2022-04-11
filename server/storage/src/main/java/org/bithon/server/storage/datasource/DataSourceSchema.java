@@ -24,7 +24,6 @@ import lombok.Setter;
 import org.bithon.server.storage.datasource.aggregator.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.transformer.ITransformer;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -51,11 +50,10 @@ public class DataSourceSchema {
     private final List<IMetricSpec> metricsSpec;
 
     @Getter
-    @JsonIgnore
-    private final Map<String, ITransformer> dimensionTransformers = new HashMap<>();
+    private final TransformSpec transformSpec;
 
     @JsonIgnore
-    private final Map<String, IDimensionSpec> dimensionMap = new HashMap<>();
+    private final Map<String, IDimensionSpec> dimensionMap = new HashMap<>(15);
 
     @JsonIgnore
     private final Map<String, IMetricSpec> metricsMap = new HashMap<>();
@@ -73,19 +71,16 @@ public class DataSourceSchema {
                             @JsonProperty("name") String name,
                             @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
                             @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
-                            @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec) {
+                            @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
+                            @JsonProperty("transformSpec") @Nullable TransformSpec transformSpec) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
         this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
+        this.transformSpec = transformSpec;
 
-        for (IDimensionSpec dimensionSpec : this.dimensionsSpec) {
-            dimensionMap.put(dimensionSpec.getName(), dimensionSpec);
-            if (dimensionSpec.getTransformer() != null) {
-                dimensionTransformers.put(dimensionSpec.getName(), dimensionSpec.getTransformer());
-            }
-        }
+        this.dimensionsSpec.forEach((dimensionSpec) -> dimensionMap.put(dimensionSpec.getName(), dimensionSpec));
         this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));
 
         // set owner after initialization

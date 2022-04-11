@@ -25,12 +25,12 @@ import org.bithon.server.storage.datasource.input.IInputRow;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    //@JsonSubTypes.Type(name = "endwith", value = EndwithFilter.class),
+    @JsonSubTypes.Type(name = "endsWith", value = EndsWithFilter.class),
     @JsonSubTypes.Type(name = "==", value = EqualFilter.class),
-    //@JsonSubTypes.Type(name = ">", value = GreaterThanFilter.class),
-    //@JsonSubTypes.Type(name = "or", value = OrFilter.class)
+    @JsonSubTypes.Type(name = ">", value = GreaterThanFilter.class),
+    @JsonSubTypes.Type(name = "or", value = OrFilter.class)
 })
-public interface IFilter {
+public interface IInputRowFilter {
 
     boolean shouldInclude(IInputRow inputRow);
 }

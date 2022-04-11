@@ -57,8 +57,8 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     private final IMessageSink<SchemaMetricMessage> schemaMetricSink;
     private final IMetricMessageSink metricSink;
-    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName", true, true, 128, null);
-    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName", true, true, 128, null);
+    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName", true, true, 128);
+    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName", true, true, 128);
 
     public BrpcMetricCollector(IMessageSink<SchemaMetricMessage> schemaMetricSink,
                                IMetricMessageSink metricSink) {
@@ -107,7 +107,6 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                                              dimSpec.getName(),
                                                                              true,
                                                                              true,
-                                                                             null,
                                                                              null))
                                      .collect(Collectors.toList()));
         final int userDimensionSpecIndex = 2;
@@ -145,7 +144,8 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                                   }
 
                                                                   return null;
-                                                              }).collect(Collectors.toList()));
+                                                              }).collect(Collectors.toList()),
+                                                       null);
 
         Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
         SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();

@@ -39,9 +39,8 @@ public class StringDimensionSpec extends AbstractDimensionSpec {
                                @JsonProperty("displayText") @NotNull String displayText,
                                @JsonProperty("isRequired") Boolean isRequired,
                                @JsonProperty("visible") Boolean visible,
-                               @JsonProperty("length") @Nullable Integer length,
-                               @JsonProperty("transformer") @Nullable ITransformer transformer) {
-        super(name, alias, displayText, isRequired, visible, transformer);
+                               @JsonProperty("length") @Nullable Integer length) {
+        super(name, alias, displayText, isRequired, visible);
         this.length = length == null ? 128 : length;
     }
 
