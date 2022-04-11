@@ -25,11 +25,16 @@ public interface IInputRow {
     Object getCol(String columnName);
 
     Long getColAsLong(String columnName);
+
     long getColAsLong(String columnName, long defaultValue);
+
     double getColAsDouble(String columnName, long defaultValue);
+
     String getColAsString(String columnName);
+
     <T> T getColAs(String columnName, Class<T> clazz);
+
     <T> T getCol(String columnName, T defaultValue);
 
-    void updateColumn(String name, Object value) ;
+    void updateColumn(String name, Object value);
 }

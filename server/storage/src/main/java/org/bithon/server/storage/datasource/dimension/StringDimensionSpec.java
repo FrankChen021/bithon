@@ -18,7 +18,6 @@ package org.bithon.server.storage.datasource.dimension;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.transformer.ITransformer;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.StringValueType;
 
