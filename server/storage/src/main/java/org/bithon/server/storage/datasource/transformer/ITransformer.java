@@ -18,15 +18,23 @@ package org.bithon.server.storage.datasource.transformer;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
+ * A transformer allows adding new fields to input rows.
+ * Each one has a "name" (the name of the new field) which can be referred to by {@link org.bithon.server.storage.datasource.dimension.IDimensionSpec},
+ * or {@link org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec}.
+ * <p>
+ * The transformer produces values for this new field based on looking at the entire input row.
+ *
  * @author Frank Chen
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "simple", value = MappingTransformer.class)
+    @JsonSubTypes.Type(name = "mapping", value = MappingTransformer.class),
+    @JsonSubTypes.Type(name = "splitter", value = SplitterTransformer.class)
 })
 public interface ITransformer {
 
-    Object transform(Object columnValue);
+    void transform(IInputRow inputRow);
 }
