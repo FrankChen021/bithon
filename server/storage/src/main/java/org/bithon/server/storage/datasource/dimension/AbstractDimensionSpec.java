@@ -18,7 +18,7 @@ package org.bithon.server.storage.datasource.dimension;
 
 import lombok.Data;
 import lombok.Getter;
-import org.bithon.server.storage.datasource.dimension.transformer.IDimensionTransformer;
+import org.bithon.server.storage.datasource.transformer.ITransformer;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -57,14 +57,14 @@ public abstract class AbstractDimensionSpec implements IDimensionSpec {
     private final boolean visible;
 
     @Getter
-    private final IDimensionTransformer transformer;
+    private final ITransformer transformer;
 
     public AbstractDimensionSpec(@NotNull String name,
                                  @Nullable String alias,
                                  @NotNull String displayText,
                                  @Nullable Boolean required,
                                  @Nullable Boolean visible,
-                                 @Nullable IDimensionTransformer transformer) {
+                                 @Nullable ITransformer transformer) {
         this.name = name;
         this.alias = alias == null ? name : alias;
         this.displayText = displayText;

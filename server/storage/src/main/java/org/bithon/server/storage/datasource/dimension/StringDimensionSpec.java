@@ -18,7 +18,7 @@ package org.bithon.server.storage.datasource.dimension;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.dimension.transformer.IDimensionTransformer;
+import org.bithon.server.storage.datasource.transformer.ITransformer;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.StringValueType;
 
@@ -40,7 +40,7 @@ public class StringDimensionSpec extends AbstractDimensionSpec {
                                @JsonProperty("isRequired") Boolean isRequired,
                                @JsonProperty("visible") Boolean visible,
                                @JsonProperty("length") @Nullable Integer length,
-                               @JsonProperty("transformer") @Nullable IDimensionTransformer transformer) {
+                               @JsonProperty("transformer") @Nullable ITransformer transformer) {
         super(name, alias, displayText, isRequired, visible, transformer);
         this.length = length == null ? 128 : length;
     }

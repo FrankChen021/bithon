@@ -24,7 +24,7 @@ import lombok.Setter;
 import org.bithon.server.storage.datasource.aggregator.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.dimension.transformer.IDimensionTransformer;
+import org.bithon.server.storage.datasource.transformer.ITransformer;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -52,7 +52,7 @@ public class DataSourceSchema {
 
     @Getter
     @JsonIgnore
-    private final Map<String, IDimensionTransformer> dimensionTransformers = new HashMap<>();
+    private final Map<String, ITransformer> dimensionTransformers = new HashMap<>();
 
     @JsonIgnore
     private final Map<String, IDimensionSpec> dimensionMap = new HashMap<>();

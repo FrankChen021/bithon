@@ -14,19 +14,29 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.dimension.transformer;
+package org.bithon.server.storage.datasource.transformer;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import javax.validation.constraints.NotNull;
+import java.util.Map;
 
 /**
  * @author Frank Chen
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "simple", value = MappingTransformer.class)
-})
-public interface IDimensionTransformer {
+public class MappingTransformer implements ITransformer {
 
-    Object transform(Object columnValue);
+    private final Map<String, Object> maps;
+
+    public MappingTransformer(@JsonProperty("maps") @NotNull Map<String, Object> maps) {
+        this.maps = maps;
+    }
+
+    @Override
+    public Object transform(Object dimensionValue) {
+        if (dimensionValue == null) {
+            return null;
+        }
+        return maps.getOrDefault((String) dimensionValue, dimensionValue);
+    }
 }

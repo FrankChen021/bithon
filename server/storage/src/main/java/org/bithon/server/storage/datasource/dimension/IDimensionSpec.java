@@ -19,7 +19,7 @@ package org.bithon.server.storage.datasource.dimension;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.dimension.transformer.IDimensionTransformer;
+import org.bithon.server.storage.datasource.transformer.ITransformer;
 import org.bithon.server.storage.datasource.typing.IValueType;
 
 /**
@@ -47,7 +47,7 @@ public interface IDimensionSpec {
      */
     boolean isVisible();
 
-    IDimensionTransformer getTransformer();
+    ITransformer getTransformer();
 
     @JsonIgnore
     IValueType getValueType();
