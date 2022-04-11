@@ -14,22 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
-
-import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.Measurement;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
+package org.bithon.server.storage.datasource.input;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/2 6:36 下午
+ * @date 2020/12/2 4:46 下午
  */
-public interface IMetricWriter extends AutoCloseable {
+public interface IInputRow {
 
-    void write(List<IInputRow> inputRowList) throws IOException;
+    Object getCol(String columnName);
 
-    void write(Collection<Measurement> measurementList) throws IOException;
+    Long getColAsLong(String columnName);
+    long getColAsLong(String columnName, long defaultValue);
+    double getColAsDouble(String columnName, long defaultValue);
+    String getColAsString(String columnName);
+    <T> T getColAs(String columnName, Class<T> clazz);
+    <T> T getCol(String columnName, T defaultValue);
+
+    void updateColumn(String name, Object value) ;
 }

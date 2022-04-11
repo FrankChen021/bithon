@@ -31,7 +31,7 @@ import java.util.Map;
  * @date 10/12/21 3:33 PM
  */
 @Data
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConfigurationProperties(prefix = "bithon.tracing")
 public class TraceConfig {
     private List<TraceIdMappingConfig> mapping;

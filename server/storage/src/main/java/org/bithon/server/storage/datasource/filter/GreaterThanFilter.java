@@ -17,7 +17,7 @@
 package org.bithon.server.storage.datasource.filter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.IInputRow;
 
 import javax.validation.constraints.NotNull;
 
@@ -40,7 +40,7 @@ public class GreaterThanFilter implements IFilter {
     }
 
     @Override
-    public boolean shouldInclude(InputRow inputRow) {
+    public boolean shouldInclude(IInputRow inputRow) {
         Object val = inputRow.getCol(this.field);
         if (val instanceof Number) {
             return ((Number) val).longValue() > threshold;

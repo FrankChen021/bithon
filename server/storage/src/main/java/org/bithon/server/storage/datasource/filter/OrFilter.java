@@ -17,7 +17,7 @@
 package org.bithon.server.storage.datasource.filter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.IInputRow;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -36,7 +36,7 @@ public class OrFilter implements IFilter {
     }
 
     @Override
-    public boolean shouldInclude(InputRow inputRow) {
+    public boolean shouldInclude(IInputRow inputRow) {
         for (IFilter filter : this.filters) {
             if (filter.shouldInclude(inputRow)) {
                 return true;

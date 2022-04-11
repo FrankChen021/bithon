@@ -17,7 +17,7 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.jooq.DSLContext;
@@ -46,7 +46,7 @@ class MetricJdbcWriter implements IMetricWriter {
     }
 
     @Override
-    public void write(List<InputRow> inputRowList) {
+    public void write(List<IInputRow> inputRowList) {
         writeRows(inputRowList.stream().map(this::toInsertSql).collect(Collectors.toList()));
     }
 
@@ -69,7 +69,7 @@ class MetricJdbcWriter implements IMetricWriter {
     }
 
     @SuppressWarnings("unchecked")
-    private InsertSetMoreStep<?> toInsertSql(InputRow inputRow) {
+    private InsertSetMoreStep<?> toInsertSql(IInputRow inputRow) {
         InsertSetMoreStep<?> step = dsl.insertInto(table)
                                        .set(table.getTimestampField(), new Timestamp(inputRow.getColAsLong("timestamp")));
 

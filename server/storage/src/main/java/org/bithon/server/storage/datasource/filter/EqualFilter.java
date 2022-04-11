@@ -17,7 +17,7 @@
 package org.bithon.server.storage.datasource.filter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.IInputRow;
 
 import javax.validation.constraints.NotNull;
 
@@ -40,7 +40,7 @@ public class EqualFilter implements IFilter {
     }
 
     @Override
-    public boolean shouldInclude(InputRow inputRow) {
+    public boolean shouldInclude(IInputRow inputRow) {
         return value.equals(inputRow.getCol(this.field));
     }
 }

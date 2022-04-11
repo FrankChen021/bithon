@@ -18,7 +18,7 @@ package org.bithon.server.storage.datasource.filter;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
  * @author frankchen
@@ -32,5 +32,5 @@ import org.bithon.server.storage.datasource.input.InputRow;
 })
 public interface IFilter {
 
-    boolean shouldInclude(InputRow inputRow);
+    boolean shouldInclude(IInputRow inputRow);
 }

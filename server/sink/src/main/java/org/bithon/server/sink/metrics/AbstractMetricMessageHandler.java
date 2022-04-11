@@ -23,6 +23,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -81,7 +82,7 @@ public abstract class AbstractMetricMessageHandler {
         //
         // convert
         //
-        List<InputRow> inputRowList = new ArrayList<>(8);
+        List<IInputRow> inputRowList = new ArrayList<>(8);
         while (metricMessages.hasNext()) {
             MetricMessage metricMessage = metricMessages.next();
 
@@ -176,7 +177,7 @@ public abstract class AbstractMetricMessageHandler {
 
             // get or create metrics
             Map<String, NumberAggregator> metrics = slotStorage.computeIfAbsent(measurement.getDimensions(), dim -> {
-                Map<String, NumberAggregator> metricMap = new HashMap<>();
+                Map<String, NumberAggregator> metricMap = new HashMap<>(15);
                 schema.getMetricsSpec()
                       .forEach((metricSpec) -> {
                           NumberAggregator aggregator = metricSpec.createAggregator();
