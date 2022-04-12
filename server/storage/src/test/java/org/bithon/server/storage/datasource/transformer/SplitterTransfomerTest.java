@@ -33,7 +33,7 @@ public class SplitterTransfomerTest {
 
     @Test
     public void test() throws JsonProcessingException {
-        SplitterTransformer transformer = new SplitterTransformer("o1", "\\.", new String[]{"database", "table"});
+        SplitterTransformer transformer = new SplitterTransformer("o1", "\\.", "database", "table");
 
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();

@@ -21,6 +21,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
+ * A special kind of transformer that is executed before a {@link org.bithon.server.storage.datasource.transformer.ITransformer}
+ *
+ * See also {@link org.bithon.server.storage.datasource.TransformSpec#transform(IInputRow)}
+ *
  * @author frank.chen021@outlook.com
  * @date 2020/12/28
  */

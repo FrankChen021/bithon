@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource.flatten;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.input.IInputRow;
@@ -29,17 +30,31 @@ import java.util.Map;
  */
 public class TreePathFlattener implements IFlattener {
 
+    /**
+     * the field name that holds the flattened object
+     */
     @Getter
     private final String name;
 
+    /**
+     * dot separated path such as a.b.c
+     */
+    @Getter
+    private final String path;
+
+    /**
+     * runtime property that holds the splitted {@link #path}
+     */
+    @JsonIgnore
     @Getter
     private final String[] nodes;
 
     @JsonCreator
     public TreePathFlattener(@JsonProperty("name") String name,
-                             @JsonProperty("nodes") String[] nodes) {
+                             @JsonProperty("path") String path) {
         this.name = name;
-        this.nodes = nodes;
+        this.path = path;
+        this.nodes = path.split("\\.");
     }
 
     @SuppressWarnings("rawtypes")
@@ -51,18 +66,21 @@ public class TreePathFlattener implements IFlattener {
             return;
         }
 
-        Map map = (Map) obj;
-        for (int i = 1; i < nodes.length - 1; i++) {
-            obj = map.get(nodes[i]);
-            if (!(obj instanceof Map)) {
-                return;
+        if (nodes.length > 1) {
+            Map map = (Map) obj;
+            for (int i = 1; i < nodes.length - 1; i++) {
+                obj = map.get(nodes[i]);
+                if (!(obj instanceof Map)) {
+                    return;
+                }
+                map = (Map) obj;
             }
-            map = (Map) obj;
+
+            obj = map.get(nodes[nodes.length - 1]);
         }
 
-        Object val = map.get(nodes[nodes.length - 1]);
-        if (val != null) {
-            inputRow.updateColumn(name, val);
+        if (obj != null) {
+            inputRow.updateColumn(name, obj);
         }
     }
 }

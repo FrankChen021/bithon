@@ -16,9 +16,39 @@
 
 package org.bithon.server.storage.datasource;
 
+import com.google.common.collect.ImmutableMap;
+import org.bithon.server.storage.datasource.filter.EqualFilter;
+import org.bithon.server.storage.datasource.flatten.TreePathFlattener;
+import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.datasource.input.InputRow;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.Collections;
+import java.util.HashMap;
+
 /**
  * @author Frank Chen
  * @date 11/4/22 11:37 PM
  */
 public class TransformSpecTest {
+
+    @Test
+    public void test() {
+        TransformSpec transformSpec = TransformSpec.builder()
+                                                   .prefilters(Collections.singletonList(new EqualFilter("appName", "bithon-server")))
+                                                   .flatteners(Collections.singletonList(new TreePathFlattener("database", "tags.view")))
+                                                   //.transformers()
+                                                   .postfilters(Collections.singletonList(new EqualFilter("database", "jvm-metrics")))
+                                                   .build();
+
+        IInputRow row = new InputRow(new HashMap<>(ImmutableMap.of(
+            "appName", "bithon-server",
+            "tags", ImmutableMap.of("view", "jvm-metrics")
+        )));
+        Assert.assertTrue(transformSpec.transform(row));
+
+        // flattened property
+        Assert.assertEquals("jvm-metrics", row.getCol("database"));
+    }
 }

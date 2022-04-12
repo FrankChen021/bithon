@@ -32,7 +32,8 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = "mapping", value = MappingTransformer.class),
-    @JsonSubTypes.Type(name = "splitter", value = SplitterTransformer.class)
+    @JsonSubTypes.Type(name = "splitter", value = SplitterTransformer.class),
+    @JsonSubTypes.Type(name = "chain", value = ChainTransformer.class)
 })
 public interface ITransformer {
 

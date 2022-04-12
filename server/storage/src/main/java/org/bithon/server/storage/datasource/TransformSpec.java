@@ -18,7 +18,8 @@ package org.bithon.server.storage.datasource;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 import org.bithon.server.storage.datasource.filter.IInputRowFilter;
 import org.bithon.server.storage.datasource.flatten.IFlattener;
 import org.bithon.server.storage.datasource.input.IInputRow;
@@ -30,10 +31,11 @@ import java.util.List;
  * @author Frank Chen
  * @date 11/4/22 10:49 PM
  */
-@Data
+@Getter
+@Builder
 public class TransformSpec {
-    private final List<IFlattener> flatteners;
     private final List<IInputRowFilter> prefilters;
+    private final List<IFlattener> flatteners;
     private final List<ITransformer> transformers;
     private final List<IInputRowFilter> postfilters;
 
