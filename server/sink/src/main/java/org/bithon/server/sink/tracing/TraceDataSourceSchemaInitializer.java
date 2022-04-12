@@ -45,47 +45,35 @@ public class TraceDataSourceSchemaInitializer implements BeanPostProcessor {
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if (bean instanceof DataSourceSchemaManager) {
-            // initialize dimensions
-            TagIndexConfig indexConfig = traceConfig.getIndexes();
-            List<IDimensionSpec> dimensionSpecs = new ArrayList<>();
-            if (indexConfig != null && !CollectionUtils.isEmpty(indexConfig.getMap())) {
-                for (Map.Entry<String, Integer> entry : indexConfig.getMap().entrySet()) {
-                    String tagName = entry.getKey();
-                    Integer indexPos = entry.getValue();
-                    dimensionSpecs.add(new StringDimensionSpec("f" + indexPos,
-                                                               tagName,
-                                                               tagName,
-                                                               true,
-                                                               null,
-                                                               null));
-                }
-            }
-
-            final DataSourceSchema spanTagSchema = new DataSourceSchema("trace_span_tag_index",
-                                                                        "trace_span_tag_index",
-                                                                        new TimestampSpec("timestamp", null, null),
-                                                                        dimensionSpecs,
-                                                                        Collections.singletonList(CountMetricSpec.INSTANCE),
-                                                                        null);
-
-
-            DataSourceSchemaManager dataSourceSchemaManager = (DataSourceSchemaManager) bean;
-            dataSourceSchemaManager.addListener(new DataSourceSchemaManager.IDataSourceSchemaListener() {
-                @Override
-                public void onRmv(DataSourceSchema dataSourceSchema) {
-                }
-
-                @Override
-                public void onAdd(DataSourceSchema dataSourceSchema) {
-                }
-
-                @Override
-                public void onRefreshed() {
-                    dataSourceSchemaManager.addDataSourceSchema(spanTagSchema);
-                }
-            });
+        if (!(bean instanceof DataSourceSchemaManager)) {
+            return bean;
         }
+
+        // initialize dimensions
+        TagIndexConfig indexConfig = traceConfig.getIndexes();
+        List<IDimensionSpec> dimensionSpecs = new ArrayList<>();
+        if (indexConfig != null && !CollectionUtils.isEmpty(indexConfig.getMap())) {
+            for (Map.Entry<String, Integer> entry : indexConfig.getMap().entrySet()) {
+                String tagName = entry.getKey();
+                Integer indexPos = entry.getValue();
+                dimensionSpecs.add(new StringDimensionSpec("f" + indexPos,
+                                                           tagName,
+                                                           tagName,
+                                                           true,
+                                                           null,
+                                                           null));
+            }
+        }
+
+        final DataSourceSchema spanTagSchema = new DataSourceSchema("trace_span_tag_index",
+                                                                    "trace_span_tag_index",
+                                                                    new TimestampSpec("timestamp", null, null),
+                                                                    dimensionSpecs,
+                                                                    Collections.singletonList(CountMetricSpec.INSTANCE),
+                                                                    null);
+
+        DataSourceSchemaManager dataSourceSchemaManager = (DataSourceSchemaManager) bean;
+        dataSourceSchemaManager.addDataSourceSchema(spanTagSchema);
         return bean;
     }
 }

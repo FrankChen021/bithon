@@ -59,43 +59,6 @@ public class InputRow implements IInputRow {
     }
 
     @Override
-    public Long getColAsLong(String columnName) {
-        return getColAs(columnName, Long.class);
-    }
-
-    @Override
-    public long getColAsLong(String columnName, long defaultValue) {
-        Number number = getColAs(columnName, Number.class);
-        return number == null ? defaultValue : number.longValue();
-    }
-
-    @Override
-    public double getColAsDouble(String columnName, long defaultValue) {
-        Number number = getColAs(columnName, Number.class);
-        return number == null ? defaultValue : number.doubleValue();
-    }
-
-    @Override
-    public String getColAsString(String columnName) {
-        return getColAs(columnName, String.class);
-    }
-
-    @Override
-    public <T> T getColAs(String columnName, Class<T> clazz) {
-        //noinspection unchecked
-        return (T) columns.get(columnName);
-    }
-
-    @Override
-    public <T> T getCol(String columnName, T defaultValue) {
-        // when columnName exist but its value is null, the returned obj above is NOT null
-        // So, additional check is needed to return correct default value
-        Object val = columns.get(columnName);
-        //noinspection unchecked
-        return val == null ? defaultValue : (T) val;
-    }
-
-    @Override
     public void updateColumn(String name, Object value) {
         columns.put(name, value);
     }

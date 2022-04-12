@@ -68,6 +68,14 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     }
 
     @Override
+    public List<DataSourceSchema> getSchemas(long afterTimestamp) {
+        return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
+                         .where(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp)))
+                         .fetch(this::toSchema)
+                         .stream().filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    @Override
     public List<DataSourceSchema> getSchemas() {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
                          .fetch(this::toSchema)

@@ -211,21 +211,6 @@ public class StorageAutoConfiguration {
         schemaManager.addDataSourceSchema(eventTableSchema);
         schemaManager.addDataSourceSchema(traceTableSchema);
 
-        schemaManager.addListener(new DataSourceSchemaManager.IDataSourceSchemaListener() {
-            @Override
-            public void onRmv(DataSourceSchema dataSourceSchema) {
-            }
-
-            @Override
-            public void onAdd(DataSourceSchema dataSourceSchema) {
-            }
-
-            @Override
-            public void onRefreshed() {
-                schemaManager.addDataSourceSchema(eventTableSchema);
-                schemaManager.addDataSourceSchema(traceTableSchema);
-            }
-        });
         return schemaManager;
     }
 }

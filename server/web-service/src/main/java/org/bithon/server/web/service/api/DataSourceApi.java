@@ -26,6 +26,7 @@ import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.metrics.GroupByQuery;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
+import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
@@ -135,6 +136,16 @@ public class DataSourceApi {
     @PostMapping("/api/datasource/schema/{name}")
     public DataSourceSchema getSchemaByName(@PathVariable("name") String schemaName) {
         return schemaManager.getDataSourceSchema(schemaName);
+    }
+
+    @PostMapping("/api/datasource/schema/create")
+    public void createSchema(@RequestBody DataSourceSchema schema) {
+        try (IMetricWriter writer = this.metricStorage.createMetricWriter(schema)) {
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        schemaManager.updateDataSourceSchema(schema);
     }
 
     @PostMapping("/api/datasource/schema/update")

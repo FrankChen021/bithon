@@ -57,6 +57,27 @@ public class SchemaStorage extends SchemaJdbcStorage {
     }
 
     @Override
+    public List<DataSourceSchema> getSchemas(long afterTimestamp) {
+        String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME, Tables.BITHON_META_SCHEMA.SCHEMA)
+                               .from(Tables.BITHON_META_SCHEMA)
+                               .getSQL() + " FINAL WHERE ";
+        sql += Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp)).toString();
+
+        List<Record> records = dslContext.fetch(sql);
+        if (records == null) {
+            return Collections.emptyList();
+        }
+
+        return records.stream().map((mapper) -> {
+            try {
+                return objectMapper.readValue(mapper.getValue(1, String.class), DataSourceSchema.class);
+            } catch (JsonProcessingException e) {
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    @Override
     public List<DataSourceSchema> getSchemas() {
         String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME, Tables.BITHON_META_SCHEMA.SCHEMA).from(Tables.BITHON_META_SCHEMA).getSQL() + " FINAL";
 

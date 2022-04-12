@@ -34,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author frankchen
@@ -46,7 +45,9 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
     private final ISchemaStorage schemaStorage;
     private final ObjectMapper objectMapper;
     private final ScheduledExecutorService loaderScheduler;
-    private Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
+
+    private long lastLoadAt;
+    private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
 
     public DataSourceSchemaManager(ISchemaStorage schemaStorage, ObjectMapper objectMapper) {
         this.schemaStorage = schemaStorage;
@@ -139,17 +140,30 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         listeners.add(listener);
     }
 
-    private void loadSchema() {
-        log.info("Loading metric schemas");
+    private void incrementalLoadSchemas() {
         try {
-            schemas = schemaStorage.getSchemas().stream().collect(Collectors.toConcurrentMap(DataSourceSchema::getName, v -> v));
-            for (IDataSourceSchemaListener listener : listeners) {
-                try {
-                    listener.onRefreshed();
-                } catch (Exception e) {
-                    log.error("notify onRefresh exception", e);
+            List<DataSourceSchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
+
+            log.info("{} Schemas has been changed since last time.", changedSchemaList.size());
+
+            for (DataSourceSchema changedSchema : changedSchemaList) {
+
+                DataSourceSchema schemaBeforeChange = this.schemas.put(changedSchema.getName(), changedSchema);
+
+                // stop input
+                if (schemaBeforeChange != null && schemaBeforeChange.getInputSourceSpec() != null) {
+                    log.info("Stop input source for schema [{}]", schemaBeforeChange.getName());
+                    schemaBeforeChange.getInputSourceSpec().stop();
+                }
+
+                // start for the new schema
+                if (changedSchema.getInputSourceSpec() != null) {
+                    log.info("Start input source for schema [{}]", changedSchema.getName());
+                    changedSchema.getInputSourceSpec().start(changedSchema);
                 }
             }
+
+            this.lastLoadAt = System.currentTimeMillis();
         } catch (Exception e) {
             log.error("Exception occurs when loading schemas", e);
         }
@@ -157,7 +171,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
 
     @Override
     public void afterPropertiesSet() {
-        loaderScheduler.scheduleWithFixedDelay(this::loadSchema, 0, 1, TimeUnit.MINUTES);
+        loaderScheduler.scheduleWithFixedDelay(this::incrementalLoadSchemas, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -170,7 +184,5 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         void onRmv(DataSourceSchema dataSourceSchema);
 
         void onAdd(DataSourceSchema dataSourceSchema);
-
-        void onRefreshed();
     }
 }

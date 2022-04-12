@@ -14,36 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.meta;
+package org.bithon.server.storage.datasource.source;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 
-import java.io.IOException;
-import java.util.List;
-
 /**
  * @author Frank Chen
- * @date 7/1/22 1:39 PM
+ * @date 12/4/22 11:20 AM
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface ISchemaStorage {
+public interface IInputSource {
 
-    /**
-     * get changed schemas after given timestamp
-     */
-    List<DataSourceSchema> getSchemas(long afterTimestamp);
-
-    /**
-     * get all schemas
-     */
-    List<DataSourceSchema> getSchemas();
-
-    DataSourceSchema getSchemaByName(String name);
-
-    void update(String name, DataSourceSchema schema) throws IOException;
-    void putIfNotExist(String name, DataSourceSchema schema) throws IOException;
-
-    default void initialize() {
-    }
+    void start(DataSourceSchema schema);
+    void stop();
 }

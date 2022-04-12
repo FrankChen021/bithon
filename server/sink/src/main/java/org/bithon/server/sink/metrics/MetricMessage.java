@@ -30,8 +30,16 @@ public class MetricMessage extends HashMap<String, Object> {
         return (long) this.get("timestamp");
     }
 
+    public void setTimestamp(long timestamp) {
+        this.put("timestamp", timestamp);
+    }
+
     public String getApplicationName() {
         return (String) this.get("appName");
+    }
+
+    public void setApplicationName(String name) {
+        this.put("appName", name);
     }
 
     public String getApplicationEnv() {
@@ -40,6 +48,10 @@ public class MetricMessage extends HashMap<String, Object> {
 
     public String getInstanceName() {
         return (String) this.get("instanceName");
+    }
+
+    public void setInstanceName(String name) {
+        this.put("instanceName", name);
     }
 
     public String getApplicationType() {

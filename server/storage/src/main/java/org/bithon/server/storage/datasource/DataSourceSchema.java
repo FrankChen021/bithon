@@ -24,6 +24,7 @@ import lombok.Setter;
 import org.bithon.server.storage.datasource.aggregator.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.source.IInputSource;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -52,12 +53,15 @@ public class DataSourceSchema {
     @Getter
     private final TransformSpec transformSpec;
 
+    @Getter
+    private final IInputSource inputSourceSpec;
+
     @JsonIgnore
     private final Map<String, IDimensionSpec> dimensionMap = new HashMap<>(15);
 
     @JsonIgnore
     private final Map<String, IMetricSpec> metricsMap = new HashMap<>();
-
+    
     /**
      * check a {timestamp, dimensions} are unique to help find out some internal wrong implementation
      */
@@ -66,19 +70,30 @@ public class DataSourceSchema {
     @JsonIgnore
     private boolean enforceDuplicationCheck = false;
 
+    public DataSourceSchema(String displayText,
+                            String name,
+                            TimestampSpec timestampSpec,
+                            List<IDimensionSpec> dimensionsSpec,
+                            List<IMetricSpec> metricsSpec,
+                            TransformSpec transformSpec) {
+        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, transformSpec, null);
+    }
+
     @JsonCreator
     public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,
                             @JsonProperty("name") String name,
                             @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
                             @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
                             @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
-                            @JsonProperty("transformSpec") @Nullable TransformSpec transformSpec) {
+                            @JsonProperty("transformSpec") @Nullable TransformSpec transformSpec,
+                            @JsonProperty("inputSourceSpec") @Nullable IInputSource inputSourceSpec) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
         this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
         this.transformSpec = transformSpec;
+        this.inputSourceSpec = inputSourceSpec;
 
         this.dimensionsSpec.forEach((dimensionSpec) -> dimensionMap.put(dimensionSpec.getName(), dimensionSpec));
         this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));

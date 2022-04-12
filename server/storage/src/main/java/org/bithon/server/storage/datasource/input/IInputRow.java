@@ -24,17 +24,36 @@ public interface IInputRow {
 
     Object getCol(String columnName);
 
-    Long getColAsLong(String columnName);
+    default Long getColAsLong(String columnName) {
+        return getColAs(columnName, Long.class);
+    }
 
-    long getColAsLong(String columnName, long defaultValue);
+    default long getColAsLong(String columnName, long defaultValue) {
+        Number number = getColAs(columnName, Number.class);
+        return number == null ? defaultValue : number.longValue();
+    }
 
-    double getColAsDouble(String columnName, long defaultValue);
+    default double getColAsDouble(String columnName, long defaultValue) {
+        Number number = getColAs(columnName, Number.class);
+        return number == null ? defaultValue : number.doubleValue();
+    }
 
-    String getColAsString(String columnName);
+    default String getColAsString(String columnName) {
+        return getColAs(columnName, String.class);
+    }
 
-    <T> T getColAs(String columnName, Class<T> clazz);
+    default <T> T getColAs(String columnName, Class<T> clazz) {
+        //noinspection unchecked
+        return (T) getCol(columnName);
+    }
 
-    <T> T getCol(String columnName, T defaultValue);
+    default <T> T getCol(String columnName, T defaultValue) {
+        // when columnName exist but its value is null, the returned obj above is NOT null
+        // So, additional check is needed to return correct default value
+        Object val = getCol(columnName);
+        //noinspection unchecked
+        return val == null ? defaultValue : (T) val;
+    }
 
     void updateColumn(String name, Object value);
 }
