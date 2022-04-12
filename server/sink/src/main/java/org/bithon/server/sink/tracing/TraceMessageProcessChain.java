@@ -16,7 +16,6 @@
 
 package org.bithon.server.sink.tracing;
 
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.util.ArrayList;
@@ -45,9 +44,9 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
     }
 
     @Override
-    public void process(String messageType, IteratorableCollection<TraceSpan> messages) {
+    public void process(String messageType, List<TraceSpan> spans) {
         for (ITraceMessageSink sink : sinks) {
-            sink.process(messageType, messages);
+            sink.process(messageType, spans);
         }
     }
 

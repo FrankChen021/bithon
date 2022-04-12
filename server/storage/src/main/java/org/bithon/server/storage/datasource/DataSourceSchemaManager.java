@@ -140,6 +140,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         listeners.add(listener);
     }
 
+    // TODO: 比较hash/create时启动input source
     private void incrementalLoadSchemas() {
         try {
             List<DataSourceSchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);

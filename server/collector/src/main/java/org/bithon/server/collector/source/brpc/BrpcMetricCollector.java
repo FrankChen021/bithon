@@ -120,24 +120,28 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                               .map(metricSpec -> {
                                                                   if ("longMax".equals(metricSpec.getType())) {
                                                                       return new LongMaxMetricSpec(metricSpec.getName(),
+                                                                                                   null,
                                                                                                    metricSpec.getName(),
                                                                                                    "",
                                                                                                    true);
                                                                   }
                                                                   if ("longMin".equals(metricSpec.getType())) {
                                                                       return new LongMinMetricSpec(metricSpec.getName(),
+                                                                                                   null,
                                                                                                    metricSpec.getName(),
                                                                                                    "",
                                                                                                    true);
                                                                   }
                                                                   if ("longSum".equals(metricSpec.getType())) {
                                                                       return new LongSumMetricSpec(metricSpec.getName(),
+                                                                                                   null,
                                                                                                    metricSpec.getName(),
                                                                                                    "",
                                                                                                    true);
                                                                   }
                                                                   if ("longLast".equals(metricSpec.getType())) {
                                                                       return new LongLastMetricSpec(metricSpec.getName(),
+                                                                                                    null,
                                                                                                     metricSpec.getName(),
                                                                                                     "",
                                                                                                     true);
@@ -168,9 +172,9 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                 }
 
                 i = 0;
-                for (long metric : measurement.getMetricList()) {
+                for (long value : measurement.getMetricList()) {
                     IMetricSpec metricSpec = schema.getMetricsSpec().get(i++);
-                    metricMessage.put(metricSpec.getName(), metric);
+                    metricMessage.put(metricSpec.getName(), value);
                 }
 
                 metricMessage.put("interval", message.getInterval());

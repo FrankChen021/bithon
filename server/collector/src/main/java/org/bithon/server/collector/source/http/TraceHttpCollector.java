@@ -103,7 +103,7 @@ public class TraceHttpCollector {
                 }
             };
         }
-        this.traceSink.process("trace", IteratorableCollection.of(iterator));
+        this.traceSink.process("trace", IteratorableCollection.of(iterator).toCollection());
     }
 
     class ClickHouseAdaptor implements Iterator<TraceSpan> {

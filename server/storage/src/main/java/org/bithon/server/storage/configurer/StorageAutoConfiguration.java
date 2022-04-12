@@ -194,6 +194,7 @@ public class StorageAutoConfiguration {
                                                                           128)),
                                     Arrays.asList(CountMetricSpec.INSTANCE,
                                                   new LongSumMetricSpec("costTimeMs",
+                                                                        null,
                                                                         "costTimeMs",
                                                                         "us",
                                                                         true)),

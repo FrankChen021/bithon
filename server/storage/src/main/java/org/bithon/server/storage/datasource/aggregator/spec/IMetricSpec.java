@@ -58,7 +58,17 @@ public interface IMetricSpec {
 
     String getType();
 
+    /**
+     * the name in the metric storage.
+     * can NOT be null
+     */
     String getName();
+
+    /**
+     * the name in the original message.
+     * can be null. if it's null, the {@link #getName()} is used
+     */
+    String getField();
 
     /**
      * 是否对配置可见

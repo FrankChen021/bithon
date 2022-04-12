@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.storage.tracing.TraceSpan;
 
+import java.util.List;
+
 /**
  * @author Frank Chen
  * @date 9/12/21 2:22 PM
@@ -30,5 +32,5 @@ import org.bithon.server.storage.tracing.TraceSpan;
     @JsonSubTypes.Type(name = "local", value = LocalTraceSink.class),
 })
 public interface ITraceMessageSink extends AutoCloseable {
-    void process(String messageType, IteratorableCollection<TraceSpan> messages);
+    void process(String messageType, List<TraceSpan> messages);
 }

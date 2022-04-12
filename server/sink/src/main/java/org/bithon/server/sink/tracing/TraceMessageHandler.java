@@ -18,7 +18,6 @@ package org.bithon.server.sink.tracing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.sink.tracing.index.TagIndexGenerator;
 import org.bithon.server.sink.tracing.mapping.TraceMappingFactory;
@@ -40,7 +39,7 @@ import java.util.function.Function;
  * @date 2021/2/4 8:21 下午
  */
 @Slf4j
-public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<IteratorableCollection<TraceSpan>> {
+public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<List<TraceSpan>> {
 
     private final ITraceWriter traceWriter;
     private final Function<Collection<TraceSpan>, List<TraceIdMapping>> mappingExtractor;
@@ -58,13 +57,14 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<Iterat
         this.tagIndexBuilder = new TagIndexGenerator(applicationContext.getBean(TraceConfig.class));
     }
 
+    //BUG: TODO: change the iterator to list
     @Override
-    protected void onMessage(IteratorableCollection<TraceSpan> traceSpans) throws IOException {
+    protected void onMessage(List<TraceSpan> traceSpans) throws IOException {
         sanitizerFactory.sanitize(traceSpans);
 
-        traceWriter.write(traceSpans.toCollection(),
-                          mappingExtractor.apply(traceSpans.toCollection()),
-                          tagIndexBuilder.generate(traceSpans.toCollection()));
+        traceWriter.write(traceSpans,
+                          mappingExtractor.apply(traceSpans),
+                          tagIndexBuilder.generate(traceSpans));
     }
 
     @Override

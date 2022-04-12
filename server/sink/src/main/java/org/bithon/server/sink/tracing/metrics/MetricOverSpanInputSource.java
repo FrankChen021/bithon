@@ -36,6 +36,7 @@ import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -110,14 +111,16 @@ public class MetricOverSpanInputSource implements IInputSource {
         }
 
         @Override
-        public void process(String messageType, IteratorableCollection<TraceSpan> messages) {
+        public void process(String messageType, List<TraceSpan> spans) {
             try {
                 Collection<MetricMessage> metricMessages = EXECUTOR.submit(() -> {
                     // transform the spans to target metrics
-                    return Collections.synchronizedCollection(messages.toCollection())
+                    return Collections.synchronizedCollection(spans)
                                       .parallelStream()
                                       .filter(transformSpec::transform)
                                       .map(span -> {
+                                          span.updateColumn("count", 1);
+
                                           MetricMessage metricMessage = new MetricMessage();
                                           metricMessage.setApplicationName(span.getAppName());
                                           metricMessage.setInstanceName(span.getInstanceName());
@@ -126,9 +129,10 @@ public class MetricOverSpanInputSource implements IInputSource {
                                               metricMessage.put(dimSpec.getName(), span.getCol(dimSpec.getName()));
                                           }
                                           for (IMetricSpec metricSpec : schema.getMetricsSpec()) {
-                                              metricMessage.put(metricSpec.getName(), span.getCol(metricSpec.getName()));
+                                              String field = metricSpec.getField() == null ? metricSpec.getName() : metricSpec.getField();
+                                              metricMessage.put(metricSpec.getName(), span.getCol(field));
                                           }
-                                          metricMessage.set("count", 1);
+
                                           return metricMessage;
                                       })
                                       .collect(Collectors.toList());
@@ -151,6 +155,7 @@ public class MetricOverSpanInputSource implements IInputSource {
         @Override
         public void close() {
             if (REFERENCE_COUNT.decrementAndGet() == 0) {
+                //TODO: buggy
                 EXECUTOR.shutdownNow();
             }
         }

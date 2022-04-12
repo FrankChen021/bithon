@@ -45,7 +45,7 @@ public class KafkaTraceConsumer extends AbstractKafkaConsumer<TraceSpan> {
 
     @Override
     protected void onMessage(String type, IteratorableCollection<TraceSpan> iterator) {
-        traceSink.process(getTopic(), iterator);
+        traceSink.process(getTopic(), iterator.toCollection());
     }
 
     @Override

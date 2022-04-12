@@ -26,13 +26,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -56,8 +56,8 @@ public class KafkaTraceSink implements ITraceMessageSink {
     }
 
     @Override
-    public void process(String messageType, IteratorableCollection<TraceSpan> spans) {
-        if (!spans.hasNext()) {
+    public void process(String messageType, List<TraceSpan> spans) {
+        if (spans.isEmpty()) {
             return;
         }
 
@@ -70,9 +70,7 @@ public class KafkaTraceSink implements ITraceMessageSink {
         // but I don't think it has advantages over the way below
         //
         StringBuilder messageText = new StringBuilder();
-        while (spans.hasNext()) {
-            TraceSpan span = spans.next();
-
+        for(TraceSpan span : spans) {
             key = span.getTraceId();
 
             try {

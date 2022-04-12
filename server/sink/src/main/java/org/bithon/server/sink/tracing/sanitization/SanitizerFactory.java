@@ -18,12 +18,12 @@ package org.bithon.server.sink.tracing.sanitization;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -65,12 +65,12 @@ public class SanitizerFactory {
         }
     }
 
-    public void sanitize(IteratorableCollection<TraceSpan> spans) {
+    public void sanitize(List<TraceSpan> spans) {
         if (applicationSanitizers.isEmpty() && globalSanitizer == null) {
             return;
         }
-        while (spans.hasNext()) {
-            sanitize(spans.next());
+        for (TraceSpan span : spans) {
+            sanitize(spans);
         }
     }
 

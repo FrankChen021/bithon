@@ -147,6 +147,11 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     }
 
     @Override
+    public String getField() {
+        return null;
+    }
+
+    @Override
     public String validate(Object input) {
         return null;
     }
