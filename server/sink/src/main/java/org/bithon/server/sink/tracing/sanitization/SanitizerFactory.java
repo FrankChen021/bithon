@@ -70,7 +70,7 @@ public class SanitizerFactory {
             return;
         }
         for (TraceSpan span : spans) {
-            sanitize(spans);
+            sanitize(span);
         }
     }
 
