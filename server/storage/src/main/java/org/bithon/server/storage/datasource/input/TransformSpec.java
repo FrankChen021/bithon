@@ -20,9 +20,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
+import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.bithon.server.storage.datasource.input.flatten.IFlattener;
-import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 
 import java.util.List;
@@ -31,19 +31,33 @@ import java.util.List;
  * @author Frank Chen
  * @date 11/4/22 10:49 PM
  */
-@Getter
 @Builder
 public class TransformSpec {
+    /**
+     * the granularity that the data should be aggregated at
+     */
+    @Getter
+    private final Period graunularity;
+
+    @Getter
     private final List<IInputRowFilter> prefilters;
+
+    @Getter
     private final List<IFlattener> flatteners;
+
+    @Getter
     private final List<ITransformer> transformers;
+
+    @Getter
     private final List<IInputRowFilter> postfilters;
 
     @JsonCreator
-    public TransformSpec(@JsonProperty("prefilters") List<IInputRowFilter> prefilters,
+    public TransformSpec(@JsonProperty("granularity") Period granularity,
+                         @JsonProperty("prefilters") List<IInputRowFilter> prefilters,
                          @JsonProperty("flatteners") List<IFlattener> flatteners,
                          @JsonProperty("transformers") List<ITransformer> transformers,
                          @JsonProperty("postfilters") List<IInputRowFilter> postfilters) {
+        this.graunularity = granularity;
         this.flatteners = flatteners;
         this.prefilters = prefilters;
         this.transformers = transformers;

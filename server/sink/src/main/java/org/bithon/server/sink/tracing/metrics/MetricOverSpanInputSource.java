@@ -18,11 +18,15 @@ package org.bithon.server.sink.tracing.metrics;
 
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.concurrency.NamedForkJoinThreadFactory;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.MetricsAggregator;
@@ -37,6 +41,7 @@ import org.bithon.server.storage.datasource.input.IInputSource;
 import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.tracing.TraceSpan;
 
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -62,26 +67,33 @@ public class MetricOverSpanInputSource implements IInputSource {
                                                                                                   e),
                                                                               false);
 
+    @JsonIgnore
     private final TraceMessageProcessChain chain;
+
+    @JsonIgnore
     private final IMessageSink<SchemaMetricMessage> metricSink;
+
+    @Getter
+    private final TransformSpec transformSpec;
+
+    @JsonIgnore
     private ITraceMessageSink metricExtractor;
 
     @JsonCreator
-    public MetricOverSpanInputSource(@JacksonInject(useInput = OptBoolean.FALSE) TraceMessageProcessChain chain,
+    public MetricOverSpanInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
+                                     @JacksonInject(useInput = OptBoolean.FALSE) TraceMessageProcessChain chain,
                                      @JacksonInject(useInput = OptBoolean.FALSE) IMessageSink<SchemaMetricMessage> metricSink) {
+        Preconditions.checkArgumentNotNull("transformSpec", transformSpec);
+        Preconditions.checkArgumentNotNull("transformSpec.granularity", transformSpec.getGraunularity());
+        Preconditions.checkIf(transformSpec.getGraunularity().getMilliseconds() > 0, "transformSpec.granularity can't be null");
+
         this.chain = chain;
         this.metricSink = metricSink;
+        this.transformSpec = transformSpec;
     }
 
     @Override
     public void start(DataSourceSchema schema) {
-        final TransformSpec transformSpec = schema.getTransformSpec();
-        if (transformSpec == null) {
-            return;
-        }
-        if (schema.getQueryGraunularity() == null || schema.getQueryGraunularity().getMilliseconds() == 0) {
-            throw new RuntimeException("query granularity should not be null or zero");
-        }
         metricExtractor = this.chain.link(new MetricOverSpanExtractor(transformSpec, schema, metricSink));
     }
 
@@ -126,7 +138,7 @@ public class MetricOverSpanInputSource implements IInputSource {
             //
             // aggregate the metrics together
             //
-            MetricsAggregator aggregator = new MetricsAggregator(schema, schema.getQueryGraunularity());
+            MetricsAggregator aggregator = new MetricsAggregator(schema, transformSpec.getGraunularity());
             metricRows.forEach((row) -> aggregator.aggregate(row.getTimestamp(), row, row));
             List<IInputRow> rows = aggregator.getRows();
 

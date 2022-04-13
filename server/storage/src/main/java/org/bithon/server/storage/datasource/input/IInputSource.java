@@ -26,6 +26,8 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface IInputSource {
 
+    TransformSpec getTransformSpec();
+
     void start(DataSourceSchema schema);
     void stop();
 }
