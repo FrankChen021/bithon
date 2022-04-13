@@ -16,6 +16,7 @@
 
 package org.bithon.server.sink.tracing;
 
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import java.util.List;
  * @author Frank Chen
  * @date 12/4/22 11:38 AM
  */
+@Slf4j
 public class TraceMessageProcessChain implements ITraceMessageSink {
     private final List<ITraceMessageSink> sinks = Collections.synchronizedList(new ArrayList<>());
 
@@ -46,7 +48,11 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
     @Override
     public void process(String messageType, List<TraceSpan> spans) {
         for (ITraceMessageSink sink : sinks) {
-            sink.process(messageType, spans);
+            try {
+                sink.process(messageType, spans);
+            } catch(Exception e) {
+                log.error(e.getMessage(), e);
+            }
         }
     }
 

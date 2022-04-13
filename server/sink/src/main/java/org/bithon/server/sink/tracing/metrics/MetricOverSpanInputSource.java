@@ -20,8 +20,9 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.collection.IteratorableCollection;
-import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.concurrency.NamedForkJoinThreadFactory;
 import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.MetricsAggregator;
@@ -39,31 +40,26 @@ import org.bithon.server.storage.tracing.TraceSpan;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
  * @date 12/4/22 11:27 AM
  */
+@Slf4j
 @JsonTypeName("span")
 public class MetricOverSpanInputSource implements IInputSource {
-
-    private static final AtomicInteger REFERENCE_COUNT = new AtomicInteger();
-    private static final ExecutorService EXECUTOR;
-
-    static {
-        EXECUTOR = new ThreadPoolExecutor(2,
-                                          20,
-                                          60L,
-                                          TimeUnit.SECONDS,
-                                          new SynchronousQueue<>(),
-                                          NamedThreadFactory.of("span-metrics"));
-    }
+    /**
+     * Transformation thread pool
+     * <p>
+     * some applications might send span logs in a large batch,
+     * So, we use parallelism to speed up the transformation
+     */
+    private static final ForkJoinPool TRANSFORMER_EXECUTOR = new ForkJoinPool(8,
+                                                                              new NamedForkJoinThreadFactory("span-metric-transformer"),
+                                                                              (t, e) -> log.error("Exception when processing transformation metrics over span", e),
+                                                                              false);
 
     private final TraceMessageProcessChain chain;
     private final IMessageSink<SchemaMetricMessage> metricSink;
@@ -82,7 +78,6 @@ public class MetricOverSpanInputSource implements IInputSource {
         if (transformSpec == null) {
             return;
         }
-        REFERENCE_COUNT.incrementAndGet();
         metricExtractor = this.chain.link(new MetricOverSpanExtractor(transformSpec, schema, metricSink));
     }
 
@@ -94,8 +89,7 @@ public class MetricOverSpanInputSource implements IInputSource {
 
         try {
             this.chain.unlink(metricExtractor).close();
-        } catch (Exception e) {
-            //TODO:
+        } catch (Exception ignored) {
         }
     }
 
@@ -114,57 +108,56 @@ public class MetricOverSpanInputSource implements IInputSource {
 
         @Override
         public void process(String messageType, List<TraceSpan> spans) {
-            try {
-                Collection<MetricMessage> metricMessages = EXECUTOR.submit(() -> {
-                    // transform the spans to target metrics
-                    return Collections.synchronizedCollection(spans)
-                                      .parallelStream()
-                                      .filter(transformSpec::transform)
-                                      .map(span -> {
-                                          span.updateColumn("count", 1);
-
-                                          MetricMessage metricMessage = new MetricMessage();
-                                          metricMessage.setApplicationName(span.getAppName());
-                                          metricMessage.setInstanceName(span.getInstanceName());
-                                          metricMessage.setTimestamp(span.getStartTime() / 1000);
-
-                                          for (IDimensionSpec dimSpec : schema.getDimensionsSpec()) {
-                                              metricMessage.put(dimSpec.getName(), span.getCol(dimSpec.getName()));
-                                          }
-                                          for (IMetricSpec metricSpec : schema.getMetricsSpec()) {
-                                              String field = metricSpec.getField() == null ? metricSpec.getName() : metricSpec.getField();
-                                              metricMessage.put(metricSpec.getName(), span.getCol(field));
-                                          }
-
-                                          return metricMessage;
-                                      })
-                                      .collect(Collectors.toList());
-                }).get();
-
-                if (metricMessages.isEmpty()) {
-                    return;
-                }
-
-                // aggregate the metrics together
-                MetricsAggregator aggregator = new MetricsAggregator(schema, 10);
-                metricMessages.forEach((message) -> aggregator.aggregate(message.getTimestamp(), message, message));
-                List<IInputRow> rows = aggregator.getRows();
-
-                metricSink.process(schema.getName(), SchemaMetricMessage.builder()
-                                                                        .schema(schema)
-                                                                        .metrics(IteratorableCollection.of(rows.iterator()))
-                                                                        .build());
-            } catch (Exception e) {
-                //TODO:
+            //
+            // transform the spans to target metrics
+            //
+            Collection<MetricMessage> metricRows = TRANSFORMER_EXECUTOR.submit(() -> Collections.synchronizedCollection(spans)
+                                                                                                .parallelStream()
+                                                                                                .filter(transformSpec::transform)
+                                                                                                .map(this::spanToMetrics).collect(Collectors.toList())).join();
+            if (metricRows.isEmpty()) {
+                return;
             }
+
+            //
+            // aggregate the metrics together
+            //
+            MetricsAggregator aggregator = new MetricsAggregator(schema, 10);
+            metricRows.forEach((row) -> aggregator.aggregate(row.getTimestamp(), row, row));
+            List<IInputRow> rows = aggregator.getRows();
+
+            //
+            // sink the metrics
+            //
+            metricSink.process(schema.getName(), SchemaMetricMessage.builder()
+                                                                    .schema(schema)
+                                                                    .metrics(IteratorableCollection.of(rows.iterator()))
+                                                                    .build());
         }
 
         @Override
         public void close() {
-            if (REFERENCE_COUNT.decrementAndGet() == 0) {
-                //TODO: buggy
-                EXECUTOR.shutdownNow();
+        }
+
+        private MetricMessage spanToMetrics(TraceSpan span) {
+            // must be the first.
+            // since 'count' is a special name that can be referenced by metricSpec in schema
+            span.updateColumn("count", 1);
+
+            MetricMessage metricMessage = new MetricMessage();
+            metricMessage.setApplicationName(span.getAppName());
+            metricMessage.setInstanceName(span.getInstanceName());
+            metricMessage.setTimestamp(span.getStartTime() / 1000);
+
+            for (IDimensionSpec dimSpec : schema.getDimensionsSpec()) {
+                metricMessage.put(dimSpec.getName(), span.getCol(dimSpec.getName()));
             }
+            for (IMetricSpec metricSpec : schema.getMetricsSpec()) {
+                String field = metricSpec.getField() == null ? metricSpec.getName() : metricSpec.getField();
+                metricMessage.put(metricSpec.getName(), span.getCol(field));
+            }
+
+            return metricMessage;
         }
     }
 }
