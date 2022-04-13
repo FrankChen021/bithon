@@ -22,8 +22,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
@@ -40,7 +38,6 @@ import java.util.stream.Collectors;
  * @author Frank Chen
  * @date 7/1/22 3:06 PM
  */
-@Slf4j
 @JsonTypeName("clickhouse")
 public class SchemaStorage extends SchemaJdbcStorage {
 
@@ -89,13 +86,10 @@ public class SchemaStorage extends SchemaJdbcStorage {
             return Collections.emptyList();
         }
 
-        return records.stream().map((mapper) -> {
-            try {
-                return objectMapper.readValue(mapper.getValue(1, String.class), DataSourceSchema.class);
-            } catch (JsonProcessingException e) {
-                return null;
-            }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+        return records.stream()
+                      .map(record -> toSchema(record.get(0, String.class), record.get(1, String.class)))
+                      .filter(Objects::nonNull)
+                      .collect(Collectors.toList());
     }
 
     @Override
@@ -105,14 +99,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
                      + Tables.BITHON_META_SCHEMA.NAME.eq(name).toString();
 
         Record record = dslContext.fetchOne(sql);
-        return record == null ? null : record.map((mapper) -> {
-            try {
-                return objectMapper.readValue(mapper.getValue(1, String.class), DataSourceSchema.class);
-            } catch (JsonProcessingException e) {
-                log.error(StringUtils.format("Error reading payload schema [%s]", name), e);
-                return null;
-            }
-        });
+        return record == null ? null : toSchema(record.get(0, String.class), record.get(1, String.class));
     }
 
     /**

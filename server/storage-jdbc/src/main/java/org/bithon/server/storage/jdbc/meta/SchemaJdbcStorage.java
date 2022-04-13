@@ -27,7 +27,6 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.jdbc.jooq.tables.records.BithonMetaSchemaRecord;
 import org.bithon.server.storage.meta.ISchemaStorage;
 import org.jooq.DSLContext;
 import org.springframework.dao.DuplicateKeyException;
@@ -72,29 +71,33 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     public List<DataSourceSchema> getSchemas(long afterTimestamp) {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
                          .where(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp)))
-                         .fetch(this::toSchema)
-                         .stream().filter(Objects::nonNull).collect(Collectors.toList());
+                         .fetch((record) -> toSchema(record.getName(), record.getSchema()))
+                         .stream()
+                         .filter(Objects::nonNull)
+                         .collect(Collectors.toList());
     }
 
     @Override
     public List<DataSourceSchema> getSchemas() {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
-                         .fetch(this::toSchema)
-                         .stream().filter(Objects::nonNull).collect(Collectors.toList());
+                         .fetch((record) -> toSchema(record.getName(), record.getSchema()))
+                         .stream()
+                         .filter(Objects::nonNull)
+                         .collect(Collectors.toList());
     }
 
     @Override
     public DataSourceSchema getSchemaByName(String name) {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
                          .where(Tables.BITHON_META_SCHEMA.NAME.eq(name))
-                         .fetchOne(this::toSchema);
+                         .fetchOne((record) -> toSchema(record.getName(), record.getSchema()));
     }
 
-    protected DataSourceSchema toSchema(BithonMetaSchemaRecord r) {
+    protected DataSourceSchema toSchema(String name, String schemaPayload) {
         try {
-            return objectMapper.readValue(r.getSchema(), DataSourceSchema.class);
+            return objectMapper.readValue(schemaPayload, DataSourceSchema.class);
         } catch (JsonProcessingException e) {
-            log.error(StringUtils.format("Error reading payload of schema [].", r.getName()), e);
+            log.error(StringUtils.format("Error reading payload of schema [].", name), e);
             return null;
         }
     }
