@@ -21,10 +21,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.aggregator.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.source.IInputSource;
+import org.bithon.server.storage.datasource.input.TransformSpec;
+import org.bithon.server.storage.datasource.input.IInputSource;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -56,6 +58,9 @@ public class DataSourceSchema {
     @Getter
     private final IInputSource inputSourceSpec;
 
+    @Getter
+    private final Period queryGraunularity;
+
     @JsonIgnore
     private final Map<String, IDimensionSpec> dimensionMap = new HashMap<>(15);
 
@@ -76,7 +81,7 @@ public class DataSourceSchema {
                             List<IDimensionSpec> dimensionsSpec,
                             List<IMetricSpec> metricsSpec,
                             TransformSpec transformSpec) {
-        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, transformSpec, null);
+        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, transformSpec, null, null);
     }
 
     @JsonCreator
@@ -86,7 +91,8 @@ public class DataSourceSchema {
                             @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
                             @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
                             @JsonProperty("transformSpec") @Nullable TransformSpec transformSpec,
-                            @JsonProperty("inputSourceSpec") @Nullable IInputSource inputSourceSpec) {
+                            @JsonProperty("inputSourceSpec") @Nullable IInputSource inputSourceSpec,
+                            @JsonProperty("queryGranularity") @Nullable Period queryGraunularity) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
         this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
@@ -94,6 +100,7 @@ public class DataSourceSchema {
         this.metricsSpec = metricsSpec;
         this.transformSpec = transformSpec;
         this.inputSourceSpec = inputSourceSpec;
+        this.queryGraunularity = queryGraunularity;
 
         this.dimensionsSpec.forEach((dimensionSpec) -> dimensionMap.put(dimensionSpec.getName(), dimensionSpec));
         this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));
@@ -143,5 +150,13 @@ public class DataSourceSchema {
         } else {
             return false;
         }
+    }
+
+    /**
+     * helps debugging
+     */
+    @Override
+    public String toString() {
+        return this.name;
     }
 }

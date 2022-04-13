@@ -14,31 +14,38 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.transformer;
+package org.bithon.server.storage.datasource.input.filter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
+import javax.validation.constraints.NotNull;
+
 /**
- * @author Frank Chen
- * @date 12/4/22 10:59 AM
+ * @author frank.chen021@outlook.com
+ * @date 2020/12/24
  */
-public class ChainTransformer implements ITransformer {
+public class EqualFilter implements IInputRowFilter {
 
     @Getter
-    private final ITransformer[] transformers;
+    @NotNull
+    private final String field;
+
+    @Getter
+    @NotNull
+    private final Object value;
 
     @JsonCreator
-    public ChainTransformer(@JsonProperty("transformers") ITransformer... transformers) {
-        this.transformers = transformers;
+    public EqualFilter(@JsonProperty("field") String field,
+                       @JsonProperty("value") @NotNull Object value) {
+        this.field = field;
+        this.value = value;
     }
 
     @Override
-    public void transform(IInputRow inputRow) {
-        for (ITransformer transformer : transformers) {
-            transformer.transform(inputRow);
-        }
+    public boolean shouldInclude(IInputRow inputRow) {
+        return value.equals(inputRow.getCol(this.field));
     }
 }

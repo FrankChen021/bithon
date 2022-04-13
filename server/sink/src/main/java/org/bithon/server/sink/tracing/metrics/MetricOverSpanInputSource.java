@@ -30,11 +30,11 @@ import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.TraceMessageProcessChain;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.TransformSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.source.IInputSource;
+import org.bithon.server.storage.datasource.input.IInputSource;
+import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.util.Collection;
@@ -58,7 +58,8 @@ public class MetricOverSpanInputSource implements IInputSource {
      */
     private static final ForkJoinPool TRANSFORMER_EXECUTOR = new ForkJoinPool(8,
                                                                               new NamedForkJoinThreadFactory("span-metric-transformer"),
-                                                                              (t, e) -> log.error("Exception when processing transformation metrics over span", e),
+                                                                              (t, e) -> log.error("Exception when processing transformation metrics over span",
+                                                                                                  e),
                                                                               false);
 
     private final TraceMessageProcessChain chain;
@@ -77,6 +78,9 @@ public class MetricOverSpanInputSource implements IInputSource {
         final TransformSpec transformSpec = schema.getTransformSpec();
         if (transformSpec == null) {
             return;
+        }
+        if (schema.getQueryGraunularity() == null || schema.getQueryGraunularity().getMilliseconds() == 0) {
+            throw new RuntimeException("query granularity should not be null or zero");
         }
         metricExtractor = this.chain.link(new MetricOverSpanExtractor(transformSpec, schema, metricSink));
     }
@@ -122,7 +126,7 @@ public class MetricOverSpanInputSource implements IInputSource {
             //
             // aggregate the metrics together
             //
-            MetricsAggregator aggregator = new MetricsAggregator(schema, 10);
+            MetricsAggregator aggregator = new MetricsAggregator(schema, schema.getQueryGraunularity());
             metricRows.forEach((row) -> aggregator.aggregate(row.getTimestamp(), row, row));
             List<IInputRow> rows = aggregator.getRows();
 

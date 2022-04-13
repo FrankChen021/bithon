@@ -1,4 +1,4 @@
-package org.bithon.server.storage.datasource.transformer;
+package org.bithon.server.storage.datasource.input.transformer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

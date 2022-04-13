@@ -14,16 +14,16 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource;
+package org.bithon.server.storage.datasource.input;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
-import org.bithon.server.storage.datasource.filter.IInputRowFilter;
-import org.bithon.server.storage.datasource.flatten.IFlattener;
+import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
+import org.bithon.server.storage.datasource.input.flatten.IFlattener;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.transformer.ITransformer;
+import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 
 import java.util.List;
 

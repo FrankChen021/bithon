@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.transformer;
+package org.bithon.server.storage.datasource.input.transformer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,36 +23,22 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
  * @author Frank Chen
- * @date 11/4/22 11:52 PM
+ * @date 12/4/22 10:59 AM
  */
-public class SplitterTransformer implements ITransformer {
+public class ChainTransformer implements ITransformer {
 
     @Getter
-    private final String source;
-
-    @Getter
-    private final String splitter;
-
-    @Getter
-    private final String[] names;
+    private final ITransformer[] transformers;
 
     @JsonCreator
-    public SplitterTransformer(@JsonProperty("source") String source,
-                               @JsonProperty("splitter") String splitter,
-                               @JsonProperty("names") String... names) {
-        this.splitter = splitter;
-        this.names = names;
-        this.source = source;
+    public ChainTransformer(@JsonProperty("transformers") ITransformer... transformers) {
+        this.transformers = transformers;
     }
 
     @Override
-    public void transform(IInputRow row) {
-        String val = row.getColAsString(source);
-        if (val != null) {
-            String[] values = val.split(splitter);
-            for (int i = 0, len = Math.min(names.length, values.length); i < len; i++) {
-                row.updateColumn(names[i], values[i]);
-            }
+    public void transform(IInputRow inputRow) {
+        for (ITransformer transformer : transformers) {
+            transformer.transform(inputRow);
         }
     }
 }

@@ -14,37 +14,34 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.transformer;
+package org.bithon.server.storage.datasource.input.filter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 import javax.validation.constraints.NotNull;
-import java.util.Map;
+import java.util.List;
 
 /**
- * A mapping transformer which maps a value to another.
- *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
+ * @date 2021/1/19
  */
-public class MappingTransformer extends AbstractSimpleTransformer {
+public class OrFilter implements IInputRowFilter {
 
-    @Getter
-    private final Map<String, Object> maps;
+    @NotNull
+    private final List<IInputRowFilter> filters;
 
-    public MappingTransformer(@JsonProperty("name") String name,
-                              @JsonProperty("maps") @NotNull Map<String, Object> maps) {
-        super(name);
-        this.maps = maps;
+    public OrFilter(@JsonProperty("filters") List<IInputRowFilter> filters) {
+        this.filters = filters;
     }
 
     @Override
-    protected Object transformInternal(IInputRow row) {
-        if (row == null) {
-            return null;
+    public boolean shouldInclude(IInputRow inputRow) {
+        for (IInputRowFilter filter : this.filters) {
+            if (filter.shouldInclude(inputRow)) {
+                return true;
+            }
         }
-        String val = row.getColAsString(name);
-        return val == null ? null : maps.getOrDefault(val, val);
+        return false;
     }
 }

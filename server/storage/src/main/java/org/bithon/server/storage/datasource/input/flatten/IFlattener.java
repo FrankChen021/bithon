@@ -14,16 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.flatten;
+package org.bithon.server.storage.datasource.input.flatten;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.datasource.input.TransformSpec;
+import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 
 /**
- * A special kind of transformer that is executed before a {@link org.bithon.server.storage.datasource.transformer.ITransformer}
+ * A special kind of transformer that is executed before a {@link ITransformer}
  *
- * See also {@link org.bithon.server.storage.datasource.TransformSpec#transform(IInputRow)}
+ * See also {@link TransformSpec#transform(IInputRow)}
  *
  * @author frank.chen021@outlook.com
  * @date 2020/12/28

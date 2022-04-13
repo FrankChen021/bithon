@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
  * @author Frank Chen
  * @date 7/1/22 3:06 PM
  */
+@Slf4j
 @JsonTypeName("clickhouse")
 public class SchemaStorage extends SchemaJdbcStorage {
 
@@ -106,6 +109,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
             try {
                 return objectMapper.readValue(mapper.getValue(1, String.class), DataSourceSchema.class);
             } catch (JsonProcessingException e) {
+                log.error(StringUtils.format("Error reading payload schema [%s]", name), e);
                 return null;
             }
         });

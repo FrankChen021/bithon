@@ -16,6 +16,7 @@
 
 package org.bithon.server.sink.metrics;
 
+import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
@@ -43,6 +44,11 @@ public class MetricsAggregator {
     /**
      * @param granularity in seconds
      */
+    public MetricsAggregator(DataSourceSchema schema, Period period) {
+        this.schema = schema;
+        this.granularityMs = period.getMilliseconds();
+    }
+
     public MetricsAggregator(DataSourceSchema schema, long granularity) {
         this.schema = schema;
         this.granularityMs = granularity * 1000;

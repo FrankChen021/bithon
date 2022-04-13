@@ -17,8 +17,9 @@
 package org.bithon.server.storage.datasource;
 
 import com.google.common.collect.ImmutableMap;
-import org.bithon.server.storage.datasource.filter.EqualFilter;
-import org.bithon.server.storage.datasource.flatten.TreePathFlattener;
+import org.bithon.server.storage.datasource.input.TransformSpec;
+import org.bithon.server.storage.datasource.input.filter.EqualFilter;
+import org.bithon.server.storage.datasource.input.flatten.TreePathFlattener;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.junit.Assert;

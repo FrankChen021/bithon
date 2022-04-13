@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.flatten.IFlattener;
+import org.bithon.server.storage.datasource.input.flatten.TreePathFlattener;
 import org.junit.Assert;
 import org.junit.Test;
 

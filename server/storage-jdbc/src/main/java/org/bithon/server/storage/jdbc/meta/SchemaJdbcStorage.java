@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
@@ -93,6 +94,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
         try {
             return objectMapper.readValue(r.getSchema(), DataSourceSchema.class);
         } catch (JsonProcessingException e) {
+            log.error(StringUtils.format("Error reading payload of schema [].", r.getName()), e);
             return null;
         }
     }

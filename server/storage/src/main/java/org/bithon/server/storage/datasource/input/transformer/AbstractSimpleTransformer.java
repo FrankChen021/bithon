@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.transformer;
+package org.bithon.server.storage.datasource.input.transformer;
 
 import lombok.Getter;
 import org.bithon.server.storage.datasource.input.IInputRow;

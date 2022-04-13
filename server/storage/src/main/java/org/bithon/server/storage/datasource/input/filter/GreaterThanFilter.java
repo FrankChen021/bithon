@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.filter;
+package org.bithon.server.storage.datasource.input.filter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bithon.server.storage.datasource.input.IInputRow;

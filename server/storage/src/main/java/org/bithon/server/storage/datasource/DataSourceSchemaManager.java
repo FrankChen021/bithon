@@ -19,6 +19,7 @@ package org.bithon.server.storage.datasource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.storage.meta.ISchemaStorage;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -145,7 +146,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         try {
             List<DataSourceSchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
 
-            log.info("{} Schemas has been changed since last time.", changedSchemaList.size());
+            log.info("{} Schemas has been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
 
             for (DataSourceSchema changedSchema : changedSchemaList) {
 

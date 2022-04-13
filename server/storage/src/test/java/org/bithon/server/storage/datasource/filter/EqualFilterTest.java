@@ -20,6 +20,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.filter.EqualFilter;
+import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.junit.Assert;
 import org.junit.Test;
 
