@@ -29,6 +29,11 @@ public abstract class AbstractLongAggregator extends NumberAggregator {
         aggregate(timestamp, NumberUtils.getLong(value));
     }
 
+    @Override
+    public Number getNumber() {
+        return value;
+    }
+
     protected abstract void aggregate(long timestamp, long value);
 
     @Override

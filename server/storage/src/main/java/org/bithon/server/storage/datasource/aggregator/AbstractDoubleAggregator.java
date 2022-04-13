@@ -29,6 +29,11 @@ public abstract class AbstractDoubleAggregator extends NumberAggregator {
         aggregate(timestamp, NumberUtils.getDouble(value));
     }
 
+    @Override
+    public Number getNumber() {
+        return value;
+    }
+
     protected abstract void aggregate(long timestamp, double value);
 
     @Override
