@@ -140,17 +140,26 @@ public class DataSourceApi {
 
     @PostMapping("/api/datasource/schema/create")
     public void createSchema(@RequestBody DataSourceSchema schema) {
+        // TODO:
+        // use writer to initialize the underlying storage
+        // in the future, the initialization should be extracted out of the writer
         try (IMetricWriter writer = this.metricStorage.createMetricWriter(schema)) {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
         schemaManager.updateDataSourceSchema(schema);
+
+        if (schema.getInputSourceSpec() != null) {
+            schema.getInputSourceSpec().start(schema);
+        }
     }
 
     @PostMapping("/api/datasource/schema/update")
     public void updateSchema(@RequestBody DataSourceSchema schema) {
         schemaManager.updateDataSourceSchema(schema);
+
+        // TODO: if dimensions/metrics change, need to update the underlying storage schema
     }
 
     @PostMapping("/api/datasource/name")
@@ -165,6 +174,7 @@ public class DataSourceApi {
     /**
      * @deprecated
      */
+    @Deprecated
     @PostMapping("/api/datasource/dimensions")
     public Collection<Map<String, String>> getDimensions(@Valid @RequestBody GetDimensionRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
@@ -205,6 +215,8 @@ public class DataSourceApi {
         );
     }
 
+    // can use external configuration center to hold the TTL configuration
+    @Deprecated
     @PostMapping("api/datasource/ttl/update")
     public void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request) {
         TTLConfig ttlConfig = this.storageConfig.getTtl();

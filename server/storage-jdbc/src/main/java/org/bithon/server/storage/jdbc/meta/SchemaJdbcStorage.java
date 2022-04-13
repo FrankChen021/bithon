@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
@@ -71,7 +72,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     public List<DataSourceSchema> getSchemas(long afterTimestamp) {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
                          .where(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp)))
-                         .fetch((record) -> toSchema(record.getName(), record.getSchema()))
+                         .fetch((record) -> toSchema(record.getName(), record.getSchema(), record.getSignature()))
                          .stream()
                          .filter(Objects::nonNull)
                          .collect(Collectors.toList());
@@ -80,7 +81,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     @Override
     public List<DataSourceSchema> getSchemas() {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
-                         .fetch((record) -> toSchema(record.getName(), record.getSchema()))
+                         .fetch((record) -> toSchema(record.getName(), record.getSchema(), record.getSignature()))
                          .stream()
                          .filter(Objects::nonNull)
                          .collect(Collectors.toList());
@@ -90,14 +91,16 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     public DataSourceSchema getSchemaByName(String name) {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
                          .where(Tables.BITHON_META_SCHEMA.NAME.eq(name))
-                         .fetchOne((record) -> toSchema(record.getName(), record.getSchema()));
+                         .fetchOne((record) -> toSchema(name, record.getSchema(), record.getSignature()));
     }
 
-    protected DataSourceSchema toSchema(String name, String schemaPayload) {
+    protected DataSourceSchema toSchema(String name, String schemaPayload, String hash) {
         try {
-            return objectMapper.readValue(schemaPayload, DataSourceSchema.class);
+            DataSourceSchema schema = objectMapper.readValue(schemaPayload, DataSourceSchema.class);
+            schema.setSignature(hash);
+            return schema;
         } catch (JsonProcessingException e) {
-            log.error(StringUtils.format("Error reading payload of schema [].", name), e);
+            log.error(StringUtils.format("Error reading payload of schema [%s].", name), e);
             return null;
         }
     }
@@ -106,16 +109,19 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     public void update(String name, DataSourceSchema schema) throws IOException {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String schemaText = objectMapper.writeValueAsString(schema);
+        schema.setSignature(HashGenerator.sha256String(schemaText));
         try {
             dslContext.insertInto(Tables.BITHON_META_SCHEMA)
                       .set(Tables.BITHON_META_SCHEMA.NAME, name)
                       .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
+                      .set(Tables.BITHON_META_SCHEMA.SIGNATURE, schema.getSignature())
                       .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
                       .execute();
         } catch (DuplicateKeyException e) {
             dslContext.update(Tables.BITHON_META_SCHEMA)
                       .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
                       .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
+                      .set(Tables.BITHON_META_SCHEMA.SIGNATURE, schema.getSignature())
                       .where(Tables.BITHON_META_SCHEMA.NAME.eq(name))
                       .execute();
         }
@@ -125,12 +131,15 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     public void putIfNotExist(String name, DataSourceSchema schema) throws IOException {
         String schemaText = objectMapper.writeValueAsString(schema);
 
+        schema.setSignature(HashGenerator.sha256String(schemaText));
+
         // onDuplicateKeyIgnore is not supported on all DB
         // use try-catch instead
         try {
             dslContext.insertInto(Tables.BITHON_META_SCHEMA)
                       .set(Tables.BITHON_META_SCHEMA.NAME, name)
                       .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
+                      .set(Tables.BITHON_META_SCHEMA.SIGNATURE, schema.getSignature())
                       .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
                       .execute();
         } catch (DuplicateKeyException ignored) {

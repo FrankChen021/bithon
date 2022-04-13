@@ -14,7 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator;
+package org.bithon.component.commons.utils;
+
+import java.math.BigInteger;
 
 /**
  * @author frank.chen021@outlook.com
@@ -45,5 +47,9 @@ public class NumberUtils {
             return Double.parseDouble((String) value);
         }
         throw new IllegalArgumentException("Unknown type of value for Double: " + value.getClass().getName());
+    }
+
+    public static String toHexString(byte[] bytes) {
+        return new BigInteger(bytes).toString(16);
     }
 }

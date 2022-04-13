@@ -16,6 +16,8 @@
 
 package org.bithon.server.storage.datasource.aggregator;
 
+import org.bithon.component.commons.utils.NumberUtils;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/4/9 19:24

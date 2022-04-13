@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -46,9 +47,8 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
     private final ISchemaStorage schemaStorage;
     private final ObjectMapper objectMapper;
     private final ScheduledExecutorService loaderScheduler;
-
-    private long lastLoadAt;
     private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
+    private long lastLoadAt;
 
     public DataSourceSchemaManager(ISchemaStorage schemaStorage, ObjectMapper objectMapper) {
         this.schemaStorage = schemaStorage;
@@ -141,7 +141,6 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         listeners.add(listener);
     }
 
-    // TODO: 比较hash/create时启动input source
     private void incrementalLoadSchemas() {
         try {
             List<DataSourceSchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
@@ -151,6 +150,11 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
             for (DataSourceSchema changedSchema : changedSchemaList) {
 
                 DataSourceSchema schemaBeforeChange = this.schemas.put(changedSchema.getName(), changedSchema);
+                if (schemaBeforeChange != null
+                    && Objects.equals(schemaBeforeChange.getSignature(), changedSchema.getSignature())) {
+                    // same signature, do nothing
+                    continue;
+                }
 
                 // stop input
                 if (schemaBeforeChange != null && schemaBeforeChange.getInputSourceSpec() != null) {

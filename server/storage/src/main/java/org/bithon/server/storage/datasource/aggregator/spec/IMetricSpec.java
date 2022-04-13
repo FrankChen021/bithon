@@ -36,6 +36,7 @@ import org.bithon.server.storage.datasource.typing.IValueType;
     @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_SUM, value = DoubleSumMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_LAST, value = DoubleLastMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.POST, value = PostAggregatorMetricSpec.class),
+    @JsonSubTypes.Type(name = IMetricSpec.COUNT, value = CountMetricSpec.class),
 })
 public interface IMetricSpec {
 
@@ -54,7 +55,6 @@ public interface IMetricSpec {
     String COUNT = "count";
     String LONG_MIN = "longMin";
     String LONG_MAX = "longMax";
-
 
     String getType();
 

@@ -94,6 +94,7 @@ public class MetricOverSpanInputSource implements IInputSource {
 
     @Override
     public void start(DataSourceSchema schema) {
+        log.info("Starting input source for schema [{}]...", schema.getName());
         metricExtractor = this.chain.link(new MetricOverSpanExtractor(transformSpec, schema, metricSink));
     }
 

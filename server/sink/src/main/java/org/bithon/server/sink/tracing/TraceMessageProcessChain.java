@@ -50,7 +50,7 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
         for (ITraceMessageSink sink : sinks) {
             try {
                 sink.process(messageType, spans);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
         }

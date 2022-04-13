@@ -14,22 +14,35 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator;
+package org.bithon.component.commons.security;
 
 import org.bithon.component.commons.utils.NumberUtils;
 
-/**
- * @author frank.chen021@outlook.com
- * @date 2021/4/6 9:26 下午
- */
-public class DoubleLastAggregator extends AbstractDoubleAggregator {
-    private long timestamp = Long.MIN_VALUE;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
-    @Override
-    protected void aggregate(long timestamp, double value) {
-        if (this.timestamp < timestamp) {
-            this.timestamp = timestamp;
-            this.value = NumberUtils.getDouble(value);
+/**
+ * @author Frank Chen
+ * @date 13/4/22 10:12 PM
+ */
+public class HashGenerator {
+
+    private static MessageDigest sha256Provider;
+
+    static {
+        try {
+            sha256Provider = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException ignored) {
         }
     }
+
+    public static byte[] sha256(String input) {
+        return sha256Provider.digest(input.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static String sha256String(String input) {
+        return NumberUtils.toHexString(sha256(input));
+    }
+
 }

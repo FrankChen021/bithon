@@ -67,6 +67,14 @@ public class DataSourceSchema {
     @JsonIgnore
     private boolean enforceDuplicationCheck = false;
 
+    /**
+     * a runtime property that holds the hash of the json formatted text of this object
+     */
+    @Getter
+    @Setter
+    @JsonIgnore
+    private String signature;
+
     public DataSourceSchema(String displayText,
                             String name,
                             TimestampSpec timestampSpec,

@@ -17,7 +17,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row3;
+import org.jooq.Row4;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -32,7 +32,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonMetaSchema extends TableImpl<BithonMetaSchemaRecord> {
 
-    private static final long serialVersionUID = 1823452172;
+    private static final long serialVersionUID = 162127983;
 
     /**
      * The reference instance of <code>bithon_meta_schema</code>
@@ -61,6 +61,11 @@ public class BithonMetaSchema extends TableImpl<BithonMetaSchemaRecord> {
      * The column <code>bithon_meta_schema.schema</code>. Schema in JSON
      */
     public final TableField<BithonMetaSchemaRecord, String> SCHEMA = createField(DSL.name("schema"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "Schema in JSON");
+
+    /**
+     * The column <code>bithon_meta_schema.signature</code>. Signature of schema field, currently SHA256 is applied
+     */
+    public final TableField<BithonMetaSchemaRecord, String> SIGNATURE = createField(DSL.name("signature"), org.jooq.impl.SQLDataType.VARCHAR(250).nullable(false), this, "Signature of schema field, currently SHA256 is applied");
 
     /**
      * Create a <code>bithon_meta_schema</code> table reference
@@ -137,11 +142,11 @@ public class BithonMetaSchema extends TableImpl<BithonMetaSchemaRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row3 type methods
+    // Row4 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row3<Timestamp, String, String> fieldsRow() {
-        return (Row3) super.fieldsRow();
+    public Row4<Timestamp, String, String, String> fieldsRow() {
+        return (Row4) super.fieldsRow();
     }
 }
