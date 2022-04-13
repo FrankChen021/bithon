@@ -24,6 +24,7 @@ import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.MetricMessage;
+import org.bithon.server.sink.metrics.MetricsAggregator;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.TraceMessageProcessChain;
@@ -31,6 +32,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TransformSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.source.IInputSource;
 import org.bithon.server.storage.tracing.TraceSpan;
 
@@ -93,7 +95,7 @@ public class MetricOverSpanInputSource implements IInputSource {
         try {
             this.chain.unlink(metricExtractor).close();
         } catch (Exception e) {
-            e.printStackTrace();
+            //TODO:
         }
     }
 
@@ -125,6 +127,7 @@ public class MetricOverSpanInputSource implements IInputSource {
                                           metricMessage.setApplicationName(span.getAppName());
                                           metricMessage.setInstanceName(span.getInstanceName());
                                           metricMessage.setTimestamp(span.getStartTime() / 1000);
+
                                           for (IDimensionSpec dimSpec : schema.getDimensionsSpec()) {
                                               metricMessage.put(dimSpec.getName(), span.getCol(dimSpec.getName()));
                                           }
@@ -136,19 +139,23 @@ public class MetricOverSpanInputSource implements IInputSource {
                                           return metricMessage;
                                       })
                                       .collect(Collectors.toList());
-
-                    // TODO: aggregate the metrics in this batch together
                 }).get();
 
                 if (metricMessages.isEmpty()) {
                     return;
                 }
+
+                // aggregate the metrics together
+                MetricsAggregator aggregator = new MetricsAggregator(schema, 10);
+                metricMessages.forEach((message) -> aggregator.aggregate(message.getTimestamp(), message, message));
+                List<IInputRow> rows = aggregator.getRows();
+
                 metricSink.process(schema.getName(), SchemaMetricMessage.builder()
                                                                         .schema(schema)
-                                                                        .metrics(IteratorableCollection.of(metricMessages.iterator()))
+                                                                        .metrics(IteratorableCollection.of(rows.iterator()))
                                                                         .build());
             } catch (Exception e) {
-                e.printStackTrace();
+                //TODO:
             }
         }
 

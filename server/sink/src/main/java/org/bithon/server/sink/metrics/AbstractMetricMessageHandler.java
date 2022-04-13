@@ -21,8 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
@@ -32,9 +30,7 @@ import org.bithon.server.storage.metrics.IMetricWriter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -68,23 +64,23 @@ public abstract class AbstractMetricMessageHandler {
         return this.schema.getName();
     }
 
-    protected boolean beforeProcess(MetricMessage message) throws Exception {
+    protected boolean beforeProcess(IInputRow message) throws Exception {
         return true;
     }
 
-    public final void process(IteratorableCollection<MetricMessage> metricMessages) {
+    public final void process(IteratorableCollection<IInputRow> metricMessages) {
         if (!metricMessages.hasNext()) {
             return;
         }
 
-        LocalDataSource endpointDataSource = new LocalDataSource(this.endpointSchema, 30);
+        MetricsAggregator endpointDataSource = new MetricsAggregator(this.endpointSchema, 60);
 
         //
         // convert
         //
         List<IInputRow> inputRowList = new ArrayList<>(8);
         while (metricMessages.hasNext()) {
-            MetricMessage metricMessage = metricMessages.next();
+            IInputRow metricMessage = metricMessages.next();
 
             try {
                 if (!beforeProcess(metricMessage)) {
@@ -96,7 +92,7 @@ public abstract class AbstractMetricMessageHandler {
 
                 processMeta(metricMessage);
 
-                inputRowList.add(new InputRow(metricMessage));
+                inputRowList.add(metricMessage);
             } catch (Exception e) {
                 log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}",
                           this.schema.getName(),
@@ -109,7 +105,7 @@ public abstract class AbstractMetricMessageHandler {
         // save endpoint metrics in batch
         //
         try {
-            this.endpointMetricStorageWriter.write(endpointDataSource.toMeasurementList());
+            this.endpointMetricStorageWriter.write(endpointDataSource.getRows());
         } catch (IOException e) {
             log.error("save metrics", e);
         }
@@ -126,105 +122,28 @@ public abstract class AbstractMetricMessageHandler {
         }
     }
 
-    protected Measurement extractEndpointLink(MetricMessage message) {
+    protected Measurement extractEndpointLink(IInputRow message) {
         return null;
     }
 
-    private void processMeta(MetricMessage metric) {
-        String appName = metric.getApplicationName();
-        String instanceName = metric.getInstanceName();
+    private void processMeta(IInputRow metric) {
+        Object appType = metric.getCol("appType");
+        if (appType == null) {
+            log.warn("Saving meta for [{}] failed due to lack of appType", this.schema.getName());
+            return;
+        }
+
+        String appName = metric.getColAsString("appName");
+        String instanceName = metric.getColAsString("instanceName");
         try {
-            metaStorage.saveApplicationInstance(appName, metric.getApplicationType(), instanceName);
+            metaStorage.saveApplicationInstance(appName,
+                                                appType.toString(),
+                                                instanceName);
         } catch (Exception e) {
             log.error("Failed to save app info[appName={}, instance={}] due to: {}",
                       appName,
                       instanceName,
                       e);
-        }
-    }
-
-    /**
-     * key is dimensions
-     * value is metrics
-     */
-    static class TimeSlot extends HashMap<Map<String, String>, Map<String, NumberAggregator>> {
-        @Getter
-        private final long timestamp;
-
-        TimeSlot(long timestamp) {
-            this.timestamp = timestamp;
-        }
-    }
-
-    static class LocalDataSource {
-        private final DataSourceSchema schema;
-        private final TimeSlot[] timeSlot;
-
-        public LocalDataSource(DataSourceSchema schema, int minutes) {
-            this.schema = schema;
-            this.timeSlot = new TimeSlot[minutes];
-        }
-
-        /**
-         * aggregate the input metrics to a specified time slot metrics
-         */
-        public void aggregate(Measurement measurement) {
-            if (measurement == null) {
-                return;
-            }
-
-            TimeSlot slotStorage = getSlot(measurement.getTimestamp());
-
-            // get or create metrics
-            Map<String, NumberAggregator> metrics = slotStorage.computeIfAbsent(measurement.getDimensions(), dim -> {
-                Map<String, NumberAggregator> metricMap = new HashMap<>(15);
-                schema.getMetricsSpec()
-                      .forEach((metricSpec) -> {
-                          NumberAggregator aggregator = metricSpec.createAggregator();
-                          if (aggregator != null) {
-                              metricMap.put(metricSpec.getName(), aggregator);
-                          }
-                      });
-                return metricMap;
-            });
-
-            Map<String, ? extends Number> inputMetrics = measurement.getMetrics();
-            inputMetrics.forEach((metricName, metricValue) -> {
-                NumberAggregator aggregator = metrics.computeIfAbsent(metricName,
-                                                                      m -> {
-                                                                          IMetricSpec spec = schema.getMetricSpecByName(
-                                                                              m);
-                                                                          if (spec != null) {
-                                                                              return spec.createAggregator();
-                                                                          }
-                                                                          return null;
-                                                                      });
-                if (aggregator != null) {
-                    aggregator.aggregate(measurement.getTimestamp(), metricValue);
-                }
-            });
-        }
-
-        private TimeSlot getSlot(long timestamp) {
-            long minutes = timestamp / 60_000;
-            int slotIndex = (int) (minutes % timeSlot.length);
-
-            if (timeSlot[slotIndex] == null) {
-                timeSlot[slotIndex] = new TimeSlot(minutes * 60_000);
-            }
-            return timeSlot[slotIndex];
-        }
-
-        public List<Measurement> toMeasurementList() {
-            List<Measurement> measurementList = new ArrayList<>(8);
-            for (TimeSlot slot : timeSlot) {
-                if (slot != null) {
-                    slot.forEach((dimensions, metrics) -> measurementList.add(new Measurement(slot.getTimestamp(),
-                                                                                              dimensions,
-                                                                                              metrics)));
-                }
-            }
-            return measurementList;
         }
     }
 }

@@ -70,7 +70,7 @@ public class KafkaTraceSink implements ITraceMessageSink {
         // but I don't think it has advantages over the way below
         //
         StringBuilder messageText = new StringBuilder();
-        for(TraceSpan span : spans) {
+        for (TraceSpan span : spans) {
             key = span.getTraceId();
 
             try {

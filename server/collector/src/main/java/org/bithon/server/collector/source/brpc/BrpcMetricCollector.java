@@ -41,6 +41,7 @@ import org.bithon.server.storage.datasource.aggregator.spec.LongMinMetricSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.LongSumMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.dimension.StringDimensionSpec;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -154,7 +155,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
         SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();
         schemaMetricMessage.setSchema(schema);
-        schemaMetricMessage.setMetrics(IteratorableCollection.of(new Iterator<MetricMessage>() {
+        schemaMetricMessage.setMetrics(IteratorableCollection.of(new Iterator<IInputRow>() {
             @Override
             public boolean hasNext() {
                 return iterator.hasNext();
@@ -188,7 +189,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     @Override
     public void sendGenericMetricsV2(BrpcMessageHeader header, BrpcGenericMetricMessageV2 message) {
-        Iterator<MetricMessage> messageIterator = new Iterator<MetricMessage>() {
+        Iterator<IInputRow> messageIterator = new Iterator<IInputRow>() {
             final Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
 
             @Override
@@ -227,7 +228,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         metricSink.close();
     }
 
-    private static class GenericMetricMessageIterator implements Iterator<MetricMessage> {
+    private static class GenericMetricMessageIterator implements Iterator<IInputRow> {
         private final Iterator<?> iterator;
         private final BrpcMessageHeader header;
 

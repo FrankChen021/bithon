@@ -23,6 +23,7 @@ import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,17 +53,18 @@ public class MetricHttpCollector {
         log.trace("receive metrics:{}", metrics);
 
         final Iterator<Measurement> delegate = metrics.metrics.iterator();
-        IteratorableCollection<MetricMessage> i = IteratorableCollection.of(new Iterator<MetricMessage>() {
+        IteratorableCollection<IInputRow> i = IteratorableCollection.of(new Iterator<IInputRow>() {
             @Override
             public boolean hasNext() {
                 return delegate.hasNext();
             }
 
             @Override
-            public MetricMessage next() {
+            public IInputRow next() {
                 Measurement m = delegate.next();
 
                 MetricMessage message = new MetricMessage();
+                message.put("timestamp", m.getTimestamp());
                 message.putAll(m.getDimensions());
                 message.putAll(m.getMetrics());
                 return message;

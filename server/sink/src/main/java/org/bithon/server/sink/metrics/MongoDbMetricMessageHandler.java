@@ -18,6 +18,7 @@ package org.bithon.server.sink.metrics;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.meta.EndPointType;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -42,20 +43,20 @@ public class MongoDbMetricMessageHandler extends AbstractMetricMessageHandler {
     }
 
     @Override
-    protected Measurement extractEndpointLink(MetricMessage metricObject) {
+    protected Measurement extractEndpointLink(IInputRow metricObject) {
         return EndPointMeasurementBuilder.builder()
-                                         .timestamp(metricObject.getTimestamp())
+                                         .timestamp(metricObject.getColAsLong("timestamp"))
                                          .srcEndpointType(EndPointType.APPLICATION)
-                                         .srcEndpoint(metricObject.getApplicationName())
+                                         .srcEndpoint(metricObject.getColAsString("appName"))
                                          .dstEndpointType(EndPointType.DB_MONGO)
-                                         .dstEndpoint(metricObject.getString("server"))
+                                         .dstEndpoint(metricObject.getColAsString("server"))
                                          // metric
-                                         .interval(metricObject.getLong("interval"))
-                                         .errorCount(metricObject.getLong("exceptionCount"))
-                                         .callCount(metricObject.getLong("callCount"))
-                                         .responseTime(metricObject.getLong("responseTime"))
-                                         .minResponseTime(metricObject.getLong("minResponseTime"))
-                                         .maxResponseTime(metricObject.getLong("maxResponseTime"))
+                                         .interval(metricObject.getColAsLong("interval", 0))
+                                         .errorCount(metricObject.getColAsLong("exceptionCount", 0))
+                                         .callCount(metricObject.getColAsLong("callCount", 0))
+                                         .responseTime(metricObject.getColAsLong("responseTime", 0))
+                                         .minResponseTime(metricObject.getColAsLong("minResponseTime", 0))
+                                         .maxResponseTime(metricObject.getColAsLong("maxResponseTime", 0))
                                          .build();
     }
 }

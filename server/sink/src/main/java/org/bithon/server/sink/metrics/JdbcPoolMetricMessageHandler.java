@@ -19,6 +19,7 @@ package org.bithon.server.sink.metrics;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.common.utils.MiscUtils;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 
@@ -41,11 +42,11 @@ public class JdbcPoolMetricMessageHandler extends AbstractMetricMessageHandler {
     }
 
     @Override
-    protected boolean beforeProcess(MetricMessage metricObject) {
+    protected boolean beforeProcess(IInputRow metricObject) {
         //TODO: cache the parse result
-        MiscUtils.ConnectionString conn = MiscUtils.parseConnectionString(metricObject.getString("connectionString"));
-        metricObject.set("server", conn.getHostAndPort());
-        metricObject.set("database", conn.getDatabase());
+        MiscUtils.ConnectionString conn = MiscUtils.parseConnectionString(metricObject.getColAsString("connectionString"));
+        metricObject.updateColumn("server", conn.getHostAndPort());
+        metricObject.updateColumn("database", conn.getDatabase());
         return true;
     }
 }

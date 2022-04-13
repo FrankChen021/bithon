@@ -16,6 +16,7 @@
 
 package org.bithon.server.kafka;
 
+import org.bithon.component.commons.collection.CloseableIterator;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.tracing.LocalTraceSink;
 import org.bithon.server.storage.tracing.TraceSpan;
@@ -44,8 +45,8 @@ public class KafkaTraceConsumer extends AbstractKafkaConsumer<TraceSpan> {
     }
 
     @Override
-    protected void onMessage(String type, IteratorableCollection<TraceSpan> iterator) {
-        traceSink.process(getTopic(), iterator.toCollection());
+    protected void onMessage(String type, CloseableIterator<TraceSpan> iterator) {
+        traceSink.process(getTopic(), IteratorableCollection.of(iterator).toCollection());
     }
 
     @Override

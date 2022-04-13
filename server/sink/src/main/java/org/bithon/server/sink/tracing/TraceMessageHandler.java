@@ -57,7 +57,6 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<List<T
         this.tagIndexBuilder = new TagIndexGenerator(applicationContext.getBean(TraceConfig.class));
     }
 
-    //BUG: TODO: change the iterator to list
     @Override
     protected void onMessage(List<TraceSpan> traceSpans) throws IOException {
         sanitizerFactory.sanitize(traceSpans);

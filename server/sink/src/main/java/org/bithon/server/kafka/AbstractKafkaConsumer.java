@@ -25,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.bithon.component.commons.collection.CloseableIterator;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
@@ -57,7 +56,7 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
 
     protected abstract String getTopic();
 
-    protected abstract void onMessage(String s, IteratorableCollection<MSG> msg);
+    protected abstract void onMessage(String s, CloseableIterator<MSG> msg);
 
     @Override
     public final void onMessage(ConsumerRecord<String, String> record) {
@@ -90,7 +89,7 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
 
         Header type = record.headers().lastHeader("type");
         if (type != null) {
-            onMessage(new String(type.value(), StandardCharsets.UTF_8), IteratorableCollection.of(iterator));
+            onMessage(new String(type.value(), StandardCharsets.UTF_8), iterator);
         } else {
             log.error("No header in message from topic: {}", this.getTopic());
         }

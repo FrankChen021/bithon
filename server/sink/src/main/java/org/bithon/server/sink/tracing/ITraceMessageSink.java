@@ -18,7 +18,6 @@ package org.bithon.server.sink.tracing;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.util.List;

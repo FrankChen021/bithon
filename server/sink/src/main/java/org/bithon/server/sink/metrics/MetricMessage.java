@@ -16,6 +16,8 @@
 
 package org.bithon.server.sink.metrics;
 
+import org.bithon.server.storage.datasource.input.IInputRow;
+
 import java.util.HashMap;
 
 /**
@@ -24,7 +26,7 @@ import java.util.HashMap;
  * @author frank.chen021@outlook.com
  * @date 2021/3/15
  */
-public class MetricMessage extends HashMap<String, Object> {
+public class MetricMessage extends HashMap<String, Object> implements IInputRow {
 
     public long getTimestamp() {
         return (long) this.get("timestamp");
@@ -71,7 +73,23 @@ public class MetricMessage extends HashMap<String, Object> {
         this.put(prop, value);
     }
 
+    public void setIfNotNull(String prop, Object value) {
+        if (value != null) {
+            this.put(prop, value);
+        }
+    }
+
     public String getString(String prop) {
         return (String) this.get(prop);
+    }
+
+    @Override
+    public Object getCol(String columnName) {
+        return this.get(columnName);
+    }
+
+    @Override
+    public void updateColumn(String name, Object value) {
+        this.set(name, value);
     }
 }
