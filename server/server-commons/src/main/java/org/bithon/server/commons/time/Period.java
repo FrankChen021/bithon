@@ -17,6 +17,7 @@
 package org.bithon.server.commons.time;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 
 import java.util.Locale;
@@ -26,9 +27,14 @@ import java.util.Locale;
  * @date 2021/4/11 18:33
  */
 public class Period {
+    @JsonIgnore
     @Getter
     private final long milliseconds;
 
+    /**
+     * for serialization and deserialization
+     */
+    @Getter
     private final String text;
 
     @JsonCreator
