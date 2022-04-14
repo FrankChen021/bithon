@@ -25,6 +25,7 @@ import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.bithon.server.storage.datasource.input.flatten.IFlattener;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -52,7 +53,7 @@ public class TransformSpec {
     private final List<IInputRowFilter> postfilters;
 
     @JsonCreator
-    public TransformSpec(@JsonProperty("granularity") Period granularity,
+    public TransformSpec(@JsonProperty("granularity") @Nullable Period granularity,
                          @JsonProperty("prefilters") List<IInputRowFilter> prefilters,
                          @JsonProperty("flatteners") List<IFlattener> flatteners,
                          @JsonProperty("transformers") List<ITransformer> transformers,

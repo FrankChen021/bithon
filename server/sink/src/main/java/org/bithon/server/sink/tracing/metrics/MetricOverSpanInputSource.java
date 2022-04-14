@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.concurrency.NamedForkJoinThreadFactory;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.commons.time.Period;
 import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.MetricsAggregator;
@@ -84,8 +85,6 @@ public class MetricOverSpanInputSource implements IInputSource {
                                      @JacksonInject(useInput = OptBoolean.FALSE) TraceMessageProcessChain chain,
                                      @JacksonInject(useInput = OptBoolean.FALSE) IMessageSink<SchemaMetricMessage> metricSink) {
         Preconditions.checkArgumentNotNull("transformSpec", transformSpec);
-        Preconditions.checkArgumentNotNull("transformSpec.granularity", transformSpec.getGraunularity());
-        Preconditions.checkIf(transformSpec.getGraunularity().getMilliseconds() > 0, "transformSpec.granularity can't be null");
 
         this.chain = chain;
         this.metricSink = metricSink;
@@ -128,27 +127,30 @@ public class MetricOverSpanInputSource implements IInputSource {
             //
             // transform the spans to target metrics
             //
-            Collection<MetricMessage> metricRows = TRANSFORMER_EXECUTOR.submit(() -> Collections.synchronizedCollection(spans)
-                                                                                                .parallelStream()
-                                                                                                .filter(transformSpec::transform)
-                                                                                                .map(this::spanToMetrics).collect(Collectors.toList())).join();
+            Collection<IInputRow> metricRows = TRANSFORMER_EXECUTOR.submit(() -> Collections.synchronizedCollection(spans)
+                                                                                            .parallelStream()
+                                                                                            .filter(transformSpec::transform)
+                                                                                            .map(this::spanToMetrics).collect(Collectors.toList())).join();
             if (metricRows.isEmpty()) {
                 return;
             }
 
             //
-            // aggregate the metrics together
+            // aggregate the metrics together if required
             //
-            MetricsAggregator aggregator = new MetricsAggregator(schema, transformSpec.getGraunularity());
-            metricRows.forEach((row) -> aggregator.aggregate(row.getTimestamp(), row, row));
-            List<IInputRow> rows = aggregator.getRows();
+            Period granularity = transformSpec.getGraunularity();
+            if (granularity != null && granularity.getMilliseconds() > 0) {
+                MetricsAggregator aggregator = new MetricsAggregator(schema, granularity);
+                metricRows.forEach(aggregator::aggregate);
+                metricRows = aggregator.getRows();
+            }
 
             //
             // sink the metrics
             //
             metricSink.process(schema.getName(), SchemaMetricMessage.builder()
                                                                     .schema(schema)
-                                                                    .metrics(IteratorableCollection.of(rows.iterator()))
+                                                                    .metrics(IteratorableCollection.of(metricRows.iterator()))
                                                                     .build());
         }
 
@@ -156,7 +158,7 @@ public class MetricOverSpanInputSource implements IInputSource {
         public void close() {
         }
 
-        private MetricMessage spanToMetrics(TraceSpan span) {
+        private IInputRow spanToMetrics(TraceSpan span) {
             // must be the first.
             // since 'count' is a special name that can be referenced by metricSpec in schema
             span.updateColumn("count", 1);
