@@ -27,6 +27,7 @@ class Dashboard {
         this._formatters['millisecond'] = (v) => milliFormat(v, 2);
         this._formatters['microsecond'] = (v) => microFormat(v, 2);
         this._formatters['byte_rate'] = (v) => v.formatBinaryByte() + "/s";
+        this._formatters['time'] = (v) => new Date(v).format('yyyy-MM-dd hh:mm:ss');
     }
 
     // PUBLIC
@@ -163,6 +164,7 @@ class Dashboard {
             return;
         }
 
+        const fields = [];
         const chartComponent = this._chartComponents[chartDescriptor.id];
 
         const columns = [
@@ -177,8 +179,60 @@ class Dashboard {
             }
         ];
 
+        $.each(chartDescriptor.details.dimensions, (index, dimension) => {
+            fields.push(dimension.name);
+
+            const column = {
+                field: dimension.name,
+                title: dimension.name,
+                align: 'center',
+                sortable: dimension.sortable || false
+            };
+
+            // set up lookup for this dimension
+            let lookupFn = (v) => v;
+            if (chartDescriptor.details.lookup !== undefined) {
+                const dimensionLookup = chartDescriptor.details.lookup[dimension];
+                if (dimensionLookup != null) {
+                    lookupFn = (val) => {
+                        const v = dimensionLookup[val];
+                        if (v != null) {
+                            return v + '(' + val + ')';
+                        } else {
+                            return val;
+                        }
+                    };
+                }
+            }
+
+            // there's a user defined formatter
+            let formatter = null;
+            if (dimension.formatter !== undefined) {
+                if (dimension.formatter === 'template') {
+                    // a template based formatter
+                    formatter = (v) => {
+                        return dimension.template.replaceAll('{value}', lookupFn(v));
+                    }
+                } else {
+                    // a built-in formatter
+                    formatter = this._formatters[dimension.formatter];
+                    if (formatter == null) {
+                        console.log(`formatter ${dimension.formatter} is not a pre-defined one.`);
+                    }
+                }
+            }
+
+            // set up a default one
+            if (formatter == null) {
+                formatter = lookupFn;
+            }
+            column.formatter = formatter;
+            columns.push(column);
+        });
+
         //
-        // create columns for dimensions
+        // create columns for grouped dimensions
+        // TODO: combine with dimensions
         //
         $.each(chartDescriptor.details.groupBy, (index, dimension) => {
 
@@ -206,17 +260,32 @@ class Dashboard {
         // create columns for metrics
         //
         $.each(chartDescriptor.details.metrics, (index, metric) => {
+            let metricName;
+            if (typeof metric === 'object') {
+                metricName = metric.name;
+            } else {
+                metricName = metric;
+            }
+
+            fields.push(metricName);
+
             // set up transformer and formatter for this metric
-            const column = {field: metric, title: metric, align: 'center', sortable: true};
+            const column = {field: metricName, title: metricName, align: 'center', sortable: true};
 
             // use the formatter of yAxis to format this metric
             let formatterFn = null;
-            const metricDef = chartDescriptor.metricMap[metric];
+            const metricDef = chartDescriptor.metricMap[metricName];
             if (metricDef != null && chartDescriptor.yAxis !== undefined) {
                 const yAxis = metricDef.yAxis == null ? 0 : metricDef.yAxis;
                 formatterFn = this._formatters[chartDescriptor.yAxis[yAxis].format];
             }
             if (formatterFn == null) {
+                if (typeof metric === 'object' && metric.formatter !== undefined) {
+                    // see if the descriptor provides formatter
+                    formatterFn = this._formatters[metric.formatter];
+                }
+            }
+            if(formatterFn == null) {
                 // if this metric is not found, format in default ways
                 formatterFn = (v) => {
                     return v.formatCompactNumber();
@@ -232,6 +301,7 @@ class Dashboard {
             columns.push(column);
         });
 
+        const pagable = chartDescriptor.details.groupBy === undefined || chartDescriptor.details.groupBy.length === 0;
         const detailView = this.#createDetailView(chartDescriptor.id + '_detailView',
             chartComponent.getUIContainer(),
             columns,
@@ -240,10 +310,11 @@ class Dashboard {
                 text: "Search...",
                 visible: chartDescriptor.details.tracing !== undefined,
                 onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
-            }]);
+            }],
+            pagable);
         chartComponent.setSelectionHandler(
             (option, start, end) => {
-                this.#refreshDetailView(chartDescriptor, detailView, option, start, end);
+                this.#refreshDetailView(chartDescriptor, detailView, fields, option, start, end);
             },
             () => {
                 detailView.clear();
@@ -257,14 +328,14 @@ class Dashboard {
             });
     }
 
-    #createDetailView(id, parent, columns, buttons) {
-        return new TableComponent({tableId: id, parent: parent, columns: columns, buttons: buttons});
+    #createDetailView(id, parent, columns, buttons, pagable) {
+        return new TableComponent({tableId: id, parent: parent, columns: columns, buttons: buttons, pagination: pagable});
     }
 
-    #refreshDetailView(chartDescriptor, detailView, option, startIndex, endIndex) {
+    #refreshDetailView(chartDescriptor, detailView, fields, chartOption, startIndex, endIndex) {
         // get the time range
-        const start = option.timestamp.start;
-        const interval = option.timestamp.interval;
+        const start = chartOption.timestamp.start;
+        const interval = chartOption.timestamp.interval;
 
         const startTimestamp = start + startIndex * interval;
         const endTimestamp = start + endIndex * interval;
@@ -284,19 +355,38 @@ class Dashboard {
             });
         }
 
-        const loadOptions = {
-            url: apiHost + "/api/datasource/groupBy",
-            start: startTimestamp,
-            end: endTimestamp,
-            ajaxData: {
-                dataSource: chartDescriptor.dataSource,
-                startTimeISO8601: startISO8601,
-                endTimeISO8601: endISO8601,
-                filters: filters,
-                metrics: chartDescriptor.details.metrics,
-                groupBy: chartDescriptor.details.groupBy
-            }
-        };
+
+        let loadOptions;
+        if ( chartDescriptor.details.groupBy !== undefined && chartDescriptor.details.groupBy.length > 0) {
+            loadOptions = {
+                url: apiHost + "/api/datasource/groupBy",
+                start: startTimestamp,
+                end: endTimestamp,
+                ajaxData: {
+                    dataSource: chartDescriptor.dataSource,
+                    startTimeISO8601: startISO8601,
+                    endTimeISO8601: endISO8601,
+                    filters: filters,
+                    metrics: chartDescriptor.details.metrics,
+                    groupBy: chartDescriptor.details.groupBy
+                }
+            };
+        } else {
+            // list option
+            loadOptions = {
+                url: apiHost + "/api/datasource/list",
+                ajaxData: {
+                    dataSource: chartDescriptor.dataSource,
+                    startTimeISO8601: startISO8601,
+                    endTimeISO8601: endISO8601,
+                    filters: filters,
+                    columns: fields,
+                    pageSize: 10,
+                    pageNumber: 0
+                }
+            };
+        }
+
         detailView.load(loadOptions);
     }
 
