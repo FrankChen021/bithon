@@ -130,7 +130,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
             throw new RuntimeException(e);
         }
 
-        throw new DataSourceNotFoundException("Can't find schema for datasource " + name);
+        throw new DataSourceNotFoundException(name);
     }
 
     public Map<String, DataSourceSchema> getDataSources() {

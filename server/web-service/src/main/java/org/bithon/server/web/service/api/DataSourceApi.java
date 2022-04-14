@@ -158,7 +158,6 @@ public class DataSourceApi {
     @PostMapping("/api/datasource/schema/update")
     public void updateSchema(@RequestBody DataSourceSchema newSchema) {
         DataSourceSchema oldSchema = schemaManager.getDataSourceSchema(newSchema.getName());
-        Preconditions.checkNotNull(oldSchema, "Data Source schema [%s] does not exist", newSchema.getName());
 
         schemaManager.updateDataSourceSchema(newSchema);
 

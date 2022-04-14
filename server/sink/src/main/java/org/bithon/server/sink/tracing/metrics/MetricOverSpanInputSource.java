@@ -78,7 +78,7 @@ public class MetricOverSpanInputSource implements IInputSource {
     private final TransformSpec transformSpec;
 
     @JsonIgnore
-    private ITraceMessageSink metricExtractor;
+    private MetricOverSpanExtractor metricExtractor;
 
     @JsonCreator
     public MetricOverSpanInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
@@ -93,7 +93,7 @@ public class MetricOverSpanInputSource implements IInputSource {
 
     @Override
     public void start(DataSourceSchema schema) {
-        log.info("Starting input source for schema [{}]...", schema.getName());
+        log.info("Adding metric-extractor for [{}({})] to tracing logs processors...", schema.getName(), schema.getSignature());
         metricExtractor = this.chain.link(new MetricOverSpanExtractor(transformSpec, schema, metricSink));
     }
 
@@ -103,6 +103,7 @@ public class MetricOverSpanInputSource implements IInputSource {
             return;
         }
 
+        log.info("Removing metric-extractor for [{}({})] from tracing logs processors...", metricExtractor.schema.getName(), metricExtractor.schema.getSignature());
         try {
             this.chain.unlink(metricExtractor).close();
         } catch (Exception ignored) {

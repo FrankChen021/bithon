@@ -35,12 +35,12 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
         link(sink);
     }
 
-    public ITraceMessageSink link(ITraceMessageSink sink) {
+    public <T extends ITraceMessageSink> T link(T sink) {
         sinks.add(sink);
         return sink;
     }
 
-    public ITraceMessageSink unlink(ITraceMessageSink sink) {
+    public <T extends ITraceMessageSink> T unlink(T sink) {
         sinks.remove(sink);
         return sink;
     }
