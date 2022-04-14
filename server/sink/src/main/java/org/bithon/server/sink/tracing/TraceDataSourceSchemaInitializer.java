@@ -69,8 +69,7 @@ public class TraceDataSourceSchemaInitializer implements BeanPostProcessor {
                                                                     "trace_span_tag_index",
                                                                     new TimestampSpec("timestamp", null, null),
                                                                     dimensionSpecs,
-                                                                    Collections.singletonList(CountMetricSpec.INSTANCE),
-                                                                    null);
+                                                                    Collections.singletonList(CountMetricSpec.INSTANCE));
 
         DataSourceSchemaManager dataSourceSchemaManager = (DataSourceSchemaManager) bean;
         dataSourceSchemaManager.addDataSourceSchema(spanTagSchema);

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.aggregator.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
@@ -53,12 +54,20 @@ public class DataSourceSchema {
     @Getter
     private final IInputSource inputSourceSpec;
 
+    /**
+     * data source level ttl.
+     * can be null.
+     * If it's null, it's controlled by the global level TTL
+     */
+    @Getter
+    private final Period ttl;
+
     @JsonIgnore
     private final Map<String, IDimensionSpec> dimensionMap = new HashMap<>(15);
 
     @JsonIgnore
     private final Map<String, IMetricSpec> metricsMap = new HashMap<>();
-    
+
     /**
      * check a {timestamp, dimensions} are unique to help find out some internal wrong implementation
      */
@@ -80,7 +89,7 @@ public class DataSourceSchema {
                             TimestampSpec timestampSpec,
                             List<IDimensionSpec> dimensionsSpec,
                             List<IMetricSpec> metricsSpec) {
-        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null);
+        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null);
     }
 
     @JsonCreator
@@ -89,13 +98,15 @@ public class DataSourceSchema {
                             @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
                             @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
                             @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
-                            @JsonProperty("inputSourceSpec") @Nullable IInputSource inputSourceSpec) {
+                            @JsonProperty("inputSourceSpec") @Nullable IInputSource inputSourceSpec,
+                            @JsonProperty("ttl") @Nullable Period ttl) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
         this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
         this.inputSourceSpec = inputSourceSpec;
+        this.ttl = ttl;
 
         this.dimensionsSpec.forEach((dimensionSpec) -> dimensionMap.put(dimensionSpec.getName(), dimensionSpec));
         this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));

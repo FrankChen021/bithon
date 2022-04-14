@@ -149,8 +149,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                                   }
 
                                                                   return null;
-                                                              }).collect(Collectors.toList()),
-                                                       null);
+                                                              }).collect(Collectors.toList()));
 
         Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
         SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();

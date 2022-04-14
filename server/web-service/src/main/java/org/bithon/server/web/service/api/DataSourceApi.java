@@ -156,10 +156,22 @@ public class DataSourceApi {
     }
 
     @PostMapping("/api/datasource/schema/update")
-    public void updateSchema(@RequestBody DataSourceSchema schema) {
-        schemaManager.updateDataSourceSchema(schema);
+    public void updateSchema(@RequestBody DataSourceSchema newSchema) {
+        DataSourceSchema oldSchema = schemaManager.getDataSourceSchema(newSchema.getName());
+        Preconditions.checkNotNull(oldSchema, "Data Source schema [%s] does not exist", newSchema.getName());
+
+        schemaManager.updateDataSourceSchema(newSchema);
 
         // TODO: if dimensions/metrics change, need to update the underlying storage schema
+
+        //
+        if (oldSchema.getInputSourceSpec() != null) {
+            oldSchema.getInputSourceSpec().stop();
+        }
+
+        if (newSchema.getInputSourceSpec() != null) {
+            newSchema.getInputSourceSpec().start(newSchema);
+        }
     }
 
     @PostMapping("/api/datasource/name")

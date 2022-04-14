@@ -159,8 +159,7 @@ public class StorageAutoConfiguration {
                                                                           false,
                                                                           true,
                                                                           null)),
-                                    Collections.singletonList(CountMetricSpec.INSTANCE),
-                                    null);
+                                    Collections.singletonList(CountMetricSpec.INSTANCE));
 
     }
 
@@ -197,8 +196,7 @@ public class StorageAutoConfiguration {
                                                                         null,
                                                                         "costTimeMs",
                                                                         "us",
-                                                                        true)),
-                                    null);
+                                                                        true)));
     }
 
     @Bean

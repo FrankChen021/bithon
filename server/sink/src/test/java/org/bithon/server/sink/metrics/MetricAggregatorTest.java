@@ -57,9 +57,7 @@ public class MetricAggregatorTest {
             Collections.emptyList(),
             Arrays.asList(new LongSumMetricSpec("totalCount", "totalCount", "totalCount", "", true),
                           new LongMinMetricSpec("minTime", "minTime", "minTime", "", true),
-                          new LongMaxMetricSpec("maxTime", "maxTime", "maxTime", "", true)),
-
-            null
+                          new LongMaxMetricSpec("maxTime", "maxTime", "maxTime", "", true))
         );
 
         DataSourceSchema hasDimensionSchema = new DataSourceSchema(
@@ -69,9 +67,7 @@ public class MetricAggregatorTest {
             Arrays.asList(new StringDimensionSpec("appName", "appName", "appName", true, true, 128)),
             Arrays.asList(new LongSumMetricSpec("totalCount", "totalCount", "totalCount", "", true),
                           new LongMinMetricSpec("minTime", "minTime", "minTime", "", true),
-                          new LongMaxMetricSpec("maxTime", "maxTime", "maxTime", "", true)),
-
-            null
+                          new LongMaxMetricSpec("maxTime", "maxTime", "maxTime", "", true))
         );
 
         return new Object[]{
