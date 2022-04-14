@@ -149,7 +149,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
 
             for (DataSourceSchema changedSchema : changedSchemaList) {
 
-                DataSourceSchema schemaBeforeChange = this.schemas.put(changedSchema.getName(), changedSchema);
+                DataSourceSchema schemaBeforeChange = this.schemas.get(changedSchema.getName());
                 if (schemaBeforeChange != null
                     && Objects.equals(schemaBeforeChange.getSignature(), changedSchema.getSignature())) {
                     // same signature, do nothing
@@ -167,6 +167,8 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
                     log.info("Start input source for schema [{}]", changedSchema.getName());
                     changedSchema.getInputSourceSpec().start(changedSchema);
                 }
+
+                this.schemas.put(changedSchema.getName(), changedSchema);
             }
 
             this.lastLoadAt = System.currentTimeMillis();

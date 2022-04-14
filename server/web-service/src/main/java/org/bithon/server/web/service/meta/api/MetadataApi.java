@@ -40,8 +40,14 @@ public class MetadataApi {
         this.metaStorage = metaStorage;
     }
 
+    @Deprecated
     @PostMapping("/api/meta/getMetadataList")
     public Collection<Metadata> getMetadataList(@Valid @RequestBody GetMetadataListRequest request) {
-        return metaStorage.getMetadataByType(request.getType());
+        return metaStorage.getApplications(null, 3600_000 * 24);
+    }
+
+    @PostMapping("/api/meta/getApplications")
+    public Collection<Metadata> getApplications(@Valid @RequestBody GetApplicationsRequest request) {
+        return metaStorage.getApplications(request.getAppType(), request.getSince());
     }
 }

@@ -14,29 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.meta;
+package org.bithon.server.web.service.meta.api;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+import org.bithon.server.storage.meta.MetadataType;
 
-import java.util.Collection;
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/31 9:49 上午
+ * @date 2022/4/14 3:41 下午
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IMetaStorage {
+@Data
+public class GetApplicationsRequest {
+    @Nullable
+    private String appType;
 
-    void saveApplicationInstance(String applicationName, String applicationType, String instance);
-
-    /**
-     * @param instanceName host+port
-     */
-    String getApplicationByInstance(String instanceName);
-
-    boolean isApplicationExist(String applicationName);
-
-    void initialize();
-
-    Collection<Metadata> getApplications(String appType, long since);
+    private long since = 3600_000 * 24;
 }

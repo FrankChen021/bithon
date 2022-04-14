@@ -61,11 +61,6 @@ public class CachableMetadataStorage implements IMetaStorage {
     }
 
     @Override
-    public Collection<Metadata> getMetadataByType(MetadataType type) {
-        return delegate.getMetadataByType(type);
-    }
-
-    @Override
     public String getApplicationByInstance(String instanceName) {
         String applicationName = instanceCache.getIfPresent(instanceName);
         if (applicationName == null) {
@@ -87,5 +82,10 @@ public class CachableMetadataStorage implements IMetaStorage {
     @Override
     public void initialize() {
         delegate.initialize();
+    }
+
+    @Override
+    public Collection<Metadata> getApplications(String appType, long since) {
+        return delegate.getApplications(appType, since);
     }
 }
