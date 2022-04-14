@@ -59,10 +59,10 @@ public class SchemaStorage extends SchemaJdbcStorage {
 
     @Override
     public List<DataSourceSchema> getSchemas(long afterTimestamp) {
-        String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME, Tables.BITHON_META_SCHEMA.SCHEMA)
+        String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME, Tables.BITHON_META_SCHEMA.SCHEMA, Tables.BITHON_META_SCHEMA.SIGNATURE)
                                .from(Tables.BITHON_META_SCHEMA)
                                .getSQL() + " FINAL WHERE ";
-        sql += Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp)).toString();
+        sql += dslContext.renderInlined(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp)));
 
         List<Record> records = dslContext.fetch(sql);
         if (records == null) {
@@ -71,7 +71,9 @@ public class SchemaStorage extends SchemaJdbcStorage {
 
         return records.stream().map((mapper) -> {
             try {
-                return objectMapper.readValue(mapper.getValue(1, String.class), DataSourceSchema.class);
+                DataSourceSchema schema = objectMapper.readValue(mapper.get(1, String.class), DataSourceSchema.class);
+                schema.setSignature(mapper.get(2, String.class));
+                return schema;
             } catch (JsonProcessingException e) {
                 return null;
             }
