@@ -116,7 +116,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
         String schemaText = objectMapper.writeValueAsString(schema);
-        schema.setSignature(HashGenerator.sha256String(schemaText));
+        schema.setSignature(HashGenerator.sha256Hex(schemaText));
 
         dslContext.insertInto(Tables.BITHON_META_SCHEMA)
                   .set(Tables.BITHON_META_SCHEMA.NAME, name)
@@ -129,7 +129,7 @@ public class SchemaStorage extends SchemaJdbcStorage {
     @Override
     public void putIfNotExist(String name, DataSourceSchema schema) throws IOException {
         String schemaText = objectMapper.writeValueAsString(schema);
-        schema.setSignature(HashGenerator.sha256String(schemaText));
+        schema.setSignature(HashGenerator.sha256Hex(schemaText));
 
         if (dslContext.fetchCount(Tables.BITHON_META_SCHEMA, Tables.BITHON_META_SCHEMA.NAME.eq(name)) > 0) {
             return;

@@ -16,13 +16,13 @@
 
 package org.bithon.component.commons.utils;
 
-import java.math.BigInteger;
-
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/4/6 9:34 下午
  */
 public class NumberUtils {
+    private static final char[] HEX_CHARS = "0123456789abcdef".toCharArray();
+
     public static long getLong(Object value) {
         if (value == null) {
             return 0;
@@ -50,6 +50,11 @@ public class NumberUtils {
     }
 
     public static String toHexString(byte[] bytes) {
-        return new BigInteger(bytes).toString(16);
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte v : bytes) {
+            sb.append(HEX_CHARS[(v & 0xF0) >>> 4]);
+            sb.append(HEX_CHARS[v & 0x0F]);
+        }
+        return sb.toString();
     }
 }

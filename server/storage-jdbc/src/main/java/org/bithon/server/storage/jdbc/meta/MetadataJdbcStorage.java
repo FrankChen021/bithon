@@ -25,7 +25,6 @@ import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.meta.Metadata;
-import org.bithon.server.storage.meta.MetadataType;
 import org.jooq.DSLContext;
 import org.jooq.Record2;
 import org.jooq.SelectConditionStep;
@@ -33,7 +32,6 @@ import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com

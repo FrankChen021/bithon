@@ -14,20 +14,28 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.meta.api;
 
-import lombok.Data;
+package org.bithon.component.commons.utils;
 
-import javax.annotation.Nullable;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2022/4/14 3:41 下午
+ * @author Frank Chen
+ * @date 14/4/22 3:46 PM
  */
-@Data
-public class GetApplicationsRequest {
-    @Nullable
-    private String appType;
+public class NumberUtilsTest {
 
-    private long since = 3600_000 * 24;
+    @Test
+    public void testHexString() {
+        Assert.assertEquals("ff", NumberUtils.toHexString(new byte[]{-1}));
+
+        Assert.assertEquals("00", NumberUtils.toHexString(new byte[]{0}));
+
+        Assert.assertEquals("01", NumberUtils.toHexString(new byte[]{1}));
+
+        Assert.assertEquals("1f", NumberUtils.toHexString(new byte[]{0x1F}));
+
+        Assert.assertEquals("1b", NumberUtils.toHexString(new byte[]{0x1b}));
+    }
 }

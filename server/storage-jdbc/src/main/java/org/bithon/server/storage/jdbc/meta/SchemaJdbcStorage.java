@@ -109,7 +109,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     public void update(String name, DataSourceSchema schema) throws IOException {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         String schemaText = objectMapper.writeValueAsString(schema);
-        schema.setSignature(HashGenerator.sha256String(schemaText));
+        schema.setSignature(HashGenerator.sha256Hex(schemaText));
         try {
             dslContext.insertInto(Tables.BITHON_META_SCHEMA)
                       .set(Tables.BITHON_META_SCHEMA.NAME, name)
@@ -131,7 +131,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     public void putIfNotExist(String name, DataSourceSchema schema) throws IOException {
         String schemaText = objectMapper.writeValueAsString(schema);
 
-        schema.setSignature(HashGenerator.sha256String(schemaText));
+        schema.setSignature(HashGenerator.sha256Hex(schemaText));
 
         // onDuplicateKeyIgnore is not supported on all DB
         // use try-catch instead

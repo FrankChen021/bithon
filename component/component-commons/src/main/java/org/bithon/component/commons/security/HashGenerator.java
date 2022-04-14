@@ -41,7 +41,7 @@ public class HashGenerator {
         return sha256Provider.digest(input.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static String sha256String(String input) {
+    public static String sha256Hex(String input) {
         return NumberUtils.toHexString(sha256(input));
     }
 
