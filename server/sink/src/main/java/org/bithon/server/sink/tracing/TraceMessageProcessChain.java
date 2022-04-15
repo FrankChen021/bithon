@@ -17,11 +17,15 @@
 package org.bithon.server.sink.tracing;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Frank Chen
@@ -31,7 +35,10 @@ import java.util.List;
 public class TraceMessageProcessChain implements ITraceMessageSink {
     private final List<ITraceMessageSink> sinks = Collections.synchronizedList(new ArrayList<>());
 
+    private final ExecutorService executorService;
+
     public TraceMessageProcessChain(ITraceMessageSink sink) {
+        this.executorService = Executors.newCachedThreadPool(NamedThreadFactory.of("trace-processor"));
         link(sink);
     }
 
@@ -48,11 +55,13 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
     @Override
     public void process(String messageType, List<TraceSpan> spans) {
         for (ITraceMessageSink sink : sinks) {
-            try {
-                sink.process(messageType, spans);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
+            executorService.submit(() -> {
+                try {
+                    sink.process(messageType, spans);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+            });
         }
     }
 
@@ -61,5 +70,7 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
         for (ITraceMessageSink sink : sinks) {
             sink.close();
         }
+        this.executorService.shutdownNow();
+        this.executorService.awaitTermination(10, TimeUnit.SECONDS);
     }
 }

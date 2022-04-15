@@ -25,7 +25,6 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.collection.IteratorableCollection;
-import org.bithon.component.commons.concurrency.NamedForkJoinThreadFactory;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.sink.metrics.IMessageSink;
@@ -44,9 +43,7 @@ import org.bithon.server.storage.tracing.TraceSpan;
 
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 /**
@@ -56,17 +53,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @JsonTypeName("span")
 public class MetricOverSpanInputSource implements IInputSource {
-    /**
-     * Transformation thread pool
-     * <p>
-     * some applications might send span logs in a large batch,
-     * So, we use parallelism to speed up the transformation
-     */
-    private static final ForkJoinPool TRANSFORMER_EXECUTOR = new ForkJoinPool(8,
-                                                                              new NamedForkJoinThreadFactory("span-metric-transformer"),
-                                                                              (t, e) -> log.error("Exception when processing transformation metrics over span",
-                                                                                                  e),
-                                                                              false);
 
     @JsonIgnore
     private final TraceMessageProcessChain chain;
@@ -103,7 +89,9 @@ public class MetricOverSpanInputSource implements IInputSource {
             return;
         }
 
-        log.info("Removing metric-extractor for [{}({})] from tracing logs processors...", metricExtractor.schema.getName(), metricExtractor.schema.getSignature());
+        log.info("Removing metric-extractor for [{}({})] from tracing logs processors...",
+                 metricExtractor.schema.getName(),
+                 metricExtractor.schema.getSignature());
         try {
             this.chain.unlink(metricExtractor).close();
         } catch (Exception ignored) {
@@ -128,10 +116,10 @@ public class MetricOverSpanInputSource implements IInputSource {
             //
             // transform the spans to target metrics
             //
-            Collection<IInputRow> metricRows = TRANSFORMER_EXECUTOR.submit(() -> Collections.synchronizedCollection(spans)
-                                                                                            .parallelStream()
-                                                                                            .filter(transformSpec::transform)
-                                                                                            .map(this::spanToMetrics).collect(Collectors.toList())).join();
+            Collection<IInputRow> metricRows = spans.stream()
+                                                    .filter(transformSpec::transform)
+                                                    .map(this::spanToMetrics)
+                                                    .collect(Collectors.toList());
             if (metricRows.isEmpty()) {
                 return;
             }
