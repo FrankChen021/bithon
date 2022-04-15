@@ -28,22 +28,22 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 public class AddFieldTransformer implements ITransformer {
 
     @Getter
-    private final String name;
+    private final String field;
 
     @Getter
     private final String value;
 
     @JsonCreator
-    public AddFieldTransformer(@JsonProperty("name") String name,
+    public AddFieldTransformer(@JsonProperty("field") String field,
                                @JsonProperty("value") String value) {
-        this.name = name;
+        this.field = field;
         this.value = value;
     }
 
     @Override
     public void transform(IInputRow inputRow) {
-        if (name != null && value != null) {
-            inputRow.updateColumn(name, value);
+        if (field != null && value != null) {
+            inputRow.updateColumn(field, value);
         }
     }
 }

@@ -23,39 +23,36 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
  * @author Frank Chen
- * @date 11/4/22 11:52 PM
+ * @date 14/4/22 5:22 PM
  */
-public class SplitterTransformer implements ITransformer {
-
-    /**
-     * source field
-     */
-    @Getter
-    private final String field;
+public class HasFieldTransformer implements ITransformer {
 
     @Getter
-    private final String splitter;
+    private final String testField;
 
     @Getter
-    private final String[] names;
+    private final String resultField;
+
+    @Getter
+    private final Object trueValue;
+
+    @Getter
+    private final Object falseValue;
 
     @JsonCreator
-    public SplitterTransformer(@JsonProperty("field") String field,
-                               @JsonProperty("splitter") String splitter,
-                               @JsonProperty("names") String... names) {
-        this.splitter = splitter;
-        this.names = names;
-        this.field = field;
+    public HasFieldTransformer(@JsonProperty("testField") String testField,
+                               @JsonProperty("resultField") String resultField,
+                               @JsonProperty("trueValue") Object trueValue,
+                               @JsonProperty("falseValue") Object falseValue) {
+        this.testField = testField;
+        this.resultField = resultField;
+        this.trueValue = trueValue;
+        this.falseValue = falseValue;
     }
 
     @Override
-    public void transform(IInputRow row) {
-        String val = row.getColAsString(field);
-        if (val != null) {
-            String[] values = val.split(splitter);
-            for (int i = 0, len = Math.min(names.length, values.length); i < len; i++) {
-                row.updateColumn(names[i], values[i]);
-            }
-        }
+    public void transform(IInputRow inputRow) {
+        Object v = inputRow.getCol(testField) != null ? trueValue : falseValue;
+        inputRow.updateColumn(resultField, v);
     }
 }

@@ -34,7 +34,7 @@ public class TreePathFlattener implements IFlattener {
      * the field name that holds the flattened object
      */
     @Getter
-    private final String name;
+    private final String field;
 
     /**
      * dot separated path such as a.b.c
@@ -50,9 +50,9 @@ public class TreePathFlattener implements IFlattener {
     private final String[] nodes;
 
     @JsonCreator
-    public TreePathFlattener(@JsonProperty("name") String name,
+    public TreePathFlattener(@JsonProperty("field") String field,
                              @JsonProperty("path") String path) {
-        this.name = name;
+        this.field = field;
         this.path = path;
         this.nodes = path.split("\\.");
     }
@@ -80,7 +80,7 @@ public class TreePathFlattener implements IFlattener {
         }
 
         if (obj != null) {
-            inputRow.updateColumn(name, obj);
+            inputRow.updateColumn(field, obj);
         }
     }
 }

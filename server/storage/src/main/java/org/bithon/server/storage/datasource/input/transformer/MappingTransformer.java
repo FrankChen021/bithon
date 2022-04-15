@@ -24,7 +24,7 @@ import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 /**
- * A mapping transformer which maps a value to another.
+ * A transformer that maps a value of a field to another.
  *
  * @author Frank Chen
  */
@@ -33,9 +33,9 @@ public class MappingTransformer extends AbstractSimpleTransformer {
     @Getter
     private final Map<String, Object> maps;
 
-    public MappingTransformer(@JsonProperty("name") String name,
+    public MappingTransformer(@JsonProperty("field") String field,
                               @JsonProperty("maps") @NotNull Map<String, Object> maps) {
-        super(name);
+        super(field);
         this.maps = maps;
     }
 
@@ -44,7 +44,7 @@ public class MappingTransformer extends AbstractSimpleTransformer {
         if (row == null) {
             return null;
         }
-        String val = row.getColAsString(name);
+        String val = row.getColAsString(field);
         return val == null ? null : maps.getOrDefault(val, val);
     }
 }
