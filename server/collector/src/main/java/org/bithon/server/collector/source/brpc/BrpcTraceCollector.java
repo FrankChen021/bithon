@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.TraceSpanHelper;
@@ -28,8 +27,8 @@ import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -54,45 +53,32 @@ public class BrpcTraceCollector implements ITraceCollector, AutoCloseable {
         }
 
         log.debug("Receiving trace message:{}", spans);
-        traceSink.process("trace", toSpan(header, spans));
+        traceSink.process("trace",
+                          spans.stream().map(spanBody -> toSpan(header, spanBody)).collect(Collectors.toList()));
     }
 
-    private IteratorableCollection<TraceSpan> toSpan(BrpcMessageHeader header, List<BrpcTraceSpanMessage> messages) {
+    private TraceSpan toSpan(BrpcMessageHeader header, BrpcTraceSpanMessage spanBody) {
+        TraceSpan traceSpan = new TraceSpan();
+        traceSpan.setAppName(header.getAppName());
+        traceSpan.setInstanceName(header.getInstanceName());
+        traceSpan.setKind(spanBody.getKind());
+        traceSpan.setName(spanBody.getName());
+        traceSpan.setTraceId(spanBody.getTraceId());
+        traceSpan.setSpanId(spanBody.getSpanId());
+        traceSpan.setParentSpanId(StringUtils.isEmpty(spanBody.getParentSpanId())
+                                  ? ""
+                                  : spanBody.getParentSpanId());
+        traceSpan.setParentApplication(spanBody.getParentAppName());
+        traceSpan.setStartTime(spanBody.getStartTime());
+        traceSpan.setEndTime(spanBody.getEndTime());
+        traceSpan.setCostTime(spanBody.getEndTime() - spanBody.getStartTime());
+        traceSpan.setTags(spanBody.getTagsMap());
+        traceSpan.setClazz(spanBody.getClazz());
+        traceSpan.setMethod(spanBody.getMethod());
 
-        Iterator<BrpcTraceSpanMessage> delegate = messages.iterator();
-        return IteratorableCollection.of(new Iterator<TraceSpan>() {
-            @Override
-            public boolean hasNext() {
-                return delegate.hasNext();
-            }
+        TraceSpanHelper.flatten(traceSpan, uriNormalizer);
 
-            @Override
-            public TraceSpan next() {
-                BrpcTraceSpanMessage spanMessage = delegate.next();
-
-                TraceSpan traceSpan = new TraceSpan();
-                traceSpan.setAppName(header.getAppName());
-                traceSpan.setInstanceName(header.getInstanceName());
-                traceSpan.setKind(spanMessage.getKind());
-                traceSpan.setName(spanMessage.getName());
-                traceSpan.setTraceId(spanMessage.getTraceId());
-                traceSpan.setSpanId(spanMessage.getSpanId());
-                traceSpan.setParentSpanId(StringUtils.isEmpty(spanMessage.getParentSpanId())
-                                          ? ""
-                                          : spanMessage.getParentSpanId());
-                traceSpan.setParentApplication(spanMessage.getParentAppName());
-                traceSpan.setStartTime(spanMessage.getStartTime());
-                traceSpan.setEndTime(spanMessage.getEndTime());
-                traceSpan.setCostTime(spanMessage.getEndTime() - spanMessage.getStartTime());
-                traceSpan.setTags(spanMessage.getTagsMap());
-                traceSpan.setClazz(spanMessage.getClazz());
-                traceSpan.setMethod(spanMessage.getMethod());
-
-                TraceSpanHelper.flatten(traceSpan, uriNormalizer);
-
-                return traceSpan;
-            }
-        });
+        return traceSpan;
     }
 
     @Override

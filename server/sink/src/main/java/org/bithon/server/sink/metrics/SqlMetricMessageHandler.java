@@ -19,6 +19,7 @@ package org.bithon.server.sink.metrics;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.common.utils.MiscUtils;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.meta.EndPointType;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -50,33 +51,33 @@ public class SqlMetricMessageHandler extends AbstractMetricMessageHandler {
      * jdbc:netezza://main:5490/sales;user=admin;password=password;loglevel=2
      */
     @Override
-    protected boolean beforeProcess(MetricMessage metricObject) {
-        long callCount = metricObject.getLong("callCount");
+    protected boolean beforeProcess(IInputRow metricObject) {
+        long callCount = metricObject.getColAsLong("callCount", 0);
         if (callCount <= 0) {
             return false;
         }
 
-        MiscUtils.ConnectionString conn = MiscUtils.parseConnectionString(metricObject.getString("connectionString"));
-        metricObject.set("server", conn.getHostAndPort());
-        metricObject.set("database", conn.getDatabase());
-        metricObject.set("endpointType", conn.getEndPointType().name());
+        MiscUtils.ConnectionString conn = MiscUtils.parseConnectionString(metricObject.getColAsString("connectionString"));
+        metricObject.updateColumn("server", conn.getHostAndPort());
+        metricObject.updateColumn("database", conn.getDatabase());
+        metricObject.updateColumn("endpointType", conn.getEndPointType().name());
         return true;
     }
 
     @Override
-    protected Measurement extractEndpointLink(MetricMessage metricObject) {
+    protected Measurement extractEndpointLink(IInputRow metricObject) {
         return EndPointMeasurementBuilder.builder()
-                                         .timestamp(metricObject.getTimestamp())
+                                         .timestamp(metricObject.getColAsLong("timestamp"))
                                          .srcEndpointType(EndPointType.APPLICATION)
-                                         .srcEndpoint(metricObject.getApplicationName())
-                                         .dstEndpointType(metricObject.getString("endpointType"))
-                                         .dstEndpoint(metricObject.getString("server"))
-                                         .interval(metricObject.getLong("interval"))
-                                         .callCount(metricObject.getLong("callCount"))
-                                         .errorCount(metricObject.getLong("errorCount"))
-                                         .responseTime(metricObject.getLong("responseTime"))
-                                         .minResponseTime(metricObject.getLong("minResponseTime"))
-                                         .maxResponseTime(metricObject.getLong("maxResponseTime"))
+                                         .srcEndpoint(metricObject.getColAsString("appName"))
+                                         .dstEndpointType(metricObject.getColAsString("endpointType"))
+                                         .dstEndpoint(metricObject.getColAsString("server"))
+                                         .interval(metricObject.getColAsLong("interval", 0))
+                                         .callCount(metricObject.getColAsLong("callCount", 0))
+                                         .errorCount(metricObject.getColAsLong("errorCount", 0))
+                                         .responseTime(metricObject.getColAsLong("responseTime", 0))
+                                         .minResponseTime(metricObject.getColAsLong("minResponseTime", 0))
+                                         .maxResponseTime(metricObject.getColAsLong("maxResponseTime", 0))
                                          .build();
     }
 }

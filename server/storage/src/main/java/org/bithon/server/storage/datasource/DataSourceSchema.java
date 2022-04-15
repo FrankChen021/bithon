@@ -21,10 +21,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.aggregator.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.dimension.transformer.IDimensionTransformer;
+import org.bithon.server.storage.datasource.input.IInputSource;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -51,11 +52,18 @@ public class DataSourceSchema {
     private final List<IMetricSpec> metricsSpec;
 
     @Getter
-    @JsonIgnore
-    private final Map<String, IDimensionTransformer> dimensionTransformers = new HashMap<>();
+    private final IInputSource inputSourceSpec;
+
+    /**
+     * data source level ttl.
+     * can be null.
+     * If it's null, it's controlled by the global level TTL
+     */
+    @Getter
+    private final Period ttl;
 
     @JsonIgnore
-    private final Map<String, IDimensionSpec> dimensionMap = new HashMap<>();
+    private final Map<String, IDimensionSpec> dimensionMap = new HashMap<>(15);
 
     @JsonIgnore
     private final Map<String, IMetricSpec> metricsMap = new HashMap<>();
@@ -68,24 +76,39 @@ public class DataSourceSchema {
     @JsonIgnore
     private boolean enforceDuplicationCheck = false;
 
+    /**
+     * a runtime property that holds the hash of the json formatted text of this object
+     */
+    @Getter
+    @Setter
+    @JsonIgnore
+    private String signature;
+
+    public DataSourceSchema(String displayText,
+                            String name,
+                            TimestampSpec timestampSpec,
+                            List<IDimensionSpec> dimensionsSpec,
+                            List<IMetricSpec> metricsSpec) {
+        this(displayText, name, timestampSpec, dimensionsSpec, metricsSpec, null, null);
+    }
+
     @JsonCreator
     public DataSourceSchema(@JsonProperty("displayText") @Nullable String displayText,
                             @JsonProperty("name") String name,
                             @JsonProperty("timestampSpec") @Nullable TimestampSpec timestampSpec,
                             @JsonProperty("dimensionsSpec") List<IDimensionSpec> dimensionsSpec,
-                            @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec) {
+                            @JsonProperty("metricsSpec") List<IMetricSpec> metricsSpec,
+                            @JsonProperty("inputSourceSpec") @Nullable IInputSource inputSourceSpec,
+                            @JsonProperty("ttl") @Nullable Period ttl) {
         this.displayText = displayText == null ? name : displayText;
         this.name = name;
         this.timestampSpec = timestampSpec == null ? new TimestampSpec("timestamp", "auto", null) : timestampSpec;
         this.dimensionsSpec = dimensionsSpec;
         this.metricsSpec = metricsSpec;
+        this.inputSourceSpec = inputSourceSpec;
+        this.ttl = ttl;
 
-        for (IDimensionSpec dimensionSpec : this.dimensionsSpec) {
-            dimensionMap.put(dimensionSpec.getName(), dimensionSpec);
-            if (dimensionSpec.getTransformer() != null) {
-                dimensionTransformers.put(dimensionSpec.getName(), dimensionSpec.getTransformer());
-            }
-        }
+        this.dimensionsSpec.forEach((dimensionSpec) -> dimensionMap.put(dimensionSpec.getName(), dimensionSpec));
         this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));
 
         // set owner after initialization
@@ -133,5 +156,13 @@ public class DataSourceSchema {
         } else {
             return false;
         }
+    }
+
+    /**
+     * helps debugging
+     */
+    @Override
+    public String toString() {
+        return this.name;
     }
 }

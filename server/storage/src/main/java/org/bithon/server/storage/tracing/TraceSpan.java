@@ -21,11 +21,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.server.storage.datasource.input.IInputRow;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Inherits from {@link IInputRow} to support extract metrics over span logs
+ * Maybe change this class into a subclass of {@link HashMap} is a better solution
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/2/4 8:28 下午
  */
@@ -33,7 +38,21 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TraceSpan {
+public class TraceSpan implements IInputRow {
+    private static Map<String, FieldAccessor> fieldAccessors = new HashMap<>();
+
+    static {
+        for (Field field : TraceSpan.class.getDeclaredFields()) {
+            if (field.getAnnotation(JsonIgnore.class) != null) {
+                // ignore runtime property
+                continue;
+            }
+
+            field.setAccessible(true);
+            fieldAccessors.put(field.getName(), new FieldAccessor(field));
+        }
+    }
+
     public String appName;
     public String instanceName;
     public String traceId;
@@ -43,7 +62,6 @@ public class TraceSpan {
     public String parentApplication;
     public Map<String, String> tags;
     public long costTime;
-
     /**
      * in us
      */
@@ -54,9 +72,10 @@ public class TraceSpan {
     public String method;
     public String status = "";
     public String normalizedUri = "";
-
     @JsonIgnore
     private Map<String, String> uriParameters;
+    @JsonIgnore
+    private Map<String, Object> properties;
 
     public boolean containsTag(String name) {
         return tags.containsKey(name);
@@ -93,5 +112,53 @@ public class TraceSpan {
                ", clazz='" + clazz + '\'' +
                ", method='" + method + '\'' +
                '}';
+    }
+
+    @Override
+    public Object getCol(String columnName) {
+        FieldAccessor accessor = fieldAccessors.get(columnName);
+        if (accessor != null) {
+            Object val = accessor.get(this);
+            if (val != null) {
+                return val;
+            }
+        }
+        return properties == null ? null : properties.get(columnName);
+    }
+
+    @Override
+    public void updateColumn(String name, Object value) {
+        FieldAccessor accessor = fieldAccessors.get(name);
+        if (accessor != null) {
+            accessor.set(this, value);
+            return;
+        }
+        if (properties == null) {
+            properties = new HashMap<>();
+        }
+        properties.put(name, value);
+    }
+
+    static class FieldAccessor {
+        private final Field field;
+
+        public FieldAccessor(Field field) {
+            this.field = field;
+        }
+
+        Object get(TraceSpan span) {
+            try {
+                return field.get(span);
+            } catch (IllegalAccessException e) {
+                return null;
+            }
+        }
+
+        void set(TraceSpan span, Object val) {
+            try {
+                field.set(span, val);
+            } catch (IllegalAccessException ignored) {
+            }
+        }
     }
 }

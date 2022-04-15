@@ -14,19 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.dimension.transformer;
+package org.bithon.server.web.service.meta.api;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+
+import javax.annotation.Nullable;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
+ * @date 2022/4/14 3:41 下午
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = "simple", value = MappingTransformer.class)
-})
-public interface IDimensionTransformer {
+@Data
+public class GetApplicationsRequest {
+    @Nullable
+    private String appType;
 
-    Object transform(Object columnValue);
+    private long since = 3600_000 * 24;
 }

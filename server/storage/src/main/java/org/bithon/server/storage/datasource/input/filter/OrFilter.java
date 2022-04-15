@@ -14,39 +14,33 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.filter;
+package org.bithon.server.storage.datasource.input.filter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.IInputRow;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/14
+ * @date 2021/1/19
  */
-public class GreaterThanFilter implements IFilter {
+public class OrFilter implements IInputRowFilter {
 
     @NotNull
-    private final String field;
+    private final List<IInputRowFilter> filters;
 
-    @NotNull
-    private final long threshold;
-
-    public GreaterThanFilter(@JsonProperty("field") String field,
-                             @JsonProperty("threshold") @NotNull Long threshold) {
-        this.field = field;
-        this.threshold = threshold;
+    public OrFilter(@JsonProperty("filters") List<IInputRowFilter> filters) {
+        this.filters = filters;
     }
 
     @Override
-    public boolean shouldInclude(InputRow inputRow) {
-        Object val = inputRow.getCol(this.field);
-        if (val instanceof Number) {
-            return ((Number) val).longValue() > threshold;
-        }
-        if (val instanceof String) {
-            return (long) Double.parseDouble((String) val) > threshold;
+    public boolean shouldInclude(IInputRow inputRow) {
+        for (IInputRowFilter filter : this.filters) {
+            if (filter.shouldInclude(inputRow)) {
+                return true;
+            }
         }
         return false;
     }

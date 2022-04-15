@@ -25,6 +25,7 @@ import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
 
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -33,14 +34,19 @@ import javax.validation.constraints.NotNull;
  */
 public class CountMetricSpec implements IMetricSpec {
 
-    public static final IMetricSpec INSTANCE = new CountMetricSpec("count");
+    public static final IMetricSpec INSTANCE = new CountMetricSpec("count", "count");
 
     @Getter
     private final String name;
 
+    @Getter
+    private final String field;
+
     @JsonCreator
-    public CountMetricSpec(@JsonProperty("name") @NotNull String name) {
+    public CountMetricSpec(@JsonProperty("name") @NotNull String name,
+                           @JsonProperty("field") @Nullable String field) {
         this.name = name;
+        this.field = field;
     }
 
     @JsonIgnore
@@ -86,6 +92,8 @@ public class CountMetricSpec implements IMetricSpec {
     @Override
     public NumberAggregator createAggregator() {
         return new NumberAggregator() {
+            private long value;
+
             @Override
             public int intValue() {
                 return (int) value;
@@ -106,11 +114,14 @@ public class CountMetricSpec implements IMetricSpec {
                 return value;
             }
 
-            private long value;
-
             @Override
             public void aggregate(long timestamp, Object value) {
                 this.value++;
+            }
+
+            @Override
+            public Number getNumber() {
+                return value;
             }
         };
     }

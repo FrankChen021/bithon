@@ -14,29 +14,37 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.dimension.transformer;
+package org.bithon.server.storage.datasource.input.transformer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import org.bithon.server.storage.datasource.input.IInputRow;
 
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 /**
+ * A transformer that maps a value of a field to another.
+ *
  * @author Frank Chen
  */
-public class MappingTransformer implements IDimensionTransformer {
+public class MappingTransformer extends AbstractSimpleTransformer {
 
+    @Getter
     private final Map<String, Object> maps;
 
-    public MappingTransformer(@JsonProperty("maps") @NotNull Map<String, Object> maps) {
+    public MappingTransformer(@JsonProperty("field") String field,
+                              @JsonProperty("maps") @NotNull Map<String, Object> maps) {
+        super(field);
         this.maps = maps;
     }
 
     @Override
-    public Object transform(Object dimensionValue) {
-        if (dimensionValue == null) {
+    protected Object transformInternal(IInputRow row) {
+        if (row == null) {
             return null;
         }
-        return maps.getOrDefault((String) dimensionValue, dimensionValue);
+        String val = row.getColAsString(field);
+        return val == null ? null : maps.getOrDefault(val, val);
     }
 }

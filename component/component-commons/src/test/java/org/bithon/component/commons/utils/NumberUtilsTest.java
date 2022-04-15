@@ -14,23 +14,28 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.flatten;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.JsonNode;
+package org.bithon.component.commons.utils;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2020/12/28
+ * @author Frank Chen
+ * @date 14/4/22 3:46 PM
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes(value = {
-    //@JsonSubTypes.Type(name = "path", value = JSONPathFlattener.class),
-})
-public interface IFlattener {
+public class NumberUtilsTest {
 
-    String getName();
+    @Test
+    public void testHexString() {
+        Assert.assertEquals("ff", NumberUtils.toHexString(new byte[]{-1}));
 
-    Object flatten(JsonNode jsonNode);
+        Assert.assertEquals("00", NumberUtils.toHexString(new byte[]{0}));
+
+        Assert.assertEquals("01", NumberUtils.toHexString(new byte[]{1}));
+
+        Assert.assertEquals("1f", NumberUtils.toHexString(new byte[]{0x1F}));
+
+        Assert.assertEquals("1b", NumberUtils.toHexString(new byte[]{0x1b}));
+    }
 }

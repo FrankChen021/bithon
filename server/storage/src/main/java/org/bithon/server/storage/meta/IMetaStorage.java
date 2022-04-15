@@ -29,8 +29,6 @@ public interface IMetaStorage {
 
     void saveApplicationInstance(String applicationName, String applicationType, String instance);
 
-    Collection<Metadata> getMetadataByType(MetadataType type);
-
     /**
      * @param instanceName host+port
      */
@@ -39,4 +37,6 @@ public interface IMetaStorage {
     boolean isApplicationExist(String applicationName);
 
     void initialize();
+
+    Collection<Metadata> getApplications(String appType, long since);
 }

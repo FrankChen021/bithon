@@ -112,7 +112,7 @@ class TableComponent {
                 sidePagination: "server",
                 pagination: this.mPagination,
 
-                serverSort: false,
+                serverSort: this.mPagination,
                 sortName: this.mDefaultOrderBy,
                 sortOrder: this.mDefaultOrder,
 
@@ -179,6 +179,10 @@ class TableComponent {
 
     hide() {
         this.vTable.hide();
+    }
+
+    getColumns() {
+        return this.mColumns;
     }
 }
 

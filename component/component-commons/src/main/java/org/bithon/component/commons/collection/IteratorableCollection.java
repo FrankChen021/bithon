@@ -17,7 +17,6 @@
 package org.bithon.component.commons.collection;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -57,7 +56,7 @@ public class IteratorableCollection<E> implements Iterator<E> {
     /**
      * call this method will reset the iterator to the end
      */
-    public Collection<E> toCollection() {
+    public List<E> toCollection() {
         if (end) {
             return collections;
         }

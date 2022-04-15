@@ -16,8 +16,11 @@
 
 package org.bithon.server.sink;
 
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.Module;
 import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.sink.tracing.TraceDataSourceSchemaInitializer;
+import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,7 +28,8 @@ import org.springframework.context.annotation.Configuration;
  * @author Frank Chen
  * @date 3/4/22 11:37 AM
  */
-@Configuration
+
+@Configuration(proxyBeanMethods = false)
 public class SinkAutoConfiguration {
 
     /**
@@ -35,5 +39,25 @@ public class SinkAutoConfiguration {
     @Bean
     TraceDataSourceSchemaInitializer traceDataSourceSchemaInitializer(TraceConfig traceConfig) {
         return new TraceDataSourceSchemaInitializer(traceConfig);
+    }
+
+    @Bean
+    public Module sinkModule() {
+        return new Module() {
+            @Override
+            public String getModuleName() {
+                return "sink";
+            }
+
+            @Override
+            public Version version() {
+                return Version.unknownVersion();
+            }
+
+            @Override
+            public void setupModule(SetupContext context) {
+                context.registerSubtypes(MetricOverSpanInputSource.class);
+            }
+        };
     }
 }

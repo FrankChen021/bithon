@@ -19,6 +19,7 @@ package org.bithon.server.sink.metrics;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.meta.EndPointType;
 import org.bithon.server.storage.meta.IMetaStorage;
@@ -48,46 +49,46 @@ public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandl
     }
 
     @Override
-    protected boolean beforeProcess(MetricMessage message) {
-        if (message.getLong("totalCount") <= 0) {
+    protected boolean beforeProcess(IInputRow message) {
+        if (message.getColAsLong("totalCount", 0) <= 0) {
             return false;
         }
 
-        UriNormalizer.NormalizedResult result = uriNormalizer.normalize(message.getApplicationName(),
-                                                                        message.getString("uri"));
+        UriNormalizer.NormalizedResult result = uriNormalizer.normalize(message.getColAsString("appName"),
+                                                                        message.getColAsString("uri"));
         if (result.getUri() == null) {
             return false;
         }
-        message.set("uri", result.getUri());
+        message.updateColumn("uri", result.getUri());
 
         return true;
     }
 
     @Override
-    protected Measurement extractEndpointLink(MetricMessage message) {
+    protected Measurement extractEndpointLink(IInputRow message) {
         String srcApplication;
         EndPointType srcEndPointType;
-        if (StringUtils.isEmpty(message.getString("srcApplication"))) {
+        if (StringUtils.isEmpty(message.getColAsString("srcApplication"))) {
             srcApplication = "User";
             srcEndPointType = EndPointType.USER;
         } else {
-            srcApplication = message.getString("srcApplication");
+            srcApplication = message.getColAsString("srcApplication");
             srcEndPointType = EndPointType.APPLICATION;
         }
         return EndPointMeasurementBuilder.builder()
-                                         .timestamp(message.getTimestamp())
+                                         .timestamp(message.getColAsLong("timestamp"))
                                          // dimension
                                          .srcEndpointType(srcEndPointType)
                                          .srcEndpoint(srcApplication)
                                          .dstEndpointType(EndPointType.APPLICATION)
-                                         .dstEndpoint(message.getApplicationName())
+                                         .dstEndpoint(message.getColAsString("appName"))
                                          // metric
-                                         .interval(message.getLong("interval"))
-                                         .minResponseTime(message.getLong("minResponseTime"))
-                                         .maxResponseTime(message.getLong("maxResponseTime"))
-                                         .responseTime(message.getLong("responseTime"))
-                                         .callCount(message.getLong("totalCount"))
-                                         .errorCount(message.getLong("errorCount"))
+                                         .interval(message.getColAsLong("interval"))
+                                         .minResponseTime(message.getColAsLong("minResponseTime", 0))
+                                         .maxResponseTime(message.getColAsLong("maxResponseTime", 0))
+                                         .responseTime(message.getColAsLong("responseTime", 0))
+                                         .callCount(message.getColAsLong("totalCount", 0))
+                                         .errorCount(message.getColAsLong("errorCount", 0))
                                          .build();
     }
 }

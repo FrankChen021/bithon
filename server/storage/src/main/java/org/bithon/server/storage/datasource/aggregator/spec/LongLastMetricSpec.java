@@ -39,6 +39,9 @@ public class LongLastMetricSpec implements IMetricSpec {
     private final String name;
 
     @Getter
+    private final String field;
+
+    @Getter
     private final String displayText;
 
     @Getter
@@ -49,10 +52,12 @@ public class LongLastMetricSpec implements IMetricSpec {
 
     @JsonCreator
     public LongLastMetricSpec(@JsonProperty("name") @NotNull String name,
+                              @JsonProperty("field") @Nullable String field,
                               @JsonProperty("displayText") @NotNull String displayText,
                               @JsonProperty("unit") @NotNull String unit,
                               @JsonProperty("visible") @Nullable Boolean visible) {
         this.name = name;
+        this.field = field;
         this.displayText = displayText;
         this.unit = unit;
         this.visible = visible == null ? true : visible;

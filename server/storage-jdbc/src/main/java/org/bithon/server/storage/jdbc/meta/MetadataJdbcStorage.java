@@ -25,13 +25,13 @@ import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonApplicationInstanceRecord;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.meta.Metadata;
-import org.bithon.server.storage.meta.MetadataType;
 import org.jooq.DSLContext;
+import org.jooq.Record2;
+import org.jooq.SelectConditionStep;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -60,6 +60,22 @@ public class MetadataJdbcStorage implements IMetaStorage {
     }
 
     @Override
+    public Collection<Metadata> getApplications(String appType, long since) {
+
+        SelectConditionStep<Record2<String, String>> sql = dslContext.select(Tables.BITHON_APPLICATION_INSTANCE.APPNAME,
+                                                                             Tables.BITHON_APPLICATION_INSTANCE.APPTYPE)
+                                                                     .from(Tables.BITHON_APPLICATION_INSTANCE)
+                                                                     .where(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since)));
+        if (appType != null) {
+            sql = sql.and(Tables.BITHON_APPLICATION_INSTANCE.APPTYPE.eq(appType));
+        }
+
+        return sql.groupBy(Tables.BITHON_APPLICATION_INSTANCE.APPNAME, Tables.BITHON_APPLICATION_INSTANCE.APPTYPE)
+                  .orderBy(Tables.BITHON_APPLICATION_INSTANCE.APPNAME)
+                  .fetchInto(Metadata.class);
+    }
+
+    @Override
     public void saveApplicationInstance(String applicationName, String applicationType, String instanceName) {
         try {
             dslContext.insertInto(Tables.BITHON_APPLICATION_INSTANCE)
@@ -76,12 +92,6 @@ public class MetadataJdbcStorage implements IMetaStorage {
                                                                        .and(Tables.BITHON_APPLICATION_INSTANCE.INSTANCENAME.eq(instanceName)))
                       .execute();
         }
-    }
-
-    @Override
-    public Collection<Metadata> getMetadataByType(MetadataType type) {
-        long day = 3600_000 * 24;
-        return this.getApplications(System.currentTimeMillis() - day, Metadata.class);
     }
 
     @Override
@@ -102,14 +112,5 @@ public class MetadataJdbcStorage implements IMetaStorage {
                                                              .limit(1)
                                                              .fetchOne();
         return instance != null;
-    }
-
-    private <T> List<T> getApplications(long since, Class<T> clazz) {
-        return dslContext.select(Tables.BITHON_APPLICATION_INSTANCE.APPNAME, Tables.BITHON_APPLICATION_INSTANCE.APPTYPE)
-                         .from(Tables.BITHON_APPLICATION_INSTANCE)
-                         .where(Tables.BITHON_APPLICATION_INSTANCE.TIMESTAMP.ge(new Timestamp(since)))
-                         .groupBy(Tables.BITHON_APPLICATION_INSTANCE.APPNAME, Tables.BITHON_APPLICATION_INSTANCE.APPTYPE)
-                         .orderBy(Tables.BITHON_APPLICATION_INSTANCE.APPNAME)
-                         .fetchInto(clazz);
     }
 }

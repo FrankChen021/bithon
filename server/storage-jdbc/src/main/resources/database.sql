@@ -50,6 +50,7 @@ CREATE TABLE `bithon_meta_schema`
     `timestamp`    TIMESTAMP(3) NOT NULL COMMENT 'Created Timestamp',
     `name`         VARCHAR(64)  NOT NULL COMMENT 'Schema Name',
     `schema`       TEXT NOT NULL COMMENT 'Schema in JSON',
+    `signature`    VARCHAR(250) NOT NULL COMMENT 'Signature of schema field, currently SHA256 is applied',
     UNIQUE `idx_meta_schema_name` (`name`),
     KEY `idx_meta_schema_timestamp` (`timestamp`)
 ) ENGINE = InnoDB

@@ -28,7 +28,7 @@ import java.util.Map;
  * @author frank.chen021@outlook.com
  * @date 2020/12/2 4:46 下午
  */
-public class InputRow {
+public class InputRow implements IInputRow {
     @Getter
     private final Map<String, Object> columns;
 
@@ -53,41 +53,12 @@ public class InputRow {
         });
     }
 
+    @Override
     public Object getCol(String columnName) {
         return columns.get(columnName);
     }
 
-    public Long getColAsLong(String columnName) {
-        return getColAs(columnName, Long.class);
-    }
-    public long getColAsLong(String columnName, long defaultValue) {
-        Number number = getColAs(columnName, Number.class);
-        return number == null ? defaultValue : number.longValue();
-    }
-    public double getColAsDouble(String columnName, long defaultValue) {
-        Number number = getColAs(columnName, Number.class);
-        return number == null ? defaultValue : number.doubleValue();
-    }
-
-    public String getColAsString(String columnName) {
-        return getColAs(columnName, String.class);
-    }
-
-    public <T> T getColAs(String columnName, Class<T> clazz) {
-        return (T) columns.get(columnName);
-    }
-
-    public <T> T getCol(String columnName, T defaultValue) {
-        // when columnName exist but its value is null, the returned obj above is NOT null
-        // So, additional check is needed to return correct default value
-        Object val = columns.get(columnName);
-        return val == null ? defaultValue : (T) val;
-    }
-
-    public Object deleteColumn(String name) {
-        return columns.put(name, null);
-    }
-
+    @Override
     public void updateColumn(String name, Object value) {
         columns.put(name, value);
     }

@@ -146,13 +146,11 @@ public class StorageAutoConfiguration {
                                                                           "appName",
                                                                           true,
                                                                           null,
-                                                                          null,
                                                                           null),
                                                   new StringDimensionSpec("instanceName",
                                                                           "instanceName",
                                                                           "instanceName",
                                                                           false,
-                                                                          null,
                                                                           null,
                                                                           null),
                                                   new StringDimensionSpec("type",
@@ -160,7 +158,6 @@ public class StorageAutoConfiguration {
                                                                           "type",
                                                                           false,
                                                                           true,
-                                                                          null,
                                                                           null)),
                                     Collections.singletonList(CountMetricSpec.INSTANCE));
 
@@ -175,13 +172,11 @@ public class StorageAutoConfiguration {
                                                                           "appName",
                                                                           true,
                                                                           null,
-                                                                          null,
                                                                           null),
                                                   new StringDimensionSpec("instanceName",
                                                                           "instanceName",
                                                                           "instanceName",
                                                                           false,
-                                                                          null,
                                                                           null,
                                                                           null),
                                                   new StringDimensionSpec("status",
@@ -189,21 +184,19 @@ public class StorageAutoConfiguration {
                                                                           "status",
                                                                           false,
                                                                           true,
-                                                                          null,
                                                                           null),
                                                   new StringDimensionSpec("normalizedUrl",
                                                                           "url",
                                                                           "url",
                                                                           false,
                                                                           true,
-                                                                          128,
-                                                                          null)),
+                                                                          128)),
                                     Arrays.asList(CountMetricSpec.INSTANCE,
                                                   new LongSumMetricSpec("costTimeMs",
+                                                                        null,
                                                                         "costTimeMs",
                                                                         "us",
-                                                                        true)
-                                    ));
+                                                                        true)));
     }
 
     @Bean
@@ -217,21 +210,6 @@ public class StorageAutoConfiguration {
         schemaManager.addDataSourceSchema(eventTableSchema);
         schemaManager.addDataSourceSchema(traceTableSchema);
 
-        schemaManager.addListener(new DataSourceSchemaManager.IDataSourceSchemaListener() {
-            @Override
-            public void onRmv(DataSourceSchema dataSourceSchema) {
-            }
-
-            @Override
-            public void onAdd(DataSourceSchema dataSourceSchema) {
-            }
-
-            @Override
-            public void onRefreshed() {
-                schemaManager.addDataSourceSchema(eventTableSchema);
-                schemaManager.addDataSourceSchema(traceTableSchema);
-            }
-        });
         return schemaManager;
     }
 }

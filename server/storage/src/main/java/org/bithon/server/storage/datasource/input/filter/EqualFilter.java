@@ -14,10 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.filter;
+package org.bithon.server.storage.datasource.input.filter;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.input.InputRow;
+import lombok.Getter;
+import org.bithon.server.storage.datasource.input.IInputRow;
 
 import javax.validation.constraints.NotNull;
 
@@ -25,14 +27,17 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/12/24
  */
-public class EqualFilter implements IFilter {
+public class EqualFilter implements IInputRowFilter {
 
+    @Getter
     @NotNull
     private final String field;
 
+    @Getter
     @NotNull
     private final Object value;
 
+    @JsonCreator
     public EqualFilter(@JsonProperty("field") String field,
                        @JsonProperty("value") @NotNull Object value) {
         this.field = field;
@@ -40,7 +45,7 @@ public class EqualFilter implements IFilter {
     }
 
     @Override
-    public boolean shouldInclude(InputRow inputRow) {
+    public boolean shouldInclude(IInputRow inputRow) {
         return value.equals(inputRow.getCol(this.field));
     }
 }

@@ -36,6 +36,7 @@ import org.bithon.server.storage.datasource.typing.IValueType;
     @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_SUM, value = DoubleSumMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_LAST, value = DoubleLastMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.POST, value = PostAggregatorMetricSpec.class),
+    @JsonSubTypes.Type(name = IMetricSpec.COUNT, value = CountMetricSpec.class),
 })
 public interface IMetricSpec {
 
@@ -55,10 +56,19 @@ public interface IMetricSpec {
     String LONG_MIN = "longMin";
     String LONG_MAX = "longMax";
 
-
     String getType();
 
+    /**
+     * the name in the metric storage.
+     * can NOT be null
+     */
     String getName();
+
+    /**
+     * the name in the original message.
+     * can be null. if it's null, the {@link #getName()} is used
+     */
+    String getField();
 
     /**
      * 是否对配置可见

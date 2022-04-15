@@ -23,6 +23,7 @@ import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.event.EventMessage;
 import org.bithon.server.storage.event.IEventStorage;
@@ -69,13 +70,13 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Itera
 
     @Override
     protected void onMessage(IteratorableCollection<EventMessage> iterator) throws IOException {
-        List<InputRow> exceptionEvents = new ArrayList<>();
+        List<IInputRow> exceptionEvents = new ArrayList<>();
 
         List<EventMessage> genericEvents = new ArrayList<>();
         while (iterator.hasNext()) {
             EventMessage message = iterator.next();
             if ("exception".equals(message.getType())) {
-                InputRow row = new InputRow(new HashMap<>());
+                IInputRow row = new InputRow(new HashMap<>());
 
                 ExceptionEventArgs args = objectMapper.readValue(message.getJsonArgs(), ExceptionEventArgs.class);
                 row.updateColumn("appName", message.getAppName());

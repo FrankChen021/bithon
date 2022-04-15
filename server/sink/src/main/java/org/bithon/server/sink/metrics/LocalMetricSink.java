@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.context.ApplicationContext;
 
 import java.util.HashMap;
@@ -81,7 +82,7 @@ public class LocalMetricSink implements IMetricMessageSink {
     }
 
     @Override
-    public void process(String messageType, IteratorableCollection<MetricMessage> messages) {
+    public void process(String messageType, IteratorableCollection<IInputRow> messages) {
         AbstractMetricMessageHandler handler = handlers.get(messageType);
         if (handler != null) {
             executor.submit(() -> {

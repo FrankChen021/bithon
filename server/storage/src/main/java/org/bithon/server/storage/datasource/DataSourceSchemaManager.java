@@ -19,6 +19,7 @@ package org.bithon.server.storage.datasource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.storage.meta.ISchemaStorage;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -29,12 +30,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author frankchen
@@ -46,7 +47,8 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
     private final ISchemaStorage schemaStorage;
     private final ObjectMapper objectMapper;
     private final ScheduledExecutorService loaderScheduler;
-    private Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
+    private final Map<String, DataSourceSchema> schemas = new ConcurrentHashMap<>();
+    private long lastLoadAt;
 
     public DataSourceSchemaManager(ISchemaStorage schemaStorage, ObjectMapper objectMapper) {
         this.schemaStorage = schemaStorage;
@@ -128,7 +130,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
             throw new RuntimeException(e);
         }
 
-        throw new DataSourceNotFoundException("Can't find schema for datasource " + name);
+        throw new DataSourceNotFoundException(name);
     }
 
     public Map<String, DataSourceSchema> getDataSources() {
@@ -139,17 +141,37 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         listeners.add(listener);
     }
 
-    private void loadSchema() {
-        log.info("Loading metric schemas");
+    private void incrementalLoadSchemas() {
         try {
-            schemas = schemaStorage.getSchemas().stream().collect(Collectors.toConcurrentMap(DataSourceSchema::getName, v -> v));
-            for (IDataSourceSchemaListener listener : listeners) {
-                try {
-                    listener.onRefreshed();
-                } catch (Exception e) {
-                    log.error("notify onRefresh exception", e);
+            List<DataSourceSchema> changedSchemaList = schemaStorage.getSchemas(this.lastLoadAt);
+
+            log.info("{} Schemas has been changed since {}.", changedSchemaList.size(), DateTime.toYYYYMMDDhhmmss(this.lastLoadAt));
+
+            for (DataSourceSchema changedSchema : changedSchemaList) {
+
+                DataSourceSchema schemaBeforeChange = this.schemas.get(changedSchema.getName());
+                if (schemaBeforeChange != null
+                    && Objects.equals(schemaBeforeChange.getSignature(), changedSchema.getSignature())) {
+                    // same signature, do nothing
+                    continue;
                 }
+
+                // stop input
+                if (schemaBeforeChange != null && schemaBeforeChange.getInputSourceSpec() != null) {
+                    log.info("Stop input source for schema [{}]", schemaBeforeChange.getName());
+                    schemaBeforeChange.getInputSourceSpec().stop();
+                }
+
+                // start for the new schema
+                if (changedSchema.getInputSourceSpec() != null) {
+                    log.info("Start input source for schema [{}]", changedSchema.getName());
+                    changedSchema.getInputSourceSpec().start(changedSchema);
+                }
+
+                this.schemas.put(changedSchema.getName(), changedSchema);
             }
+
+            this.lastLoadAt = System.currentTimeMillis();
         } catch (Exception e) {
             log.error("Exception occurs when loading schemas", e);
         }
@@ -157,7 +179,8 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
 
     @Override
     public void afterPropertiesSet() {
-        loaderScheduler.scheduleWithFixedDelay(this::loadSchema, 0, 1, TimeUnit.MINUTES);
+        log.info("Starting schema incremental loader...");
+        loaderScheduler.scheduleWithFixedDelay(this::incrementalLoadSchemas, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -170,7 +193,5 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         void onRmv(DataSourceSchema dataSourceSchema);
 
         void onAdd(DataSourceSchema dataSourceSchema);
-
-        void onRefreshed();
     }
 }

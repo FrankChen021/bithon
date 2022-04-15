@@ -14,13 +14,15 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator;
+package org.bithon.component.commons.utils;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/4/6 9:34 下午
  */
 public class NumberUtils {
+    private static final char[] HEX_CHARS = "0123456789abcdef".toCharArray();
+
     public static long getLong(Object value) {
         if (value == null) {
             return 0;
@@ -45,5 +47,14 @@ public class NumberUtils {
             return Double.parseDouble((String) value);
         }
         throw new IllegalArgumentException("Unknown type of value for Double: " + value.getClass().getName());
+    }
+
+    public static String toHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte v : bytes) {
+            sb.append(HEX_CHARS[(v & 0xF0) >>> 4]);
+            sb.append(HEX_CHARS[v & 0x0F]);
+        }
+        return sb.toString();
     }
 }

@@ -22,4 +22,6 @@ package org.bithon.server.storage.datasource.aggregator;
  */
 public abstract class NumberAggregator extends Number {
     public abstract void aggregate(long timestamp, Object value);
+
+    public abstract Number getNumber();
 }

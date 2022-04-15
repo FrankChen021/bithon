@@ -14,11 +14,12 @@ import java.sql.Timestamp;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonMetaSchema implements Serializable {
 
-    private static final long serialVersionUID = 1562707382;
+    private static final long serialVersionUID = 180946598;
 
     private Timestamp timestamp;
     private String    name;
     private String    schema;
+    private String    signature;
 
     public BithonMetaSchema() {}
 
@@ -26,16 +27,19 @@ public class BithonMetaSchema implements Serializable {
         this.timestamp = value.timestamp;
         this.name = value.name;
         this.schema = value.schema;
+        this.signature = value.signature;
     }
 
     public BithonMetaSchema(
         Timestamp timestamp,
         String    name,
-        String    schema
+        String    schema,
+        String    signature
     ) {
         this.timestamp = timestamp;
         this.name = name;
         this.schema = schema;
+        this.signature = signature;
     }
 
     public Timestamp getTimestamp() {
@@ -62,6 +66,14 @@ public class BithonMetaSchema implements Serializable {
         this.schema = schema;
     }
 
+    public String getSignature() {
+        return this.signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("BithonMetaSchema (");
@@ -69,6 +81,7 @@ public class BithonMetaSchema implements Serializable {
         sb.append(timestamp);
         sb.append(", ").append(name);
         sb.append(", ").append(schema);
+        sb.append(", ").append(signature);
 
         sb.append(")");
         return sb.toString();

@@ -14,23 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.filter;
+package org.bithon.server.storage.datasource.input.filter;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
  * @author frankchen
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    //@JsonSubTypes.Type(name = "endwith", value = EndwithFilter.class),
+    @JsonSubTypes.Type(name = "endsWith", value = EndsWithFilter.class),
     @JsonSubTypes.Type(name = "==", value = EqualFilter.class),
-    //@JsonSubTypes.Type(name = ">", value = GreaterThanFilter.class),
-    //@JsonSubTypes.Type(name = "or", value = OrFilter.class)
+    @JsonSubTypes.Type(name = ">", value = GreaterThanFilter.class),
+    @JsonSubTypes.Type(name = "or", value = OrFilter.class)
 })
-public interface IFilter {
+public interface IInputRowFilter {
 
-    boolean shouldInclude(InputRow inputRow);
+    boolean shouldInclude(IInputRow inputRow);
 }

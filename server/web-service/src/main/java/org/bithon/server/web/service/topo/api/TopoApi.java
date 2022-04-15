@@ -20,6 +20,7 @@ import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.meta.EndPointType;
 import org.bithon.server.storage.metrics.DimensionFilter;
@@ -88,7 +89,7 @@ public class TopoApi {
         topo.addEndpoint(thisApplication);
 
         for (Map<String, Object> callee : callees) {
-            InputRow inputRow = new InputRow(callee);
+            IInputRow inputRow = new InputRow(callee);
             String dst = inputRow.getColAsString("dstEndpoint");
             EndPointType dstType = EndPointType.valueOf(EndPointType.class,
                                                         inputRow.getColAsString("dstEndpointType"));
@@ -120,7 +121,7 @@ public class TopoApi {
 
         y = 300;
         for (Map<String, Object> caller : callers) {
-            InputRow inputRow = new InputRow(caller);
+            IInputRow inputRow = new InputRow(caller);
             String src = inputRow.getColAsString("srcEndpoint");
             EndPointType srcType = EndPointType.valueOf(EndPointType.class,
                                                         inputRow.getColAsString("srcEndpointType"));

@@ -41,6 +41,7 @@ import org.bithon.server.storage.datasource.aggregator.spec.LongMinMetricSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.LongSumMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.dimension.StringDimensionSpec;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -57,8 +58,8 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     private final IMessageSink<SchemaMetricMessage> schemaMetricSink;
     private final IMetricMessageSink metricSink;
-    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName", true, true, 128, null);
-    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName", true, true, 128, null);
+    private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName", true, true, 128);
+    private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName", true, true, 128);
 
     public BrpcMetricCollector(IMessageSink<SchemaMetricMessage> schemaMetricSink,
                                IMetricMessageSink metricSink) {
@@ -107,7 +108,6 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                                              dimSpec.getName(),
                                                                              true,
                                                                              true,
-                                                                             null,
                                                                              null))
                                      .collect(Collectors.toList()));
         final int userDimensionSpecIndex = 2;
@@ -121,24 +121,28 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                               .map(metricSpec -> {
                                                                   if ("longMax".equals(metricSpec.getType())) {
                                                                       return new LongMaxMetricSpec(metricSpec.getName(),
+                                                                                                   null,
                                                                                                    metricSpec.getName(),
                                                                                                    "",
                                                                                                    true);
                                                                   }
                                                                   if ("longMin".equals(metricSpec.getType())) {
                                                                       return new LongMinMetricSpec(metricSpec.getName(),
+                                                                                                   null,
                                                                                                    metricSpec.getName(),
                                                                                                    "",
                                                                                                    true);
                                                                   }
                                                                   if ("longSum".equals(metricSpec.getType())) {
                                                                       return new LongSumMetricSpec(metricSpec.getName(),
+                                                                                                   null,
                                                                                                    metricSpec.getName(),
                                                                                                    "",
                                                                                                    true);
                                                                   }
                                                                   if ("longLast".equals(metricSpec.getType())) {
                                                                       return new LongLastMetricSpec(metricSpec.getName(),
+                                                                                                    null,
                                                                                                     metricSpec.getName(),
                                                                                                     "",
                                                                                                     true);
@@ -150,7 +154,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
         SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();
         schemaMetricMessage.setSchema(schema);
-        schemaMetricMessage.setMetrics(IteratorableCollection.of(new Iterator<MetricMessage>() {
+        schemaMetricMessage.setMetrics(IteratorableCollection.of(new Iterator<IInputRow>() {
             @Override
             public boolean hasNext() {
                 return iterator.hasNext();
@@ -168,9 +172,9 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                 }
 
                 i = 0;
-                for (long metric : measurement.getMetricList()) {
+                for (long value : measurement.getMetricList()) {
                     IMetricSpec metricSpec = schema.getMetricsSpec().get(i++);
-                    metricMessage.put(metricSpec.getName(), metric);
+                    metricMessage.put(metricSpec.getName(), value);
                 }
 
                 metricMessage.put("interval", message.getInterval());
@@ -184,7 +188,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
 
     @Override
     public void sendGenericMetricsV2(BrpcMessageHeader header, BrpcGenericMetricMessageV2 message) {
-        Iterator<MetricMessage> messageIterator = new Iterator<MetricMessage>() {
+        Iterator<IInputRow> messageIterator = new Iterator<IInputRow>() {
             final Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
 
             @Override
@@ -223,7 +227,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         metricSink.close();
     }
 
-    private static class GenericMetricMessageIterator implements Iterator<MetricMessage> {
+    private static class GenericMetricMessageIterator implements Iterator<IInputRow> {
         private final Iterator<?> iterator;
         private final BrpcMessageHeader header;
 

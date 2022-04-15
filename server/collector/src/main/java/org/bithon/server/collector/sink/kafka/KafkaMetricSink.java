@@ -28,7 +28,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
-import org.bithon.server.sink.metrics.MetricMessage;
+import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
@@ -57,7 +57,7 @@ public class KafkaMetricSink implements IMetricMessageSink {
     }
 
     @Override
-    public void process(String messageType, IteratorableCollection<MetricMessage> messages) {
+    public void process(String messageType, IteratorableCollection<IInputRow> messages) {
         if (!messages.hasNext()) {
             return;
         }
@@ -72,10 +72,10 @@ public class KafkaMetricSink implements IMetricMessageSink {
         //
         StringBuilder messageText = new StringBuilder();
         while (messages.hasNext()) {
-            MetricMessage metricMessage = messages.next();
+            IInputRow metricMessage = messages.next();
 
             // Sink receives messages from an agent, it's safe to use instance name of first item
-            key = metricMessage.getInstanceName();
+            key = metricMessage.getColAsString("instanceName");
 
             // deserialization
             try {

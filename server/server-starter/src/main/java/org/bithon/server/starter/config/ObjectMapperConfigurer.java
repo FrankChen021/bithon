@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import org.bithon.server.commons.time.Period;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,16 +48,28 @@ public class ObjectMapperConfigurer {
                                      ApplicationContext applicationContext) {
         // use Jackson2ObjectMapperBuilder so that all instances of injected 'Module's can be registered to this ObjectMapper
         return builder.serializers(new JsonSerializer<Timestamp>() {
-                          @Override
-                          public void serialize(Timestamp value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-                              gen.writeNumber(value.getTime());
-                          }
+                                       @Override
+                                       public void serialize(Timestamp value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+                                           gen.writeNumber(value.getTime());
+                                       }
 
-                          @Override
-                          public Class<Timestamp> handledType() {
-                              return Timestamp.class;
-                          }
-                      }).build()
+                                       @Override
+                                       public Class<Timestamp> handledType() {
+                                           return Timestamp.class;
+                                       }
+                                   },
+                                   new JsonSerializer<Period>() {
+                                       @Override
+                                       public void serialize(Period value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+                                           gen.writeString(value.getText());
+                                       }
+
+                                       @Override
+                                       public Class<Period> handledType() {
+                                           return Period.class;
+                                       }
+                                   }
+                      ).build()
                       .setInjectableValues(new InjectableValues() {
                           @Override
                           public Object findInjectableValue(Object valueId,

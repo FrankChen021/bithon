@@ -18,7 +18,6 @@ package org.bithon.server.storage.datasource.dimension;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.storage.datasource.dimension.transformer.IDimensionTransformer;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
 
@@ -36,9 +35,8 @@ public class LongDimensionSpec extends AbstractDimensionSpec {
                              @JsonProperty("alias") @Nullable String alias,
                              @JsonProperty("displayText") @NotNull String displayText,
                              @JsonProperty("required") @Nullable Boolean required,
-                             @JsonProperty("visible") @Nullable Boolean visible,
-                             @JsonProperty("transformer") @Nullable IDimensionTransformer transformer) {
-        super(name, alias, displayText, required, visible, transformer);
+                             @JsonProperty("visible") @Nullable Boolean visible) {
+        super(name, alias, displayText, required, visible);
     }
 
     @Override

@@ -29,6 +29,14 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public interface ISchemaStorage {
 
+    /**
+     * get changed schemas after given timestamp
+     */
+    List<DataSourceSchema> getSchemas(long afterTimestamp);
+
+    /**
+     * get all schemas
+     */
     List<DataSourceSchema> getSchemas();
 
     DataSourceSchema getSchemaByName(String name);

@@ -8,8 +8,8 @@ class AppCardComponent {
 
     loadAppList() {
         $.ajax({
-            url: this._apiHost + "/api/meta/getMetadataList",
-            data: JSON.stringify({type: 'APPLICATION'}),
+            url: this._apiHost + "/api/meta/getApplications",
+            data: JSON.stringify({appType: 'JAVA'}),
             type: "POST",
             async: true,
             contentType: "application/json",

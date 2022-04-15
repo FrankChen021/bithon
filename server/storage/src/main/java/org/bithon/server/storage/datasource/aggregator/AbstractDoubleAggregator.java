@@ -16,6 +16,8 @@
 
 package org.bithon.server.storage.datasource.aggregator;
 
+import org.bithon.component.commons.utils.NumberUtils;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/4/9 19:24
@@ -27,6 +29,11 @@ public abstract class AbstractDoubleAggregator extends NumberAggregator {
     @Override
     public final void aggregate(long timestamp, Object value) {
         aggregate(timestamp, NumberUtils.getDouble(value));
+    }
+
+    @Override
+    public Number getNumber() {
+        return value;
     }
 
     protected abstract void aggregate(long timestamp, double value);

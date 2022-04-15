@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
@@ -57,8 +58,11 @@ public class SchemaStorage extends SchemaJdbcStorage {
     }
 
     @Override
-    public List<DataSourceSchema> getSchemas() {
-        String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME, Tables.BITHON_META_SCHEMA.SCHEMA).from(Tables.BITHON_META_SCHEMA).getSQL() + " FINAL";
+    public List<DataSourceSchema> getSchemas(long afterTimestamp) {
+        String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME, Tables.BITHON_META_SCHEMA.SCHEMA, Tables.BITHON_META_SCHEMA.SIGNATURE)
+                               .from(Tables.BITHON_META_SCHEMA)
+                               .getSQL() + " FINAL WHERE ";
+        sql += dslContext.renderInlined(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp)));
 
         List<Record> records = dslContext.fetch(sql);
         if (records == null) {
@@ -67,7 +71,9 @@ public class SchemaStorage extends SchemaJdbcStorage {
 
         return records.stream().map((mapper) -> {
             try {
-                return objectMapper.readValue(mapper.getValue(1, String.class), DataSourceSchema.class);
+                DataSourceSchema schema = objectMapper.readValue(mapper.get(1, String.class), DataSourceSchema.class);
+                schema.setSignature(mapper.get(2, String.class));
+                return schema;
             } catch (JsonProcessingException e) {
                 return null;
             }
@@ -75,19 +81,33 @@ public class SchemaStorage extends SchemaJdbcStorage {
     }
 
     @Override
+    public List<DataSourceSchema> getSchemas() {
+        String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME,
+                                       Tables.BITHON_META_SCHEMA.SCHEMA,
+                                       Tables.BITHON_META_SCHEMA.SIGNATURE).from(Tables.BITHON_META_SCHEMA).getSQL() + " FINAL";
+
+        List<Record> records = dslContext.fetch(sql);
+        if (records == null) {
+            return Collections.emptyList();
+        }
+
+        return records.stream()
+                      .map(record -> toSchema(record.get(0, String.class),
+                                              record.get(1, String.class),
+                                              record.get(2, String.class)))
+                      .filter(Objects::nonNull)
+                      .collect(Collectors.toList());
+    }
+
+    @Override
     public DataSourceSchema getSchemaByName(String name) {
-        String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME, Tables.BITHON_META_SCHEMA.SCHEMA).from(Tables.BITHON_META_SCHEMA).getSQL()
+        String sql = dslContext.select(Tables.BITHON_META_SCHEMA.SCHEMA,
+                                       Tables.BITHON_META_SCHEMA.SIGNATURE).from(Tables.BITHON_META_SCHEMA).getSQL()
                      + " FINAL where "
                      + Tables.BITHON_META_SCHEMA.NAME.eq(name).toString();
 
         Record record = dslContext.fetchOne(sql);
-        return record == null ? null : record.map((mapper) -> {
-            try {
-                return objectMapper.readValue(mapper.getValue(1, String.class), DataSourceSchema.class);
-            } catch (JsonProcessingException e) {
-                return null;
-            }
-        });
+        return record == null ? null : toSchema(name, record.get(0, String.class), record.get(1, String.class));
     }
 
     /**
@@ -96,26 +116,33 @@ public class SchemaStorage extends SchemaJdbcStorage {
     @Override
     public void update(String name, DataSourceSchema schema) throws IOException {
         Timestamp now = new Timestamp(System.currentTimeMillis());
+
         String schemaText = objectMapper.writeValueAsString(schema);
+        schema.setSignature(HashGenerator.sha256Hex(schemaText));
+
         dslContext.insertInto(Tables.BITHON_META_SCHEMA)
                   .set(Tables.BITHON_META_SCHEMA.NAME, name)
                   .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
+                  .set(Tables.BITHON_META_SCHEMA.SIGNATURE, schema.getSignature())
                   .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
                   .execute();
     }
 
     @Override
     public void putIfNotExist(String name, DataSourceSchema schema) throws IOException {
+        String schemaText = objectMapper.writeValueAsString(schema);
+        schema.setSignature(HashGenerator.sha256Hex(schemaText));
+
         if (dslContext.fetchCount(Tables.BITHON_META_SCHEMA, Tables.BITHON_META_SCHEMA.NAME.eq(name)) > 0) {
             return;
         }
+
         Timestamp now = new Timestamp(System.currentTimeMillis());
-        String schemaText = objectMapper.writeValueAsString(schema);
         dslContext.insertInto(Tables.BITHON_META_SCHEMA)
                   .set(Tables.BITHON_META_SCHEMA.NAME, name)
                   .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
+                  .set(Tables.BITHON_META_SCHEMA.SIGNATURE, schema.getSignature())
                   .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
                   .execute();
-
     }
 }
