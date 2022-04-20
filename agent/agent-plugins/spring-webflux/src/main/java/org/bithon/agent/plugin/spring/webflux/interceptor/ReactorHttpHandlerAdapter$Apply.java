@@ -43,6 +43,9 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
 
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,11 +57,13 @@ import java.util.Map;
 public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
     private static final ILogAdaptor LOG = LoggerFactory.getLogger(ReactorHttpHandlerAdapter$Apply.class);
+    private static final String X_FORWARDED_FOR = "X-Forwarded-For";
 
     private final HttpIncomingMetricsRegistry metricRegistry = HttpIncomingMetricsRegistry.get();
     private HttpIncomingFilter requestFilter;
     private TraceConfig traceConfig;
     private ResponseConfigs responseConfigs;
+    private String xforwardTagName;
 
     @Override
     public boolean initialize() {
@@ -70,6 +75,9 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
 
         responseConfigs = PluginConfigurationManager.load(SpringWebFluxPlugin.class)
                                                     .getConfig(ResponseConfigs.class);
+
+        // remove the special header for fast processing later
+        xforwardTagName = responseConfigs.getHeaders().remove(X_FORWARDED_FOR);
 
         return true;
     }
@@ -177,19 +185,48 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
             traceContext.currentSpan()
                         .tag(Tags.HTTP_STATUS, String.valueOf(response.status().code()))
                         .tag((span -> {
-                            if (CollectionUtils.isEmpty(responseConfigs.getHeaders())) {
+                            // extract headers in the response to tag
+                            if (!CollectionUtils.isEmpty(responseConfigs.getHeaders())) {
+                                HttpHeaders httpHeaders = response.responseHeaders();
+                                for (Map.Entry<String, String> entry : responseConfigs.getHeaders().entrySet()) {
+                                    String headerName = entry.getKey();
+                                    String tagName = entry.getValue();
+                                    String tagValue = httpHeaders.get(headerName);
+                                    if (tagValue != null) {
+                                        span.tag(tagName, tagValue);
+                                    }
+                                }
+                            }
+
+                            //
+                            // handle X-FORWARDED-FOR
+                            //
+                            if (xforwardTagName == null) {
+                                return;
+                            }
+                            InetSocketAddress remoteAddr = request.remoteAddress();
+                            if (remoteAddr == null) {
                                 return;
                             }
 
-                            // extract headers in the response to tag
-                            HttpHeaders httpHeaders = response.responseHeaders();
-                            for (Map.Entry<String, String> entry : responseConfigs.getHeaders().entrySet()) {
-                                String tagName = entry.getValue();
-                                String tagValue = httpHeaders.get(entry.getKey());
-                                if (tagValue != null) {
-                                    span.tag(tagName, tagValue);
-                                }
+                            String remoteAddrText = remoteAddr.getAddress().getHostAddress();
+                            List<String> xforwarded = request.requestHeaders().getAll(X_FORWARDED_FOR);
+                            if (xforwarded == null) {
+                                span.tag(xforwardTagName, remoteAddrText);
+                                return;
                             }
+
+                            if (!xforwarded.contains(remoteAddrText)) { // prevent duplicates
+                                // xforwarded maybe unmodifiable, create a new container
+                                xforwarded = new ArrayList<>(xforwarded);
+
+                                xforwarded.add(remoteAddrText);
+                            }
+
+                            // using join instead of using ObjectMapper
+                            // because in other modules such as tomcat-plugin, we directly get the header value and record it in the log
+                            // the value in that header is comma delimited
+                            span.tag(xforwardTagName, String.join(",", xforwarded));
                         }))
                         .finish();
             traceContext.finish();
