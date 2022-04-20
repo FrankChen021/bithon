@@ -17,9 +17,11 @@
 package org.bithon.agent.plugin.httpclient.apache.interceptor;
 
 
+import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestWrapper;
+import org.apache.http.protocol.HttpContext;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
@@ -29,6 +31,8 @@ import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 
 /**
+ * {@link org.apache.http.protocol.HttpRequestExecutor#execute(HttpRequest, HttpClientConnection, HttpContext)}
+ *
  * @author frankchen
  */
 public class HttpRequestExecutor$Execute extends AbstractInterceptor {
@@ -74,7 +78,7 @@ public class HttpRequestExecutor$Execute extends AbstractInterceptor {
         }
 
         HttpResponse response = context.castReturningAs();
-        String status = response.getStatusLine() == null ? "-1" : Integer.toString(response.getStatusLine().getStatusCode());
+        String status = response == null ? "-1" : (response.getStatusLine() == null ? "-1" : Integer.toString(response.getStatusLine().getStatusCode()));
         thisSpan.tag(Tags.HTTP_STATUS, status).tag(context.getException()).finish();
     }
 }
