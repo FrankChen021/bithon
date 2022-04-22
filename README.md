@@ -61,7 +61,7 @@ Once the project has been built, you could run the project in a standalone mode 
 To launch server in evaluation mode, execute the following command:
 
 ```bash
-java -Dspring.profiles.include=dev,storage-jdbc,collector,webapp -jar server/server-starter/target/bithon-server-starter.jar
+java -Dspring.profiles.include=dev,storage-jdbc,collector,webapp -jar server/server-starter/target/server-starter.jar
 ```
 
 By default, the application opens and listens on following ports at local
