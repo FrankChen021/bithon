@@ -10,8 +10,8 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>bithon-server-commons</artifactId>
-  <name>bithon-server-commons</name>
+  <artifactId>server-commons</artifactId>
+  <name>server-commons</name>
   <description>Bithon Server Commons</description>
 
   <dependencies>

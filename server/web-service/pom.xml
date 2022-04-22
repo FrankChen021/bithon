@@ -9,8 +9,8 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>bithon-web-service</artifactId>
-  <name>web-service</name>
+  <artifactId>server-web-service</artifactId>
+  <name>server-web-service</name>
   <description>Bithon Web Service</description>
 
   <properties>

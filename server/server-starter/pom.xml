@@ -10,7 +10,7 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>bithon-server-starter</artifactId>
+  <artifactId>server-starter</artifactId>
   <name>server-starter</name>
   <description>Bithon Server Starter</description>
 
@@ -42,7 +42,7 @@
     <!-- Storage -->
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>bithon-storage-jdbc</artifactId>
+      <artifactId>server-storage-jdbc</artifactId>
       <exclusions>
         <exclusion>
           <artifactId>jooq</artifactId>
@@ -67,17 +67,17 @@
     </dependency>
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>bithon-storage-jdbc-clickhouse</artifactId>
+      <artifactId>server-storage-jdbc-clickhouse</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>bithon-web-service</artifactId>
+      <artifactId>server-web-service</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>bithon-web-app</artifactId>
+      <artifactId>server-web-app</artifactId>
     </dependency>
 
     <!-- DEV TOOLS -->

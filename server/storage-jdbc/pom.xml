@@ -9,8 +9,8 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>bithon-storage-jdbc</artifactId>
-  <name>storage-jdbc</name>
+  <artifactId>server-storage-jdbc</artifactId>
+  <name>server-storage-jdbc</name>
   <description>Bithon Storage over JDBC</description>
 
   <properties>
