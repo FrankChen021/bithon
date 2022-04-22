@@ -27,7 +27,8 @@ class Dashboard {
         this._formatters['millisecond'] = (v) => milliFormat(v, 2);
         this._formatters['microsecond'] = (v) => microFormat(v, 2);
         this._formatters['byte_rate'] = (v) => v.formatBinaryByte() + "/s";
-        this._formatters['time'] = (v) => new Date(v).format('yyyy-MM-dd hh:mm:ss');
+        this._formatters['dateTime'] = (v) => new Date(v).format('yyyy-MM-dd hh:mm:ss');
+        this._formatters['shortDateTime'] = (v) => new Date(v).format('MM-dd hh:mm:ss');
     }
 
     // PUBLIC
@@ -328,8 +329,8 @@ class Dashboard {
             });
     }
 
-    #createDetailView(id, parent, columns, buttons, pagable) {
-        return new TableComponent({tableId: id, parent: parent, columns: columns, buttons: buttons, pagination: pagable});
+    #createDetailView(id, parent, columns, buttons, pageable) {
+        return new TableComponent({tableId: id, parent: parent, columns: columns, buttons: buttons, pagination: pageable});
     }
 
     #refreshDetailView(chartDescriptor, detailView, fields, chartOption, startIndex, endIndex) {
