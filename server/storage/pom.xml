@@ -9,8 +9,8 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>bithon-storage</artifactId>
-  <name>storage-api</name>
+  <artifactId>server-storage</artifactId>
+  <name>server-storage</name>
   <description>Bithon Storage API</description>
 
   <properties>
@@ -57,7 +57,7 @@
     </dependency>
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>bithon-server-commons</artifactId>
+      <artifactId>server-commons</artifactId>
     </dependency>
 
     <!-- DataSource submodule -->

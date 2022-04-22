@@ -48,7 +48,7 @@
     <!-- BRPC -->
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>bithon-sink</artifactId>
+      <artifactId>server-sink</artifactId>
     </dependency>
 
     <!-- Bithon Commons -->

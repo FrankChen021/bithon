@@ -88,7 +88,7 @@
 
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>bithon-server-commons</artifactId>
+        <artifactId>server-commons</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -100,33 +100,33 @@
       <!-- Storage -->
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>bithon-storage</artifactId>
+        <artifactId>server-storage</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>bithon-storage-jdbc</artifactId>
+        <artifactId>server-storage-jdbc</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>bithon-storage-jdbc-clickhouse</artifactId>
+        <artifactId>server-storage-jdbc-clickhouse</artifactId>
         <version>${project.version}</version>
       </dependency>
 
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>bithon-sink</artifactId>
+        <artifactId>server-sink</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>bithon-web-service</artifactId>
+        <artifactId>server-web-service</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>bithon-web-app</artifactId>
+        <artifactId>server-web-app</artifactId>
         <version>${project.version}</version>
       </dependency>
 

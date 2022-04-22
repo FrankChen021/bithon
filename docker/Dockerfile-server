@@ -48,7 +48,7 @@ RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; th
     ; fi
 
 FROM openjdk:${JDK}-slim
-COPY --from=builder /src/server/server-starter/target/bithon-server-starter.jar /opt/bithon-server-starter.jar
+COPY --from=builder /src/server/server-starter/target/server-starter.jar /opt/bithon-server-starter.jar
 
 RUN apt-get -qq update \
     && apt-get -qq -y install unzip \
