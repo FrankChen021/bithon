@@ -84,10 +84,10 @@
     <script>
         function redirect(url) {
             url += '/?';
-            if (g_SelectedApp != null) {
+            if (g_SelectedApp !== undefined && g_SelectedApp != null) {
                 url += 'appName=' + g_SelectedApp;
             }
-            if (g_SelectedInstance != null) {
+            if (g_SelectedInstance !== undefined && g_SelectedInstance != null) {
                 url += `&instanceName=${g_SelectedInstance}`;
             }
             window.location = url;
@@ -102,6 +102,12 @@
             <!-- sidebar-menu  -->
             <div class=" sidebar-item sidebar-menu">
                 <ul>
+                    <li class="sidebar">
+                        <a href="/web/home">
+                            <i class="fa fa-home"></i>
+                            <span class="menu-text">Home</span>
+                        </a>
+                    </li>
                     <li class="sidebar">
                         <a onclick="redirect('/web/topo')">
                             <i class="fa fa-tachometer-alt"></i>
@@ -332,8 +338,7 @@
             <a class="navbar-brand" href="/web/home">Bithon</a>
         </nav>
         <div id="overlay" class="overlay"></div>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light" style="padding-left: 5px; padding-right: 5px">
-
+        <nav id="filterContainer" class="navbar navbar-expand-lg navbar-light bg-light" style="padding-left: 5px; padding-right: 5px">
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav mr-auto mt-2 mt-lg-0" id="filterBar">
                 </ul>

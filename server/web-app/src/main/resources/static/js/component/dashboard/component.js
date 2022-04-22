@@ -285,7 +285,7 @@ class Dashboard {
                     formatterFn = this._formatters[metric.formatter];
                 }
             }
-            if(formatterFn == null) {
+            if (formatterFn == null) {
                 // if this metric is not found, format in default ways
                 formatterFn = (v) => {
                     return v.formatCompactNumber();
@@ -357,7 +357,7 @@ class Dashboard {
 
 
         let loadOptions;
-        if ( chartDescriptor.details.groupBy !== undefined && chartDescriptor.details.groupBy.length > 0) {
+        if (chartDescriptor.details.groupBy !== undefined && chartDescriptor.details.groupBy.length > 0) {
             loadOptions = {
                 url: apiHost + "/api/datasource/groupBy",
                 start: startTimestamp,
@@ -645,6 +645,11 @@ class Dashboard {
     }
 
     refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
+        const appFilter = this.vFilter.getSelectedFilter('appName');
+        if ( appFilter === undefined || appFilter === null) {
+            return;
+        }
+
         if (chartDescriptor.type === 'list') {
             this.refreshTable(chartDescriptor, chartComponent, interval);
             return;
