@@ -15,7 +15,11 @@ class TableComponent {
      *     tableId: an unique id for the table component
      */
     constructor(option) {
-        this.vTable = option.parent.append(`<table id="${option.tableId}"></table>`).find('table');
+        // view
+        this.vTableContainer = $(`<div></div>`);
+        this.vTable = this.vTableContainer.append(`<table id="${option.tableId}"></table>`).find('table');
+        option.parent.append(this.vTableContainer);
+
         this.mColumns = option.columns;
         this.mCreated = false;
         this.mPagination = option.pagination === undefined ? false : option.pagination;
@@ -54,7 +58,7 @@ class TableComponent {
             // So here we define a new comparator
             column.sorter = (a, b) => this.#compare(a, b);
         }
-        this.mDetailView = this.mDetailViewField != null;
+        this.mTableHasDetailView = this.mDetailViewField != null;
 
         this.mButtons = option.buttons;
         $.each(this.mButtons, (buttonIndex, button) => {
@@ -121,7 +125,7 @@ class TableComponent {
 
                 columns: this.mColumns,
 
-                detailView: this.mDetailView,
+                detailView: this.mTableHasDetailView,
                 detailFormatter: (index, row) => this.#showDetail(index, row),
 
                 stickyHeader: true,
@@ -170,7 +174,7 @@ class TableComponent {
     }
 
     show() {
-        this.vTable.show();
+        this.vTableContainer.show();
     }
 
     clear() {
@@ -178,7 +182,7 @@ class TableComponent {
     }
 
     hide() {
-        this.vTable.hide();
+        this.vTableContainer.hide();
     }
 
     getColumns() {
