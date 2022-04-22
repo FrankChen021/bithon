@@ -24,8 +24,6 @@ class AppSelector {
 
     createAppSelector() {
         g_SelectedApp = window.queryParams['appName'];
-        this.#addFilter("appName", g_SelectedApp);
-
         //
         // create app selector
         //
@@ -35,11 +33,15 @@ class AppSelector {
             this.vAppSelector.select2({
                 theme: 'bootstrap4',
                 dropdownAutoWidth: true,
+                placeholder: 'select application',
                 ajax: this.#getApplicationOptions()
             });
         });
 
-        this.vAppSelector.append(`<option value="${g_SelectedApp}">${g_SelectedApp}</option>`).change();
+        if (g_SelectedApp !== undefined) {
+            this.vAppSelector.append(`<option value="${g_SelectedApp}">${g_SelectedApp}</option>`).change();
+            this.#addFilter("appName", g_SelectedApp);
+        }
 
         this.vAppSelector.change((e) => {
             const application = e.target.selectedOptions[0].value;

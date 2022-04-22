@@ -20,11 +20,7 @@ class MetricSidebar {
     // PRIVATE
     addDashboardItem(item) {
         const i = $(`<a>${item.text}</a>`).click(() => {
-            let url = `/web/metrics/${item.id}?appName=${g_SelectedApp}&interval=${g_MetricSelectedInterval}`;
-            if ( g_SelectedInstance != null ) {
-                url += `&instanceName=${g_SelectedInstance}`;
-            }
-            window.location = url;
+            redirect(`/web/metrics/${item.id}`);
         });
         this._container.append(i);
     }

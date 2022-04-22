@@ -2,22 +2,19 @@
 <html lang="zh_CN"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{_common/layout}">
+      layout:decorate="~{app/app-layout}">
 <head>
-    <title>Bithon</title>
-</head>
-<body>
-<div style="padding:20px;" class="container" layout:fragment="content">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top ">
-        <!-- Navbar content -->
-        <a class="navbar-brand" href="#">Bithon</a>
-    </nav>
-    <div id="appList"></div>
+    <title>Bithon Home</title>
 
     <script type="text/javascript" th:src="@{/js/app-card-component.js}"></script>
+</head>
+<body>
+<div style="padding:20px;" layout:fragment="content">
+    <div id="appList"></div>
+
     <script type="text/javascript">
         $(document).ready(() => {
-            new SearchBar(true);
+            $('#filterContainer').hide();
             new AppCardComponent(apiHost, 'appList').loadAppList();
         });
     </script>

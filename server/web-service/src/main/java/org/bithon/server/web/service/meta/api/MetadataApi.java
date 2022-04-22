@@ -43,7 +43,7 @@ public class MetadataApi {
     @Deprecated
     @PostMapping("/api/meta/getMetadataList")
     public Collection<Metadata> getMetadataList(@Valid @RequestBody GetMetadataListRequest request) {
-        return metaStorage.getApplications(null, 3600_000 * 24);
+        return metaStorage.getApplications(null, System.currentTimeMillis() - 3600_000 * 24);
     }
 
     @PostMapping("/api/meta/getApplications")
