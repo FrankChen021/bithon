@@ -105,8 +105,8 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
         FilterUtils.extractAttributesAsTraceTags(exchange, this.configs, aopContext.getTargetClass(), span);
 
         Mono<Void> originalReturning = aopContext.castReturningAs();
-        Mono<Void> replacedReturning = originalReturning.doAfterSuccessOrError((success, error) -> span.tag(error)
-                                                                                                       .finish());
+        Mono<Void> replacedReturning = originalReturning.doOnError((exception) -> span.tag(exception).finish())
+                                                        .doOnSuccess((s) -> span.finish());
         aopContext.setReturning(replacedReturning);
     }
 }
