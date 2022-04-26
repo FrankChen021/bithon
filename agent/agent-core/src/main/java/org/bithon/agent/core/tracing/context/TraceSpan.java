@@ -167,6 +167,7 @@ class TraceSpan implements ITraceSpan {
     @Override
     public TraceSpan start() {
         this.startTime = traceContext.clock().currentMicroseconds();
+        this.traceContext.onSpanStarted(this);
         return this;
     }
 
@@ -186,6 +187,8 @@ class TraceSpan implements ITraceSpan {
                ", traceId=" + this.traceId() +
                ", spanId=" + this.spanId +
                ", parentId=" + this.parentSpanId +
+               ", clazz=" + this.clazz +
+               ", method=" + this.method +
                ", kind=" + this.kind +
                ", cost=" + (this.endTime - this.startTime) + "(micro seconds)" +
                "]";
