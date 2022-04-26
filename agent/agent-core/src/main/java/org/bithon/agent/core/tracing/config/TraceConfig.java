@@ -36,16 +36,17 @@ public class TraceConfig {
     private int samplingRate = 0;
 
     /**
-     * Use for debug. Log events of span creation and finish
+     * Use for debug.
+     * Under debug mode, events of span creation and completion will be logged
      */
-    private boolean logSpans = false;
+    private boolean debug = false;
 
-    public boolean isLogSpans() {
-        return logSpans;
+    public boolean isDebug() {
+        return debug;
     }
 
-    public void setLogSpans(boolean logSpans) {
-        this.logSpans = logSpans;
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 
     public List<String> getHeaders() {

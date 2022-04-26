@@ -98,7 +98,7 @@ class TraceContext implements ITraceContext {
         if (!spanStack.isEmpty()) {
             LoggerFactory.getLogger(TraceContext.class).warn("TraceContext does not finish correctly. "
                                                              + "[{}] spans are still remained in the stack. "
-                                                             + "Please adding -Dbithon.tracing.logSpans=true parameter to your application to turn on the span life time message to debug. Remained spans: \n{}",
+                                                             + "Please adding -Dbithon.tracing.debug=true parameter to your application to turn on the span life time message to debug. Remained spans: \n{}",
                                                              spans.size(),
                                                              spans);
             return;

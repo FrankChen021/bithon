@@ -39,22 +39,9 @@ public class TraceContextListener {
     }
 
     public TraceContextListener() {
-
         TraceConfig config = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
-        if (config != null && config.isLogSpans()) {
-            listeners.add(new IListener() {
-                private final ILogAdaptor log = LoggerFactory.getLogger(TraceContextListener.class);
-
-                @Override
-                public void onSpanStarted(ITraceSpan span) {
-                    log.info("[Created] {}", span);
-                }
-
-                @Override
-                public void onSpanFinished(ITraceSpan span) {
-                    log.info("[Finished] {}", span);
-                }
-            });
+        if (config != null && config.isDebug()) {
+            listeners.add(new SpanEventLogger());
         }
     }
 
@@ -78,5 +65,19 @@ public class TraceContextListener {
         void onSpanStarted(ITraceSpan span);
 
         void onSpanFinished(ITraceSpan span);
+    }
+
+    private static class SpanEventLogger implements IListener {
+        private final ILogAdaptor log = LoggerFactory.getLogger(TraceContextListener.class);
+
+        @Override
+        public void onSpanStarted(ITraceSpan span) {
+            log.info("[Created] {}", span);
+        }
+
+        @Override
+        public void onSpanFinished(ITraceSpan span) {
+            log.info("[Finished] {}", span);
+        }
     }
 }
