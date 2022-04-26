@@ -77,6 +77,10 @@ public interface ITraceSpan {
 
     ITraceSpan start();
 
+    /**
+     * finish a span.
+     * The implementation should guarantee that multiple call on this method is safe.
+     */
     void finish();
 
     default <T> ITraceSpan propagate(T injectedTo, PropagationSetter<T> setter) {
