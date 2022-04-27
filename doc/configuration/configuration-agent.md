@@ -40,6 +40,7 @@ Plugin configuration locates each plugin's resource directory with the name 'plu
 | configuration        | description                                                                       | default | example                                |
 |----------------------|-----------------------------------------------------------------------------------|---------|----------------------------------------|
 | tracing.samplingRate | percentage of requests to be sampled. <br/>Value must be in the range of [0,100]. | 0       | 50(means 50% requests will be sampled) |
+| tracing.debug        | Whether to enable the logging of span events                                      | false   |                                        |
 
 
 # Plugin Configurations

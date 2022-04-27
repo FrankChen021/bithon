@@ -16,6 +16,11 @@
 
 package org.bithon.agent.core.tracing.context;
 
+import org.bithon.agent.core.context.AgentContext;
+import org.bithon.agent.core.tracing.config.TraceConfig;
+import org.bithon.component.commons.logging.ILogAdaptor;
+import org.bithon.component.commons.logging.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.List;
@@ -31,6 +36,13 @@ public class TraceContextListener {
 
     public static TraceContextListener getInstance() {
         return INSTANCE;
+    }
+
+    public TraceContextListener() {
+        TraceConfig config = AgentContext.getInstance().getAgentConfiguration().getConfig(TraceConfig.class);
+        if (config != null && config.isDebug()) {
+            listeners.add(new SpanEventLogger());
+        }
     }
 
     public synchronized void addListener(IListener listener) {
@@ -53,5 +65,19 @@ public class TraceContextListener {
         void onSpanStarted(ITraceSpan span);
 
         void onSpanFinished(ITraceSpan span);
+    }
+
+    private static class SpanEventLogger implements IListener {
+        private final ILogAdaptor log = LoggerFactory.getLogger(TraceContextListener.class);
+
+        @Override
+        public void onSpanStarted(ITraceSpan span) {
+            log.info("[Created] {}", span);
+        }
+
+        @Override
+        public void onSpanFinished(ITraceSpan span) {
+            log.info("[Finished] {}", span);
+        }
     }
 }

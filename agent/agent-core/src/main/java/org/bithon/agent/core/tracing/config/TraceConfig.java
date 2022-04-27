@@ -35,6 +35,20 @@ public class TraceConfig {
     @Range(min = 0, max = 100)
     private int samplingRate = 0;
 
+    /**
+     * Use for debug.
+     * Under debug mode, events of span creation and completion will be logged
+     */
+    private boolean debug = false;
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
     public List<String> getHeaders() {
         return headers;
     }
@@ -42,7 +56,7 @@ public class TraceConfig {
     /**
      * headers that should be recorded in trace span
      */
-    private List<String> headers = Collections.emptyList();
+    private final List<String> headers = Collections.emptyList();
 
     // TODO: separated disable from samplingRate value
     // because even when samplingRate is zero, it can be traced if upstream application passes related headers

@@ -110,6 +110,9 @@ class PropagationTraceContext implements ITraceContext {
 
     private void onSpanCreated(ITraceSpan span) {
         spanStack.push(span);
+    }
+
+    void onSpanStarted(ITraceSpan span) {
         TraceContextListener.getInstance().onSpanStarted(span);
     }
 
