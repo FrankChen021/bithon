@@ -29,12 +29,6 @@
       <artifactId>spring-cloud-starter</artifactId>
     </dependency>
 
-    <!-- Lombok -->
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-    </dependency>
-
     <!-- Sentinel -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
@@ -45,7 +39,7 @@
     <!-- Bithon Commons -->
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>bithon-server-collector</artifactId>
+      <artifactId>server-collector</artifactId>
     </dependency>
 
     <dependency>

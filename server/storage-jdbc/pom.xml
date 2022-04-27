@@ -20,7 +20,11 @@
   <dependencies>
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>bithon-server-collector</artifactId>
+      <artifactId>server-storage</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>server-sink</artifactId>
     </dependency>
 
     <!-- JOOQ -->
@@ -69,48 +73,6 @@
     <finalName>${project.artifactId}</finalName>
 
     <plugins>
-
-      <!-- Load Schema -->
-      <!--            <plugin>-->
-      <!--                <groupId>org.codehaus.mojo</groupId>-->
-      <!--                <artifactId>sql-maven-plugin</artifactId>-->
-
-      <!--                <configuration>-->
-      <!--                    <skip>${maven.test.skip}</skip>-->
-      <!--                    <forkMode>always</forkMode>-->
-      <!--                    <driver>com.mysql.cj.jdbc.Driver</driver>-->
-      <!--                    <url>jdbc:mysql://localhost:3306/bithon?useSSL=false</url>-->
-      <!--                    <username>root</username>-->
-      <!--                    <password>123456</password>-->
-      <!--                </configuration>-->
-
-      <!--                <executions>-->
-      <!--                    <execution>-->
-      <!--                        <id>create-database-mysql</id>-->
-      <!--                        <phase>process-resources</phase>-->
-      <!--                        <goals>-->
-      <!--                            <goal>execute</goal>-->
-      <!--                        </goals>-->
-      <!--                        <configuration>-->
-      <!--                            &lt;!&ndash; See http://stackoverflow.com/a/13082837/521799 &ndash;&gt;-->
-      <!--                            <delimiterType>row</delimiterType>-->
-      <!--                            <autocommit>true</autocommit>-->
-      <!--                            <srcFiles>-->
-      <!--                                <srcFile>src/main/resources/database.sql</srcFile>-->
-      <!--                            </srcFiles>-->
-      <!--                        </configuration>-->
-      <!--                    </execution>-->
-      <!--                </executions>-->
-
-      <!--                <dependencies>-->
-      <!--                    <dependency>-->
-      <!--                        <groupId>mysql</groupId>-->
-      <!--                        <artifactId>mysql-connector-java</artifactId>-->
-      <!--                        <version>${mysql.version}</version>-->
-      <!--                    </dependency>-->
-      <!--                </dependencies>-->
-      <!--            </plugin>-->
-
       <!-- The jOOQ code generator plugin -->
       <plugin>
         <groupId>org.jooq</groupId>

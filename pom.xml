@@ -93,7 +93,7 @@
       </dependency>
       <dependency>
         <groupId>org.bithon</groupId>
-        <artifactId>bithon-server-collector</artifactId>
+        <artifactId>server-collector</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -360,6 +360,39 @@
               <repositoryType>MAIN</repositoryType>
             </DynamicDependency>
           </dynamicDependencies>
+        </configuration>
+      </plugin>
+
+      <!--Analyze maven dependencies at verify phase-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.1.1</version>
+        <configuration>
+          <ignoreNonCompile>true</ignoreNonCompile>
+          <failOnWarning>true</failOnWarning>
+          <outputXML>true</outputXML>
+          <ignoredUsedUndeclaredDependencies>
+            <ignoredUsedUndeclaredDependency>*</ignoredUsedUndeclaredDependency>
+          </ignoredUsedUndeclaredDependencies>
+          <ignoredUnusedDeclaredDependencies>
+            <!-- all -->
+            <dependency>org.springframework.*</dependency>
+            <dependency>org.projectlombok</dependency>
+
+            <!-- webapp -->
+            <dependency>nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect</dependency>
+
+            <!-- jdbc -->
+            <dependency>com.alibaba:druid-spring-boot-starter</dependency>
+            <dependency>com.h2database:h2</dependency>
+            <dependency>org.jooq:jooq</dependency>
+            <dependency>ru.yandex.clickhouse:clickhouse-jdbc</dependency>
+
+            <!-- starter -->
+            <dependency>com.alibaba.cloud:spring-cloud-starter-alibaba-nacos-config</dependency>
+            <dependency>org.bithon:*</dependency>
+          </ignoredUnusedDeclaredDependencies>
         </configuration>
       </plugin>
 
