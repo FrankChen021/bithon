@@ -27,8 +27,7 @@
     </dependency>
     <dependency>
       <groupId>org.bithon</groupId>
-      <artifactId>agent-rpc-brpc</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <artifactId>component-brpc</artifactId>
     </dependency>
 
     <!-- provided by tomcat/jetty/undertow jakarta.servlet-api -->

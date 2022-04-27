@@ -58,7 +58,6 @@
         <exclude>${project.parent.groupId}:agent-bootstrap</exclude>
         <exclude>${project.parent.groupId}:agent-main</exclude>
         <exclude>${project.parent.groupId}:agent-sdk</exclude>
-        <exclude>org.slf4j:slf4j-api</exclude>
       </excludes>
       <outputDirectory>lib</outputDirectory>
     </dependencySet>
