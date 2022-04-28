@@ -52,12 +52,16 @@ public class TraceHttpCollector {
     private final ITraceMessageSink traceSink;
     private final UriNormalizer uriNormalizer;
 
+    private final TraceHttpCollectorConfig collectorConfig;
+
     public TraceHttpCollector(ObjectMapper om,
                               ITraceMessageSink traceSink,
-                              UriNormalizer uriNormalizer) {
+                              UriNormalizer uriNormalizer,
+                              TraceHttpCollectorConfig collectorConfig) {
         this.om = om;
         this.traceSink = traceSink;
         this.uriNormalizer = uriNormalizer;
+        this.collectorConfig = collectorConfig;
     }
 
     @PostMapping("/api/collector/trace")
@@ -77,14 +81,10 @@ public class TraceHttpCollector {
             return;
         }
 
-        String unqualifiedName = spans.get(0).getAppName();
-        int idx = unqualifiedName.lastIndexOf('-');
-        if (idx > 0) {
-            unqualifiedName = unqualifiedName.substring(0, idx);
-        }
+        String applicationName = spans.get(0).getAppName();
 
         Iterator<TraceSpan> iterator;
-        if ("clickhouse".equals(unqualifiedName)) {
+        if (this.collectorConfig.getClickHouseApplications().contains(applicationName)) {
             iterator = new ClickHouseAdaptor(spans.iterator());
         } else {
             iterator = new Iterator<TraceSpan>() {

@@ -24,6 +24,9 @@ collector-kafka:
 
 collector-http:
   enabled: true
+  tracing:
+    clickhouseApplications:
+      - clickhouse
 
 logging:
   level:
