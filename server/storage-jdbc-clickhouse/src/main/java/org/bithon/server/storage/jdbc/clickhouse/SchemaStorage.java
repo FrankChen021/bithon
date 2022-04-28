@@ -54,7 +54,9 @@ public class SchemaStorage extends SchemaJdbcStorage {
 
     @Override
     public void initialize() {
-        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_META_SCHEMA, -1, true, false);
+        new TableCreator(config, dslContext).useReplacingMergeTree(true)
+                                            .partitionByExpressioin(null)
+                                            .createIfNotExist(Tables.BITHON_META_SCHEMA);
     }
 
     @Override

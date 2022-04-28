@@ -38,4 +38,6 @@ public interface IMatcherVisitor<T> {
     T visit(StringStartsWithMatcher matcher);
 
     T visit(BetweenMatcher matcher);
+
+    T visit(InMatcher inMatcher);
 }

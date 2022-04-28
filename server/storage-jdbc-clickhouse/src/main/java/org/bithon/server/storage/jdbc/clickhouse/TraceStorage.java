@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
@@ -34,7 +35,6 @@ import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcWriter;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.IFilter;
-import org.bithon.server.storage.tracing.ITraceCleaner;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
@@ -69,15 +69,14 @@ public class TraceStorage extends TraceJdbcStorage {
 
     @Override
     public void initialize() {
-        TableCreator tableCreator = new TableCreator(config, dslContext);
-        tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN, config.getTtlDays());
-        tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN_SUMMARY, config.getTtlDays());
-        tableCreator.createIfNotExist(Tables.BITHON_TRACE_MAPPING, config.getTtlDays(), true, true);
-        tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN_TAG_INDEX, config.getTtlDays());
+        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_TRACE_SPAN);
+        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_TRACE_SPAN_SUMMARY);
+        new TableCreator(config, dslContext).useReplacingMergeTree(true).createIfNotExist(Tables.BITHON_TRACE_MAPPING);
+        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_TRACE_SPAN_TAG_INDEX);
     }
 
     @Override
-    public ITraceCleaner createCleaner() {
+    public IStorageCleaner createCleaner() {
         return beforeTimestamp -> {
             String timestamp = DateTime.toYYYYMMDDhhmmss(beforeTimestamp);
             clean(Tables.BITHON_TRACE_SPAN, timestamp);

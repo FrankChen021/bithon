@@ -17,6 +17,7 @@
 package org.bithon.server.storage.tracing;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.common.IStorageCleaner;
 
 /**
  * @author frank.chen021@outlook.com
@@ -33,5 +34,5 @@ public interface ITraceStorage {
 
     ITraceReader createReader();
 
-    ITraceCleaner createCleaner();
+    IStorageCleaner createCleaner();
 }

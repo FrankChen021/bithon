@@ -20,17 +20,15 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
+import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
-import org.bithon.server.storage.metrics.IMetricCleaner;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
-
-import java.sql.Timestamp;
 
 /**
  * @author frank.chen021@outlook.com
@@ -64,10 +62,12 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     @SuppressWarnings("unchecked")
     @Override
-    public IMetricCleaner createMetricCleaner(DataSourceSchema schema) {
+    public IStorageCleaner createMetricCleaner(DataSourceSchema schema) {
         return timestamp -> {
             final MetricTable table = new MetricTable(schema);
-            dslContext.deleteFrom(table).where(table.getTimestampField().lt(new Timestamp(timestamp))).execute();
+            dslContext.deleteFrom(table)
+                      .where(table.getTimestampField().le(timestamp))
+                      .execute();
         };
     }
 

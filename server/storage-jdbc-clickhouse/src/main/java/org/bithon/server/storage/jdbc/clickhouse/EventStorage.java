@@ -24,8 +24,8 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.StringUtils;
+import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.event.IEventCleaner;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 
@@ -49,7 +49,7 @@ public class EventStorage extends EventJdbcStorage {
 
     @Override
     public void initialize() {
-        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_EVENT, config.getTtlDays());
+        new TableCreator(config, dslContext).createIfNotExist(Tables.BITHON_EVENT);
     }
 
     /**
@@ -57,11 +57,11 @@ public class EventStorage extends EventJdbcStorage {
      * The data is partitioned by days, so we only clear the data before the day of given timestamp
      */
     @Override
-    public IEventCleaner createCleaner() {
+    public IStorageCleaner createCleaner() {
         return beforeTimestamp -> dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
                                                                         config.getDatabase(),
                                                                         config.getLocalTableName(Tables.BITHON_EVENT.getName()),
                                                                         config.getClusterExpression(),
-                                                                        DateTime.toYYYYMMDDhhmmss(beforeTimestamp)));
+                                                                        DateTime.toYYYYMMDDhhmmss(beforeTimestamp.getTime())));
     }
 }

@@ -9,6 +9,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertChangelog;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertObject;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertRecord;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertRunlog;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertState;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaApplicationMetricMap;
@@ -28,7 +33,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = -23851684;
+    private static final long serialVersionUID = 2089093839;
 
     /**
      * The reference instance of <code></code>
@@ -39,6 +44,31 @@ public class DefaultSchema extends SchemaImpl {
      * 配置
      */
     public final BithonAgentSetting BITHON_AGENT_SETTING = org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting.BITHON_AGENT_SETTING;
+
+    /**
+     * Change logs of alert
+     */
+    public final BithonAlertChangelog BITHON_ALERT_CHANGELOG = org.bithon.server.storage.jdbc.jooq.tables.BithonAlertChangelog.BITHON_ALERT_CHANGELOG;
+
+    /**
+     * Alert
+     */
+    public final BithonAlertObject BITHON_ALERT_OBJECT = org.bithon.server.storage.jdbc.jooq.tables.BithonAlertObject.BITHON_ALERT_OBJECT;
+
+    /**
+     * Alerting History Records
+     */
+    public final BithonAlertRecord BITHON_ALERT_RECORD = org.bithon.server.storage.jdbc.jooq.tables.BithonAlertRecord.BITHON_ALERT_RECORD;
+
+    /**
+     * Running logs of alert
+     */
+    public final BithonAlertRunlog BITHON_ALERT_RUNLOG = org.bithon.server.storage.jdbc.jooq.tables.BithonAlertRunlog.BITHON_ALERT_RUNLOG;
+
+    /**
+     * Alerting State
+     */
+    public final BithonAlertState BITHON_ALERT_STATE = org.bithon.server.storage.jdbc.jooq.tables.BithonAlertState.BITHON_ALERT_STATE;
 
     /**
      * 应用
@@ -103,6 +133,11 @@ public class DefaultSchema extends SchemaImpl {
     private final List<Table<?>> getTables0() {
         return Arrays.<Table<?>>asList(
             BithonAgentSetting.BITHON_AGENT_SETTING,
+            BithonAlertChangelog.BITHON_ALERT_CHANGELOG,
+            BithonAlertObject.BITHON_ALERT_OBJECT,
+            BithonAlertRecord.BITHON_ALERT_RECORD,
+            BithonAlertRunlog.BITHON_ALERT_RUNLOG,
+            BithonAlertState.BITHON_ALERT_STATE,
             BithonApplicationInstance.BITHON_APPLICATION_INSTANCE,
             BithonEvent.BITHON_EVENT,
             BithonMetaApplicationMetricMap.BITHON_META_APPLICATION_METRIC_MAP,

@@ -1,0 +1,74 @@
+### Create an alert
+POST http://localhost:9897/alerting/api/alert/create
+Content-Type: application/json
+
+{
+  "checkApplication": "false",
+  "id" : "f7f87ce1e0b444919b123849f4c7938f",
+
+  "name" : "Alert1",
+  "appName" : "bithon-server-dev",
+  "enabled": "true",
+  "evaluationInterval": "1",
+  "matchTimes": 3,
+  "conditions": [{
+    "id": "A",
+    "dataSource": "jvm-metrics",
+    "dimensions": [{
+      "dimension": "appName",
+      "matcher": {
+        "type": "equal",
+        "pattern": "bithon-server-dev"
+      }
+    }],
+    "metric": {
+      "name": "processCpuLoad",
+      "aggregator": "avg",
+      "comparator": ">",
+      "expected": 0.1,
+      "window": 1
+    },
+    "severity": "Severe",
+    "windowLength": 1
+  }],
+  "rules": [{
+    "expression": "A",
+    "enabled": "true",
+    "severity": "Severe"
+  }],
+  "notifications": [{
+    "type": "console"
+  }]
+}
+
+### Get an alert
+POST http://localhost:9897/alerting/api/alert/getAlertById
+Content-Type: application/json
+
+{
+  "alertId": "f7f87ce1e0b444919b123849f4c7938f"
+}
+
+### DISABLE an alert
+POST http://localhost:9897/alerting/api/alert/disable
+Content-Type: application/json
+
+{
+  "alertId": "f7f87ce1e0b444919b123849f4c7938f"
+}
+
+### ENABLE an alert
+POST http://localhost:9897/alerting/api/alert/enable
+Content-Type: application/json
+
+{
+  "alertId": "f7f87ce1e0b444919b123849f4c7938f"
+}
+
+### DELETE an alert
+POST http://localhost:9897/alerting/api/alert/delete
+Content-Type: application/json
+
+{
+  "alertId": "f7f87ce1e0b444919b123849f4c7938f"
+}

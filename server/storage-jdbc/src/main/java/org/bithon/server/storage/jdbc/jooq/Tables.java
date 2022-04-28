@@ -5,6 +5,11 @@ package org.bithon.server.storage.jdbc.jooq;
 
 
 import org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertChangelog;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertObject;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertRecord;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertRunlog;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertState;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaApplicationMetricMap;
@@ -25,6 +30,31 @@ public class Tables {
      * 配置
      */
     public static final BithonAgentSetting BITHON_AGENT_SETTING = BithonAgentSetting.BITHON_AGENT_SETTING;
+
+    /**
+     * Change logs of alert
+     */
+    public static final BithonAlertChangelog BITHON_ALERT_CHANGELOG = BithonAlertChangelog.BITHON_ALERT_CHANGELOG;
+
+    /**
+     * Alert
+     */
+    public static final BithonAlertObject BITHON_ALERT_OBJECT = BithonAlertObject.BITHON_ALERT_OBJECT;
+
+    /**
+     * Alerting History Records
+     */
+    public static final BithonAlertRecord BITHON_ALERT_RECORD = BithonAlertRecord.BITHON_ALERT_RECORD;
+
+    /**
+     * Running logs of alert
+     */
+    public static final BithonAlertRunlog BITHON_ALERT_RUNLOG = BithonAlertRunlog.BITHON_ALERT_RUNLOG;
+
+    /**
+     * Alerting State
+     */
+    public static final BithonAlertState BITHON_ALERT_STATE = BithonAlertState.BITHON_ALERT_STATE;
 
     /**
      * 应用

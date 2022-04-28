@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.utils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.matcher.BetweenMatcher;
 import org.bithon.server.commons.matcher.IMatcherVisitor;
+import org.bithon.server.commons.matcher.InMatcher;
 import org.bithon.server.commons.matcher.StringAntPathMatcher;
 import org.bithon.server.commons.matcher.StringContainsMatcher;
 import org.bithon.server.commons.matcher.StringEndWithMatcher;
@@ -143,5 +144,10 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
         sb.append(" AND ");
         sb.append(matcher.getUpper());
         return sb.toString();
+    }
+
+    @Override
+    public String visit(InMatcher inMatcher) {
+        return null;
     }
 }

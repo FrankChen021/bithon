@@ -56,12 +56,12 @@ After the first build, we can remove the `--activate-profiles shaded,jooq,server
 
 Once the project has been built, you could run the project in a standalone mode to evaluate this project.
 
-## 1. Launch collector & web server
+## 1. Launch the server all in one
 
 To launch server in evaluation mode, execute the following command:
 
 ```bash
-java -Dspring.profiles.include=dev,storage-jdbc,collector,webapp -jar server/server-starter/target/server-starter.jar
+java -Dspring.profiles.include=dev,storage-jdbc,collector,alerting,webapp -jar server/server-starter/target/server-starter.jar
 ```
 
 By default, the application opens and listens on following ports at local

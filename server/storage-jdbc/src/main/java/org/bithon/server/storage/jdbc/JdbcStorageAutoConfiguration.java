@@ -19,6 +19,9 @@ package org.bithon.server.storage.jdbc;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import org.bithon.server.storage.jdbc.alerting.AlertObjectJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.AlertRecordJdbcStorage;
+import org.bithon.server.storage.jdbc.alerting.JdbcLoggerStorage;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.MetadataJdbcStorage;
 import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
@@ -85,7 +88,13 @@ public class JdbcStorageAutoConfiguration {
                                          SchemaJdbcStorage.class,
                                          EventJdbcStorage.class,
                                          MetadataJdbcStorage.class,
-                                         SettingJdbcStorage.class);
+                                         SettingJdbcStorage.class,
+                                         // alerting
+                                         JdbcLoggerStorage.class,
+                                         AlertObjectJdbcStorage.class,
+                                         AlertRecordJdbcStorage.class
+
+                );
             }
         };
     }

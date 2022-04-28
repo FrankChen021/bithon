@@ -1,0 +1,15 @@
+
+### Get Alert list
+POST http://localhost:9897/alerting/api/alert/getAlerts
+Content-Type: application/json
+
+{
+}
+
+### Get Change logs
+POST http://localhost:9897/alerting/api/alert/getChangeLogs
+Content-Type: application/json
+
+{
+  "alertId": "f7f87ce1e0b444919b123849f4c7938f"
+}

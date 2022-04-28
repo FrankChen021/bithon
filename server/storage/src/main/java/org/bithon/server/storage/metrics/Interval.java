@@ -39,17 +39,17 @@ public class Interval {
     }
 
     public static Interval of(TimeSpan start, TimeSpan end) {
-        return of(start, end, getStepLength(start, end));
+        return of(start, end, calculateDefaultStep(start, end));
     }
 
-    public static Interval of(TimeSpan start, TimeSpan end, int step) {
-        return new Interval(start, end, step);
+    public static Interval of(TimeSpan start, TimeSpan end, Integer step) {
+        return new Interval(start, end, step == null ? calculateDefaultStep(start, end) : step);
     }
 
     /**
      * TODO: interval should be consistent with retention rules
      */
-    private static int getStepLength(TimeSpan start, TimeSpan end) {
+    public static int calculateDefaultStep(TimeSpan start, TimeSpan end) {
         long length = end.diff(start) / 1000;
         if (length >= 7 * 24 * 3600) {
             return 15 * 60;
@@ -80,12 +80,12 @@ public class Interval {
     /**
      * @return query granularity in seconds
      */
-    public int getStepLength() {
+    public int calculateDefaultStep() {
         return step;
     }
 
     /**
-     * @return the length of interval
+     * @return the length of interval in seconds
      */
     public int getTotalLength() {
         return (int) (endTime.getMilliseconds() - startTime.getMilliseconds()) / 1000;

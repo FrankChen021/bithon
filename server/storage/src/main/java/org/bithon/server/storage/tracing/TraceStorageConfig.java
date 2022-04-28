@@ -17,7 +17,7 @@
 package org.bithon.server.storage.tracing;
 
 import lombok.Data;
-import org.bithon.server.storage.TTLConfig;
+import org.bithon.server.storage.common.TTLConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 

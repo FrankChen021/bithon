@@ -360,7 +360,7 @@ class Dashboard {
         let loadOptions;
         if (chartDescriptor.details.groupBy !== undefined && chartDescriptor.details.groupBy.length > 0) {
             loadOptions = {
-                url: apiHost + "/api/datasource/groupBy",
+                url: apiHost + "/api/datasource/metrics/groupBy",
                 start: startTimestamp,
                 end: endTimestamp,
                 ajaxData: {
@@ -375,7 +375,7 @@ class Dashboard {
         } else {
             // list option
             loadOptions = {
-                url: apiHost + "/api/datasource/list",
+                url: apiHost + "/api/datasource/metrics/list",
                 ajaxData: {
                     dataSource: chartDescriptor.dataSource,
                     startTimeISO8601: startISO8601,
@@ -677,11 +677,13 @@ class Dashboard {
         }
 
         chartComponent.load({
-            url: apiHost + "/api/datasource/metrics",
+            url: apiHost + "/api/datasource/metrics/v2",
             ajaxData: JSON.stringify({
                 dataSource: chartDescriptor.dataSource,
-                startTimeISO8601: interval.start,
-                endTimeISO8601: interval.end,
+                interval: {
+                    startISO8601: interval.start,
+                    endISO8601: interval.end,
+                },
                 filters: filters,
                 groups: chartDescriptor.groupBy,
                 metrics: chartComponent.getOption().metrics
@@ -736,12 +738,13 @@ class Dashboard {
         }
 
         chartComponent.load({
-            url: apiHost + "/api/datasource/timeseries",
+            url: apiHost + "/api/datasource/metrics/timeseries",
             ajaxData: JSON.stringify({
                 dataSource: chartDescriptor.dataSource,
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                dimensions: dimensions,
+                dimensions: dimensions, //TODO: TO BE REMOVED since the new field `filter` is applied
+                filters: dimensions,
                 groups: chartDescriptor.groupBy,
                 metrics: chartComponent.getOption().metrics
             }),
