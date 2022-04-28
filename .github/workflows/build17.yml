@@ -23,5 +23,5 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
       - name: Compilation
-        run: mvn clean install -T 1C --ntp --activate-profiles shaded,jooq,server -Dmaven.javadoc.skip=true -DskipTests
+        run: mvn clean install -T 1C -ntp --activate-profiles shaded,jooq,server -Dmaven.javadoc.skip=true -DskipTests
   
