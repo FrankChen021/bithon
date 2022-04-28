@@ -84,8 +84,8 @@ you can cherry-pick these PRs to your own branch.
    ```
 
 > NOTE: 
-> the `appName` field must be either as 'clickhouse' or as a qualified name such as 'clickhouse-{namespace}' 
-> where {namespace} could be a string without the '-' character.
+> if `appName` field is not 'clickhouse', you should configure the application name to bithon-server under 
+> `collector-http.tracing.clickHouseApplications` path.
 > 
 > The above example creates the MV under `system` database, this is not mandate, you can change it to any database.
 > 
