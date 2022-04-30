@@ -30,6 +30,9 @@ import org.jooq.CreateTableIndexStep;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/31 1:37 下午
@@ -38,6 +41,7 @@ import org.jooq.SQLDialect;
 public class MetricJdbcStorage implements IMetricStorage {
 
     protected final DSLContext dslContext;
+    private final Map<String, Boolean> initializedSchemas = new ConcurrentHashMap<>();
 
     @JsonCreator
     public MetricJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder) {
@@ -64,6 +68,10 @@ public class MetricJdbcStorage implements IMetricStorage {
     @Override
     public IStorageCleaner createMetricCleaner(DataSourceSchema schema) {
         return timestamp -> {
+            if (!initializedSchemas.containsKey(schema.getName())) {
+                return;
+            }
+            
             final MetricTable table = new MetricTable(schema);
             dslContext.deleteFrom(table)
                       .where(table.getTimestampField().le(timestamp))
