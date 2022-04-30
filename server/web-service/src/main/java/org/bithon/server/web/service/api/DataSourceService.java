@@ -20,9 +20,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.TimeseriesQuery;
+import org.bithon.server.storage.metrics.TimeseriesQueryV2;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -47,53 +49,6 @@ public class DataSourceService {
     }
 
     /**
-     * old interface
-     */
-    public List<Map<String, Object>> oldTimeseriesQuery(TimeseriesQuery query) {
-        List<Map<String, Object>> queryResult = this.metricStorage.createMetricReader(query.getDataSource())
-                                                                  .timeseries(query);
-
-        //
-        // fill empty time slot bucket
-        //
-        List<Map<String, Object>> returns = new ArrayList<>();
-        int j = 0;
-        TimeSpan start = query.getInterval().getStartTime();
-        TimeSpan end = query.getInterval().getEndTime();
-        int step = query.getInterval().calculateDefaultStep();
-        for (long bucket = start.toSeconds() / step * step, endBucket = end.toSeconds() / step * step;
-             bucket < endBucket;
-             bucket += step) {
-            if (j < queryResult.size()) {
-                long nextSlot = ((Number) queryResult.get(j).get(TIMESTAMP_QUERY_NAME)).longValue();
-                while (bucket < nextSlot) {
-                    Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
-                    empty.put(TIMESTAMP_QUERY_NAME, bucket * 1000);
-                    query.getMetrics().forEach((metric) -> empty.put(metric, 0));
-                    returns.add(empty);
-                    bucket += step;
-                }
-
-                // convert to millisecond
-                queryResult.get(j).put(TIMESTAMP_QUERY_NAME, nextSlot * 1000);
-                returns.add(queryResult.get(j++));
-            } else {
-                Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
-                empty.put(TIMESTAMP_QUERY_NAME, bucket * 1000);
-                query.getMetrics().forEach((metric) -> empty.put(metric, 0));
-                returns.add(empty);
-            }
-        }
-        while (j < queryResult.size()) {
-            queryResult.get(j).put(TIMESTAMP_QUERY_NAME, ((Number) queryResult.get(j).get(TIMESTAMP_QUERY_NAME)).longValue() * 1000L);
-            returns.add(queryResult.get(j++));
-        }
-        return returns;
-    }
-
-    /**
-     * a more friendly interface for the front-end, and also size saving
-     *
      * @return key - the name of a metric
      * val - the time series values
      */
@@ -103,7 +58,7 @@ public class DataSourceService {
 
         TimeSpan start = query.getInterval().getStartTime();
         TimeSpan end = query.getInterval().getEndTime();
-        int step = query.getInterval().calculateDefaultStep();
+        int step = query.getInterval().getStep();
         long startSecond = start.toSeconds() / step * step;
         long endSecond = end.toSeconds() / step * step;
         int bucketCount = (int) (endSecond - startSecond) / step;
@@ -128,6 +83,54 @@ public class DataSourceService {
                                                               bucketCount,
                                                               query.getDataSource().getMetricSpecByName(metric)))
                    .set(bucketIndex, point.get(metric));
+            }
+        }
+
+        TimeSeriesQueryResult result = new TimeSeriesQueryResult();
+        result.interval = step * 1000L;
+        result.startTimestamp = startSecond * 1000;
+        result.endTimestamp = endSecond * 1000;
+        result.count = bucketCount;
+        result.metrics = map.values();
+
+        return result;
+    }
+
+    /**
+     * @return key - the name of a metric
+     * val - the time series values
+     */
+    public TimeSeriesQueryResult timeseriesQuery(TimeseriesQueryV2 query) {
+        List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
+                                                             .timeseries(query);
+
+        TimeSpan start = query.getInterval().getStartTime();
+        TimeSpan end = query.getInterval().getEndTime();
+        int step = query.getInterval().getStep();
+        long startSecond = start.toSeconds() / step * step;
+        long endSecond = end.toSeconds() / step * step;
+        int bucketCount = (int) (endSecond - startSecond) / step;
+
+        Map<List<String>, TimeSeriesMetric> map = new HashMap<>();
+
+        for (Map<String, Object> point : points) {
+            long timestamp = ((Number) point.get(TIMESTAMP_QUERY_NAME)).longValue();
+            int bucketIndex = (int) (timestamp - startSecond) / step;
+
+            for (IQueryStageAggregator metric : query.getAggregators()) {
+                // this code is not so efficient
+                // we can wrap the point object to get the key and deserialize the wrap object directly
+                List<String> tags = new ArrayList<>();
+                for (String group : query.getGroupBys()) {
+                    tags.add((String) point.get(group));
+                }
+                tags.add(metric.getName());
+
+                map.computeIfAbsent(tags,
+                                    v -> new TimeSeriesMetric(tags,
+                                                              bucketCount,
+                                                              query.getDataSource().getMetricSpecByName(metric.getName())))
+                   .set(bucketIndex, point.get(metric.getName()));
             }
         }
 

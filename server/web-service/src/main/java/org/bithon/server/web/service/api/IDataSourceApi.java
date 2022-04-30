@@ -32,17 +32,11 @@ import java.util.Map;
  */
 public interface IDataSourceApi {
 
-    /**
-     * DEPRECATED
-     */
-    @PostMapping("/api/datasource/metrics")
-    List<Map<String, Object>> timeseries0(@Validated @RequestBody TimeSeriesQueryRequest request);
-
-    @PostMapping("/api/datasource/metrics/v2")
-    List<Map<String, Object>> timeseries2(@Validated @RequestBody TimeSeriesQueryRequestV2 request);
-
     @PostMapping("/api/datasource/metrics/timeseries")
     DataSourceService.TimeSeriesQueryResult timeseries(@Validated @RequestBody TimeSeriesQueryRequest request);
+
+    @PostMapping("/api/datasource/metrics/timeseries/v2")
+    DataSourceService.TimeSeriesQueryResult timeseries(@Validated @RequestBody TimeSeriesQueryRequestV2 request);
 
     @PostMapping("/api/datasource/metrics/groupBy")
     List<Map<String, Object>> groupBy(@Validated @RequestBody GroupByQueryRequest request);

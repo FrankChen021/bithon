@@ -78,7 +78,8 @@ public class QueryStageAggregators {
 
         public static final String TYPE = "sum";
 
-        public SumAggregator(String name) {
+        @JsonCreator
+        public SumAggregator(@JsonProperty("name") @NotNull String name) {
             super(name, TYPE);
         }
 
@@ -92,7 +93,8 @@ public class QueryStageAggregators {
 
         public static final String TYPE = "count";
 
-        public CountAggregator(String name) {
+        @JsonCreator
+        public CountAggregator(@JsonProperty("name") @NotNull String name) {
             super(name, TYPE);
         }
 
@@ -106,7 +108,8 @@ public class QueryStageAggregators {
 
         public static final String TYPE = "avg";
 
-        public AvgAggregator(String name) {
+        @JsonCreator
+        public AvgAggregator(@JsonProperty("name") @NotNull String name) {
             super(name, TYPE);
         }
 
@@ -120,7 +123,8 @@ public class QueryStageAggregators {
 
         public static final String TYPE = "max";
 
-        public MaxAggregator(String name) {
+        @JsonCreator
+        public MaxAggregator(@JsonProperty("name") @NotNull String name) {
             super(name, TYPE);
         }
 
@@ -134,7 +138,8 @@ public class QueryStageAggregators {
 
         public static final String TYPE = "min";
 
-        public MinAggregator(String name) {
+        @JsonCreator
+        public MinAggregator(@JsonProperty("name") @NotNull String name) {
             super(name, TYPE);
         }
 
@@ -147,7 +152,7 @@ public class QueryStageAggregators {
     public static class FirstAggregator extends AbstractQueryStageAggregator {
         public static final String TYPE = "first";
 
-        public FirstAggregator(String name) {
+        public FirstAggregator(@JsonProperty("name") @NotNull String name) {
             super(name, TYPE);
         }
 
@@ -161,7 +166,8 @@ public class QueryStageAggregators {
 
         public static final String TYPE = "last";
 
-        public LastAggregator(String name) {
+        @JsonCreator
+        public LastAggregator(@JsonProperty("name") @NotNull String name) {
             super(name, TYPE);
         }
 
@@ -175,7 +181,8 @@ public class QueryStageAggregators {
 
         public static final String TYPE = "rate";
 
-        public RateAggregator(String name) {
+        @JsonCreator
+        public RateAggregator(@JsonProperty("name") @NotNull String name) {
             super(name, TYPE);
         }
 

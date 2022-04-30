@@ -90,17 +90,20 @@ class MetricComponent {
 
         $.ajax({
             type: "POST",
-            url: "/api/datasource/metrics/v2",
+            url: "/api/datasource/metrics/timeseries/v2",
             async: true,
             data: JSON.stringify({
                 dataSource: dataSourceName,
                 interval: {
                     startISO8601: moment(end - 3600 * 1000 * this.option.hours).local().toISOString(true),
                     endISO8601: moment(end).local().toISOString(true),
-                    step: 60
+                    step: metricCondition.window * 60
                 },
                 filters: dimensions,
-                metrics: [metricCondition.name]
+                aggregators: [{
+                    name: metricCondition.name,
+                    aggregator: metricCondition.aggregator
+                }]
             }),
             dataType: "json",
             contentType: "application/json",
@@ -130,7 +133,7 @@ class MetricComponent {
         series.push({
             name: metricCondition.name,
             type: 'line',
-            data: data.map(val => val[metricCondition.name].toFixed(2)),
+            data: data.metrics[0].values
         });
 
         const markLines = []
@@ -163,6 +166,15 @@ class MetricComponent {
             };
         }
 
+        const timeLabels = [];
+        for (let t = data.startTimestamp; t <= data.endTimestamp; t += data.interval) {
+            timeLabels.push(moment(t).local().format('HH:mm'));
+        }
+
+        const startTimestamp = data.startTimestamp;
+        const endTimestamp = data.endTimestamp;
+        const interval = data.interval;
+
         const option = {
             title: {
                 text: this.option.title,
@@ -173,7 +185,13 @@ class MetricComponent {
             },
             color: ['#0098d9', '#90c31d'],
             tooltip: {
-                trigger: 'axis'
+                trigger: 'axis',
+                formatter: (s) => {
+                    const dataIndex = s[0].dataIndex;
+                    const timeText = moment(start + dataIndex * interval).local().format('yyyy-MM-DD HH:mm:ss');
+
+                    return `${timeText}<br/>${s[0].seriesName}: ${s[0].value.toFixed(2)}`;
+                }
             },
             grid: [{
                 right: '0',
@@ -187,9 +205,7 @@ class MetricComponent {
                         alignWithLabel: true
                     },
                     gridIndex: 0,
-
-                    // the alerting checks metrics in an interval of minute, so format the timestamp in minute
-                    data: data.map(val => moment(val["_timestamp"]).local().format('HH:mm'))
+                    data: timeLabels
                 }
             ],
             yAxis: [

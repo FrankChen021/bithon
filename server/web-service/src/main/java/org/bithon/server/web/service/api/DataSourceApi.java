@@ -16,7 +16,6 @@
 
 package org.bithon.server.web.service.api;
 
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.TTLConfig;
@@ -31,6 +30,7 @@ import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.storage.metrics.TimeseriesQuery;
+import org.bithon.server.storage.metrics.TimeseriesQueryV2;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,37 +62,6 @@ public class DataSourceApi implements IDataSourceApi {
         this.dataSourceService = dataSourceService;
     }
 
-    // deprecated
-    @Override
-    public List<Map<String, Object>> timeseries0(TimeSeriesQueryRequest request) {
-        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
-
-        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
-
-        return dataSourceService.oldTimeseriesQuery(new TimeseriesQuery(schema,
-                                                                        request.getMetrics(),
-                                                                        CollectionUtils.isNotEmpty(request.getDimensions())
-                                                                        ? request.getDimensions()
-                                                                        : request.getFilters(),
-                                                                        Interval.of(start, end),
-                                                                        request.getGroups()));
-    }
-
-    @Override
-    public List<Map<String, Object>> timeseries2(TimeSeriesQueryRequestV2 request) {
-        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
-
-        TimeSpan start = TimeSpan.fromISO8601(request.getInterval().getStartISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(request.getInterval().getEndISO8601());
-
-        return dataSourceService.oldTimeseriesQuery(new TimeseriesQuery(schema,
-                                                                        request.getMetrics(),
-                                                                        request.getFilters(),
-                                                                        Interval.of(start, end, request.getInterval().getStep()),
-                                                                        request.getGroups()));
-    }
-
     @Override
     public DataSourceService.TimeSeriesQueryResult timeseries(TimeSeriesQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
@@ -102,11 +71,25 @@ public class DataSourceApi implements IDataSourceApi {
 
         return dataSourceService.timeseriesQuery(new TimeseriesQuery(schema,
                                                                      request.getMetrics(),
-                                                                     CollectionUtils.isNotEmpty(request.getDimensions())
-                                                                     ? request.getDimensions()
-                                                                     : request.getFilters(),
+                                                                     request.getFilters(),
                                                                      Interval.of(start, end),
                                                                      request.getGroups()));
+    }
+
+    @Override
+    public DataSourceService.TimeSeriesQueryResult timeseries(TimeSeriesQueryRequestV2 request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        TimeSpan start = TimeSpan.fromISO8601(request.getInterval().getStartISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(request.getInterval().getEndISO8601());
+
+        return dataSourceService.timeseriesQuery(TimeseriesQueryV2.builder()
+                                                                  .dataSource(schema)
+                                                                  .aggregators(request.getAggregators())
+                                                                  .filters(request.getFilters())
+                                                                  .interval(Interval.of(start, end, request.getInterval().getStep()))
+                                                                  .groupBys(request.getGroupBy())
+                                                                  .build());
     }
 
     @Override

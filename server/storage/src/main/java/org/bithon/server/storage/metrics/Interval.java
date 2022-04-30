@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.metrics;
 
+import lombok.Getter;
 import org.bithon.server.commons.time.TimeSpan;
 
 /**
@@ -30,6 +31,7 @@ public class Interval {
     /**
      * in second
      */
+    @Getter
     private final int step;
 
     private Interval(TimeSpan startTime, TimeSpan endTime, int step) {
@@ -75,13 +77,6 @@ public class Interval {
 
     public TimeSpan getEndTime() {
         return endTime;
-    }
-
-    /**
-     * @return query granularity in seconds
-     */
-    public int calculateDefaultStep() {
-        return step;
     }
 
     /**

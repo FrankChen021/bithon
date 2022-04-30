@@ -39,6 +39,7 @@ import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.OrderBy;
 import org.bithon.server.storage.metrics.TimeseriesQuery;
+import org.bithon.server.storage.metrics.TimeseriesQueryV2;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -76,10 +77,45 @@ public class MetricJdbcReader implements IMetricReader {
                                                     query.getInterval().getStartTime(),
                                                     query.getInterval().getEndTime(),
                                                     query.getDataSource(),
-                                                    query.getInterval().calculateDefaultStep()).filters(query.getFilters())
-                                                                                               .metrics(query.getMetrics())
-                                                                                               .groupBy(query.getGroupBys())
-                                                                                               .build();
+                                                    query.getInterval().getStep()).filters(query.getFilters())
+                                                                                  .metrics(query.getMetrics())
+                                                                                  .groupBy(query.getGroupBys())
+                                                                                  .build();
+        return executeSql(sql);
+    }
+
+    @Override
+    public List<Map<String, Object>> timeseries(TimeseriesQueryV2 query) {
+        String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
+
+        String aggregatorList = "";
+        if (!query.getAggregators().isEmpty()) {
+            QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(query.getInterval().getTotalLength());
+            aggregatorList = query.getAggregators()
+                                  .stream()
+                                  .map(aggregator -> aggregator.accept(generator))
+                                  .collect(Collectors.joining(","));
+        }
+
+        String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
+
+        String groupByFields = query.getGroupBys().stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
+
+        String timestampExpression = sqlFormatter.timeFloor("timestamp", query.getInterval().getStep());
+
+        String sql = StringUtils.format(
+            "SELECT  %s AS \"_timestamp\", %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s ORDER BY _timestamp",
+            timestampExpression,
+            Stream.of(groupByFields, aggregatorList)
+                  .filter(selector -> selector.length() > 0)
+                  .collect(Collectors.joining(",")),
+            sqlTableName,
+            filter,
+            StringUtils.hasText(filter) ? "AND" : "",
+            sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
+            sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
+            sqlFormatter.groupByUseRawExpression() ? timestampExpression : TIMESTAMP_QUERY_NAME
+        );
         return executeSql(sql);
     }
 
@@ -523,7 +559,7 @@ public class MetricJdbcReader implements IMetricReader {
         private final Set<String> rawExpressions = new HashSet<>();
         private final String tableName;
         private final DataSourceSchema schema;
-        private final long interval;
+        private final long timeStep;
         private final ISqlExpressionFormatter sqlFormatter;
         private final TimeSpan start;
         private final TimeSpan end;
@@ -534,19 +570,19 @@ public class MetricJdbcReader implements IMetricReader {
                                    TimeSpan start,
                                    TimeSpan end,
                                    DataSourceSchema dataSourceSchema,
-                                   long interval) {
+                                   long timeStep) {
             this.sqlFormatter = sqlFormatter;
             this.tableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
             this.start = start;
             this.end = end;
             this.schema = dataSourceSchema;
-            this.interval = interval;
+            this.timeStep = timeStep;
         }
 
         TimeSeriesSqlClauseBuilder metrics(Collection<String> metrics) {
             MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(this.sqlFormatter,
                                                                               ImmutableMap.of("interval",
-                                                                                              interval,
+                                                                                              timeStep,
                                                                                               "instanceCount",
                                                                                               "count(distinct \"instanceName\")"),
                                                                               true,
@@ -598,7 +634,7 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         String build() {
-            String timestampExpression = sqlFormatter.timeFloor("timestamp", interval);
+            String timestampExpression = sqlFormatter.timeFloor("timestamp", timeStep);
             if (rawExpressions.isEmpty()) {
                 return StringUtils.format(
                     "SELECT %s AS \"_timestamp\", %s %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s %s %s",

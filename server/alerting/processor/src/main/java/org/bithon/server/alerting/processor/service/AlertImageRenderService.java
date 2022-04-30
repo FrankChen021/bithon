@@ -129,7 +129,8 @@ public class AlertImageRenderService {
                                                                .filters(condition.getDimensions())
                                                                .metrics(Collections.singletonList(metricSpec.getName()))
                                                                .build();
-        List<Map<String, Object>> data = this.dataSourceApi.timeseries0(request);
+        //TODO: fix
+        List<Map<String, Object>> data = null; //this.dataSourceApi.timeseries0(request);
 
         Number threshold = metricSpec.getValueType().scaleTo((Number) ((AbstractAbsoluteThresholdCondition) condition.getMetric()).getExpected(), 2);
 

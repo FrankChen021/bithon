@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * @author Frank Chen
  * @date 1/11/21 2:36 pm
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "aggregator")
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = QueryStageAggregators.CardinalityAggregator.TYPE, value = QueryStageAggregators.CardinalityAggregator.class),
     @JsonSubTypes.Type(name = QueryStageAggregators.SumAggregator.TYPE, value = QueryStageAggregators.SumAggregator.class),
@@ -37,5 +37,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(name = QueryStageAggregators.RateAggregator.TYPE, value = QueryStageAggregators.RateAggregator.class),
 })
 public interface IQueryStageAggregator {
+
+    String getName();
+
     <T> T accept(IQueryStageAggregatorVisitor<T> visitor);
 }

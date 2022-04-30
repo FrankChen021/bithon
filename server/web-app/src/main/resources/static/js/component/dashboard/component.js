@@ -660,72 +660,6 @@ class Dashboard {
             mode = 'refresh';
         }
 
-        if (chartDescriptor.groupBy !== undefined) {
-            // in future, the version 2 method should be used for all cases
-            this.refreshChart2(chartDescriptor, chartComponent, interval, metricNamePrefix, mode);
-            return;
-        }
-
-        if (metricNamePrefix == null) {
-            metricNamePrefix = '';
-        }
-        const filters = this.vFilter.getSelectedFilters();
-        if (chartDescriptor.dimensions !== undefined) {
-            $.each(chartDescriptor.dimensions, (name, value) => {
-                filters.push(value);
-            });
-        }
-
-        chartComponent.load({
-            url: apiHost + "/api/datasource/metrics/v2",
-            ajaxData: JSON.stringify({
-                dataSource: chartDescriptor.dataSource,
-                interval: {
-                    startISO8601: interval.start,
-                    endISO8601: interval.end,
-                },
-                filters: filters,
-                groups: chartDescriptor.groupBy,
-                metrics: chartComponent.getOption().metrics
-            }),
-            processResult: (data) => {
-                const timeLabels = data.map(d => moment(d._timestamp).local().format('HH:mm:ss'));
-
-                const series = chartDescriptor.metrics.map(metric => {
-                    return {
-                        name: metricNamePrefix + (metric.displayName === undefined ? metric.name : metric.displayName),
-                        type: metric.chartType || 'line',
-
-                        data: data.map(d => metric.transformer(d[metric.name])),
-                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
-
-                        areaStyle: {opacity: 0.3},
-                        lineStyle: {width: 1},
-                        itemStyle: {opacity: 0},
-
-                        // selected is not a property of series
-                        // this is used to render default selected state of legend by chart-component
-                        selected: metric.selected === undefined ? true : metric.selected
-                    }
-                });
-
-
-                return {
-                    // save the timestamp for further processing
-                    timestamp: {
-                        start: data.length === 0 ? 0 : data[0]._timestamp,
-                        interval: data.length === 0 ? 0 : data[1]._timestamp - data[0]._timestamp
-                    },
-                    xAxis: {
-                        data: timeLabels
-                    },
-                    series: series
-                }
-            }
-        });
-    }
-
-    refreshChart2(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
         if (metricNamePrefix == null) {
             metricNamePrefix = '';
         }
@@ -743,7 +677,6 @@ class Dashboard {
                 dataSource: chartDescriptor.dataSource,
                 startTimeISO8601: interval.start,
                 endTimeISO8601: interval.end,
-                dimensions: dimensions, //TODO: TO BE REMOVED since the new field `filter` is applied
                 filters: dimensions,
                 groups: chartDescriptor.groupBy,
                 metrics: chartComponent.getOption().metrics

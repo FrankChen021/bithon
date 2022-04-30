@@ -169,9 +169,10 @@
             }
 
             const metricSpec = dataSource.metricsMap[condition.metric.name];
-            $(conditionRow).find(".condition-metric").val(metricSpec.name + ' ' + condition.metric.comparator + ' ' + condition.metric.expected + metricSpec.unit);
+            const text = `${condition.metric.aggregator}(${condition.metric.name}, ${condition.metric.window}m) ${condition.metric.comparator} ${condition.metric.expected}${metricSpec.unit}`;
+            $(conditionRow).find(".condition-metric").val(text);
 
-            $(conditionRow).find(".show-metric").click(function () {
+            $(conditionRow).find(".show-metric").click(() => {
                 const metricComponent = new MetricComponent();
                 metricComponent.showDialog({
                     dataSourceName: condition.dataSource,

@@ -14,41 +14,33 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.storage.metrics;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.bithon.server.storage.metrics.IFilter;
+import lombok.Getter;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2022/1/9 1:03 下午
+ * @author Frank Chen
+ * @date 1/11/21 2:50 pm
  */
-@Data
+@Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class TimeSeriesQueryRequest {
-    @NotEmpty
-    private String startTimeISO8601;
+public class TimeseriesQueryV2 {
+    private DataSourceSchema dataSource;
 
-    @NotEmpty
-    private String endTimeISO8601;
+    private List<IQueryStageAggregator> aggregators;
 
-    @NotEmpty
-    private String dataSource;
+    private Collection<IFilter> filters = Collections.emptyList();
+    private Interval interval;
 
-    @Size(min = 1)
-    private List<String> metrics;
-
-    private List<String> groups = Collections.emptyList();
-
-    private List<IFilter> filters;
+    /**
+     * time series also have groupBy, in this case, there will be multiple series
+     */
+    private List<String> groupBys = Collections.emptyList();
 }
