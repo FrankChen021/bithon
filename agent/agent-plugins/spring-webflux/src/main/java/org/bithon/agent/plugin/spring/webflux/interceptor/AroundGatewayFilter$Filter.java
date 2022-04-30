@@ -104,9 +104,16 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
         final ServerWebExchange exchange = aopContext.getArgAs(0);
         FilterUtils.extractAttributesAsTraceTags(exchange, this.configs, aopContext.getTargetClass(), span);
 
-        Mono<Void> originalReturning = aopContext.castReturningAs();
-        Mono<Void> replacedReturning = originalReturning.doOnError((exception) -> span.tag(exception).finish())
-                                                        .doOnSuccess((s) -> span.finish());
-        aopContext.setReturning(replacedReturning);
+        if (aopContext.hasException()) {
+            // this exception might be thrown from this filter or from the chains of the filter.
+            // For the 1st case, the span is not closed, so we have to finish it
+            // For the 2nd case, the span is closed before entering the filter chain. It's safe to call the finish method once more
+            span.tag(aopContext.getException()).finish();
+        } else {
+            Mono<Void> originalReturning = aopContext.castReturningAs();
+            Mono<Void> replacedReturning = originalReturning.doOnError((exception) -> span.tag(exception).finish())
+                                                            .doOnSuccess((s) -> span.finish());
+            aopContext.setReturning(replacedReturning);
+        }
     }
 }
