@@ -50,8 +50,8 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
 
     protected final DSLContext dslContext;
 
-    private final String objectTableSelectName;
-    private final String stateTableSelectName;
+    private final String quotedObjectTableSelectName;
+    private final String quotedStateTableSelectName;
 
     @JsonCreator
     public AlertObjectJdbcStorage(@JacksonInject(useInput = OptBoolean.FALSE) JdbcJooqContextHolder dslContextHolder) {
@@ -65,8 +65,8 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                                   String objectTableSelectName,
                                   String stateTableSelectName) {
         this.dslContext = dslContext;
-        this.objectTableSelectName = objectTableSelectName;
-        this.stateTableSelectName = stateTableSelectName;
+        this.quotedObjectTableSelectName = objectTableSelectName;
+        this.quotedStateTableSelectName = stateTableSelectName;
     }
 
     @Override
@@ -88,7 +88,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
 
     @Override
     public List<AlertStorageObject> getAlertListByTime(Timestamp start, Timestamp end) {
-        return dslContext.selectFrom(this.objectTableSelectName)
+        return dslContext.selectFrom(this.quotedObjectTableSelectName)
                          .where(Tables.BITHON_ALERT_OBJECT.UPDATED_AT.between(start, end))
                          .fetchInto(AlertStorageObject.class);
     }
@@ -98,7 +98,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
         // use fetchCount instead of fetchExists
         // because the former one uses 'exists' subclause in the generated SQL,
         // and for ClickHouse, this clause is not recognizable
-        return dslContext.fetchCount(dslContext.selectFrom(this.objectTableSelectName)
+        return dslContext.fetchCount(dslContext.selectFrom(this.quotedObjectTableSelectName)
                                                .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(alertId))
                                                .and(Tables.BITHON_ALERT_OBJECT.DELETED.eq(false))) > 0;
 
@@ -106,7 +106,7 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
 
     @Override
     public AlertStorageObject getAlertById(String alertId) {
-        return dslContext.selectFrom(this.objectTableSelectName)
+        return dslContext.selectFrom(this.quotedObjectTableSelectName)
                          .where(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(alertId))
                          .and(Tables.BITHON_ALERT_OBJECT.DELETED.eq(false))
                          .fetchOneInto(AlertStorageObject.class);
@@ -200,8 +200,8 @@ public class AlertObjectJdbcStorage implements IAlertObjectStorage {
                                                              Tables.BITHON_ALERT_STATE.LAST_ALERT_AT,
                                                              Tables.BITHON_ALERT_STATE.LAST_RECORD_ID,
                                                              Tables.BITHON_ALERT_OBJECT.LAST_OPERATOR)
-                                                     .from(this.objectTableSelectName)
-                                                     .leftJoin(StringUtils.format("(SELECT * FROM %s) AS %s", this.stateTableSelectName, Tables.BITHON_ALERT_STATE.getName()))
+                                                     .from(this.quotedObjectTableSelectName)
+                                                     .leftJoin(StringUtils.format("(SELECT * FROM %s) AS \"%s\"", this.quotedStateTableSelectName, Tables.BITHON_ALERT_STATE.getName()))
                                                      .on(Tables.BITHON_ALERT_OBJECT.ALERT_ID.eq(Tables.BITHON_ALERT_STATE.ALERT_ID))
                                                      .where(Tables.BITHON_ALERT_OBJECT.DELETED.eq(false));
 
