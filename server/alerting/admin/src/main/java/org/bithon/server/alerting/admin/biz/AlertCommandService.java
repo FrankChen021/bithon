@@ -19,7 +19,6 @@ package org.bithon.server.alerting.admin.biz;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.alerting.common.AlertingModule;
 import org.bithon.server.alerting.common.evaluator.rule.builder.InvalidRuleExpressionException;
 import org.bithon.server.alerting.common.model.Alert;
 import org.bithon.server.alerting.common.model.AlertCondition;
@@ -35,7 +34,6 @@ import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.web.service.api.IDataSourceApi;
 import org.bithon.server.web.service.meta.api.IMetadataApi;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -52,7 +50,6 @@ import java.util.Set;
  */
 @Slf4j
 @Service
-@ConditionalOnBean(AlertingModule.class)
 public class AlertCommandService {
 
     final IAlertObjectStorage alertObjectStorage;

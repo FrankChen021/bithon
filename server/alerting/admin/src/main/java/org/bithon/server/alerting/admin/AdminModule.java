@@ -16,23 +16,11 @@
 
 package org.bithon.server.alerting.admin;
 
-import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 /**
+ * Enabled by configuration item <b>bithon.alerting.admin.enabled</b>
+ *
  * @author Frank Chen
- * @date 12/11/21 6:18 pm
+ * @date 30/4/22 4:13 PM
  */
-@Configuration
-@ConditionalOnProperty(prefix = "bithon.alerting.admin", name = "enabled", havingValue = "true")
-@ImportAutoConfiguration(value = {AlertingStorageConfiguration.class})
-public class AdminModuleAutoConfiguration {
-
-    @Bean
-    AdminModule alertingAdminModule() {
-        return new AdminModule();
-    }
+public class AdminModule {
 }

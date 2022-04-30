@@ -18,14 +18,19 @@ package org.bithon.server.alerting.processor;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.AlertingModule;
 import org.bithon.server.alerting.processor.storage.AlertStateLocalMemoryStorage;
 import org.bithon.server.storage.alerting.AlertingStorageConfiguration;
+import org.bithon.server.storage.alerting.IAlertStateStorage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
 
 /**
  * @author Frank Chen
@@ -37,13 +42,20 @@ import org.springframework.context.annotation.Configuration;
 public class ProcessorModuleAutoConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean
-    AlertingModule alertingModule() {
+    AlertingModule processorModule() {
         return new AlertingModule();
     }
 
+
     @Bean
-    public Module alertProcessorModule() {
+    public IAlertStateStorage alertStateStorage(ObjectMapper objectMapper,
+                                                @Value("${bithon.alerting.state.type}") String storageType) throws IOException {
+        String jsonType = StringUtils.format("{\"type\":\"%s\"}", storageType);
+        return objectMapper.readValue(jsonType, IAlertStateStorage.class);
+    }
+
+    @Bean
+    public Module alertingProcessorModule() {
         return new Module() {
             @Override
             public String getModuleName() {

@@ -16,8 +16,8 @@
 
 package org.bithon.server.alerting.admin.api;
 
+import org.bithon.server.alerting.admin.AdminModule;
 import org.bithon.server.alerting.admin.biz.EvaluationLogService;
-import org.bithon.server.alerting.common.AlertingModule;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  */
 @CrossOrigin
 @RestController
-@ConditionalOnBean(AlertingModule.class)
+@ConditionalOnBean(AdminModule.class)
 public class AlertQueryApi {
 
     final IAlertRecordStorage alertRecordStorage;

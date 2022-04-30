@@ -1,9 +1,9 @@
 bithon:
   alerting:
     processor:
-      enabled: true
-    admin:
       enabled: false
+    admin:
+      enabled: true
     state:
       type: local
     configuration:

@@ -67,13 +67,6 @@ public class AlertingStorageConfiguration {
     }
 
     @Bean
-    public IAlertStateStorage alertStateStorage(ObjectMapper objectMapper,
-                                                @Value("${bithon.alerting.state.type}") String storageType) throws IOException {
-        String jsonType = StringUtils.format("{\"type\":\"%s\"}", storageType);
-        return objectMapper.readValue(jsonType, IAlertStateStorage.class);
-    }
-
-    @Bean
     public AlertStorageCleaner alertStorageCleaner(IEvaluationLogStorage evaluationLogStorage,
                                                    EvaluationLogConfig logConfig,
                                                    IAlertRecordStorage recordStorage,

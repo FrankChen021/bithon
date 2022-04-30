@@ -19,9 +19,9 @@ package org.bithon.server.alerting.admin.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.server.alerting.admin.AdminModule;
 import org.bithon.server.alerting.admin.biz.AlertCommandService;
 import org.bithon.server.alerting.admin.biz.BizException;
-import org.bithon.server.alerting.common.AlertingModule;
 import org.bithon.server.alerting.common.model.Alert;
 import org.bithon.server.alerting.common.utils.Validator;
 import org.bithon.server.storage.alerting.IAlertObjectStorage;
@@ -40,7 +40,7 @@ import javax.validation.Valid;
 @Slf4j
 @CrossOrigin
 @RestController
-@ConditionalOnBean(AlertingModule.class)
+@ConditionalOnBean(AdminModule.class)
 public class AlertCommandApi {
 
     final AlertCommandService commandService;
