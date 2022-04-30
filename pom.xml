@@ -427,6 +427,7 @@
 
             <!-- webapp -->
             <dependency>nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect</dependency>
+            <dependency>org.hibernate.validator:hibernate-validator</dependency>
 
             <!-- jdbc -->
             <dependency>com.alibaba:druid-spring-boot-starter</dependency>
@@ -437,6 +438,7 @@
             <!-- starter -->
             <dependency>com.alibaba.cloud:spring-cloud-starter-alibaba-nacos-config</dependency>
             <dependency>org.bithon:*</dependency>
+            <dependency>org.bithon.server:*</dependency>
           </ignoredUnusedDeclaredDependencies>
         </configuration>
       </plugin>
