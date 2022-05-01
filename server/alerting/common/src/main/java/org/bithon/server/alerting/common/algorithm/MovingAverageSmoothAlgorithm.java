@@ -26,16 +26,23 @@ import java.util.function.Function;
  * @author frankchen
  * @date 2020-03-27 09:08:20
  */
-public class SMASmoothAlgorithm implements ISmoothAlgorithm {
+public class MovingAverageSmoothAlgorithm implements ISmoothAlgorithm {
+
+    @Override
+    public List<Number> smooth(List<Number> data) {
+        SMAImpl impl = new SMAImpl(5);
+        data.replaceAll(number -> impl.addNewNumber(number.doubleValue()));
+        return data;
+    }
 
     @Override
     public void smooth(List<?> data,
-                       Function<Object, ? extends Number> mapper,
-                       BiConsumer<Object, Double> action) {
+                       Function<Object, ? extends Number> getter,
+                       BiConsumer<Object, Double> setter) {
         SMAImpl impl = new SMAImpl(5);
         for (Object obj : data) {
-            Number n = mapper.apply(obj);
-            action.accept(obj, impl.addNewNumber(n.doubleValue()));
+            Number n = getter.apply(obj);
+            setter.accept(obj, impl.addNewNumber(n.doubleValue()));
         }
     }
 

@@ -26,7 +26,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluatorContext;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.ValueEvaluationOutput;
-import org.bithon.server.alerting.common.model.Aggregator;
+import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.IMetricCondition;
 import org.bithon.server.alerting.common.model.IMetricConditionVisitor;
 import org.bithon.server.alerting.common.model.MetricConditionCategory;
@@ -111,7 +111,7 @@ public class NullValueMetricCondition implements IMetricCondition {
     }
 
     @Override
-    public Aggregator getAggregator() {
+    public AggregatorEnum getAggregator() {
         return null;
     }
 

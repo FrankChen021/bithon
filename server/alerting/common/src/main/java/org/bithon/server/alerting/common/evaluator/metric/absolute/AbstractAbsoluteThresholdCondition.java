@@ -25,7 +25,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluatorContext;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.ValueEvaluationOutput;
-import org.bithon.server.alerting.common.model.Aggregator;
+import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.IMetricCondition;
 import org.bithon.server.alerting.common.model.MetricConditionCategory;
 import org.bithon.server.alerting.common.utils.HumanReadableBytes;
@@ -65,7 +65,7 @@ public abstract class AbstractAbsoluteThresholdCondition implements IMetricCondi
     private final Number expectedValue;
 
     @Getter
-    private final Aggregator aggregator;
+    private final AggregatorEnum aggregator;
 
     /**
      * runtime property
@@ -78,7 +78,7 @@ public abstract class AbstractAbsoluteThresholdCondition implements IMetricCondi
     private final List<IQueryStageAggregator> queryStageAggregators;
 
     public AbstractAbsoluteThresholdCondition(String name,
-                                              Aggregator aggregator,
+                                              AggregatorEnum aggregator,
                                               Object expected,
                                               String operator,
                                               Integer window) {

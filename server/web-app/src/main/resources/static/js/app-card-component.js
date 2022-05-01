@@ -45,7 +45,7 @@ class AppCardComponent {
                 metrics: ["instanceStartTime"],
                 aggregators: [
                     {
-                        type: "cardinality",
+                        aggregator: "cardinality",
                         name: "instanceCount",
                         dimension: "instanceName"
                     }

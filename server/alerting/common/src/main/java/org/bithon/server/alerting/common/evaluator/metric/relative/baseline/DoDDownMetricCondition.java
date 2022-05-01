@@ -19,7 +19,7 @@ package org.bithon.server.alerting.common.evaluator.metric.relative.baseline;
 import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import org.bithon.server.alerting.common.model.Aggregator;
+import org.bithon.server.alerting.common.model.AggregatorEnum;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -31,7 +31,7 @@ import javax.validation.constraints.NotNull;
 public class DoDDownMetricCondition extends AbstractBaselineMetricCondition {
 
     public DoDDownMetricCondition(@JsonProperty("name") @NotNull String name,
-                                  @JsonProperty("aggregator") @NotNull Aggregator aggregator,
+                                  @JsonProperty("aggregator") @NotNull AggregatorEnum aggregator,
                                   @JsonProperty("period") @NotNull Integer dayOffset,
                                   @JsonProperty("percentage") @NotNull Integer percentage,
                                   @JsonProperty("window") @Nullable Integer window,

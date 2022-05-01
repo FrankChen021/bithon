@@ -32,8 +32,8 @@ import org.bithon.server.alerting.common.notification.message.NotificationMessag
 import org.bithon.server.alerting.common.notification.message.OutputMessage;
 import org.bithon.server.alerting.common.notification.message.RuleMessage;
 import org.bithon.server.alerting.common.notification.provider.INotificationProvider;
-import org.bithon.server.alerting.processor.notification.NotificationConfig;
 import org.bithon.server.alerting.processor.service.AlertImageRenderService;
+import org.bithon.server.alerting.processor.service.RenderingConfig;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.alerting.IAlertRecordStorage;
 import org.bithon.server.storage.alerting.IAlertStateStorage;
@@ -60,7 +60,7 @@ public class AlertEvaluator {
 
     private final IAlertStateStorage stateStorage;
     private final IEvaluationLogStorage evaluationLoggerFactory;
-    private final NotificationConfig notificationConfig;
+    private final RenderingConfig renderingConfig;
     private final IAlertRecordStorage alertRecordStorage;
     private final ObjectMapper objectMapper;
     private final AlertImageRenderService imageRenderService;
@@ -68,13 +68,13 @@ public class AlertEvaluator {
 
     public AlertEvaluator(IAlertStateStorage stateStorage,
                           IEvaluationLogStorage evaluationLoggerFactory,
-                          NotificationConfig notificationConfig,
+                          RenderingConfig notificationConfig,
                           IAlertRecordStorage alertRecordDao,
                           AlertImageRenderService imageRenderService,
                           IDataSourceApi dataSourceApi) {
         this.stateStorage = stateStorage;
         this.evaluationLoggerFactory = evaluationLoggerFactory;
-        this.notificationConfig = notificationConfig;
+        this.renderingConfig = notificationConfig;
         this.alertRecordStorage = alertRecordDao;
         this.imageRenderService = imageRenderService;
         this.dataSourceApi = dataSourceApi;
@@ -183,7 +183,7 @@ public class AlertEvaluator {
 
         notification.setConditionEvaluation(new HashMap<>(alert.getConditions().size()));
 
-        if (!this.notificationConfig.getRenderConfig().getDisabled()) {
+        if (this.renderingConfig.isEnabled()) {
             notification.setImages(new HashMap<>(alert.getConditions().size()));
         }
         context.getEvaluationResults().forEach((conditionId, result) -> {
@@ -199,7 +199,7 @@ public class AlertEvaluator {
                                                                                                  .threshold(outputs.getThresholdText())
                                                                                                  .build()));
 
-            if (result == EvaluationResult.MATCHED && !this.notificationConfig.getRenderConfig().getDisabled()) {
+            if (result == EvaluationResult.MATCHED && this.renderingConfig.isEnabled()) {
                 /*
                 notification.getImages().put(conditionId,
                                              this.imageRenderService.renderAndSaveAsync(alert.getNotifications().getImageMode(),

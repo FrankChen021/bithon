@@ -28,6 +28,7 @@ import org.bithon.server.alerting.common.evaluator.metric.relative.baseline.DoDD
 import org.bithon.server.alerting.common.evaluator.metric.relative.baseline.DoDUpMetricCondition;
 import org.bithon.server.alerting.common.evaluator.metric.relative.ringgrowth.MoMDownMetricCondition;
 import org.bithon.server.alerting.common.evaluator.metric.relative.ringgrowth.MoMUpMetricCondition;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 
 /**
  * @author frankchen
@@ -51,7 +52,11 @@ public interface IMetricCondition extends IConditionEvaluator {
 
     String getName();
 
-    Aggregator getAggregator();
+    AggregatorEnum getAggregator();
+
+    default IQueryStageAggregator createAggregator() {
+        return getAggregator().create(getName());
+    }
 
     /**
      * how long the metric should be calculated in the interval [now - duration, now)

@@ -27,7 +27,7 @@ import org.bithon.server.alerting.common.evaluator.metric.absolute.GreaterThanMe
 import org.bithon.server.alerting.common.evaluator.metric.absolute.LessOrEqualMetricCondition;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.NullValueMetricCondition;
 import org.bithon.server.alerting.common.evaluator.rule.UnaryEvaluator;
-import org.bithon.server.alerting.common.model.Aggregator;
+import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.Alert;
 import org.bithon.server.alerting.common.model.AlertCondition;
 import org.bithon.server.commons.time.TimeSpan;
@@ -90,7 +90,7 @@ public class AlertConditionTest {
         AlertCondition condition = AlertCondition.builder()
                                                  .id("A")
                                                  .dataSource("test-metrics")
-                                                 .metric(new GreaterThanMetricCondition(metric, Aggregator.sum, 4, 1))
+                                                 .metric(new GreaterThanMetricCondition(metric, AggregatorEnum.sum, 4, 1))
                                                  .build();
 
         Alert alert = Alert.builder()
@@ -114,7 +114,7 @@ public class AlertConditionTest {
         AlertCondition condition = AlertCondition.builder()
                                                  .id("A")
                                                  .dataSource("test-metrics")
-                                                 .metric(new GreaterOrEqualMetricCondition(metric, Aggregator.sum, 5, 1))
+                                                 .metric(new GreaterOrEqualMetricCondition(metric, AggregatorEnum.sum, 5, 1))
                                                  .build();
 
         Alert alert = Alert.builder()
@@ -137,7 +137,7 @@ public class AlertConditionTest {
         AlertCondition condition = AlertCondition.builder()
                                                  .id("A")
                                                  .dataSource("test-metrics")
-                                                 .metric(new LessOrEqualMetricCondition(metric, Aggregator.sum, 6, 1))
+                                                 .metric(new LessOrEqualMetricCondition(metric, AggregatorEnum.sum, 6, 1))
                                                  .build();
 
         Alert alert = Alert.builder()
@@ -160,7 +160,7 @@ public class AlertConditionTest {
         AlertCondition condition = AlertCondition.builder()
                                                  .id("A")
                                                  .dataSource("test-metrics")
-                                                 .metric(new LessOrEqualMetricCondition(metric, Aggregator.sum, 5, 1))
+                                                 .metric(new LessOrEqualMetricCondition(metric, AggregatorEnum.sum, 5, 1))
                                                  .build();
 
         Alert alert = Alert.builder()

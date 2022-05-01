@@ -26,8 +26,10 @@ import java.util.function.Function;
  */
 public interface ISmoothAlgorithm {
 
+    List<Number> smooth(List<Number> data);
+
     void smooth(List<?> data,
-                Function<Object, ? extends Number> mapper,
-                BiConsumer<Object, Double> applier);
+                Function<Object, ? extends Number> getter,
+                BiConsumer<Object, Double> setter);
 
 }

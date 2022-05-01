@@ -24,7 +24,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluatorContext;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.RatioEvaluationOutput;
-import org.bithon.server.alerting.common.model.Aggregator;
+import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.IMetricCondition;
 import org.bithon.server.alerting.common.model.IMetricConditionVisitor;
 import org.bithon.server.alerting.common.model.MetricConditionCategory;
@@ -72,7 +72,7 @@ public class AbstractRatioThresholdMetricCondition implements IMetricCondition {
     private final int window;
 
     @Getter
-    private final Aggregator aggregator;
+    private final AggregatorEnum aggregator;
 
     /**
      * runtime property
@@ -82,7 +82,7 @@ public class AbstractRatioThresholdMetricCondition implements IMetricCondition {
     private final String text;
 
     public AbstractRatioThresholdMetricCondition(@NotNull String name,
-                                                 @NotNull Aggregator aggregator,
+                                                 @NotNull AggregatorEnum aggregator,
                                                  @NotNull Integer minute,
                                                  @Nullable Boolean isUp,
                                                  @NotNull Integer percentage,

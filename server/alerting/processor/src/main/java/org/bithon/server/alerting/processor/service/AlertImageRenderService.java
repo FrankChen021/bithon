@@ -30,26 +30,31 @@ import org.bithon.server.alerting.common.AlertingModule;
 import org.bithon.server.alerting.common.evaluator.metric.absolute.AbstractAbsoluteThresholdCondition;
 import org.bithon.server.alerting.common.model.AlertCondition;
 import org.bithon.server.alerting.common.notification.ImageMode;
-import org.bithon.server.alerting.processor.notification.NotificationConfig;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
+import org.bithon.server.web.service.api.DataSourceService;
 import org.bithon.server.web.service.api.IDataSourceApi;
-import org.bithon.server.web.service.api.TimeSeriesQueryRequest;
+import org.bithon.server.web.service.api.IntervalRequest;
+import org.bithon.server.web.service.api.TimeSeriesQueryRequestV2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.cloud.openfeign.FeignClientsConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -61,27 +66,19 @@ import java.util.stream.Collectors;
 public class AlertImageRenderService {
 
     private final ThreadPoolExecutor executor;
-    private final NotificationConfig renderConfig;
+    private final RenderingConfig renderingConfig;
     private final IDataSourceApi dataSourceApi;
     private final ObjectMapper objectMapper;
-    private final Map<String, IEChartsConverterApi> eChartsConverterApi;
-    private final Contract contract;
-    private final Encoder encoder;
-    private final Decoder decode;
+    private final IEChartsConverterApi eChartsConverterApi;
 
-    public AlertImageRenderService(NotificationConfig notificationConfig,
+    public AlertImageRenderService(RenderingConfig renderingConfig,
                                    IDataSourceApi dataSourceApi,
-                                   ObjectMapper objectMapper,
-                                   Contract contract,
-                                   Encoder encoder,
-                                   Decoder decode) {
-        this.renderConfig = notificationConfig;
+                                   IEChartsConverterApi converterApi,
+                                   ObjectMapper objectMapper) {
+        this.renderingConfig = renderingConfig;
+        this.eChartsConverterApi = converterApi;
         this.dataSourceApi = dataSourceApi;
         this.objectMapper = objectMapper;
-        this.contract = contract;
-        this.encoder = encoder;
-        this.decode = decode;
-        this.eChartsConverterApi = new ConcurrentHashMap<>();
         this.executor = new ThreadPoolExecutor(10,
                                                50,
                                                5,
@@ -122,64 +119,76 @@ public class AlertImageRenderService {
         DataSourceSchema schema = this.dataSourceApi.getSchemaByName(condition.getDataSource());
         IMetricSpec metricSpec = schema.getMetricSpecByName(condition.getMetric().getName());
 
-        TimeSeriesQueryRequest request = TimeSeriesQueryRequest.builder()
-                                                               .startTimeISO8601(start.before(1, TimeUnit.HOURS).toISO8601())
-                                                               .endTimeISO8601(end.toISO8601())
-                                                               .dataSource(condition.getDataSource())
-                                                               .filters(condition.getDimensions())
-                                                               .metrics(Collections.singletonList(metricSpec.getName()))
-                                                               .build();
-        //TODO: fix
-        List<Map<String, Object>> data = null; //this.dataSourceApi.timeseries0(request);
+        TimeSeriesQueryRequestV2 request = TimeSeriesQueryRequestV2.builder()
+                                                                   .interval(IntervalRequest.builder()
+                                                                                            .startISO8601(start.before(1, TimeUnit.HOURS).toISO8601())
+                                                                                            .endISO8601(end.toISO8601())
+                                                                                            .build())
+                                                                   .dataSource(condition.getDataSource())
+                                                                   .filters(condition.getDimensions())
+                                                                   .aggregators(Collections.singletonList(condition.getMetric().createAggregator()))
+                                                                   .build();
+        DataSourceService.TimeSeriesQueryResult data = this.dataSourceApi.timeseries(request);
 
         Number threshold = metricSpec.getValueType().scaleTo((Number) ((AbstractAbsoluteThresholdCondition) condition.getMetric()).getExpected(), 2);
 
-        class MaxHolder {
-            Number max;
-        }
-        final MaxHolder maxHolder = new MaxHolder();
-        maxHolder.max = threshold;
-        List<Object> metricValueList = data.stream().map(obj -> {
-            Number metricValue = metricSpec.getValueType().scaleTo((Number) obj.get(metricSpec.getName()), 2);
-            if (metricSpec.getValueType().isGreaterThan(metricValue, maxHolder.max)) {
-                maxHolder.max = metricValue;
+        DataSourceService.TimeSeriesMetric metricValues = data.getMetrics().iterator().next();
+
+        // scale the double values to precision of 2, and find the max value
+        Number max = threshold;
+        List<Number> values = new ArrayList<>(data.getCount());
+        for (int i = 0, len = data.getCount(); i < len; i++) {
+            Number value = metricSpec.getValueType().scaleTo(metricValues.get(i), 2);
+            if (metricSpec.getValueType().isGreaterThan(value, max)) {
+                max = value;
             }
-            return metricValue;
-        }).collect(Collectors.toList());
+            values.add(value);
+        }
 
-        InputStream is = this.getClass().getResourceAsStream("/templates/static-threshold-echarts-option.js");
-        String template = IOUtils.toString(is);
-        template = template.replaceAll("%xAxisLabelData%",
-                                       objectMapper.writeValueAsString(data.stream().map(obj -> obj.get("__time")).collect(Collectors.toList())));
-        template = template.replaceAll("%yLabel%", metricSpec.getDisplayText() + "(" + metricSpec.getUnit() + ")");
-        template = template.replaceAll("%yMax%", maxHolder.max.toString());
-        template = template.replaceAll("%seriesName%", metricSpec.getDisplayText());
-        template = template.replaceAll("%SeriesData%", objectMapper.writeValueAsString(metricValueList));
+        try (InputStream is = this.getClass().getResourceAsStream("/templates/static-threshold-echarts-option.js")) {
+            if (is == null) {
+                return null;
+            }
+            String template = IOUtils.toString(is, StandardCharsets.UTF_8);
+            template = template.replaceAll("%xAxisLabelData%",
+                                           objectMapper.writeValueAsString(data.getTimestampLabels("HH:mm")));
+            template = template.replaceAll("%yLabel%", metricSpec.getDisplayText() + "(" + metricSpec.getUnit() + ")");
+            template = template.replaceAll("%yMax%", max.toString());
+            template = template.replaceAll("%seriesName%", metricSpec.getDisplayText());
+            template = template.replaceAll("%SeriesData%", objectMapper.writeValueAsString(values));
 
-        //mark line
-        template = template.replaceAll("%threshold%", threshold.toString());
-        template = template.replaceAll("%startPoint%", end.before(windowLength, TimeUnit.MINUTES).toString("HH:mm"));
-        template = template.replaceAll("%endPoint%", end.before(1, TimeUnit.MINUTES).toString("HH:mm"));
-        JsonNode eChartOption = objectMapper.readTree(template);
+            //mark line
+            template = template.replaceAll("%threshold%", threshold.toString());
+            template = template.replaceAll("%startPoint%", end.before(windowLength, TimeUnit.MINUTES).toString("HH:mm"));
+            template = template.replaceAll("%endPoint%", end.before(1, TimeUnit.MINUTES).toString("HH:mm"));
+            JsonNode eChartOption = objectMapper.readTree(template);
 
-        IEChartsConverterApi api = eChartsConverterApi.computeIfAbsent(this.renderConfig.getRenderConfig().getRenderService(),
-                                                                       url -> echartsConverterApi(this.contract, this.encoder, this.decode, url));
-        IEChartsConverterApi.Response response = api.convertAndSave(IEChartsConverterApi.Request.builder()
-                                                                                                .height(this.renderConfig.getRenderConfig().getHeight())
-                                                                                                .width(this.renderConfig.getRenderConfig().getWidth())
-                                                                                                .eChartOption(eChartOption).build());
+            IEChartsConverterApi.Response response = this.eChartsConverterApi.convertAndSave(IEChartsConverterApi.Request.builder()
+                                                                                                                         .height(this.renderingConfig.getHeight())
+                                                                                                                         .width(this.renderingConfig.getWidth())
+                                                                                                                         .eChartOption(eChartOption).build());
 
-        return response.getUrl();
+            return response.getUrl();
+        }
     }
 
-    private IEChartsConverterApi echartsConverterApi(Contract contract,
-                                                     Encoder encoder,
-                                                     Decoder decoder,
-                                                     String url) {
-        return Feign.builder()
-                    .contract(contract)
-                    .encoder(encoder)
-                    .decoder(decoder)
-                    .target(IEChartsConverterApi.class, url);
+
+    @Configuration
+    @EnableFeignClients
+    @Import(FeignClientsConfiguration.class)
+    public static class RpcAutoConfiguration {
+        @Bean
+        public IEChartsConverterApi echartsConverterApi(Contract contract,
+                                                        Encoder encoder,
+                                                        Decoder decoder,
+                                                        RenderingConfig renderingConfig) {
+            return renderingConfig.isEnabled() ? Feign.builder()
+                                                      .contract(contract)
+                                                      .encoder(encoder)
+                                                      .decoder(decoder)
+                                                      .target(IEChartsConverterApi.class, renderingConfig.getServiceEndpoint())
+                                               : request -> null;
+        }
     }
+
 }

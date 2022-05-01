@@ -22,7 +22,7 @@ package org.bithon.server.alerting.common.algorithm;
  */
 public enum SmoothAlgorithm {
 
-    NONE("none"), SMA("sma");
+    NONE("none"), MovingAverage("mv");
 
     private final String name;
 

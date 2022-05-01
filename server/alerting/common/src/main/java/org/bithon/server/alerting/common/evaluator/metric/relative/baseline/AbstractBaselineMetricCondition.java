@@ -18,14 +18,13 @@ package org.bithon.server.alerting.common.evaluator.metric.relative.baseline;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
-import org.bithon.component.commons.time.DateTime;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.alerting.common.evaluator.EvaluatorContext;
 import org.bithon.server.alerting.common.evaluator.result.IEvaluationOutput;
 import org.bithon.server.alerting.common.evaluator.result.RatioEvaluationOutput;
-import org.bithon.server.alerting.common.model.Aggregator;
+import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.IMetricCondition;
 import org.bithon.server.alerting.common.model.IMetricConditionVisitor;
 import org.bithon.server.alerting.common.model.MetricConditionCategory;
@@ -39,10 +38,10 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
@@ -69,7 +68,7 @@ public class AbstractBaselineMetricCondition implements IMetricCondition {
     private final int window;
 
     @Getter
-    private final Aggregator aggregator;
+    private final AggregatorEnum aggregator;
 
     /**
      * runtime property
@@ -81,7 +80,7 @@ public class AbstractBaselineMetricCondition implements IMetricCondition {
     private final BaselineMetricCacheManager baseLineCacheManager;
 
     public AbstractBaselineMetricCondition(@NotNull String name,
-                                           @NotNull Aggregator aggregator,
+                                           @NotNull AggregatorEnum aggregator,
                                            @NotNull Integer dayOffset,
                                            @NotNull Boolean isUp,
                                            @NotNull Integer percentage,
@@ -93,7 +92,7 @@ public class AbstractBaselineMetricCondition implements IMetricCondition {
         this.percentage = percentage;
         this.isPositive = isUp == null || isUp;
         this.window = window == null ? 1 : window;
-        this.text = StringUtils.format("[%s]同比%d天前%s%d%%", name, dayOffset, this.isPositive ? "上涨" : "下跌", percentage);
+        this.text = StringUtils.format("[%s]over %d days ago %s %d%%", name, dayOffset, this.isPositive ? "raise" : "reduce", percentage);
         this.baseLineCacheManager = baseLineCacheManager;
 
         Preconditions.checkIf(this.window >= 1, "window should be >= 1");
@@ -103,11 +102,6 @@ public class AbstractBaselineMetricCondition implements IMetricCondition {
     @Override
     public MetricConditionCategory getCategory() {
         return MetricConditionCategory.RELATIVE;
-    }
-
-    @Override
-    public Aggregator getAggregator() {
-        return null;
     }
 
     @Override
@@ -139,22 +133,18 @@ public class AbstractBaselineMetricCondition implements IMetricCondition {
         TimeSpan baseDayEnd = baseDayStart.after(1, TimeUnit.DAYS);
 
         context.log(AbstractBaselineMetricCondition.class, "Loading metric from baseline in [%s, %s]", baseDayStart.toISO8601(), baseDayEnd.toISO8601());
-        List<Map<String, Object>> baseline = baseLineCacheManager.getBaselineMetricsList(baseDayStart,
-                                                                                         baseDayEnd,
-                                                                                         dataSource,
-                                                                                         dimensions,
-                                                                                         this.name);
+        List<Number> baseline = baseLineCacheManager.getBaselineMetricsList(baseDayStart,
+                                                                            baseDayEnd,
+                                                                            this.window * 60,
+                                                                            dataSource,
+                                                                            dimensions,
+                                                                            this.createAggregator());
 
-        String timePoint = DateTime.formatDateTime("HH:mm", start.getMilliseconds());
-        Optional<Map<String, Object>> baseValueObject = baseline.stream()
-                                                                .filter(base -> timePoint.equals(base.get("_time")))
-                                                                .findFirst();
-        if (!baseValueObject.isPresent()) {
-            context.log(AbstractBaselineMetricCondition.class, "基准时间点[%s]数据不存在", timePoint);
-            return null;
-        }
+        // get index of current data
+        long millis = start.minus(Duration.ofDays(1).toMillis()).diff(baseDayStart);
+        long index = millis / 1000 / 60;
 
-        Number val = (Number) baseValueObject.get().get(this.name);
+        Number val = baseline.get((int) index);
         if (val == null) {
             return null;
         }

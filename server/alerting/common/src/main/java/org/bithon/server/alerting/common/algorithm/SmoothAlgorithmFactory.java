@@ -23,9 +23,9 @@ package org.bithon.server.alerting.common.algorithm;
 public class SmoothAlgorithmFactory {
 
     public static ISmoothAlgorithm create(SmoothAlgorithm algorithm) {
-        if (algorithm == SmoothAlgorithm.SMA) {
-            return new SMASmoothAlgorithm();
+        if (algorithm == SmoothAlgorithm.MovingAverage) {
+            return new MovingAverageSmoothAlgorithm();
         }
-        return null;
+        throw new RuntimeException("Not supported algorithm");
     }
 }

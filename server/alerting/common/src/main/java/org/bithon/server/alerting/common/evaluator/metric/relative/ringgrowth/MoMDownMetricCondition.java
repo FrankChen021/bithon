@@ -18,7 +18,7 @@ package org.bithon.server.alerting.common.evaluator.metric.relative.ringgrowth;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.alerting.common.model.Aggregator;
+import org.bithon.server.alerting.common.model.AggregatorEnum;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -31,7 +31,7 @@ public class MoMDownMetricCondition extends AbstractRatioThresholdMetricConditio
 
     @JsonCreator
     public MoMDownMetricCondition(@NotNull @JsonProperty("name") String name,
-                                  @JsonProperty("aggregator") @NotNull Aggregator aggregator,
+                                  @JsonProperty("aggregator") @NotNull AggregatorEnum aggregator,
                                   @NotNull @JsonProperty("minute") Integer minute,
                                   @NotNull @JsonProperty("percentage") Integer percentage,
                                   @Nullable @JsonProperty("window") Integer window) {

@@ -14,28 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.alerting.processor.notification;
+package org.bithon.server.alerting.processor.service;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author
  * @date
  */
 @Data
-@Component
-@ConfigurationProperties(prefix = "bithon.alerting.processor.notification")
-public class NotificationConfig {
+@Configuration
+@ConfigurationProperties(prefix = "bithon.alerting.processor.rendering")
+public class RenderingConfig {
 
-    private ImageRenderConfig renderConfig = new ImageRenderConfig();
-
-    @Data
-    public static class ImageRenderConfig {
-        private String renderService;
-        private Boolean disabled = true;
-        private int width = 800;
-        private int height = 600;
-    }
+    private String serviceEndpoint;
+    private boolean enabled = false;
+    private int width = 800;
+    private int height = 600;
 }

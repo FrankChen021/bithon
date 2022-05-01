@@ -16,24 +16,26 @@
 
 package org.bithon.server.alerting.common.evaluator.metric.relative.baseline;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.bithon.server.alerting.common.AlertingModule;
+import org.bithon.server.alerting.common.algorithm.ISmoothAlgorithm;
+import org.bithon.server.alerting.common.algorithm.SmoothAlgorithm;
+import org.bithon.server.alerting.common.algorithm.SmoothAlgorithmFactory;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.web.service.api.DataSourceService;
 import org.bithon.server.web.service.api.IDataSourceApi;
 import org.bithon.server.web.service.api.IntervalRequest;
 import org.bithon.server.web.service.api.TimeSeriesQueryRequestV2;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
@@ -43,40 +45,39 @@ import java.util.Map;
 @ConditionalOnBean(AlertingModule.class)
 public class BaselineMetricCacheManager {
 
-    private final LoadingCache<TimeSeriesQueryRequestV2, List<Map<String, Object>>> baselineCache;
+    private final LoadingCache<TimeSeriesQueryRequestV2, List<Number>> baselineCache;
 
     public BaselineMetricCacheManager(IDataSourceApi dataSourceApi) {
-        this.baselineCache = Caffeine.newBuilder()
-                                     .expireAfterWrite(Duration.ofDays(1))
-                                     .build(new CacheLoader<TimeSeriesQueryRequestV2, List<Map<String, Object>>>() {
-                                         @Override
-                                         public @Nullable List<Map<String, Object>> load(@NonNull TimeSeriesQueryRequestV2 key) {
-                                             DataSourceService.TimeSeriesQueryResult baseline = dataSourceApi.timeseries(key);
+        this.baselineCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofDays(1)).build(key -> {
+            DataSourceService.TimeSeriesQueryResult baseline = dataSourceApi.timeseries(key);
 
-                                             /*
-                                             return new BaselineCalibrator().calibrate(baseline.getMetrics().stream().findFirst().get(),
-                                                                                       1, // 1 minute
-                                                                                       key.getAggregators().get(0).getName());
+            DataSourceService.TimeSeriesMetric series = baseline.getMetrics().iterator().next();
 
-                                              */
-                                             return null;
-                                         }
-                                     });
+            List<Number> values = new ArrayList<>();
+            for (int i = 0; i < baseline.getCount(); i++) {
+                values.add(series.get(i));
+            }
+
+            ISmoothAlgorithm smoothAlogrithm = SmoothAlgorithmFactory.create(SmoothAlgorithm.MovingAverage);
+            return smoothAlogrithm.smooth(values);
+        });
     }
 
-    public List<Map<String, Object>> getBaselineMetricsList(TimeSpan start,
-                                                            TimeSpan end,
-                                                            String dataSource,
-                                                            List<IFilter> dimensions,
-                                                            String metricSpec) {
+    public List<Number> getBaselineMetricsList(TimeSpan start,
+                                               TimeSpan end,
+                                               int stepSeconds,
+                                               String dataSource,
+                                               List<IFilter> dimensions,
+                                               IQueryStageAggregator aggregator) {
         TimeSeriesQueryRequestV2 request = TimeSeriesQueryRequestV2.builder()
                                                                    .dataSource(dataSource)
                                                                    .interval(IntervalRequest.builder()
                                                                                             .startISO8601(start.toISO8601())
                                                                                             .endISO8601(end.toISO8601())
+                                                                                            .step(stepSeconds)
                                                                                             .build())
                                                                    .filters(dimensions)
-                                                                   //.metrics(Collections.singletonList(metricSpec))
+                                                                   .aggregators(Collections.singletonList(aggregator))
                                                                    .build();
         return this.baselineCache.get(request);
     }

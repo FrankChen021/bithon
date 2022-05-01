@@ -75,6 +75,9 @@ public class TimeSpan {
         return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH).format(new Date(this.milliseconds));
     }
 
+    /**
+     * difference in millis
+     */
     public long diff(TimeSpan timeSpan) {
         return this.getMilliseconds() - timeSpan.getMilliseconds();
     }
@@ -123,5 +126,9 @@ public class TimeSpan {
         boolean hasModule = this.milliseconds % milliSeconds > 0;
 
         return new TimeSpan((this.milliseconds / milliSeconds + (hasModule ? 1 : 0)) * milliSeconds);
+    }
+
+    public TimeSpan minus(long millis) {
+        return new TimeSpan(this.milliseconds - millis);
     }
 }

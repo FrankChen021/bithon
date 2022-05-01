@@ -23,7 +23,7 @@ import org.bithon.server.storage.datasource.api.QueryStageAggregators;
  * @author Frank Chen
  * @date 24/4/22 3:46 PM
  */
-public enum Aggregator {
+public enum AggregatorEnum {
     avg {
         @Override
         public IQueryStageAggregator create(String name) {

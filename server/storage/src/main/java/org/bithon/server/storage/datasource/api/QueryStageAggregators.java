@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import javax.validation.constraints.NotNull;
+import java.util.Objects;
 
 /**
  * count(distinct )
@@ -54,6 +55,23 @@ public class QueryStageAggregators {
         public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
             return visitor.visit(this);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            CardinalityAggregator that = (CardinalityAggregator) o;
+            return Objects.equals(name, that.name) && Objects.equals(dimension, that.dimension);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, dimension);
+        }
     }
 
     abstract static class AbstractQueryStageAggregator implements IQueryStageAggregator {
@@ -71,6 +89,23 @@ public class QueryStageAggregators {
         public AbstractQueryStageAggregator(String name, String aggregator) {
             this.name = name;
             this.type = aggregator;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            AbstractQueryStageAggregator that = (AbstractQueryStageAggregator) o;
+            return Objects.equals(name, that.name) && Objects.equals(type, that.type);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, type);
         }
     }
 

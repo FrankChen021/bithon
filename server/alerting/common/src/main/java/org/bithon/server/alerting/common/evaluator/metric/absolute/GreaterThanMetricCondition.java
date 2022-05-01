@@ -18,7 +18,7 @@ package org.bithon.server.alerting.common.evaluator.metric.absolute;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.bithon.server.alerting.common.model.Aggregator;
+import org.bithon.server.alerting.common.model.AggregatorEnum;
 import org.bithon.server.alerting.common.model.IMetricConditionVisitor;
 import org.bithon.server.storage.datasource.typing.IValueType;
 
@@ -33,7 +33,7 @@ public class GreaterThanMetricCondition extends AbstractAbsoluteThresholdConditi
 
     @JsonCreator
     public GreaterThanMetricCondition(@JsonProperty("name") @NotNull String name,
-                                      @JsonProperty("aggregator") @NotNull Aggregator aggregator,
+                                      @JsonProperty("aggregator") @NotNull AggregatorEnum aggregator,
                                       @JsonProperty("expected") @NotNull Object expected,
                                       @JsonProperty("window") @Nullable Integer window) {
         super(name, aggregator, expected, ">", window);
