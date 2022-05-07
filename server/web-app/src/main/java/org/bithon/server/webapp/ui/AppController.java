@@ -16,7 +16,9 @@
 
 package org.bithon.server.webapp.ui;
 
+import org.bithon.server.webapp.WebAppModuleEnabler;
 import org.bithon.server.webapp.services.ServiceDiscovery;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @date 2021/1/31 12:17 上午
  */
 @Controller
+@Conditional(value = WebAppModuleEnabler.class)
 public class AppController {
 
     private final ServiceDiscovery serviceDiscovery;

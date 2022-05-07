@@ -1,0 +1,263 @@
+<!DOCTYPE HTML>
+<html lang="zh_CN"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{_common/layout}">
+<head>
+    <title>Bithon Alert Details</title>
+
+    <!-- echarts -->
+    <script th:src="@{/lib/echarts5.0.1/echarts.min.js}" type="text/javascript"></script>
+
+    <script th:src="@{/js/utils/location.js}" type="text/javascript"></script>
+    <script th:src="@{/js/alert/common.js}" type="text/javascript"></script>
+    <script th:src="@{/js/api-client/metadata-client.js}" type="text/javascript"></script>
+    <script th:src="@{/js/alert/metrics-component.js}" type="text/javascript"></script>
+    <script th:src="@{/js/alert/log-component.js}" type="text/javascript"></script>
+</head>
+<body>
+<link rel="stylesheet" th:href="@{/css/style.css}" type="text/css"/>
+<div style="padding-top:15px; padding-left: 5px; padding-right: 5px" layout:fragment="content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <h5 class="sub-content-title">Information</h5>
+            <div style="padding:0 10px 10px">
+                <div class="input-group" style="width: 100%;">
+                    <span class="input-group-addon" style="width: 100px; text-align: left">Name</span>
+                    <input class="form-control" id="alertName" type="text"/>
+                </div>
+                <p></p>
+                <div class="input-group" style="width: 100%;">
+                    <span class="input-group-addon" style="width: 100px; text-align: left">Application</span>
+                    <input class="form-control" id="appName"/>
+                </div>
+                <p></p>
+                <div class="input-group" style="width: 100%;">
+                    <span class="input-group-addon" style="width: 100px; text-align: left">Window</span>
+                    <input class="form-control" id="detectionLength" type="text">
+                </div>
+            </div>
+
+            <h5 class="sub-content-title">Conditions</h5>
+            <div class="input-group" id="conditions" style="padding:0 10px 10px; width:100%">
+                <div class="input-group condition-row" style="display:none">
+                    <input type="text" class="form-control condition-sn" value="A" maxlength="4" disabled="disabled"/>
+                    <input class="form-control condition-datasource" style="width: 150px;"/>
+                    <input class="form-control condition-metric" style="width: 200px;" name="metric"/>
+                    <span class="form-control condition-matched text-center" style="width:80px;"></span>
+                </div>
+            </div>
+
+            <h5 class="sub-content-title">Rules</h5>
+            <div class="ruleContainer" style="padding:0 10px 10px">
+            </div>
+
+            <h5 class="sub-content-title">Running Logs</h5>
+            <div id="logContainer" style="padding:0 10px 10px">
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        if (window.parent != null) {
+            window.queryParams = toQueryParameters(window.location.href);
+        }
+        const recordId = window.queryParams['recordId'];
+        schemaManager = new DataSourceSchemaManager();
+
+        function onLoad(schema, record) {
+            if (record != null) {
+                this._loadedRecord = record;
+            }
+            if (schemaManager.isLoaded() && this._loadedRecord != null) {
+                showRecord(schemaManager.getDataSourceSchemas(), this._loadedRecord);
+
+                new LogComponent({containerId: 'logContainer'}).loadLogs(this._loadedRecord.alertId,
+                    // evaluation starts after 1 minute
+                    this._loadedRecord.payload.start + 60 * 1000,
+                    this._loadedRecord.payload.end + 60 * 1000);
+            }
+        }
+
+        function loadRecord(recordId, callback) {
+            $.ajax({
+                type: "POST",
+                url: "/alerting/api/alert/getRecordById",
+                async: true,
+                data: JSON.stringify({
+                    id: recordId
+                }),
+                dataType: "json",
+                contentType: "application/json",
+                success: function (data) {
+                    if (data.code !== 200) {
+                        showMessage(data.message);
+                        return;
+                    }
+
+                    const alert = data.data;
+                    if (alert.payload === undefined) {
+                        return;
+                    }
+                    alert.payload = JSON.parse(alert.payload);
+                    console.log(alert.payload);
+
+                    const conditionMap = {};
+                    $.each(alert.payload.conditions, function (index, condition) {
+                        conditionMap[condition.id] = condition;
+                    });
+                    alert.conditionMap = conditionMap;
+
+                    callback(alert);
+                },
+                error: function (data) {
+                    console.log(data);
+                    showMessage(data.responseJSON.message, "Error");
+                }
+            });
+        }
+
+        function showRecord(schema, alert) {
+            $("#appName").val(alert.appName);
+            $("#alertName").val(alert.alertName);
+            $("#detectionLength").val("[ " + new Date(alert.payload.start).format("MM-dd hh:mm") + ", " + new Date(alert.payload.end).format("MM-dd hh:mm") + " )");
+
+            const operation = '<span class="form-control condition-matched text-center" style="width:80px;"></span>';
+            $.each(alert.payload.conditions, (index, condition) => {
+                renderCondition(schema, condition, operation);
+
+                showEvaluationMetrics(schema,
+                    alert.payload.start,
+                    alert.payload.end,
+                    condition,
+                    alert.payload.conditionEvaluation[condition.id].result
+                );
+            });
+
+            $.each(alert.payload.rules, (index, rule) => renderRule(rule));
+        }
+
+        function renderCondition(schema, condition) {
+            const id = condition.id;
+            const dataSource = schema[condition.dataSource];
+            if (dataSource === undefined) {
+                showMessage(`Data source ${condition.dataSource} does not exist`);
+                return;
+            }
+            const container = $("#conditions");
+
+            // create a new row
+            const conditionRow = $(container).find(".condition-row:first").clone();
+            $(conditionRow).attr("id", "condition-" + id);
+            $(conditionRow).find(".condition-sn").val(id);
+            $(conditionRow).find(".condition-datasource").val(condition.dataSource);
+
+            let afterCond = $(conditionRow).find(".condition-datasource").parent().parent();
+
+            // index[0] is the appName filter, skip it on the front page
+            for (let i = 1; i < condition.dimensions.length; i++) {
+                const filter = condition.dimensions[i];
+                const dimensionCell = $(
+                    '<div class="multiSelectBox">             ' +
+                    '    <div class="input-group">                                            ' +
+                    '        <input class="form-control" style="width: 150px;"/>' +
+                    '    </div>                                                               ' +
+                    '</div>                                                                   '
+                );
+                $(dimensionCell).find("input").val(filter.name + " = " + filter.matcher.pattern);
+                afterCond.after(dimensionCell);
+                afterCond = dimensionCell;
+            }
+
+            const metricSpec = dataSource.metricsMap[condition.metric.name];
+            const text = `${condition.metric.aggregator}(${condition.metric.name}, ${condition.metric.window}m) ${condition.metric.comparator} ${condition.metric.expected}${metricSpec.unit}`;
+            $(conditionRow).find(".condition-metric").val(text);
+
+            $(conditionRow).find(".show-metric").click(() => {
+                const metricComponent = new MetricComponent();
+                metricComponent.showDialog({
+                    dataSourceName: condition.dataSource,
+                    dimensions: condition.dimensions,
+                    metricCondition: condition.metrics[0],
+                    end: Date.now(),
+                    hours: 3,
+                    metricSpec: dataSource.metricsMap[condition.metric.name],
+                    threshold: condition.metrics[0].expected
+                });
+            });
+            $(conditionRow).css('display', '');
+            $(container).append(conditionRow);
+        }
+
+        function renderRule(rule) {
+            const container = $(".ruleContainer");
+
+            const ruleItem = $(
+                ' <div class="input-group trigger-item" style="width: 500px;margin-bottom: 5px">           ' +
+                '   <div class="input-group-prepend">' +
+                '     <span class="input-group-text">Rules</span>  ' +
+                '   </div>' +
+                '     <input type="text" class="form-control trigger-expression" />                                        ' +
+                '     <span class="input-group-text" >Severity</span>  ' +
+                '     <input class="form-control trigger-severity"/>                 ' +
+                '     <span class="input-group-text trigger-enabled"/>                 ' +
+                ' </div>                                                                                   '
+            );
+            $(ruleItem).find(".trigger-expression").val(rule.expression);
+            $(ruleItem).find(".trigger-severity").val(rule.severity);
+            $(ruleItem).find(".trigger-enabled").text(rule.triggered ? "Matched" : "Not Matched");
+            $(container).append($(ruleItem));
+        }
+
+        function showEvaluationMetrics(schema, start, end, condition, result) {
+            const conditionId = condition.id;
+            const dataSource = schema[condition.dataSource];
+            const chartOption = {
+                dataSourceName: condition.dataSource,
+                dimensions: condition.dimensions,
+                metricSpec: dataSource.metricsMap[condition.metric.name],
+                metricCondition: condition.metric,
+                start: start,
+                end: end + 5 * 60 * 1000,
+                hours: 1,
+                componentId: 'chart-' + conditionId,
+                class: '',
+                range: {
+                    start: start,
+                    end: end - 60000
+                },
+                threshold: condition.metric.expected
+            };
+
+            let resultText;
+            if (result === 'MATCHED') {
+                resultText = 'Matched';
+                const metricChartComponent = new MetricComponent();
+                metricChartComponent.showAfter($("#condition-" + conditionId), chartOption);
+            } else if (result === 'UNMATCHED') {
+                resultText = '<a>Not Matched</a>';
+                $("#condition-" + conditionId).find(".condition-matched").click((e) => {
+                    const metricChartComponent = new MetricComponent();
+                    metricChartComponent.showDialog(chartOption);
+                });
+            } else {
+                resultText = '<a>Not Involved</a>';
+                $("#condition-" + conditionId).find(".condition-matched").click((e) => {
+                    const metricChartComponent = new MetricComponent();
+                    metricChartComponent.showDialog(chartOption);
+                });
+            }
+            $("#condition-" + conditionId).find(".condition-matched").html(resultText);
+        }
+
+        $(document).ready(function () {
+            schemaManager.load(function (schemas) {
+                onLoad(schemas, null);
+            });
+            loadRecord(recordId, function (record) {
+                onLoad(null, record);
+            });
+        })
+    </script>
+</div>
+</body>
+</html>

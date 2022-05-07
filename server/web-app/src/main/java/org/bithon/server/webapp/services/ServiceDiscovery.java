@@ -16,7 +16,9 @@
 
 package org.bithon.server.webapp.services;
 
+import org.bithon.server.webapp.WebAppModuleEnabler;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -25,6 +27,7 @@ import org.springframework.util.StringUtils;
  * @date 2021/4/8 8:13 下午
  */
 @Service
+@Conditional(value = WebAppModuleEnabler.class)
 public class ServiceDiscovery {
     private String apiHost;
 

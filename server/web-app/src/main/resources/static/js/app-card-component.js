@@ -39,13 +39,13 @@ class AppCardComponent {
     // private
     #loadAppOverview() {
         $.ajax({
-            url: this._apiHost + "/api/datasource/groupBy",
+            url: this._apiHost + "/api/datasource/metrics/groupBy",
             data: JSON.stringify({
                 dataSource: 'jvm-metrics',
                 metrics: ["instanceStartTime"],
                 aggregators: [
                     {
-                        type: "cardinality",
+                        aggregator: "cardinality",
                         name: "instanceCount",
                         dimension: "instanceName"
                     }

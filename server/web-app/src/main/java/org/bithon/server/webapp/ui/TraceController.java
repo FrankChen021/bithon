@@ -16,7 +16,9 @@
 
 package org.bithon.server.webapp.ui;
 
+import org.bithon.server.webapp.WebAppModuleEnabler;
 import org.bithon.server.webapp.services.ServiceDiscovery;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @date 2021/2/6 8:39 下午
  */
 @Controller
+@Conditional(value = WebAppModuleEnabler.class)
 public class TraceController {
 
     private final ServiceDiscovery serviceDiscovery;

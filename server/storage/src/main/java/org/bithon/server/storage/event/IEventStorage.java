@@ -17,6 +17,7 @@
 package org.bithon.server.storage.event;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.common.IStorageCleaner;
 
 /**
  * @author frank.chen021@outlook.com
@@ -26,12 +27,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public interface IEventStorage {
 
     default void initialize() {
-
     }
 
     IEventWriter createWriter();
 
     IEventReader createReader();
 
-    IEventCleaner createCleaner();
+    IStorageCleaner createCleaner();
 }

@@ -187,7 +187,7 @@ public class TraceService {
         // TODO 2：Provide a custom query
         // OR implement a new interface
         return new GetTraceDistributionResponse(metricStorage.createMetricReader(schema).timeseries(query),
-                                                interval.getStepLength());
+                                                interval.getStep());
     }
 
 

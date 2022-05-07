@@ -67,3 +67,26 @@ function timeFormat(time, fractionDigits, units) {
 
     return val.formatWithNoTrailingZeros(fractionDigits) + units[index];
 }
+
+Date.prototype.diff = function (before) {
+    const now = this.getTime();
+
+    const seconds = Math.floor((now - before) / 1000);
+    if (seconds < 60) {
+        return seconds + " seconds ago";
+    }
+    const minute = Math.floor(seconds / 60);
+    if (minute < 60) {
+        return minute + " minutes ago";
+    }
+    const hours = Math.floor(minute / 60);
+    if (hours < 24) {
+        return hours + " hours ago";
+    }
+    const day = Math.floor(hours / 24);
+    if (day < 365) {
+        return day + " days ago";
+    }
+    const year = Math.floor(day / 365);
+    return year + " years ago";
+}

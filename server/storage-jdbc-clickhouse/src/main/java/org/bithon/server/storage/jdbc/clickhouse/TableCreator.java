@@ -40,11 +40,31 @@ public class TableCreator {
         this.dslContext = dslContext;
     }
 
-    public void createIfNotExist(Table<?> table, int ttlDays) {
-        createIfNotExist(table, ttlDays, false, true);
+    private boolean useReplacingMergeTree = false;
+
+    /**
+     * the version field of a ReplacingMergeTree
+     */
+    private String replacingMergeTreeVersion = "timestamp";
+
+    private String partitionByExpression = "toYYYYMMDD(timestamp)";
+
+    public TableCreator useReplacingMergeTree(boolean useReplacingMergeTree) {
+        this.useReplacingMergeTree = useReplacingMergeTree;
+        return this;
     }
 
-    public void createIfNotExist(Table<?> table, int ttlDays, boolean useReplacingMergeTree, boolean hasPartitionByExpression) {
+    public TableCreator replacingMergeTreeVersion(String replacingMergeTreeVersion) {
+        this.replacingMergeTreeVersion = replacingMergeTreeVersion;
+        return this;
+    }
+
+    public TableCreator partitionByExpressioin(String partitionByExpression) {
+        this.partitionByExpression = partitionByExpression;
+        return this;
+    }
+
+    public void createIfNotExist(Table<?> table) {
         //
         // create local table
         //
@@ -82,9 +102,11 @@ public class TableCreator {
 
             sb.append(StringUtils.format(") ENGINE=%s(%s) ",
                                          engine,
-                                         useReplacingMergeTree ? "timestamp" : ""));
-            if (hasPartitionByExpression) {
-                sb.append("PARTITION BY toYYYYMMDD(timestamp) ");
+                                         useReplacingMergeTree ? replacingMergeTreeVersion : ""));
+            if (partitionByExpression != null) {
+                sb.append("PARTITION BY ");
+                sb.append(partitionByExpression);
+                sb.append(' ');
             }
 
             //
@@ -107,16 +129,6 @@ public class TableCreator {
                 sb.append(") ");
             }
 
-            //
-            // TTL Clause
-            //
-            if (ttlDays > 0) {
-                //
-                // NOTE: the timestamp type we're using is DateTime64 which is not supported as TTL expression by now
-                // So, we have to use ALTER command to delete partitions by ourselves
-                //
-                //sb.append(StringUtils.format("TTL timestamp + INTERVAL %d DAY", ttlDays));
-            }
             sb.append(";");
 
             log.info("CreateIfNotExists {}", tableName);

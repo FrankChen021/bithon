@@ -5,6 +5,11 @@ package org.bithon.server.storage.jdbc.jooq;
 
 
 import org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertChangelog;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertObject;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertRecord;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertRunlog;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonAlertState;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonEvent;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonMetaApplicationMetricMap;
@@ -29,6 +34,18 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     public static final Index BITHON_AGENT_SETTING_KEY_APPNAME = Indexes0.BITHON_AGENT_SETTING_KEY_APPNAME;
+    public static final Index BITHON_ALERT_CHANGELOG_IDX_ALERT_CHANGELOG_ALERT_ID = Indexes0.BITHON_ALERT_CHANGELOG_IDX_ALERT_CHANGELOG_ALERT_ID;
+    public static final Index BITHON_ALERT_CHANGELOG_IDX_ALERT_CHANGELOG_SERVER_CREATE_TIME = Indexes0.BITHON_ALERT_CHANGELOG_IDX_ALERT_CHANGELOG_SERVER_CREATE_TIME;
+    public static final Index BITHON_ALERT_CHANGELOG_PRIMARY = Indexes0.BITHON_ALERT_CHANGELOG_PRIMARY;
+    public static final Index BITHON_ALERT_OBJECT_IDX_ALERT_OBJECT_APP_NAME = Indexes0.BITHON_ALERT_OBJECT_IDX_ALERT_OBJECT_APP_NAME;
+    public static final Index BITHON_ALERT_OBJECT_IDX_ALERT_OBJECT_UPDATED_AT = Indexes0.BITHON_ALERT_OBJECT_IDX_ALERT_OBJECT_UPDATED_AT;
+    public static final Index BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID = Indexes0.BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID;
+    public static final Index BITHON_ALERT_RECORD_IDX_BITHON_ALERT_RECORD_ALERT_ID = Indexes0.BITHON_ALERT_RECORD_IDX_BITHON_ALERT_RECORD_ALERT_ID;
+    public static final Index BITHON_ALERT_RECORD_IDX_BITHON_ALERT_RECORD_ID = Indexes0.BITHON_ALERT_RECORD_IDX_BITHON_ALERT_RECORD_ID;
+    public static final Index BITHON_ALERT_RECORD_IDX_BITHON_ALERT_RECORD_TIMESTAMP = Indexes0.BITHON_ALERT_RECORD_IDX_BITHON_ALERT_RECORD_TIMESTAMP;
+    public static final Index BITHON_ALERT_RUNLOG_IDX_ALERT_RUNLOG_ALERT_ID = Indexes0.BITHON_ALERT_RUNLOG_IDX_ALERT_RUNLOG_ALERT_ID;
+    public static final Index BITHON_ALERT_RUNLOG_IDX_ALERT_RUNLOG_TIMESTAMP = Indexes0.BITHON_ALERT_RUNLOG_IDX_ALERT_RUNLOG_TIMESTAMP;
+    public static final Index BITHON_ALERT_STATE_UQ_ALERT_ID = Indexes0.BITHON_ALERT_STATE_UQ_ALERT_ID;
     public static final Index BITHON_APPLICATION_INSTANCE_IDX_APP_INSTANCE_NAME = Indexes0.BITHON_APPLICATION_INSTANCE_IDX_APP_INSTANCE_NAME;
     public static final Index BITHON_APPLICATION_INSTANCE_IDX_APP_INSTANCE_TIMESTAMP = Indexes0.BITHON_APPLICATION_INSTANCE_IDX_APP_INSTANCE_TIMESTAMP;
     public static final Index BITHON_EVENT_IDX_EVENT_APPNAME = Indexes0.BITHON_EVENT_IDX_EVENT_APPNAME;
@@ -60,6 +77,18 @@ public class Indexes {
 
     private static class Indexes0 {
         public static Index BITHON_AGENT_SETTING_KEY_APPNAME = Internal.createIndex("key_appName", BithonAgentSetting.BITHON_AGENT_SETTING, new OrderField[] { BithonAgentSetting.BITHON_AGENT_SETTING.APPNAME, BithonAgentSetting.BITHON_AGENT_SETTING.SETTINGNAME }, true);
+        public static Index BITHON_ALERT_CHANGELOG_IDX_ALERT_CHANGELOG_ALERT_ID = Internal.createIndex("idx_alert_changelog_alert_id", BithonAlertChangelog.BITHON_ALERT_CHANGELOG, new OrderField[] { BithonAlertChangelog.BITHON_ALERT_CHANGELOG.ALERT_ID }, false);
+        public static Index BITHON_ALERT_CHANGELOG_IDX_ALERT_CHANGELOG_SERVER_CREATE_TIME = Internal.createIndex("idx_alert_changelog_server_create_time", BithonAlertChangelog.BITHON_ALERT_CHANGELOG, new OrderField[] { BithonAlertChangelog.BITHON_ALERT_CHANGELOG.SERVER_UPDATE_TIME }, false);
+        public static Index BITHON_ALERT_CHANGELOG_PRIMARY = Internal.createIndex("PRIMARY", BithonAlertChangelog.BITHON_ALERT_CHANGELOG, new OrderField[] { BithonAlertChangelog.BITHON_ALERT_CHANGELOG.PK_ID }, true);
+        public static Index BITHON_ALERT_OBJECT_IDX_ALERT_OBJECT_APP_NAME = Internal.createIndex("idx_alert_object_app_name", BithonAlertObject.BITHON_ALERT_OBJECT, new OrderField[] { BithonAlertObject.BITHON_ALERT_OBJECT.APP_NAME }, false);
+        public static Index BITHON_ALERT_OBJECT_IDX_ALERT_OBJECT_UPDATED_AT = Internal.createIndex("idx_alert_object_updated_at", BithonAlertObject.BITHON_ALERT_OBJECT, new OrderField[] { BithonAlertObject.BITHON_ALERT_OBJECT.UPDATED_AT }, false);
+        public static Index BITHON_ALERT_OBJECT_UQ_ALERT_OBJECT_ID = Internal.createIndex("uq_alert_object_id", BithonAlertObject.BITHON_ALERT_OBJECT, new OrderField[] { BithonAlertObject.BITHON_ALERT_OBJECT.ALERT_ID }, true);
+        public static Index BITHON_ALERT_RECORD_IDX_BITHON_ALERT_RECORD_ALERT_ID = Internal.createIndex("idx_bithon_alert_record_alert_id", BithonAlertRecord.BITHON_ALERT_RECORD, new OrderField[] { BithonAlertRecord.BITHON_ALERT_RECORD.ALERT_ID }, false);
+        public static Index BITHON_ALERT_RECORD_IDX_BITHON_ALERT_RECORD_ID = Internal.createIndex("idx_bithon_alert_record_id", BithonAlertRecord.BITHON_ALERT_RECORD, new OrderField[] { BithonAlertRecord.BITHON_ALERT_RECORD.RECORD_ID }, false);
+        public static Index BITHON_ALERT_RECORD_IDX_BITHON_ALERT_RECORD_TIMESTAMP = Internal.createIndex("idx_bithon_alert_record_timestamp", BithonAlertRecord.BITHON_ALERT_RECORD, new OrderField[] { BithonAlertRecord.BITHON_ALERT_RECORD.TIMESTAMP }, false);
+        public static Index BITHON_ALERT_RUNLOG_IDX_ALERT_RUNLOG_ALERT_ID = Internal.createIndex("idx_alert_runlog_alert_id", BithonAlertRunlog.BITHON_ALERT_RUNLOG, new OrderField[] { BithonAlertRunlog.BITHON_ALERT_RUNLOG.ALERT_ID }, false);
+        public static Index BITHON_ALERT_RUNLOG_IDX_ALERT_RUNLOG_TIMESTAMP = Internal.createIndex("idx_alert_runlog_timestamp", BithonAlertRunlog.BITHON_ALERT_RUNLOG, new OrderField[] { BithonAlertRunlog.BITHON_ALERT_RUNLOG.TIMESTAMP }, false);
+        public static Index BITHON_ALERT_STATE_UQ_ALERT_ID = Internal.createIndex("uq_alert_id", BithonAlertState.BITHON_ALERT_STATE, new OrderField[] { BithonAlertState.BITHON_ALERT_STATE.ALERT_ID }, true);
         public static Index BITHON_APPLICATION_INSTANCE_IDX_APP_INSTANCE_NAME = Internal.createIndex("idx_app_instance_name", BithonApplicationInstance.BITHON_APPLICATION_INSTANCE, new OrderField[] { BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.APPNAME }, false);
         public static Index BITHON_APPLICATION_INSTANCE_IDX_APP_INSTANCE_TIMESTAMP = Internal.createIndex("idx_app_instance_timestamp", BithonApplicationInstance.BITHON_APPLICATION_INSTANCE, new OrderField[] { BithonApplicationInstance.BITHON_APPLICATION_INSTANCE.TIMESTAMP }, false);
         public static Index BITHON_EVENT_IDX_EVENT_APPNAME = Internal.createIndex("idx_event_appName", BithonEvent.BITHON_EVENT, new OrderField[] { BithonEvent.BITHON_EVENT.APPNAME }, false);

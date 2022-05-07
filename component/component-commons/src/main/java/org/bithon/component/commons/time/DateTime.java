@@ -16,6 +16,7 @@
 
 package org.bithon.component.commons.time;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -39,5 +40,9 @@ public class DateTime {
 
     public static String toYYYYMMDDhhmmss(long timestamp) {
         return formatDateTime("yyyy-MM-dd HH:mm:ss", timestamp);
+    }
+
+    public static String toYYYYMMDDhhmmss(Timestamp timestamp) {
+        return toYYYYMMDDhhmmss(timestamp.getTime());
     }
 }

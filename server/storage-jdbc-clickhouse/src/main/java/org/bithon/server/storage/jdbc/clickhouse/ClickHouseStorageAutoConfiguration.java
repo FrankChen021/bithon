@@ -19,7 +19,9 @@ package org.bithon.server.storage.jdbc.clickhouse;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
-import org.jooq.impl.DSL;
+import org.bithon.server.storage.jdbc.clickhouse.alerting.AlertObjectStorage;
+import org.bithon.server.storage.jdbc.clickhouse.alerting.AlertRecordStorage;
+import org.bithon.server.storage.jdbc.clickhouse.alerting.LoggerStorage;
 import org.jooq.impl.DefaultConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,10 +52,10 @@ public class ClickHouseStorageAutoConfiguration {
     @Bean
     ClickHouseJooqContextHolder clickHouseDSLContextHolder(@Qualifier("bithon-clickhouse-dataSource") DataSource dataSource) {
         JooqAutoConfiguration autoConfiguration = new JooqAutoConfiguration();
-        return new ClickHouseJooqContextHolder(DSL.using(new DefaultConfiguration()
-                                                             .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
-                                                             .set(new JooqProperties().determineSqlDialect(dataSource))
-                                                             .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider())));
+        return new ClickHouseJooqContextHolder(new ClickHouseDSLContext(new DefaultConfiguration()
+                                                                            .set(autoConfiguration.dataSourceConnectionProvider(dataSource))
+                                                                            .set(new JooqProperties().determineSqlDialect(dataSource))
+                                                                            .set(autoConfiguration.jooqExceptionTranslatorExecuteListenerProvider())));
     }
 
     @Bean
@@ -93,7 +95,12 @@ public class ClickHouseStorageAutoConfiguration {
                                          EventStorage.class,
                                          MetadataStorage.class,
                                          SchemaStorage.class,
-                                         SettingStorage.class);
+                                         SettingStorage.class,
+
+                                         // alerting
+                                         AlertObjectStorage.class,
+                                         AlertRecordStorage.class,
+                                         LoggerStorage.class);
             }
         };
     }

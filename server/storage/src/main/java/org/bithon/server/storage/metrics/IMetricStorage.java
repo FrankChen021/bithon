@@ -17,6 +17,7 @@
 package org.bithon.server.storage.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 
 import java.io.IOException;
@@ -34,7 +35,7 @@ public interface IMetricStorage {
 
     IMetricReader createMetricReader(DataSourceSchema schema);
 
-    IMetricCleaner createMetricCleaner(DataSourceSchema schema);
+    IStorageCleaner createMetricCleaner(DataSourceSchema schema);
 
     default void initialize() {
 

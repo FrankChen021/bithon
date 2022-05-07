@@ -41,6 +41,6 @@ public class MetadataStorage extends MetadataJdbcStorage {
 
     @Override
     public void initialize() {
-        new TableCreator(config, this.dslContext).createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE, config.getTtlDays());
+        new TableCreator(config, this.dslContext).createIfNotExist(Tables.BITHON_APPLICATION_INSTANCE);
     }
 }

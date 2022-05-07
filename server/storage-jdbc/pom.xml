@@ -31,7 +31,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jooq</artifactId>
-      <version>${spring-boot.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.tomcat</groupId>
@@ -46,14 +45,12 @@
     <dependency>
       <groupId>com.alibaba</groupId>
       <artifactId>druid-spring-boot-starter</artifactId>
-      <version>1.1.16</version>
     </dependency>
 
     <!-- JDBC -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jdbc</artifactId>
-      <version>${spring-boot.version}</version>
     </dependency>
 
     <!-- Built in H2 Database -->
@@ -95,7 +92,7 @@
               <forcedTypes>
                 <forcedType>
                   <name>BOOLEAN</name>
-                  <includeTypes>TINYINT\(2\)</includeTypes>
+                  <includeTypes>tinyint</includeTypes>
                 </forcedType>
               </forcedTypes>
               <!-- <unsignedTypes>false</unsignedTypes> -->
@@ -106,7 +103,7 @@
               <deprecated>false</deprecated>
               <instanceFields>true</instanceFields>
               <keys>true</keys>
-              <pojos>true</pojos>
+              <pojos>false</pojos>
               <indexes>true</indexes>
               <generatedAnnotation>false</generatedAnnotation>
             </generate>

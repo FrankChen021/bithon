@@ -27,6 +27,10 @@
     <module>component</module>
     <module>agent</module>
     <!--server modules are defined in the profiles-->
+
+    <module>server/alerting/admin</module>
+    <module>server/alerting/common</module>
+    <module>server/alerting/processor</module>
   </modules>
 
   <!-- Required info for sonatype -->
@@ -55,6 +59,12 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>druid-spring-boot-starter</artifactId>
+        <version>1.1.24</version>
+      </dependency>
+
       <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
       <dependency>
         <groupId>commons-io</groupId>
@@ -67,6 +77,12 @@
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
         <version>1.18.20</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.antlr</groupId>
+        <artifactId>antlr4-runtime</artifactId>
+        <version>4.9.3</version>
       </dependency>
 
       <dependency>
@@ -131,6 +147,29 @@
       </dependency>
 
       <dependency>
+        <groupId>org.bithon.server</groupId>
+        <artifactId>server-alerting-common</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bithon.server</groupId>
+        <artifactId>server-alerting-processor</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bithon.server</groupId>
+        <artifactId>server-alerting-admin</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <!-- Testing -->
+      <dependency>
+        <groupId>org.easymock</groupId>
+        <artifactId>easymock</artifactId>
+        <version>4.3</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.13.2</version>
@@ -164,6 +203,12 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.8.1</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.antlr</groupId>
+          <artifactId>antlr4-maven-plugin</artifactId>
+          <version>4.9.3</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -382,6 +427,7 @@
 
             <!-- webapp -->
             <dependency>nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect</dependency>
+            <dependency>org.hibernate.validator:hibernate-validator</dependency>
 
             <!-- jdbc -->
             <dependency>com.alibaba:druid-spring-boot-starter</dependency>
@@ -392,6 +438,7 @@
             <!-- starter -->
             <dependency>com.alibaba.cloud:spring-cloud-starter-alibaba-nacos-config</dependency>
             <dependency>org.bithon:*</dependency>
+            <dependency>org.bithon.server:*</dependency>
           </ignoredUnusedDeclaredDependencies>
         </configuration>
       </plugin>

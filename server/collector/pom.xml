@@ -60,24 +60,5 @@
 
   <build>
     <finalName>${project.artifactId}</finalName>
-    <plugins>
-      <plugin>
-        <groupId>org.antlr</groupId>
-        <artifactId>antlr4-maven-plugin</artifactId>
-        <version>4.9</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>antlr4</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <listener>true</listener>
-          <visitor>true</visitor>
-          <!--<treatWarningsAsErrors>true</treatWarningsAsErrors>-->
-        </configuration>
-      </plugin>
-    </plugins>
   </build>
 </project>

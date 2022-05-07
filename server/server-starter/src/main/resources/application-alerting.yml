@@ -1,0 +1,21 @@
+bithon:
+  alerting:
+    processor:
+      enabled: false
+    admin:
+      enabled: true
+    state:
+      type: local
+    configuration:
+      type: jdbc
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT3M
+    logger:
+      type: jdbc
+      ttl:
+        enabled: true
+        ttl: P1D
+        cleanPeriod: PT3M
+
