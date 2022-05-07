@@ -356,7 +356,6 @@ class Dashboard {
             });
         }
 
-
         let loadOptions;
         if (chartDescriptor.details.groupBy !== undefined && chartDescriptor.details.groupBy.length > 0) {
             loadOptions = {
@@ -368,7 +367,7 @@ class Dashboard {
                     startTimeISO8601: startISO8601,
                     endTimeISO8601: endISO8601,
                     filters: filters,
-                    metrics: chartDescriptor.details.metrics,
+                    metrics: chartDescriptor.details.metrics.map(m => typeof m === 'object' ? m.name : m),
                     groupBy: chartDescriptor.details.groupBy
                 }
             };
@@ -647,7 +646,7 @@ class Dashboard {
 
     refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
         const appFilter = this.vFilter.getSelectedFilter('appName');
-        if ( appFilter === undefined || appFilter === null) {
+        if (appFilter === undefined || appFilter === null) {
             return;
         }
 
