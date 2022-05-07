@@ -27,6 +27,16 @@ import java.util.concurrent.atomic.AtomicLong;
 public class LongMin implements IMetricValue {
     private final AtomicLong value = new AtomicLong(Long.MAX_VALUE);
 
+    private final long defaultValue;
+
+    public LongMin() {
+        this(0);
+    }
+
+    public LongMin(long defaultValue) {
+        this.defaultValue = defaultValue;
+    }
+
     @Override
     public long update(long value) {
         while (true) {
@@ -43,6 +53,7 @@ public class LongMin implements IMetricValue {
 
     @Override
     public long value() {
-        return value.get();
+        long v = value.get();
+        return v == Long.MAX_VALUE ? this.defaultValue : v;
     }
 }
