@@ -51,7 +51,6 @@ public class MethodDecoratorAdvice {
         }
 
         AopContext aopContext = new AopContext(method, target, args);
-        context = aopContext;
 
         boolean skipLeaveMethod = true;
         try {
@@ -74,6 +73,9 @@ public class MethodDecoratorAdvice {
             return false;
         }
         aopContext.onBeforeTargetMethodInvocation();
+
+        // assign the context so that the leave method can access this object
+        context = aopContext;
 
         return true;
     }
