@@ -111,8 +111,8 @@ public class AroundGatewayFilter$Filter extends AbstractInterceptor {
             span.tag(aopContext.getException()).finish();
         } else {
             Mono<Void> originalReturning = aopContext.castReturningAs();
-            Mono<Void> replacedReturning = originalReturning.doOnError((exception) -> span.tag(exception).finish())
-                                                            .doOnSuccess((s) -> span.finish());
+            Mono<Void> replacedReturning = originalReturning.doOnError(span::tag)
+                                                            .doFinally((s) -> span.finish());
             aopContext.setReturning(replacedReturning);
         }
     }

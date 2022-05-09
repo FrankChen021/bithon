@@ -47,6 +47,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * {@link org.springframework.http.server.reactive.ReactorHttpHandlerAdapter#apply}
@@ -138,24 +139,25 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         Mono<Void> mono = aopContext.castReturningAs();
         if (aopContext.hasException() || mono.equals(Mono.empty())) {
             update(request, response, aopContext.getCostTime());
-            finishTrace(request, response);
+            finishTrace(request, response, null);
 
             return;
         }
 
-        final long start = System.nanoTime();
-        // replace the returned Mono so that we can do sth when this request completes
-        aopContext.setReturning(mono.doOnSuccessOrError((success, error) -> {
+        final long start = aopContext.getStartNanoTime();
+        BiConsumer<Void, Throwable> onSuccessOrError = (t, throwable) -> {
             try {
                 update(request, response, System.nanoTime() - start);
             } catch (Exception e) {
                 LOG.error("failed to record http incoming metrics", e);
             } finally {
-                finishTrace(request, response);
+                finishTrace(request, response, throwable);
             }
-        }));
+        };
 
-        //DO NOT remove the thread-local variable of trace context
+        // replace the returned Mono so that we can do sth when this request completes
+        aopContext.setReturning(mono.doOnSuccess((Void) -> onSuccessOrError.accept(null, null))
+                                    .doOnError((error) -> onSuccessOrError.accept(null, error)));
     }
 
     private void update(HttpServerRequest request, HttpServerResponse response, long responseTime) {
@@ -171,7 +173,7 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
                            .updateRequest(responseTime, count4xx, count5xx);
     }
 
-    private void finishTrace(HttpServerRequest request, HttpServerResponse response) {
+    private void finishTrace(HttpServerRequest request, HttpServerResponse response, Throwable t) {
         if (!(request instanceof IBithonObject)) {
             return;
         }
@@ -181,55 +183,58 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
         }
 
         ITraceContext traceContext = ((HttpServerContext) injected).getTraceContext();
-        if (traceContext != null) {
-            traceContext.currentSpan()
-                        .tag(Tags.HTTP_STATUS, String.valueOf(response.status().code()))
-                        .tag((span -> {
-                            // extract headers in the response to tag
-                            if (!CollectionUtils.isEmpty(responseConfigs.getHeaders())) {
-                                HttpHeaders httpHeaders = response.responseHeaders();
-                                for (Map.Entry<String, String> entry : responseConfigs.getHeaders().entrySet()) {
-                                    String headerName = entry.getKey();
-                                    String tagName = entry.getValue();
-                                    String tagValue = httpHeaders.get(headerName);
-                                    if (tagValue != null) {
-                                        span.tag(tagName, tagValue);
-                                    }
+        if (traceContext == null) {
+            return;
+        }
+
+        traceContext.currentSpan()
+                    .tag(Tags.HTTP_STATUS, String.valueOf(response.status().code()))
+                    .tag(t)
+                    .tag((span -> {
+                        // extract headers in the response to tag
+                        if (!CollectionUtils.isEmpty(responseConfigs.getHeaders())) {
+                            HttpHeaders httpHeaders = response.responseHeaders();
+                            for (Map.Entry<String, String> entry : responseConfigs.getHeaders().entrySet()) {
+                                String headerName = entry.getKey();
+                                String tagName = entry.getValue();
+                                String tagValue = httpHeaders.get(headerName);
+                                if (tagValue != null) {
+                                    span.tag(tagName, tagValue);
                                 }
                             }
+                        }
 
-                            //
-                            // handle X-FORWARDED-FOR
-                            //
-                            if (xforwardTagName == null) {
-                                return;
-                            }
-                            InetSocketAddress remoteAddr = request.remoteAddress();
-                            if (remoteAddr == null) {
-                                return;
-                            }
+                        //
+                        // handle X-FORWARDED-FOR
+                        //
+                        if (xforwardTagName == null) {
+                            return;
+                        }
+                        InetSocketAddress remoteAddr = request.remoteAddress();
+                        if (remoteAddr == null) {
+                            return;
+                        }
 
-                            String remoteAddrText = remoteAddr.getAddress().getHostAddress();
-                            List<String> xforwarded = request.requestHeaders().getAll(X_FORWARDED_FOR);
-                            if (xforwarded == null) {
-                                span.tag(xforwardTagName, remoteAddrText);
-                                return;
-                            }
+                        String remoteAddrText = remoteAddr.getAddress().getHostAddress();
+                        List<String> xforwarded = request.requestHeaders().getAll(X_FORWARDED_FOR);
+                        if (xforwarded == null) {
+                            span.tag(xforwardTagName, remoteAddrText);
+                            return;
+                        }
 
-                            if (!xforwarded.contains(remoteAddrText)) { // prevent duplicates
-                                // xforwarded maybe unmodifiable, create a new container
-                                xforwarded = new ArrayList<>(xforwarded);
+                        if (!xforwarded.contains(remoteAddrText)) { // prevent duplicates
+                            // xforwarded maybe unmodifiable, create a new container
+                            xforwarded = new ArrayList<>(xforwarded);
 
-                                xforwarded.add(remoteAddrText);
-                            }
+                            xforwarded.add(remoteAddrText);
+                        }
 
-                            // using join instead of using ObjectMapper
-                            // because in other modules such as tomcat-plugin, we directly get the header value and record it in the log
-                            // the value in that header is comma delimited
-                            span.tag(xforwardTagName, String.join(",", xforwarded));
-                        }))
-                        .finish();
-            traceContext.finish();
-        }
+                        // using join instead of using ObjectMapper
+                        // because in other modules such as tomcat-plugin, we directly get the header value and record it in the log
+                        // the value in that header is comma delimited
+                        span.tag(xforwardTagName, String.join(",", xforwarded));
+                    }))
+                    .finish();
+        traceContext.finish();
     }
 }
