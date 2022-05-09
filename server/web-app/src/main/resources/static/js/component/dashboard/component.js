@@ -22,7 +22,7 @@ class Dashboard {
         this._formatters = {};
         this._formatters['binary_byte'] = (v) => v.formatBinaryByte();
         this._formatters['compact_number'] = (v) => v.formatCompactNumber();
-        this._formatters['percentage'] = (v) => v.toFixed(2) + '%';
+        this._formatters['percentage'] = (v) => v === 'NaN' ? '0%' : v.toFixed(2) + '%';
         this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 2);
         this._formatters['millisecond'] = (v) => milliFormat(v, 2);
         this._formatters['microsecond'] = (v) => microFormat(v, 2);
