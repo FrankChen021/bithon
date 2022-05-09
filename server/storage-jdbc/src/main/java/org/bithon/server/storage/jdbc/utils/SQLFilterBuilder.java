@@ -18,7 +18,11 @@ package org.bithon.server.storage.jdbc.utils;
 
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.matcher.BetweenMatcher;
+import org.bithon.server.commons.matcher.GreaterThanMatcher;
+import org.bithon.server.commons.matcher.GreaterThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.IMatcherVisitor;
+import org.bithon.server.commons.matcher.LessThanMatcher;
+import org.bithon.server.commons.matcher.LessThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.StringAntPathMatcher;
 import org.bithon.server.commons.matcher.StringContainsMatcher;
 import org.bithon.server.commons.matcher.StringEndWithMatcher;
@@ -40,10 +44,13 @@ import java.util.stream.Stream;
  * build SQL where clause
  */
 public class SQLFilterBuilder implements IMatcherVisitor<String> {
+
+    private final DataSourceSchema schema;
     private final String fieldName;
 
     public SQLFilterBuilder(String fieldName) {
         this.fieldName = fieldName;
+        this.schema = null;
     }
 
     public SQLFilterBuilder(DataSourceSchema schema, IFilter filter) {
@@ -64,6 +71,7 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
 
             this.fieldName = filter.getName();
         }
+        this.schema = schema;
     }
 
     public static String build(DataSourceSchema schema, Collection<IFilter> filters) {
@@ -143,5 +151,32 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
         sb.append(" AND ");
         sb.append(matcher.getUpper());
         return sb.toString();
+    }
+
+    /**
+     * use qualified name because there might be an aggregated field with the same name
+     */
+    @Override
+    public String visit(GreaterThanMatcher matcher) {
+        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
+        return String.format("\"%s\".\"%s\" > %s", tableName, fieldName, matcher.getValue().toString());
+    }
+
+    @Override
+    public String visit(GreaterThanOrEqualMatcher matcher) {
+        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
+        return String.format("\"%s\".\"%s\" >= %s", tableName, fieldName, matcher.getValue().toString());
+    }
+
+    @Override
+    public String visit(LessThanMatcher matcher) {
+        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
+        return String.format("\"%s\".\"%s\" < %s", tableName, fieldName, matcher.getValue().toString());
+    }
+
+    @Override
+    public String visit(LessThanOrEqualMatcher matcher) {
+        String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
+        return String.format("\"%s\".\"%s\" <= %s", tableName, fieldName, matcher.getValue().toString());
     }
 }

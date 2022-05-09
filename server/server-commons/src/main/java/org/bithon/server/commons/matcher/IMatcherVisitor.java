@@ -38,4 +38,12 @@ public interface IMatcherVisitor<T> {
     T visit(StringStartsWithMatcher matcher);
 
     T visit(BetweenMatcher matcher);
+
+    T visit(GreaterThanMatcher matcher);
+
+    T visit(GreaterThanOrEqualMatcher matcher);
+
+    T visit(LessThanMatcher matcher);
+
+    T visit(LessThanOrEqualMatcher matcher);
 }

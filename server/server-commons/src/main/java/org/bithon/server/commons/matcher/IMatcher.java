@@ -34,6 +34,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(name = "regex", value = StringRegexMatcher.class),
     @JsonSubTypes.Type(name = "antPath", value = StringAntPathMatcher.class),
     @JsonSubTypes.Type(name = "between", value = BetweenMatcher.class),
+    @JsonSubTypes.Type(name = "gt", value = GreaterThanMatcher.class),
+    @JsonSubTypes.Type(name = "gte", value = GreaterThanOrEqualMatcher.class),
+    @JsonSubTypes.Type(name = "lt", value = LessThanMatcher.class),
+    @JsonSubTypes.Type(name = "lte", value = LessThanOrEqualMatcher.class),
 })
 public interface IMatcher {
     boolean matches(Object input);
