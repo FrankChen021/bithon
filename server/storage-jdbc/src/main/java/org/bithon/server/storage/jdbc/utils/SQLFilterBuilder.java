@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.utils;
 
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.matcher.BetweenMatcher;
 import org.bithon.server.commons.matcher.GreaterThanMatcher;
 import org.bithon.server.commons.matcher.GreaterThanOrEqualMatcher;
@@ -159,24 +160,24 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
     @Override
     public String visit(GreaterThanMatcher matcher) {
         String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-        return String.format("\"%s\".\"%s\" > %s", tableName, fieldName, matcher.getValue().toString());
+        return StringUtils.format("\"%s\".\"%s\" > %s", tableName, fieldName, matcher.getValue().toString());
     }
 
     @Override
     public String visit(GreaterThanOrEqualMatcher matcher) {
         String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-        return String.format("\"%s\".\"%s\" >= %s", tableName, fieldName, matcher.getValue().toString());
+        return StringUtils.format("\"%s\".\"%s\" >= %s", tableName, fieldName, matcher.getValue().toString());
     }
 
     @Override
     public String visit(LessThanMatcher matcher) {
         String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-        return String.format("\"%s\".\"%s\" < %s", tableName, fieldName, matcher.getValue().toString());
+        return StringUtils.format("\"%s\".\"%s\" < %s", tableName, fieldName, matcher.getValue().toString());
     }
 
     @Override
     public String visit(LessThanOrEqualMatcher matcher) {
         String tableName = "bithon_" + schema.getName().replaceAll("-", "_");
-        return String.format("\"%s\".\"%s\" <= %s", tableName, fieldName, matcher.getValue().toString());
+        return StringUtils.format("\"%s\".\"%s\" <= %s", tableName, fieldName, matcher.getValue().toString());
     }
 }
