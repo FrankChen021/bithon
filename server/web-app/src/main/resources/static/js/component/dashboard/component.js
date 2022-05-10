@@ -22,7 +22,7 @@ class Dashboard {
         this._formatters = {};
         this._formatters['binary_byte'] = (v) => v.formatBinaryByte();
         this._formatters['compact_number'] = (v) => v.formatCompactNumber();
-        this._formatters['percentage'] = (v) => v === 'NaN' ? '0%' : v.toFixed(2) + '%';
+        this._formatters['percentage'] = (v) => v === 'NaN' ? '0%' : v.formatWithNoTrailingZeros(2) + '%';
         this._formatters['nanoFormatter'] = (v) => nanoFormat(v, 2);
         this._formatters['millisecond'] = (v) => milliFormat(v, 2);
         this._formatters['microsecond'] = (v) => microFormat(v, 2);
@@ -237,7 +237,13 @@ class Dashboard {
         //
         $.each(chartDescriptor.details.groupBy, (index, dimension) => {
 
-            const column = {field: dimension, title: dimension, align: 'center', sortable: true};
+            const column = {
+                field: dimension,
+                title: dimension,
+                align: 'center',
+                sortable: true,
+                formatter: (v) => v.htmlEncode()
+            };
 
             // set up lookup for this dimension
             if (chartDescriptor.details.lookup !== undefined) {
@@ -447,10 +453,14 @@ class Dashboard {
                     const fType = $.type(f);
                     if (fType === 'array') {
                         // f is a pair, f[0] is the field name, f[1] is the value
-                        url += `${f[0]}=${encodeURI(f[1])}&`;
+                        if (f[1] != null) {
+                            url += `${f[0]}=${encodeURI(f[1])}&`;
+                        }
                     } else if (fType === 'string') {
                         url += `${f}=${encodeURI(val)}&`;
                     }
+                } else {
+                    console.log(`mapping type ${mappingField.type} is not supported yet.`);
                 }
             }
         });
@@ -566,9 +576,10 @@ class Dashboard {
                     min: 0 || y.min,
                     minInterval: 1 || y.minInterval,
                     interval: y.interval,
-                    scale: false,
+                    inverse: y.inverse === undefined ? false : y.inverse,
                     splitLine: {show: true},
                     axisLine: {show: false},
+                    scale: false,
                     axisTick: {
                         show: false,
                     },
@@ -689,23 +700,26 @@ class Dashboard {
                 const timeLabels = data.map(d => moment(d._timestamp).local().format('HH:mm:ss'));
 
                 const series = chartDescriptor.metrics.map(metric => {
+                    const chartType = metric.chartType || 'line';
+                    const isLine = chartType === 'line';
+                    const isArea = isLine && (metric.fill === undefined ? true : metric.fill);
                     return {
                         name: metricNamePrefix + (metric.displayName === undefined ? metric.name : metric.displayName),
-                        type: metric.chartType || 'line',
+                        type: chartType,
 
                         data: data.map(d => metric.transformer(d[metric.name])),
                         yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
 
-                        areaStyle: {opacity: 0.3},
-                        lineStyle: {width: 1},
-                        itemStyle: {opacity: 0},
+                        areaStyle: isArea ? {opacity: 0.3} : null,
+                        lineStyle: isLine ? {width: 1} : null,
+                        itemStyle: isLine ? {opacity: 0} : null,
+                        barWidth: 10,
 
                         // selected is not a property of series
                         // this is used to render default selected state of legend by chart-component
                         selected: metric.selected === undefined ? true : metric.selected
                     }
                 });
-
 
                 return {
                     // save the timestamp for further processing
