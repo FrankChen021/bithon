@@ -48,6 +48,7 @@ class TraceSpan implements ITraceSpan {
         this.spanId = spanId;
         this.parentSpanId = parentSpanId;
         this.traceContext = traceContext;
+        this.endTime = 0;
     }
 
     @Override
@@ -173,6 +174,9 @@ class TraceSpan implements ITraceSpan {
 
     @Override
     public void finish() {
+        if (this.endTime != 0) {
+            return;
+        }
         this.endTime = context().clock().currentMicroseconds();
         try {
             this.traceContext.onSpanFinished(this);

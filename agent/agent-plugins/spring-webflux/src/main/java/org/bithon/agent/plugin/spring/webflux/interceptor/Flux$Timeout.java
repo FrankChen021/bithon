@@ -39,14 +39,14 @@ public class Flux$Timeout extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        Publisher orignalFallback = aopContext.getArgAs(2);
+        Publisher originalFallback = aopContext.getArgAs(2);
 
         Publisher newFallback = subscriber -> {
             // should be the first since the fallback.subscribe will trigger other callbacks hooked on it
             timeoutCallback.run();
 
-            if (orignalFallback != null) {
-                orignalFallback.subscribe(subscriber);
+            if (originalFallback != null) {
+                originalFallback.subscribe(subscriber);
             }
         };
 

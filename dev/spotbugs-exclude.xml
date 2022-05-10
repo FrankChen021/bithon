@@ -51,6 +51,10 @@
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
+        <Class name="org.bithon.agent.bootstrap.aop.advice.MethodDecoratorAdvice"/>
+        <Bug pattern="IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN" />
+    </Match>
+    <Match>
         <Class name="org.bithon.agent.bootstrap.aop.advice.MethodReplacementAdvice"/>
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>

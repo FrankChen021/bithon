@@ -51,12 +51,10 @@ public class MethodDecoratorAdvice {
         }
 
         AopContext aopContext = new AopContext(method, target, args);
-        context = aopContext;
 
+        boolean skipLeaveMethod = true;
         try {
-            if (interceptor.onMethodEnter((AopContext) context) == InterceptionDecision.SKIP_LEAVE) {
-                return false;
-            }
+            skipLeaveMethod = interceptor.onMethodEnter(aopContext) == InterceptionDecision.SKIP_LEAVE;
         } catch (Throwable e) {
             LOG.error(String.format(Locale.ENGLISH, "Exception occurred when executing onEnter of [%s] for [%s]: %s",
                                     interceptor.getClass().getSimpleName(),
@@ -71,7 +69,13 @@ public class MethodDecoratorAdvice {
         // so that bytebyddy re-map the args to original function input argument
         args = aopContext.getArgs();
 
+        if (skipLeaveMethod) {
+            return false;
+        }
         aopContext.onBeforeTargetMethodInvocation();
+
+        // assign the context so that the leave method can access this object
+        context = aopContext;
 
         return true;
     }

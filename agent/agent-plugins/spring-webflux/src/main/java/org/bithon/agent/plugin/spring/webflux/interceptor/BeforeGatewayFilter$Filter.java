@@ -96,5 +96,12 @@ public class BeforeGatewayFilter$Filter extends AbstractInterceptor {
         }
 
         FilterUtils.extractAttributesAsTraceTags(exchange, this.configs, aopContext.getTargetClass(), span);
+
+        if (aopContext.hasException()) {
+            // this exception might be thrown from this filter or from the chains of the filter.
+            // For the 1st case, the span is not closed, so we have to finish it
+            // For the 2nd case, the span is closed before entering the filter chain. It's safe to call the finish method once more
+            span.tag(aopContext.getException()).finish();
+        }
     }
 }
