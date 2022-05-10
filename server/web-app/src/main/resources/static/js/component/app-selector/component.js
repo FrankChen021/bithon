@@ -190,7 +190,8 @@ class AppSelector {
                         results: appList.map(app => {
                             return {
                                 "id": app.applicationName,
-                                "text": app.applicationName
+                                "text": app.applicationName,
+                                "search": app.applicationName.toLowerCase()
                             };
                         })
                     };
@@ -280,7 +281,8 @@ class AppSelector {
                         results: data.map(dimension => {
                             return {
                                 "id": dimension.value,
-                                "text": dimension.value
+                                "text": dimension.value,
+                                "search": dimension.value.toLowerCase()
                             };
                         })
                     };
@@ -296,11 +298,12 @@ class AppSelector {
         if (search === undefined || search == null || search.length === 0) {
             return data;
         }
+        search = search.toLowerCase();
 
         const newItems = [];
         for (let i = 0; i < data.results.length; i++) {
             const item = data.results[i];
-            if (item.text.indexOf(search) > -1) {
+            if (item.search.indexOf(search) > -1) {
                 newItems.push(item);
             }
         }
