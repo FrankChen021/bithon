@@ -16,6 +16,7 @@
 
   <modules>
     <module>apache-druid</module>
+    <module>bithon-brpc</module>
     <module>bithon-sdk</module>
     <module>guice</module>
     <module>jdbc-druid</module>
@@ -54,6 +55,11 @@
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.bithon.agent</groupId>
+      <artifactId>agent-plugin-bithon-brpc</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.bithon.agent</groupId>
       <artifactId>agent-plugin-bithon-sdk</artifactId>

@@ -1,0 +1,9 @@
+agent:
+  plugin:
+    bithon:
+      brpc:
+        providers:
+          org.bithon.server.collector.source.brpc.BrpcMetricCollector: org.bithon.agent.rpc.brpc.metrics.IMetricCollector
+          org.bithon.server.collector.source.brpc.BrpcEventCollector: org.bithon.agent.rpc.brpc.event.IEventCollector
+          org.bithon.server.collector.source.brpc.BrpcTraceCollector: org.bithon.agent.rpc.brpc.tracing.ITraceCollector
+
