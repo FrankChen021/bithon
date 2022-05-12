@@ -464,7 +464,7 @@ class Dashboard {
                     const fType = $.type(f);
                     if (fType === 'array') {
                         // f is a pair, f[0] is the field name, f[1] is the value
-                        if (f[1] != null) {
+                        if (f[1] != null && f[1] !== '') {
                             url += `${f[0]}=${encodeURI(f[1])}&`;
                         }
                     } else if (fType === 'string') {
