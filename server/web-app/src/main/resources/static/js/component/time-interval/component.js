@@ -16,7 +16,7 @@ class TimeInterval {
             {id: "24h", value: 24, unit: "hour", text: "Last 24h"},
             {id: "today", value: "today", unit: "day", text: "Today"},
             {id: "yesterday", value: "yesterday", unit: "day", text: "Yesterday"},
-            {id: "custom", value: "", text: "Customer Range"}
+            {id: "custom", value: "", text: "Customer"}
             // {id: "user", value: "user", text: "Customer", start, end}
         ];
 
