@@ -45,7 +45,12 @@ class Dashboard {
         }).registerChangedListener((name, value) => {
             if (name === 'application') {
                 g_SelectedApp = value;
-                window.history.pushState('', '', `/web/metrics/${this._dashboardName}?appName=${value}&interval=${g_MetricSelectedInterval}`);
+
+                let url = `/web/metrics/${this._dashboardName}?appName=${value}`;
+                if (g_MetricSelectedInterval !== undefined) {
+                    url += `&interval=${g_MetricSelectedInterval}`;
+                }
+                window.history.pushState('', '', url);
             }
 
             this.refreshDashboard();
@@ -92,6 +97,12 @@ class Dashboard {
             g_MetricSelectedInterval = selectedModel.id;
             this._selectedInterval = this._timeSelector.getInterval();
             this.refreshDashboard();
+
+            let url = `/web/metrics/${this._dashboardName}?appName=${g_SelectedApp}`;
+            if (g_MetricSelectedInterval !== undefined) {
+                url += `&interval=${g_MetricSelectedInterval}`;
+            }
+            window.history.pushState('', '', url);
         });
         this._selectedInterval = this._timeSelector.getInterval();
 
@@ -722,6 +733,9 @@ class Dashboard {
                 });
 
                 return {
+                    // for a groupBy query, always replace the series because one group may not exist in a following query
+                    refreshMode: chartDescriptor.groupBy != null ? 'replace' : mode,
+
                     // save the timestamp for further processing
                     timestamp: {
                         start: data.length === 0 ? 0 : data[0]._timestamp,
@@ -814,7 +828,7 @@ class Dashboard {
 
                 return {
                     // for a groupBy query, always replace the series because one group may not exist in a following query
-                    replace: chartDescriptor.groupBy != null && mode === 'refresh',
+                    refreshMode: chartDescriptor.groupBy != null ? 'replace' : mode,
 
                     // save the timestamp for further processing
                     timestamp: {
@@ -857,7 +871,7 @@ class Dashboard {
                 }
             }
         }
-        return (val) => val === null ? 0 : val;
+        return (val) => val === null || val === 'NaN' ? 0 : val;
     }
 
     // PRIVATE

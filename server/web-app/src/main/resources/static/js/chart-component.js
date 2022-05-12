@@ -52,17 +52,21 @@ class ChartComponent {
     }
 
     header(text) {
-        let headerText = $(this._card).find('.header-text');
+        let headerText = this._card.find('.header-text');
         if (headerText.length === 0) {
-            const header = $(this._card).prepend(
+            const header = this._card.prepend(
                 '<div class="card-header d-flex" style="padding: 0.5em 1em">' +
                 '<span class="header-text btn-sm"></span>' +
                 '<div class="tools ml-auto">' +
-                '<button style="display:none" class="btn btn-sm btn-select"><span class="far fa-object-ungroup" title="selection"></span></button>' +
-                '<button style="display:none" class="btn btn-sm btn-open"><span class="far fa-window-maximize" title="open"></span></button>' +
+                '<button class="btn btn-sm btn-select" style="display:none" ><span class="far fa-object-ungroup" title="selection"></span></button>' +
+                '<button class="btn btn-sm btn-hide"><span class="far fa-window-minimize" title="hide"></span></button>' +
+                '<button class="btn btn-sm btn-open" style="display:none" ><span class="far fa-window-maximize" title="open"></span></button>' +
                 //'    <button class="btn btn-sm btn-alert"><span class="far fa-bell" title="alert"></span></button>' +
                 '</div>' +
                 '</div>');
+            header.find('.btn-hide').click(() => {
+                this._card.find('.card-body').toggle();
+            });
 
             headerText = header.find('.header-text');
         }
@@ -130,45 +134,91 @@ class ChartComponent {
                     return;
                 }
 
-                const isReplace = returnedOption.replace !== undefined && returnedOption.replace;
-                if (isReplace || (this.option.showLegend && !this.hasUserSelection())) {
-                    let legend = {
-                        id: 'l',
-                        data: [],
-                        selected: {}
-                    };
-                    returnedOption.series.forEach(s => {
-                        legend.data.push({
-                            name: s.name,
-                            icon: 'circle'
-                        });
-                        legend.selected[s.name] = s.selected;
-                    });
-                    returnedOption.legend = legend;
-                }
-                if (isReplace) {
-                    this._chart.setOption(returnedOption, {replaceMerge: ['series', 'legend']});
-                } else {
-                    //
-                    // merge series
-                    //
-                    const oldOption = this.getChartOption();
-                    if (oldOption !== undefined && oldOption !== null && oldOption.series !== undefined) {
-                        const original = {};
-                        $.each(this.getChartOption().series, (index, s) => {
-                            original[s.name] = s;
-                        });
-                        $.each(returnedOption.series, (index, s) => {
-                            original[s.name] = s;
-                        });
+                const refreshMode = returnedOption.refreshMode === undefined ? 'refresh' : returnedOption.refreshMode;
+                switch(refreshMode) {
+                    case 'add':
+                    {
+                        //
+                        // merge series
+                        //
+                        const oldOption = this.getChartOption();
+                        if (oldOption.series !== undefined) {
+                            const seriesMap = {};
+                            $.each(oldOption.series, (index, s) => {
+                                seriesMap[s.name] = s;
+                            });
+                            $.each(returnedOption.series, (index, s) => {
+                                seriesMap[s.name] = s;
+                            });
 
-                        const newSeries = [];
-                        $.each(original, (name, s) => {
-                            newSeries.push(s);
+                            const newSeries = [];
+                            $.each(seriesMap, (name, s) => {
+                                newSeries.push(s);
+                            });
+                            returnedOption.series = newSeries;
+                        }
+
+                        //
+                        //merge legend
+                        //
+                        $.each(returnedOption.series, (index, s) => {
+                            let exist = false;
+                            for (let i = 0; i < oldOption.legend[0].data.length; i++) {
+                                if (oldOption.legend[0].data[i].name === s.name) {
+                                    exist = true;
+                                }
+                            }
+                            if (!exist) {
+                                oldOption.legend[0].data.push({
+                                    name: s.name,
+                                    icon: 'circle'
+                                });
+                                oldOption.legend[0].selected[s.name] = s.selected;
+                            }
                         });
-                        returnedOption.series = newSeries;
+                        returnedOption.legend = oldOption.legend[0];
+                        this._chart.setOption(returnedOption);
                     }
-                    this._chart.setOption(returnedOption);
+                        break;
+                    case 'refresh':
+                        if (this.option.showLegend && !this.hasUserSelection()) {
+                            let legend = {
+                                id: 'l',
+                                data: [],
+                                selected: {}
+                            };
+                            returnedOption.series.forEach(s => {
+                                legend.data.push({
+                                    name: s.name,
+                                    icon: 'circle'
+                                });
+                                legend.selected[s.name] = s.selected;
+                            });
+                            returnedOption.legend = legend;
+                        }
+                        this._chart.setOption(returnedOption);
+                        break;
+                    case 'replace':
+                    {
+                        let legend = {
+                            id: 'l',
+                            data: [],
+                            selected: {}
+                        };
+                        returnedOption.series.forEach(s => {
+                            legend.data.push({
+                                name: s.name,
+                                icon: 'circle'
+                            });
+                            legend.selected[s.name] = s.selected;
+                        });
+                        returnedOption.legend = legend;
+                        this._chart.setOption(returnedOption, {replaceMerge: ['series', 'legend']});
+                    }
+                        break;
+                    default:
+                        console.log(`unknown refresh mode ${returnedOption.refreshMode}`);
+                        break;
                 }
             },
             error: (data) => {
@@ -200,55 +250,6 @@ class ChartComponent {
             }
         }
         return false;
-    }
-
-    /**
-     *
-     */
-    showLines(option) {
-        const charOption = {
-            title: {
-                text: option.title,
-                left: "center",
-                textStyle: {
-                    fontSize: 14
-                }
-            },
-            color: ['#0098d9', '#90c31d'],
-            tooltip: {
-                trigger: 'axis'
-            },
-            grid: [{
-                right: '4%',
-                left: '4%',
-                containLabel: true
-            }],
-            xAxis: [
-                {
-                    type: 'category',
-                    axisTick: {
-                        alignWithLabel: true
-                    },
-                    gridIndex: 0,
-                    data: option.xLabels
-                }
-            ],
-            yAxis: [
-                {
-                    type: 'value',
-                    name: option.yLabel,
-                    position: 'left',
-                }
-            ],
-            series: [
-                {
-                    name: option.yLabel,
-                    type: 'line',
-                    data: option.data,
-                }
-            ]
-        };
-        this._chart.setOption(charOption);
     }
 
     setChartOption(chartOption) {
