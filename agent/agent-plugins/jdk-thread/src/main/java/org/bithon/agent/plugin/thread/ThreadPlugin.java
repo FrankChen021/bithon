@@ -32,9 +32,7 @@ public class ThreadPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-
         return Arrays.asList(
-
             forClass("java.util.concurrent.ThreadPoolExecutor")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
@@ -49,12 +47,16 @@ public class ThreadPlugin implements IPlugin {
                                                    .to("org.bithon.agent.plugin.thread.threadpool.ThreadPoolExecutorConstructor"),
 
                     MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndArgs("execute", "java.lang.Runnable")
+                                                   .to("org.bithon.agent.plugin.thread.threadpool.ThreadPoolExecutor$Execute"),
+
+                    MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("afterExecute")
-                                                   .to("org.bithon.agent.plugin.thread.threadpool.ThreadPoolExecutorAfterExecute"),
+                                                   .to("org.bithon.agent.plugin.thread.threadpool.ThreadPoolExecutor$AfterExecute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("shutdown")
-                                                   .to("org.bithon.agent.plugin.thread.threadpool.ThreadPoolExecutorShutdown")
+                                                   .to("org.bithon.agent.plugin.thread.threadpool.ThreadPoolExecutor$Shutdown")
                 ),
 
             forClass("java.util.concurrent.ThreadPoolExecutor$AbortPolicy")
