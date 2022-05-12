@@ -61,7 +61,7 @@ class TraceListComponent {
                 field: 'startTime',
                 title: 'Time',
                 formatter: function (value) {
-                    return new Date(value / 1000).format('yyyy-MM-dd hh:mm:ss.S');
+                    return new Date(value / 1000).format('MM-dd hh:mm:ss.S');
                 },
                 sortable: true
             }, {
