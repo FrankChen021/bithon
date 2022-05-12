@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -108,21 +109,29 @@ public class DashboardController {
 
         public static LoadedDashboard load(ObjectMapper om, String name, InputStream is) throws IOException {
             byte[] stream = toByteArray(is);
-            Dashboard board = om.readValue(stream, Dashboard.class);
 
-            return new LoadedDashboard(name.substring(0, name.length() - ".json".length()),
-                                       board.getTitle(),
+            String id = name.substring(0, name.length() - ".json".length());
+            String title = id;
+            try {
+                Dashboard board = om.readValue(stream, Dashboard.class);
+                title = board.getTitle();
+            } catch (IOException e) {
+                log.error("Error to load dashboard {}: {}. Dashboard:\n{}", id, e.getMessage(), new String(stream, StandardCharsets.UTF_8));
+            }
+
+            return new LoadedDashboard(id,
+                                       title,
                                        stream);
         }
 
         private static byte[] toByteArray(InputStream is) throws IOException {
             try (ByteArrayOutputStream bs = new ByteArrayOutputStream()) {
-                byte[] buf = new byte[1024];
-                int len;
-                do {
-                    len = is.read(buf);
+                byte[] buf = new byte[4096];
+                int len = is.read(buf);
+                while (len != -1) {
                     bs.write(buf, 0, len);
-                } while (len == 1024);
+                    len = is.read(buf);
+                }
                 return bs.toByteArray();
             }
         }
