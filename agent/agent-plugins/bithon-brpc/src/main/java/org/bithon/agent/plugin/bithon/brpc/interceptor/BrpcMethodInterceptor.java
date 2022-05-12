@@ -52,7 +52,7 @@ public class BrpcMethodInterceptor extends AbstractInterceptor {
                                          .component("brpc")
                                          .kind(SpanKind.SERVER)
                                          .method(aopContext.getMethod())
-                                         .tag("uri", aopContext.getTarget().getClass().getSimpleName() + "#" + aopContext.getMethod().getName())
+                                         .tag("uri", "/" + aopContext.getTarget().getClass().getSimpleName() + "/" + aopContext.getMethod().getName())
                                          .start());
 
         TraceContextHolder.set(context);
