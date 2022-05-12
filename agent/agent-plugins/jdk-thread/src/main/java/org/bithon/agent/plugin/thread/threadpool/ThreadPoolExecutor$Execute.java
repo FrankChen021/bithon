@@ -41,12 +41,17 @@ public class ThreadPoolExecutor$Execute extends AbstractInterceptor {
         }
 
         Runnable runnable = aopContext.getArgAs(0);
-        if (runnable != null) {
-            aopContext.setUserContext(currentContext.currentSpan()
-                                                    .newChildSpan("threadPool")
-                                                    .method(aopContext.getMethod())
-                                                    .start());
+        if (runnable == null) {
+            return InterceptionDecision.SKIP_LEAVE;
         }
+
+        aopContext.setUserContext(currentContext.currentSpan()
+                                                .newChildSpan("threadPool")
+                                                .method(aopContext.getMethod())
+                                                .tag("thread", Thread.currentThread().getName())
+                                                .start());
+
+        // change users' runnable
         aopContext.getArgs()[0] = new TracedRunnable(runnable);
 
         return InterceptionDecision.CONTINUE;
