@@ -128,6 +128,11 @@ class PropagationTraceSpan implements ITraceSpan {
     }
 
     @Override
+    public ITraceSpan clazz(String clazz) {
+        return this;
+    }
+
+    @Override
     public long startTime() {
         return 0;
     }

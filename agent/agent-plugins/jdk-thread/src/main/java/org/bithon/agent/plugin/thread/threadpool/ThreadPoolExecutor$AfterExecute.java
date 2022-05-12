@@ -23,15 +23,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/25 9:12 下午
+ * @date 2021/2/25 9:08 下午
  */
-public class ThreadPoolExecutorShutdown extends AbstractInterceptor {
+public class ThreadPoolExecutor$AfterExecute extends AbstractInterceptor {
 
     @Override
-    public void onMethodLeave(AopContext aopContext) {
-        ThreadPoolMetricRegistry registry = ThreadPoolMetricRegistry.getInstance();
-        if (registry != null) {
-            registry.deleteThreadPool((ThreadPoolExecutor) aopContext.getTarget());
-        }
+    public void onMethodLeave(AopContext joinPoint) {
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) joinPoint.getTarget();
+        Throwable exception = (Throwable) joinPoint.getArgs()[1];
+        ThreadPoolMetricRegistry.getInstance().addRunCount(executor, exception != null);
     }
 }

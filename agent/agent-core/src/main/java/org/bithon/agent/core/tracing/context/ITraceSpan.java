@@ -69,6 +69,8 @@ public interface ITraceSpan {
 
     ITraceSpan method(String method);
 
+    ITraceSpan clazz(String clazz);
+
     long startTime();
 
     long endTime();

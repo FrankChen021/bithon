@@ -149,6 +149,12 @@ class TraceSpan implements ITraceSpan {
     }
 
     @Override
+    public ITraceSpan clazz(String clazz) {
+        this.clazz = clazz;
+        return this;
+    }
+
+    @Override
     public long startTime() {
         return this.startTime;
     }
