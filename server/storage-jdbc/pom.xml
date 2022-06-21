@@ -14,7 +14,7 @@
   <description>Bithon Storage over JDBC</description>
 
   <properties>
-    <mysql.version>8.0.20</mysql.version>
+    <mysql.version>8.0.28</mysql.version>
   </properties>
 
   <dependencies>
