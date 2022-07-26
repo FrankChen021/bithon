@@ -82,7 +82,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
             return;
         }
 
-        executor.submit(() -> {
+        executor.execute(() -> {
             String oldName = Thread.currentThread().getName();
             Thread.currentThread().setName(oldName + "-" + messageType);
             try {
