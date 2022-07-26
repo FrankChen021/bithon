@@ -38,7 +38,7 @@ class PropagationTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan start() {
-        traceContext.onSpanFinished(this);
+        traceContext.onSpanStarted(this);
         return this;
     }
 
@@ -124,7 +124,7 @@ class PropagationTraceSpan implements ITraceSpan {
 
     @Override
     public ITraceSpan method(String method) {
-        return null;
+        return this;
     }
 
     @Override
