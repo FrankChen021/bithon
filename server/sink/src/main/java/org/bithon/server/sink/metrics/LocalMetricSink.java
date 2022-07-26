@@ -85,7 +85,7 @@ public class LocalMetricSink implements IMetricMessageSink {
     public void process(String messageType, IteratorableCollection<IInputRow> messages) {
         AbstractMetricMessageHandler handler = handlers.get(messageType);
         if (handler != null) {
-            executor.submit(() -> {
+            executor.execute(() -> {
                 String oldName = Thread.currentThread().getName();
                 Thread.currentThread().setName(oldName + "-" + messageType);
                 try {

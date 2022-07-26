@@ -55,7 +55,7 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
     @Override
     public void process(String messageType, List<TraceSpan> spans) {
         for (ITraceMessageSink sink : sinks) {
-            executorService.submit(() -> {
+            executorService.execute(() -> {
                 try {
                     sink.process(messageType, spans);
                 } catch (Exception e) {

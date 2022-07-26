@@ -52,7 +52,7 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
 
     @Override
     public void submit(MSG msg) {
-        executor.submit(() -> {
+        executor.execute(() -> {
             try {
                 onMessage(msg);
             } catch (Exception e) {
