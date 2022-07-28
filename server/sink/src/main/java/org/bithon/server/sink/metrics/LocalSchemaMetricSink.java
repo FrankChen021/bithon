@@ -17,8 +17,6 @@
 package org.bithon.server.sink.metrics;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.concurrency.NamedThreadFactory;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -27,9 +25,6 @@ import org.springframework.context.ApplicationContext;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +37,6 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
     final Map<String, AbstractMetricMessageHandler> handlers;
     final DataSourceSchemaManager schemaManager;
     final ApplicationContext applicationContext;
-    final ThreadPoolExecutor executor;
 
     public LocalSchemaMetricSink(ApplicationContext applicationContext) {
         Map<String, AbstractMetricMessageHandler> handlers = applicationContext.getBeansOfType(AbstractMetricMessageHandler.class);
@@ -55,23 +49,6 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
 
         this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);
         this.applicationContext = applicationContext;
-
-        final String name = "schema-metric-sink";
-        executor = new ThreadPoolExecutor(2,
-                                          32,
-                                          1,
-                                          TimeUnit.MINUTES,
-                                          new LinkedBlockingQueue<>(4096),
-                                          NamedThreadFactory.of(name),
-                                          new ThreadPoolExecutor.DiscardPolicy());
-        log.info("Starting executor [{}]", name);
-
-        Thread shutdownThread = new Thread(() -> {
-            log.info("Shutting down executor [{}]", name);
-            executor.shutdown();
-        });
-        shutdownThread.setName(name + "-shutdown");
-        Runtime.getRuntime().addShutdownHook(shutdownThread);
     }
 
     @Override
@@ -82,18 +59,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
             return;
         }
 
-        executor.execute(() -> {
-            String oldName = Thread.currentThread().getName();
-            Thread.currentThread().setName(oldName + "-" + messageType);
-            try {
-                handler.process(message.getMetrics());
-            } catch (Exception e) {
-                log.error(StringUtils.format("Process [%s]", messageType), e);
-            } finally {
-                Thread.currentThread().setName(oldName);
-            }
-        });
-
+        handler.process(message.getMetrics());
     }
 
     private AbstractMetricMessageHandler getMessageHandler(SchemaMetricMessage message) {

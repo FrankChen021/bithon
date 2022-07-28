@@ -20,9 +20,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.input.IInputRow;
+
+import java.util.List;
 
 /**
  * @author Frank Chen
@@ -34,5 +35,5 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 @AllArgsConstructor
 public class SchemaMetricMessage {
     private DataSourceSchema schema;
-    private IteratorableCollection<IInputRow> metrics;
+    private List<IInputRow> metrics;
 }

@@ -50,7 +50,7 @@ public class EventsMessageHandler extends AbstractThreadPoolMessageHandler<Itera
     final ObjectMapper objectMapper;
 
     public EventsMessageHandler(ApplicationContext applicationContext) throws IOException {
-        super("event", 1, 5, Duration.ofMinutes(3), 1024);
+        super("event-message-handler", 1, 5, Duration.ofMinutes(3), 1024);
         this.eventWriter = applicationContext.getBean(IEventStorage.class).createWriter();
         this.objectMapper = applicationContext.getBean(ObjectMapper.class);
 

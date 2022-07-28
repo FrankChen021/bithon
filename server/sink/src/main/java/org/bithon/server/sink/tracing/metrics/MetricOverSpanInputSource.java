@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.sink.metrics.IMessageSink;
@@ -42,7 +41,6 @@ import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -116,10 +114,10 @@ public class MetricOverSpanInputSource implements IInputSource {
             //
             // transform the spans to target metrics
             //
-            Collection<IInputRow> metricRows = spans.stream()
-                                                    .filter(transformSpec::transform)
-                                                    .map(this::spanToMetrics)
-                                                    .collect(Collectors.toList());
+            List<IInputRow> metricRows = spans.stream()
+                                              .filter(transformSpec::transform)
+                                              .map(this::spanToMetrics)
+                                              .collect(Collectors.toList());
             if (metricRows.isEmpty()) {
                 return;
             }
@@ -139,7 +137,7 @@ public class MetricOverSpanInputSource implements IInputSource {
             //
             metricSink.process(schema.getName(), SchemaMetricMessage.builder()
                                                                     .schema(schema)
-                                                                    .metrics(IteratorableCollection.of(metricRows.iterator()))
+                                                                    .metrics(metricRows)
                                                                     .build());
         }
 

@@ -17,19 +17,19 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.metrics.IMetricWriter;
+import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
 import org.jooq.Field;
-import org.jooq.InsertSetMoreStep;
-import org.jooq.Query;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -45,67 +45,86 @@ class MetricJdbcWriter implements IMetricWriter {
         this.table = table;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public void write(List<IInputRow> inputRowList) {
-        writeRows(inputRowList.stream().map(this::toInsertSql).collect(Collectors.toList()));
+        if (CollectionUtils.isEmpty(inputRowList)) {
+            return;
+        }
+
+        int fieldCount = 1 + table.getDimensions().size() + table.getMetrics().size();
+
+        BatchBindStep step = dsl.batch(dsl.insertInto(table).values(new Object[fieldCount]));
+
+
+        for (IInputRow inputRow : inputRowList) {
+            Object[] values = new Object[fieldCount];
+
+            int index = 0;
+            values[index++] = new Timestamp(inputRow.getColAsLong("timestamp"));
+
+            // dimensions
+            for (Field dimension : table.getDimensions()) {
+                Object value = inputRow.getCol(dimension.getName(), "");
+                values[index++] = getOrTruncateDimension(dimension, value);
+            }
+
+            // metrics
+            for (Field metric : table.getMetrics()) {
+                values[index++] = inputRow.getCol(metric.getName(), 0);
+            }
+
+            step.bind(values);
+        }
+
+        try {
+            step.execute();
+        } catch (DuplicateKeyException e) {
+            log.error("Duplicate Key", e);
+        } catch (Exception e) {
+            log.error(StringUtils.format("Failed to insert records into [%s].", this.table.getName()),
+                      e);
+        }
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void write(Collection<Measurement> measurementList) {
-        writeRows(measurementList.stream().map(this::toInsertSql).collect(Collectors.toList()));
-    }
+        if (CollectionUtils.isEmpty(measurementList)) {
+            return;
+        }
 
-    private void writeRows(List<Query> queries) {
+        int fieldCount = 1 + table.getDimensions().size() + table.getMetrics().size();
+        BatchBindStep step = dsl.batch(dsl.insertInto(table).values(new Object[fieldCount]));
+
+        for (Measurement measurement : measurementList) {
+            Object[] values = new Object[fieldCount];
+
+            int index = 0;
+            values[index++] = new Timestamp(measurement.getTimestamp());
+
+            // dimensions
+            for (Field dimension : table.getDimensions()) {
+                Object value = measurement.getDimension(dimension.getName(), "");
+                values[index++] = getOrTruncateDimension(dimension, value);
+            }
+
+            // metrics
+            for (Field metric : table.getMetrics()) {
+                values[index++] = measurement.getMetric(metric.getName(), 0);
+            }
+
+            step.bind(values);
+        }
+
         try {
-            dsl.batch(queries.toArray(new Query[0])).execute();
+            step.execute();
         } catch (DuplicateKeyException e) {
-            log.error("Duplicate Key:{}", queries);
+            log.error("Duplicate Key", e);
         } catch (Exception e) {
-            log.error("Failed to insert records into [{}]. Error message: {}. SQL:{}",
-                      this.table.getName(),
-                      e.getMessage(),
-                      queries.stream().map(Query::getSQL).collect(Collectors.joining("\n")));
+            log.error(StringUtils.format("Failed to insert records into [%s].", this.table.getName()),
+                      e);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private InsertSetMoreStep<?> toInsertSql(IInputRow inputRow) {
-        InsertSetMoreStep<?> step = dsl.insertInto(table)
-                                       .set(table.getTimestampField(), new Timestamp(inputRow.getColAsLong("timestamp")));
-
-        //noinspection rawtypes
-        for (Field dimension : table.getDimensions()) {
-            Object value = inputRow.getCol(dimension.getName(), "");
-            step.set(dimension, getOrTruncateDimension(dimension, value));
-        }
-
-        //noinspection rawtypes
-        for (Field metric : table.getMetrics()) {
-            Object value = inputRow.getCol(metric.getName(), 0);
-            step.set(metric, value);
-        }
-
-        return step;
-    }
-
-    @SuppressWarnings("unchecked")
-    private InsertSetMoreStep<?> toInsertSql(Measurement measurement) {
-        InsertSetMoreStep<?> step = dsl.insertInto(table)
-                                       .set(table.getTimestampField(), new Timestamp(measurement.getTimestamp()));
-
-        //noinspection rawtypes
-        for (Field dimension : table.getDimensions()) {
-            Object value = measurement.getDimension(dimension.getName(), "");
-            step.set(dimension, getOrTruncateDimension(dimension, value));
-        }
-
-        //noinspection rawtypes
-        for (Field metric : table.getMetrics()) {
-            Object value = measurement.getMetric(metric.getName(), 0);
-            step.set(metric, value);
-        }
-
-        return step;
     }
 
     @Override

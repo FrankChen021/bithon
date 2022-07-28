@@ -18,20 +18,18 @@ package org.bithon.server.collector.source.http;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Frank Chen
@@ -52,29 +50,16 @@ public class MetricHttpCollector {
     public void saveMetrics(@RequestBody MetricOverHttp metrics) {
         log.trace("receive metrics:{}", metrics);
 
-        final Iterator<Measurement> delegate = metrics.metrics.iterator();
-        IteratorableCollection<IInputRow> i = IteratorableCollection.of(new Iterator<IInputRow>() {
-            @Override
-            public boolean hasNext() {
-                return delegate.hasNext();
-            }
-
-            @Override
-            public IInputRow next() {
-                Measurement m = delegate.next();
-
-                MetricMessage message = new MetricMessage();
-                message.put("timestamp", m.getTimestamp());
-                message.putAll(m.getDimensions());
-                message.putAll(m.getMetrics());
-                return message;
-            }
-        });
-
         sink.process(metrics.getSchema().getName(),
                      SchemaMetricMessage.builder()
                                         .schema(metrics.getSchema())
-                                        .metrics(i)
+                                        .metrics(metrics.getMetrics().stream().map((m) -> {
+                                            MetricMessage message = new MetricMessage();
+                                            message.put("timestamp", m.getTimestamp());
+                                            message.putAll(m.getDimensions());
+                                            message.putAll(m.getMetrics());
+                                            return message;
+                                        }).collect(Collectors.toList()))
                                         .build());
     }
 

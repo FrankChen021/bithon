@@ -47,7 +47,7 @@ public class TraceMessageHandler extends AbstractThreadPoolMessageHandler<List<T
     private final TagIndexGenerator tagIndexBuilder;
 
     public TraceMessageHandler(ApplicationContext applicationContext) {
-        super("trace", 2, 10, Duration.ofMinutes(1), 2048);
+        super("trace-message-handler", 2, 10, Duration.ofMinutes(1), 1024);
         this.traceWriter = applicationContext.getBean(ITraceStorage.class).createWriter();
 
         this.mappingExtractor = TraceMappingFactory.create(applicationContext);
