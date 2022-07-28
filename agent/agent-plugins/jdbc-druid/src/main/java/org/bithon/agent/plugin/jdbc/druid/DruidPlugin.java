@@ -60,58 +60,39 @@ public class DruidPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs(METHOD_EXECUTE)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
+                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledPreparedStatement$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
+                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledPreparedStatement$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor")
+                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledPreparedStatement$Execute"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onMethodAndNoArgs(METHOD_EXECUTE_BATCH)
+                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledPreparedStatement$Execute")
                 ),
 
             forClass("com.alibaba.druid.pool.DruidPooledStatement")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods(METHOD_EXECUTE)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
+                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledStatement$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods(METHOD_EXECUTE_QUERY)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
+                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledStatement$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods(METHOD_EXECUTE_UPDATE)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor"),
+                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledStatement$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods(METHOD_EXECUTE_BATCH)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidSqlInterceptor")
+                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledStatement$Execute")
                 )
-
-            /*,
-                return TargetClassNameMatcher.byName(SQL_PREPAREDSTATEMENT_POINTCUT);
-                return TargetMethodMatcher.byNameAndArgs(METHOD_EXECUTE, null);
-
-                return TargetClassNameMatcher.byName(SQL_PREPAREDSTATEMENT_POINTCUT);
-                return TargetMethodMatcher.byNameAndArgs(METHOD_EXECUTE_QUERY, null);
-
-                return TargetClassNameMatcher.byName(SQL_PREPAREDSTATEMENT_POINTCUT);
-                return TargetMethodMatcher.byNameAndArgs(METHOD_EXECUTE_UPDATE, null);
-
-                return TargetClassNameMatcher.byName(SQL_STATEMENT_POINTCUT);
-                return TargetMethodMatcher.byName(METHOD_EXECUTE);
-
-                return TargetClassNameMatcher.byName(SQL_STATEMENT_POINTCUT);
-                return TargetMethodMatcher.byName(METHOD_EXECUTE_QUERY);
-
-                return TargetClassNameMatcher.byName(SQL_STATEMENT_POINTCUT);
-                return TargetMethodMatcher.byName(METHOD_EXECUTE_UPDATE);
-
-                return TargetClassNameMatcher.byName(SQL_STATEMENT_POINTCUT);
-                return TargetMethodMatcher.byName(METHOD_EXECUTE_BATCH);
-                }*/
         );
     }
 }
