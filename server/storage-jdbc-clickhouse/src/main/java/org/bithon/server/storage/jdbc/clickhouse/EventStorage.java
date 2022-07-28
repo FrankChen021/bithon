@@ -23,7 +23,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.time.DateTime;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.IEventCleaner;
 import org.bithon.server.storage.jdbc.event.EventJdbcStorage;
@@ -58,10 +57,6 @@ public class EventStorage extends EventJdbcStorage {
      */
     @Override
     public IEventCleaner createCleaner() {
-        return beforeTimestamp -> dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                                        config.getDatabase(),
-                                                                        config.getLocalTableName(Tables.BITHON_EVENT.getName()),
-                                                                        config.getClusterExpression(),
-                                                                        DateTime.toYYYYMMDDhhmmss(beforeTimestamp)));
+        return beforeTimestamp -> new DataCleaner(config, dslContext).clean(Tables.BITHON_EVENT.getName(), DateTime.toYYYYMMDD(beforeTimestamp));
     }
 }

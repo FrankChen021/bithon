@@ -40,7 +40,6 @@ import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
-import org.jooq.Table;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -79,24 +78,14 @@ public class TraceStorage extends TraceJdbcStorage {
     @Override
     public ITraceCleaner createCleaner() {
         return beforeTimestamp -> {
-            String timestamp = DateTime.toYYYYMMDDhhmmss(beforeTimestamp);
-            clean(Tables.BITHON_TRACE_SPAN, timestamp);
-            clean(Tables.BITHON_TRACE_SPAN_SUMMARY, timestamp);
-            clean(Tables.BITHON_TRACE_MAPPING, timestamp);
-            clean(Tables.BITHON_TRACE_SPAN_TAG_INDEX, timestamp);
-        };
-    }
+            String timestamp = DateTime.toYYYYMMDD(beforeTimestamp);
 
-    private void clean(Table<?> table, String timestamp) {
-        try {
-            dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                  config.getDatabase(),
-                                                  config.getLocalTableName(table.getName()),
-                                                  config.getClusterExpression(),
-                                                  timestamp));
-        } catch (Throwable e) {
-            log.error(StringUtils.format("Exception occurred when clean table[%s]:%s", table.getName(), e.getMessage()), e);
-        }
+            DataCleaner cleaner = new DataCleaner(config, dslContext);
+            cleaner.clean(Tables.BITHON_TRACE_SPAN.getName(), timestamp);
+            cleaner.clean(Tables.BITHON_TRACE_SPAN_SUMMARY.getName(), timestamp);
+            cleaner.clean(Tables.BITHON_TRACE_MAPPING.getName(), timestamp);
+            cleaner.clean(Tables.BITHON_TRACE_SPAN_TAG_INDEX.getName(), timestamp);
+        };
     }
 
     @Override

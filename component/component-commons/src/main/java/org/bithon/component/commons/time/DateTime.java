@@ -40,4 +40,8 @@ public class DateTime {
     public static String toYYYYMMDDhhmmss(long timestamp) {
         return formatDateTime("yyyy-MM-dd HH:mm:ss", timestamp);
     }
+
+    public static String toYYYYMMDD(long timestamp) {
+        return formatDateTime("yyyyMMdd", timestamp);
+    }
 }
