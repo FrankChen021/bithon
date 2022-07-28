@@ -48,7 +48,6 @@ public class ThreadPoolExecutor$Execute extends AbstractInterceptor {
         aopContext.setUserContext(currentContext.currentSpan()
                                                 .newChildSpan("threadPool")
                                                 .method(aopContext.getMethod())
-                                                .tag("thread", Thread.currentThread().getName())
                                                 .start());
 
         // change users' runnable

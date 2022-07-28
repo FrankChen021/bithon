@@ -70,7 +70,8 @@ public class TraceContextFactory {
         //
         // set necessary status
         //
-        ITraceSpan span = context.newSpan(parentSpanId, spanId);
+        ITraceSpan span = context.newSpan(parentSpanId, spanId)
+                                 .tag("thread", Thread.currentThread().getName());
         if (upstreamTraceId != null) {
             span.tag("upstreamTraceId", upstreamTraceId);
         }
