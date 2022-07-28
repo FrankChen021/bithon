@@ -26,7 +26,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
-import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.component.commons.utils.ReflectionUtils;
 import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
@@ -41,7 +40,6 @@ import org.bithon.server.storage.datasource.aggregator.spec.LongMinMetricSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.LongSumMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.dimension.StringDimensionSpec;
-import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -61,8 +59,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
     private final IDimensionSpec appName = new StringDimensionSpec("appName", "appName", "appName", true, true, 128);
     private final IDimensionSpec instanceName = new StringDimensionSpec("instanceName", "instanceName", "instanceName", true, true, 128);
 
-    public BrpcMetricCollector(IMessageSink<SchemaMetricMessage> schemaMetricSink,
-                               IMetricMessageSink metricSink) {
+    public BrpcMetricCollector(IMessageSink<SchemaMetricMessage> schemaMetricSink, IMetricMessageSink metricSink) {
         this.schemaMetricSink = schemaMetricSink;
         this.metricSink = metricSink;
     }
@@ -73,7 +70,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("jvm-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
+        metricSink.process("jvm-metrics", messages.stream().map((m) -> toMetricMessage(header, m)).collect(Collectors.toList()));
     }
 
     @Override
@@ -82,7 +79,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("jvm-gc-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
+        metricSink.process("jvm-gc-metrics", messages.stream().map((m) -> toMetricMessage(header, m)).collect(Collectors.toList()));
     }
 
     @Override
@@ -91,7 +88,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
             return;
         }
 
-        metricSink.process("sql-metrics", IteratorableCollection.of(new GenericMetricMessageIterator(header, messages)));
+        metricSink.process("sql-metrics", messages.stream().map((m) -> toMetricMessage(header, m)).collect(Collectors.toList()));
     }
 
     @Override
@@ -103,123 +100,80 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         dimensionSpecs.addAll(message.getSchema()
                                      .getDimensionsSpecList()
                                      .stream()
-                                     .map(dimSpec -> new StringDimensionSpec(dimSpec.getName(),
-                                                                             dimSpec.getName(),
-                                                                             dimSpec.getName(),
-                                                                             true,
-                                                                             true,
-                                                                             null))
+                                     .map(dimSpec -> new StringDimensionSpec(dimSpec.getName(), dimSpec.getName(), dimSpec.getName(), true, true, null))
                                      .collect(Collectors.toList()));
-        final int userDimensionSpecIndex = 2;
 
         DataSourceSchema schema = new DataSourceSchema(message.getSchema().getName(),
                                                        message.getSchema().getName(),
                                                        new TimestampSpec("timestamp", "auto", null),
                                                        dimensionSpecs,
-                                                       message.getSchema().getMetricsSpecList()
-                                                              .stream()
-                                                              .map(metricSpec -> {
-                                                                  if ("longMax".equals(metricSpec.getType())) {
-                                                                      return new LongMaxMetricSpec(metricSpec.getName(),
-                                                                                                   null,
-                                                                                                   metricSpec.getName(),
-                                                                                                   "",
-                                                                                                   true);
-                                                                  }
-                                                                  if ("longMin".equals(metricSpec.getType())) {
-                                                                      return new LongMinMetricSpec(metricSpec.getName(),
-                                                                                                   null,
-                                                                                                   metricSpec.getName(),
-                                                                                                   "",
-                                                                                                   true);
-                                                                  }
-                                                                  if ("longSum".equals(metricSpec.getType())) {
-                                                                      return new LongSumMetricSpec(metricSpec.getName(),
-                                                                                                   null,
-                                                                                                   metricSpec.getName(),
-                                                                                                   "",
-                                                                                                   true);
-                                                                  }
-                                                                  if ("longLast".equals(metricSpec.getType())) {
-                                                                      return new LongLastMetricSpec(metricSpec.getName(),
-                                                                                                    null,
-                                                                                                    metricSpec.getName(),
-                                                                                                    "",
-                                                                                                    true);
-                                                                  }
+                                                       message.getSchema().getMetricsSpecList().stream().map(metricSpec -> {
+                                                           if ("longMax".equals(metricSpec.getType())) {
+                                                               return new LongMaxMetricSpec(metricSpec.getName(), null, metricSpec.getName(), "", true);
+                                                           }
+                                                           if ("longMin".equals(metricSpec.getType())) {
+                                                               return new LongMinMetricSpec(metricSpec.getName(), null, metricSpec.getName(), "", true);
+                                                           }
+                                                           if ("longSum".equals(metricSpec.getType())) {
+                                                               return new LongSumMetricSpec(metricSpec.getName(), null, metricSpec.getName(), "", true);
+                                                           }
+                                                           if ("longLast".equals(metricSpec.getType())) {
+                                                               return new LongLastMetricSpec(metricSpec.getName(), null, metricSpec.getName(), "", true);
+                                                           }
 
-                                                                  return null;
-                                                              }).collect(Collectors.toList()));
+                                                           return null;
+                                                       }).collect(Collectors.toList()));
 
         Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
         SchemaMetricMessage schemaMetricMessage = new SchemaMetricMessage();
         schemaMetricMessage.setSchema(schema);
-        schemaMetricMessage.setMetrics(IteratorableCollection.of(new Iterator<IInputRow>() {
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
+        schemaMetricMessage.setMetrics(message.getMeasurementList().stream().map((m) -> {
+            MetricMessage metricMessage = new MetricMessage();
+            BrpcGenericMeasurement measurement = iterator.next();
+
+            int i = 0;
+            for (String dimension : measurement.getDimensionList()) {
+                IDimensionSpec dimensionSpec = schema.getDimensionsSpec().get(i++);
+                metricMessage.put(dimensionSpec.getName(), dimension);
             }
 
-            @Override
-            public MetricMessage next() {
-                MetricMessage metricMessage = new MetricMessage();
-                BrpcGenericMeasurement measurement = iterator.next();
-
-                int i = 0;
-                for (String dimension : measurement.getDimensionList()) {
-                    IDimensionSpec dimensionSpec = schema.getDimensionsSpec().get(userDimensionSpecIndex + i++);
-                    metricMessage.put(dimensionSpec.getName(), dimension);
-                }
-
-                i = 0;
-                for (long value : measurement.getMetricList()) {
-                    IMetricSpec metricSpec = schema.getMetricsSpec().get(i++);
-                    metricMessage.put(metricSpec.getName(), value);
-                }
-
-                metricMessage.put("interval", message.getInterval());
-                metricMessage.put("timestamp", message.getTimestamp());
-                ReflectionUtils.getFields(header, metricMessage);
-                return metricMessage;
+            i = 0;
+            for (long value : measurement.getMetricList()) {
+                IMetricSpec metricSpec = schema.getMetricsSpec().get(i++);
+                metricMessage.put(metricSpec.getName(), value);
             }
-        }));
+
+            metricMessage.put("interval", message.getInterval());
+            metricMessage.put("timestamp", message.getTimestamp());
+            metricMessage.put("instance", header.getInstanceName());
+            ReflectionUtils.getFields(header, metricMessage);
+            return metricMessage;
+        }).collect(Collectors.toList()));
+
         schemaMetricSink.process(message.getSchema().getName(), schemaMetricMessage);
     }
 
     @Override
     public void sendGenericMetricsV2(BrpcMessageHeader header, BrpcGenericMetricMessageV2 message) {
-        Iterator<IInputRow> messageIterator = new Iterator<IInputRow>() {
-            final Iterator<BrpcGenericMeasurement> iterator = message.getMeasurementList().iterator();
-
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
+        metricSink.process(message.getSchema().getName(), message.getMeasurementList().stream().map((measurement) -> {
+            MetricMessage metricMessage = new MetricMessage();
+            int i = 0;
+            for (String dimension : measurement.getDimensionList()) {
+                String dimensionSpec = message.getSchema().getDimensionsSpec(i++);
+                metricMessage.put(dimensionSpec, dimension);
             }
 
-            @Override
-            public MetricMessage next() {
-                MetricMessage metricMessage = new MetricMessage();
-                BrpcGenericMeasurement measurement = iterator.next();
-
-                int i = 0;
-                for (String dimension : measurement.getDimensionList()) {
-                    String dimensionSpec = message.getSchema().getDimensionsSpec(i++);
-                    metricMessage.put(dimensionSpec, dimension);
-                }
-
-                i = 0;
-                for (long metric : measurement.getMetricList()) {
-                    String metricSpec = message.getSchema().getMetricsSpec(i++);
-                    metricMessage.put(metricSpec, metric);
-                }
-
-                metricMessage.put("interval", message.getInterval());
-                metricMessage.put("timestamp", message.getTimestamp());
-                ReflectionUtils.getFields(header, metricMessage);
-                return metricMessage;
+            i = 0;
+            for (long metric : measurement.getMetricList()) {
+                String metricSpec = message.getSchema().getMetricsSpec(i++);
+                metricMessage.put(metricSpec, metric);
             }
-        };
-        metricSink.process(message.getSchema().getName(), IteratorableCollection.of(messageIterator));
+
+            metricMessage.put("interval", message.getInterval());
+            metricMessage.put("timestamp", message.getTimestamp());
+            ReflectionUtils.getFields(header, metricMessage);
+            return metricMessage;
+        }).collect(Collectors.toList()));
     }
 
     @Override
@@ -227,43 +181,23 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         metricSink.close();
     }
 
-    private static class GenericMetricMessageIterator implements Iterator<IInputRow> {
-        private final Iterator<?> iterator;
-        private final BrpcMessageHeader header;
+    private MetricMessage toMetricMessage(BrpcMessageHeader header, Object message) {
+        MetricMessage metricMessage = new MetricMessage();
+        ReflectionUtils.getFields(header, metricMessage);
+        ReflectionUtils.getFields(message, metricMessage);
 
-        public GenericMetricMessageIterator(BrpcMessageHeader header, List<?> messages) {
-            this.header = header;
-            this.iterator = messages.iterator();
+        // adaptor
+        // protobuf turns the name 'count4xx' in .proto file to 'count4Xx'
+        // we have to convert it back to make it compatible with existing name style
+        Object count4xx = metricMessage.remove("count4Xx");
+        if (count4xx != null) {
+            metricMessage.put("count4xx", count4xx);
+        }
+        Object count5xx = metricMessage.remove("count5Xx");
+        if (count5xx != null) {
+            metricMessage.put("count5xx", count5xx);
         }
 
-        @Override
-        public boolean hasNext() {
-            return iterator.hasNext();
-        }
-
-        @Override
-        public MetricMessage next() {
-            return toMetricMessage(header, iterator.next());
-        }
-
-        private MetricMessage toMetricMessage(BrpcMessageHeader header, Object message) {
-            MetricMessage metricMessage = new MetricMessage();
-            ReflectionUtils.getFields(header, metricMessage);
-            ReflectionUtils.getFields(message, metricMessage);
-
-            // adaptor
-            // protobuf turns the name 'count4xx' in .proto file to 'count4Xx'
-            // we have to convert it back to make it compatible with existing name style
-            Object count4xx = metricMessage.remove("count4Xx");
-            if (count4xx != null) {
-                metricMessage.put("count4xx", count4xx);
-            }
-            Object count5xx = metricMessage.remove("count5Xx");
-            if (count5xx != null) {
-                metricMessage.put("count5xx", count5xx);
-            }
-
-            return metricMessage;
-        }
+        return metricMessage;
     }
 }

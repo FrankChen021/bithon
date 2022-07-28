@@ -34,15 +34,14 @@ import org.bithon.server.storage.event.IEventWriter;
 import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.IFilter;
+import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
-import org.jooq.Query;
 import org.jooq.impl.DSL;
 import org.jooq.impl.ThreadLocalTransactionProvider;
 
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -97,16 +96,28 @@ public class EventJdbcStorage implements IEventStorage {
         }
 
         @Override
-        public void write(Collection<EventMessage> eventMessage) {
-            List<Query> queries = eventMessage.stream()
-                                              .map(message -> dslContext.insertInto(Tables.BITHON_EVENT)
-                                                                        .set(Tables.BITHON_EVENT.APPNAME, message.getAppName())
-                                                                        .set(Tables.BITHON_EVENT.INSTANCENAME, message.getInstanceName())
-                                                                        .set(Tables.BITHON_EVENT.TYPE, message.getType())
-                                                                        .set(Tables.BITHON_EVENT.ARGUMENTS, message.getJsonArgs())
-                                                                        .set(Tables.BITHON_EVENT.TIMESTAMP, new Timestamp(message.getTimestamp())))
-                                              .collect(Collectors.toList());
-            dslContext.batch(queries).execute();
+        public void write(Collection<EventMessage> eventMessages) {
+            BatchBindStep step = dslContext.batch(dslContext.insertInto(Tables.BITHON_EVENT,
+                                                                        Tables.BITHON_EVENT.TIMESTAMP,
+                                                                        Tables.BITHON_EVENT.APPNAME,
+                                                                        Tables.BITHON_EVENT.INSTANCENAME,
+                                                                        Tables.BITHON_EVENT.TYPE,
+                                                                        Tables.BITHON_EVENT.ARGUMENTS)
+                                                            .values((Timestamp) null,
+                                                                    null,
+                                                                    null,
+                                                                    null,
+                                                                    null));
+
+            for (EventMessage message : eventMessages) {
+                step.bind(new Timestamp(message.getTimestamp()),
+                          message.getAppName(),
+                          message.getInstanceName(),
+                          message.getType(),
+                          message.getJsonArgs());
+            }
+
+            step.execute();
         }
     }
 

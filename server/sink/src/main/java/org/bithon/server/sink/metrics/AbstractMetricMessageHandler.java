@@ -18,7 +18,8 @@ package org.bithon.server.sink.metrics;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.collection.IteratorableCollection;
+import org.bithon.component.commons.concurrency.NamedThreadFactory;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
@@ -30,6 +31,9 @@ import org.bithon.server.storage.metrics.IMetricWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author frank.chen021@outlook.com
@@ -38,6 +42,8 @@ import java.util.List;
 @Slf4j
 @Getter
 public abstract class AbstractMetricMessageHandler {
+
+    private final ThreadPoolExecutor executor;
 
     private final DataSourceSchema schema;
     private final DataSourceSchema endpointSchema;
@@ -57,6 +63,14 @@ public abstract class AbstractMetricMessageHandler {
         this.endpointSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
         this.endpointSchema.setEnforceDuplicationCheck(false);
         this.endpointMetricStorageWriter = metricStorage.createMetricWriter(endpointSchema);
+
+        this.executor = new ThreadPoolExecutor(1,
+                                               4,
+                                               1,
+                                               TimeUnit.MINUTES,
+                                               new LinkedBlockingQueue<>(1024),
+                                               NamedThreadFactory.of(dataSourceName + "-handler"),
+                                               new ThreadPoolExecutor.DiscardOldestPolicy());
     }
 
     public String getType() {
@@ -67,57 +81,67 @@ public abstract class AbstractMetricMessageHandler {
         return true;
     }
 
-    public final void process(IteratorableCollection<IInputRow> metricMessages) {
-        if (!metricMessages.hasNext()) {
+    public final void process(List<IInputRow> metricMessages) {
+        if (CollectionUtils.isEmpty(metricMessages)) {
             return;
         }
+        executor.execute(new MetricSinkRunnable(metricMessages));
+    }
 
-        MetricsAggregator endpointDataSource = new MetricsAggregator(this.endpointSchema, 60);
+    class MetricSinkRunnable implements Runnable {
+        private final List<IInputRow> metricMessages;
 
-        //
-        // convert
-        //
-        List<IInputRow> inputRowList = new ArrayList<>(8);
-        while (metricMessages.hasNext()) {
-            IInputRow metricMessage = metricMessages.next();
+        MetricSinkRunnable(List<IInputRow> metricMessages) {
+            this.metricMessages = metricMessages;
+        }
 
-            try {
-                if (!beforeProcess(metricMessage)) {
-                    continue;
+        @Override
+        public void run() {
+            MetricsAggregator endpointDataSource = new MetricsAggregator(endpointSchema, 60);
+
+            //
+            // convert
+            //
+            List<IInputRow> inputRowList = new ArrayList<>(8);
+            for (IInputRow metricMessage : metricMessages) {
+                try {
+                    if (!beforeProcess(metricMessage)) {
+                        continue;
+                    }
+
+                    // extract endpoint
+                    endpointDataSource.aggregate(extractEndpointLink(metricMessage));
+
+                    processMeta(metricMessage);
+
+                    inputRowList.add(metricMessage);
+                } catch (Exception e) {
+                    log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}",
+                              schema.getName(),
+                              metricMessage,
+                              e);
                 }
+            }
 
-                // extract endpoint
-                endpointDataSource.aggregate(extractEndpointLink(metricMessage));
+            //
+            // save endpoint metrics in batch
+            //
+            try {
+                endpointMetricStorageWriter.write(endpointDataSource.getRows());
+            } catch (IOException e) {
+                log.error("save metrics", e);
+            }
 
-                processMeta(metricMessage);
-
-                inputRowList.add(metricMessage);
-            } catch (Exception e) {
-                log.error("Failed to process metric object. dataSource=[{}], message=[{}] due to {}",
-                          this.schema.getName(),
-                          metricMessage,
+            //
+            // save metrics in batch
+            //
+            try {
+                metricStorageWriter.write(inputRowList);
+            } catch (IOException e) {
+                log.error("Failed to save metrics [dataSource={}] due to: {}",
+                          schema.getName(),
                           e);
             }
-        }
-
-        //
-        // save endpoint metrics in batch
-        //
-        try {
-            this.endpointMetricStorageWriter.write(endpointDataSource.getRows());
-        } catch (IOException e) {
-            log.error("save metrics", e);
-        }
-
-        //
-        // save metrics in batch
-        //
-        try {
-            this.metricStorageWriter.write(inputRowList);
-        } catch (IOException e) {
-            log.error("Failed to save metrics [dataSource={}] due to: {}",
-                      this.schema.getName(),
-                      e);
         }
     }
 
@@ -143,6 +167,19 @@ public abstract class AbstractMetricMessageHandler {
                       appName,
                       instanceName,
                       e);
+        }
+    }
+
+    public void close() {
+        if (executor.isShutdown() || executor.isTerminated() || executor.isTerminating()) {
+            return;
+        }
+
+        log.info("Shutting down executor [{}]", schema.getName() + "-handler");
+        executor.shutdown();
+        try {
+            executor.awaitTermination(30, TimeUnit.SECONDS);
+        } catch (InterruptedException ignored) {
         }
     }
 }

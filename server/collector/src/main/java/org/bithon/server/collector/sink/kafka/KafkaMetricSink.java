@@ -26,13 +26,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.bithon.component.commons.collection.IteratorableCollection;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,8 +58,8 @@ public class KafkaMetricSink implements IMetricMessageSink {
     }
 
     @Override
-    public void process(String messageType, IteratorableCollection<IInputRow> messages) {
-        if (!messages.hasNext()) {
+    public void process(String messageType, List<IInputRow> messages) {
+        if (CollectionUtils.isEmpty(messages)) {
             return;
         }
 
@@ -71,9 +72,7 @@ public class KafkaMetricSink implements IMetricMessageSink {
         // but I don't think it has advantages over the way below
         //
         StringBuilder messageText = new StringBuilder();
-        while (messages.hasNext()) {
-            IInputRow metricMessage = messages.next();
-
+        for (IInputRow metricMessage : messages) {
             // Sink receives messages from an agent, it's safe to use instance name of first item
             key = metricMessage.getColAsString("instanceName");
 

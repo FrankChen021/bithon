@@ -21,16 +21,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.collection.IteratorableCollection;
-import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.context.ApplicationContext;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This sink is designed for function evaluation and local development.
@@ -44,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 public class LocalMetricSink implements IMetricMessageSink {
 
     private final Map<String, AbstractMetricMessageHandler> handlers = new HashMap<>();
-    private final ThreadPoolExecutor executor;
 
     @JsonCreator
     public LocalMetricSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
@@ -65,16 +60,6 @@ public class LocalMetricSink implements IMetricMessageSink {
         for (Class<? extends AbstractMetricMessageHandler> handlerClass : handlers) {
             this.add(applicationContext.getAutowireCapableBeanFactory().createBean(handlerClass));
         }
-
-        final String name = "metric-sink";
-        executor = new ThreadPoolExecutor(2,
-                                          32,
-                                          1,
-                                          TimeUnit.MINUTES,
-                                          new LinkedBlockingQueue<>(4096),
-                                          NamedThreadFactory.of(name),
-                                          new ThreadPoolExecutor.DiscardOldestPolicy());
-        log.info("Starting executor [{}]", name);
     }
 
     private void add(AbstractMetricMessageHandler handler) {
@@ -82,20 +67,10 @@ public class LocalMetricSink implements IMetricMessageSink {
     }
 
     @Override
-    public void process(String messageType, IteratorableCollection<IInputRow> messages) {
+    public void process(String messageType, List<IInputRow> messages) {
         AbstractMetricMessageHandler handler = handlers.get(messageType);
         if (handler != null) {
-            executor.execute(() -> {
-                String oldName = Thread.currentThread().getName();
-                Thread.currentThread().setName(oldName + "-" + messageType);
-                try {
-                    handler.process(messages);
-                } catch (Exception e) {
-                    log.error("Exception when processing message[{}]: {}", messageType, e);
-                } finally {
-                    Thread.currentThread().setName(oldName);
-                }
-            });
+            handler.process(messages);
         } else {
             log.error("No Handler for message [{}]", messageType);
         }
@@ -103,15 +78,8 @@ public class LocalMetricSink implements IMetricMessageSink {
 
     @Override
     public void close() throws Exception {
-        if (executor.isShutdown() || executor.isTerminated() || executor.isTerminating()) {
-            return;
-        }
-
-        log.info("Shutting down executor [{}]", "metric-sink");
-        executor.shutdown();
-        try {
-            executor.awaitTermination(30, TimeUnit.SECONDS);
-        } catch (InterruptedException ignored) {
+        for (AbstractMetricMessageHandler handler : handlers.values()) {
+            handler.close();
         }
     }
 }
