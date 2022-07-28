@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.time.DateTime;
-import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
@@ -60,10 +59,6 @@ public class MetricStorage extends MetricJdbcStorage {
     @Override
     public IMetricCleaner createMetricCleaner(DataSourceSchema schema) {
         String table = "bithon_" + schema.getName().replace('-', '_');
-        return beforeTimestamp -> dslContext.execute(StringUtils.format("ALTER TABLE %s.%s %s DELETE WHERE timestamp < '%s'",
-                                                                        config.getDatabase(),
-                                                                        config.getLocalTableName(table),
-                                                                        config.getClusterExpression(),
-                                                                        DateTime.toYYYYMMDDhhmmss(beforeTimestamp)));
+        return beforeTimestamp -> new DataCleaner(config, dslContext).clean(table, DateTime.toYYYYMMDD(beforeTimestamp));
     }
 }
