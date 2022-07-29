@@ -49,16 +49,10 @@ public class LoggerCallAppenders extends AbstractInterceptor {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        StringBuilder stackElements = new StringBuilder();
-        for (StackTraceElementProxy p : exception.getStackTraceElementProxyArray()) {
-            stackElements.append(p.getSTEAsString());
-            stackElements.append("\n");
-        }
-
         Map<String, Object> exceptionArgs = new HashMap<>();
         exceptionArgs.put("exceptionClass", exception.getClassName());
         exceptionArgs.put("message", exception.getMessage() == null ? "" : exception.getMessage());
-        exceptionArgs.put("stack", stackElements.toString());
+        exceptionArgs.put("stack", StackTraceBuilder.build(exception));
         exceptionArgs.put("thread", Thread.currentThread().getName());
         ITraceContext traceContext = TraceContextHolder.current();
         if (traceContext != null && traceContext.traceMode().equals(TraceMode.TRACE)) {
@@ -70,5 +64,36 @@ public class LoggerCallAppenders extends AbstractInterceptor {
         dispatcher.sendMessage(dispatcher.getMessageConverter().from(exceptionEvent));
 
         return InterceptionDecision.SKIP_LEAVE;
+    }
+
+    static class StackTraceBuilder {
+        public static String build(IThrowableProxy exception) {
+            final StringBuilder stackTrace = new StringBuilder(2048);
+
+            build(stackTrace, false, exception);
+
+            IThrowableProxy cause = exception.getCause();
+            while (cause != null) {
+                build(stackTrace, true, cause);
+                cause = cause.getCause();
+            }
+
+            return stackTrace.toString();
+        }
+
+        private static void build(StringBuilder stackTrace, boolean isCausedBy, IThrowableProxy exception) {
+            if (isCausedBy) {
+                stackTrace.append("Caused By: ");
+            }
+            stackTrace.append(exception.getClassName());
+            stackTrace.append(':');
+            stackTrace.append(exception.getMessage());
+            stackTrace.append('\n');
+            for (StackTraceElementProxy p : exception.getStackTraceElementProxyArray()) {
+                stackTrace.append('\t');
+                stackTrace.append(p.getSTEAsString());
+                stackTrace.append("\n");
+            }
+        }
     }
 }
