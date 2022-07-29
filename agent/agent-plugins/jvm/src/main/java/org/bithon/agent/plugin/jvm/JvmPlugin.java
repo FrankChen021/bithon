@@ -16,6 +16,8 @@
 
 package org.bithon.agent.plugin.jvm;
 
+import org.bithon.agent.core.dispatcher.Dispatcher;
+import org.bithon.agent.core.dispatcher.Dispatchers;
 import org.bithon.agent.core.plugin.IPlugin;
 
 /**
@@ -26,5 +28,19 @@ public class JvmPlugin implements IPlugin {
     @Override
     public void start() {
         new JvmMetricCollector().start();
+
+        //
+        // dispatch started message once the dispatcher is ready
+        //
+        Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT)
+                   .onReady((dispatcher) -> dispatcher.sendMessage(dispatcher.getMessageConverter()
+                                                                             .from(JvmEventMessageBuilder.buildJvmStartedEventMessage())));
+    }
+
+    @Override
+    public void stop() {
+        // dispatch jvm stopped message
+        Dispatcher dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
+        dispatcher.sendMessage(dispatcher.getMessageConverter().from(JvmEventMessageBuilder.buildStoppedEventMessage()));
     }
 }
