@@ -20,8 +20,7 @@ package org.bithon.agent.core.dispatcher.channel;
  * @author frank.chen021@outlook.com
  * @date 2020/10/27 2:17 下午
  */
-public interface IMessageChannel {
+public interface IMessageChannel extends AutoCloseable {
 
     void sendMessage(Object message);
-
 }

@@ -45,6 +45,7 @@ import java.util.stream.Stream;
 public class BrpcEventMessageChannel implements IMessageChannel {
     private static final ILogAdaptor log = LoggerFactory.getLogger(BrpcEventMessageChannel.class);
 
+    private final ClientChannel clientChannel;
     private final DispatcherConfig dispatcherConfig;
     private final IEventCollector eventCollector;
     private BrpcMessageHeader header;
@@ -54,9 +55,10 @@ public class BrpcEventMessageChannel implements IMessageChannel {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        eventCollector = new ClientChannel(new RoundRobinEndPointProvider(endpoints))
-            .configureRetry(3, Duration.ofMillis(200))
-            .getRemoteService(IEventCollector.class);
+        this.clientChannel = new ClientChannel(new RoundRobinEndPointProvider(endpoints))
+            .configureRetry(3, Duration.ofMillis(200));
+
+        this.eventCollector = clientChannel.getRemoteService(IEventCollector.class);
 
         this.dispatcherConfig = dispatcherConfig;
 
@@ -106,5 +108,10 @@ public class BrpcEventMessageChannel implements IMessageChannel {
             //suppress client exception
             log.error("Failed to send event: {}", e.getMessage());
         }
+    }
+
+    @Override
+    public void close() {
+        clientChannel.close();
     }
 }

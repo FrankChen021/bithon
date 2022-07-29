@@ -17,6 +17,7 @@
 package org.bithon.agent.core.dispatcher;
 
 
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.context.AppInstance;
 import org.bithon.agent.core.dispatcher.channel.IMessageChannel;
 import org.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
@@ -28,6 +29,7 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.function.Consumer;
 
 /**
  * @author frankchen
@@ -37,7 +39,7 @@ public class Dispatcher {
 
     private final String dispatcherName;
     private final IMessageConverter messageConverter;
-    private final IMessageChannel dispatcher;
+    private final IMessageChannel messageChannel;
     private final DispatcherConfig dispatcherConfig;
     private int appPort;
     private DispatchTask task;
@@ -54,7 +56,7 @@ public class Dispatcher {
         IMessageChannelFactory factory = createDispatcherFactory(dispatcherConfig);
         Method createMethod = IMessageChannelFactory.class.getMethod("create" + capitalize(dispatcherName) + "Channel",
                                                                      DispatcherConfig.class);
-        this.dispatcher = (IMessageChannel) createMethod.invoke(factory, dispatcherConfig);
+        this.messageChannel = (IMessageChannel) createMethod.invoke(factory, dispatcherConfig);
         this.messageConverter = factory.createMessageConverter();
 
         if (appInstance.getPort() == 0) {
@@ -64,7 +66,13 @@ public class Dispatcher {
     }
 
     public boolean isReady() {
-        return task != null;
+        return task != null && task.canAccept();
+    }
+
+    public void onReady(Consumer<Dispatcher> consumer) {
+        AgentContext.getInstance().getAppInstance().addListener(port -> {
+            consumer.accept(this);
+        });
     }
 
     public IMessageConverter getMessageConverter() {
@@ -73,7 +81,7 @@ public class Dispatcher {
 
     public void sendMessage(Object message) {
         if (task != null && message != null) {
-            task.sendMessage(message);
+            task.accept(message);
         }
     }
 
@@ -104,19 +112,22 @@ public class Dispatcher {
         task = new DispatchTask(dispatcherName,
                                 createQueue(),
                                 dispatcherConfig,
-                                dispatcher::sendMessage);
+                                messageChannel::sendMessage);
     }
 
     private IMessageQueue createQueue() {
         return new BlockingQueue();
-        /*
-            return new FileQueueImpl(agentPath
-                                     + separator
-                                     + AgentContext.TMP_DIR
-                                     + separator
-                                     + dispatcherName
-                                     + separator
-                                     + appName,
-                                     String.valueOf(appPort));*/
+    }
+
+    public void shutdown() {
+        log.info("[{}] Shutting down dispatcher task...", dispatcherName);
+        task.stop();
+
+        // stop underlying message channel
+        log.info("[{}] Closing message channel...", dispatcherName);
+        try {
+            messageChannel.close();
+        } catch (Exception ignored) {
+        }
     }
 }

@@ -24,6 +24,18 @@ import org.bithon.agent.core.context.AgentContext;
  * @author frank.chen021@outlook.com
  * @date 2021/7/1 5:56 下午
  */
-public interface IAgentInitializer {
-    void initialize(AgentContext context) throws Exception;
+public interface IAgentLifeCycle {
+    /**
+     * the smaller the value, the lower priority this life cycle object is
+     */
+    default int getOrder() {
+        return 0;
+    }
+
+    void start(AgentContext context) throws Exception;
+
+    /**
+     * called when the agent is being shutdown
+     */
+    void stop() throws Exception;
 }
