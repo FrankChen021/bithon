@@ -120,11 +120,11 @@ public class Dispatcher {
     }
 
     public void shutdown() {
-        log.info("[{}] Shutting down dispatcher task...", dispatcherName);
+        log.info("Shutting down dispatcher task [{}]...", dispatcherName);
         task.stop();
 
         // stop underlying message channel
-        log.info("[{}] Closing message channel...", dispatcherName);
+        log.info("Closing message channel [{}]...", dispatcherName);
         try {
             messageChannel.close();
         } catch (Exception ignored) {

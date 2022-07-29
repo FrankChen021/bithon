@@ -115,7 +115,7 @@ public class AgentStarter {
             for (Dispatcher dispatcher : Dispatchers.getAllDispatcher()) {
                 dispatcher.shutdown();
             }
-        }, "agent-ShutdownHook"));
+        }, "agentShutdown"));
     }
 
     private static AgentBuilder createAgentBuilder(Instrumentation inst) {
