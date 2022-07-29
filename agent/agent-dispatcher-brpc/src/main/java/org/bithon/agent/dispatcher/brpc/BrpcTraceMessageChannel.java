@@ -47,6 +47,7 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
 
     private final ITraceCollector traceCollector;
     private final DispatcherConfig dispatcherConfig;
+    private final ClientChannel clientChannel;
     private BrpcMessageHeader header;
 
     public BrpcTraceMessageChannel(DispatcherConfig dispatcherConfig) {
@@ -55,9 +56,8 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        traceCollector = new ClientChannel(new RoundRobinEndPointProvider(endpoints))
-            .configureRetry(3, Duration.ofMillis(200))
-            .getRemoteService(ITraceCollector.class);
+        this.clientChannel = new ClientChannel(new RoundRobinEndPointProvider(endpoints)).configureRetry(3, Duration.ofMillis(200));
+        this.traceCollector = this.clientChannel.getRemoteService(ITraceCollector.class);
 
         this.dispatcherConfig = dispatcherConfig;
 
@@ -91,7 +91,7 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
 
         IChannelWriter channel = ((IServiceController) traceCollector).getChannel();
         if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
-            log.info("Disconnect trace-channel for load balancing...");
+            log.info("Disconnect trace-channel for client-side load balancing...");
             try {
                 channel.disconnect();
             } catch (Exception ignored) {
@@ -112,5 +112,10 @@ public class BrpcTraceMessageChannel implements IMessageChannel {
             //suppress client exception
             log.error("Failed to send tracing: {}", e.getMessage());
         }
+    }
+
+    @Override
+    public void close() {
+        this.clientChannel.close();
     }
 }

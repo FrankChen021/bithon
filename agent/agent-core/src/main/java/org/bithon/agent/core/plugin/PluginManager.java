@@ -16,18 +16,14 @@
 
 package org.bithon.agent.core.plugin;
 
-import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.loader.JarClassLoader;
 import org.bithon.agent.bootstrap.loader.PluginClassLoaderManager;
 import org.bithon.agent.core.aop.descriptor.Descriptors;
-import org.bithon.agent.core.aop.installer.InterceptorInstaller;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
-import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 
 import java.io.File;
-import java.lang.instrument.Instrumentation;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -40,38 +36,21 @@ import java.util.zip.ZipFile;
  * @author frank.chen021@outlook.com
  * @date 2021/3/18-20:36
  */
-public class PluginInterceptorInstaller {
+public class PluginManager {
 
-    private static final ILogAdaptor log = LoggerFactory.getLogger(PluginInterceptorInstaller.class);
+    private static final ILogAdaptor log = LoggerFactory.getLogger(PluginManager.class);
 
-    public static void install(AgentContext agentContext, Instrumentation inst) {
+    private final List<IPlugin> plugins;
+
+    public PluginManager(AgentContext agentContext) {
         // create plugin class loader first
         PluginClassLoaderManager.createDefault(agentContext.getAgentDirectory());
 
-        // find all plugins first
-        List<IPlugin> plugins = loadPlugins();
-
-        // install interceptors
-        Descriptors descriptors = mergeInterceptorDescriptors(plugins);
-
-        new InterceptorInstaller(descriptors).installOn(createAgentBuilder(inst), inst);
-
-        // start plugins
-        plugins.forEach(IPlugin::start);
-
-        // install shutdown hook
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> plugins.forEach(IPlugin::stop)));
+        // load plugins
+        plugins = loadPlugins();
     }
 
-    private static AgentBuilder createAgentBuilder(Instrumentation inst) {
-        AgentBuilder builder = new AgentBuilder.Default();
-
-        builder = builder.assureReadEdgeFromAndTo(inst, IBithonObject.class);
-
-        return builder;
-    }
-
-    private static Descriptors mergeInterceptorDescriptors(List<IPlugin> plugins) {
+    public Descriptors getInterceptorDescriptors() {
         Descriptors descriptors = new Descriptors();
         for (IPlugin plugin : plugins) {
             String pluginName = plugin.getClass().getSimpleName();
@@ -83,7 +62,15 @@ public class PluginInterceptorInstaller {
         return descriptors;
     }
 
-    private static List<IPlugin> loadPlugins() {
+    public void start() {
+        plugins.forEach(IPlugin::start);
+    }
+
+    public void stop() {
+        plugins.forEach(IPlugin::stop);
+    }
+
+    private List<IPlugin> loadPlugins() {
 
         JarClassLoader pluginClassLoader = PluginClassLoaderManager.getDefaultLoader();
         List<JarFile> pluginJars = pluginClassLoader.getJars()
@@ -117,11 +104,10 @@ public class PluginInterceptorInstaller {
                 log.info("Found plugin {}", jarFileName);
                 plugins.add(pluginClass.getDeclaredConstructor().newInstance());
             } catch (Throwable e) {
-                LoggerFactory.getLogger(PluginInterceptorInstaller.class)
-                             .error(String.format(Locale.ENGLISH,
-                                                  "Failed to add plugin from jar %s",
-                                                  new File(jar.getName()).getName()),
-                                    e);
+                log.error(String.format(Locale.ENGLISH,
+                                        "Failed to add plugin from jar %s",
+                                        new File(jar.getName()).getName()),
+                          e);
             }
         }
         return plugins;

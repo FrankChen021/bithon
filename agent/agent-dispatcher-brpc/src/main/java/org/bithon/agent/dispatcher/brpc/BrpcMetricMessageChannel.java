@@ -54,8 +54,8 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
     private final Map<String, Method> sendMethods = new HashMap<>();
     private final DispatcherConfig dispatcherConfig;
     private final IMetricCollector metricCollector;
+    private final ClientChannel clientChannel;
     private BrpcMessageHeader header;
-    private long lastConnectAt;
 
     public BrpcMetricMessageChannel(DispatcherConfig dispatcherConfig) {
         Method[] methods = IMetricCollector.class.getDeclaredMethods();
@@ -91,8 +91,8 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
             String[] parts = hostAndPort.split(":");
             return new EndPoint(parts[0], Integer.parseInt(parts[1]));
         }).collect(Collectors.toList());
-        metricCollector = new ClientChannel(new RoundRobinEndPointProvider(endpoints)).configureRetry(3, Duration.ofMillis(100))
-                                                                                      .getRemoteService(IMetricCollector.class);
+        this.clientChannel = new ClientChannel(new RoundRobinEndPointProvider(endpoints)).configureRetry(3, Duration.ofMillis(100));
+        this.metricCollector = clientChannel.getRemoteService(IMetricCollector.class);
 
         this.dispatcherConfig = dispatcherConfig;
 
@@ -130,7 +130,7 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
 
         IChannelWriter channel = ((IServiceController) metricCollector).getChannel();
         if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
-            log.info("Disconnect metric-channel for load balancing...");
+            log.info("Disconnect metric-channel for client-side load balancing...");
             try {
                 channel.disconnect();
             } catch (Exception ignored) {
@@ -159,5 +159,10 @@ public class BrpcMetricMessageChannel implements IMessageChannel {
                 throw new RuntimeException(e.getTargetException());
             }
         }
+    }
+
+    @Override
+    public void close() {
+        this.clientChannel.close();
     }
 }

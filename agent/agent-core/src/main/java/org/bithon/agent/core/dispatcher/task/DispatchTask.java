@@ -35,6 +35,7 @@ public class DispatchTask {
     private final IMessageQueue queue;
     private final String taskName;
     private long lastGCTime;
+    private boolean isRunning = true;
 
     public DispatchTask(String taskName,
                         IMessageQueue queue,
@@ -46,38 +47,47 @@ public class DispatchTask {
         this.queue = queue;
         this.lastGCTime = System.currentTimeMillis();
 
-        new Thread(this::send, taskName + "-sender").start();
-    }
-
-    private void gcIfNeed() {
-        long sysTime = System.currentTimeMillis();
-        if (sysTime - lastGCTime >= this.gcPeriod) {
-            queue.gc();
-            lastGCTime = sysTime;
-            log.debug("GC for {}, current size: {}", taskName, queue.size());
-        }
+        new Thread(() -> {
+            while (isRunning) {
+                send();
+            }
+        }, taskName + "-sender").start();
     }
 
     private void send() {
-        while (true) {
-            try {
-                Object message = queue.dequeue(10, TimeUnit.MILLISECONDS);
-                if (message != null) {
-                    this.messageConsumer.accept(message);
-                    gcIfNeed();
-                }
-            } catch (Exception e) {
-                log.error("Sending Entity Failed! \n" + e, e);
+        try {
+            Object message = queue.dequeue(10, TimeUnit.MILLISECONDS);
+            if (message != null) {
+                this.messageConsumer.accept(message);
+                queue.gc();
             }
+        } catch (Exception e) {
+            log.error("Sending Entity Failed! \n" + e, e);
         }
     }
 
-    public void sendMessage(Object message) {
+    public void accept(Object message) {
         if (log.isDebugEnabled()) {
             String className = message.getClass().getSimpleName();
             className = className.replace("Entity", "");
             log.debug("Entity : " + className + ", Got and Send : " + message);
         }
-        queue.enqueue(message);
+        if (isRunning) {
+            queue.enqueue(message);
+        }
+    }
+
+    public void stop() {
+        // stop receiving new messages
+        isRunning = false;
+
+        // flush all messages
+        while (queue.size() > 0) {
+            send();
+        }
+    }
+
+    public boolean canAccept() {
+        return isRunning;
     }
 }

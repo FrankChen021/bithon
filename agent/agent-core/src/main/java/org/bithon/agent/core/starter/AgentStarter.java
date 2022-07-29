@@ -17,15 +17,23 @@
 package org.bithon.agent.core.starter;
 
 import org.bithon.agent.AgentBuildVersion;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.loader.AgentClassLoader;
 import org.bithon.agent.core.aop.InstrumentationHelper;
+import org.bithon.agent.core.aop.installer.InterceptorInstaller;
 import org.bithon.agent.core.context.AgentContext;
-import org.bithon.agent.core.plugin.PluginInterceptorInstaller;
+import org.bithon.agent.core.dispatcher.Dispatcher;
+import org.bithon.agent.core.dispatcher.Dispatchers;
+import org.bithon.agent.core.plugin.PluginManager;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import shaded.net.bytebuddy.agent.builder.AgentBuilder;
 
 import java.io.File;
 import java.lang.instrument.Instrumentation;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.ServiceLoader;
 
 /**
@@ -68,12 +76,53 @@ public class AgentStarter {
 
         AgentContext agentContext = AgentContext.createInstance(agentPath);
 
-        PluginInterceptorInstaller.install(agentContext, inst);
+        final PluginManager pluginManager = new PluginManager(agentContext);
+
+        // install interceptors for plugins
+        new InterceptorInstaller(pluginManager.getInterceptorDescriptors()).installOn(createAgentBuilder(inst), inst);
+
+        pluginManager.start();
 
         // initialize other agent libs
-        for (IAgentInitializer initializer : ServiceLoader.load(IAgentInitializer.class,
-                                                                AgentClassLoader.getClassLoader())) {
-            initializer.initialize(agentContext);
+        final List<IAgentLifeCycle> lifeCycles = new ArrayList<>();
+        for (IAgentLifeCycle lifecycle : ServiceLoader.load(IAgentLifeCycle.class,
+                                                            AgentClassLoader.getClassLoader())) {
+            lifeCycles.add(lifecycle);
         }
+        // sort the lifecycles in their priority
+        Collections.sort(lifeCycles, (o1, o2) -> o2.getOrder() - o1.getOrder());
+
+        //
+        for (IAgentLifeCycle lifeCycle : lifeCycles) {
+            lifeCycle.start(agentContext);
+        }
+
+        // register shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            // stop all plugins
+            pluginManager.stop();
+
+            // stop each life cycle object
+            // the last started life cycle object will be stopped in first
+            for (int i = lifeCycles.size() - 1; i >= 0; i--) {
+                try {
+                    lifeCycles.get(i).stop();
+                } catch (Exception ignored) {
+                }
+            }
+
+            // destroy the dispatchers at last
+            for (Dispatcher dispatcher : Dispatchers.getAllDispatcher()) {
+                dispatcher.shutdown();
+            }
+        }, "agentShutdown"));
+    }
+
+    private static AgentBuilder createAgentBuilder(Instrumentation inst) {
+        AgentBuilder builder = new AgentBuilder.Default();
+
+        builder = builder.assureReadEdgeFromAndTo(inst, IBithonObject.class);
+
+        return builder;
     }
 }
