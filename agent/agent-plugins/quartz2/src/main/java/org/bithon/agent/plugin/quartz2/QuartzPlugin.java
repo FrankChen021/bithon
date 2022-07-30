@@ -18,9 +18,10 @@ package org.bithon.agent.plugin.quartz2;
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.plugin.IPlugin;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -31,21 +32,19 @@ import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.
 public class QuartzPlugin implements IPlugin {
 
     @Override
+    public IInterceptorPrecondition getPreconditions() {
+        return IInterceptorPrecondition.hasClass("org.quartz.JobKey");
+    }
+
+    @Override
     public List<InterceptorDescriptor> getInterceptors() {
 
-        return Arrays.asList(
-            forClass("org.quartz.impl.SchedulerRepository")
-                .methods(
-                    MethodPointCutDescriptorBuilder.build()
-                                                   .onDefaultConstructor()
-                                                   .to("org.bithon.agent.plugin.quartz2.QuartzInterceptor")
-                ),
-
+        return Collections.singletonList(
             forClass("org.quartz.core.JobRunShell")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("run")
-                                                   .to("org.bithon.agent.plugin.quartz2.QuartzJobExecutionLogInterceptor")
+                                                   .to("org.bithon.agent.plugin.quartz2.JobRunShell$Run")
                 )
         );
     }
