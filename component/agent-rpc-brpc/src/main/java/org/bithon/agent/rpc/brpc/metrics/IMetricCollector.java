@@ -33,9 +33,6 @@ public interface IMetricCollector {
     void sendJvm(BrpcMessageHeader header, List<BrpcJvmMetricMessage> messages);
 
     @BrpcMethod(isOneway = true)
-    void sendJvmGc(BrpcMessageHeader header, List<BrpcJvmGcMetricMessage> messages);
-
-    @BrpcMethod(isOneway = true)
     void sendSql(BrpcMessageHeader header, List<BrpcSqlMetricMessage> messages);
 
     @BrpcMethod(isOneway = true)

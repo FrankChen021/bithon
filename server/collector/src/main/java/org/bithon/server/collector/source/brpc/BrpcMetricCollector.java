@@ -22,7 +22,6 @@ import org.bithon.agent.rpc.brpc.BrpcMessageHeader;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMeasurement;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
-import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcSqlMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
@@ -71,15 +70,6 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
         }
 
         metricSink.process("jvm-metrics", messages.stream().map((m) -> toMetricMessage(header, m)).collect(Collectors.toList()));
-    }
-
-    @Override
-    public void sendJvmGc(BrpcMessageHeader header, List<BrpcJvmGcMetricMessage> messages) {
-        if (CollectionUtils.isEmpty(messages)) {
-            return;
-        }
-
-        metricSink.process("jvm-gc-metrics", messages.stream().map((m) -> toMetricMessage(header, m)).collect(Collectors.toList()));
     }
 
     @Override

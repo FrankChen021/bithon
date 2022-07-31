@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package org.bithon.agent.rpc.brpc.metrics;
 
+import "google/protobuf/any.proto";
+
 option java_multiple_files = true;
 
 /***************************************************************************/
@@ -69,15 +71,6 @@ message BrpcJvmMetricMessage {
     int64 directUsed         = 30;
 }
 
-message BrpcJvmGcMetricMessage {
-    int64 timestamp = 1;
-    int32 interval = 2;
-    string gcName = 3;
-    string generation = 4;
-    int64 gcCount = 5;
-    int64 gcTime = 6;
-}
-
 /***************************************************************************/
 /*******************************  SQL             ***************************/
 /***************************************************************************/
@@ -139,4 +132,31 @@ message BrpcGenericMetricMessageV2 {
     int64 interval             =  2;
     BrpcGenericMetricSchemaV2 schema = 3;
     repeated BrpcGenericMeasurement measurement = 4;
+}
+
+/*************************************************************************************/
+/*******************************Generic Metric Message V3*****************************/
+/*************************************************************************************/
+message BrpcGenericMetricSchemaV3 {
+    message FieldSpec {
+        /**
+         * 0 - string
+         * 1 - int64
+         * 2 - double
+         * 3 - historgram
+         */
+        int32 type  = 1;
+        string name = 2;
+    }
+
+    // schema name
+    string name = 1;
+
+    // fields
+    repeated FieldSpec fieldSpec = 2;
+}
+
+message BrpcGenericMeasurementV3 {
+    int64 timestamp           =  1;
+    repeated google.protobuf.Any value = 2;
 }
