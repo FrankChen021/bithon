@@ -18,7 +18,7 @@ package org.bithon.agent.core.metric.model;
 
 /**
  * @author frank.chen
- * @date {2022/7/30} {22:52}
+ * @date 2022/7/30 22:52
  */
 public class InvalidMetricValueException extends RuntimeException {
 }
