@@ -18,6 +18,7 @@ package org.bithon.server.sink;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import org.bithon.server.sink.metrics.MetricInputSource;
 import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.sink.tracing.TraceDataSourceSchemaInitializer;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
@@ -56,7 +57,8 @@ public class SinkAutoConfiguration {
 
             @Override
             public void setupModule(SetupContext context) {
-                context.registerSubtypes(MetricOverSpanInputSource.class);
+                context.registerSubtypes(MetricOverSpanInputSource.class,
+                                         MetricInputSource.class);
             }
         };
     }

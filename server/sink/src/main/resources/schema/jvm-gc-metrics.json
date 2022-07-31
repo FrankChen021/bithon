@@ -51,7 +51,10 @@
       "unit": "millisecond",
       "valueType": "double"
     }
-  ]
+  ],
+  "inputSourceSpec": {
+    "type": "metric"
+  }
 }
 
 

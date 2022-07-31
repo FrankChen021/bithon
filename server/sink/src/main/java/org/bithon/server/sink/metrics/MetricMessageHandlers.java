@@ -40,7 +40,6 @@ public class MetricMessageHandlers {
             HttpOutgoingMetricMessageHandler.class,
             JdbcPoolMetricMessageHandler.class,
             JvmMetricMessageHandler.class,
-            JvmGcMetricMessageHandler.class,
             MongoDbMetricMessageHandler.class,
             RedisMetricMessageHandler.class,
             SqlMetricMessageHandler.class,

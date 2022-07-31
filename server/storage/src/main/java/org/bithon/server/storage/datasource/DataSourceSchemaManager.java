@@ -160,6 +160,7 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
     @Override
     public void afterPropertiesSet() {
         log.info("Starting schema incremental loader...");
+        this.incrementalLoadSchemas();
         loaderScheduler.scheduleWithFixedDelay(this::incrementalLoadSchemas, 0, 1, TimeUnit.MINUTES);
     }
 
