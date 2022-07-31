@@ -25,10 +25,8 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -110,24 +108,6 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         if (schema != null) {
             schemas.put(name, schema);
             return schema;
-        }
-
-        // load the definition in file
-        try (InputStream is = this.getClass()
-                                  .getClassLoader()
-                                  .getResourceAsStream(String.format(Locale.ENGLISH, "schema/%s.json", name))) {
-            if (is != null) {
-                schema = objectMapper.readValue(is, DataSourceSchema.class);
-
-                // save the definition in file into storage
-                schemaStorage.putIfNotExist(name, schema);
-
-                schemas.put(name, schema);
-
-                return schema;
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
 
         throw new DataSourceNotFoundException(name);

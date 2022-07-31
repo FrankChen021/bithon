@@ -22,11 +22,6 @@ import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.context.ApplicationContext;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
 /**
  * @author Frank Chen
  * @date 3/10/21 14:11
@@ -34,20 +29,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> {
 
-    final Map<String, AbstractMetricMessageHandler> handlers;
+    final MetricMessageHandlers handlers;
     final DataSourceSchemaManager schemaManager;
     final ApplicationContext applicationContext;
 
     public LocalSchemaMetricSink(ApplicationContext applicationContext) {
-        Map<String, AbstractMetricMessageHandler> handlers = applicationContext.getBeansOfType(AbstractMetricMessageHandler.class);
-
-        // load pre-defined handlers
-        this.handlers = new ConcurrentHashMap<>(handlers.values()
-                                                        .stream()
-                                                        .collect(Collectors.toMap(AbstractMetricMessageHandler::getType,
-                                                                                  v -> v)));
-
         this.schemaManager = applicationContext.getBean(DataSourceSchemaManager.class);
+        this.handlers = applicationContext.getBean(MetricMessageHandlers.class);
         this.applicationContext = applicationContext;
     }
 
@@ -63,7 +51,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
     }
 
     private AbstractMetricMessageHandler getMessageHandler(SchemaMetricMessage message) {
-        AbstractMetricMessageHandler handler = handlers.get(message.getSchema().getName());
+        AbstractMetricMessageHandler handler = handlers.getHandler(message.getSchema().getName());
         if (handler != null) {
             // TODO: check if schema is changed
             return handler;
@@ -72,7 +60,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
         // create  a handler
         //
         synchronized (this) {
-            handler = handlers.get(message.getSchema().getName());
+            handler = handlers.getHandler(message.getSchema().getName());
             if (handler != null) {
                 // double check
                 return handler;
@@ -85,25 +73,12 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
                                                    applicationContext.getBean(IMetricStorage.class),
                                                    schemaManager);
 
-                handlers.put(message.getSchema().getName(), handler);
+                handlers.add(handler);
                 return handler;
             } catch (Exception e) {
                 log.error("error", e);
                 return null;
             }
-        }
-    }
-
-    static class MetricMessageHandler extends AbstractMetricMessageHandler {
-
-        public MetricMessageHandler(String dataSourceName,
-                                    IMetaStorage metaStorage,
-                                    IMetricStorage metricStorage,
-                                    DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
-            super(dataSourceName,
-                  metaStorage,
-                  metricStorage,
-                  dataSourceSchemaManager);
         }
     }
 }

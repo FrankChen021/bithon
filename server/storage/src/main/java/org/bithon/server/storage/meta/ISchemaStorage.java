@@ -43,6 +43,7 @@ public interface ISchemaStorage {
 
     void update(String name, DataSourceSchema schema) throws IOException;
     void putIfNotExist(String name, DataSourceSchema schema) throws IOException;
+    void putIfNotExist(String name, String schema);
 
     default void initialize() {
     }

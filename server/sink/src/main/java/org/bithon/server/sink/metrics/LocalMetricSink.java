@@ -22,11 +22,8 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.springframework.context.ApplicationContext;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This sink is designed for function evaluation and local development.
@@ -39,36 +36,16 @@ import java.util.Map;
 @JsonTypeName("local")
 public class LocalMetricSink implements IMetricMessageSink {
 
-    private final Map<String, AbstractMetricMessageHandler> handlers = new HashMap<>();
+    private MetricMessageHandlers handlers;
 
     @JsonCreator
-    public LocalMetricSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
-
-        Class<? extends AbstractMetricMessageHandler>[] handlers = new Class[]{
-            ExceptionMetricMessageHandler.class,
-            HttpIncomingMetricMessageHandler.class,
-            HttpOutgoingMetricMessageHandler.class,
-            JdbcPoolMetricMessageHandler.class,
-            JvmMetricMessageHandler.class,
-            JvmGcMetricMessageHandler.class,
-            MongoDbMetricMessageHandler.class,
-            RedisMetricMessageHandler.class,
-            SqlMetricMessageHandler.class,
-            ThreadPoolMetricMessageHandler.class,
-            WebServerMetricMessageHandler.class
-        };
-        for (Class<? extends AbstractMetricMessageHandler> handlerClass : handlers) {
-            this.add(applicationContext.getAutowireCapableBeanFactory().createBean(handlerClass));
-        }
-    }
-
-    private void add(AbstractMetricMessageHandler handler) {
-        handlers.put(handler.getType(), handler);
+    public LocalMetricSink(@JacksonInject(useInput = OptBoolean.FALSE) MetricMessageHandlers handlers) {
+        this.handlers = handlers;
     }
 
     @Override
     public void process(String messageType, List<IInputRow> messages) {
-        AbstractMetricMessageHandler handler = handlers.get(messageType);
+        AbstractMetricMessageHandler handler = handlers.getHandler(messageType);
         if (handler != null) {
             handler.process(messages);
         } else {
@@ -78,7 +55,7 @@ public class LocalMetricSink implements IMetricMessageSink {
 
     @Override
     public void close() throws Exception {
-        for (AbstractMetricMessageHandler handler : handlers.values()) {
+        for (AbstractMetricMessageHandler handler : handlers.getHandlers()) {
             handler.close();
         }
     }
