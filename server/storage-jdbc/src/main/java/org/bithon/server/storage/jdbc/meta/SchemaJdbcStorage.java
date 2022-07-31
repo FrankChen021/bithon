@@ -145,4 +145,19 @@ public class SchemaJdbcStorage implements ISchemaStorage {
         } catch (DuplicateKeyException ignored) {
         }
     }
+
+    @Override
+    public void putIfNotExist(String name, String schemaText) {
+        // onDuplicateKeyIgnore is not supported on all DB
+        // use try-catch instead
+        try {
+            dslContext.insertInto(Tables.BITHON_META_SCHEMA)
+                      .set(Tables.BITHON_META_SCHEMA.NAME, name)
+                      .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
+                      .set(Tables.BITHON_META_SCHEMA.SIGNATURE, HashGenerator.sha256Hex(schemaText))
+                      .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                      .execute();
+        } catch (DuplicateKeyException ignored) {
+        }
+    }
 }

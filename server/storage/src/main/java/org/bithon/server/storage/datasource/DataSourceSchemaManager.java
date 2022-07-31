@@ -112,24 +112,6 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
             return schema;
         }
 
-        // load the definition in file
-        try (InputStream is = this.getClass()
-                                  .getClassLoader()
-                                  .getResourceAsStream(String.format(Locale.ENGLISH, "schema/%s.json", name))) {
-            if (is != null) {
-                schema = objectMapper.readValue(is, DataSourceSchema.class);
-
-                // save the definition in file into storage
-                schemaStorage.putIfNotExist(name, schema);
-
-                schemas.put(name, schema);
-
-                return schema;
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
         throw new DataSourceNotFoundException(name);
     }
 

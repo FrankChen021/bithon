@@ -16,6 +16,10 @@
 
 package org.bithon.component.commons.utils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 /**
@@ -61,5 +65,17 @@ public class StringUtils {
     public static String getSimpleClassName(String qualifiedClassName) {
         int dot = qualifiedClassName.lastIndexOf('.');
         return dot == -1 ? qualifiedClassName : qualifiedClassName.substring(dot + 1);
+    }
+
+    public static String from(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        int length;
+        byte[] buffer = new byte[1024];
+        while ((length = inputStream.read(buffer, 0, buffer.length)) != -1) {
+            bos.write(buffer, 0, length);
+        }
+        bos.flush();
+
+        return new String(bos.toByteArray(), StandardCharsets.UTF_8);
     }
 }

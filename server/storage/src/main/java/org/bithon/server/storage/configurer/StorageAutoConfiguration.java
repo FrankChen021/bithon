@@ -40,6 +40,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -78,6 +80,18 @@ public class StorageAutoConfiguration {
         String jsonType = String.format(Locale.ENGLISH, "{\"type\":\"%s\"}", storageConfig.getType());
         ISchemaStorage storage = om.readValue(jsonType, ISchemaStorage.class);
         storage.initialize();
+
+        // load default schemas
+        try {
+            Resource[] resources = new PathMatchingResourcePatternResolver()
+                .getResources("classpath:/schema/*.json");
+            for (Resource resource : resources) {
+                storage.putIfNotExist(resource.getFilename().replace(".json", ""), StringUtils.from(resource.getInputStream()));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         return storage;
     }
 
