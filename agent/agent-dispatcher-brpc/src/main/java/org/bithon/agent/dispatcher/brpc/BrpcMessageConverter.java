@@ -19,7 +19,6 @@ package org.bithon.agent.dispatcher.brpc;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMeasurement;
-import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
@@ -141,11 +140,6 @@ public class BrpcMessageConverter implements IMessageConverter {
 
     @Override
     public Object from(Map<String, String> log) {
-        return null;
-    }
-
-    @Override
-    public Object from(long timestamp, int interval, GcMetrics metrics) {
         return null;
     }
 

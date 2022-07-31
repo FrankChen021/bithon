@@ -49,8 +49,6 @@ public interface IMessageConverter {
 
     Object from(Map<String, String> log);
 
-    Object from(long timestamp, int interval, GcMetrics metrics);
-
     Object from(Schema schema, Collection<IMeasurement> measurementList, long timestamp, int interval);
 
     Object from(Schema2 schema, Collection<IMeasurement> measurementList, long timestamp, int interval);
