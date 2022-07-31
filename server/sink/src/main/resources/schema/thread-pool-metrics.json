@@ -106,7 +106,10 @@
       "displayText": "queuedTaskCount",
       "unit": ""
     }
-  ]
+  ],
+  "inputSourceSpec": {
+    "type": "metric"
+  }
 }
 
 

@@ -187,8 +187,10 @@
       "displayText": "Active Threads",
       "unit": "count"
     }
-
-  ]
+  ],
+  "inputSourceSpec": {
+    "type": "metric"
+  }
 }
 
 

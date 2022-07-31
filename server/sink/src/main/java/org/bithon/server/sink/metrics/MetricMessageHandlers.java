@@ -35,16 +35,12 @@ public class MetricMessageHandlers {
     public MetricMessageHandlers(ApplicationContext applicationContext) {
 
         Class<? extends AbstractMetricMessageHandler>[] handlers = new Class[]{
-            ExceptionMetricMessageHandler.class,
             HttpIncomingMetricMessageHandler.class,
             HttpOutgoingMetricMessageHandler.class,
             JdbcPoolMetricMessageHandler.class,
-            JvmMetricMessageHandler.class,
             MongoDbMetricMessageHandler.class,
             RedisMetricMessageHandler.class,
-            SqlMetricMessageHandler.class,
-            ThreadPoolMetricMessageHandler.class,
-            WebServerMetricMessageHandler.class
+            SqlMetricMessageHandler.class
         };
         for (Class<? extends AbstractMetricMessageHandler> handlerClass : handlers) {
             this.add(applicationContext.getAutowireCapableBeanFactory().createBean(handlerClass));

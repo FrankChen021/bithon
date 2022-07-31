@@ -56,7 +56,10 @@
       "displayText": "Exception Count",
       "unit": ""
     }
-  ]
+  ],
+  "inputSourceSpec": {
+    "type": "metric"
+  }
 }
 
 
