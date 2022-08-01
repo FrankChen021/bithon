@@ -19,13 +19,16 @@ package org.bithon.agent.plugin.jvm;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.metric.collector.IMetricCollector;
 import org.bithon.agent.core.metric.collector.MetricCollectorManager;
+import org.bithon.agent.core.metric.collector.MetricRegistryFactory;
 import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
-import org.bithon.agent.plugin.jvm.gc.GcMetricCollector;
+import org.bithon.agent.plugin.jvm.gc.GcMetricRegistry;
 import org.bithon.agent.plugin.jvm.mem.ClassMetricCollector;
 import org.bithon.agent.plugin.jvm.mem.MemoryMetricCollector;
 
-import java.util.ArrayList;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,7 +40,6 @@ import java.util.List;
 public class JvmMetricCollector {
 
     private CpuMetricCollector cpuMetricCollector;
-
 
     public void start() {
         MemoryMetricCollector.initDirectMemoryCollector();
@@ -63,25 +65,11 @@ public class JvmMetricCollector {
             }
         });
 
-        MetricCollectorManager.getInstance().register("jvm-gc-metrics", new IMetricCollector() {
-            private final GcMetricCollector gcCollector = new GcMetricCollector();
-
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
-
-            @Override
-            public List<Object> collect(IMessageConverter messageConverter, int interval, long timestamp) {
-                List<Object> metricMessages = new ArrayList<>(2);
-                for (GcMetrics gcMetricSet : gcCollector.collect()) {
-                    metricMessages.add(messageConverter.from(timestamp,
-                                                             interval,
-                                                             gcMetricSet));
-                }
-                return metricMessages;
-            }
-        });
+        GcMetricRegistry gcMetricRegistry = MetricRegistryFactory.getOrCreateRegistry("jvm-gc-metrics", GcMetricRegistry::new);
+        for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {
+            gcMetricRegistry.createMetrics(Arrays.asList(gcBean.getName(), GcMetricRegistry.getGeneration(gcBean.getName())),
+                                           new GcMetrics(gcBean));
+        }
     }
 
     private JvmMetrics buildJvmMetrics() {

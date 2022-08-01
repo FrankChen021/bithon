@@ -19,7 +19,6 @@ package org.bithon.agent.dispatcher.brpc;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMeasurement;
-import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
@@ -34,7 +33,6 @@ import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricMessageV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchema;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSchemaV2;
 import org.bithon.agent.rpc.brpc.metrics.BrpcGenericMetricSpec;
-import org.bithon.agent.rpc.brpc.metrics.BrpcJvmGcMetricMessage;
 import org.bithon.agent.rpc.brpc.metrics.BrpcJvmMetricMessage;
 import org.bithon.agent.rpc.brpc.tracing.BrpcTraceSpanMessage;
 import shaded.com.fasterxml.jackson.core.JsonProcessingException;
@@ -146,17 +144,6 @@ public class BrpcMessageConverter implements IMessageConverter {
     }
 
     @Override
-    public Object from(long timestamp, int interval, GcMetrics metrics) {
-        return BrpcJvmGcMetricMessage.newBuilder().setTimestamp(timestamp)
-                                     .setInterval(interval)
-                                     .setGcName(metrics.getGcName())
-                                     .setGeneration(metrics.getGeneration())
-                                     .setGcTime(metrics.getGcTime())
-                                     .setGcCount(metrics.getGcCount())
-                                     .build();
-    }
-
-    @Override
     public Object from(Schema schema,
                        Collection<IMeasurement> measurementList,
                        long timestamp,
@@ -181,17 +168,21 @@ public class BrpcMessageConverter implements IMessageConverter {
         messageBuilder.setTimestamp(timestamp);
 
         measurementList.forEach(metricSet -> {
-            BrpcGenericMeasurement.Builder measurement = BrpcGenericMeasurement.newBuilder();
-            // although dimensions are defined as List<String>
-            // but it could also store Object
-            // we use Object.toString here to get right value
-            for (Object dimension : metricSet.getDimensions()) {
-                measurement.addDimension(dimension.toString());
+            try {
+                BrpcGenericMeasurement.Builder measurement = BrpcGenericMeasurement.newBuilder();
+                // although dimensions are defined as List<String>
+                // but it could also store Object
+                // we use Object.toString here to get right value
+                for (Object dimension : metricSet.getDimensions()) {
+                    measurement.addDimension(dimension.toString());
+                }
+                for (int i = 0, size = metricSet.getMetricCount(); i < size; i++) {
+                    measurement.addMetric(metricSet.getMetricValue(i));
+                }
+                messageBuilder.addMeasurement(measurement.build());
+            } catch (RuntimeException ignored) {
+                // ignore invalid metric values
             }
-            for (int i = 0, size = metricSet.getMetricCount(); i < size; i++) {
-                measurement.addMetric(metricSet.getMetricValue(i));
-            }
-            messageBuilder.addMeasurement(measurement.build());
         });
 
         return messageBuilder.build();
@@ -210,17 +201,21 @@ public class BrpcMessageConverter implements IMessageConverter {
         messageBuilder.setTimestamp(timestamp);
 
         measurementList.forEach(measurement -> {
-            BrpcGenericMeasurement.Builder measurementBuilder = BrpcGenericMeasurement.newBuilder();
-            // although dimensions are defined as List<String>
-            // but it could also store Object
-            // we use Object.toString here to get right value
-            for (Object dimension : measurement.getDimensions()) {
-                measurementBuilder.addDimension(dimension == null ? "" : dimension.toString());
+            try {
+                BrpcGenericMeasurement.Builder measurementBuilder = BrpcGenericMeasurement.newBuilder();
+                // although dimensions are defined as List<String>
+                // but it could also store Object
+                // we use Object.toString here to get right value
+                for (Object dimension : measurement.getDimensions()) {
+                    measurementBuilder.addDimension(dimension == null ? "" : dimension.toString());
+                }
+                for (int i = 0, size = measurement.getMetricCount(); i < size; i++) {
+                    measurementBuilder.addMetric(measurement.getMetricValue(i));
+                }
+                messageBuilder.addMeasurement(measurementBuilder.build());
+            } catch (RuntimeException ignored) {
+                // ignore invalid metric values
             }
-            for (int i = 0, size = measurement.getMetricCount(); i < size; i++) {
-                measurementBuilder.addMetric(measurement.getMetricValue(i));
-            }
-            messageBuilder.addMeasurement(measurementBuilder.build());
         });
 
         return messageBuilder.build();

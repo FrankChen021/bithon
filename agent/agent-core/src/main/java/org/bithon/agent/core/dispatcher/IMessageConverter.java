@@ -18,7 +18,6 @@ package org.bithon.agent.core.dispatcher;
 
 import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.metric.collector.IMeasurement;
-import org.bithon.agent.core.metric.domain.jvm.GcMetrics;
 import org.bithon.agent.core.metric.domain.jvm.JvmMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLMetrics;
 import org.bithon.agent.core.metric.domain.sql.SQLStatementMetrics;
@@ -48,8 +47,6 @@ public interface IMessageConverter {
     Object from(EventMessage event);
 
     Object from(Map<String, String> log);
-
-    Object from(long timestamp, int interval, GcMetrics metrics);
 
     Object from(Schema schema, Collection<IMeasurement> measurementList, long timestamp, int interval);
 

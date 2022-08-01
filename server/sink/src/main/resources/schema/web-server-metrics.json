@@ -42,7 +42,10 @@
       "displayText": "Max Threads",
       "unit": ""
     }
-  ]
+  ],
+  "inputSourceSpec": {
+    "type": "metric"
+  }
 }
 
 

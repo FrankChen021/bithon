@@ -16,49 +16,53 @@
 
 package org.bithon.agent.core.metric.domain.jvm;
 
+import org.bithon.agent.core.metric.model.Delta;
+import org.bithon.agent.core.metric.model.IMetricSet;
+import org.bithon.agent.core.metric.model.IMetricValueProvider;
+import org.bithon.agent.core.metric.model.constraints.GreaterThanZero;
+
+import java.lang.management.GarbageCollectorMXBean;
+
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/29 9:58 下午
  */
-public class GcMetrics {
-    private String gcName;
-
-    /**
-     * 0 - NEW
-     * 1 - OLD
-     */
-    private String generation;
-
+public class GcMetrics implements IMetricSet {
     /**
      * count of GC between two intervals
      */
-    private long gcCount;
+    private final IMetricValueProvider gcCount;
 
     /**
      * time of total GC between two intervals in milli seconds
      */
-    private long gcTime;
+    private final IMetricValueProvider gcTime;
 
-    public String getGcName() {
-        return gcName;
+    public GcMetrics(GarbageCollectorMXBean bean) {
+        gcCount = new GreaterThanZero(new IMetricValueProvider() {
+            private final Delta delta = new Delta(bean.getCollectionCount());
+
+            @Override
+            public long get() {
+                return delta.update(bean.getCollectionCount());
+            }
+        });
+
+        gcTime = new GreaterThanZero(new IMetricValueProvider() {
+
+            private final Delta delta = new Delta(bean.getCollectionTime());
+
+            @Override
+            public long get() {
+                return delta.update(bean.getCollectionTime());
+            }
+        });
     }
 
-    public String getGeneration() {
-        return generation;
-    }
-
-    public long getGcCount() {
-        return gcCount;
-    }
-
-    public long getGcTime() {
-        return gcTime;
-    }
-
-    public GcMetrics(String gcName, String generation, long gcCount, long gcTime) {
-        this.gcName = gcName;
-        this.generation = generation;
-        this.gcCount = gcCount;
-        this.gcTime = gcTime;
+    @Override
+    public IMetricValueProvider[] getMetrics() {
+        return new IMetricValueProvider[]{
+            gcCount, gcTime
+        };
     }
 }
