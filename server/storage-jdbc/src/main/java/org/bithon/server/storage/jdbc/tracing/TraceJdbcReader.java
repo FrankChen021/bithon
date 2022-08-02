@@ -177,6 +177,7 @@ public class TraceJdbcReader implements ITraceReader {
         return dslContext.select(Tables.BITHON_TRACE_MAPPING.TRACE_ID)
                          .from(Tables.BITHON_TRACE_MAPPING)
                          .where(Tables.BITHON_TRACE_MAPPING.USER_TX_ID.eq(id))
+                         .orderBy(Tables.BITHON_TRACE_MAPPING.TIMESTAMP.desc())
                          .limit(1)
                          .fetchOne(Tables.BITHON_TRACE_MAPPING.TRACE_ID);
     }

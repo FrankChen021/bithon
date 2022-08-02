@@ -39,20 +39,17 @@ public class Indexes {
     public static final Index BITHON_META_APPLICATION_METRIC_MAP_IDX_META_APPLICATION_METRIC_MAP_TIMESTAMP = Indexes0.BITHON_META_APPLICATION_METRIC_MAP_IDX_META_APPLICATION_METRIC_MAP_TIMESTAMP;
     public static final Index BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME = Indexes0.BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME;
     public static final Index BITHON_META_SCHEMA_IDX_META_SCHEMA_TIMESTAMP = Indexes0.BITHON_META_SCHEMA_IDX_META_SCHEMA_TIMESTAMP;
-    public static final Index BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_ID = Indexes0.BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_ID;
-    public static final Index BITHON_TRACE_SPAN_IDX_APP_NAME = Indexes0.BITHON_TRACE_SPAN_IDX_APP_NAME;
-    public static final Index BITHON_TRACE_SPAN_IDX_INSTANCENAME = Indexes0.BITHON_TRACE_SPAN_IDX_INSTANCENAME;
-    public static final Index BITHON_TRACE_SPAN_IDX_KEY = Indexes0.BITHON_TRACE_SPAN_IDX_KEY;
-    public static final Index BITHON_TRACE_SPAN_IDX_PARENTSPANID = Indexes0.BITHON_TRACE_SPAN_IDX_PARENTSPANID;
-    public static final Index BITHON_TRACE_SPAN_IDX_START_TIME = Indexes0.BITHON_TRACE_SPAN_IDX_START_TIME;
-    public static final Index BITHON_TRACE_SPAN_IDX_TIMESTAMP = Indexes0.BITHON_TRACE_SPAN_IDX_TIMESTAMP;
+    public static final Index BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_USER_TX_ID = Indexes0.BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_USER_TX_ID;
+    public static final Index BITHON_TRACE_SPAN_IDX_TS_APP_NAME = Indexes0.BITHON_TRACE_SPAN_IDX_TS_APP_NAME;
+    public static final Index BITHON_TRACE_SPAN_IDX_TS_INSTANCENAME = Indexes0.BITHON_TRACE_SPAN_IDX_TS_INSTANCENAME;
+    public static final Index BITHON_TRACE_SPAN_IDX_TS_KEY = Indexes0.BITHON_TRACE_SPAN_IDX_TS_KEY;
+    public static final Index BITHON_TRACE_SPAN_IDX_TS_START_TIME = Indexes0.BITHON_TRACE_SPAN_IDX_TS_START_TIME;
     public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_APP_NAME = Indexes0.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_APP_NAME;
     public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_INSTANCENAME = Indexes0.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_INSTANCENAME;
     public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_KEY = Indexes0.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_KEY;
-    public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_PARENTSPANID = Indexes0.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_PARENTSPANID;
     public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME = Indexes0.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME;
     public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP = Indexes0.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP;
-    public static final Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST__TIMESTAMP = Indexes0.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST__TIMESTAMP;
+    public static final Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TSTI_TIMESTAMP = Indexes0.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TSTI_TIMESTAMP;
 
     // -------------------------------------------------------------------------
     // [#1459] distribute members to avoid static initialisers > 64kb
@@ -70,19 +67,16 @@ public class Indexes {
         public static Index BITHON_META_APPLICATION_METRIC_MAP_IDX_META_APPLICATION_METRIC_MAP_TIMESTAMP = Internal.createIndex("idx_meta_application_metric_map_timestamp", BithonMetaApplicationMetricMap.BITHON_META_APPLICATION_METRIC_MAP, new OrderField[] { BithonMetaApplicationMetricMap.BITHON_META_APPLICATION_METRIC_MAP.TIMESTAMP }, false);
         public static Index BITHON_META_SCHEMA_IDX_META_SCHEMA_NAME = Internal.createIndex("idx_meta_schema_name", BithonMetaSchema.BITHON_META_SCHEMA, new OrderField[] { BithonMetaSchema.BITHON_META_SCHEMA.NAME }, true);
         public static Index BITHON_META_SCHEMA_IDX_META_SCHEMA_TIMESTAMP = Internal.createIndex("idx_meta_schema_timestamp", BithonMetaSchema.BITHON_META_SCHEMA, new OrderField[] { BithonMetaSchema.BITHON_META_SCHEMA.TIMESTAMP }, false);
-        public static Index BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_ID = Internal.createIndex("idx_trace_mapping_id", BithonTraceMapping.BITHON_TRACE_MAPPING, new OrderField[] { BithonTraceMapping.BITHON_TRACE_MAPPING.USER_TX_ID, BithonTraceMapping.BITHON_TRACE_MAPPING.TRACE_ID }, true);
-        public static Index BITHON_TRACE_SPAN_IDX_APP_NAME = Internal.createIndex("idx_app_name", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.APPNAME }, false);
-        public static Index BITHON_TRACE_SPAN_IDX_INSTANCENAME = Internal.createIndex("idx_instanceName", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.INSTANCENAME }, false);
-        public static Index BITHON_TRACE_SPAN_IDX_KEY = Internal.createIndex("idx_key", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.TRACEID, BithonTraceSpan.BITHON_TRACE_SPAN.SPANID }, true);
-        public static Index BITHON_TRACE_SPAN_IDX_PARENTSPANID = Internal.createIndex("idx_parentSpanId", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.PARENTSPANID }, false);
-        public static Index BITHON_TRACE_SPAN_IDX_START_TIME = Internal.createIndex("idx_start_time", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.STARTTIMEUS }, false);
-        public static Index BITHON_TRACE_SPAN_IDX_TIMESTAMP = Internal.createIndex("idx_timestamp", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.TIMESTAMP }, false);
+        public static Index BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_USER_TX_ID = Internal.createIndex("idx_trace_mapping_user_tx_id", BithonTraceMapping.BITHON_TRACE_MAPPING, new OrderField[] { BithonTraceMapping.BITHON_TRACE_MAPPING.USER_TX_ID }, false);
+        public static Index BITHON_TRACE_SPAN_IDX_TS_APP_NAME = Internal.createIndex("idx_ts_app_name", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.APPNAME }, false);
+        public static Index BITHON_TRACE_SPAN_IDX_TS_INSTANCENAME = Internal.createIndex("idx_ts_instanceName", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.INSTANCENAME }, false);
+        public static Index BITHON_TRACE_SPAN_IDX_TS_KEY = Internal.createIndex("idx_ts_key", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.TRACEID }, false);
+        public static Index BITHON_TRACE_SPAN_IDX_TS_START_TIME = Internal.createIndex("idx_ts_start_time", BithonTraceSpan.BITHON_TRACE_SPAN, new OrderField[] { BithonTraceSpan.BITHON_TRACE_SPAN.STARTTIMEUS }, false);
         public static Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_APP_NAME = Internal.createIndex("idx_tss_app_name", BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.APPNAME }, false);
         public static Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_INSTANCENAME = Internal.createIndex("idx_tss_instanceName", BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.INSTANCENAME }, false);
-        public static Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_KEY = Internal.createIndex("idx_tss_key", BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.TRACEID, BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.SPANID }, true);
-        public static Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_PARENTSPANID = Internal.createIndex("idx_tss_parentSpanId", BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.PARENTSPANID }, false);
+        public static Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_KEY = Internal.createIndex("idx_tss_key", BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.TRACEID }, false);
         public static Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME = Internal.createIndex("idx_tss_start_time", BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS }, false);
         public static Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP = Internal.createIndex("idx_tss_timestamp", BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP }, false);
-        public static Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TST__TIMESTAMP = Internal.createIndex("idx_tst__timestamp", BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX, new OrderField[] { BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP }, false);
+        public static Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TSTI_TIMESTAMP = Internal.createIndex("idx_tsti_timestamp", BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX, new OrderField[] { BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP }, false);
     }
 }

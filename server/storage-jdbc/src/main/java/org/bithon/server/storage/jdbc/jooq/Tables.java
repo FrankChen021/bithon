@@ -22,12 +22,12 @@ import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanTagIndex;
 public class Tables {
 
     /**
-     * 配置
+     * The table <code>bithon_agent_setting</code>.
      */
     public static final BithonAgentSetting BITHON_AGENT_SETTING = BithonAgentSetting.BITHON_AGENT_SETTING;
 
     /**
-     * 应用
+     * The table <code>bithon_application_instance</code>.
      */
     public static final BithonApplicationInstance BITHON_APPLICATION_INSTANCE = BithonApplicationInstance.BITHON_APPLICATION_INSTANCE;
 
