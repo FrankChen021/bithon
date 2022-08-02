@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.bithon.server.storage.jdbc.jooq.DefaultSchema;
 import org.bithon.server.storage.jdbc.jooq.Indexes;
-import org.bithon.server.storage.jdbc.jooq.Keys;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -21,7 +20,6 @@ import org.jooq.Row16;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
@@ -32,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
-    private static final long serialVersionUID = 51326446;
+    private static final long serialVersionUID = -646110691;
 
     /**
      * The reference instance of <code>bithon_trace_span</code>
@@ -98,9 +96,9 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
     public final TableField<BithonTraceSpanRecord, String> KIND = createField(DSL.name("kind"), org.jooq.impl.SQLDataType.VARCHAR(64).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
-     * The column <code>bithon_trace_span.costTimeMs</code>. Milli Second
+     * The column <code>bithon_trace_span.costTimeMs</code>. Micro Second, suffix is wrong
      */
-    public final TableField<BithonTraceSpanRecord, Long> COSTTIMEMS = createField(DSL.name("costTimeMs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BIGINT)), this, "Milli Second");
+    public final TableField<BithonTraceSpanRecord, Long> COSTTIMEMS = createField(DSL.name("costTimeMs"), org.jooq.impl.SQLDataType.BIGINT.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.BIGINT)), this, "Micro Second, suffix is wrong");
 
     /**
      * The column <code>bithon_trace_span.startTimeUs</code>. Micro Second
@@ -167,12 +165,7 @@ public class BithonTraceSpan extends TableImpl<BithonTraceSpanRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_APP_NAME, Indexes.BITHON_TRACE_SPAN_IDX_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_KEY, Indexes.BITHON_TRACE_SPAN_IDX_PARENTSPANID, Indexes.BITHON_TRACE_SPAN_IDX_START_TIME, Indexes.BITHON_TRACE_SPAN_IDX_TIMESTAMP);
-    }
-
-    @Override
-    public List<UniqueKey<BithonTraceSpanRecord>> getKeys() {
-        return Arrays.<UniqueKey<BithonTraceSpanRecord>>asList(Keys.KEY_BITHON_TRACE_SPAN_IDX_KEY);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_IDX_TS_APP_NAME, Indexes.BITHON_TRACE_SPAN_IDX_TS_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_IDX_TS_KEY, Indexes.BITHON_TRACE_SPAN_IDX_TS_START_TIME);
     }
 
     @Override

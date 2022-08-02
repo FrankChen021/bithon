@@ -19,7 +19,7 @@ import org.jooq.impl.TableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord> implements Record16<Timestamp, String, String, String, String, String, String, String, String, String, Long, Long, Long, String, String, String> {
 
-    private static final long serialVersionUID = -593839119;
+    private static final long serialVersionUID = -263109909;
 
     /**
      * Setter for <code>bithon_trace_span.timestamp</code>. Milli Seconds
@@ -162,14 +162,14 @@ public class BithonTraceSpanRecord extends TableRecordImpl<BithonTraceSpanRecord
     }
 
     /**
-     * Setter for <code>bithon_trace_span.costTimeMs</code>. Milli Second
+     * Setter for <code>bithon_trace_span.costTimeMs</code>. Micro Second, suffix is wrong
      */
     public void setCosttimems(Long value) {
         set(10, value);
     }
 
     /**
-     * Getter for <code>bithon_trace_span.costTimeMs</code>. Milli Second
+     * Getter for <code>bithon_trace_span.costTimeMs</code>. Micro Second, suffix is wrong
      */
     public Long getCosttimems() {
         return (Long) get(10);

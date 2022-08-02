@@ -71,7 +71,7 @@ public class TraceStorage extends TraceJdbcStorage {
         TableCreator tableCreator = new TableCreator(config, dslContext);
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN, config.getTtlDays());
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN_SUMMARY, config.getTtlDays());
-        tableCreator.createIfNotExist(Tables.BITHON_TRACE_MAPPING, config.getTtlDays(), true, true);
+        tableCreator.createIfNotExist(Tables.BITHON_TRACE_MAPPING, config.getTtlDays());
         tableCreator.createIfNotExist(Tables.BITHON_TRACE_SPAN_TAG_INDEX, config.getTtlDays());
     }
 

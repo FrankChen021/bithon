@@ -17,9 +17,6 @@
 CREATE DATABASE IF NOT EXISTS `bithon_codegen` DEFAULT CHARSET utf8mb4;
 USE `bithon_codegen`;
 
--- 应用
-DROP TABLE IF EXISTS `bithon_application`;
-
 DROP TABLE IF EXISTS `bithon_application_instance`;
 CREATE TABLE `bithon_application_instance`
 (
@@ -30,7 +27,7 @@ CREATE TABLE `bithon_application_instance`
     KEY `idx_app_instance_timestamp` (`timestamp`), # Use a unique index name because some db like H2 rejects duplicated name
     KEY `idx_app_instance_name` (`appName`)
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='应用';
+  DEFAULT CHARSET = utf8mb4;
 
 -- mapping between application and metric
 DROP TABLE IF EXISTS `bithon_meta_application_metric_map`;
@@ -61,13 +58,13 @@ DROP TABLE IF EXISTS `bithon_agent_setting`;
 CREATE TABLE `bithon_agent_setting`
 (
     `timestamp`   TIMESTAMP    NOT NULL COMMENT 'Created Timestamp',
-    `appName`     varchar(128) NOT NULL DEFAULT '' COMMENT '名称',
-    `settingName` varchar(64)  NOT NULL DEFAULT '' COMMENT '配置名称',
+    `appName`     varchar(128) NOT NULL DEFAULT '' COMMENT '',
+    `settingName` varchar(64)  NOT NULL DEFAULT '' COMMENT '',
     `setting`      TEXT COMMENT '设置',
-    `updatedAt`   datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `updatedAt`   datetime     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     UNIQUE KEY `key_appName` (`appName`, `settingName`)
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='配置';
+  DEFAULT CHARSET = utf8mb4;
 
 DROP TABLE IF EXISTS `bithon_trace_span`;
 CREATE TABLE `bithon_trace_span`
@@ -88,12 +85,10 @@ CREATE TABLE `bithon_trace_span`
     `tags`          TEXT COMMENT '',
     `normalizedUrl` VARCHAR(255) DEFAULT '' NOT NULL COMMENT '',
     `status`        VARCHAR(32)  DEFAULT '' NOT NULL COMMENT '',
-    KEY `idx_timestamp` (`timestamp`),
-    KEY `idx_app_name` (`appName`),
-    KEY `idx_instanceName` (`instanceName`),
-    UNIQUE `idx_key` (`traceId`, `spanId`),
-    KEY `idx_parentSpanId` (`parentSpanId`),
-    KEY `idx_start_time` (`startTimeUs`)
+    KEY `idx_ts_app_name` (`appName`),
+    KEY `idx_ts_instanceName` (`instanceName`),
+    KEY `idx_ts_key` (`traceId`), -- must be before idx_start_time
+    KEY `idx_ts_start_time` (`startTimeUs`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -120,8 +115,7 @@ CREATE TABLE `bithon_trace_span_summary`
     KEY `idx_tss_timestamp` (`timestamp`),
     KEY `idx_tss_app_name` (`appName`),
     KEY `idx_tss_instanceName` (`instanceName`),
-    UNIQUE `idx_tss_key` (`traceId`, `spanId`),
-    KEY `idx_tss_parentSpanId` (`parentSpanId`),
+    KEY `idx_tss_key` (`traceId`), --  must be before start_time
     KEY `idx_tss_start_time` (`startTimeUs`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -148,7 +142,7 @@ CREATE TABLE `bithon_trace_span_tag_index`
     `f15`            VARCHAR(64) COMMENT 'tag value15',
     `f16`            VARCHAR(64) COMMENT 'tag value16',
     `traceId`        VARCHAR(64) DEFAULT '' NOT NULL COMMENT '',
-    KEY `idx_tst__timestamp` (`timestamp`) COMMENT 'index name starts with underscore so that in the generated code, it is the first'
+    KEY `idx_tsti_timestamp` (`timestamp`) COMMENT 'index name starts with underscore so that in the generated code, it is the first'
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -158,7 +152,7 @@ CREATE TABLE `bithon_trace_mapping`
     `timestamp`     TIMESTAMP             NOT NULL COMMENT 'Milli Seconds',
     `user_tx_id`    VARCHAR(64)           NOT NULL COMMENT 'user side transaction id',
     `trace_id`      VARCHAR(64)           NOT NULL COMMENT 'trace id in bithon',
-    UNIQUE `idx_trace_mapping_id` (`user_tx_id`, `trace_id`)
+    KEY `idx_trace_mapping_user_tx_id` (`user_tx_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 

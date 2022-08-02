@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.bithon.server.storage.jdbc.jooq.DefaultSchema;
 import org.bithon.server.storage.jdbc.jooq.Indexes;
-import org.bithon.server.storage.jdbc.jooq.Keys;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceSpanSummaryRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -21,7 +20,6 @@ import org.jooq.Row16;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
@@ -32,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryRecord> {
 
-    private static final long serialVersionUID = -160925627;
+    private static final long serialVersionUID = -113886150;
 
     /**
      * The reference instance of <code>bithon_trace_span_summary</code>
@@ -167,12 +165,7 @@ public class BithonTraceSpanSummary extends TableImpl<BithonTraceSpanSummaryReco
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_APP_NAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_KEY, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_PARENTSPANID, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP);
-    }
-
-    @Override
-    public List<UniqueKey<BithonTraceSpanSummaryRecord>> getKeys() {
-        return Arrays.<UniqueKey<BithonTraceSpanSummaryRecord>>asList(Keys.KEY_BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_KEY);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_APP_NAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_INSTANCENAME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_KEY, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME, Indexes.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP);
     }
 
     @Override

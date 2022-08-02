@@ -28,7 +28,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = -23851684;
+    private static final long serialVersionUID = 31768137;
 
     /**
      * The reference instance of <code></code>
@@ -36,12 +36,12 @@ public class DefaultSchema extends SchemaImpl {
     public static final DefaultSchema DEFAULT_SCHEMA = new DefaultSchema();
 
     /**
-     * 配置
+     * The table <code>bithon_agent_setting</code>.
      */
     public final BithonAgentSetting BITHON_AGENT_SETTING = org.bithon.server.storage.jdbc.jooq.tables.BithonAgentSetting.BITHON_AGENT_SETTING;
 
     /**
-     * 应用
+     * The table <code>bithon_application_instance</code>.
      */
     public final BithonApplicationInstance BITHON_APPLICATION_INSTANCE = org.bithon.server.storage.jdbc.jooq.tables.BithonApplicationInstance.BITHON_APPLICATION_INSTANCE;
 

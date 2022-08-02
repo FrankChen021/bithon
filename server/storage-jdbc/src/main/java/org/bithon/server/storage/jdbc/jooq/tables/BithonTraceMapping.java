@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.bithon.server.storage.jdbc.jooq.DefaultSchema;
 import org.bithon.server.storage.jdbc.jooq.Indexes;
-import org.bithon.server.storage.jdbc.jooq.Keys;
 import org.bithon.server.storage.jdbc.jooq.tables.records.BithonTraceMappingRecord;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -21,7 +20,6 @@ import org.jooq.Row3;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
-import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
@@ -32,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class BithonTraceMapping extends TableImpl<BithonTraceMappingRecord> {
 
-    private static final long serialVersionUID = -1089226973;
+    private static final long serialVersionUID = -1639692347;
 
     /**
      * The reference instance of <code>bithon_trace_mapping</code>
@@ -102,12 +100,7 @@ public class BithonTraceMapping extends TableImpl<BithonTraceMappingRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_ID);
-    }
-
-    @Override
-    public List<UniqueKey<BithonTraceMappingRecord>> getKeys() {
-        return Arrays.<UniqueKey<BithonTraceMappingRecord>>asList(Keys.KEY_BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_ID);
+        return Arrays.<Index>asList(Indexes.BITHON_TRACE_MAPPING_IDX_TRACE_MAPPING_USER_TX_ID);
     }
 
     @Override
