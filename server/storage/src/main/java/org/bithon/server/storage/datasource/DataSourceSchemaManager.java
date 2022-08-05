@@ -78,6 +78,10 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
         return false;
     }
 
+    public boolean containsSchema(String name) {
+        return schemaStorage.containsSchema(name);
+    }
+
     public void rmvDataSourceSchema(DataSourceSchema schema) {
         schemas.remove(schema.getName());
         for (IDataSourceSchemaListener listener : listeners) {

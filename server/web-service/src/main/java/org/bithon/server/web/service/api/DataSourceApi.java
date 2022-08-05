@@ -20,6 +20,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.TTLConfig;
+import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
@@ -140,6 +141,10 @@ public class DataSourceApi {
 
     @PostMapping("/api/datasource/schema/create")
     public void createSchema(@RequestBody DataSourceSchema schema) {
+        if (schemaManager.containsSchema(schema.getName())) {
+            throw new DataSourceExistException(schema.getName());
+        }
+
         // TODO:
         // use writer to initialize the underlying storage
         // in the future, the initialization should be extracted out of the writer
@@ -148,7 +153,7 @@ public class DataSourceApi {
             throw new RuntimeException(e);
         }
 
-        schemaManager.updateDataSourceSchema(schema);
+        schemaManager.addDataSourceSchema(schema);
 
         if (schema.getInputSourceSpec() != null) {
             schema.getInputSourceSpec().start(schema);

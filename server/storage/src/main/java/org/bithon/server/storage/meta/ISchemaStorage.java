@@ -34,6 +34,8 @@ public interface ISchemaStorage {
      */
     List<DataSourceSchema> getSchemas(long afterTimestamp);
 
+    boolean containsSchema(String name);
+
     /**
      * get all schemas
      */
