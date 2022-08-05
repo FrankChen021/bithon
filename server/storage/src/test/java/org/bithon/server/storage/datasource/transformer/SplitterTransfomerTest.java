@@ -53,4 +53,15 @@ public class SplitterTransfomerTest {
         Assert.assertNull(row2.getCol("database"));
         Assert.assertNull(row2.getCol("table"));
     }
+
+    @Test
+    public void splitOnNestedObject() {
+        SplitterTransformer transformer = new SplitterTransformer("tags.iterator", "/", "current", "max");
+
+        InputRow row1 = new InputRow(new HashMap<>());
+        row1.updateColumn("tags", ImmutableMap.of("iterator", "1/5"));
+        transformer.transform(row1);
+        Assert.assertEquals("1", row1.getCol("current"));
+        Assert.assertEquals("5", row1.getCol("max"));
+    }
 }

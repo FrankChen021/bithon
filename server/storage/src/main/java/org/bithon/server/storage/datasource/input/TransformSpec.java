@@ -50,19 +50,19 @@ public class TransformSpec {
     private final List<ITransformer> transformers;
 
     @Getter
-    private final List<IInputRowFilter> postfilters;
+    private final IInputRowFilter postfilter;
 
     @JsonCreator
     public TransformSpec(@JsonProperty("granularity") @Nullable Period granularity,
                          @JsonProperty("prefilters") List<IInputRowFilter> prefilters,
                          @JsonProperty("flatteners") List<IFlattener> flatteners,
                          @JsonProperty("transformers") List<ITransformer> transformers,
-                         @JsonProperty("postfilters") List<IInputRowFilter> postfilters) {
+                         @JsonProperty("postfilter") IInputRowFilter postfilter) {
         this.graunularity = granularity;
         this.flatteners = flatteners;
         this.prefilters = prefilters;
         this.transformers = transformers;
-        this.postfilters = postfilters;
+        this.postfilter = postfilter;
     }
 
     /**
@@ -86,11 +86,9 @@ public class TransformSpec {
                 transformer.transform(inputRow);
             }
         }
-        if (postfilters != null) {
-            for (IInputRowFilter filter : postfilters) {
-                if (!filter.shouldInclude(inputRow)) {
-                    return false;
-                }
+        if (postfilter != null) {
+            if (!postfilter.shouldInclude(inputRow)) {
+                return false;
             }
         }
         return true;

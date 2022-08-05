@@ -59,4 +59,33 @@ public class HasFieldTransformerTest {
             Assert.assertEquals(0, row2.getCol("r1"));
         }
     }
+
+    @Test
+    public void testHasFieldOnNestedObject() throws JsonProcessingException {
+        HasFieldTransformer transformer = new HasFieldTransformer("tags.exception",
+                                                                  "r1",
+                                                                  1,
+                                                                  0);
+
+        // serialization and deserialization
+        ObjectMapper om = new ObjectMapper();
+        String json = om.writeValueAsString(transformer);
+        ITransformer newTransformer = om.readValue(json, ITransformer.class);
+
+        // input row has such field
+        {
+            InputRow row1 = new InputRow(new HashMap<>());
+            row1.updateColumn("tags", ImmutableMap.of("exception", "1"));
+            newTransformer.transform(row1);
+            Assert.assertEquals(1, row1.getCol("r1"));
+        }
+
+        // input row does not have such field
+        {
+            InputRow row2 = new InputRow(new HashMap<>());
+            row2.updateColumn("tags", ImmutableMap.of("e", 2));
+            newTransformer.transform(row2);
+            Assert.assertEquals(0, row2.getCol("r1"));
+        }
+    }
 }
