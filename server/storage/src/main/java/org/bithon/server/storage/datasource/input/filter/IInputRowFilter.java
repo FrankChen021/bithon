@@ -28,7 +28,9 @@ import org.bithon.server.storage.datasource.input.IInputRow;
     @JsonSubTypes.Type(name = "endsWith", value = EndsWithFilter.class),
     @JsonSubTypes.Type(name = "==", value = EqualFilter.class),
     @JsonSubTypes.Type(name = ">", value = GreaterThanFilter.class),
-    @JsonSubTypes.Type(name = "or", value = OrFilter.class)
+    @JsonSubTypes.Type(name = "or", value = OrFilter.class),
+    @JsonSubTypes.Type(name = "and", value = AndFilter.class),
+    @JsonSubTypes.Type(name = "expression", value = ExpressionFilter.class),
 })
 public interface IInputRowFilter {
 
