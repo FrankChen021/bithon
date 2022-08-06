@@ -92,4 +92,6 @@ public interface ISqlExpressionFormatter {
     default String orderByTimestamp(String timestampField) {
         return "";
     }
+
+    String stringAggregator(String dimension, String name);
 }

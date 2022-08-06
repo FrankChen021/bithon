@@ -25,8 +25,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
-    @JsonSubTypes.Type(name = CardinalityAggregator.TYPE, value = CardinalityAggregator.class)
+    @JsonSubTypes.Type(name = CardinalityAggregator.TYPE, value = CardinalityAggregator.class),
+    @JsonSubTypes.Type(name = ConcatStringAggregator.TYPE, value = ConcatStringAggregator.class),
+    @JsonSubTypes.Type(name = MinAggregator.TYPE, value = MinAggregator.class)
 })
-public interface IQuerableAggregator {
-    <T> T accept(IQuerableAggregatorVisitor<T> visitor);
+public interface IQueryableAggregator {
+    <T> T accept(IQueryableAggregatorVisitor<T> visitor);
 }

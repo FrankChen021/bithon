@@ -18,33 +18,29 @@ package org.bithon.server.storage.datasource.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import org.bithon.component.commons.utils.Preconditions;
 
 import javax.validation.constraints.NotNull;
 
 /**
- * count(distinct )
- *
  * @author Frank Chen
- * @date 1/11/21 2:37 pm
+ * @date 5/8/22 4:59 PM
  */
-public class CardinalityAggregator implements IQueryableAggregator {
-    public static final String TYPE = "cardinality";
+public class MinAggregator implements IQueryableAggregator {
+
+    public static final String TYPE = "min";
+    @Getter
     private final String name;
-    private final String dimension;
+
+    @Getter
+    private final String field;
 
     @JsonCreator
-    public CardinalityAggregator(@JsonProperty("name") @NotNull String name,
-                                 @JsonProperty("dimension") @NotNull String dimension) {
-        this.name = name;
-        this.dimension = dimension;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDimension() {
-        return dimension;
+    public MinAggregator(@JsonProperty("name") @NotNull String name,
+                         @JsonProperty("field") @NotNull String field) {
+        this.name = Preconditions.checkArgumentNotNull("name", name);
+        this.field = Preconditions.checkArgumentNotNull("field", field);
     }
 
     @Override

@@ -20,6 +20,11 @@ package org.bithon.server.storage.datasource.api;
  * @author Frank Chen
  * @date 1/11/21 3:12 pm
  */
-public interface IQuerableAggregatorVisitor<T> {
+public interface IQueryableAggregatorVisitor<T> {
+
     T visit(CardinalityAggregator aggregator);
+
+    T visit(ConcatStringAggregator aggregator);
+
+    T visit(MinAggregator aggregator);
 }

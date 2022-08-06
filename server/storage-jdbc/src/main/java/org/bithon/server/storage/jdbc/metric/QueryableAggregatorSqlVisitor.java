@@ -18,16 +18,34 @@ package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.api.CardinalityAggregator;
-import org.bithon.server.storage.datasource.api.IQuerableAggregatorVisitor;
+import org.bithon.server.storage.datasource.api.ConcatStringAggregator;
+import org.bithon.server.storage.datasource.api.IQueryableAggregatorVisitor;
+import org.bithon.server.storage.datasource.api.MinAggregator;
 
 /**
  * @author Frank Chen
  * @date 1/11/21 3:11 pm
  */
-public class QuerableAggregatorSqlVisitor implements IQuerableAggregatorVisitor<String> {
+public class QueryableAggregatorSqlVisitor implements IQueryableAggregatorVisitor<String> {
+
+    private final ISqlExpressionFormatter expressionFormatter;
+
+    public QueryableAggregatorSqlVisitor(ISqlExpressionFormatter expressionFormatter) {
+        this.expressionFormatter = expressionFormatter;
+    }
 
     @Override
     public String visit(CardinalityAggregator aggregator) {
         return StringUtils.format("count(DISTINCT \"%s\") AS \"%s\"", aggregator.getDimension(), aggregator.getName());
+    }
+
+    @Override
+    public String visit(ConcatStringAggregator aggregator) {
+        return expressionFormatter.stringAggregator(aggregator.getDimension(), aggregator.getName());
+    }
+
+    @Override
+    public String visit(MinAggregator aggregator) {
+        return StringUtils.format("min(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
     }
 }
