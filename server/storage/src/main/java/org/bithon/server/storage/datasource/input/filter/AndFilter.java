@@ -23,25 +23,25 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 import java.util.List;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/19
+ * @author Frank Chen
+ * @date 4/8/22 3:31 PM
  */
-public class OrFilter implements IInputRowFilter {
+public class AndFilter implements IInputRowFilter {
 
     @Getter
     private final List<IInputRowFilter> filters;
 
-    public OrFilter(@JsonProperty("filters") List<IInputRowFilter> filters) {
+    public AndFilter(@JsonProperty("filters") List<IInputRowFilter> filters) {
         this.filters = filters;
     }
 
     @Override
     public boolean shouldInclude(IInputRow inputRow) {
         for (IInputRowFilter filter : this.filters) {
-            if (filter.shouldInclude(inputRow)) {
-                return true;
+            if (!filter.shouldInclude(inputRow)) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 }

@@ -40,7 +40,7 @@ public class TransformSpecTest {
                                                    .prefilters(Collections.singletonList(new EqualFilter("appName", "bithon-server")))
                                                    .flatteners(Collections.singletonList(new TreePathFlattener("database", "tags.view")))
                                                    //.transformers()
-                                                   .postfilters(Collections.singletonList(new EqualFilter("database", "jvm-metrics")))
+                                                   .postfilter(new EqualFilter("database", "jvm-metrics"))
                                                    .build();
 
         IInputRow row = new InputRow(new HashMap<>(ImmutableMap.of(

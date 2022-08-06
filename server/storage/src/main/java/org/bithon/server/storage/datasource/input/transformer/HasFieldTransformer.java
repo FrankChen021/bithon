@@ -19,7 +19,11 @@ package org.bithon.server.storage.datasource.input.transformer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.input.IInputRow;
+
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author Frank Chen
@@ -39,20 +43,37 @@ public class HasFieldTransformer implements ITransformer {
     @Getter
     private final Object falseValue;
 
+    private final Function<IInputRow, Object> valueExtractor;
+
     @JsonCreator
     public HasFieldTransformer(@JsonProperty("testField") String testField,
                                @JsonProperty("resultField") String resultField,
                                @JsonProperty("trueValue") Object trueValue,
                                @JsonProperty("falseValue") Object falseValue) {
-        this.testField = testField;
-        this.resultField = resultField;
+        this.testField = Preconditions.checkArgumentNotNull("testField", testField);
+        this.resultField = Preconditions.checkArgumentNotNull("resultField", resultField);
         this.trueValue = trueValue;
         this.falseValue = falseValue;
+
+        int dotSeparatorIndex = this.testField.indexOf('.');
+        if (dotSeparatorIndex >= 0) {
+            final String container = this.testField.substring(0, dotSeparatorIndex);
+            final String nested = this.testField.substring(dotSeparatorIndex + 1);
+            valueExtractor = inputRow -> {
+                Object v = inputRow.getCol(container);
+                if (v instanceof Map) {
+                    return ((Map<?, ?>) v).get(nested);
+                }
+                return null;
+            };
+        } else {
+            valueExtractor = inputRow -> inputRow.getCol(this.testField);
+        }
     }
 
     @Override
     public void transform(IInputRow inputRow) {
-        Object v = inputRow.getCol(testField) != null ? trueValue : falseValue;
+        Object v = valueExtractor.apply(inputRow) != null ? trueValue : falseValue;
         inputRow.updateColumn(resultField, v);
     }
 }

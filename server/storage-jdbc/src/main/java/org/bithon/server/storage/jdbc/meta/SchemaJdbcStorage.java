@@ -79,6 +79,16 @@ public class SchemaJdbcStorage implements ISchemaStorage {
     }
 
     @Override
+    public boolean containsSchema(String name) {
+        // fetchExists API generates SQL as
+        // select 1 "one" where exists ( select ... from ... where name = '')
+        // such SQL is not supported by ClickHouse
+        return dslContext.fetchCount(dslContext.select(Tables.BITHON_META_SCHEMA.NAME)
+                                               .from(Tables.BITHON_META_SCHEMA)
+                                               .where(Tables.BITHON_META_SCHEMA.NAME.eq(name))) > 0;
+    }
+
+    @Override
     public List<DataSourceSchema> getSchemas() {
         return dslContext.selectFrom(Tables.BITHON_META_SCHEMA)
                          .fetch((record) -> toSchema(record.getName(), record.getSchema(), record.getSignature()))

@@ -24,12 +24,14 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Frank Chen
- * @date 11/4/22 11:52 PM
+ * @date 5/8/22 11:43 AM
  */
-public class SplitterTransformer implements ITransformer {
+public class RegExprTransformer implements ITransformer {
 
     /**
      * source field
@@ -38,18 +40,22 @@ public class SplitterTransformer implements ITransformer {
     private final String field;
 
     @Getter
-    private final String splitter;
+    private final String regexpr;
 
     @Getter
     private final String[] names;
 
+    private final Pattern pattern;
     private final Function<IInputRow, String> valueExtractor;
 
     @JsonCreator
-    public SplitterTransformer(@JsonProperty("field") String field,
-                               @JsonProperty("splitter") String splitter,
-                               @JsonProperty("names") String... names) {
+    public RegExprTransformer(@JsonProperty("field") String field,
+                              @JsonProperty("regexpr") String regexpr,
+                              @JsonProperty("names") String... names) {
+
         this.field = Preconditions.checkArgumentNotNull("field", field);
+        this.regexpr = Preconditions.checkArgumentNotNull("regexpr", regexpr);
+        this.names = names;
 
         int dotSeparatorIndex = this.field.indexOf('.');
         if (dotSeparatorIndex >= 0) {
@@ -67,17 +73,18 @@ public class SplitterTransformer implements ITransformer {
             valueExtractor = inputRow -> inputRow.getColAsString(field);
         }
 
-        this.names = names;
-        this.splitter = Preconditions.checkArgumentNotNull("splitter", splitter);
+        this.pattern = Pattern.compile(regexpr);
     }
 
     @Override
-    public void transform(IInputRow row) {
-        String val = valueExtractor.apply(row);
+    public void transform(IInputRow inputRow) {
+        String val = valueExtractor.apply(inputRow);
         if (val != null) {
-            String[] values = val.split(splitter);
-            for (int i = 0, len = Math.min(names.length, values.length); i < len; i++) {
-                row.updateColumn(names[i], values[i]);
+            Matcher matcher = this.pattern.matcher(val);
+            if (matcher.find() && matcher.groupCount() == names.length) {
+                for (int i = 0; i < names.length; i++) {
+                    inputRow.updateColumn(names[i], matcher.group(i + 1));
+                }
             }
         }
     }

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
-import org.bithon.server.storage.datasource.input.transformer.SplitterTransformer;
+import org.bithon.server.storage.datasource.input.transformer.RegExprTransformer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,39 +29,36 @@ import java.util.HashMap;
 
 /**
  * @author Frank Chen
- * @date 12/4/22 12:06 AM
+ * @date 5/8/22 11:50 AM
  */
-public class SplitterTransfomerTest {
+public class RegExprTransformerTest {
 
     @Test
     public void test() throws JsonProcessingException {
-        SplitterTransformer transformer = new SplitterTransformer("o1", "\\.", "database", "table");
+        RegExprTransformer transformer = new RegExprTransformer("exception", "Code: ([0-9]+)", "exceptionCode");
 
         // deserialize from json to test deserialization
         ObjectMapper om = new ObjectMapper();
         String transformerText = om.writeValueAsString(transformer);
         ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
-        InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("o1", "default.user")));
+        InputRow row1 = new InputRow(new HashMap<>(ImmutableMap.of("exception", "Code: 60, e.displayText()")));
         newTransformer.transform(row1);
-        Assert.assertEquals("default", row1.getCol("database"));
-        Assert.assertEquals("user", row1.getCol("table"));
-
-        // field not match
-        InputRow row2 = new InputRow(new HashMap<>(ImmutableMap.of("o2", "default.user")));
-        newTransformer.transform(row2);
-        Assert.assertNull(row2.getCol("database"));
-        Assert.assertNull(row2.getCol("table"));
+        Assert.assertEquals("60", row1.getCol("exceptionCode"));
     }
 
     @Test
-    public void splitOnNestedObject() {
-        SplitterTransformer transformer = new SplitterTransformer("tags.iterator", "/", "current", "max");
+    public void testRegExprOnNested() throws JsonProcessingException {
+        RegExprTransformer transformer = new RegExprTransformer("tags.exception", "Code: ([0-9]+)", "exceptionCode");
+
+        // deserialize from json to test deserialization
+        ObjectMapper om = new ObjectMapper();
+        String transformerText = om.writeValueAsString(transformer);
+        ITransformer newTransformer = om.readValue(transformerText, ITransformer.class);
 
         InputRow row1 = new InputRow(new HashMap<>());
-        row1.updateColumn("tags", ImmutableMap.of("iterator", "1/5"));
-        transformer.transform(row1);
-        Assert.assertEquals("1", row1.getCol("current"));
-        Assert.assertEquals("5", row1.getCol("max"));
+        row1.updateColumn("tags", ImmutableMap.of("exception", "Code: 60, e.displayText()"));
+        newTransformer.transform(row1);
+        Assert.assertEquals("60", row1.getCol("exceptionCode"));
     }
 }

@@ -152,7 +152,7 @@ public abstract class AbstractMetricMessageHandler {
     private void processMeta(IInputRow metric) {
         Object appType = metric.getCol("appType");
         if (appType == null) {
-            log.warn("Saving meta for [{}] failed due to lack of appType", this.schema.getName());
+            log.warn("Saving meta for [{}] ignored due to lack of appType", this.schema.getName());
             return;
         }
 
