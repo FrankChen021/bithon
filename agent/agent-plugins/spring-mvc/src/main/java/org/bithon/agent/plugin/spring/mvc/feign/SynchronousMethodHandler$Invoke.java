@@ -14,10 +14,9 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.mvc;
+package org.bithon.agent.plugin.spring.mvc.feign;
 
 
-import feign.MethodMetadata;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
@@ -41,8 +40,8 @@ public class SynchronousMethodHandler$Invoke extends AbstractInterceptor {
         }
 
         IBithonObject methodHandler = aopContext.castTargetAs();
-        MethodMetadata metadata = (MethodMetadata) methodHandler.getInjectedObject();
-        if (metadata == null) {
+        FeignInvocationContext invocationContext = (FeignInvocationContext) methodHandler.getInjectedObject();
+        if (invocationContext == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
@@ -52,7 +51,8 @@ public class SynchronousMethodHandler$Invoke extends AbstractInterceptor {
         }
 
         aopContext.setUserContext(span.kind(SpanKind.CLIENT)
-                                      .method(metadata.method())
+                                      .method(invocationContext.methodMeta.method())
+                                      .tag("target", invocationContext.target.url())
                                       .start());
 
         return InterceptionDecision.CONTINUE;

@@ -14,12 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.spring.mvc;
+package org.bithon.agent.plugin.spring.mvc.feign;
 
+import feign.MethodMetadata;
+import feign.Request;
+import feign.RequestTemplate;
+import feign.Target;
+import feign.codec.Decoder;
+import feign.codec.ErrorDecoder;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 
+/**
+ * {@link feign.SynchronousMethodHandler.Factory#create(Target, MethodMetadata, RequestTemplate.Factory, Request.Options, Decoder, ErrorDecoder)}
+ */
 public class SynchronousMethodHandlerFactory$Create extends AbstractInterceptor {
 
     /**
@@ -37,7 +46,10 @@ public class SynchronousMethodHandlerFactory$Create extends AbstractInterceptor 
         Object methodHandler = aopContext.getReturning();
         if (methodHandler instanceof IBithonObject) {
             // arg1 is MethodMeta
-            ((IBithonObject) methodHandler).setInjectedObject(aopContext.getArgs()[1]);
+            ((IBithonObject) methodHandler).setInjectedObject(
+                new FeignInvocationContext((MethodMetadata) aopContext.getArgs()[1],
+                                           (Target<?>) aopContext.getArgs()[0])
+            );
         }
     }
 }
