@@ -36,6 +36,7 @@ import org.bithon.server.storage.datasource.aggregator.spec.InvalidExpressionExc
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.function.Function;
 
 /**
@@ -115,7 +116,7 @@ public class ExpressionFilter implements IInputRowFilter {
                 }
 
                 // case 2: expression logicOperator expression
-                String logicOperator = ctx.getChild(1).getText().toUpperCase();
+                String logicOperator = ctx.getChild(1).getText().toUpperCase(Locale.ENGLISH);
                 switch (logicOperator) {
                     case "OR":
                         return new OrFilter(
