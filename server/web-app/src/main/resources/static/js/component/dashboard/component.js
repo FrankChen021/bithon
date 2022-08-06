@@ -191,8 +191,9 @@ class Dashboard {
             }
         ];
 
+        const detailViewId = chartDescriptor.id + '_detailView';
         if (chartDescriptor.details.columns !== undefined) {
-            const r = this.#createColumns(chartDescriptor);
+            const r = this.#createDetailViewColumns(detailViewId, chartDescriptor);
             fields = r[0];
             columns = columns.concat(r[1]);
         } else {
@@ -201,8 +202,8 @@ class Dashboard {
             columns = columns.concat(r[1]);
         }
 
-        const pagable = chartDescriptor.details.groupBy === undefined || chartDescriptor.details.groupBy.length === 0;
-        const detailView = this.#createDetailView(chartDescriptor.id + '_detailView',
+        const pageable = chartDescriptor.details.groupBy === undefined || chartDescriptor.details.groupBy.length === 0;
+        const detailView = this.#createDetailView(detailViewId,
             chartComponent.getUIContainer(),
             columns,
             [{
@@ -211,7 +212,7 @@ class Dashboard {
                 visible: chartDescriptor.details.tracing !== undefined,
                 onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
             }],
-            pagable);
+            pageable);
         chartComponent.setSelectionHandler(
             (option, start, end) => {
                 this.#refreshDetailView(chartDescriptor, detailView, fields, option, start, end);
@@ -228,7 +229,7 @@ class Dashboard {
             });
     }
 
-    #createColumns(chartDescriptor) {
+    #createDetailViewColumns(detailViewId, chartDescriptor) {
         const tableFields = [];
         const tableColumns = []
 
@@ -280,6 +281,10 @@ class Dashboard {
                         console.log(`formatter ${column.formatter} is not a pre-defined one.`);
                     }
                 }
+            }
+
+            if (typeof column === 'object' && column.view !== undefined) {
+                tableColumn.format = column.view;
             }
 
             tableColumn.formatter = (val) => formatterFn(lookupFn(val));

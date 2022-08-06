@@ -1,0 +1,58 @@
+{
+  "title": "Quartz",
+  "charts": [
+    {
+      "dataSource": "quartz-metrics",
+      "title": "Status",
+      "width": 4,
+      "yAxis": [
+        {
+          "format": "compact_number"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "successfulCount",
+          "type": "line",
+          "fill": false
+        },
+        {
+          "name": "exceptionCount",
+          "type": "line",
+          "fill": false
+        }
+      ],
+
+      "details": {
+        "columns": [
+          {
+            "name": "timestamp",
+            "formatter": "shortDateTime",
+            "width": 150
+          },
+          {
+            "name": "job",
+            "width": 150
+          },
+          {
+            "name": "class",
+            "width": 300
+          },
+          {
+            "name": "exception",
+            "view": "dialog"
+          },
+          {
+            "name": "duration",
+            "formatter": "millisecond"
+          },
+          {
+            "name": "traceId",
+            "formatter": "template",
+            "template": "<a target='_blank' href='/web/trace/detail/?id={value}'><span class='fa fa-forward'></span></a>"
+          }
+        ]
+      }
+    }
+  ]
+}

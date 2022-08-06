@@ -14,29 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.context;
+package org.bithon.agent.plugin.spring.mvc.feign;
+
+import feign.MethodMetadata;
+import feign.Target;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/1/17 11:18 下午
+ * @author frank.chen
+ * @date 2022/8/6 22:26
  */
-public class TraceContextHolder {
-    private static final ThreadLocal<ITraceContext> HOLDER = new ThreadLocal<>();
+public class FeignInvocationContext {
+    final MethodMetadata methodMeta;
+    final Target target;
 
-    public static void set(ITraceContext tracer) {
-        HOLDER.set(tracer);
-    }
-
-    public static void remove() {
-        HOLDER.remove();
-    }
-
-    public static ITraceContext current() {
-        return HOLDER.get();
-    }
-
-    public static String currentTraceId() {
-        ITraceContext ctx = HOLDER.get();
-        return (ctx instanceof TraceContext) ? ((TraceContext) ctx).traceId() : null;
+    public FeignInvocationContext(MethodMetadata methodMeta, Target target) {
+        this.methodMeta = methodMeta;
+        this.target = target;
     }
 }

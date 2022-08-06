@@ -31,7 +31,8 @@ class TableComponent {
 
         this.mFormatters = {};
         this.mFormatters['shortDateTime'] = (v) => new Date(v).format('MM-dd hh:mm:ss');
-        this.mFormatters['detail'] = (val, row, index) => `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>`;
+        this.mFormatters['detail'] = (val, row, index) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>` : '';
+        this.mFormatters['dialog'] = (val, row, index, field) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="showTableDetailViewInDlg('${option.tableId}', ${index}, '${field}')">Show</button>` : '';
         this.mFormatters['block'] = (val, row, index) => `<pre>${val}</pre>`;
         this.mFormatters['link'] = (val, row, index, field) => {
             const column = this.mColumnMap[field];
@@ -192,4 +193,18 @@ class TableComponent {
 
 function toggleTableDetailView(tableId, index) {
     $('#' + tableId).bootstrapTable('toggleDetailView', index);
+}
+
+function showTableDetailViewInDlg(tableId, index, field) {
+    const rows = $('#' + tableId).bootstrapTable('getData');
+    const row = rows[index];
+    const cell = row[field];
+
+    bootbox.dialog({
+        centerVertical: true,
+        size: 'xl',
+        onEscape: true,
+        backdrop: true,
+        message: `<pre id="tagValueView">${cell}\n</pre>`,
+    });
 }

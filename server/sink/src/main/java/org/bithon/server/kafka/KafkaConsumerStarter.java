@@ -19,6 +19,7 @@ package org.bithon.server.kafka;
 import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.bithon.server.sink.event.EventMessageHandlers;
 import org.bithon.server.sink.event.LocalEventSink;
 import org.bithon.server.sink.metrics.LocalMetricSink;
 import org.bithon.server.sink.metrics.MetricMessageHandlers;
@@ -59,7 +60,7 @@ public class KafkaConsumerStarter implements SmartLifecycle, ApplicationContextA
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 
         collectors.add(new KafkaTraceConsumer(new LocalTraceSink(this.context)).start(consumerProps));
-        collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context)).start(consumerProps));
+        collectors.add(new KafkaEventConsumer(new LocalEventSink(this.context.getBean(EventMessageHandlers.class))).start(consumerProps));
         collectors.add(new KafkaMetricConsumer(new LocalMetricSink(this.context.getBean(MetricMessageHandlers.class))).start(consumerProps));
     }
 

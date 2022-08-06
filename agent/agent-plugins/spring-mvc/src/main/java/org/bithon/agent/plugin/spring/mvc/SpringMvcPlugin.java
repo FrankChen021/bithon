@@ -40,13 +40,13 @@ public class SpringMvcPlugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(Matchers.withName("create")
                                                                      .and(Matchers.takesArgument(1, "feign.MethodMetadata")))
-                                                   .to("org.bithon.agent.plugin.spring.mvc.SynchronousMethodHandlerFactory$Create")
+                                                   .to("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandlerFactory$Create")
                 ),
             forClass("feign.SynchronousMethodHandler")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("invoke")
-                                                   .to("org.bithon.agent.plugin.spring.mvc.SynchronousMethodHandler$Invoke")
+                                                   .to("org.bithon.agent.plugin.spring.mvc.feign.SynchronousMethodHandler$Invoke")
                 )
 
             /*

@@ -14,29 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.context;
+package org.bithon.server.sink.event;
+
+import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.event.EventMessage;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/17 11:18 下午
+ * @date 2021/2/14 4:01 下午
  */
-public class TraceContextHolder {
-    private static final ThreadLocal<ITraceContext> HOLDER = new ThreadLocal<>();
-
-    public static void set(ITraceContext tracer) {
-        HOLDER.set(tracer);
-    }
-
-    public static void remove() {
-        HOLDER.remove();
-    }
-
-    public static ITraceContext current() {
-        return HOLDER.get();
-    }
-
-    public static String currentTraceId() {
-        ITraceContext ctx = HOLDER.get();
-        return (ctx instanceof TraceContext) ? ((TraceContext) ctx).traceId() : null;
-    }
+public interface EventMessageHandler {
+    String getEventType();
+    IInputRow transform(EventMessage eventMessage);
+    void process(List<IInputRow> messages) throws IOException;
 }
