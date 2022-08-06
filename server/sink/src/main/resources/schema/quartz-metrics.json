@@ -20,7 +20,7 @@
       "name": "job",
       "displayText": "job",
       "required": true,
-      "visible": false
+      "visible": true
     },
     {
       "name": "class",
