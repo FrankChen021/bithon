@@ -57,7 +57,7 @@ public class JobRunShell$NotifyJobListenersComplete extends AbstractInterceptor 
 
             quartzLog.put("job", jec.getJobDetail().getKey().toString());
             quartzLog.put("class", jec.getJobDetail().getJobClass().getName());
-            quartzLog.put("exception", isExceptionOccurred ? "" : exception.getCause().toString());
+            quartzLog.put("exception", isExceptionOccurred ? exception.getCause().toString() : "");
             quartzLog.put("traceId", TraceContextHolder.currentTraceId());
 
             quartzLog.put("duration", jec.getJobRunTime());
