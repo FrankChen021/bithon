@@ -18,9 +18,10 @@ package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.api.CardinalityAggregator;
-import org.bithon.server.storage.datasource.api.ConcatStringAggregator;
+import org.bithon.server.storage.datasource.api.CountAggregator;
+import org.bithon.server.storage.datasource.api.GroupConcatAggregator;
 import org.bithon.server.storage.datasource.api.IQueryableAggregatorVisitor;
-import org.bithon.server.storage.datasource.api.MinAggregator;
+import org.bithon.server.storage.datasource.api.SimpleAggregator;
 
 /**
  * @author Frank Chen
@@ -40,12 +41,17 @@ public class QueryableAggregatorSqlVisitor implements IQueryableAggregatorVisito
     }
 
     @Override
-    public String visit(ConcatStringAggregator aggregator) {
-        return expressionFormatter.stringAggregator(aggregator.getDimension(), aggregator.getName());
+    public String visit(GroupConcatAggregator aggregator) {
+        return expressionFormatter.stringAggregator(aggregator.getField(), aggregator.getName());
     }
 
     @Override
-    public String visit(MinAggregator aggregator) {
-        return StringUtils.format("min(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
+    public String visit(SimpleAggregator aggregator) {
+        return StringUtils.format("%s(\"%s\") AS \"%s\"", aggregator.getAggregator(), aggregator.getField(), aggregator.getName());
+    }
+
+    @Override
+    public String visit(CountAggregator aggregator) {
+        return StringUtils.format("count(1) AS \"%s\"", aggregator.getName());
     }
 }

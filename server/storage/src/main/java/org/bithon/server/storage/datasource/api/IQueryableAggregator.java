@@ -26,8 +26,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = CardinalityAggregator.TYPE, value = CardinalityAggregator.class),
-    @JsonSubTypes.Type(name = ConcatStringAggregator.TYPE, value = ConcatStringAggregator.class),
-    @JsonSubTypes.Type(name = MinAggregator.TYPE, value = MinAggregator.class)
+    @JsonSubTypes.Type(name = GroupConcatAggregator.TYPE, value = GroupConcatAggregator.class),
+    @JsonSubTypes.Type(name = SimpleAggregator.MinAggregator.TYPE, value = SimpleAggregator.MinAggregator.class),
+    @JsonSubTypes.Type(name = SimpleAggregator.MaxAggregator.TYPE, value = SimpleAggregator.MaxAggregator.class),
+    @JsonSubTypes.Type(name = SimpleAggregator.SumAggregator.TYPE, value = SimpleAggregator.SumAggregator.class),
+    @JsonSubTypes.Type(name = SimpleAggregator.AvgAggregator.TYPE, value = SimpleAggregator.AvgAggregator.class),
+    @JsonSubTypes.Type(name = CountAggregator.TYPE, value = CountAggregator.class)
 })
 public interface IQueryableAggregator {
     <T> T accept(IQueryableAggregatorVisitor<T> visitor);

@@ -24,7 +24,9 @@ public interface IQueryableAggregatorVisitor<T> {
 
     T visit(CardinalityAggregator aggregator);
 
-    T visit(ConcatStringAggregator aggregator);
+    T visit(GroupConcatAggregator aggregator);
 
-    T visit(MinAggregator aggregator);
+    T visit(CountAggregator aggregator);
+
+    T visit(SimpleAggregator simpleAggregator);
 }

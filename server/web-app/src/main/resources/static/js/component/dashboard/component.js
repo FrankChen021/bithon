@@ -176,10 +176,10 @@ class Dashboard {
             return;
         }
 
-        const fields = [];
         const chartComponent = this._chartComponents[chartDescriptor.id];
 
-        const columns = [
+        let fields = [];
+        let columns = [
             {
                 field: 'id',
                 title: 'No.',
@@ -190,6 +190,111 @@ class Dashboard {
                 }
             }
         ];
+
+        if (chartDescriptor.details.columns !== undefined) {
+            const r = this.#createColumns(chartDescriptor);
+            fields = r[0];
+            columns = columns.concat(r[1]);
+        } else {
+            const r = this.#createColumnsLagecy(chartDescriptor);
+            fields = r[0];
+            columns = columns.concat(r[1]);
+        }
+
+        const pagable = chartDescriptor.details.groupBy === undefined || chartDescriptor.details.groupBy.length === 0;
+        const detailView = this.#createDetailView(chartDescriptor.id + '_detailView',
+            chartComponent.getUIContainer(),
+            columns,
+            [{
+                title: "Tracing Log",
+                text: "Search...",
+                visible: chartDescriptor.details.tracing !== undefined,
+                onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
+            }],
+            pagable);
+        chartComponent.setSelectionHandler(
+            (option, start, end) => {
+                this.#refreshDetailView(chartDescriptor, detailView, fields, option, start, end);
+            },
+            () => {
+                detailView.clear();
+                detailView.show();
+            },
+            () => {
+                detailView.hide();
+            },
+            () => {
+                detailView.clear();
+            });
+    }
+
+    #createColumns(chartDescriptor) {
+        const tableFields = [];
+        const tableColumns = []
+
+        $.each(chartDescriptor.details.columns, (index, column) => {
+
+            let columnName;
+            let sortable = true;
+            if (typeof column === 'object') {
+                columnName = column.name;
+                sortable = column.sortable || true;
+            } else {
+                columnName = column;
+            }
+
+            const tableColumn = {
+                field: columnName,
+                title: columnName,
+                align: 'center',
+                sortable: sortable
+            };
+
+            // set up lookup for this column
+            let lookupFn = (v) => v;
+            if (chartDescriptor.details.lookup !== undefined) {
+                const lookupTable = chartDescriptor.details.lookup[name];
+                if (lookupTable != null) {
+                    lookupFn = (val) => {
+                        const v = lookupTable[val];
+                        if (v != null) {
+                            return v + '(' + val + ')';
+                        } else {
+                            return val;
+                        }
+                    };
+                }
+            }
+
+            let formatterFn = (v) => v;
+            if (typeof column === 'object' && column.formatter !== undefined) {
+                if (column.formatter === 'template') {
+                    // a template based formatter
+                    formatterFn = (v) => {
+                        return column.template.replaceAll('{value}', v);
+                    }
+                } else {
+                    // a built-in formatter
+                    formatterFn = this._formatters[column.formatter];
+                    if (formatterFn == null) {
+                        console.log(`formatter ${column.formatter} is not a pre-defined one.`);
+                    }
+                }
+            }
+
+            tableColumn.formatter = (val) => formatterFn(lookupFn(val));
+
+            tableFields.push(columnName);
+            tableColumns.push(tableColumn);
+        });
+
+        return [tableFields, tableColumns];
+    }
+
+    // create columns from groupBy/metrics/
+    #createColumnsLagecy(chartDescriptor) {
+        const fields = [];
+        const columns = []
 
         $.each(chartDescriptor.details.dimensions, (index, dimension) => {
             fields.push(dimension.name);
@@ -247,10 +352,16 @@ class Dashboard {
         // TODO: combine with dimensions
         //
         $.each(chartDescriptor.details.groupBy, (index, dimension) => {
+            let name;
+            if (typeof dimension === 'object') {
+                name = dimension.name;
+            } else {
+                name = dimension;
+            }
 
             const column = {
-                field: dimension,
-                title: dimension,
+                field: name,
+                title: name,
                 align: 'center',
                 sortable: true,
                 formatter: (v) => v.htmlEncode()
@@ -258,7 +369,7 @@ class Dashboard {
 
             // set up lookup for this dimension
             if (chartDescriptor.details.lookup !== undefined) {
-                const dimensionLookup = chartDescriptor.details.lookup[dimension];
+                const dimensionLookup = chartDescriptor.details.lookup[name];
                 if (dimensionLookup != null) {
                     column.formatter = (val) => {
                         const v = dimensionLookup[val];
@@ -271,6 +382,25 @@ class Dashboard {
                 }
             }
 
+            columns.push(column);
+        });
+
+        $.each(chartDescriptor.details.aggregators, (index, aggregator) => {
+
+            const column = {
+                field: aggregator.name,
+                title: aggregator.name,
+                align: 'center',
+                sortable: true,
+                formatter: (v) => typeof v === 'string' ? v.htmlEncode() : v
+            };
+
+            if (aggregator.formatter !== undefined) {
+                const formatter = this._formatters[aggregator.formatter];
+                if (formatter != null) {
+                    column.formatter = (v) => formatter(v);
+                }
+            }
             columns.push(column);
         });
 
@@ -319,31 +449,7 @@ class Dashboard {
             columns.push(column);
         });
 
-        const pagable = chartDescriptor.details.groupBy === undefined || chartDescriptor.details.groupBy.length === 0;
-        const detailView = this.#createDetailView(chartDescriptor.id + '_detailView',
-            chartComponent.getUIContainer(),
-            columns,
-            [{
-                title: "Tracing Log",
-                text: "Search...",
-                visible: chartDescriptor.details.tracing !== undefined,
-                onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
-            }],
-            pagable);
-        chartComponent.setSelectionHandler(
-            (option, start, end) => {
-                this.#refreshDetailView(chartDescriptor, detailView, fields, option, start, end);
-            },
-            () => {
-                detailView.clear();
-                detailView.show();
-            },
-            () => {
-                detailView.hide();
-            },
-            () => {
-                detailView.clear();
-            });
+        return [fields, columns];
     }
 
     #createDetailView(id, parent, columns, buttons, pageable) {
@@ -384,8 +490,9 @@ class Dashboard {
                     startTimeISO8601: startISO8601,
                     endTimeISO8601: endISO8601,
                     filters: filters,
-                    metrics: chartDescriptor.details.metrics.map(m => typeof m === 'object' ? m.name : m),
-                    groupBy: chartDescriptor.details.groupBy
+                    metrics: chartDescriptor.details.metrics !== undefined ? chartDescriptor.details.metrics.map(m => typeof m === 'object' ? m.name : m) : [],
+                    groupBy: chartDescriptor.details.groupBy,
+                    aggregators: chartDescriptor.details.aggregators
                 }
             };
         } else {
