@@ -27,7 +27,7 @@ import javax.validation.constraints.NotNull;
  * @author Frank Chen
  * @date 1/11/21 2:37 pm
  */
-public class CardinalityAggregator implements IQuerableAggregator {
+public class CardinalityAggregator implements IQueryableAggregator {
     public static final String TYPE = "cardinality";
     private final String name;
     private final String dimension;
@@ -48,7 +48,7 @@ public class CardinalityAggregator implements IQuerableAggregator {
     }
 
     @Override
-    public <T> T accept(IQuerableAggregatorVisitor<T> visitor) {
+    public <T> T accept(IQueryableAggregatorVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

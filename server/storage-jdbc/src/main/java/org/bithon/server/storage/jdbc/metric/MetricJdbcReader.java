@@ -110,7 +110,7 @@ public class MetricJdbcReader implements IMetricReader {
 
         String aggregatorList = query.getAggregators()
                                      .stream()
-                                     .map(aggregator -> ", " + aggregator.accept(new QuerableAggregatorSqlVisitor()))
+                                     .map(aggregator -> ", " + aggregator.accept(new QueryableAggregatorSqlVisitor(this.sqlFormatter)))
                                      .collect(Collectors.joining());
 
         String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
@@ -244,6 +244,11 @@ public class MetricJdbcReader implements IMetricReader {
         public boolean allowSameAggregatorExpression() {
             return true;
         }
+
+        @Override
+        public String stringAggregator(String dimension, String name) {
+            throw new RuntimeException("string agg is not supported.");
+        }
     }
 
     static class H2SqlExpressionFormatter implements ISqlExpressionFormatter {
@@ -257,6 +262,11 @@ public class MetricJdbcReader implements IMetricReader {
         @Override
         public boolean allowSameAggregatorExpression() {
             return true;
+        }
+
+        @Override
+        public String stringAggregator(String dimension, String name) {
+            return StringUtils.format("group_concat(\"%s\") AS \"%s\"", dimension, name);
         }
 
         /*
@@ -392,7 +402,7 @@ public class MetricJdbcReader implements IMetricReader {
             StringBuilder sb = new StringBuilder();
             sb.append(StringUtils.format("count(1)", metricSpec.getName()));
             if (addAlias) {
-                sb.append(StringUtils.format("count(1) AS \"%s\"", metricSpec.getName()));
+                sb.append(StringUtils.format(" \"%s\"", metricSpec.getName()));
             }
             return sb.toString();
         }

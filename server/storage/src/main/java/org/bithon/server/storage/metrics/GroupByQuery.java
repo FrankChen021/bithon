@@ -18,7 +18,7 @@ package org.bithon.server.storage.metrics;
 
 import lombok.Data;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.api.IQuerableAggregator;
+import org.bithon.server.storage.datasource.api.IQueryableAggregator;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -33,7 +33,7 @@ public class GroupByQuery {
     private final DataSourceSchema dataSource;
 
     private final List<String> metrics;
-    private final List<IQuerableAggregator> aggregators;
+    private final List<IQueryableAggregator> aggregators;
 
     private final Collection<IFilter> filters;
     private final Interval interval;
@@ -43,7 +43,7 @@ public class GroupByQuery {
 
     public GroupByQuery(DataSourceSchema dataSource,
                         List<String> metrics,
-                        List<IQuerableAggregator> aggregators,
+                        List<IQueryableAggregator> aggregators,
                         Collection<IFilter> filters,
                         Interval interval,
                         List<String> groupBys,

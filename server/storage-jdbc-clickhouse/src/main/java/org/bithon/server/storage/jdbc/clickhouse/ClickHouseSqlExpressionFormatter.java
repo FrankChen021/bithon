@@ -53,4 +53,11 @@ class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
     public String orderByTimestamp(String timestampField) {
         return "ORDER BY \"" + timestampField + "\"";
     }
+
+    @Override
+    public String stringAggregator(String dimension, String name) {
+        return StringUtils.format("substring(arrayStringConcat(arrayCompact(groupArray(%s)), ','), 2) AS %s",
+                                  dimension,
+                                  name);
+    }
 }
