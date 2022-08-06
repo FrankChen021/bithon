@@ -44,7 +44,11 @@ public class QuartzPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("run")
-                                                   .to("org.bithon.agent.plugin.quartz2.JobRunShell$Run")
+                                                   .to("org.bithon.agent.plugin.quartz2.JobRunShell$Run"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("notifyJobListenersComplete")
+                                                   .to("org.bithon.agent.plugin.quartz2.JobRunShell$NotifyJobListenersComplete")
                 )
         );
     }

@@ -34,4 +34,9 @@ public class TraceContextHolder {
     public static ITraceContext current() {
         return HOLDER.get();
     }
+
+    public static String currentTraceId() {
+        ITraceContext ctx = HOLDER.get();
+        return (ctx instanceof TraceContext) ? ((TraceContext) ctx).traceId() : null;
+    }
 }

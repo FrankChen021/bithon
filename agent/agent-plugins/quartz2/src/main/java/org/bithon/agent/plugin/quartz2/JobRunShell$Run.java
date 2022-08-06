@@ -18,10 +18,8 @@ package org.bithon.agent.plugin.quartz2;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
-import org.bithon.agent.core.dispatcher.Dispatcher;
-import org.bithon.agent.core.dispatcher.Dispatchers;
-import org.bithon.agent.core.event.EventMessage;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
@@ -32,26 +30,17 @@ import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.quartz.JobExecutionException;
 import org.quartz.core.JobRunShell;
 import org.quartz.impl.JobExecutionContextImpl;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author frankchen
  */
 public class JobRunShell$Run extends AbstractInterceptor {
     private static final ILogAdaptor log = LoggerFactory.getLogger(JobRunShell$Run.class);
-
-    private Dispatcher dispatcher;
-
-    @Override
-    public boolean initialize() {
-        dispatcher = Dispatchers.getOrCreate(Dispatchers.DISPATCHER_NAME_EVENT);
-        return true;
-    }
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
@@ -92,27 +81,17 @@ public class JobRunShell$Run extends AbstractInterceptor {
             log.error("quartz jobContext field mismatch");
         }
 
+        // assigned in NotifyJobListenersComplete
+        IBithonObject bithonObject = aopContext.castTargetAs();
+        JobExecutionException exception = (JobExecutionException) bithonObject.getInjectedObject();
+
         // tracing
         ITraceSpan span = aopContext.castUserContextAs();
-        span.tag(aopContext.getException())
-            .tag("status", aopContext.hasException() ? "500" : "200")
+        span.tag(exception == null ? null : exception.getUnderlyingException())
+            .tag("status", exception != null ? "500" : "200")
             .tag("uri", jobExecutionContext == null ? null : "/quartz/" + jobExecutionContext.getJobDetail().getJobClass().getName())
             .finish();
         span.context().finish();
         TraceContextHolder.remove();
-
-        // log
-        {
-            Map<String, Object> quartzLog = new HashMap<>(8);
-            quartzLog.put("job", jobExecutionContext.getJobDetail().getKey().toString());
-            quartzLog.put("class", jobExecutionContext.getJobDetail().getJobClass().getName());
-            quartzLog.put("startTimestamp", aopContext.getStartTimestamp());
-            quartzLog.put("duration", jobExecutionContext.getJobRunTime());
-            quartzLog.put("successCount", aopContext.hasException() ? 0 : 1);
-            quartzLog.put("exceptionCount", aopContext.hasException() ? 1 : 0);
-            quartzLog.put("exception", aopContext.hasException() ? aopContext.getException().toString() : "");
-            quartzLog.put("traceId", span.traceId());
-            dispatcher.sendMessage(dispatcher.getMessageConverter().from(new EventMessage("quartz", quartzLog)));
-        }
     }
 }
