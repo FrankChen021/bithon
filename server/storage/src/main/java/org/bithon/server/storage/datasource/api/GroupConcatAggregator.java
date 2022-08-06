@@ -27,20 +27,20 @@ import javax.validation.constraints.NotNull;
  * @author Frank Chen
  * @date 5/8/22 4:56 PM
  */
-public class ConcatStringAggregator implements IQueryableAggregator {
+public class GroupConcatAggregator implements IQueryableAggregator {
 
-    public static final String TYPE = "concatString";
+    public static final String TYPE = "groupConcat";
     @Getter
     private final String name;
 
     @Getter
-    private final String dimension;
+    private final String field;
 
     @JsonCreator
-    public ConcatStringAggregator(@JsonProperty("name") @NotNull String name,
-                                  @JsonProperty("dimension") @NotNull String dimension) {
+    public GroupConcatAggregator(@JsonProperty("name") @NotNull String name,
+                                 @JsonProperty("field") @NotNull String field) {
         this.name = Preconditions.checkArgumentNotNull("name", name);
-        this.dimension = Preconditions.checkArgumentNotNull("dimension", dimension);
+        this.field = Preconditions.checkArgumentNotNull("field", field);
     }
 
     @Override

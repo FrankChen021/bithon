@@ -24,23 +24,18 @@ import org.bithon.component.commons.utils.Preconditions;
 import javax.validation.constraints.NotNull;
 
 /**
- * @author Frank Chen
- * @date 5/8/22 4:59 PM
+ * @author frank.chen
+ * @date 2022/8/6 17:30
  */
-public class MinAggregator implements IQueryableAggregator {
+public class CountAggregator implements IQueryableAggregator {
+    public static final String TYPE = "count";
 
-    public static final String TYPE = "min";
     @Getter
     private final String name;
 
-    @Getter
-    private final String field;
-
     @JsonCreator
-    public MinAggregator(@JsonProperty("name") @NotNull String name,
-                         @JsonProperty("field") @NotNull String field) {
+    public CountAggregator(@JsonProperty("name") @NotNull String name) {
         this.name = Preconditions.checkArgumentNotNull("name", name);
-        this.field = Preconditions.checkArgumentNotNull("field", field);
     }
 
     @Override
