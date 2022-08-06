@@ -21,10 +21,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.collection.IteratorableCollection;
+import org.bithon.server.sink.common.handler.AbstractThreadPoolMessageHandler;
 import org.bithon.server.storage.event.EventMessage;
-import org.springframework.context.ApplicationContext;
 
-import java.io.IOException;
+import java.time.Duration;
 
 /**
  * @author frank.chen021@outlook.com
@@ -33,20 +33,40 @@ import java.io.IOException;
 @JsonTypeName("local")
 public class LocalEventSink implements IEventMessageSink {
 
-    private final EventsMessageHandler handler;
+    static class EventMessageProcessor extends AbstractThreadPoolMessageHandler<IteratorableCollection<EventMessage>> {
+
+        private final EventMessageHandlers handlers;
+
+        public EventMessageProcessor(EventMessageHandlers handlers) {
+            super("event-message-handler", 1, 5, Duration.ofMinutes(3), 1024);
+            this.handlers = handlers;
+        }
+
+        @Override
+        protected void onMessage(IteratorableCollection<EventMessage> iterator) {
+            handlers.handle(iterator);
+        }
+
+        @Override
+        public String getType() {
+            return "event";
+        }
+    }
+
+    private final EventMessageProcessor messageProcessor;
 
     @JsonCreator
-    public LocalEventSink(@JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) throws IOException {
-        this.handler = new EventsMessageHandler(applicationContext);
+    public LocalEventSink(@JacksonInject(useInput = OptBoolean.FALSE) EventMessageHandlers handlers) {
+        this.messageProcessor = new EventMessageProcessor(handlers);
     }
 
     @Override
     public void process(String messageType, IteratorableCollection<EventMessage> message) {
-        this.handler.submit(message);
+        this.messageProcessor.submit(message);
     }
 
     @Override
     public void close() throws Exception {
-        handler.close();
+        messageProcessor.close();
     }
 }

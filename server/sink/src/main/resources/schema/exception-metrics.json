@@ -52,13 +52,14 @@
   "metricsSpec": [
     {
       "type": "longSum",
-      "name": "exceptionCount",
+      "name": "eventCount",
       "displayText": "Exception Count",
       "unit": ""
     }
   ],
   "inputSourceSpec": {
-    "type": "metric"
+    "type": "event",
+    "eventType": "exception"
   }
 }
 

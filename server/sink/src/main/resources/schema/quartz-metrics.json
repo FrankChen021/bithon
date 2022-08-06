@@ -1,0 +1,74 @@
+{
+  "displayText": "Quartz",
+  "name": "quartz-metrics",
+  "timestampSpec": {
+    "column": "timestamp",
+    "format": "auto"
+  },
+  "dimensionsSpec": [
+    {
+      "name": "appName",
+      "displayText": "Application",
+      "required": true
+    },
+    {
+      "name": "instanceName",
+      "displayText": "Instance",
+      "required": true
+    },
+    {
+      "name": "job",
+      "displayText": "job",
+      "required": true,
+      "visible": false
+    },
+    {
+      "name": "class",
+      "displayText": "class",
+      "required": true,
+      "visible": true
+    },
+    {
+      "name": "traceId",
+      "displayText": "trace id",
+      "required": false,
+      "length": 128,
+      "visible": false
+    },
+    {
+      "name": "exception",
+      "displayText": "exception",
+      "required": false,
+      "length": 1024,
+      "visible": false
+    }
+  ],
+  "metricsSpec": [
+    {
+      "type": "longSum",
+      "name": "duration",
+      "displayText": "duration",
+      "unit": "ms"
+    },
+    {
+      "type": "longSum",
+      "name": "successfulCount",
+      "displayText": "",
+      "unit": ""
+    },
+    {
+      "type": "longSum",
+      "name": "exceptionCount",
+      "displayText": "",
+      "unit": ""
+    }
+  ],
+  "inputSourceSpec": {
+    "type": "event",
+    "eventType": "quartz"
+  }
+}
+
+
+
+
