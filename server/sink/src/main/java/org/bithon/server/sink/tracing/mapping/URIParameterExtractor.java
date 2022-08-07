@@ -30,7 +30,7 @@ import java.util.function.BiConsumer;
 /**
  * Extract a corresponding id from a value in tags which is formatted as URI
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 10/12/21 3:13 PM
  */
 @Slf4j

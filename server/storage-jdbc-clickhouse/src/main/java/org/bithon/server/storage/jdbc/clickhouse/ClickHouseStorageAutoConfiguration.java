@@ -34,7 +34,7 @@ import javax.sql.DataSource;
 import java.net.URI;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 27/10/21 9:45 pm
  */
 @Configuration

@@ -21,7 +21,7 @@ import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 12/5/22 8:57 PM
  */
 public class TracedRunnable implements Runnable {

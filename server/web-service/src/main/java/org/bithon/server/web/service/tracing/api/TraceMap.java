@@ -22,7 +22,7 @@ import lombok.Data;
 import java.util.Collection;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 25/11/21 3:05 pm
  */
 @Data

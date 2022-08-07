@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 31/12/21 11:25 PM
  */
 @ConfigurationProperties(prefix = "agent.plugin.spring.webflux.gateway")

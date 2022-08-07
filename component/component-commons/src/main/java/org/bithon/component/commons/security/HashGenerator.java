@@ -23,7 +23,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 13/4/22 10:12 PM
  */
 public class HashGenerator {

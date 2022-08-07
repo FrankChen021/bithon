@@ -21,7 +21,7 @@ import org.bithon.server.commons.time.TimeSpan;
 
 /**
  * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 2021-10-26
  */
 public interface ISqlExpressionFormatter {

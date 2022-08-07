@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 7/1/22 1:39 PM
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")

@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 12/4/22 11:38 AM
  */
 @Slf4j

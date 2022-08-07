@@ -55,7 +55,7 @@ public class ScheduledMethodRunnable$Run extends AbstractInterceptor {
                .component("springScheduler")
                .kind(SpanKind.SERVER)
                .method(aopContext.getMethod())
-               .tag("uri", runnable.getTarget().getClass().getSimpleName() + "#" + runnable.getMethod().getName())
+               .tag("uri", "/scheduler/" + runnable.getTarget().getClass().getName().replace('.', '/') + "/" + runnable.getMethod().getName())
                .start();
 
         aopContext.setUserContext(context);

@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * A transformer that maps a value of a field to another.
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  */
 public class MappingTransformer extends AbstractSimpleTransformer {
 

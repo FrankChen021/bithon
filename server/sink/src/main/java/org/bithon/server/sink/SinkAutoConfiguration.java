@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 3/4/22 11:37 AM
  */
 

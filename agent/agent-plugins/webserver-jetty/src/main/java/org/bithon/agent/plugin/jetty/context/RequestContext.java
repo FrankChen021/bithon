@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.jetty.context;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 7/12/21 9:21 PM
  */
 public class RequestContext {

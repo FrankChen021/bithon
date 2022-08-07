@@ -17,7 +17,7 @@
 package org.bithon.agent.core.tracing.context;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 25/12/21 5:56 PM
  */
 public class Tags {

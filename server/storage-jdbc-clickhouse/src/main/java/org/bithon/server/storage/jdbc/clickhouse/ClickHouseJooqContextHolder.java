@@ -24,7 +24,7 @@ import org.jooq.DSLContext;
  * A class that used to hold DSLContext in case of DSLContext conflicts with other jooq-based module
  * We also can use bean alias to distinguish different DSLContext, but that require each dependent to use alias which is easy to lead to errors
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 8/4/22 2:56 PM
  */
 @Getter

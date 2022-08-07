@@ -20,7 +20,7 @@ import org.bithon.agent.core.metric.model.IMetricValueProvider;
 import org.bithon.agent.core.metric.model.InvalidMetricValueException;
 
 /**
- * @author frank.chen
+ * @author frank.chen021@outlook.com
  * @date 2022/7/30 22:51
  */
 public class GreaterThanZero implements IMetricValueProvider {

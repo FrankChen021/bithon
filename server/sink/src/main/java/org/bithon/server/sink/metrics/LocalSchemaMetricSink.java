@@ -23,7 +23,7 @@ import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.context.ApplicationContext;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 3/10/21 14:11
  */
 @Slf4j

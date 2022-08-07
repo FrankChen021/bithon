@@ -20,7 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 8/4/22 2:08 PM
  */
 public class PeriodTest {

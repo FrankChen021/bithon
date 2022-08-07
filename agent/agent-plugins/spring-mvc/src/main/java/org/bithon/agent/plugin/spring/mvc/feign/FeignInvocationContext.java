@@ -20,7 +20,7 @@ import feign.MethodMetadata;
 import feign.Target;
 
 /**
- * @author frank.chen
+ * @author frank.chen021@outlook.com
  * @date 2022/8/6 22:26
  */
 public class FeignInvocationContext {

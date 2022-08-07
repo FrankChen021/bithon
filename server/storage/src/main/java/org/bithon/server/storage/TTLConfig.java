@@ -20,7 +20,7 @@ import lombok.Data;
 import org.bithon.server.commons.time.Period;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 9/12/21 5:03 PM
  */
 @Data

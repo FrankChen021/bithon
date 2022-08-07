@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * {@link org.apache.druid.sql.SqlLifecycle#initialize(String, Map)}
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 4/1/22 6:37 PM
  */
 public class SqlLifecycle$Initialize extends AbstractInterceptor {

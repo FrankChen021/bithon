@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 2022-05-12
  */
 public class BithonBrpcPlugin implements IPlugin {

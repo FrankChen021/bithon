@@ -23,7 +23,7 @@ import org.bithon.server.storage.tracing.TraceSpan;
 import java.util.function.BiConsumer;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 10/12/21 3:12 PM
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")

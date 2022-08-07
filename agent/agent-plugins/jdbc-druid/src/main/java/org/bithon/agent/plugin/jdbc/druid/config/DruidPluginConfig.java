@@ -20,7 +20,7 @@ import org.bithon.agent.core.config.ConfigurationProperties;
 import shaded.com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 23/1/22 7:20 PM
  */
 @ConfigurationProperties(prefix = "agent.plugin.jdbc.druid")

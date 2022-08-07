@@ -40,7 +40,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 24/11/21 2:05 pm
  */
 @Slf4j

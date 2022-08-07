@@ -26,7 +26,7 @@ import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 1/11/21 6:48 pm
  */
 @Slf4j

@@ -23,7 +23,7 @@ import org.bithon.server.storage.tracing.TraceSpan;
 /**
  * clean up some (sensitive) data in spans
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 10/1/22 2:28 PM
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")

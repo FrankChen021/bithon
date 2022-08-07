@@ -22,7 +22,7 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.reactivestreams.Publisher;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 29/11/21 3:35 pm
  */
 public class Flux$Timeout extends AbstractInterceptor {

@@ -33,7 +33,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 13/4/22 10:42 AM
  */
 public class MetricsAggregator {

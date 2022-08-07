@@ -17,7 +17,7 @@
 package org.bithon.server.storage.event;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 27/10/21 10:26 pm
  */
 public interface IEventCleaner extends AutoCloseable {

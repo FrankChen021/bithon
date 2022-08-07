@@ -24,7 +24,7 @@ import java.sql.Timestamp;
 import java.util.Map;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 4/11/21 3:18 pm
  */
 public class SettingJdbcReader implements ISettingReader {

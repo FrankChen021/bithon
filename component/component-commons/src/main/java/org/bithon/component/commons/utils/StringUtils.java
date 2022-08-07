@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 13/11/21 12:42 pm
  */
 public class StringUtils {

@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.spring.webflux.context;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 27/11/21 3:21 pm
  */
 public class HttpClientContext {

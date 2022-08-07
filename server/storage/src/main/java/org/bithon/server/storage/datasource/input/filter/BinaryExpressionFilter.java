@@ -22,7 +22,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 import java.util.function.Function;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 4/8/22 6:08 PM
  */
 @Slf4j

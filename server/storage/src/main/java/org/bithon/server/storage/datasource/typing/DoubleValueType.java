@@ -23,7 +23,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  */
 public class DoubleValueType implements IValueType {
 

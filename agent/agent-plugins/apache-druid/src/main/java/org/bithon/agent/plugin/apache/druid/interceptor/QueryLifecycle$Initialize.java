@@ -29,7 +29,7 @@ import shaded.com.fasterxml.jackson.databind.SerializationFeature;
 import shaded.com.fasterxml.jackson.datatype.joda.JodaModule;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 4/1/22 6:38 PM
  */
 public class QueryLifecycle$Initialize extends AbstractInterceptor {

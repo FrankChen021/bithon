@@ -17,7 +17,7 @@
 package org.bithon.agent.core.metric.model.schema;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 6/10/21 1:08 pm
  */
 public class LongLastMetricSpec extends AbstractMetricSpec {

@@ -24,7 +24,7 @@ import org.bithon.server.commons.matcher.IMatcher;
 import javax.annotation.Nullable;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 25/3/22 5:15 PM
  */
 @Getter

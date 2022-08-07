@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 5/11/21 1:19 pm
  */
 @Data

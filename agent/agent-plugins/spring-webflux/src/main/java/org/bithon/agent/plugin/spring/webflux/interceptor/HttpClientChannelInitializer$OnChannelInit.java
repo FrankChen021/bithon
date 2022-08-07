@@ -34,7 +34,7 @@ import reactor.netty.http.client.HttpClientRequest;
  * <p>
  * {@link reactor.netty.http.client.HttpClientConfig.HttpClientChannelInitializer#OnChannelInit}
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 7/10/21 4:15 pm
  */
 public class HttpClientChannelInitializer$OnChannelInit extends AbstractInterceptor {

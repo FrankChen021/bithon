@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 14/4/22 5:22 PM
  */
 public class HasFieldTransformer implements ITransformer {

@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 24/3/22 12:25 PM
  */
 @ConfigurationProperties(prefix = "agent.plugin.spring.webflux.response")

@@ -19,7 +19,7 @@ package org.bithon.agent.core.metric.model.schema;
 import java.util.Locale;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 2021-10-02
  */
 public abstract class AbstractDimensionSpec implements IDimensionSpec {

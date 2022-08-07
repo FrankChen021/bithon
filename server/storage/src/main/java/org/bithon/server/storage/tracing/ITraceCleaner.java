@@ -17,7 +17,7 @@
 package org.bithon.server.storage.tracing;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 27/10/21 10:31 pm
  */
 public interface ITraceCleaner extends AutoCloseable {

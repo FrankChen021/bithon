@@ -29,7 +29,7 @@ import java.util.function.BiConsumer;
 /**
  * Extract a corresponding id from a name-value pair in tags
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 10/12/21 4:32 PM
  */
 public class NameValueExtractor implements ITraceIdMappingExtractor {

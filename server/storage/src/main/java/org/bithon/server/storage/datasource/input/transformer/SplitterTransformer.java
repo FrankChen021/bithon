@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 11/4/22 11:52 PM
  */
 public class SplitterTransformer implements ITransformer {

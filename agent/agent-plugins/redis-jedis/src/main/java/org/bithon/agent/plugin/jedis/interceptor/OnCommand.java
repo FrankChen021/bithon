@@ -26,7 +26,7 @@ import redis.clients.jedis.Jedis;
 import java.util.Locale;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 22/1/22 5:52 PM
  */
 public class OnCommand extends AbstractInterceptor {

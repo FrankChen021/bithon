@@ -39,7 +39,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 7/1/22 1:44 PM
  */
 @Slf4j

@@ -37,7 +37,7 @@ import java.util.Map;
  * <p>
  * Currently, only sanitizing on the 'uri' parameter is supported.
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 10/1/22 1:38 PM
  */
 public class UrlSanitizer implements ISanitizer {

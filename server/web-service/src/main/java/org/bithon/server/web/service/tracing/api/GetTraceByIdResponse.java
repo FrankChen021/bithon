@@ -23,7 +23,7 @@ import org.bithon.server.storage.tracing.TraceSpan;
 import java.util.List;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 24/11/21 7:08 pm
  */
 @Data

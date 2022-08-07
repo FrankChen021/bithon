@@ -1,7 +1,7 @@
 
 # Past, Now, and Future
 
-Frank Chen, 2022-01-29
+frank.chen021@outlook.com, 2022-01-29
 
 ## Past 
 ### Metrics based platform

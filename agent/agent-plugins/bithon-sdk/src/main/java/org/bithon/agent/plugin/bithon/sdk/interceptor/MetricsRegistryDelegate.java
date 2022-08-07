@@ -46,7 +46,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 2021-10-01
  */
 public class MetricsRegistryDelegate implements IMetricCollector2 {

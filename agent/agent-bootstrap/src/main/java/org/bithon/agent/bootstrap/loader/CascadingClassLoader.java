@@ -24,7 +24,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 28/12/21 10:31 AM
  */
 public class CascadingClassLoader extends ClassLoader {

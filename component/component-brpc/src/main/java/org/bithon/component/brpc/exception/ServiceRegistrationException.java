@@ -19,7 +19,7 @@ package org.bithon.component.brpc.exception;
 import org.bithon.component.commons.utils.StringUtils;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 29/12/21 6:21 PM
  */
 public class ServiceRegistrationException extends RuntimeException {

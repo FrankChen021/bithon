@@ -21,7 +21,7 @@ import org.bithon.agent.sdk.metric.IMetricValue;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 2021-10-01
  */
 public class LongSum implements IMetricValue {

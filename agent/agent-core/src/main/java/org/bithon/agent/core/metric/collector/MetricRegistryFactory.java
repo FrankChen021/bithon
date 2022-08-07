@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 23/1/22 3:58 PM
  */
 public class MetricRegistryFactory {

@@ -27,19 +27,16 @@ import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * @author frank.chen
+ * @author frank.chen021@outlook.com
  * @date 2022/8/2 22:30
  */
 @Slf4j
-public class MetricOverEventHandler extends AbstractMetricMessageHandler implements EventMessageHandler {
+public class MetricOverEventHandler extends AbstractMetricMessageHandler implements EventMessageHandler<IInputRow> {
 
     private final String eventType;
     private final ObjectMapper objectMapper;
-    private List<IInputRow> metrics;
 
     public MetricOverEventHandler(String eventType,
                                   String dataSourceName,
@@ -61,43 +58,18 @@ public class MetricOverEventHandler extends AbstractMetricMessageHandler impleme
     }
 
     @Override
-    public void startProcessing() {
-        this.metrics = new ArrayList<>();
-    }
+    public IInputRow transform(EventMessage eventMessage) throws IOException {
+        IInputRow row = new InputRow(objectMapper, objectMapper.readTree(eventMessage.getJsonArgs()));
 
-    @Override
-    public void transform(EventMessage eventMessage) {
-        try {
-            IInputRow row = new InputRow(objectMapper, objectMapper.readTree(eventMessage.getJsonArgs()));
+        row.updateColumn("appName", eventMessage.getAppName());
+        row.updateColumn("instanceName", eventMessage.getInstanceName());
 
-            row.updateColumn("appName", eventMessage.getAppName());
-            row.updateColumn("instanceName", eventMessage.getInstanceName());
-
-            if (row.getCol("timestamp") == null) {
-                row.updateColumn("timestamp", eventMessage.getTimestamp());
-            }
-
-            row.updateColumn("eventCount", 1);
-
-            metrics.add(row);
-        } catch (IOException e) {
-            log.error("Exception when parsing event[{}]: {}", eventMessage, e.getMessage());
-        }
-    }
-
-    @Override
-    public void finalizeProcessing() {
-        if (metrics.isEmpty()) {
-            return;
+        if (row.getCol("timestamp") == null) {
+            row.updateColumn("timestamp", eventMessage.getTimestamp());
         }
 
-        try {
-            // following process is executed asynchronously
-            // we can't clear the metrics object
-            this.process(metrics);
-        } finally {
-            // deference this object
-            metrics = null;
-        }
+        row.updateColumn("eventCount", 1);
+
+        return row;
     }
 }

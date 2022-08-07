@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 /**
  * Apply to all BRPC interface declaration
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 29/12/21 6:15 PM
  */
 @Retention(RetentionPolicy.RUNTIME)

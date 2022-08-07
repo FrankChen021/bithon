@@ -19,7 +19,7 @@ package org.bithon.agent.core.metric.collector;
 import java.util.List;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 3/10/21 11:40
  */
 public interface IMeasurement {

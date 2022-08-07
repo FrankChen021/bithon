@@ -33,7 +33,7 @@ import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 28/12/21 12:08 PM
  */
 public class BeforeGatewayFilter$Filter extends AbstractInterceptor {

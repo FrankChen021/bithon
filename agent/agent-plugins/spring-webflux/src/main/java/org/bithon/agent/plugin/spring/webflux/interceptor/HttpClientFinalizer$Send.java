@@ -35,7 +35,7 @@ import java.util.function.BiFunction;
 /**
  * see reactor.netty.http.client.HttpClientFinalizer#send
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 27/11/21 1:57 pm
  */
 public class HttpClientFinalizer$Send extends AbstractInterceptor {

@@ -21,7 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 10/12/21 6:48 PM
  */
 public class IteratorableCollection<E> implements Iterator<E> {

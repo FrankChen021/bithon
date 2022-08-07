@@ -29,7 +29,7 @@ import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 12/5/22 10:25 PM
  */
 public class BrpcMethodInterceptor extends AbstractInterceptor {

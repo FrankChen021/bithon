@@ -38,7 +38,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 10/12/21 4:44 PM
  */
 @Slf4j

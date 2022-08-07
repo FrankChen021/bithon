@@ -26,7 +26,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 11/4/22 11:48 PM
  */
 public class EqualFilterTest {

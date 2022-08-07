@@ -22,7 +22,7 @@ import lombok.Getter;
 import org.bithon.server.commons.matcher.IMatcher;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 25/3/22 5:15 PM
  */
 @Getter
