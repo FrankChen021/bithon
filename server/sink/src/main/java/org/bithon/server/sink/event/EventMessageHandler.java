@@ -19,22 +19,21 @@ package org.bithon.server.sink.event;
 import org.bithon.server.storage.event.EventMessage;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Processing pipeline:
  * start -> transform ------> finalize
- *             ^        |
- *             |---------
+ * ^        |
+ * |---------
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:01 下午
  */
-public interface EventMessageHandler {
+public interface EventMessageHandler<T> {
     String getEventType();
 
-    void startProcessing();
+    T transform(EventMessage eventMessage) throws IOException;
 
-    void transform(EventMessage eventMessage);
-
-    void finalizeProcessing() throws IOException;
+    void process(List<T> messages) throws IOException;
 }

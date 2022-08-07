@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,15 +38,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class EventMessageHandlers {
 
-    private final Map<String, EventMessageHandler> handlers = new ConcurrentHashMap<>(7);
+    private final Map<String, EventMessageHandler<?>> handlers = new ConcurrentHashMap<>(7);
 
-    private final EventMessageHandler defaultHandler;
+    private final EventMessageHandler<?> defaultHandler;
 
     public EventMessageHandlers(IEventStorage eventStorage) {
-        defaultHandler = new EventMessageHandler() {
+        defaultHandler = new EventMessageHandler<EventMessage>() {
             final IEventWriter eventWriter = eventStorage.createWriter();
-
-            List<EventMessage> batchMessages;
 
             @Override
             public String getEventType() {
@@ -53,58 +52,71 @@ public class EventMessageHandlers {
             }
 
             @Override
-            public void startProcessing() {
-                batchMessages = new ArrayList<>();
+            public EventMessage transform(EventMessage eventMessage) {
+                return eventMessage;
             }
 
             @Override
-            public void transform(EventMessage eventMessage) {
-                batchMessages.add(eventMessage);
-            }
-
-            @Override
-            public void finalizeProcessing() throws IOException {
-                if (batchMessages.isEmpty()) {
+            public void process(List<EventMessage> messages) throws IOException {
+                if (messages.isEmpty()) {
                     return;
                 }
-                try {
-                    eventWriter.write(batchMessages);
-                } finally {
-                    // deference this object
-                    batchMessages = null;
-                }
+                eventWriter.write(messages);
             }
         };
     }
 
-    public void handle(IteratorableCollection<EventMessage> iterator) {
-        // phase 1, process messages for each handler in batch
-        for (EventMessageHandler handler : handlers.values()) {
+    static class PiplelineHandler<T> {
+        private final EventMessageHandler<T> delegation;
+        private final List<T> messages = new ArrayList<>();
+
+        public PiplelineHandler(EventMessageHandler<T> delegation) {
+            this.delegation = delegation;
+        }
+
+        public void transform(EventMessage eventMessage) {
             try {
-                handler.startProcessing();
-            } catch (Exception ignored) {
+                T message = delegation.transform(eventMessage);
+                if (message != null) {
+                    messages.add(message);
+                }
+            } catch (IOException e) {
+                log.warn("Exception when transform event message[{}]: {}", eventMessage, e.getMessage());
             }
         }
 
-        // phase 2, add event message for each handler
-        while (iterator.hasNext()) {
-            EventMessage message = iterator.next();
-
-            EventMessageHandler handler = handlers.getOrDefault(message.getType(), defaultHandler);
-            handler.transform(message);
-        }
-
-        // phase 3, process messages for each handler in batch
-        for (EventMessageHandler handler : handlers.values()) {
-            try {
-                handler.finalizeProcessing();
-            } catch (Exception e) {
-                log.error("Error to process event[{}]: {}", handler.getEventType(), e.getMessage());
+        public void process() throws IOException {
+            if (!messages.isEmpty()) {
+                delegation.process(messages);
             }
         }
     }
 
-    public void add(EventMessageHandler handler) {
+    public void handle(IteratorableCollection<EventMessage> iterator) {
+        Map<String, PiplelineHandler<?>> pipelineHandlers = new HashMap<>(handlers.size() + 1);
+
+        // phase 1, add event message for each handler
+        while (iterator.hasNext()) {
+            EventMessage message = iterator.next();
+
+            String eventType = message.getType();
+            PiplelineHandler<?> handler = pipelineHandlers.computeIfAbsent(eventType,
+                                                                           v -> new PiplelineHandler<>(handlers.getOrDefault(eventType,
+                                                                                                                             defaultHandler)));
+            handler.transform(message);
+        }
+
+        // phase 2, process messages for each handler in batch
+        pipelineHandlers.forEach((eventType, handler) -> {
+            try {
+                handler.process();
+            } catch (Exception e) {
+                log.error("Error to process event[{}]: {}", eventType, e.getMessage());
+            }
+        });
+    }
+
+    public void add(EventMessageHandler<?> handler) {
         handlers.put(handler.getEventType(), handler);
     }
 
