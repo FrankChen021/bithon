@@ -27,6 +27,8 @@ import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author frank.chen
@@ -37,6 +39,7 @@ public class MetricOverEventHandler extends AbstractMetricMessageHandler impleme
 
     private final String eventType;
     private final ObjectMapper objectMapper;
+    private List<IInputRow> metrics;
 
     public MetricOverEventHandler(String eventType,
                                   String dataSourceName,
@@ -58,7 +61,12 @@ public class MetricOverEventHandler extends AbstractMetricMessageHandler impleme
     }
 
     @Override
-    public IInputRow transform(EventMessage eventMessage) {
+    public void startProcessing() {
+        this.metrics = new ArrayList<>();
+    }
+
+    @Override
+    public void transform(EventMessage eventMessage) {
         try {
             IInputRow row = new InputRow(objectMapper, objectMapper.readTree(eventMessage.getJsonArgs()));
 
@@ -71,10 +79,25 @@ public class MetricOverEventHandler extends AbstractMetricMessageHandler impleme
 
             row.updateColumn("eventCount", 1);
 
-            return row;
+            metrics.add(row);
         } catch (IOException e) {
             log.error("Exception when parsing event[{}]: {}", eventMessage, e.getMessage());
-            return null;
+        }
+    }
+
+    @Override
+    public void finalizeProcessing() {
+        if (metrics.isEmpty()) {
+            return;
+        }
+
+        try {
+            // following process is executed asynchronously
+            // we can't clear the metrics object
+            this.process(metrics);
+        } finally {
+            // deference this object
+            metrics = null;
         }
     }
 }
