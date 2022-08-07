@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
-  <artifactId>agent-plugin-jdbc-druid</artifactId>
+  <artifactId>agent-plugin-alibaba-druid</artifactId>
 
   <dependencies>
     <dependency>
@@ -33,7 +33,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Plugin-Class>org.bithon.agent.plugin.jdbc.druid.DruidPlugin
+              <Plugin-Class>org.bithon.agent.plugin.alibaba.druid.DruidPlugin
               </Plugin-Class>
             </manifestEntries>
           </archive>

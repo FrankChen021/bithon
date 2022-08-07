@@ -14,18 +14,24 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.druid.interceptor;
+package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
-import com.alibaba.druid.pool.DruidPooledPreparedStatement;
 import org.bithon.agent.bootstrap.aop.AopContext;
 
 /**
  * @author frankchen
  * @date 2022-07-27
  */
-public class DruidPooledPreparedStatement$Execute extends DruidStatementAbstractExecute {
+public class DruidPooledStatement$Execute extends DruidStatementAbstractExecute {
+
     @Override
     protected String getExecutingSql(AopContext aopContext) {
-        return ((DruidPooledPreparedStatement) aopContext.getTarget()).getSql();
+        Object[] args = aopContext.getArgs();
+        if (args != null && args.length > 0) {
+            return args[0].toString();
+        }
+
+        // TODO: executeBatch has no argument, the sql should be retrieved in another way
+        return null;
     }
 }

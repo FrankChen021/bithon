@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.druid;
+package org.bithon.agent.plugin.alibaba.druid;
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
@@ -41,57 +41,57 @@ public class DruidPlugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("init")
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceInit"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSourceInit"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("close")
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceClose"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSourceClose"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs("restart")
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceRestart"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSourceRestart"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("getStatValueAndReset")
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidDataSourceGetValueAndReset")
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidDataSourceGetValueAndReset")
                 ),
 
             forClass("com.alibaba.druid.pool.DruidPooledPreparedStatement")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs(METHOD_EXECUTE)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledPreparedStatement$Execute"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs(METHOD_EXECUTE_QUERY)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledPreparedStatement$Execute"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs(METHOD_EXECUTE_UPDATE)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledPreparedStatement$Execute"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndNoArgs(METHOD_EXECUTE_BATCH)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledPreparedStatement$Execute")
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledPreparedStatement$Execute")
                 ),
 
             forClass("com.alibaba.druid.pool.DruidPooledStatement")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods(METHOD_EXECUTE)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledStatement$Execute"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods(METHOD_EXECUTE_QUERY)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledStatement$Execute"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods(METHOD_EXECUTE_UPDATE)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledStatement$Execute"),
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods(METHOD_EXECUTE_BATCH)
-                                                   .to("org.bithon.agent.plugin.jdbc.druid.interceptor.DruidPooledStatement$Execute")
+                                                   .to("org.bithon.agent.plugin.alibaba.druid.interceptor.DruidPooledStatement$Execute")
                 )
         );
     }
