@@ -121,7 +121,9 @@ public class Dispatcher {
 
     public void shutdown() {
         log.info("Shutting down dispatcher task [{}]...", dispatcherName);
-        task.stop();
+        if (task != null) {
+            task.stop();
+        }
 
         // stop underlying message channel
         log.info("Closing message channel [{}]...", dispatcherName);

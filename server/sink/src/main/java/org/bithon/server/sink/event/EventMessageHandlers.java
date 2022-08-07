@@ -18,7 +18,6 @@ package org.bithon.server.sink.event;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.collection.IteratorableCollection;
-import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.event.EventMessage;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.event.IEventWriter;
@@ -46,7 +45,7 @@ public class EventMessageHandlers {
         defaultHandler = new EventMessageHandler() {
             final IEventWriter eventWriter = eventStorage.createWriter();
 
-            final List<EventMessage> batchMessages = new ArrayList<>();
+            List<EventMessage> batchMessages;
 
             @Override
             public String getEventType() {
@@ -54,40 +53,51 @@ public class EventMessageHandlers {
             }
 
             @Override
-            public IInputRow transform(EventMessage eventMessage) {
-                batchMessages.add(eventMessage);
-                return null;
+            public void startProcessing() {
+                batchMessages = new ArrayList<>();
             }
 
             @Override
-            public void process(List<IInputRow> events) throws IOException {
+            public void transform(EventMessage eventMessage) {
+                batchMessages.add(eventMessage);
+            }
+
+            @Override
+            public void finalizeProcessing() throws IOException {
+                if (batchMessages.isEmpty()) {
+                    return;
+                }
                 try {
                     eventWriter.write(batchMessages);
                 } finally {
-                    batchMessages.clear();
+                    // deference this object
+                    batchMessages = null;
                 }
             }
         };
     }
 
     public void handle(IteratorableCollection<EventMessage> iterator) {
-        List<IInputRow> events = new ArrayList<>();
+        // phase 1, process messages for each handler in batch
+        for (EventMessageHandler handler : handlers.values()) {
+            try {
+                handler.startProcessing();
+            } catch (Exception ignored) {
+            }
+        }
 
-        // phase 1, add event message for each handler
+        // phase 2, add event message for each handler
         while (iterator.hasNext()) {
             EventMessage message = iterator.next();
 
             EventMessageHandler handler = handlers.getOrDefault(message.getType(), defaultHandler);
-            IInputRow event = handler.transform(message);
-            if (event != null) {
-                events.add(event);
-            }
+            handler.transform(message);
         }
 
-        // phase 2, process messages for each handler in batch
+        // phase 3, process messages for each handler in batch
         for (EventMessageHandler handler : handlers.values()) {
             try {
-                handler.process(events);
+                handler.finalizeProcessing();
             } catch (Exception e) {
                 log.error("Error to process event[{}]: {}", handler.getEventType(), e.getMessage());
             }

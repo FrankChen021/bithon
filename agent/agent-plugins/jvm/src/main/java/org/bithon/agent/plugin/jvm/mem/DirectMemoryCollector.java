@@ -63,9 +63,9 @@ public class DirectMemoryCollector {
                 break;
             } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
             } catch (Exception e) {
-                if (e.getClass().getName().equals("java.lang.reflect.InaccessibleObjectException")) {
+                if ("java.lang.reflect.InaccessibleObjectException".equals(e.getClass().getName())) {
                     throw new AgentException(
-                        "Bithon requires the access to VM.maxDirectMemory() to monitor the direct memory. Please add this argument(--add-exports java.base/jdk.internal.misc=ALL-UNNAMED) to your application command line to grant access.",
+                        "Bithon requires the access to VM.maxDirectMemory() to monitor the direct memory. For applications running under JRE[%s], please add this argument(--add-exports java.base/jdk.internal.misc=ALL-UNNAMED) to your application command line to grant access.",
                         JmxBeans.RUNTIME_BEAN.getSpecVersion());
                 }
             }
