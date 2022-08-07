@@ -24,7 +24,7 @@ import org.bithon.agent.rpc.brpc.metrics.IMetricCollector;
 import org.bithon.agent.rpc.brpc.setting.ISettingFetcher;
 import org.bithon.agent.rpc.brpc.tracing.ITraceCollector;
 import org.bithon.component.brpc.channel.ServerChannel;
-import org.bithon.server.collector.cmd.api.CommandService;
+import org.bithon.server.collector.cmd.service.CommandService;
 import org.bithon.server.collector.setting.AgentSettingService;
 import org.bithon.server.collector.setting.BrpcSettingFetcher;
 import org.bithon.server.sink.common.service.UriNormalizer;

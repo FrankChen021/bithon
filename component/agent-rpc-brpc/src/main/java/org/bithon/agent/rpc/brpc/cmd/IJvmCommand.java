@@ -29,45 +29,6 @@ import java.util.List;
 @BrpcService
 public interface IJvmCommand {
 
-    class StackFrame {
-        private String className;
-        private String methodName;
-        private String fileName;
-        private int lineNumber;
-
-        public String getClassName() {
-            return className;
-        }
-
-        public void setClassName(String className) {
-            this.className = className;
-        }
-
-        public String getMethodName() {
-            return methodName;
-        }
-
-        public void setMethodName(String methodName) {
-            this.methodName = methodName;
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-
-        public void setFileName(String fileName) {
-            this.fileName = fileName;
-        }
-
-        public int getLineNumber() {
-            return lineNumber;
-        }
-
-        public void setLineNumber(int lineNumber) {
-            this.lineNumber = lineNumber;
-        }
-    }
-
     class ThreadInfo {
         private String name;
         private long threadId;
@@ -76,7 +37,7 @@ public interface IJvmCommand {
         private String state;
         private long cpuTime;
         private long userTime;
-        private List<StackFrame> stacks;
+        private String stacks;
 
         public String getName() {
             return name;
@@ -134,11 +95,11 @@ public interface IJvmCommand {
             this.userTime = userTime;
         }
 
-        public List<StackFrame> getStacks() {
+        public String getStacks() {
             return stacks;
         }
 
-        public void setStacks(List<StackFrame> stacks) {
+        public void setStacks(String stacks) {
             this.stacks = stacks;
         }
     }
