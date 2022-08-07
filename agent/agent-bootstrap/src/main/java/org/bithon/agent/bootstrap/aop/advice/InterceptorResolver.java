@@ -25,7 +25,7 @@ import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 19/2/22 3:47 PM
  */
 public class InterceptorResolver extends FieldDescription.InDefinedShape.AbstractBase {

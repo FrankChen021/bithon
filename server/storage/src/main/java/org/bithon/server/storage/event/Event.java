@@ -19,7 +19,7 @@ package org.bithon.server.storage.event;
 import lombok.Data;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 22/12/21 11:26 AM
  */
 @Data

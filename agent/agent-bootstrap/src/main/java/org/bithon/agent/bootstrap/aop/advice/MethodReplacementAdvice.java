@@ -21,7 +21,7 @@ import shaded.net.bytebuddy.asm.Advice;
 import shaded.net.bytebuddy.implementation.bytecode.assign.Assigner;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 22/2/22 11:25 PM
  */
 public class MethodReplacementAdvice {

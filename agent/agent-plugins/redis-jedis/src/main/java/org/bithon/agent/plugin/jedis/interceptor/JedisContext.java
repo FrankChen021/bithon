@@ -19,7 +19,7 @@ package org.bithon.agent.plugin.jedis.interceptor;
 import org.bithon.agent.core.metric.domain.redis.RedisClientMetrics;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 22/1/22 6:02 PM
  */
 public class JedisContext {

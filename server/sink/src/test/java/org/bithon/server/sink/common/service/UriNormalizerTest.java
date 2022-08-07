@@ -20,7 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 14/2/22 8:53 PM
  */
 public class UriNormalizerTest {

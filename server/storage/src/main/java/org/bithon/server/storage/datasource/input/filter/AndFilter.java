@@ -23,7 +23,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 import java.util.List;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 4/8/22 3:31 PM
  */
 public class AndFilter implements IInputRowFilter {

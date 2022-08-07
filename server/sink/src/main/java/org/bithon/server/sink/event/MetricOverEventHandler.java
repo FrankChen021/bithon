@@ -29,7 +29,7 @@ import org.bithon.server.storage.metrics.IMetricStorage;
 import java.io.IOException;
 
 /**
- * @author frank.chen
+ * @author frank.chen021@outlook.com
  * @date 2022/8/2 22:30
  */
 @Slf4j

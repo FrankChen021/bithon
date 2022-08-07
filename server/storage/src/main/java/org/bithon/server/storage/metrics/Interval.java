@@ -19,7 +19,7 @@ package org.bithon.server.storage.metrics;
 import org.bithon.server.commons.time.TimeSpan;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 1/11/21 3:03 pm
  */
 

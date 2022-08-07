@@ -22,7 +22,7 @@ import lombok.Getter;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 12/4/22 10:59 AM
  */
 public class ChainTransformer implements ITransformer {

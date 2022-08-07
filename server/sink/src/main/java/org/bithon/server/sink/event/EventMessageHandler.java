@@ -24,8 +24,8 @@ import java.util.List;
 /**
  * Processing pipeline:
  * start -> transform ------> finalize
- * ^        |
- * |---------
+ *              ^        |
+ *              |--------
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/14 4:01 下午

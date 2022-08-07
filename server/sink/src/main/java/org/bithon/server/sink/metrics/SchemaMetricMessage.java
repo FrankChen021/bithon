@@ -26,7 +26,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 import java.util.List;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 3/10/21 14:07
  */
 @Data

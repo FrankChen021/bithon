@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 25/3/22 4:54 PM
  */
 public class BetweenMatcher implements IMatcher {

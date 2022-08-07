@@ -21,7 +21,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 1/11/21 4:54 pm
  */
 @Data

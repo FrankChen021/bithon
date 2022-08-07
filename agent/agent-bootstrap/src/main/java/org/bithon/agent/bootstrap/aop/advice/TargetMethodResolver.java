@@ -25,7 +25,7 @@ import shaded.net.bytebuddy.implementation.bytecode.constant.MethodConstant;
 /**
  * See <a href="https://github.com/raphw/byte-buddy/issues/1210">this issue</a> on github for more details
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 22/2/22 8:30 PM
  */
 public class TargetMethodResolver implements Advice.OffsetMapping {

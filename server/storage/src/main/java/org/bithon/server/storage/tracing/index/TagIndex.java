@@ -22,7 +22,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 3/3/22 1:53 PM
  */
 @Getter

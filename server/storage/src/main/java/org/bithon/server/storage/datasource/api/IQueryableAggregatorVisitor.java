@@ -17,7 +17,7 @@
 package org.bithon.server.storage.datasource.api;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 1/11/21 3:12 pm
  */
 public interface IQueryableAggregatorVisitor<T> {

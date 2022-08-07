@@ -21,7 +21,7 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 1/11/21 5:21 pm
  */
 class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {

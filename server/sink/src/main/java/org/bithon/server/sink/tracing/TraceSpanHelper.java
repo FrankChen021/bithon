@@ -23,7 +23,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.Map;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 30/3/22 10:50 PM
  */
 public class TraceSpanHelper {

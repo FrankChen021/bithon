@@ -22,7 +22,7 @@ import shaded.io.netty.util.internal.StringUtil;
 import java.lang.reflect.Method;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 20/10/21 9:20 pm
  */
 public class ServiceConfiguration {

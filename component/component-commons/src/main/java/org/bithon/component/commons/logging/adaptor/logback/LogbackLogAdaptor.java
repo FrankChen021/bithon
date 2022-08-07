@@ -20,7 +20,7 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.slf4j.Logger;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 26/12/21 6:35 PM
  */
 public class LogbackLogAdaptor implements ILogAdaptor {

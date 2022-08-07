@@ -19,7 +19,7 @@ package org.bithon.server.storage.setting;
 import java.util.Map;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 4/11/21 3:15 pm
  */
 public interface ISettingReader {

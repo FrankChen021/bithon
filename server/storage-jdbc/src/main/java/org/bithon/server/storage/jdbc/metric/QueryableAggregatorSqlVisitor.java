@@ -24,7 +24,7 @@ import org.bithon.server.storage.datasource.api.IQueryableAggregatorVisitor;
 import org.bithon.server.storage.datasource.api.SimpleAggregator;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 1/11/21 3:11 pm
  */
 public class QueryableAggregatorSqlVisitor implements IQueryableAggregatorVisitor<String> {

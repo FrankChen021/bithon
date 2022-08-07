@@ -19,7 +19,7 @@ package org.bithon.server.storage.setting;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 4/11/21 3:14 pm
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")

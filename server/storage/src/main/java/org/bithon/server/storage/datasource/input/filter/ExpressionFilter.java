@@ -40,7 +40,7 @@ import java.util.Locale;
 import java.util.function.Function;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 4/8/22 4:38 PM
  */
 public class ExpressionFilter implements IInputRowFilter {

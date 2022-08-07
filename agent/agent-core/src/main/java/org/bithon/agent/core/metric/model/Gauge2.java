@@ -19,7 +19,7 @@ package org.bithon.agent.core.metric.model;
 import java.util.function.LongSupplier;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 23/1/22 11:31 AM
  */
 public class Gauge2 implements IMetricValueProvider {

@@ -24,7 +24,7 @@ import javax.validation.constraints.NotNull;
 /**
  * count(distinct )
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 1/11/21 2:37 pm
  */
 public class CardinalityAggregator implements IQueryableAggregator {

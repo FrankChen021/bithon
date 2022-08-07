@@ -24,7 +24,7 @@ import org.bithon.server.storage.jdbc.jooq.Tables;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 4/11/21 3:34 pm
  */
 @JsonTypeName("clickhouse")

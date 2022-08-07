@@ -29,7 +29,7 @@ import org.junit.Test;
 import java.util.HashMap;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 12/4/22 12:18 AM
  */
 public class TreePathFlattenerTest {

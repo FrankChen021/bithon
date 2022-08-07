@@ -52,7 +52,7 @@ import java.util.function.BiConsumer;
 /**
  * {@link org.springframework.http.server.reactive.ReactorHttpHandlerAdapter#apply}
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 7/10/21 3:16 pm
  */
 public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {

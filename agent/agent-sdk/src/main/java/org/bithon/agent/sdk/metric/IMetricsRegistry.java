@@ -17,7 +17,7 @@
 package org.bithon.agent.sdk.metric;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 2021-10-01
  */
 public interface IMetricsRegistry<T> {

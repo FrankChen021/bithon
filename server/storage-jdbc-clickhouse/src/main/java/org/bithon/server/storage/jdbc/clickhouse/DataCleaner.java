@@ -24,7 +24,7 @@ import org.jooq.Table;
 import java.util.List;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 28/7/22 1:15 PM
  */
 @Slf4j

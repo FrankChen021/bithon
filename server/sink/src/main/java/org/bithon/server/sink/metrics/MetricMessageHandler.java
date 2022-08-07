@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * A generic message handler
  *
- * @author frank.chen
+ * @author frank.chen021@outlook.com
  * @date 2022/7/31 11:24
  */
 public class MetricMessageHandler extends AbstractMetricMessageHandler {

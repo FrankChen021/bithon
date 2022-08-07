@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 29/7/22 10:06 PM
  */
 public class JvmEventMessageBuilder {

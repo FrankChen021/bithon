@@ -23,7 +23,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 import java.util.List;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 9/12/21 2:17 PM
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")

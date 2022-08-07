@@ -17,7 +17,7 @@
 package org.bithon.agent.core.metric.model.schema;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 2021-10-02
  */
 public interface IDimensionSpec {

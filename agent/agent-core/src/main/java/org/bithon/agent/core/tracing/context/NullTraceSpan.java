@@ -22,7 +22,7 @@ import java.lang.reflect.Executable;
 import java.util.Map;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 22/10/21 9:16 pm
  */
 public class NullTraceSpan implements ITraceSpan {

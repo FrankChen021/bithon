@@ -20,7 +20,7 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 17/12/21 10:17 AM
  */
 public class InvalidConfigurationException extends RuntimeException {

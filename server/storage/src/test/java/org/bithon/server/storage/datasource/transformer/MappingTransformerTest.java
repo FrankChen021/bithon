@@ -28,7 +28,7 @@ import org.junit.Test;
 import java.util.HashMap;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 11/4/22 11:37 PM
  */
 public class MappingTransformerTest {

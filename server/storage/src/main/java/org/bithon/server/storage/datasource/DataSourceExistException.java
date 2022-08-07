@@ -17,7 +17,7 @@
 package org.bithon.server.storage.datasource;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 8/4/22 11:49 am
  */
 public class DataSourceExistException extends RuntimeException {

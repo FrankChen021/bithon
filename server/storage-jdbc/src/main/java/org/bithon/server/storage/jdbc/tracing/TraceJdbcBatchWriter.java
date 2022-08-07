@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
  * But for trace, there's no such aggregation layer which may result in high QPS of insert.
  * Since I'm not focusing on the implementation detail now, perfect solution is left in the future.
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 24/12/21
  */
 @Slf4j

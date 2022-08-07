@@ -17,7 +17,7 @@
 package org.bithon.agent.core.metric.model;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 23/1/22 11:12 AM
  */
 public interface IMetricValueProvider {

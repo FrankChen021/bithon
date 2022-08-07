@@ -24,7 +24,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import javax.validation.constraints.NotNull;
 
 /**
- * @author frank.chen
+ * @author frank.chen021@outlook.com
  * @date 2022/8/6 17:30
  */
 public class CountAggregator implements IQueryableAggregator {

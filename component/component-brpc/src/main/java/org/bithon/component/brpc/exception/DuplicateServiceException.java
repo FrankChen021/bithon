@@ -19,7 +19,7 @@ package org.bithon.component.brpc.exception;
 import java.lang.reflect.Method;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 20/10/21 9:50 pm
  */
 public class DuplicateServiceException extends ServiceRegistrationException {

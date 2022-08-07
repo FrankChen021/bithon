@@ -21,7 +21,7 @@ import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 13/4/22 6:25 PM
  */
 public class NamedForkJoinThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {

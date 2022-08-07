@@ -22,7 +22,7 @@ import lombok.Getter;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 13/4/22 4:57 PM
  */
 public class AddFieldTransformer implements ITransformer {

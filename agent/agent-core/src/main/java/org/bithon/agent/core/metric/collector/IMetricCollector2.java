@@ -19,7 +19,7 @@ package org.bithon.agent.core.metric.collector;
 import org.bithon.agent.core.dispatcher.IMessageConverter;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 2021-10-03
  */
 public interface IMetricCollector2 extends IMetricCollectorBase {

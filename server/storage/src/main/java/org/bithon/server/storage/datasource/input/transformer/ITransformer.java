@@ -27,7 +27,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
  * <p>
  * The transformer produces values for this new field based on looking at the entire input row.
  *
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {

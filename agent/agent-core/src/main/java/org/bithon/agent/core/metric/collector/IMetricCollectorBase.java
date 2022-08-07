@@ -17,7 +17,7 @@
 package org.bithon.agent.core.metric.collector;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 3/10/21 11:18
  */
 public interface IMetricCollectorBase {

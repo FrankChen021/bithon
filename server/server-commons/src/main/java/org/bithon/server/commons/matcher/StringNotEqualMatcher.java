@@ -23,7 +23,7 @@ import lombok.Getter;
 import javax.validation.constraints.NotNull;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 8/1/22 2:41 PM
  */
 public class StringNotEqualMatcher implements IMatcher {

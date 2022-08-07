@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 14/4/22 3:46 PM
  */
 public class NumberUtilsTest {

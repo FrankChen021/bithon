@@ -34,7 +34,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 24/11/21 7:06 pm
  */
 @Data

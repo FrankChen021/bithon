@@ -17,7 +17,7 @@
 package org.bithon.agent;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  */
 public final class AgentBuildVersion {
 

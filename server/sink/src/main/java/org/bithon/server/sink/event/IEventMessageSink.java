@@ -22,7 +22,7 @@ import org.bithon.component.commons.collection.IteratorableCollection;
 import org.bithon.server.storage.event.EventMessage;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 9/12/21 2:23 PM
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")

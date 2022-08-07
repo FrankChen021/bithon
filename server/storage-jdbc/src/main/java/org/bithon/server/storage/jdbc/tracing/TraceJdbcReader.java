@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.TreeMap;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 30/12/20
  */
 public class TraceJdbcReader implements ITraceReader {

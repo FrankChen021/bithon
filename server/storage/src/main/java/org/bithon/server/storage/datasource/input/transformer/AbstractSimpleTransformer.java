@@ -20,7 +20,7 @@ import lombok.Getter;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 11/4/22 11:54 PM
  */
 public abstract class AbstractSimpleTransformer implements ITransformer {

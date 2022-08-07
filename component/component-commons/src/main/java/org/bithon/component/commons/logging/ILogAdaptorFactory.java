@@ -17,7 +17,7 @@
 package org.bithon.component.commons.logging;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 26/12/21 5:17 PM
  */
 public interface ILogAdaptorFactory {

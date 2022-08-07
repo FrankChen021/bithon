@@ -24,7 +24,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import javax.validation.constraints.NotNull;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 5/8/22 4:56 PM
  */
 public class GroupConcatAggregator implements IQueryableAggregator {

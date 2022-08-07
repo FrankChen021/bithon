@@ -27,7 +27,7 @@ import org.bithon.server.storage.setting.ISettingStorage;
 import org.jooq.DSLContext;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 4/11/21 3:18 pm
  */
 @JsonTypeName("jdbc")

@@ -25,7 +25,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 import java.util.Map;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 11/4/22 11:17 PM
  */
 public class TreePathFlattener implements IFlattener {

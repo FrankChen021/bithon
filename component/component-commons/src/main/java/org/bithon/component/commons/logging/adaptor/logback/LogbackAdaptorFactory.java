@@ -21,7 +21,7 @@ import org.bithon.component.commons.logging.ILogAdaptorFactory;
 import org.slf4j.impl.StaticLoggerBinder;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 26/12/21 6:35 PM
  */
 public class LogbackAdaptorFactory implements ILogAdaptorFactory {

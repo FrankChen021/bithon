@@ -17,7 +17,7 @@
 package org.bithon.component.commons.utils;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 23/3/22 2:38 PM
  */
 public class Preconditions {

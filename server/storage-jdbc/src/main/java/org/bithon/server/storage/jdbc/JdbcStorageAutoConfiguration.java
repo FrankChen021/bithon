@@ -41,7 +41,7 @@ import org.springframework.context.annotation.Primary;
 import javax.sql.DataSource;
 
 /**
- * @author Frank Chen
+ * @author frank.chen021@outlook.com
  * @date 25/10/21 9:45 pm
  */
 @Configuration
