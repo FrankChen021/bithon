@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.druid.interceptor;
+package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
@@ -26,8 +26,8 @@ import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.bithon.agent.core.utils.MiscUtils;
-import org.bithon.agent.plugin.jdbc.druid.DruidPlugin;
-import org.bithon.agent.plugin.jdbc.druid.config.DruidPluginConfig;
+import org.bithon.agent.plugin.alibaba.druid.DruidPlugin;
+import org.bithon.agent.plugin.alibaba.druid.config.DruidPluginConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 

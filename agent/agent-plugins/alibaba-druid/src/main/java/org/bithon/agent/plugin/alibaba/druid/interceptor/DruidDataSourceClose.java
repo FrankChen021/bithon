@@ -14,26 +14,22 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.druid.config;
+package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
-import org.bithon.agent.core.config.ConfigurationProperties;
-import shaded.com.fasterxml.jackson.annotation.JsonProperty;
+import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
+import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 23/1/22 7:20 PM
+ * @author frankchen
  */
-@ConfigurationProperties(prefix = "agent.plugin.jdbc.druid")
-public class DruidPluginConfig {
+public class DruidDataSourceClose extends AbstractInterceptor {
 
-    @JsonProperty
-    private boolean isSQLMetricEnabled = false;
+    @Override
+    public InterceptionDecision onMethodEnter(AopContext context) {
+        MonitoredSourceManager.getInstance().rmvDataSource(context.castTargetAs());
 
-    public void setSQLMetricEnabled(boolean isSQLMetricEnabled) {
-        this.isSQLMetricEnabled = isSQLMetricEnabled;
-    }
-
-    public boolean isSQLMetricEnabled() {
-        return isSQLMetricEnabled;
+        return InterceptionDecision.SKIP_LEAVE;
     }
 }

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.druid.metric;
+package org.bithon.agent.plugin.alibaba.druid.metric;
 
 import org.bithon.agent.core.metric.collector.MetricRegistry;
 import org.bithon.agent.core.metric.collector.MetricRegistryFactory;

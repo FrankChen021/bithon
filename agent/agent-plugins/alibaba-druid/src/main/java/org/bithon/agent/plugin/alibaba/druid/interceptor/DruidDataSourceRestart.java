@@ -14,24 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.plugin.jdbc.druid.interceptor;
+package org.bithon.agent.plugin.alibaba.druid.interceptor;
 
+import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.plugin.alibaba.druid.metric.MonitoredSourceManager;
 
 /**
  * @author frankchen
- * @date 2022-07-27
  */
-public class DruidPooledStatement$Execute extends DruidStatementAbstractExecute {
+public class DruidDataSourceRestart extends AbstractInterceptor {
 
     @Override
-    protected String getExecutingSql(AopContext aopContext) {
-        Object[] args = aopContext.getArgs();
-        if (args != null && args.length > 0) {
-            return args[0].toString();
-        }
-
-        // TODO: executeBatch has no argument, the sql should be retrieved in another way
-        return null;
+    public void onMethodLeave(AopContext aopContext) {
+        MonitoredSourceManager.getInstance().addDataSource(aopContext.castTargetAs());
     }
 }

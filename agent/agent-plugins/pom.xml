@@ -15,11 +15,11 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>alibaba-druid</module>
     <module>apache-druid</module>
     <module>bithon-brpc</module>
     <module>bithon-sdk</module>
     <module>guice</module>
-    <module>jdbc-druid</module>
     <module>jvm</module>
     <module>mysql-5.x-6.x</module>
     <module>mysql-8.x</module>
@@ -110,7 +110,7 @@
     <!-- SQL -->
     <dependency>
       <groupId>org.bithon.agent</groupId>
-      <artifactId>agent-plugin-jdbc-druid</artifactId>
+      <artifactId>agent-plugin-alibaba-druid</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
