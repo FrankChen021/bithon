@@ -154,10 +154,10 @@ public class ServerChannel implements Closeable {
                                          serviceClass);
     }
 
-    public <T> List<T> getRemoteService(String client, Class<T> serviceClass) {
+    public <T> List<T> getRemoteService(String appName, Class<T> serviceClass) {
 
         List<T> services = new ArrayList<>();
-        this.clientChannelManager.getApp2Channels().getOrDefault(client, Collections.emptySet()).forEach(channel -> {
+        this.clientChannelManager.getApp2Channels().getOrDefault(appName, Collections.emptySet()).forEach(channel -> {
             T service = ServiceStubFactory.create(null,
                                                   new Server2ClientChannelWriter(channel),
                                                   serviceClass);

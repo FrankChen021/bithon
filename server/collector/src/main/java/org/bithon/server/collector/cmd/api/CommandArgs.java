@@ -16,23 +16,28 @@
 
 package org.bithon.server.collector.cmd.api;
 
-import org.bithon.component.brpc.channel.ServerChannel;
-import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+
+import javax.validation.constraints.NotNull;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2021/7/2 5:20 下午
+ * @author Frank Chen
+ * @date 2022/8/7 21:20
  */
-@Service
-public class CommandService {
+public class CommandArgs<T> {
+    @NotNull
+    @Getter
+    private final ClientApplication client;
 
-    private ServerChannel serverChannel;
+    @Getter
+    private final T args;
 
-    public ServerChannel getServerChannel() {
-        return serverChannel;
-    }
-
-    public void setServerChannel(ServerChannel serverChannel) {
-        this.serverChannel = serverChannel;
+    @JsonCreator
+    public CommandArgs(@JsonProperty("client") ClientApplication client,
+                       @JsonProperty("args") T args) {
+        this.client = client;
+        this.args = args;
     }
 }
