@@ -39,5 +39,5 @@ public interface IQueryStageAggregatorVisitor<T> {
 
     T visit(QueryStageAggregators.SumAggregator aggregator);
 
-    T visit(GroupConcatAggregator groupConcatAggregator);
+    T visit(QueryStageAggregators.GroupConcatAggregator aggregator);
 }

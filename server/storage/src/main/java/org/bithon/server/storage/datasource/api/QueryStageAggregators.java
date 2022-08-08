@@ -19,6 +19,7 @@ package org.bithon.server.storage.datasource.api;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import org.bithon.component.commons.utils.Preconditions;
 
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
@@ -219,6 +220,28 @@ public class QueryStageAggregators {
         @JsonCreator
         public RateAggregator(@JsonProperty("name") @NotNull String name) {
             super(name, TYPE);
+        }
+
+        @Override
+        public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    public static class GroupConcatAggregator implements IQueryStageAggregator {
+
+        public static final String TYPE = "groupConcat";
+        @Getter
+        private final String name;
+
+        @Getter
+        private final String field;
+
+        @JsonCreator
+        public GroupConcatAggregator(@JsonProperty("name") @NotNull String name,
+                                     @JsonProperty("field") @NotNull String field) {
+            this.name = Preconditions.checkArgumentNotNull("name", name);
+            this.field = Preconditions.checkArgumentNotNull("field", field);
         }
 
         @Override

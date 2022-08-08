@@ -17,7 +17,6 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.api.GroupConcatAggregator;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregatorVisitor;
 import org.bithon.server.storage.datasource.api.QueryStageAggregators;
 
@@ -50,8 +49,8 @@ public class QueryStageAggregatorSQLGenerator implements IQueryStageAggregatorVi
     }
 
     @Override
-    public String visit(GroupConcatAggregator groupConcatAggregator) {
-        return formatter.stringAggregator(groupConcatAggregator.getField(), groupConcatAggregator.getName());
+    public String visit(QueryStageAggregators.GroupConcatAggregator aggregator) {
+        return formatter.stringAggregator(aggregator.getField(), aggregator.getName());
     }
 
     @Override

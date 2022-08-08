@@ -35,7 +35,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(name = QueryStageAggregators.FirstAggregator.TYPE, value = QueryStageAggregators.FirstAggregator.class),
     @JsonSubTypes.Type(name = QueryStageAggregators.LastAggregator.TYPE, value = QueryStageAggregators.LastAggregator.class),
     @JsonSubTypes.Type(name = QueryStageAggregators.RateAggregator.TYPE, value = QueryStageAggregators.RateAggregator.class),
-    @JsonSubTypes.Type(name = GroupConcatAggregator.TYPE, value = GroupConcatAggregator.class),
+    @JsonSubTypes.Type(name = QueryStageAggregators.GroupConcatAggregator.TYPE, value = QueryStageAggregators.GroupConcatAggregator.class),
 })
 public interface IQueryStageAggregator {
 
