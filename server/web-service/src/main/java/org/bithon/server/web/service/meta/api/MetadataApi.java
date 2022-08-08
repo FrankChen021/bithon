@@ -19,7 +19,6 @@ package org.bithon.server.web.service.meta.api;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.meta.Metadata;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,7 +31,7 @@ import java.util.Collection;
  */
 @CrossOrigin
 @RestController
-public class MetadataApi {
+public class MetadataApi implements IMetadataApi {
 
     private final IMetaStorage metaStorage;
 
@@ -40,13 +39,17 @@ public class MetadataApi {
         this.metaStorage = metaStorage;
     }
 
-    @Deprecated
-    @PostMapping("/api/meta/getMetadataList")
+    @Override
+    public boolean isApplicationExist(String appName) {
+        return metaStorage.isApplicationExist(appName);
+    }
+
+    @Override
     public Collection<Metadata> getMetadataList(@Valid @RequestBody GetMetadataListRequest request) {
         return metaStorage.getApplications(null, System.currentTimeMillis() - 3600_000 * 24);
     }
 
-    @PostMapping("/api/meta/getApplications")
+    @Override
     public Collection<Metadata> getApplications(@Valid @RequestBody GetApplicationsRequest request) {
         return metaStorage.getApplications(request.getAppType(), request.getSince());
     }

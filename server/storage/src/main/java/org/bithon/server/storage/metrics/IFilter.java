@@ -16,6 +16,7 @@
 
 package org.bithon.server.storage.metrics;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.commons.matcher.IMatcher;
@@ -35,6 +36,8 @@ public interface IFilter {
     String TYPE_METRIC = "metric";
 
     String getName();
+
+    @JsonIgnore
     String getType();
 
     IMatcher getMatcher();

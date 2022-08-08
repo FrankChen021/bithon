@@ -56,12 +56,14 @@ public class DataSourceSchemaManager implements InitializingBean, DisposableBean
 
     public boolean addDataSourceSchema(DataSourceSchema schema) {
         if (schemas.putIfAbsent(schema.getName(), schema) == null) {
-            try {
-                schemaStorage.putIfNotExist(schema.getName(), schema);
-            } catch (IOException e) {
-                log.error("Can't save schema [{}} for: [{}]", schema.getName(), e.getMessage());
-                schemas.remove(schema.getName());
-                throw new RuntimeException(e);
+            if (!schema.isVirtual()) {
+                try {
+                    schemaStorage.putIfNotExist(schema.getName(), schema);
+                } catch (IOException e) {
+                    log.error("Can't save schema [{}} for: [{}]", schema.getName(), e.getMessage());
+                    schemas.remove(schema.getName());
+                    throw new RuntimeException(e);
+                }
             }
 
             for (IDataSourceSchemaListener listener : listeners) {

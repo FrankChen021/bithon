@@ -27,7 +27,7 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 5/8/22 4:56 PM
  */
-public class GroupConcatAggregator implements IQueryableAggregator {
+public class GroupConcatAggregator implements IQueryStageAggregator {
 
     public static final String TYPE = "groupConcat";
     @Getter
@@ -44,7 +44,7 @@ public class GroupConcatAggregator implements IQueryableAggregator {
     }
 
     @Override
-    public <T> T accept(IQueryableAggregatorVisitor<T> visitor) {
+    public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

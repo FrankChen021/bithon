@@ -22,6 +22,7 @@ import org.bithon.server.commons.matcher.BetweenMatcher;
 import org.bithon.server.commons.matcher.GreaterThanMatcher;
 import org.bithon.server.commons.matcher.GreaterThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.IMatcherVisitor;
+import org.bithon.server.commons.matcher.InMatcher;
 import org.bithon.server.commons.matcher.LessThanMatcher;
 import org.bithon.server.commons.matcher.LessThanOrEqualMatcher;
 import org.bithon.server.commons.matcher.StringAntPathMatcher;
@@ -153,6 +154,12 @@ public class SQLFilterBuilder implements IMatcherVisitor<String> {
         sb.append(matcher.getUpper());
         return sb.toString();
     }
+
+    @Override
+    public String visit(InMatcher inMatcher) {
+        return null;
+    }
+
 
     /**
      * use qualified name because there might be an aggregated field with the same name

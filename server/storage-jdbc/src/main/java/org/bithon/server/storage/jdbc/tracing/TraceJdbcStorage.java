@@ -23,18 +23,16 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.tracing.TraceConfig;
+import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.jdbc.JdbcJooqContextHolder;
 import org.bithon.server.storage.jdbc.jooq.Tables;
-import org.bithon.server.storage.tracing.ITraceCleaner;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.ITraceWriter;
 import org.bithon.server.storage.tracing.TraceStorageConfig;
 import org.jooq.DSLContext;
-
-import java.sql.Timestamp;
 
 /**
  * @author frank.chen021@outlook.com
@@ -103,10 +101,8 @@ public class TraceJdbcStorage implements ITraceStorage {
     }
 
     @Override
-    public ITraceCleaner createCleaner() {
-        return beforeTimestamp -> {
-            Timestamp before = new Timestamp(beforeTimestamp);
-
+    public IStorageCleaner createCleaner() {
+        return before -> {
             dslContext.deleteFrom(Tables.BITHON_TRACE_SPAN)
                       .where(Tables.BITHON_TRACE_SPAN.TIMESTAMP.le(before))
                       .execute();

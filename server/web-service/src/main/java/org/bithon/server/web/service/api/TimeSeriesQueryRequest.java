@@ -16,10 +16,12 @@
 
 package org.bithon.server.web.service.api;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bithon.server.storage.metrics.IFilter;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.util.Collections;
@@ -30,6 +32,9 @@ import java.util.List;
  * @date 2022/1/9 1:03 下午
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TimeSeriesQueryRequest {
     @NotEmpty
     private String startTimeISO8601;
@@ -40,12 +45,10 @@ public class TimeSeriesQueryRequest {
     @NotEmpty
     private String dataSource;
 
-    @Valid
-    @Size(min = 1)
-    private List<IFilter> dimensions;
-
     @Size(min = 1)
     private List<String> metrics;
 
     private List<String> groups = Collections.emptyList();
+
+    private List<IFilter> filters;
 }

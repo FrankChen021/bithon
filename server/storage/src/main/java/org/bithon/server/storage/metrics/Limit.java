@@ -14,24 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.event;
+package org.bithon.server.storage.metrics;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.common.IStorageCleaner;
+import lombok.Data;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * @date 17/4/22 5:23 PM
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IEventStorage {
+@Data
+public class Limit {
+    public static Limit DEFAULT = new Limit();
 
-    default void initialize() {
-    }
-
-    IEventWriter createWriter();
-
-    IEventReader createReader();
-
-    IStorageCleaner createCleaner();
+    private int limit = 10;
+    private int offset = 0;
 }

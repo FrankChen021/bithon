@@ -29,4 +29,7 @@ public interface IEventReader extends AutoCloseable {
     List<Event> getEventList(List<IFilter> filters, TimeSpan start, TimeSpan end, int pageNumber, int pageSize);
 
     int getEventListSize(List<IFilter> filters, TimeSpan start, TimeSpan end);
+
+    default void close() {
+    }
 }

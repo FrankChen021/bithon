@@ -17,16 +17,27 @@
 package org.bithon.server.storage.datasource.api;
 
 /**
- * @author frank.chen021@outlook.com
+ * @author Frank Chen
  * @date 1/11/21 3:12 pm
  */
-public interface IQueryableAggregatorVisitor<T> {
+public interface IQueryStageAggregatorVisitor<T> {
+    T visit(QueryStageAggregators.CardinalityAggregator aggregator);
 
-    T visit(CardinalityAggregator aggregator);
+    T visit(QueryStageAggregators.CountAggregator aggregator);
 
-    T visit(GroupConcatAggregator aggregator);
+    T visit(QueryStageAggregators.AvgAggregator aggregator);
 
-    T visit(CountAggregator aggregator);
+    T visit(QueryStageAggregators.FirstAggregator aggregator);
 
-    T visit(SimpleAggregator simpleAggregator);
+    T visit(QueryStageAggregators.LastAggregator aggregator);
+
+    T visit(QueryStageAggregators.RateAggregator aggregator);
+
+    T visit(QueryStageAggregators.MaxAggregator aggregator);
+
+    T visit(QueryStageAggregators.MinAggregator aggregator);
+
+    T visit(QueryStageAggregators.SumAggregator aggregator);
+
+    T visit(GroupConcatAggregator groupConcatAggregator);
 }

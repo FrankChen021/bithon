@@ -16,28 +16,31 @@
 
 package org.bithon.server.storage.metrics;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.common.IStorageCleaner;
+import lombok.Builder;
+import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 
-import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 2020/12/1 4:53 下午
- * <p>
- * use ObjectMapper.registerSubTypes to register type of sub-class for deserialization
+ * @author Frank Chen
+ * @date 1/11/21 2:50 pm
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IMetricStorage {
+@Getter
+@Builder
+public class TimeseriesQueryV2 {
+    private DataSourceSchema dataSource;
 
-    IMetricWriter createMetricWriter(DataSourceSchema schema) throws IOException;
+    private List<IQueryStageAggregator> aggregators;
 
-    IMetricReader createMetricReader(DataSourceSchema schema);
+    private Collection<IFilter> filters = Collections.emptyList();
+    private Interval interval;
 
-    IStorageCleaner createMetricCleaner(DataSourceSchema schema);
-
-    default void initialize() {
-
-    }
+    /**
+     * time series also have groupBy, in this case, there will be multiple series
+     */
+    private List<String> groupBys = Collections.emptyList();
 }

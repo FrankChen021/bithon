@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.configurer;
+package org.bithon.server.storage;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;

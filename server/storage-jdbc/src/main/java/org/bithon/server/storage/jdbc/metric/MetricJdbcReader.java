@@ -39,6 +39,7 @@ import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.OrderBy;
 import org.bithon.server.storage.metrics.TimeseriesQuery;
+import org.bithon.server.storage.metrics.TimeseriesQueryV2;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -51,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -61,8 +63,8 @@ public class MetricJdbcReader implements IMetricReader {
 
     private static final String TIMESTAMP_QUERY_NAME = "_timestamp";
 
-    private final DSLContext dsl;
-    private final ISqlExpressionFormatter sqlFormatter;
+    protected final DSLContext dsl;
+    protected final ISqlExpressionFormatter sqlFormatter;
 
     public MetricJdbcReader(DSLContext dsl, ISqlExpressionFormatter sqlFormatter) {
         this.dsl = dsl;
@@ -75,10 +77,45 @@ public class MetricJdbcReader implements IMetricReader {
                                                     query.getInterval().getStartTime(),
                                                     query.getInterval().getEndTime(),
                                                     query.getDataSource(),
-                                                    query.getInterval().getStepLength()).filters(query.getFilters())
-                                                                                        .metrics(query.getMetrics())
-                                                                                        .groupBy(query.getGroupBys())
-                                                                                        .build();
+                                                    query.getInterval().getStep()).filters(query.getFilters())
+                                                                                  .metrics(query.getMetrics())
+                                                                                  .groupBy(query.getGroupBys())
+                                                                                  .build();
+        return executeSql(sql);
+    }
+
+    @Override
+    public List<Map<String, Object>> timeseries(TimeseriesQueryV2 query) {
+        String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
+
+        String aggregatorList = "";
+        if (!query.getAggregators().isEmpty()) {
+            QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter, query.getInterval().getTotalLength());
+            aggregatorList = query.getAggregators()
+                                  .stream()
+                                  .map(aggregator -> aggregator.accept(generator))
+                                  .collect(Collectors.joining(","));
+        }
+
+        String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
+
+        String groupByFields = query.getGroupBys().stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
+
+        String timestampExpression = sqlFormatter.timeFloor("timestamp", query.getInterval().getStep());
+
+        String sql = StringUtils.format(
+            "SELECT  %s AS \"_timestamp\", %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s ORDER BY _timestamp",
+            timestampExpression,
+            Stream.of(groupByFields, aggregatorList)
+                  .filter(selector -> selector.length() > 0)
+                  .collect(Collectors.joining(",")),
+            sqlTableName,
+            filter,
+            StringUtils.hasText(filter) ? "AND" : "",
+            sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
+            sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
+            sqlFormatter.groupByUseRawExpression() ? timestampExpression : TIMESTAMP_QUERY_NAME
+        );
         return executeSql(sql);
     }
 
@@ -86,9 +123,7 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> groupBy(GroupByQuery query) {
         String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
 
-        MetricFieldsClauseBuilder metricFieldsBuilder = new MetricFieldsClauseBuilder(this.sqlFormatter,
-                                                                                      sqlTableName,
-                                                                                      "OUTER",
+        MetricFieldsClauseBuilder metricFieldsBuilder = this.createMetriClauseBuilder(sqlTableName,
                                                                                       query.getDataSource(),
                                                                                       ImmutableMap.of("interval",
                                                                                                       query.getInterval().getTotalLength()));
@@ -98,40 +133,49 @@ public class MetricJdbcReader implements IMetricReader {
                                  .stream()
                                  .map(m -> query.getDataSource().getMetricSpecByName(m))
                                  .filter(metricSpec -> !(metricSpec instanceof PostAggregatorMetricSpec))
-                                 .map(metricSpec -> ", " + metricSpec.accept(metricFieldsBuilder))
-                                 .collect(Collectors.joining());
+                                 .map(metricSpec -> metricSpec.accept(metricFieldsBuilder))
+                                 .collect(Collectors.joining(","));
 
         String postAggregatorMetrics = query.getMetrics()
                                             .stream()
                                             .map(m -> query.getDataSource().getMetricSpecByName(m))
                                             .filter(metricSpec -> (metricSpec instanceof PostAggregatorMetricSpec))
-                                            .map(metricSpec -> ", " + metricSpec.accept(metricFieldsBuilder))
-                                            .collect(Collectors.joining());
+                                            .map(metricSpec -> metricSpec.accept(metricFieldsBuilder))
+                                            .collect(Collectors.joining(","));
 
-        String aggregatorList = query.getAggregators()
-                                     .stream()
-                                     .map(aggregator -> ", " + aggregator.accept(new QueryableAggregatorSqlVisitor(this.sqlFormatter)))
-                                     .collect(Collectors.joining());
+
+        String aggregatorList = "";
+        if (!query.getAggregators().isEmpty()) {
+            QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter, query.getInterval().getTotalLength());
+            aggregatorList = query.getAggregators()
+                                  .stream()
+                                  .map(aggregator -> aggregator.accept(generator))
+                                  .collect(Collectors.joining(","));
+        }
 
         String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
 
         String groupByFields = query.getGroupBys().stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
 
         String sql = StringUtils.format(
-            "SELECT %s %s %s %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s %s",
-            groupByFields,
-            metricList,
-            postAggregatorMetrics,
-            aggregatorList,
+            "SELECT %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s %s %s %s",
+            Stream.of(groupByFields, metricList, postAggregatorMetrics, aggregatorList)
+                  .filter(selector -> selector.length() > 0)
+                  .collect(Collectors.joining(",")),
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
             sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
             sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
+            groupByFields.length() > 0 ? "GROUP BY" : "",
             groupByFields,
             getOrderBySQL(query.getOrderBy())
         );
         return executeSql(sql);
+    }
+
+    protected MetricFieldsClauseBuilder createMetriClauseBuilder(String tableName, DataSourceSchema dataSource, Map<String, Object> variables) {
+        return new MetricFieldsClauseBuilder(this.sqlFormatter, tableName, "OUTER", dataSource, variables);
     }
 
     private String getOrderBySQL(OrderBy orderBy) {
@@ -224,8 +268,9 @@ public class MetricJdbcReader implements IMetricReader {
         log.info("Executing {}", sql);
         List<Record> records = dsl.fetch(sql);
         return records.stream().map(record -> {
-            Map<String, String> mapObject = new HashMap<>();
-            for (Field<?> field : record.fields()) {
+            Field<?>[] fields = record.fields();
+            Map<String, String> mapObject = new HashMap<>(fields.length);
+            for (Field<?> field : fields) {
                 mapObject.put("value", record.get(field).toString());
             }
             return mapObject;
@@ -280,17 +325,17 @@ public class MetricJdbcReader implements IMetricReader {
      */
     public static class MetricFieldsClauseBuilder implements IMetricSpecVisitor<String> {
 
-        private final String sqlTableName;
-        private final String tableAlias;
-        private final DataSourceSchema dataSource;
-        private final boolean addAlias;
-        private final Map<String, Object> variables;
+        protected final String sqlTableName;
+        protected final String tableAlias;
+        protected final DataSourceSchema dataSource;
+        protected final boolean addAlias;
+        protected final Map<String, Object> variables;
 
         /**
          * used to keep which metrics current SQL are using
          */
-        private final Set<String> metrics;
-        private final ISqlExpressionFormatter sqlExpressionFormatter;
+        protected final Set<String> metrics;
+        protected final ISqlExpressionFormatter sqlExpressionFormatter;
 
         public MetricFieldsClauseBuilder(ISqlExpressionFormatter sqlExpressionFormatter,
                                          String sqlTableName,
@@ -313,6 +358,20 @@ public class MetricJdbcReader implements IMetricReader {
             this.variables = variables;
             this.addAlias = addAlias;
             this.metrics = new HashSet<>();
+        }
+
+        public MetricFieldsClauseBuilder clone(ISqlExpressionFormatter sqlExpressionFormatter,
+                                               String sqlTableName,
+                                               String tableAlias,
+                                               DataSourceSchema dataSource,
+                                               Map<String, Object> variables,
+                                               boolean addAlias) {
+            return new MetricFieldsClauseBuilder(sqlExpressionFormatter,
+                                                 sqlTableName,
+                                                 tableAlias,
+                                                 dataSource,
+                                                 variables,
+                                                 addAlias);
         }
 
         @Override
@@ -352,12 +411,12 @@ public class MetricJdbcReader implements IMetricReader {
                         // because some DBMS does not support duplicated aggregation expressions for one metric
                         sb.append(metricSpec.getName());
                     } else {
-                        sb.append(metricSpec.accept(new MetricFieldsClauseBuilder(sqlExpressionFormatter,
-                                                                                  null,
-                                                                                  null,
-                                                                                  dataSource,
-                                                                                  variables,
-                                                                                  false)));
+                        sb.append(metricSpec.accept(MetricFieldsClauseBuilder.this.clone(sqlExpressionFormatter,
+                                                                                         null,
+                                                                                         null,
+                                                                                         dataSource,
+                                                                                         variables,
+                                                                                         false)));
                     }
                 }
 
@@ -402,7 +461,7 @@ public class MetricJdbcReader implements IMetricReader {
             StringBuilder sb = new StringBuilder();
             sb.append(StringUtils.format("count(1)", metricSpec.getName()));
             if (addAlias) {
-                sb.append(StringUtils.format(" \"%s\"", metricSpec.getName()));
+                sb.append(StringUtils.format("count(1) AS \"%s\"", metricSpec.getName()));
             }
             return sb.toString();
         }
@@ -441,7 +500,7 @@ public class MetricJdbcReader implements IMetricReader {
             return sb.toString();
         }
 
-        private String visitLast(String metricName) {
+        protected String visitLast(String metricName) {
             StringBuilder sb = new StringBuilder();
             sb.append(StringUtils.format(
                 "(SELECT \"%s\" FROM \"%s\" B WHERE B.\"timestamp\" = \"%s\".\"timestamp\" ORDER BY \"timestamp\" DESC LIMIT 1)",
@@ -510,7 +569,7 @@ public class MetricJdbcReader implements IMetricReader {
         private final Set<String> rawExpressions = new HashSet<>();
         private final String tableName;
         private final DataSourceSchema schema;
-        private final long interval;
+        private final long timeStep;
         private final ISqlExpressionFormatter sqlFormatter;
         private final TimeSpan start;
         private final TimeSpan end;
@@ -521,19 +580,19 @@ public class MetricJdbcReader implements IMetricReader {
                                    TimeSpan start,
                                    TimeSpan end,
                                    DataSourceSchema dataSourceSchema,
-                                   long interval) {
+                                   long timeStep) {
             this.sqlFormatter = sqlFormatter;
             this.tableName = "bithon_" + dataSourceSchema.getName().replace("-", "_");
             this.start = start;
             this.end = end;
             this.schema = dataSourceSchema;
-            this.interval = interval;
+            this.timeStep = timeStep;
         }
 
         TimeSeriesSqlClauseBuilder metrics(Collection<String> metrics) {
             MetricClauseBuilder metricFieldsBuilder = new MetricClauseBuilder(this.sqlFormatter,
                                                                               ImmutableMap.of("interval",
-                                                                                              interval,
+                                                                                              timeStep,
                                                                                               "instanceCount",
                                                                                               "count(distinct \"instanceName\")"),
                                                                               true,
@@ -585,7 +644,7 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         String build() {
-            String timestampExpression = sqlFormatter.timeFloor("timestamp", interval);
+            String timestampExpression = sqlFormatter.timeFloor("timestamp", timeStep);
             if (rawExpressions.isEmpty()) {
                 return StringUtils.format(
                     "SELECT %s AS \"_timestamp\", %s %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s %s %s",

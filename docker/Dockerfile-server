@@ -29,19 +29,19 @@ COPY . /src
 # Build shaded
 WORKDIR /src/shaded
 RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
-      mvn clean install -DskipTests \
+      mvn -ntp clean install -DskipTests \
       ; fi
 
 # Build jOOQ
 WORKDIR /src/server/jOOQ
 RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
-      mvn clean install -DskipTests \
+      mvn -ntp clean install -DskipTests \
       ; fi
 
 # Build Server
 WORKDIR /src
 RUN --mount=type=cache,target=/root/.m2 if [ "$BUILD_FROM_SOURCE" = "true" ]; then \
-      mvn -pl server/server-starter -am \
+      mvn -ntp -pl server/server-starter -am \
       clean package \
       -T 1C \
       -DskipTests \

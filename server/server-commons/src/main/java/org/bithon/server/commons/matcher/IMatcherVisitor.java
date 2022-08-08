@@ -39,6 +39,8 @@ public interface IMatcherVisitor<T> {
 
     T visit(BetweenMatcher matcher);
 
+    T visit(InMatcher inMatcher);
+
     T visit(GreaterThanMatcher matcher);
 
     T visit(GreaterThanOrEqualMatcher matcher);

@@ -84,6 +84,15 @@ public class DataSourceSchema {
     @JsonIgnore
     private String signature;
 
+
+    /**
+     * a runtime property that the schema is only used for query.
+     */
+    @Getter
+    @Setter
+    @JsonIgnore
+    private boolean isVirtual = false;
+
     public DataSourceSchema(String displayText,
                             String name,
                             TimestampSpec timestampSpec,
