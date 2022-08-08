@@ -52,6 +52,48 @@ public class DataSourceService {
         this.metricStorage = metricStorage;
     }
 
+    public List<Map<String, Object>> oldTimeseriesQuery(TimeseriesQuery query) {
+        List<Map<String, Object>> queryResult = this.metricStorage.createMetricReader(query.getDataSource())
+                                                                  .timeseries(query);
+
+        //
+        // fill empty time slot bucket
+        //
+        List<Map<String, Object>> returns = new ArrayList<>();
+        int j = 0;
+        TimeSpan start = query.getInterval().getStartTime();
+        TimeSpan end = query.getInterval().getEndTime();
+        int step = query.getInterval().getStep();
+        for (long bucket = start.toSeconds() / step * step, endBucket = end.toSeconds() / step * step;
+             bucket < endBucket;
+             bucket += step) {
+            if (j < queryResult.size()) {
+                long nextSlot = ((Number) queryResult.get(j).get(TIMESTAMP_QUERY_NAME)).longValue();
+                while (bucket < nextSlot) {
+                    Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
+                    empty.put(TIMESTAMP_QUERY_NAME, bucket * 1000);
+                    query.getMetrics().forEach((metric) -> empty.put(metric, 0));
+                    returns.add(empty);
+                    bucket += step;
+                }
+
+                // convert to millisecond
+                queryResult.get(j).put(TIMESTAMP_QUERY_NAME, nextSlot * 1000);
+                returns.add(queryResult.get(j++));
+            } else {
+                Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
+                empty.put(TIMESTAMP_QUERY_NAME, bucket * 1000);
+                query.getMetrics().forEach((metric) -> empty.put(metric, 0));
+                returns.add(empty);
+            }
+        }
+        while (j < queryResult.size()) {
+            queryResult.get(j).put(TIMESTAMP_QUERY_NAME, ((Number) queryResult.get(j).get(TIMESTAMP_QUERY_NAME)).longValue() * 1000L);
+            returns.add(queryResult.get(j++));
+        }
+        return returns;
+    }
+
     /**
      * @return key - the name of a metric
      * val - the time series values

@@ -16,6 +16,8 @@
 
 package org.bithon.server.web.service.api;
 
+import lombok.Data;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.TTLConfig;
@@ -24,6 +26,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.metrics.GroupByQuery;
+import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -33,10 +36,13 @@ import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.bithon.server.storage.metrics.TimeseriesQueryV2;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -63,6 +69,34 @@ public class DataSourceApi implements IDataSourceApi {
         this.dataSourceService = dataSourceService;
     }
 
+    @Data
+    public static class GetMetricsRequest {
+        private String startTimeISO8601;
+        private String endTimeISO8601;
+        private String dataSource;
+        private Map<String, IFilter> dimensions;
+        private List<IFilter> filters = Collections.emptyList();
+        private List<String> metrics;
+        private List<String> groups = Collections.emptyList();
+    }
+
+    @Deprecated
+    @PostMapping("/api/datasource/metrics")
+    public List<Map<String, Object>> metrics(@Valid @RequestBody GetMetricsRequest request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
+
+        return dataSourceService.oldTimeseriesQuery(new TimeseriesQuery(schema,
+                                                                        request.getMetrics(),
+                                                                        CollectionUtils.isNotEmpty(request.getDimensions())
+                                                                        ? request.getDimensions().values()
+                                                                        : request.getFilters(),
+                                                                        Interval.of(start, end),
+                                                                        request.getGroups()));
+    }
+
     @Override
     public DataSourceService.TimeSeriesQueryResult timeseries(TimeSeriesQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
@@ -72,7 +106,7 @@ public class DataSourceApi implements IDataSourceApi {
 
         return dataSourceService.timeseriesQuery(new TimeseriesQuery(schema,
                                                                      request.getMetrics(),
-                                                                     request.getFilters(),
+                                                                     request.getDimensions() != null ? request.getDimensions() : request.getFilters(),
                                                                      Interval.of(start, end),
                                                                      request.getGroups()));
     }
