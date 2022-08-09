@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics.transformer;
+package org.bithon.server.sink.metrics.topo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.metrics.EndPointMeasurementBuilder;
-import org.bithon.server.sink.metrics.transformer.ITopoTransformer;
+import org.bithon.server.sink.metrics.topo.ITopoTransformer;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.meta.EndPointType;

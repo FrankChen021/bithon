@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics.transformer;
+package org.bithon.server.sink.metrics.topo;
 
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.Measurement;

@@ -14,25 +14,24 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics.transformer;
+package org.bithon.server.sink.metrics.topo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.metrics.EndPointMeasurementBuilder;
-import org.bithon.server.sink.metrics.transformer.ITopoTransformer;
+import org.bithon.server.sink.metrics.topo.ITopoTransformer;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.meta.EndPointType;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/28 12:36
+ * @date 2021/3/21 21:37
  */
 @Slf4j
-public class MongoDbMetricTopoTransformer implements ITopoTransformer {
-
+public class SqlMetricTopoTransformer implements ITopoTransformer {
     @Override
     public String getSourceType() {
-        return "mongodb-metrics";
+        return "sql-metrics";
     }
 
     @Override
@@ -41,12 +40,11 @@ public class MongoDbMetricTopoTransformer implements ITopoTransformer {
                                          .timestamp(message.getColAsLong("timestamp"))
                                          .srcEndpointType(EndPointType.APPLICATION)
                                          .srcEndpoint(message.getColAsString("appName"))
-                                         .dstEndpointType(EndPointType.DB_MONGO)
+                                         .dstEndpointType(message.getColAsString("endpointType"))
                                          .dstEndpoint(message.getColAsString("server"))
-                                         // metric
                                          .interval(message.getColAsLong("interval", 0))
-                                         .errorCount(message.getColAsLong("exceptionCount", 0))
                                          .callCount(message.getColAsLong("callCount", 0))
+                                         .errorCount(message.getColAsLong("errorCount", 0))
                                          .responseTime(message.getColAsLong("responseTime", 0))
                                          .minResponseTime(message.getColAsLong("minResponseTime", 0))
                                          .maxResponseTime(message.getColAsLong("maxResponseTime", 0))

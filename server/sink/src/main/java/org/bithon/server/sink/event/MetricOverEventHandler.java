@@ -19,7 +19,7 @@ package org.bithon.server.sink.event;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.metrics.MetricMessageHandler;
-import org.bithon.server.sink.metrics.transformer.TopoTransformers;
+import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;

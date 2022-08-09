@@ -14,40 +14,53 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics.transformer;
+package org.bithon.server.sink.metrics.topo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.server.sink.metrics.EndPointMeasurementBuilder;
-import org.bithon.server.sink.metrics.transformer.ITopoTransformer;
+import org.bithon.server.sink.metrics.topo.ITopoTransformer;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.meta.EndPointType;
+import org.springframework.util.StringUtils;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/21 21:37
+ * @date 2021/1/10 4:55 下午
  */
 @Slf4j
-public class SqlMetricTopoTransformer implements ITopoTransformer {
+public class HttpIncomingMetricTopoTransformer implements ITopoTransformer {
+
     @Override
     public String getSourceType() {
-        return "sql-metrics";
+        return "http-incoming-metrics";
     }
 
     @Override
     public Measurement transform(IInputRow message) {
+        String srcApplication;
+        EndPointType srcEndPointType;
+        if (StringUtils.isEmpty(message.getColAsString("srcApplication"))) {
+            srcApplication = "User";
+            srcEndPointType = EndPointType.USER;
+        } else {
+            srcApplication = message.getColAsString("srcApplication");
+            srcEndPointType = EndPointType.APPLICATION;
+        }
         return EndPointMeasurementBuilder.builder()
                                          .timestamp(message.getColAsLong("timestamp"))
-                                         .srcEndpointType(EndPointType.APPLICATION)
-                                         .srcEndpoint(message.getColAsString("appName"))
-                                         .dstEndpointType(message.getColAsString("endpointType"))
-                                         .dstEndpoint(message.getColAsString("server"))
-                                         .interval(message.getColAsLong("interval", 0))
-                                         .callCount(message.getColAsLong("callCount", 0))
-                                         .errorCount(message.getColAsLong("errorCount", 0))
-                                         .responseTime(message.getColAsLong("responseTime", 0))
+                                         // dimension
+                                         .srcEndpointType(srcEndPointType)
+                                         .srcEndpoint(srcApplication)
+                                         .dstEndpointType(EndPointType.APPLICATION)
+                                         .dstEndpoint(message.getColAsString("appName"))
+                                         // metric
+                                         .interval(message.getColAsLong("interval"))
                                          .minResponseTime(message.getColAsLong("minResponseTime", 0))
                                          .maxResponseTime(message.getColAsLong("maxResponseTime", 0))
+                                         .responseTime(message.getColAsLong("responseTime", 0))
+                                         .callCount(message.getColAsLong("totalCount", 0))
+                                         .errorCount(message.getColAsLong("errorCount", 0))
                                          .build();
     }
 }
