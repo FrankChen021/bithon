@@ -16,7 +16,6 @@
 
 package org.bithon.server.sink.metrics;
 
-import org.bithon.server.sink.metrics.transformer.RedisMetricTopoTransformer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +36,6 @@ public class MetricMessageHandlers {
 
         Class<? extends AbstractMetricMessageHandler>[] handlers = new Class[]{
             JdbcPoolMetricMessageHandler.class,
-            MongoDbMetricMessageHandler.class,
             SqlMetricMessageHandler.class
         };
         for (Class<? extends AbstractMetricMessageHandler> handlerClass : handlers) {

@@ -30,7 +30,7 @@ public class MongoDbMetrics implements IMetricSet {
     Min minResponseTime = new Min();
     Sum responseTime = new Sum();
     Max maxResponseTime = new Max();
-    Sum callCount = new Sum();
+    Sum totalCount = new Sum();
     Sum exceptionCount = new Sum();
     Sum responseBytes = new Sum();
     Sum requestBytes = new Sum();
@@ -39,14 +39,14 @@ public class MongoDbMetrics implements IMetricSet {
         minResponseTime,
         responseTime,
         maxResponseTime,
-        callCount,
+        totalCount,
         exceptionCount,
         responseBytes,
         requestBytes
     };
 
     public void add(long responseTime, int exceptionCount) {
-        this.callCount.incr();
+        this.totalCount.incr();
         this.responseTime.update(responseTime);
         this.maxResponseTime.update(responseTime);
         this.minResponseTime.update(responseTime);
