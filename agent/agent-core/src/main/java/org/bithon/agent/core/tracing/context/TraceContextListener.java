@@ -21,9 +21,9 @@ import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author frank.chen021@outlook.com
@@ -32,7 +32,7 @@ import java.util.List;
 public class TraceContextListener {
 
     private static final TraceContextListener INSTANCE = new TraceContextListener();
-    private final List<IListener> listeners = new ArrayList<>();
+    private final List<IListener> listeners = new CopyOnWriteArrayList<>();
 
     public static TraceContextListener getInstance() {
         return INSTANCE;
@@ -45,7 +45,7 @@ public class TraceContextListener {
         }
     }
 
-    public synchronized void addListener(IListener listener) {
+    public void addListener(IListener listener) {
         listeners.add(listener);
     }
 
