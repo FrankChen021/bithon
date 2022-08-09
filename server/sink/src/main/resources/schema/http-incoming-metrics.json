@@ -154,7 +154,21 @@
       "unit": "Bps",
       "valueType": "double"
     }
-  ]
+  ],
+  "inputSourceSpec": {
+    "type": "metric",
+    "transformSpec": {
+      "prefilter": {
+        "type": "expression",
+        "expression": "totalCount > 0"
+      },
+      "transformers": [
+        {
+          "type": "normalize"
+        }
+      ]
+    }
+  }
 }
 
 

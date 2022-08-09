@@ -40,5 +40,8 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 })
 public interface ITransformer {
 
-    void transform(IInputRow inputRow);
+    class TransformException extends RuntimeException {
+    }
+
+    void transform(IInputRow inputRow) throws TransformException;
 }

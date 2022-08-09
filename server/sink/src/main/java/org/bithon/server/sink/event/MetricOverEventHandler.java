@@ -18,7 +18,8 @@ package org.bithon.server.sink.event;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.sink.metrics.AbstractMetricMessageHandler;
+import org.bithon.server.sink.metrics.MetricMessageHandler;
+import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
@@ -33,21 +34,24 @@ import java.io.IOException;
  * @date 2022/8/2 22:30
  */
 @Slf4j
-public class MetricOverEventHandler extends AbstractMetricMessageHandler implements EventMessageHandler<IInputRow> {
+public class MetricOverEventHandler extends MetricMessageHandler implements EventMessageHandler<IInputRow> {
 
     private final String eventType;
     private final ObjectMapper objectMapper;
 
     public MetricOverEventHandler(String eventType,
                                   String dataSourceName,
+                                  TopoTransformers topoTransformers,
                                   ObjectMapper objectMapper,
                                   IMetaStorage metaStorage,
                                   IMetricStorage metricStorage,
                                   DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
         super(dataSourceName,
+              topoTransformers,
               metaStorage,
               metricStorage,
-              dataSourceSchemaManager);
+              dataSourceSchemaManager,
+              null);
         this.eventType = eventType;
         this.objectMapper = objectMapper;
     }

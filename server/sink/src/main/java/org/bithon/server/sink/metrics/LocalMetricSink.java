@@ -45,7 +45,7 @@ public class LocalMetricSink implements IMetricMessageSink {
 
     @Override
     public void process(String messageType, List<IInputRow> messages) {
-        AbstractMetricMessageHandler handler = handlers.getHandler(messageType);
+        MetricMessageHandler handler = handlers.getHandler(messageType);
         if (handler != null) {
             handler.process(messages);
         } else {
@@ -55,7 +55,7 @@ public class LocalMetricSink implements IMetricMessageSink {
 
     @Override
     public void close() throws Exception {
-        for (AbstractMetricMessageHandler handler : handlers.getHandlers()) {
+        for (MetricMessageHandler handler : handlers.getHandlers()) {
             handler.close();
         }
     }

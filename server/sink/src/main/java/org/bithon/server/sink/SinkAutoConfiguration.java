@@ -20,6 +20,9 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import org.bithon.server.sink.event.EventInputSource;
 import org.bithon.server.sink.metrics.MetricInputSource;
+import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
+import org.bithon.server.sink.metrics.transformer.HostOfUri;
+import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
 import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.sink.tracing.TraceDataSourceSchemaInitializer;
 import org.bithon.server.sink.tracing.metrics.MetricOverSpanInputSource;
@@ -60,7 +63,13 @@ public class SinkAutoConfiguration {
             public void setupModule(SetupContext context) {
                 context.registerSubtypes(MetricOverSpanInputSource.class,
                                          MetricInputSource.class,
-                                         EventInputSource.class);
+                                         EventInputSource.class,
+
+                                         // transformers
+                                         UriNormalizationTransformer.class,
+                                         HostOfUri.class,
+                                         ConnectionStringTransformer.class
+                );
             }
         };
     }

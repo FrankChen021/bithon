@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource.input.filter;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 
 import java.util.function.Function;
@@ -102,6 +103,29 @@ public abstract class BinaryExpressionFilter implements IInputRowFilter {
         @Override
         protected boolean matchesString(String left, String right) {
             return !left.equals(right);
+        }
+    }
+
+    public static class GT extends BinaryExpressionFilter {
+        public GT(Function<IInputRow, Object> leftValueSupplier,
+                  Function<IInputRow, Object> rightValueSupplier) {
+            super(leftValueSupplier, rightValueSupplier);
+        }
+
+        @Override
+        protected boolean matchNull(Object left, Object right) {
+            return false;
+        }
+
+        @Override
+        protected boolean matchesNumber(Number left, Number right) {
+            // might be not correct if these two numbers are type of double
+            return left.longValue() > right.longValue();
+        }
+
+        @Override
+        protected boolean matchesString(String left, String right) {
+            throw new RuntimeException(StringUtils.format("left [%s] can't be compared to [%s] with operator '>'."));
         }
     }
 

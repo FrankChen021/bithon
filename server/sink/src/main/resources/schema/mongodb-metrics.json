@@ -36,11 +36,10 @@
     },
     {
       "type": "longSum",
-      "name": "callCount",
+      "name": "totalCount",
       "displayText": "Total Commands",
       "unit": ""
     },
-
     {
       "type": "longMin",
       "name": "minResponseTime",
@@ -59,16 +58,14 @@
       "displayText": "Max Response Time",
       "unit": "nanosecond"
     },
-
     {
       "type": "post",
       "name": "avgResponseTime",
-      "expression": "responseTime/callCount",
+      "expression": "responseTime/totalCount",
       "displayText": "AVG Response Time",
       "unit": "nanosecond",
       "valueType": "double"
     },
-
     {
       "type": "longSum",
       "name": "requestBytes",
@@ -84,7 +81,7 @@
     {
       "type": "post",
       "name": "tps",
-      "expression": "callCount/{interval}",
+      "expression": "totalCount/{interval}",
       "displayText": "TPS",
       "unit": "/s"
     },
@@ -104,7 +101,16 @@
       "unit": "Bps",
       "valueType": "double"
     }
-  ]
+  ],
+  "inputSourceSpec": {
+    "type": "metric",
+    "transformSpec": {
+      "prefilter": {
+        "type": "expression",
+        "expression": "totalCount > 0"
+      }
+    }
+  }
 }
 
 

@@ -16,7 +16,6 @@
 
 package org.bithon.server.sink.metrics;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -30,24 +29,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class MetricMessageHandlers {
 
-    private final Map<String, AbstractMetricMessageHandler> handlers = new ConcurrentHashMap<>();
+    private final Map<String, MetricMessageHandler> handlers = new ConcurrentHashMap<>();
 
-    public MetricMessageHandlers(ApplicationContext applicationContext) {
-
-        Class<? extends AbstractMetricMessageHandler>[] handlers = new Class[]{
-            HttpIncomingMetricMessageHandler.class,
-            HttpOutgoingMetricMessageHandler.class,
-            JdbcPoolMetricMessageHandler.class,
-            MongoDbMetricMessageHandler.class,
-            RedisMetricMessageHandler.class,
-            SqlMetricMessageHandler.class
-        };
-        for (Class<? extends AbstractMetricMessageHandler> handlerClass : handlers) {
-            this.add(applicationContext.getAutowireCapableBeanFactory().createBean(handlerClass));
-        }
+    public MetricMessageHandlers() {
     }
 
-    public void add(AbstractMetricMessageHandler handler) {
+    public void add(MetricMessageHandler handler) {
         handlers.put(handler.getType(), handler);
     }
 
@@ -55,11 +42,11 @@ public class MetricMessageHandlers {
         handlers.remove(name);
     }
 
-    public AbstractMetricMessageHandler getHandler(String name) {
+    public MetricMessageHandler getHandler(String name) {
         return handlers.get(name);
     }
 
-    public Collection<AbstractMetricMessageHandler> getHandlers() {
+    public Collection<MetricMessageHandler> getHandlers() {
         return handlers.values();
     }
 }

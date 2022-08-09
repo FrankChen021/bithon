@@ -37,7 +37,7 @@ public class TransformSpecTest {
     @Test
     public void test() {
         TransformSpec transformSpec = TransformSpec.builder()
-                                                   .prefilters(Collections.singletonList(new EqualFilter("appName", "bithon-server")))
+                                                   .prefilter(new EqualFilter("appName", "bithon-server"))
                                                    .flatteners(Collections.singletonList(new TreePathFlattener("database", "tags.view")))
                                                    //.transformers()
                                                    .postfilter(new EqualFilter("database", "jvm-metrics"))

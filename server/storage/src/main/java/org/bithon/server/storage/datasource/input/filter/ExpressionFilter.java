@@ -173,6 +173,9 @@ public class ExpressionFilter implements IInputRowFilter {
                 case "=":
                     filter = new BinaryExpressionFilter.EQ(inputRow -> inputRow.getCol(varName), getRight);
                     break;
+                case ">":
+                    filter = new BinaryExpressionFilter.GT(inputRow -> inputRow.getCol(varName), getRight);
+                    break;
                 case "<>":
                 case "!=":
                     filter = new BinaryExpressionFilter.NE(inputRow -> inputRow.getCol(varName), getRight);
