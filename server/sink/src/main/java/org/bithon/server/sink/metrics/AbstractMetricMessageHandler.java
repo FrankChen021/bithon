@@ -96,11 +96,7 @@ public abstract class AbstractMetricMessageHandler {
         return this.schema.getName();
     }
 
-    protected boolean beforeProcess(IInputRow message) throws Exception {
-        return true;
-    }
-
-    public final void process(List<IInputRow> metricMessages) {
+    public void process(List<IInputRow> metricMessages) {
         if (CollectionUtils.isEmpty(metricMessages)) {
             return;
         }
@@ -137,10 +133,6 @@ public abstract class AbstractMetricMessageHandler {
             List<IInputRow> inputRowList = new ArrayList<>(8);
             for (IInputRow metricMessage : metricMessages) {
                 try {
-                    if (!beforeProcess(metricMessage)) {
-                        continue;
-                    }
-
                     // extract endpoint
                     if (topoTransformer != null) {
                         endpointDataSource.aggregate(topoTransformer.transform(metricMessage));

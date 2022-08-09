@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.sink.metrics.transformer.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputSource;
@@ -70,6 +71,7 @@ public class EventInputSource implements IInputSource {
         try {
             handlers.add(new MetricOverEventHandler(eventType,
                                                     schemaName,
+                                                    applicationContext.getBean(TopoTransformers.class),
                                                     applicationContext.getBean(ObjectMapper.class),
                                                     applicationContext.getBean(IMetaStorage.class),
                                                     applicationContext.getBean(IMetricStorage.class),
