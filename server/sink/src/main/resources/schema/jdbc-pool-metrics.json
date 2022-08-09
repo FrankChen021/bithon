@@ -112,7 +112,17 @@
       "displayText": "Wait Thread Count",
       "unit": ""
     }
-  ]
+  ],
+  "inputSourceSpec": {
+    "type": "metric",
+    "transformSpec": {
+      "transformers": [
+        {
+          "type": "connectionString"
+        }
+      ]
+    }
+  }
 }
 
 

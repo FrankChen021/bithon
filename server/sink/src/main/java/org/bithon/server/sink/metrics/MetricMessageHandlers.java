@@ -16,7 +16,6 @@
 
 package org.bithon.server.sink.metrics;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -32,14 +31,7 @@ public class MetricMessageHandlers {
 
     private final Map<String, AbstractMetricMessageHandler> handlers = new ConcurrentHashMap<>();
 
-    public MetricMessageHandlers(ApplicationContext applicationContext) {
-
-        Class<? extends AbstractMetricMessageHandler>[] handlers = new Class[]{
-            JdbcPoolMetricMessageHandler.class,
-        };
-        for (Class<? extends AbstractMetricMessageHandler> handlerClass : handlers) {
-            this.add(applicationContext.getAutowireCapableBeanFactory().createBean(handlerClass));
-        }
+    public MetricMessageHandlers() {
     }
 
     public void add(AbstractMetricMessageHandler handler) {

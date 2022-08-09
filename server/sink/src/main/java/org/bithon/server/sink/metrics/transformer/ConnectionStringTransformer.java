@@ -16,7 +16,10 @@
 
 package org.bithon.server.sink.metrics.transformer;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import lombok.Getter;
 import org.bithon.server.sink.common.utils.MiscUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
@@ -28,9 +31,17 @@ import org.bithon.server.storage.datasource.input.transformer.ITransformer;
 @JsonTypeName("connectionString")
 public class ConnectionStringTransformer implements ITransformer {
 
+    @Getter
+    private final String field;
+
+    @JsonCreator
+    public ConnectionStringTransformer(@JsonProperty("field") String field) {
+        this.field = field == null ? "connectionString" : field;
+    }
+
     @Override
     public void transform(IInputRow inputRow) throws TransformException {
-        MiscUtils.ConnectionString conn = MiscUtils.parseConnectionString(inputRow.getColAsString("connectionString"));
+        MiscUtils.ConnectionString conn = MiscUtils.parseConnectionString(inputRow.getColAsString(field));
         inputRow.updateColumn("server", conn.getHostAndPort());
         inputRow.updateColumn("database", conn.getDatabase());
         inputRow.updateColumn("endpointType", conn.getEndPointType().name());
