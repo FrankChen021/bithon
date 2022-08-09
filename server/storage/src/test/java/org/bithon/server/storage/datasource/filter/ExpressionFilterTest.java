@@ -349,4 +349,25 @@ public class ExpressionFilterTest {
         // empty row
         Assert.assertFalse(filter.shouldInclude(new InputRow(new HashMap<>())));
     }
+
+    @Test
+    public void testGreaterThan() throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        String json = om.writeValueAsString(new ExpressionFilter("a > 5"));
+        IInputRowFilter filter = om.readValue(json, IInputRowFilter.class);
+
+        IInputRow row = new InputRow(new HashMap<>());
+
+        row.updateColumn("a", 5);
+        Assert.assertFalse(filter.shouldInclude(row));
+
+        row.updateColumn("a", 6);
+        Assert.assertTrue(filter.shouldInclude(row));
+
+        row.updateColumn("a", 4);
+        Assert.assertFalse(filter.shouldInclude(row));
+
+        // empty row
+        Assert.assertFalse(filter.shouldInclude(new InputRow(new HashMap<>())));
+    }
 }
