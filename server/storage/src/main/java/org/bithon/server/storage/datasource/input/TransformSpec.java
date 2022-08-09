@@ -18,9 +18,11 @@ package org.bithon.server.storage.datasource.input;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.bithon.server.commons.time.Period;
+import org.bithon.server.storage.datasource.input.filter.AndFilter;
 import org.bithon.server.storage.datasource.input.filter.IInputRowFilter;
 import org.bithon.server.storage.datasource.input.flatten.IFlattener;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
@@ -33,6 +35,7 @@ import java.util.List;
  * @date 11/4/22 10:49 PM
  */
 @Builder
+@AllArgsConstructor
 public class TransformSpec {
     /**
      * the granularity that the data should be aggregated at
@@ -41,7 +44,7 @@ public class TransformSpec {
     private final Period graunularity;
 
     @Getter
-    private final List<IInputRowFilter> prefilters;
+    private final IInputRowFilter prefilter;
 
     @Getter
     private final List<IFlattener> flatteners;
@@ -54,13 +57,15 @@ public class TransformSpec {
 
     @JsonCreator
     public TransformSpec(@JsonProperty("granularity") @Nullable Period granularity,
+                         //a backward compatibility filter
                          @JsonProperty("prefilters") List<IInputRowFilter> prefilters,
+                         @JsonProperty("prefilter") IInputRowFilter prefilter,
                          @JsonProperty("flatteners") List<IFlattener> flatteners,
                          @JsonProperty("transformers") List<ITransformer> transformers,
                          @JsonProperty("postfilter") IInputRowFilter postfilter) {
         this.graunularity = granularity;
         this.flatteners = flatteners;
-        this.prefilters = prefilters;
+        this.prefilter = prefilters != null ? new AndFilter(prefilters) : prefilter;
         this.transformers = transformers;
         this.postfilter = postfilter;
     }
@@ -69,11 +74,9 @@ public class TransformSpec {
      * @return a boolean value, whether to include this row in result set
      */
     public boolean transform(IInputRow inputRow) {
-        if (prefilters != null) {
-            for (IInputRowFilter filter : prefilters) {
-                if (!filter.shouldInclude(inputRow)) {
-                    return false;
-                }
+        if (prefilter != null) {
+            if (!prefilter.shouldInclude(inputRow)) {
+                return false;
             }
         }
         if (flatteners != null) {
@@ -83,7 +86,11 @@ public class TransformSpec {
         }
         if (transformers != null) {
             for (ITransformer transformer : transformers) {
-                transformer.transform(inputRow);
+                try {
+                    transformer.transform(inputRow);
+                } catch (ITransformer.TransformException ignored) {
+                    return false;
+                }
             }
         }
         if (postfilter != null) {
