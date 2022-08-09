@@ -42,7 +42,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
 
     @Override
     public void process(String messageType, SchemaMetricMessage message) {
-        AbstractMetricMessageHandler handler = getMessageHandler(message);
+        MetricMessageHandler handler = getMessageHandler(message);
         if (handler == null) {
             log.error("Can't find handler for {}", message.getSchema().getName());
             return;
@@ -51,8 +51,8 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
         handler.process(message.getMetrics());
     }
 
-    private AbstractMetricMessageHandler getMessageHandler(SchemaMetricMessage message) {
-        AbstractMetricMessageHandler handler = handlers.getHandler(message.getSchema().getName());
+    private MetricMessageHandler getMessageHandler(SchemaMetricMessage message) {
+        MetricMessageHandler handler = handlers.getHandler(message.getSchema().getName());
         if (handler != null) {
             // TODO: check if schema is changed
             return handler;

@@ -29,12 +29,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class MetricMessageHandlers {
 
-    private final Map<String, AbstractMetricMessageHandler> handlers = new ConcurrentHashMap<>();
+    private final Map<String, MetricMessageHandler> handlers = new ConcurrentHashMap<>();
 
     public MetricMessageHandlers() {
     }
 
-    public void add(AbstractMetricMessageHandler handler) {
+    public void add(MetricMessageHandler handler) {
         handlers.put(handler.getType(), handler);
     }
 
@@ -42,11 +42,11 @@ public class MetricMessageHandlers {
         handlers.remove(name);
     }
 
-    public AbstractMetricMessageHandler getHandler(String name) {
+    public MetricMessageHandler getHandler(String name) {
         return handlers.get(name);
     }
 
-    public Collection<AbstractMetricMessageHandler> getHandlers() {
+    public Collection<MetricMessageHandler> getHandlers() {
         return handlers.values();
     }
 }
