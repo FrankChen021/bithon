@@ -17,6 +17,7 @@
 package org.bithon.server.sink.metrics;
 
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 
@@ -33,10 +34,12 @@ public class MetricMessageHandler extends AbstractMetricMessageHandler {
     public MetricMessageHandler(String dataSourceName,
                                 IMetaStorage metaStorage,
                                 IMetricStorage metricStorage,
-                                DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+                                DataSourceSchemaManager dataSourceSchemaManager,
+                                TransformSpec transformSpec) throws IOException {
         super(dataSourceName,
               metaStorage,
               metricStorage,
-              dataSourceSchemaManager);
+              dataSourceSchemaManager,
+              transformSpec);
     }
 }

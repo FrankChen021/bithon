@@ -24,6 +24,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
+import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -51,10 +53,20 @@ public abstract class AbstractMetricMessageHandler {
     private final IMetricWriter metricStorageWriter;
     private final IMetricWriter endpointMetricStorageWriter;
 
+    private final TransformSpec transformSpec;
+
     public AbstractMetricMessageHandler(String dataSourceName,
                                         IMetaStorage metaStorage,
                                         IMetricStorage metricStorage,
                                         DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
+        this(dataSourceName, metaStorage, metricStorage, dataSourceSchemaManager, null);
+    }
+
+    public AbstractMetricMessageHandler(String dataSourceName,
+                                        IMetaStorage metaStorage,
+                                        IMetricStorage metricStorage,
+                                        DataSourceSchemaManager dataSourceSchemaManager,
+                                        TransformSpec transformSpec) throws IOException {
 
         this.schema = dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
         this.metaStorage = metaStorage;
@@ -63,6 +75,8 @@ public abstract class AbstractMetricMessageHandler {
         this.endpointSchema = dataSourceSchemaManager.getDataSourceSchema("topo-metrics");
         this.endpointSchema.setEnforceDuplicationCheck(false);
         this.endpointMetricStorageWriter = metricStorage.createMetricWriter(endpointSchema);
+
+        this.transformSpec = transformSpec;
 
         this.executor = new ThreadPoolExecutor(1,
                                                4,
@@ -89,7 +103,7 @@ public abstract class AbstractMetricMessageHandler {
     }
 
     class MetricSinkRunnable implements Runnable {
-        private final List<IInputRow> metricMessages;
+        private List<IInputRow> metricMessages;
 
         MetricSinkRunnable(List<IInputRow> metricMessages) {
             this.metricMessages = metricMessages;
@@ -97,6 +111,18 @@ public abstract class AbstractMetricMessageHandler {
 
         @Override
         public void run() {
+            //
+            // transform the spans to target metrics
+            //
+            if (transformSpec != null) {
+                metricMessages = metricMessages.stream()
+                                               .filter(transformSpec::transform)
+                                               .collect(Collectors.toList());
+            }
+            if (metricMessages.isEmpty()) {
+                return;
+            }
+
             MetricsAggregator endpointDataSource = new MetricsAggregator(endpointSchema, 60);
 
             //

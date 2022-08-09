@@ -71,7 +71,8 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
                 handler = new MetricMessageHandler(message.getSchema().getName(),
                                                    applicationContext.getBean(IMetaStorage.class),
                                                    applicationContext.getBean(IMetricStorage.class),
-                                                   schemaManager);
+                                                   schemaManager,
+                                                   null);
 
                 handlers.add(handler);
                 return handler;

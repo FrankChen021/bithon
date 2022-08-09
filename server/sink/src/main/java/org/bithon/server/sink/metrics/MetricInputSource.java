@@ -67,7 +67,8 @@ public class MetricInputSource implements IInputSource {
             handlers.add(new MetricMessageHandler(name,
                                                   applicationContext.getBean(IMetaStorage.class),
                                                   applicationContext.getBean(IMetricStorage.class),
-                                                  applicationContext.getBean(DataSourceSchemaManager.class)));
+                                                  applicationContext.getBean(DataSourceSchemaManager.class),
+                                                  this.transformSpec));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
