@@ -16,6 +16,9 @@
 
 package org.bithon.server.sink.metrics.transformer;
 
+import org.bithon.server.storage.meta.IMetaStorage;
+import org.springframework.stereotype.Component;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,18 +26,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author frank.chen021@outlook.com
  * @date 2022/8/9 19:40
  */
+@Component
 public class TopoTransformers {
-
-    private static final TopoTransformers INSTANCE = new TopoTransformers();
-
-    public static TopoTransformers getInstance() {
-        return INSTANCE;
-    }
 
     private final Map<String, ITopoTransformer> topoTransformers = new ConcurrentHashMap<>();
 
-    public TopoTransformers() {
+    public TopoTransformers(IMetaStorage metaStorage) {
         this.addTopoTransformer(new HttpIncomingMetricTopoTransformer());
+        this.addTopoTransformer(new HttpOutgoingMetricTopoTransformer(metaStorage));
     }
 
     public void addTopoTransformer(ITopoTransformer transformer) {

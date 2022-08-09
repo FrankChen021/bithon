@@ -35,7 +35,6 @@ public class MetricMessageHandlers {
     public MetricMessageHandlers(ApplicationContext applicationContext) {
 
         Class<? extends AbstractMetricMessageHandler>[] handlers = new Class[]{
-            HttpOutgoingMetricMessageHandler.class,
             JdbcPoolMetricMessageHandler.class,
             MongoDbMetricMessageHandler.class,
             RedisMetricMessageHandler.class,

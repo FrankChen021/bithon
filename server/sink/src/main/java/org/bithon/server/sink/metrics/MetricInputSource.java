@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.sink.metrics.transformer.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputSource;
@@ -65,6 +66,7 @@ public class MetricInputSource implements IInputSource {
         name = schema.getName();
         try {
             handlers.add(new MetricMessageHandler(name,
+                                                  applicationContext.getBean(TopoTransformers.class),
                                                   applicationContext.getBean(IMetaStorage.class),
                                                   applicationContext.getBean(IMetricStorage.class),
                                                   applicationContext.getBean(DataSourceSchemaManager.class),

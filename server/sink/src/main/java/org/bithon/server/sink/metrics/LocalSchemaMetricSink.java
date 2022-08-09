@@ -17,6 +17,7 @@
 package org.bithon.server.sink.metrics;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.sink.metrics.transformer.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -69,6 +70,7 @@ public class LocalSchemaMetricSink implements IMessageSink<SchemaMetricMessage> 
             schemaManager.addDataSourceSchema(message.getSchema());
             try {
                 handler = new MetricMessageHandler(message.getSchema().getName(),
+                                                   applicationContext.getBean(TopoTransformers.class),
                                                    applicationContext.getBean(IMetaStorage.class),
                                                    applicationContext.getBean(IMetricStorage.class),
                                                    schemaManager,

@@ -53,20 +53,25 @@ public abstract class AbstractMetricMessageHandler {
     private final IMetricWriter metricStorageWriter;
     private final IMetricWriter endpointMetricStorageWriter;
 
+    private final TopoTransformers topoTransformers;
     private final TransformSpec transformSpec;
 
     public AbstractMetricMessageHandler(String dataSourceName,
+                                        TopoTransformers topoTransformers,
                                         IMetaStorage metaStorage,
                                         IMetricStorage metricStorage,
                                         DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
-        this(dataSourceName, metaStorage, metricStorage, dataSourceSchemaManager, null);
+        this(dataSourceName, topoTransformers, metaStorage, metricStorage, dataSourceSchemaManager, null);
     }
 
     public AbstractMetricMessageHandler(String dataSourceName,
+                                        TopoTransformers topoTransformers,
                                         IMetaStorage metaStorage,
                                         IMetricStorage metricStorage,
                                         DataSourceSchemaManager dataSourceSchemaManager,
                                         TransformSpec transformSpec) throws IOException {
+
+        this.topoTransformers = topoTransformers;
 
         this.schema = dataSourceSchemaManager.getDataSourceSchema(dataSourceName);
         this.metaStorage = metaStorage;
@@ -123,7 +128,7 @@ public abstract class AbstractMetricMessageHandler {
                 return;
             }
 
-            ITopoTransformer topoTransformer = TopoTransformers.getInstance().getTopoTransformer(getType());
+            ITopoTransformer topoTransformer = topoTransformers.getTopoTransformer(getType());
             MetricsAggregator endpointDataSource = new MetricsAggregator(endpointSchema, 60);
 
             //
