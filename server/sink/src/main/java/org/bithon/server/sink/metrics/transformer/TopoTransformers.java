@@ -34,6 +34,7 @@ public class TopoTransformers {
     public TopoTransformers(IMetaStorage metaStorage) {
         this.addTopoTransformer(new HttpIncomingMetricTopoTransformer());
         this.addTopoTransformer(new HttpOutgoingMetricTopoTransformer(metaStorage));
+        this.addTopoTransformer(new RedisMetricTopoTransformer());
     }
 
     public void addTopoTransformer(ITopoTransformer transformer) {
