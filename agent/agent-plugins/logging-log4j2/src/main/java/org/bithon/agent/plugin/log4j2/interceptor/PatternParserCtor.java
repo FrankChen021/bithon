@@ -34,25 +34,37 @@ import java.util.List;
  */
 public class PatternParserCtor extends AbstractInterceptor {
 
+    private volatile TraceContextListener.IListener mdcUpdater = null;
+
     @Override
     public void onConstruct(AopContext aopContext) {
-        TraceContextListener.getInstance().addListener(new TraceContextListener.IListener() {
-            @Override
-            public void onSpanStarted(ITraceSpan span) {
+        if (mdcUpdater == null) {
+            synchronized (this) {
+                // double check
+                if (mdcUpdater == null) {
+                    mdcUpdater = new MdcUpdater();
+                    TraceContextListener.getInstance().addListener(new MdcUpdater());
+                }
+            }
+        }
+    }
+
+    private static class MdcUpdater implements TraceContextListener.IListener {
+        @Override
+        public void onSpanStarted(ITraceSpan span) {
+            ThreadContext.put("bTxId", span.traceId());
+            ThreadContext.put("bSpanId", span.spanId());
+        }
+
+        @Override
+        public void onSpanFinished(ITraceSpan span) {
+            if (span.context().currentSpan() == null) {
+                ThreadContext.remove("bTxId");
+                ThreadContext.remove("bSpanId");
+            } else {
                 ThreadContext.put("bTxId", span.traceId());
                 ThreadContext.put("bSpanId", span.spanId());
             }
-
-            @Override
-            public void onSpanFinished(ITraceSpan span) {
-                if (span.context().currentSpan() == null) {
-                    ThreadContext.remove("bTxId");
-                    ThreadContext.remove("bSpanId");
-                } else {
-                    ThreadContext.put("bTxId", span.traceId());
-                    ThreadContext.put("bSpanId", span.spanId());
-                }
-            }
-        });
+        }
     }
 }
