@@ -70,7 +70,6 @@
       "displayText": "Max Response Time",
       "unit": "nanosecond"
     },
-
     {
       "type": "post",
       "name": "tps",
@@ -87,5 +86,19 @@
       "unit": "millisecond",
       "valueType": "double"
     }
-  ]
+  ],
+  "inputSourceSpec": {
+    "type": "metric",
+    "transformSpec": {
+      "prefilter": {
+        "type": "expression",
+        "expression": "callCount > 0"
+      },
+      "transformers": [
+        {
+          "type": "connectionString"
+        }
+      ]
+    }
+  }
 }

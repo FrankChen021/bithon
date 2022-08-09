@@ -36,7 +36,6 @@ public class MetricMessageHandlers {
 
         Class<? extends AbstractMetricMessageHandler>[] handlers = new Class[]{
             JdbcPoolMetricMessageHandler.class,
-            SqlMetricMessageHandler.class
         };
         for (Class<? extends AbstractMetricMessageHandler> handlerClass : handlers) {
             this.add(applicationContext.getAutowireCapableBeanFactory().createBean(handlerClass));
