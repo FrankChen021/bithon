@@ -20,10 +20,11 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.concurrency.NamedThreadFactory;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.server.sink.metrics.transformer.ITopoTransformer;
+import org.bithon.server.sink.metrics.transformer.TopoTransformers;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.input.IInputRow;
-import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.datasource.input.TransformSpec;
 import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -46,7 +47,6 @@ import java.util.stream.Collectors;
 public abstract class AbstractMetricMessageHandler {
 
     private final ThreadPoolExecutor executor;
-
     private final DataSourceSchema schema;
     private final DataSourceSchema endpointSchema;
     private final IMetaStorage metaStorage;
@@ -123,6 +123,7 @@ public abstract class AbstractMetricMessageHandler {
                 return;
             }
 
+            ITopoTransformer topoTransformer = TopoTransformers.getInstance().getTopoTransformer(getType());
             MetricsAggregator endpointDataSource = new MetricsAggregator(endpointSchema, 60);
 
             //
@@ -136,7 +137,9 @@ public abstract class AbstractMetricMessageHandler {
                     }
 
                     // extract endpoint
-                    endpointDataSource.aggregate(extractEndpointLink(metricMessage));
+                    if (topoTransformer != null) {
+                        endpointDataSource.aggregate(topoTransformer.transform(metricMessage));
+                    }
 
                     processMeta(metricMessage);
 
@@ -169,10 +172,6 @@ public abstract class AbstractMetricMessageHandler {
                           e);
             }
         }
-    }
-
-    protected Measurement extractEndpointLink(IInputRow message) {
-        return null;
     }
 
     private void processMeta(IInputRow metric) {

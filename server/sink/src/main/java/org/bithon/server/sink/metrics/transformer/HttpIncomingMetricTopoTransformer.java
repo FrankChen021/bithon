@@ -14,58 +14,29 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.sink.metrics;
+package org.bithon.server.sink.metrics.transformer;
 
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.server.sink.common.service.UriNormalizer;
-import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.sink.metrics.EndPointMeasurementBuilder;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.Measurement;
 import org.bithon.server.storage.meta.EndPointType;
-import org.bithon.server.storage.meta.IMetaStorage;
-import org.bithon.server.storage.metrics.IMetricStorage;
 import org.springframework.util.StringUtils;
-
-import java.io.IOException;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/10 4:55 下午
  */
 @Slf4j
-public class HttpIncomingMetricMessageHandler extends AbstractMetricMessageHandler {
+public class HttpIncomingMetricTopoTransformer implements ITopoTransformer {
 
-    private final UriNormalizer uriNormalizer;
-
-    public HttpIncomingMetricMessageHandler(UriNormalizer uriNormalizer,
-                                            IMetaStorage metaStorage,
-                                            IMetricStorage metricStorage,
-                                            DataSourceSchemaManager dataSourceSchemaManager) throws IOException {
-        super("http-incoming-metrics",
-              metaStorage,
-              metricStorage,
-              dataSourceSchemaManager);
-        this.uriNormalizer = uriNormalizer;
+    @Override
+    public String getSourceType() {
+        return "http-incoming-metrics";
     }
 
     @Override
-    protected boolean beforeProcess(IInputRow message) {
-        if (message.getColAsLong("totalCount", 0) <= 0) {
-            return false;
-        }
-
-        UriNormalizer.NormalizedResult result = uriNormalizer.normalize(message.getColAsString("appName"),
-                                                                        message.getColAsString("uri"));
-        if (result.getUri() == null) {
-            return false;
-        }
-        message.updateColumn("uri", result.getUri());
-
-        return true;
-    }
-
-    @Override
-    protected Measurement extractEndpointLink(IInputRow message) {
+    public Measurement transform(IInputRow message) {
         String srcApplication;
         EndPointType srcEndPointType;
         if (StringUtils.isEmpty(message.getColAsString("srcApplication"))) {
