@@ -182,22 +182,21 @@ public class ClientChannel implements IChannelWriter, Closeable {
                 connectFuture.await(200, TimeUnit.MILLISECONDS);
                 if (connectFuture.isSuccess()) {
                     connectionTimestamp = System.currentTimeMillis();
-                    log.info("Successfully connected to server({}:{})", endpoint.getHost(), endpoint.getPort());
+                    log.info("Successfully connected to remote service at [{}:{}]", endpoint.getHost(), endpoint.getPort());
                     return;
                 }
                 int leftCount = maxRetry - i - 1;
                 if (leftCount > 0) {
-                    log.warn("Unable to connect to server({}:{})。Left retry count:{}",
+                    log.warn("Unable to connect to remote service at [{}:{}]. Left retry count:{}",
                              endpoint.getHost(),
                              endpoint.getPort(),
                              maxRetry - i - 1);
                     Thread.sleep(retryInterval.toMillis());
                 }
-            } catch (InterruptedException e) {
-                throw new CallerSideException("Unable to connect to server, interrupted");
+            } catch (InterruptedException ignored) {
             }
         }
-        throw new CallerSideException("Unable to connect to server(%s:%s)", endpoint.getHost(), endpoint.getPort());
+        throw new CallerSideException("Unable to connect to remote service at [%s:%d]", endpoint.getHost(), endpoint.getPort());
     }
 
     public ClientChannel bindService(Object serviceImpl) {

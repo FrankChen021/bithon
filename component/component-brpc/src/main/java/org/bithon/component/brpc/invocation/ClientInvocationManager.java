@@ -59,7 +59,7 @@ public class ClientInvocationManager {
     public Object invoke(String appName,
                          IChannelWriter channelWriter,
                          boolean debug,
-                         long timeout,
+                         long timeoutMillisecond,
                          Method method,
                          Object[] args)
         throws Throwable {
@@ -77,15 +77,19 @@ public class ClientInvocationManager {
                                           method.getDeclaringClass().getSimpleName(),
                                           method.getName());
         }
+
+        String serviceAddress = ch.remoteAddress().toString();
         if (!ch.isActive()) {
-            throw new CallerSideException("Failed to invoke %s#%s due to channel is not active",
+            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not active",
                                           method.getDeclaringClass().getSimpleName(),
-                                          method.getName());
+                                          method.getName(),
+                                          serviceAddress);
         }
         if (!ch.isWritable()) {
-            throw new CallerSideException("Failed to invoke %s#%s due to channel is not writable",
+            throw new CallerSideException("Failed to invoke %s#%s at [%s] due to channel is not writable",
                                           method.getDeclaringClass().getSimpleName(),
-                                          method.getName());
+                                          method.getName(),
+                                          serviceAddress);
         }
 
         ServiceConfiguration serviceConfiguration = configurationMap.computeIfAbsent(method, ServiceConfiguration::getServiceConfiguration);
@@ -118,11 +122,14 @@ public class ClientInvocationManager {
             try {
                 //noinspection SynchronizationOnLocalVariableOrMethodParameter
                 synchronized (inflightRequest) {
-                    inflightRequest.wait(timeout);
+                    inflightRequest.wait(timeoutMillisecond);
                 }
             } catch (InterruptedException e) {
                 inflightRequests.remove(serviceRequest.getTransactionId());
-                throw new CallerSideException("interrupted");
+                throw new CallerSideException("Failed to invoke %s#%s at [%s] due to invocation is interrupted",
+                                              method.getDeclaringClass().getSimpleName(),
+                                              method.getName(),
+                                              serviceAddress);
             }
 
             //make sure it has been cleared when timeout
@@ -133,9 +140,10 @@ public class ClientInvocationManager {
             }
 
             if (!inflightRequest.returned) {
-                throw new TimeoutException(serviceRequest.getServiceName(),
+                throw new TimeoutException(serviceAddress,
+                                           serviceRequest.getServiceName(),
                                            serviceRequest.getMethodName(),
-                                           5000);
+                                           timeoutMillisecond);
             }
 
             return inflightRequest.response;

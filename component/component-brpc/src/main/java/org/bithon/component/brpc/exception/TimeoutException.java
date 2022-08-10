@@ -19,7 +19,10 @@ package org.bithon.component.brpc.exception;
 import java.util.Locale;
 
 public class TimeoutException extends ServiceInvocationException {
-    public TimeoutException(CharSequence service, CharSequence method, int timeout) {
-        super(String.format(Locale.ENGLISH, "Timeout(%d millisecond) to call %s#%s", timeout, service, method));
+    public TimeoutException(String serviceAddress,
+                            CharSequence service,
+                            CharSequence method,
+                            long timeout) {
+        super(String.format(Locale.ENGLISH, "Timeout(%d millisecond) to call [%s#%s] at [%s]", timeout, service, method, serviceAddress));
     }
 }
