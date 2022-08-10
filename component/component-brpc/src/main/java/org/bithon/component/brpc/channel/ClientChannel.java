@@ -21,7 +21,7 @@ import org.bithon.component.brpc.endpoint.EndPoint;
 import org.bithon.component.brpc.endpoint.IEndPointProvider;
 import org.bithon.component.brpc.endpoint.SingleEndPointProvider;
 import org.bithon.component.brpc.exception.CallerSideException;
-import org.bithon.component.brpc.exception.ServiceInvocationException;
+import org.bithon.component.brpc.exception.ChannelException;
 import org.bithon.component.brpc.invocation.ServiceStubFactory;
 import org.bithon.component.brpc.message.in.ServiceMessageInDecoder;
 import org.bithon.component.brpc.message.out.ServiceMessageOutEncoder;
@@ -118,7 +118,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
     public void writeAndFlush(Object obj) {
         Channel ch = channel.get();
         if (ch == null) {
-            throw new ServiceInvocationException("Client channel is closed");
+            throw new ChannelException("Client channel is closed");
         }
         ch.writeAndFlush(obj);
     }
@@ -137,7 +137,7 @@ public class ClientChannel implements IChannelWriter, Closeable {
     public synchronized void disconnect() {
         Channel ch = channel.getAndSet(null);
         if (ch != null) {
-            ch.disconnect();
+            ch.flush().disconnect();
         }
         connectionTimestamp = 0;
     }
