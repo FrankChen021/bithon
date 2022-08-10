@@ -21,6 +21,7 @@ import org.bithon.agent.core.dispatcher.channel.IMessageChannelFactory;
 import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
 import org.bithon.component.commons.logging.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +41,9 @@ public class Dispatchers {
     private static final Map<String, Dispatcher> DISPATCHERS = new HashMap<>();
 
     public static Collection<Dispatcher> getAllDispatcher() {
-        return DISPATCHERS.values();
+        synchronized (DISPATCHERS) {
+            return new ArrayList<>(DISPATCHERS.values());
+        }
     }
 
     public static Dispatcher getOrCreate(String dispatcherName) {
