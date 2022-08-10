@@ -20,57 +20,39 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Getter;
+import org.bithon.server.sink.common.utils.NetworkUtils;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.transformer.ITransformer;
-import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/8/9 20:28
+ * @date 2022/8/10 20:45
  */
-@JsonTypeName("hostOfUri")
-public class HostOfUri implements ITransformer {
+@JsonTypeName("extractPath")
+public class ExtractPath implements ITransformer {
 
     @Getter
     private final String uri;
 
     @Getter
-    private final String field;
+    private final String targetField;
 
     @JsonCreator
-    public HostOfUri(@JsonProperty("uri") String uri,
-                     @JsonProperty("field") String field) {
+    public ExtractPath(@JsonProperty("uri") String uri,
+                       @JsonProperty("targetField") String targetField) {
         this.uri = uri;
-        this.field = field;
+        this.targetField = targetField;
     }
 
     @Override
     public void transform(IInputRow inputRow) throws TransformException {
         try {
             URI uri = new URI(inputRow.getColAsString(this.uri));
-            String hostAndPort = toHostPort(uri.getHost(), uri.getPort());
-            if (hostAndPort == null) {
-                throw new TransformException();
-            }
-
-            inputRow.updateColumn(this.field, hostAndPort);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String toHostPort(String targetHost, int targetPort) {
-        if (StringUtils.isEmpty(targetHost)) {
-            return null;
-        }
-
-        if (targetPort < 0) {
-            return targetHost;
-        } else {
-            return targetHost + ":" + targetPort;
+            inputRow.updateColumn(this.targetField, NetworkUtils.formatUri(uri));
+        } catch (URISyntaxException ignored) {
         }
     }
 }

@@ -21,7 +21,8 @@ import com.fasterxml.jackson.databind.Module;
 import org.bithon.server.sink.event.EventInputSource;
 import org.bithon.server.sink.metrics.MetricInputSource;
 import org.bithon.server.sink.metrics.transformer.ConnectionStringTransformer;
-import org.bithon.server.sink.metrics.transformer.HostOfUri;
+import org.bithon.server.sink.metrics.transformer.ExtractHost;
+import org.bithon.server.sink.metrics.transformer.ExtractPath;
 import org.bithon.server.sink.metrics.transformer.UriNormalizationTransformer;
 import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.sink.tracing.TraceDataSourceSchemaInitializer;
@@ -67,8 +68,9 @@ public class SinkAutoConfiguration {
 
                                          // transformers
                                          UriNormalizationTransformer.class,
-                                         HostOfUri.class,
-                                         ConnectionStringTransformer.class
+                                         ExtractHost.class,
+                                         ConnectionStringTransformer.class,
+                                         ExtractPath.class
                 );
             }
         };

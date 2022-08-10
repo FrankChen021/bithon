@@ -49,7 +49,12 @@ public class HttpOutgoingMetricTopoTransformer implements ITopoTransformer {
         }
 
         String targetHostPort = message.getColAsString("targetHostPort");
-        if (NetworkUtils.isIpAddress(message.getColAsString("targetHost"))) {
+        if (targetHostPort == null) {
+            return null;
+        }
+
+        String targetHost = targetHostPort.split(":")[0];
+        if (NetworkUtils.isIpAddress(targetHost)) {
 
             // try to get application info by instance name to see if it's an internal application
             String targetApplicationName = this.metaStorage.getApplicationByInstance(targetHostPort);
