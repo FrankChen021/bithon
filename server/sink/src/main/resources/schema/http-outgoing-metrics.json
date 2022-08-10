@@ -139,17 +139,22 @@
     "transformSpec": {
       "prefilter": {
         "type": "expression",
-        "expression": "totalCount > 0"
+        "expression": "requestCount > 0"
       },
       "transformers": [
         {
-          "type": "normalize",
-          "field": "path"
+          "type": "extractHost",
+          "uri": "path",
+          "targetField": "targetHostPort"
         },
         {
-          "type": "hostOfUri",
-          "field": "targetHostPort",
-          "uri": "path"
+          "type": "extractPath",
+          "uri": "path",
+          "targetField": "path"
+        },
+        {
+          "type": "normalize",
+          "field": "path"
         }
       ]
     }
