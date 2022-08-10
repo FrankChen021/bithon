@@ -20,6 +20,7 @@ import org.bithon.component.brpc.ServiceConfiguration;
 import org.bithon.component.brpc.channel.IChannelWriter;
 import org.bithon.component.brpc.exception.CalleeSideException;
 import org.bithon.component.brpc.exception.CallerSideException;
+import org.bithon.component.brpc.exception.ChannelException;
 import org.bithon.component.brpc.exception.TimeoutException;
 import org.bithon.component.brpc.message.in.ServiceResponseMessageIn;
 import org.bithon.component.brpc.message.out.ServiceRequestMessageOut;
@@ -116,7 +117,17 @@ public class ClientInvocationManager {
         if (debug) {
             //log.info("[DEBUGGING] Sending message: {}", message);
         }
-        channelWriter.writeAndFlush(serviceRequest);
+
+        for (int i = 0; i < 3; i++) {
+            try {
+                channelWriter.writeAndFlush(serviceRequest);
+                break;
+            } catch (ChannelException e) {
+                if (i < 2) {
+                    channelWriter.connect();
+                }
+            }
+        }
 
         if (inflightRequest != null) {
             try {

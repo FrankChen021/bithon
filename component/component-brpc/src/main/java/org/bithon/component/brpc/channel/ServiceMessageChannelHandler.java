@@ -104,6 +104,19 @@ public class ServiceMessageChannelHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    @Override
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) {
+        if (ctx.channel().isWritable()) {
+            // set auto read to true if channel is writable.
+            ctx.channel().config().setAutoRead(true);
+        } else {
+            log.warn("channel is not writable, disable auto reading for back pressing");
+            ctx.channel().config().setAutoRead(false);
+            ctx.flush();
+        }
+        ctx.fireChannelWritabilityChanged();
+    }
+
     public boolean isChannelDebugEnabled() {
         return channelDebugEnabled;
     }
