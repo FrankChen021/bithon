@@ -20,7 +20,7 @@ dispatchers:
       # in milliseconds
       maxLifeTime: 300000
     servers: 127.0.0.1:9895
-    batchSize: 50
+    batchSize: 500
     flushTime: 3000
   event:
     client:
@@ -28,5 +28,5 @@ dispatchers:
       # in milliseconds
       maxLifeTime: 300000
     servers: 127.0.0.1:9896
-    batchSize: 50
+    batchSize: 100
     flushTime: 5000
