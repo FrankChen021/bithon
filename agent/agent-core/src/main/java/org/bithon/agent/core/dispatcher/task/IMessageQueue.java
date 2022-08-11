@@ -16,18 +16,29 @@
 
 package org.bithon.agent.core.dispatcher.task;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
 
 /**
  * @author frankchen
  */
 public interface IMessageQueue {
 
-    void enqueue(Object item);
+    void offer(Object item);
 
-    Object dequeue(int timeout, TimeUnit unit) throws InterruptedException;
-
-    void gc();
+    void offerAll(Collection<Object> items);
 
     long size();
+
+    /**
+     * Wait for at most {timeout} milliseconds to take at most maxElement elements from current queue
+     * @param maxElement how many elements to take from this queue
+     * @param timeout how long should we wait for taking maxElement elements from this queue
+     * @return null if no elements got within specified timeout
+     *         A collection that contains at most maxElement elements if maxElement > 1
+     *         An object if maxElement == 1
+     * @throws InterruptedException
+     */
+    Object take(int maxElement, long timeout) throws InterruptedException;
+
+    Object take(int maxElement);
 }
