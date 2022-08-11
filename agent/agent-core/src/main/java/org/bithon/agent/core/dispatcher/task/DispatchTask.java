@@ -19,8 +19,9 @@ package org.bithon.agent.core.dispatcher.task;
 import org.bithon.agent.core.dispatcher.config.DispatcherConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.utils.StringUtils;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
@@ -30,39 +31,45 @@ public class DispatchTask {
 
     private static final ILogAdaptor log = LoggerFactory.getLogger(DispatchTask.class);
 
-    private final Consumer<Object> messageConsumer;
-    private final long gcPeriod;
+    private final Consumer<Object> underlyingSender;
     private final IMessageQueue queue;
-    private final String taskName;
-    private long lastGCTime;
-    private boolean isRunning = true;
+    private volatile boolean isRunning = true;
+    private volatile boolean isTaskEnd = false;
+
+    /**
+     * in millisecond
+     */
+    private final long flushTime;
+    private final int batchSize;
 
     public DispatchTask(String taskName,
                         IMessageQueue queue,
                         DispatcherConfig config,
-                        Consumer<Object> messageConsumer) {
-        this.taskName = taskName;
-        this.gcPeriod = config.getQueue().getGcPeriod() * 1000L;
-        this.messageConsumer = messageConsumer;
+                        Consumer<Object> underlyingSender) {
+        this.flushTime = Math.max(10, config.getFlushTime());
+        this.batchSize = Math.max(1, config.getBatchSize());
+        this.underlyingSender = underlyingSender;
         this.queue = queue;
-        this.lastGCTime = System.currentTimeMillis();
-
         new Thread(() -> {
             while (isRunning) {
-                send();
+                dispatch(true);
             }
+            isTaskEnd = true;
         }, taskName + "-sender").start();
     }
 
-    private void send() {
+    private void dispatch(boolean wait) {
         try {
-            Object message = queue.dequeue(10, TimeUnit.MILLISECONDS);
+            Object message = wait ? queue.take(this.batchSize, this.flushTime) : queue.take(this.batchSize);
             if (message != null) {
-                this.messageConsumer.accept(message);
-                queue.gc();
+                if (batchSize > 1 && message instanceof Collection) {
+                    int size = ((Collection) message).size();
+                    log.info("Sending message in batch, size = {}", size);
+                }
+                this.underlyingSender.accept(message);
             }
         } catch (Exception e) {
-            log.error("Sending Entity Failed! \n" + e, e);
+            log.error(StringUtils.format("Failed to send message: %s", e.getMessage()), e);
         }
     }
 
@@ -73,17 +80,30 @@ public class DispatchTask {
             log.debug("Entity : " + className + ", Got and Send : " + message);
         }
         if (isRunning) {
-            queue.enqueue(message);
+            queue.offer(message);
+        }
+    }
+
+    public void accept(Collection<Object> messages) {
+        if (isRunning) {
+            queue.offerAll(messages);
         }
     }
 
     public void stop() {
-        // stop receiving new messages
+        // stop receiving new messages and stop the task
         isRunning = false;
+
+        while (!isTaskEnd) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) {
+            }
+        }
 
         // flush all messages
         while (queue.size() > 0) {
-            send();
+            dispatch(false);
         }
     }
 

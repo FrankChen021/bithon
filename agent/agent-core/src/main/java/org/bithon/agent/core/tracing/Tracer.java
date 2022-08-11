@@ -159,7 +159,7 @@ public class Tracer {
                                               .filter(Objects::nonNull)
                                               .collect(Collectors.toList());
             try {
-                traceDispatcher.sendMessage(traceMessages);
+                traceDispatcher.send(traceMessages);
             } catch (Exception e) {
                 log.error("exception when sending trace messages.", e);
             }

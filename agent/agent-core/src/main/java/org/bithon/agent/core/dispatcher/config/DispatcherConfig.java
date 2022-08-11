@@ -16,7 +16,7 @@
 
 package org.bithon.agent.core.dispatcher.config;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -24,12 +24,19 @@ import java.util.Map;
  */
 public class DispatcherConfig {
 
-    private Map<String, Boolean> messageDebug = new HashMap<>();
+    private Map<String, Boolean> messageDebug = Collections.emptyMap();
     private DispatcherQueue queue;
 
     private String servers;
 
     private DispatcherClient client;
+
+    private int batchSize = 0;
+
+    /**
+     * in milliseconds
+     */
+    private int flushTime = 10;
 
     public DispatcherQueue getQueue() {
         return queue;
@@ -61,5 +68,21 @@ public class DispatcherConfig {
 
     public void setMessageDebug(Map<String, Boolean> messageDebug) {
         this.messageDebug = messageDebug;
+    }
+
+    public int getBatchSize() {
+        return batchSize;
+    }
+
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+    }
+
+    public int getFlushTime() {
+        return flushTime;
+    }
+
+    public void setFlushTime(int flushTime) {
+        this.flushTime = flushTime;
     }
 }
