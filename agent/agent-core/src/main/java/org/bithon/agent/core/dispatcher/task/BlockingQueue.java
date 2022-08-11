@@ -27,7 +27,15 @@ import java.util.concurrent.TimeUnit;
  * @date 2021/5/14 10:46 上午
  */
 public class BlockingQueue implements IMessageQueue {
-    private final LinkedBlockingQueue<Object> queue = new LinkedBlockingQueue<>(4096);
+    private final LinkedBlockingQueue<Object> queue;
+
+    public BlockingQueue() {
+        this(4096);
+    }
+
+    public BlockingQueue(int queueSize) {
+        queue = new LinkedBlockingQueue<>(queueSize);
+    }
 
     @Override
     public void offer(Object item) {

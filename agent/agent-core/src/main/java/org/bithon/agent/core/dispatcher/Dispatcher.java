@@ -71,9 +71,7 @@ public class Dispatcher {
     }
 
     public void onReady(Consumer<Dispatcher> listener) {
-        AgentContext.getInstance().getAppInstance().addListener(port -> {
-            listener.accept(this);
-        });
+        AgentContext.getInstance().getAppInstance().addListener(port -> listener.accept(this));
     }
 
     public IMessageConverter getMessageConverter() {
@@ -120,13 +118,13 @@ public class Dispatcher {
                  this.dispatcherName);
 
         task = new DispatchTask(dispatcherName,
-                                createQueue(),
+                                createQueue(dispatcherConfig),
                                 dispatcherConfig,
                                 messageChannel::sendMessage);
     }
 
-    private IMessageQueue createQueue() {
-        return new BlockingQueue();
+    private IMessageQueue createQueue(DispatcherConfig config) {
+        return new BlockingQueue(config.getQueueSize());
     }
 
     public void shutdown() {

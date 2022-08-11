@@ -22,6 +22,7 @@ dispatchers:
     servers: 127.0.0.1:9895
     batchSize: 500
     flushTime: 3000
+    queueSize: 8192
   event:
     client:
       factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory

@@ -25,7 +25,16 @@ import java.util.Map;
 public class DispatcherConfig {
 
     private Map<String, Boolean> messageDebug = Collections.emptyMap();
-    private DispatcherQueue queue;
+
+    private int queueSize = 4096;
+
+    public int getQueueSize() {
+        return queueSize;
+    }
+
+    public void setQueueSize(int queueSize) {
+        this.queueSize = queueSize;
+    }
 
     private String servers;
 
@@ -37,14 +46,6 @@ public class DispatcherConfig {
      * in milliseconds
      */
     private int flushTime = 10;
-
-    public DispatcherQueue getQueue() {
-        return queue;
-    }
-
-    public void setQueue(DispatcherQueue queue) {
-        this.queue = queue;
-    }
 
     public String getServers() {
         return servers;
