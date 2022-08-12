@@ -59,7 +59,7 @@ public class BlockingQueue implements IMessageQueue {
             return queue.poll(timeout, TimeUnit.MILLISECONDS);
         }
 
-        List returnList = new ArrayList<>(maxElement);
+        List<Object> returnList = new ArrayList<>(maxElement);
 
         while (maxElement > 0 && timeout > 0) {
             long start = System.currentTimeMillis();
@@ -71,7 +71,9 @@ public class BlockingQueue implements IMessageQueue {
 
             // add this element to returning
             returnList.add(first);
-            maxElement--;
+            if (--maxElement == 0) {
+                break;
+            }
 
             // tried to get enough elements from the queue
             int n = queue.drainTo(returnList, maxElement);
@@ -91,7 +93,7 @@ public class BlockingQueue implements IMessageQueue {
             return queue.poll();
         }
 
-        List list = new ArrayList(maxElement);
+        List<Object> list = new ArrayList<>(maxElement);
         queue.drainTo(list, maxElement);
         return list.isEmpty() ? null : list;
     }
