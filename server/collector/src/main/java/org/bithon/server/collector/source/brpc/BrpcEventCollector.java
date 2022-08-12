@@ -26,6 +26,7 @@ import org.bithon.server.storage.event.EventMessage;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
@@ -51,6 +52,31 @@ public class BrpcEventCollector implements IEventCollector, AutoCloseable {
                                                 .build();
         Iterator<EventMessage> delegate = Collections.singletonList(eventMessage).iterator();
         eventSink.process("event", IteratorableCollection.of(delegate));
+    }
+
+    @Override
+    public void sendEvent2(BrpcMessageHeader header, List<BrpcEventMessage> messages) {
+        Iterator<EventMessage> iterator = new Iterator<EventMessage>() {
+            private final Iterator<BrpcEventMessage> delegation = messages.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return delegation.hasNext();
+            }
+
+            @Override
+            public EventMessage next() {
+                BrpcEventMessage message = delegation.next();
+                return EventMessage.builder()
+                                   .appName(header.getAppName())
+                                   .instanceName(header.getInstanceName())
+                                   .timestamp(message.getTimestamp())
+                                   .type(message.getEventType())
+                                   .jsonArgs(message.getJsonArguments())
+                                   .build();
+            }
+        };
+        eventSink.process("event", IteratorableCollection.of(iterator));
     }
 
     @Override

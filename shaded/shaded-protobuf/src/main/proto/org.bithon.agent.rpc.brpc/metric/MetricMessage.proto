@@ -71,22 +71,6 @@ message BrpcJvmMetricMessage {
     int64 directUsed         = 30;
 }
 
-/***************************************************************************/
-/*******************************  SQL             ***************************/
-/***************************************************************************/
-message BrpcSqlMetricMessage {
-    int64 timestamp              =  1;
-    int32 interval               =  2;
-    string connectionString    =  3;
-    int64 callCount              =  4;
-    int64 responseTime           =  5;
-    int64 minResponseTime        =  6;
-    int64 maxResponseTime        =  7;
-    int64 errorCount             =  8;
-    int64 queryCount             =  9;
-    int64 updateCount            =  10;
-}
-
 /**************************************************************************/
 /*******************************  Generic Metric Message       ***************************/
 /**************************************************************************/

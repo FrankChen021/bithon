@@ -29,6 +29,7 @@ import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.function.Consumer;
 
 /**
@@ -69,17 +70,24 @@ public class Dispatcher {
         return task != null && task.canAccept();
     }
 
-    public void onReady(Consumer<Dispatcher> consumer) {
-        AgentContext.getInstance().getAppInstance().addListener(port -> {
-            consumer.accept(this);
-        });
+    public void onReady(Consumer<Dispatcher> listener) {
+        AgentContext.getInstance().getAppInstance().addListener(port -> listener.accept(this));
     }
 
     public IMessageConverter getMessageConverter() {
         return this.messageConverter;
     }
 
+    /**
+     * will be replaced by {@link #send(Collection)} once underlying send method on channel is refactor to have the same interface
+     */
     public void sendMessage(Object message) {
+        if (task != null && message != null) {
+            task.accept(message);
+        }
+    }
+
+    public void send(Collection<Object> message) {
         if (task != null && message != null) {
             task.accept(message);
         }
@@ -110,13 +118,13 @@ public class Dispatcher {
                  this.dispatcherName);
 
         task = new DispatchTask(dispatcherName,
-                                createQueue(),
+                                createQueue(dispatcherConfig),
                                 dispatcherConfig,
                                 messageChannel::sendMessage);
     }
 
-    private IMessageQueue createQueue() {
-        return new BlockingQueue();
+    private IMessageQueue createQueue(DispatcherConfig config) {
+        return new BlockingQueue(config.getQueueSize());
     }
 
     public void shutdown() {

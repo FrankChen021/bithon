@@ -83,10 +83,6 @@ public class BrpcEventMessageChannel implements IMessageChannel {
 
     @Override
     public void sendMessage(Object message) {
-        if (!(message instanceof BrpcEventMessage)) {
-            return;
-        }
-
         IChannelWriter channel = ((IServiceController) eventCollector).getChannel();
         if (channel.getConnectionLifeTime() > dispatcherConfig.getClient().getMaxLifeTime()) {
             log.info("Disconnect for event-channel load balancing...");
@@ -103,7 +99,12 @@ public class BrpcEventMessageChannel implements IMessageChannel {
         }
 
         try {
-            eventCollector.sendEvent(header, (BrpcEventMessage) message);
+            if (message instanceof BrpcEventMessage) {
+                eventCollector.sendEvent(header, (BrpcEventMessage) message);
+            } else if (message instanceof List) {
+                //noinspection unchecked
+                eventCollector.sendEvent2(header, (List<BrpcEventMessage>) message);
+            }
         } catch (CallerSideException e) {
             //suppress client exception
             log.error("Failed to send event: {}", e.getMessage());

@@ -16,6 +16,41 @@ Given a static configuration `agent.plugin.http.incoming.filter.uri.suffixes`, i
 
 ## Configurations
 
+### Dispatcher Configuration
+
+The default dispatcher configuration locates in the `agent.yml` file under `agent-distribution` module.
+
+```yaml
+dispatchers:
+  metric:
+    client:
+      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      maxLifeTime: 300000
+    servers: 127.0.0.1:9898
+  tracing:
+    client:
+      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      maxLifeTime: 300000
+    servers: 127.0.0.1:9895
+    batchSize: 500
+    flushTime: 3000
+    queueSize: 8192
+  event:
+    client:
+      factory: org.bithon.agent.dispatcher.brpc.BrpcChannelFactory
+      maxLifeTime: 300000
+    servers: 127.0.0.1:9896
+    batchSize: 100
+    flushTime: 5000
+```
+
+| Path               | Description                                                                                                        | Example                       | 
+|--------------------|--------------------------------------------------------------------------------------------------------------------|-------------------------------|
+| client.maxLifeTime | How long the client channel should be kept.                                                                        | 30000                         |
+| servers            | The addresses where remote service locates. If there are multiple servers, a comma is used to split the addresses. | 127.0.0.1:9898,127.0.0.2:9898 |
+| batchSize          | The max size of messages that can be sent in one batch.                                                            | 500                           |
+| flushTime          | The interval of sending messages in milliseconds if there are no enough messages that can be put in one batch.     |
+
 ### Plugin Configuration
 
 #### Agent Plugin Enabler flag
