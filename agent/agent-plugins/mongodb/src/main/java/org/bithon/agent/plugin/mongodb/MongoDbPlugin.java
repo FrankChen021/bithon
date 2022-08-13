@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.mongodb;
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.plugin.IPlugin;
 
 import java.util.Arrays;
@@ -29,6 +30,11 @@ import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.
  * @author frankchen
  */
 public class MongoDbPlugin implements IPlugin {
+
+    @Override
+    public IInterceptorPrecondition getPreconditions() {
+        return IInterceptorPrecondition.hasClass("com.mongodb.connection.DefaultServerConnection");
+    }
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {

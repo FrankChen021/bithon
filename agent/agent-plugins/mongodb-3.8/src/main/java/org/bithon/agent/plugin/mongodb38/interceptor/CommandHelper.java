@@ -26,6 +26,7 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
+import org.bithon.component.commons.logging.LoggerFactory;
 import org.bson.BsonDocument;
 
 /**
@@ -48,6 +49,17 @@ public class CommandHelper {
 
         @Override
         public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+            int lastIndex = aopContext.getArgs().length - 1;
+            if (lastIndex == -1) {
+                return InterceptionDecision.SKIP_LEAVE;
+            }
+            if (!(aopContext.getArgs()[lastIndex] instanceof InternalConnection)) {
+                LoggerFactory.getLogger(ExecuteCommand.class)
+                             .error("Interceptor does not work for {}. Maybe the target library version is not compatible with the agent. ",
+                                    aopContext.getMethod().toString());
+                return InterceptionDecision.SKIP_LEAVE;
+            }
+
             //
             // set command to thread context so that the size of sent/received could be associated with the command
             //
@@ -62,10 +74,8 @@ public class CommandHelper {
 
         @Override
         public void onMethodLeave(AopContext aopContext) throws Exception {
-            InternalConnection connection = aopContext.getArgs().length > 3
-                                            ? aopContext.getArgAs(3)
-                                            : aopContext.getArgAs(2);
-
+            int lastIndex = aopContext.getArgs().length - 1;
+            InternalConnection connection = aopContext.getArgAs(lastIndex);
             String server = connection.getDescription().getServerAddress().toString();
             metricRegistry.getOrCreateMetric(server, (String) aopContext.getArgs()[0])
                           .add(aopContext.getCostTime(), aopContext.hasException() ? 1 : 0);

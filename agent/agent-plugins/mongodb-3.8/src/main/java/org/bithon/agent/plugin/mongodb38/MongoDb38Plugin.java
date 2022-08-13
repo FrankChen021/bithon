@@ -18,6 +18,7 @@ package org.bithon.agent.plugin.mongodb38;
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
+import org.bithon.agent.core.aop.matcher.Matchers;
 import org.bithon.agent.core.aop.precondition.IInterceptorPrecondition;
 import org.bithon.agent.core.plugin.IPlugin;
 
@@ -25,7 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
-import static shaded.net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 /**
  * @author frankchen
@@ -49,7 +49,7 @@ public class MongoDb38Plugin implements IPlugin {
             forClass("com.mongodb.internal.connection.CommandProtocolImpl")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
-                                                   .onConstructor(takesArguments(9))
+                                                   .onConstructor(Matchers.argumentSize(size -> size >= 9))
                                                    .to("org.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$Constructor"),
 
                     MethodPointCutDescriptorBuilder.build()
