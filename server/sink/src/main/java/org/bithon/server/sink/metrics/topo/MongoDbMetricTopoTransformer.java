@@ -45,7 +45,7 @@ public class MongoDbMetricTopoTransformer implements ITopoTransformer {
                                          // metric
                                          .interval(message.getColAsLong("interval", 0))
                                          .errorCount(message.getColAsLong("exceptionCount", 0))
-                                         .callCount(message.getColAsLong("callCount", 0))
+                                         .callCount(message.getColAsLong("totalCount", 0))
                                          .responseTime(message.getColAsLong("responseTime", 0))
                                          .minResponseTime(message.getColAsLong("minResponseTime", 0))
                                          .maxResponseTime(message.getColAsLong("maxResponseTime", 0))
