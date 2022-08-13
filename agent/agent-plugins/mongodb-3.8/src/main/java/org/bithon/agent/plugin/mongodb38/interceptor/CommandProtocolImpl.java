@@ -59,7 +59,7 @@ public class CommandProtocolImpl {
 
         /**
          * set command so that
-         * {@link InternalStreamConnectionSendMessage}
+         * {@link InternalStreamConnection$SendMessage}
          * {@link InternalStreamConnection$ReceiveMessage} know which command is being executed
          */
         @Override

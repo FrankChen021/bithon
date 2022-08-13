@@ -20,8 +20,6 @@ import com.mongodb.connection.ConnectionId;
 import com.mongodb.internal.connection.InternalStreamConnection;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.core.context.InterceptorContext;
-import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 import org.bithon.agent.plugin.mongodb38.MetricHelper;
 import org.bson.ByteBuf;
@@ -31,15 +29,13 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class InternalStreamConnectionSendMessage extends AbstractInterceptor {
+public class InternalStreamConnection$SendMessageAsync extends AbstractInterceptor {
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     @SuppressWarnings("unchecked")
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        MongoCommand command = InterceptorContext.getAs("mongo-3.8-command");
-
         InternalStreamConnection target = (InternalStreamConnection) aopContext.getTarget();
 
         List<ByteBuf> byteBufList = (List<ByteBuf>) aopContext.getArgs()[0];
@@ -47,7 +43,7 @@ public class InternalStreamConnectionSendMessage extends AbstractInterceptor {
         int bytesOut = MetricHelper.getMessageSize(byteBufList);
 
         metricRegistry.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
-                                         command.getDatabase())
+                                         "unknown")
                       .addBytesOut(bytesOut);
     }
 }

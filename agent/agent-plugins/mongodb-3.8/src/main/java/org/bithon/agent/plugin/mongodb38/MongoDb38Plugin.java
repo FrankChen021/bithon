@@ -66,11 +66,11 @@ public class MongoDb38Plugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("executeProtocol")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.DefaultServerConnectionExecuteProtocol"),
+                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.DefaultServerConnection$ExecuteProtocol"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("executeProtocolAsync")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.DefaultServerConnectionExecuteProtocolAsync")
+                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.DefaultServerConnection$ExecuteProtocolAsync")
                 ),
 
             //request bytes statistics
@@ -81,11 +81,11 @@ public class MongoDb38Plugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("sendMessage")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionSendMessage"),
+                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$SendMessage"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("sendMessageAsync")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionSendMessageAsync"),
+                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$SendMessageAsync"),
 
                     // 3.8
                     MethodPointCutDescriptorBuilder.build()

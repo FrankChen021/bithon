@@ -35,8 +35,8 @@ import org.bithon.component.commons.logging.LoggerFactory;
 /**
  * @author frankchen
  */
-public class DefaultServerConnectionExecuteProtocol extends AbstractInterceptor {
-    static ILogAdaptor log = LoggerFactory.getLogger(DefaultServerConnectionExecuteProtocol.class);
+public class DefaultServerConnection$ExecuteProtocol extends AbstractInterceptor {
+    static ILogAdaptor log = LoggerFactory.getLogger(DefaultServerConnection$ExecuteProtocol.class);
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
