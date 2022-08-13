@@ -24,11 +24,11 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.event.Event;
 import org.bithon.server.storage.event.EventMessage;
-import org.bithon.server.storage.event.IEventCleaner;
 import org.bithon.server.storage.event.IEventReader;
 import org.bithon.server.storage.event.IEventStorage;
 import org.bithon.server.storage.event.IEventWriter;
@@ -82,8 +82,10 @@ public class EventJdbcStorage implements IEventStorage {
     }
 
     @Override
-    public IEventCleaner createCleaner() {
-        return timestamp -> dslContext.delete(Tables.BITHON_EVENT).where(Tables.BITHON_EVENT.TIMESTAMP.le(new Timestamp(timestamp))).execute();
+    public IStorageCleaner createCleaner() {
+        return timestamp -> dslContext.deleteFrom(Tables.BITHON_EVENT)
+                                      .where(Tables.BITHON_EVENT.TIMESTAMP.le(timestamp))
+                                      .execute();
     }
 
     private static class EventWriter implements IEventWriter {

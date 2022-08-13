@@ -18,14 +18,15 @@ package org.bithon.server.storage.metrics;
 
 import lombok.Data;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.api.IQueryableAggregator;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * @author frank.chen021@outlook.com
+ * @author Frank Chen
  * @date 1/11/21 2:50 pm
  */
 @Data
@@ -33,7 +34,7 @@ public class GroupByQuery {
     private final DataSourceSchema dataSource;
 
     private final List<String> metrics;
-    private final List<IQueryableAggregator> aggregators;
+    private final List<IQueryStageAggregator> aggregators;
 
     private final Collection<IFilter> filters;
     private final Interval interval;
@@ -43,17 +44,17 @@ public class GroupByQuery {
 
     public GroupByQuery(DataSourceSchema dataSource,
                         List<String> metrics,
-                        List<IQueryableAggregator> aggregators,
+                        @Nullable List<IQueryStageAggregator> aggregators,
                         Collection<IFilter> filters,
                         Interval interval,
-                        List<String> groupBys,
+                        @Nullable List<String> groupBys,
                         @Nullable OrderBy orderBy) {
         this.dataSource = dataSource;
-        this.metrics = metrics;
-        this.aggregators = aggregators;
+        this.metrics = metrics == null ? Collections.emptyList() : metrics;
+        this.aggregators = aggregators == null ? Collections.emptyList() : aggregators;
         this.filters = filters;
         this.interval = interval;
-        this.groupBys = groupBys;
+        this.groupBys = groupBys == null ? Collections.emptyList() : groupBys;
         this.orderBy = orderBy;
     }
 }

@@ -1,3 +1,12 @@
+# This property must exist to enable the webapp module
+bithon:
+  webapp:
+    enabled: true
+
+#
+# Some web-server configurations
+# Not mandatory
+#
 server:
   compression:
     enabled: true

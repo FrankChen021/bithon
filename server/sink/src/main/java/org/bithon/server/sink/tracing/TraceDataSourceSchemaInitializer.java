@@ -70,7 +70,7 @@ public class TraceDataSourceSchemaInitializer implements BeanPostProcessor {
                                                                     new TimestampSpec("timestamp", null, null),
                                                                     dimensionSpecs,
                                                                     Collections.singletonList(CountMetricSpec.INSTANCE));
-
+        spanTagSchema.setVirtual(true);
         DataSourceSchemaManager dataSourceSchemaManager = (DataSourceSchemaManager) bean;
         dataSourceSchemaManager.addDataSourceSchema(spanTagSchema);
         return bean;

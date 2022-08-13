@@ -16,40 +16,38 @@
 
 package org.bithon.server.web.service.api;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.metrics.IFilter;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/1/30 8:20 下午
  */
 @Data
-public class GetMetricsRequest {
-    @NotEmpty
-    private String startTimeISO8601;
-
-    @NotEmpty
-    private String endTimeISO8601;
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TimeSeriesQueryRequestV2 {
+    @Valid
+    @NotNull
+    private IntervalRequest interval;
 
     @NotEmpty
     private String dataSource;
 
-    @Deprecated
-    @Valid
-    @Size(min = 1)
-    private Map<String, IFilter> dimensions;
-
     private List<IFilter> filters = Collections.emptyList();
 
-    @Size(min = 1)
-    private List<String> metrics;
+    private List<IQueryStageAggregator> aggregators = Collections.emptyList();
 
-    private List<String> groups = Collections.emptyList();
+    private List<String> groupBy = Collections.emptyList();
 }

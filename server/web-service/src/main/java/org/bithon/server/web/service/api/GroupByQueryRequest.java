@@ -16,8 +16,11 @@
 
 package org.bithon.server.web.service.api;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import org.bithon.server.storage.datasource.api.IQueryableAggregator;
+import lombok.NoArgsConstructor;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.OrderBy;
 
@@ -32,6 +35,9 @@ import java.util.List;
  * @date 2022/11/01 14:28
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GroupByQueryRequest {
     @NotEmpty
     private String startTimeISO8601;
@@ -45,7 +51,7 @@ public class GroupByQueryRequest {
     private List<IFilter> filters = Collections.emptyList();
 
     private List<String> metrics = Collections.emptyList();
-    private List<IQueryableAggregator> aggregators = Collections.emptyList();
+    private List<IQueryStageAggregator> aggregators = Collections.emptyList();
 
     @Valid
     @Size(min = 1)

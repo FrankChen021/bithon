@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(name = "regex", value = StringRegexMatcher.class),
     @JsonSubTypes.Type(name = "antPath", value = StringAntPathMatcher.class),
     @JsonSubTypes.Type(name = "between", value = BetweenMatcher.class),
+    @JsonSubTypes.Type(name = "in", value = InMatcher.class),
     @JsonSubTypes.Type(name = "gt", value = GreaterThanMatcher.class),
     @JsonSubTypes.Type(name = "gte", value = GreaterThanOrEqualMatcher.class),
     @JsonSubTypes.Type(name = "lt", value = LessThanMatcher.class),

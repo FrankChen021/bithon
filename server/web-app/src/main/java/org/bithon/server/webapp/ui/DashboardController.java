@@ -21,7 +21,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.server.webapp.WebAppModuleEnabler;
 import org.bithon.server.webapp.services.ServiceDiscovery;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternUtils;
@@ -50,6 +52,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RestController
+@Conditional(value = WebAppModuleEnabler.class)
 public class DashboardController {
 
     private final ServiceDiscovery serviceDiscovery;

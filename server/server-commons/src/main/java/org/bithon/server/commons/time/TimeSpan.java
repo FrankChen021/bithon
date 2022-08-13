@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,6 +45,10 @@ public class TimeSpan {
 
     public static TimeSpan fromISO8601(String time) {
         return new TimeSpan(DateTimes.ISO_DATE_TIME.parse(time).getMillis());
+    }
+
+    public static TimeSpan of(long l) {
+        return new TimeSpan(l);
     }
 
     public TimeSpan before(long value, TimeUnit timeUnit) {
@@ -70,6 +75,9 @@ public class TimeSpan {
         return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH).format(new Date(this.milliseconds));
     }
 
+    /**
+     * difference in millis
+     */
     public long diff(TimeSpan timeSpan) {
         return this.getMilliseconds() - timeSpan.getMilliseconds();
     }
@@ -92,6 +100,21 @@ public class TimeSpan {
         return (int) milliseconds;
     }
 
+    public static final long DAY_LENGTH_IN_MILLI = 24 * 3600 * 1000L;
+
+    public TimeSpan truncate2Day() {
+        return new TimeSpan(milliseconds / DAY_LENGTH_IN_MILLI * DAY_LENGTH_IN_MILLI);
+    }
+
+    public TimeSpan offset(TimeZone zone) {
+        return new TimeSpan(milliseconds - zone.getOffset(milliseconds));
+    }
+
+    /*
+    public void plus(int value, TimeUnit unit) {
+        this.milliseconds += unit.toMillis(value);
+    }*/
+
     public TimeSpan floor(Duration duration) {
         long milliSeconds = duration.getSeconds() * 1000;
         return new TimeSpan(this.milliseconds / milliSeconds * milliSeconds);
@@ -103,5 +126,9 @@ public class TimeSpan {
         boolean hasModule = this.milliseconds % milliSeconds > 0;
 
         return new TimeSpan((this.milliseconds / milliSeconds + (hasModule ? 1 : 0)) * milliSeconds);
+    }
+
+    public TimeSpan minus(long millis) {
+        return new TimeSpan(this.milliseconds - millis);
     }
 }

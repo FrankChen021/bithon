@@ -14,19 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.api;
+package org.bithon.server.storage.common;
+
+import java.sql.Timestamp;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 1/11/21 3:12 pm
+ * @date 27/10/21 10:26 pm
  */
-public interface IQueryableAggregatorVisitor<T> {
+public interface IStorageCleaner extends AutoCloseable {
+    /**
+     * delete data whose timestamp is less than or equal to the given timestamp
+     */
+    void clean(Timestamp timestamp);
 
-    T visit(CardinalityAggregator aggregator);
-
-    T visit(GroupConcatAggregator aggregator);
-
-    T visit(CountAggregator aggregator);
-
-    T visit(SimpleAggregator simpleAggregator);
+    @Override
+    default void close() {
+    }
 }

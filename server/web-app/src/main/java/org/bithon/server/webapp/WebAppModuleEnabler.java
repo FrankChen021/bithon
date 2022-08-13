@@ -14,16 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.webapp;
+
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * @author frank.chen021@outlook.com
- * @date 27/10/21 10:29 pm
+ * @author Frank Chen
+ * @date 30/4/22 3:54 PM
  */
-public interface IMetricCleaner extends AutoCloseable {
-
-    default void close() {
+public class WebAppModuleEnabler implements Condition {
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        return "true".equals(context.getEnvironment().getProperty("bithon.webapp.enabled"));
     }
-
-    void clean(long timestamp);
 }

@@ -16,15 +16,17 @@
 
 package org.bithon.server.web.service.api;
 
+import lombok.Data;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.TTLConfig;
+import org.bithon.server.storage.common.TTLConfig;
 import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.metrics.GroupByQuery;
+import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -32,14 +34,15 @@ import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.storage.metrics.TimeseriesQuery;
+import org.bithon.server.storage.metrics.TimeseriesQueryV2;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -50,7 +53,7 @@ import java.util.stream.Collectors;
  */
 @CrossOrigin
 @RestController
-public class DataSourceApi {
+public class DataSourceApi implements IDataSourceApi {
     private final MetricStorageConfig storageConfig;
     private final IMetricStorage metricStorage;
     private final DataSourceSchemaManager schemaManager;
@@ -66,6 +69,18 @@ public class DataSourceApi {
         this.dataSourceService = dataSourceService;
     }
 
+    @Data
+    public static class GetMetricsRequest {
+        private String startTimeISO8601;
+        private String endTimeISO8601;
+        private String dataSource;
+        private Map<String, IFilter> dimensions;
+        private List<IFilter> filters = Collections.emptyList();
+        private List<String> metrics;
+        private List<String> groups = Collections.emptyList();
+    }
+
+    @Deprecated
     @PostMapping("/api/datasource/metrics")
     public List<Map<String, Object>> metrics(@Valid @RequestBody GetMetricsRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
@@ -82,8 +97,8 @@ public class DataSourceApi {
                                                                         request.getGroups()));
     }
 
-    @PostMapping("/api/datasource/timeseries")
-    public DataSourceService.TimeSeriesQueryResult timeseries(@Valid @RequestBody TimeSeriesQueryRequest request) {
+    @Override
+    public DataSourceService.TimeSeriesQueryResult timeseries(TimeSeriesQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
@@ -91,13 +106,29 @@ public class DataSourceApi {
 
         return dataSourceService.timeseriesQuery(new TimeseriesQuery(schema,
                                                                      request.getMetrics(),
-                                                                     request.getDimensions(),
+                                                                     request.getDimensions() != null ? request.getDimensions() : request.getFilters(),
                                                                      Interval.of(start, end),
                                                                      request.getGroups()));
     }
 
-    @PostMapping("/api/datasource/groupBy")
-    public List<Map<String, Object>> groupBy(@Valid @RequestBody GroupByQueryRequest request) {
+    @Override
+    public DataSourceService.TimeSeriesQueryResult timeseries(TimeSeriesQueryRequestV2 request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        TimeSpan start = TimeSpan.fromISO8601(request.getInterval().getStartISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(request.getInterval().getEndISO8601());
+
+        return dataSourceService.timeseriesQuery(TimeseriesQueryV2.builder()
+                                                                  .dataSource(schema)
+                                                                  .aggregators(request.getAggregators())
+                                                                  .filters(request.getFilters())
+                                                                  .interval(Interval.of(start, end, request.getInterval().getStep()))
+                                                                  .groupBys(request.getGroupBy())
+                                                                  .build());
+    }
+
+    @Override
+    public List<Map<String, Object>> groupBy(GroupByQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
@@ -112,8 +143,8 @@ public class DataSourceApi {
                                                                                       request.getOrderBy()));
     }
 
-    @PostMapping("/api/datasource/list")
-    public ListQueryResponse list(@Valid @RequestBody ListQueryRequest request) {
+    @Override
+    public ListQueryResponse list(ListQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         ListQuery query = new ListQuery(schema,
@@ -129,17 +160,18 @@ public class DataSourceApi {
         return new ListQueryResponse(reader.listSize(query), reader.list(query));
     }
 
-    @PostMapping("/api/datasource/schemas")
+    @Override
     public Map<String, DataSourceSchema> getSchemas() {
         return schemaManager.getDataSources();
     }
 
-    @PostMapping("/api/datasource/schema/{name}")
-    public DataSourceSchema getSchemaByName(@PathVariable("name") String schemaName) {
+    @Override
+    public DataSourceSchema getSchemaByName(String schemaName) {
         return schemaManager.getDataSourceSchema(schemaName);
     }
 
-    @PostMapping("/api/datasource/schema/create")
+
+    @Override
     public void createSchema(@RequestBody DataSourceSchema schema) {
         if (schemaManager.containsSchema(schema.getName())) {
             throw new DataSourceExistException(schema.getName());
@@ -160,7 +192,7 @@ public class DataSourceApi {
         }
     }
 
-    @PostMapping("/api/datasource/schema/update")
+    @Override
     public void updateSchema(@RequestBody DataSourceSchema newSchema) {
         DataSourceSchema oldSchema = schemaManager.getDataSourceSchema(newSchema.getName());
 
@@ -178,7 +210,7 @@ public class DataSourceApi {
         }
     }
 
-    @PostMapping("/api/datasource/name")
+    @Override
     public Collection<DisplayableText> getSchemaNames() {
         return schemaManager.getDataSources()
                             .values()
@@ -187,12 +219,8 @@ public class DataSourceApi {
                             .collect(Collectors.toList());
     }
 
-    /**
-     * @deprecated
-     */
-    @Deprecated
-    @PostMapping("/api/datasource/dimensions")
-    public Collection<Map<String, String>> getDimensions(@Valid @RequestBody GetDimensionRequest request) {
+    @Override
+    public Collection<Map<String, String>> getDimensions(GetDimensionRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         String dim = request.getDimension();
@@ -208,11 +236,11 @@ public class DataSourceApi {
         );
     }
 
-    @PostMapping("/api/datasource/dimensions/v2")
-    public Collection<Map<String, String>> getDimensions(@Valid @RequestBody GetDimensionRequestV2 request) {
+    @Override
+    public Collection<Map<String, String>> getDimensionsV2(GetDimensionRequestV2 request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        IDimensionSpec dimensionSpec = null;
+        IDimensionSpec dimensionSpec;
         if ("name".equals(request.getType())) {
             dimensionSpec = schema.getDimensionSpecByName(request.getName());
         } else if ("alias".equals(request.getType())) {
@@ -231,9 +259,7 @@ public class DataSourceApi {
         );
     }
 
-    // can use external configuration center to hold the TTL configuration
-    @Deprecated
-    @PostMapping("api/datasource/ttl/update")
+    @Override
     public void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request) {
         TTLConfig ttlConfig = this.storageConfig.getTtl();
         ttlConfig.setTtl(request.getTtl());

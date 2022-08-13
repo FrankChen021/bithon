@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 /**
+ * if a given pattern contains a substring
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/1/13 9:42 下午
  */

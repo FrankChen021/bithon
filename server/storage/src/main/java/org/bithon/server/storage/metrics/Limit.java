@@ -14,18 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.event;
+package org.bithon.server.storage.metrics;
+
+import lombok.Data;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 27/10/21 10:26 pm
+ * @date 17/4/22 5:23 PM
  */
-public interface IEventCleaner extends AutoCloseable {
-    /**
-     * delete data whose timestamp is less than or equal to the given timestamp
-     */
-    void clean(long timestamp);
+@Data
+public class Limit {
+    public static Limit DEFAULT = new Limit();
 
-    default void close() {
-    }
+    private int limit = 10;
+    private int offset = 0;
 }

@@ -14,41 +14,37 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.api;
+package org.bithon.server.commons.matcher;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 
 import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 /**
- * count(distinct )
- *
  * @author frank.chen021@outlook.com
- * @date 1/11/21 2:37 pm
+ * @date 2020/12/7 6:18 下午
  */
-public class CardinalityAggregator implements IQueryableAggregator {
-    public static final String TYPE = "cardinality";
-    private final String name;
-    private final String dimension;
+public class InMatcher implements IMatcher {
+
+    @Getter
+    @NotNull
+    private final Set<String> pattern;
 
     @JsonCreator
-    public CardinalityAggregator(@JsonProperty("name") @NotNull String name,
-                                 @JsonProperty("dimension") @NotNull String dimension) {
-        this.name = name;
-        this.dimension = dimension;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDimension() {
-        return dimension;
+    public InMatcher(@JsonProperty("pattern") final Set<String> pattern) {
+        this.pattern = pattern;
     }
 
     @Override
-    public <T> T accept(IQueryableAggregatorVisitor<T> visitor) {
+    public boolean matches(Object input) {
+        return pattern.contains(input.toString());
+    }
+
+    @Override
+    public <T> T accept(IMatcherVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

@@ -23,6 +23,8 @@ import lombok.Getter;
 import java.util.Locale;
 
 /**
+ * if a given pattern contains a substring in case-sensitive
+ *
  * @author frank.chen021@outlook.com
  * @date 2021/1/13 9:44 下午
  */

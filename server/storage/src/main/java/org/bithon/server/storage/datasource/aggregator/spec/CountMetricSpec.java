@@ -52,7 +52,7 @@ public class CountMetricSpec implements IMetricSpec {
     @JsonIgnore
     @Override
     public String getType() {
-        return IMetricSpec.LONG_SUM;
+        return IMetricSpec.COUNT;
     }
 
     @Override

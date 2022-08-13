@@ -14,24 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.event;
+package org.bithon.server.storage.common;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.bithon.server.storage.common.IStorageCleaner;
+import lombok.Data;
+import org.bithon.server.commons.time.Period;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/14 4:17 下午
+ * @date 9/12/21 5:03 PM
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public interface IEventStorage {
-
-    default void initialize() {
-    }
-
-    IEventWriter createWriter();
-
-    IEventReader createReader();
-
-    IStorageCleaner createCleaner();
+@Data
+public class TTLConfig {
+    private Period ttl;
+    private Period cleanPeriod;
+    private boolean enabled = true;
 }
