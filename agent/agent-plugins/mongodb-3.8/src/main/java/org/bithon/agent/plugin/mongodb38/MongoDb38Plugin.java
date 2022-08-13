@@ -96,6 +96,77 @@ public class MongoDb38Plugin implements IPlugin {
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("receiveMessageWithAdditionalTimeout")
                                                    .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$ReceiveMessage")
+                ),
+
+            // Protocols
+            forClass("com.mongodb.connection.CommandProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.mongodb.interceptor.protocol.CommandProtocol$Ctor")
+                ),
+
+            forClass("com.mongodb.connection.DeleteCommandProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.mongodb.interceptor.protocol.DeleteCommandProtocol$Ctor")
+                ),
+
+            forClass("com.mongodb.connection.DeleteProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.mongodb.interceptor.protocol.DeleteProtocol$Ctor")
+                ),
+
+            forClass("com.mongodb.connection.GetMoreProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.mongodb.interceptor.protocol.GetMoreProtocol$Ctor")
+                ),
+
+            forClass("com.mongodb.connection.InsertCommandProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.mongodb.interceptor.protocol.InsertCommandProtocol$Ctor")
+                ),
+
+            forClass("com.mongodb.connection.InsertProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.mongodb.interceptor.protocol.InsertProtocol$Ctor")
+                ),
+
+            forClass("com.mongodb.connection.KillCursorProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.mongodb.interceptor.protocol.KillCursorProtocol$Ctor")
+                ),
+
+            forClass("com.mongodb.connection.QueryProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.mongodb.interceptor.protocol.QueryProtocol$Ctor")
+                ),
+
+            forClass("com.mongodb.connection.UpdateCommandProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.mongodb.interceptor.protocol.UpdateCommandProtocol$Ctor")
+                ),
+
+            forClass("com.mongodb.connection.UpdateProtocol")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllConstructor()
+                                                   .to("org.bithon.agent.plugin.mongodb.interceptor.protocol.UpdateProtocol$Ctor")
                 )
         );
     }
