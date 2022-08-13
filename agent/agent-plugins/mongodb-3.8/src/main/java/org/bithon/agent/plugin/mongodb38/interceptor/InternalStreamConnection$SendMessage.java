@@ -29,6 +29,7 @@ import org.bson.ByteBuf;
 import java.util.List;
 
 /**
+ * {@link com.mongodb.internal.connection.InternalStreamConnection#sendMessage(List, int)}}
  * @author frankchen
  */
 public class InternalStreamConnection$SendMessage extends AbstractInterceptor {
@@ -47,7 +48,9 @@ public class InternalStreamConnection$SendMessage extends AbstractInterceptor {
         int bytesOut = MetricHelper.getMessageSize(byteBufList);
 
         metricRegistry.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
-                                         command.getDatabase())
+                                         command.getDatabase(),
+                                         command.getCollection(),
+                                         command.getCommand())
                       .addBytesOut(bytesOut);
     }
 }

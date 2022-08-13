@@ -68,6 +68,7 @@ public class CommandHelper {
                                                     //TODO: extract command from 2nd parameter
                                                     "Command");
             InterceptorContext.set("mongo-3.8-command", command);
+            aopContext.setUserContext(command);
 
             return super.onMethodEnter(aopContext);
         }
@@ -77,7 +78,12 @@ public class CommandHelper {
             int lastIndex = aopContext.getArgs().length - 1;
             InternalConnection connection = aopContext.getArgAs(lastIndex);
             String server = connection.getDescription().getServerAddress().toString();
-            metricRegistry.getOrCreateMetric(server, (String) aopContext.getArgs()[0])
+
+            MongoCommand command = aopContext.castUserContextAs();
+            metricRegistry.getOrCreateMetric(server,
+                                             command.getDatabase(),
+                                             command.getCollection(),
+                                             command.getCommand())
                           .add(aopContext.getCostTime(), aopContext.hasException() ? 1 : 0);
             super.onMethodLeave(aopContext);
         }

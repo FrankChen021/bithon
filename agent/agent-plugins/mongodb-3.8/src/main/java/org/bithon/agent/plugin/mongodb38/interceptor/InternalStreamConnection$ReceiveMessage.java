@@ -50,7 +50,9 @@ public class InternalStreamConnection$ReceiveMessage extends AbstractInterceptor
                       + result.getBodyByteBuffer().remaining();
 
         metricRegistry.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
-                                         command.getDatabase())
+                                         command.getDatabase(),
+                                         command.getCollection(),
+                                         command.getCommand())
                       .addBytesIn(bytesIn);
     }
 }
