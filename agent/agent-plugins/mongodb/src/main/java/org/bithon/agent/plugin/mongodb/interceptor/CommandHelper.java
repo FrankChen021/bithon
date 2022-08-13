@@ -74,8 +74,10 @@ public class CommandHelper {
                 return;
             }
 
+            MongoCommand command = aopContext.castUserContextAs();
+
             String server = (String) ((IBithonObject) connection).getInjectedObject();
-            metricRegistry.getOrCreateMetric(server, (String) aopContext.getArgs()[0])
+            metricRegistry.getOrCreateMetric(server, command.getDatabase(), command.getCollection(), command.getCommand())
                           .add(aopContext.getCostTime(), aopContext.hasException() ? 1 : 0);
             super.onMethodLeave(aopContext);
         }

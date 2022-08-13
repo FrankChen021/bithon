@@ -35,18 +35,20 @@ import org.bithon.component.commons.logging.LoggerFactory;
 /**
  * @author frankchen
  */
-public class DefaultServerConnectionExecuteProtocol extends AbstractInterceptor {
-    static ILogAdaptor log = LoggerFactory.getLogger(DefaultServerConnectionExecuteProtocol.class);
+public class DefaultServerConnection$ExecuteProtocol extends AbstractInterceptor {
+    static ILogAdaptor log = LoggerFactory.getLogger(DefaultServerConnection$ExecuteProtocol.class);
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         // create a span and save it in user-context
-        aopContext.setUserContext(TraceSpanFactory.newSpan("mongodb")
-                                                  .method(aopContext.getMethod())
-                                                  .kind(SpanKind.CLIENT)
-                                                  .start());
+        ITraceSpan span = TraceSpanFactory.newSpan("mongodb");
+        if (span != null) {
+            aopContext.setUserContext(span.method(aopContext.getMethod())
+                                          .kind(SpanKind.CLIENT)
+                                          .start());
+        }
 
         return InterceptionDecision.CONTINUE;
     }
@@ -73,18 +75,25 @@ public class DefaultServerConnectionExecuteProtocol extends AbstractInterceptor 
         //
         // trace
         //
-        ((ITraceSpan) aopContext.castUserContextAs())
-            .tag(aopContext.getException())
-            .tag("server", hostAndPort)
-            .tag("database", command == null ? null : command.getDatabase())
-            .finish();
+        ITraceSpan span = aopContext.castUserContextAs();
+        if (span != null) {
+            span.tag(aopContext.getException())
+                .tag("server", hostAndPort)
+                .tag("database", command == null ? null : command.getDatabase())
+                .tag("collection", command == null ? null : command.getCollection())
+                .tag("command", command == null ? null : command.getCommand())
+                .finish();
+        }
 
         //
         // metric
         //
         if (command != null) {
             int exceptionCount = aopContext.hasException() ? 0 : 1;
-            metricRegistry.getOrCreateMetric(hostAndPort, command.getDatabase())
+            metricRegistry.getOrCreateMetric(hostAndPort,
+                                             command.getDatabase(),
+                                             command.getCollection(),
+                                             command.getCommand())
                           .add(aopContext.getCostTime(), exceptionCount);
         }
     }

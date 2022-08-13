@@ -48,7 +48,9 @@ public class ConnectionMessagesSentEvent {
             int bytesOut = aopContext.getArgAs(2);
 
             metricRegistry.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
-                                             mongoCommand.getDatabase())
+                                             mongoCommand.getDatabase(),
+                                             mongoCommand.getCollection(),
+                                             mongoCommand.getCommand())
                           .addBytesOut(bytesOut);
         }
     }

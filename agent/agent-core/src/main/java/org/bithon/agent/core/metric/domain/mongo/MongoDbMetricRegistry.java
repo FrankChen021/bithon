@@ -27,14 +27,18 @@ import java.util.Arrays;
 public class MongoDbMetricRegistry extends MetricRegistry<MongoDbMetrics> {
 
     protected MongoDbMetricRegistry() {
-        super("mongodb-metrics", Arrays.asList("server", "database"), MongoDbMetrics.class, MongoDbMetrics::new, true);
+        super("mongodb-metrics",
+              Arrays.asList("server", "database", "collection", "command"),
+              MongoDbMetrics.class,
+              MongoDbMetrics::new,
+              true);
     }
 
     public static MongoDbMetricRegistry get() {
         return MetricRegistryFactory.getOrCreateRegistry("mongodb-metrics", MongoDbMetricRegistry::new);
     }
 
-    public MongoDbMetrics getOrCreateMetric(String server, String database) {
-        return super.getOrCreateMetrics(server, database);
+    public MongoDbMetrics getOrCreateMetric(String server, String database, String collection, String command) {
+        return super.getOrCreateMetrics(server, database, collection, command);
     }
 }

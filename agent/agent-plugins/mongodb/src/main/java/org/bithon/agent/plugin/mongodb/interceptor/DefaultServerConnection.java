@@ -98,7 +98,10 @@ public class DefaultServerConnection {
             //
             if (command != null) {
                 int exceptionCount = aopContext.hasException() ? 0 : 1;
-                metricRegistry.getOrCreateMetric(hostAndPort, command.getDatabase())
+                metricRegistry.getOrCreateMetric(hostAndPort,
+                                                 command.getDatabase(),
+                                                 command.getCollection(),
+                                                 command.getCommand())
                               .add(aopContext.getCostTime(), exceptionCount);
             }
         }

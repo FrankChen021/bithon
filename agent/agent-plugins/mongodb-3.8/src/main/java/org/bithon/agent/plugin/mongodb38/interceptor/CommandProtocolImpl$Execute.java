@@ -16,34 +16,32 @@
 
 package org.bithon.agent.plugin.mongodb38.interceptor;
 
-import com.mongodb.connection.ConnectionId;
-import com.mongodb.internal.connection.InternalStreamConnection;
+import com.mongodb.internal.connection.InternalConnection;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
+import org.bithon.agent.bootstrap.aop.IBithonObject;
+import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.InterceptorContext;
 import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
-import org.bithon.agent.plugin.mongodb38.MetricHelper;
-import org.bson.ByteBuf;
-
-import java.util.List;
 
 /**
- * @author frankchen
+ * {@link com.mongodb.internal.connection.CommandProtocolImpl#execute(InternalConnection)}
  */
-public class InternalStreamConnectionSendMessageAsync extends AbstractInterceptor {
+public class CommandProtocolImpl$Execute extends AbstractInterceptor {
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
-    @SuppressWarnings("unchecked")
+    /**
+     * set command so that
+     * {@link InternalStreamConnection$SendMessage}
+     * {@link InternalStreamConnection$ReceiveMessage} know which command is being executed
+     */
     @Override
-    public void onMethodLeave(AopContext aopContext) {
-        InternalStreamConnection target = (InternalStreamConnection) aopContext.getTarget();
+    public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
+        IBithonObject bithonObject = aopContext.castTargetAs();
 
-        List<ByteBuf> byteBufList = (List<ByteBuf>) aopContext.getArgs()[0];
-        ConnectionId connectionId = target.getDescription().getConnectionId();
-        int bytesOut = MetricHelper.getMessageSize(byteBufList);
+        InterceptorContext.set("mongo-3.8-command", bithonObject.getInjectedObject());
 
-        metricRegistry.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
-                                         "unknown")
-                      .addBytesOut(bytesOut);
+        return super.onMethodEnter(aopContext);
     }
 }

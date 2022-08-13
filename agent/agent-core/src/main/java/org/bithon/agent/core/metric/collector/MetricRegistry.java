@@ -59,9 +59,9 @@ public class MetricRegistry<T extends IMetricSet> {
         this.clearAfterCollect = clearAfterCollect;
     }
 
-    public T getOrCreateMetrics(String... dimensions) {
+    protected T getOrCreateMetrics(String... dimensions) {
         if (dimensions.length != this.schema.getDimensionsSpec().size()) {
-            throw new AgentException("required dimension size is {}, but input is {}", this.schema.getDimensionsSpec().size(), dimensions.length);
+            throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.length);
         }
         return createMetrics(Arrays.asList(dimensions), supplier.get());
     }
@@ -69,7 +69,7 @@ public class MetricRegistry<T extends IMetricSet> {
     @SuppressWarnings("unchecked")
     public T getMetrics(List<String> dimensions) {
         if (dimensions.size() != this.schema.getDimensionsSpec().size()) {
-            throw new AgentException("required dimension size is {}, but input is {}", this.schema.getDimensionsSpec().size(), dimensions.size());
+            throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.size());
         }
         Measurement measurement = (Measurement) metricsMap.get(dimensions);
         return measurement == null ? null : (T) measurement.metrics;
@@ -86,7 +86,7 @@ public class MetricRegistry<T extends IMetricSet> {
 
     public T getOrCreateMetrics(List<String> dimensions, Supplier<T> supplier) {
         if (dimensions.size() != this.schema.getDimensionsSpec().size()) {
-            throw new AgentException("required dimension size is {}, but input is {}", this.schema.getDimensionsSpec().size(), dimensions.size());
+            throw new AgentException("required dimension size is %d, but input is %d", this.schema.getDimensionsSpec().size(), dimensions.size());
         }
         return createMetrics(dimensions, supplier.get());
     }

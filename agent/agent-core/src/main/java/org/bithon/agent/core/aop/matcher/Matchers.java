@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * @author frank.chen021@outlook.com
@@ -58,6 +59,18 @@ public class Matchers {
             @Override
             public boolean matches(T target) {
                 return names.contains(target.getActualName());
+            }
+        };
+    }
+
+    public static <T extends MethodDescription> ElementMatcher.Junction<T> argumentSize(Function<Integer, Boolean> comparator) {
+        return new ElementMatcher.Junction.AbstractBase<T>() {
+
+            private final Function<Integer, Boolean> sizeComparator = comparator;
+
+            @Override
+            public boolean matches(T target) {
+                return sizeComparator.apply(target.getParameters().size());
             }
         };
     }

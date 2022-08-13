@@ -52,7 +52,9 @@ public class ConnectionMessageReceivedEvent {
 
             // TODO: if there's no protocol is being executed, are there messages ?
             metricRegistry.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
-                                             mongoCommand.getDatabase())
+                                             mongoCommand.getDatabase(),
+                                             mongoCommand.getCollection(),
+                                             mongoCommand.getCommand())
                           .addBytesIn(bytesIn);
         }
     }

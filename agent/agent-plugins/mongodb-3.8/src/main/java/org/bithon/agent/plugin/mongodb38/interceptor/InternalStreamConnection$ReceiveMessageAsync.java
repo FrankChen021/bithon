@@ -17,10 +17,7 @@
 package org.bithon.agent.plugin.mongodb38.interceptor;
 
 import com.mongodb.async.SingleResultCallback;
-import com.mongodb.internal.connection.CommandProtocol;
-import com.mongodb.internal.connection.DefaultServerConnection;
-import com.mongodb.internal.connection.LegacyProtocol;
-import com.mongodb.session.SessionContext;
+import com.mongodb.internal.connection.InternalStreamConnection;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
@@ -29,16 +26,17 @@ import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 /**
  * @author frankchen
  */
-public class DefaultServerConnectionExecuteProtocolAsync extends AbstractInterceptor {
+public class InternalStreamConnection$ReceiveMessageAsync extends AbstractInterceptor {
+
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     /**
-     * {@link DefaultServerConnection#executeProtocolAsync(LegacyProtocol, SingleResultCallback)}
-     * {@link DefaultServerConnection#executeProtocolAsync(CommandProtocol, SessionContext, SingleResultCallback)}
+     * interceptor of {@link InternalStreamConnection#receiveMessageAsync(int, SingleResultCallback)}
      */
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
-        // TODO: WRAP callback
+
+        //TODO: install wrapper for callback
         return super.onMethodEnter(aopContext);
     }
 }

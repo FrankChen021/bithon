@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * @author frankchen
  */
-public class InternalStreamConnectionSendMessage extends AbstractInterceptor {
+public class InternalStreamConnection$SendMessageAsync extends AbstractInterceptor {
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
@@ -47,7 +47,9 @@ public class InternalStreamConnectionSendMessage extends AbstractInterceptor {
         int bytesOut = MetricHelper.getMessageSize(byteBufList);
 
         metricRegistry.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
-                                         command.getDatabase())
+                                         command.getDatabase(),
+                                         command.getCollection(),
+                                         command.getCommand())
                       .addBytesOut(bytesOut);
     }
 }

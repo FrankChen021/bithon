@@ -25,6 +25,16 @@
       "name": "database",
       "displayText": "Database",
       "required": true
+    },
+    {
+      "name": "collection",
+      "displayText": "collection",
+      "required": true
+    },
+    {
+      "name": "command",
+      "displayText": "command",
+      "required": true
     }
   ],
   "metricsSpec": [
