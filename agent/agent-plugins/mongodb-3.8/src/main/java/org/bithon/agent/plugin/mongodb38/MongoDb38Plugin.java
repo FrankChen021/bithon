@@ -50,7 +50,7 @@ public class MongoDb38Plugin implements IPlugin {
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onConstructor(Matchers.argumentSize(size -> size >= 9))
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$Constructor"),
+                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.CommandProtocolImpl$Ctor"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("execute")

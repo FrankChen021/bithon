@@ -80,6 +80,8 @@ public class DefaultServerConnection$ExecuteProtocol extends AbstractInterceptor
             span.tag(aopContext.getException())
                 .tag("server", hostAndPort)
                 .tag("database", command == null ? null : command.getDatabase())
+                .tag("collection", command == null ? null : command.getCollection())
+                .tag("command", command == null ? null : command.getCommand())
                 .finish();
         }
 
