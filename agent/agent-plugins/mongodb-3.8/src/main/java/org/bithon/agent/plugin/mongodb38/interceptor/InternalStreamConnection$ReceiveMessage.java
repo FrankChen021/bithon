@@ -26,22 +26,28 @@ import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 
 /**
+ * {@link com.mongodb.internal.connection.InternalStreamConnection#receiveMessage(int)}
+ *
  * @author frankchen
  */
-public class InternalStreamConnectionReceiveMessage extends AbstractInterceptor {
+public class InternalStreamConnection$ReceiveMessage extends AbstractInterceptor {
 
     private final MongoDbMetricRegistry metricRegistry = MongoDbMetricRegistry.get();
 
     @Override
     public void onMethodLeave(AopContext aopContext) {
+        if (aopContext.hasException()) {
+            return;
+        }
+
         MongoCommand command = InterceptorContext.getAs("mongo-3.8-command");
 
         InternalStreamConnection target = (InternalStreamConnection) aopContext.getTarget();
         ConnectionId connectionId = target.getDescription().getConnectionId();
 
         ResponseBuffers result = aopContext.castReturningAs();
-        int bytesIn = result.getReplyHeader().getMessageLength();
-        bytesIn += result.getBodyByteBuffer().remaining();
+        int bytesIn = result.getReplyHeader().getMessageLength()
+                      + result.getBodyByteBuffer().remaining();
 
         metricRegistry.getOrCreateMetric(connectionId.getServerId().getAddress().toString(),
                                          command.getDatabase())

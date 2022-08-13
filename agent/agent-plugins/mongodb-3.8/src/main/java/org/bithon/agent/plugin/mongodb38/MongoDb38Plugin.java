@@ -87,9 +87,15 @@ public class MongoDb38Plugin implements IPlugin {
                                                    .onAllMethods("sendMessageAsync")
                                                    .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionSendMessageAsync"),
 
+                    // 3.8
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("receiveMessage")
+                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$ReceiveMessage"),
+
+                    // 4.x, following method replaces underlying 'receiveMessage'
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("receiveMessageWithAdditionalTimeout")
-                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnectionReceiveMessage")
+                                                   .to("org.bithon.agent.plugin.mongodb38.interceptor.InternalStreamConnection$ReceiveMessage")
                 )
         );
     }

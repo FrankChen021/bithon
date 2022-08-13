@@ -60,7 +60,7 @@ public class CommandProtocolImpl {
         /**
          * set command so that
          * {@link InternalStreamConnectionSendMessage}
-         * {@link InternalStreamConnectionReceiveMessage} know which command is being executed
+         * {@link InternalStreamConnection$ReceiveMessage} know which command is being executed
          */
         @Override
         public InterceptionDecision onMethodEnter(AopContext aopContext) throws Exception {
