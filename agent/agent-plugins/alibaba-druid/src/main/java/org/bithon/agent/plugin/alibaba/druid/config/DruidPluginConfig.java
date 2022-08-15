@@ -23,7 +23,7 @@ import shaded.com.fasterxml.jackson.annotation.JsonProperty;
  * @author frank.chen021@outlook.com
  * @date 23/1/22 7:20 PM
  */
-@ConfigurationProperties(prefix = "agent.plugin.jdbc.druid")
+@ConfigurationProperties(prefix = "agent.plugin.alibaba.druid")
 public class DruidPluginConfig {
 
     @JsonProperty
