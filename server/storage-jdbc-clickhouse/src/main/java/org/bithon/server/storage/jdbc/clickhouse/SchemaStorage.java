@@ -147,4 +147,19 @@ public class SchemaStorage extends SchemaJdbcStorage {
                   .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
                   .execute();
     }
+
+    @Override
+    public void putIfNotExist(String name, String schemaText) {
+        if (dslContext.fetchCount(Tables.BITHON_META_SCHEMA, Tables.BITHON_META_SCHEMA.NAME.eq(name)) > 0) {
+            return;
+        }
+
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        dslContext.insertInto(Tables.BITHON_META_SCHEMA)
+                  .set(Tables.BITHON_META_SCHEMA.NAME, name)
+                  .set(Tables.BITHON_META_SCHEMA.SCHEMA, schemaText)
+                  .set(Tables.BITHON_META_SCHEMA.SIGNATURE, HashGenerator.sha256Hex(schemaText))
+                  .set(Tables.BITHON_META_SCHEMA.TIMESTAMP, now)
+                  .execute();
+    }
 }
