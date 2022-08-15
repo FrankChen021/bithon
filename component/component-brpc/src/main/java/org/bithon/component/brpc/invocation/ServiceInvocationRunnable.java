@@ -53,17 +53,18 @@ public class ServiceInvocationRunnable implements Runnable {
 
         try {
             if (serviceRequest.getServiceName() == null) {
-                throw new BadRequestException("serviceName is null");
+                throw new BadRequestException("[Client=%s] serviceName is null", channel.remoteAddress().toString());
             }
 
             if (serviceRequest.getMethodName() == null) {
-                throw new BadRequestException("methodName is null");
+                throw new BadRequestException("[Client=%s] methodName is null", channel.remoteAddress().toString());
             }
 
             ServiceRegistry.RegistryItem serviceProvider = serviceRegistry.findServiceProvider(serviceRequest.getServiceName(),
                                                                                                serviceRequest.getMethodName());
             if (serviceProvider == null) {
-                throw new BadRequestException("Can't find service provider %s#%s",
+                throw new BadRequestException("[Client=%s] Can't find service provider %s#%s",
+                                              channel.remoteAddress().toString(),
                                               serviceRequest.getServiceName(),
                                               serviceRequest.getMethodName());
             }
@@ -73,21 +74,25 @@ public class ServiceInvocationRunnable implements Runnable {
                 Object[] inputArgs = serviceRequest.getArgs(serviceProvider.getParameterTypes());
                 ret = serviceProvider.invoke(inputArgs);
             } catch (IllegalArgumentException e) {
-                throw new BadRequestException("Bad Request: Service[%s#%s] exception: Illegal argument",
+                throw new BadRequestException("[Client=%s] Bad Request: Service[%s#%s] exception: Illegal argument",
+                                              channel.remoteAddress().toString(),
                                               serviceRequest.getServiceName(),
                                               serviceRequest.getMethodName());
             } catch (IllegalAccessException e) {
-                throw new ServiceInvocationException("Service[%s#%s] exception: %s",
+                throw new ServiceInvocationException("[Client=%s] Service[%s#%s] exception: %s",
+                                                     channel.remoteAddress().toString(),
                                                      serviceRequest.getServiceName(),
                                                      serviceRequest.getMethodName(),
                                                      e.getMessage());
             } catch (InvocationTargetException e) {
-                throw new ServiceInvocationException("Service[%s#%s] invocation exception: %s",
+                throw new ServiceInvocationException("[Client=%s] Service[%s#%s] invocation exception: %s",
+                                                     channel.remoteAddress().toString(),
                                                      serviceRequest.getServiceName(),
                                                      serviceRequest.getMethodName(),
                                                      e.getTargetException().toString());
             } catch (IOException e) {
-                throw new BadRequestException("Bad Request: Service[%s#%s]: %s",
+                throw new BadRequestException("[Client=%s] Bad Request: Service[%s#%s]: %s",
+                                              channel.remoteAddress().toString(),
                                               serviceRequest.getServiceName(),
                                               serviceRequest.getMethodName(),
                                               e.getMessage());
@@ -102,7 +107,8 @@ public class ServiceInvocationRunnable implements Runnable {
             }
         } catch (ServiceInvocationException e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
-            LoggerFactory.getLogger(ServiceInvocationRunnable.class).warn("Service Invocation on {}.{} exception: {}",
+            LoggerFactory.getLogger(ServiceInvocationRunnable.class).warn("[Client={}] Service Invocation on {}.{} exception: {}",
+                                                                          channel.remoteAddress().toString(),
                                                                           serviceRequest.getServiceName(),
                                                                           serviceRequest.getMethodName(),
                                                                           cause.toString());
