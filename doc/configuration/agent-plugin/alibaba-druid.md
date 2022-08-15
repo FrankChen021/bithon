@@ -1,6 +1,6 @@
 
 
-- `agent.plugin.jdbc.druid.isSQLMetricEnabled`
+- `agent.plugin.alibab.druid.isSQLMetricEnabled`
   - Dynamic configuration is **NOT** supported now.
   - Boolean, default is `false`
   - Whether Enable the SQL metrics. If the application has no plugin support for the underlying database driver, 
