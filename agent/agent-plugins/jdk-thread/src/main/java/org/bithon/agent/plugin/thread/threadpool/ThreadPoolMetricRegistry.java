@@ -43,7 +43,7 @@ public class ThreadPoolMetricRegistry extends MetricRegistry<ThreadPoolMetrics> 
 
     public ThreadPoolMetricRegistry() {
         super("thread-pool-metrics",
-              Arrays.asList("executorClass", "poolName", "threadPoolId"),
+              Arrays.asList("executorClass", "poolName", "poolId"),
               ThreadPoolMetrics.class,
               null,
               false);
