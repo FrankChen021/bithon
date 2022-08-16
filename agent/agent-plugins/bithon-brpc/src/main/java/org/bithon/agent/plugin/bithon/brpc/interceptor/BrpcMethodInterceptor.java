@@ -60,9 +60,7 @@ public class BrpcMethodInterceptor extends AbstractInterceptor {
         ITraceContext context;
         SamplingMode mode = sampler.decideSamplingMode(null);
         if (mode == SamplingMode.NONE) {
-            // create a propagation trace context to propagation trace context along the service call without reporting trace data
-            context = TraceContextFactory.create(TraceMode.PROPAGATION,
-                                                 "P-" + Tracer.get().traceIdGenerator().newTraceId());
+            return InterceptionDecision.SKIP_LEAVE;
         } else {
             // create a traceable context
             context = TraceContextFactory.create(TraceMode.TRACE,
