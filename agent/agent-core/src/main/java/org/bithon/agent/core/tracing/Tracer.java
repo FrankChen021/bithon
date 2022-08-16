@@ -69,14 +69,19 @@ public class Tracer {
                                                           .getAgentConfiguration()
                                                           .getConfig(TraceConfig.class);
 
+                    TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("default");
+                    if (samplingConfig == null) {
+                        samplingConfig = new TraceConfig.SamplingConfig();
+                        samplingConfig.setSamplingRate(0);
+                    }
                     AppInstance appInstance = AgentContext.getInstance().getAppInstance();
                     try {
                         INSTANCE = new Tracer(appInstance.getQualifiedAppName(), appInstance.getHostAndPort())
                             .propagator(new DefaultPropagator())
                             .traceIdGenerator(new UUIDGenerator())
                             .spanIdGenerator(new DefaultSpanIdGenerator())
-                            .reporter(traceConfig.isDisabled() ? new NoopReporter() : new DefaultReporter())
-                            .sampler(SamplerFactory.createSampler(traceConfig));
+                            .reporter(samplingConfig.isDisabled() ? new NoopReporter() : new DefaultReporter())
+                            .sampler(SamplerFactory.createSampler(samplingConfig));
                     } catch (Exception e) {
                         LoggerFactory.getLogger(Tracer.class).info("Failed to create Tracer", e);
                     }

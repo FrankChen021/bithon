@@ -19,13 +19,17 @@ package org.bithon.agent.plugin.bithon.brpc.interceptor;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
+import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.tracing.Tracer;
+import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceContextFactory;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.agent.core.tracing.sampler.ISampler;
+import org.bithon.agent.core.tracing.sampler.SamplerFactory;
 import org.bithon.agent.core.tracing.sampler.SamplingMode;
 
 /**
@@ -34,10 +38,27 @@ import org.bithon.agent.core.tracing.sampler.SamplingMode;
  */
 public class BrpcMethodInterceptor extends AbstractInterceptor {
 
+    private ISampler sampler;
+
+    @Override
+    public boolean initialize() {
+        TraceConfig traceConfig = AgentContext.getInstance()
+                                              .getAgentConfiguration()
+                                              .getConfig(TraceConfig.class);
+        TraceConfig.SamplingConfig samplingConfig = traceConfig.getSamplingConfigs().get("brpc");
+        if (samplingConfig == null || samplingConfig.isDisabled() || samplingConfig.getSamplingRate() == 0) {
+            return false;
+        }
+
+        sampler = SamplerFactory.createSampler(samplingConfig);
+
+        return true;
+    }
+
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
         ITraceContext context;
-        SamplingMode mode = Tracer.get().sampler().decideSamplingMode(null);
+        SamplingMode mode = sampler.decideSamplingMode(null);
         if (mode == SamplingMode.NONE) {
             // create a propagation trace context to propagation trace context along the service call without reporting trace data
             context = TraceContextFactory.create(TraceMode.PROPAGATION,
