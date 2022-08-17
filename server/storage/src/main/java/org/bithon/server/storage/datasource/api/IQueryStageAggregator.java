@@ -39,6 +39,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 })
 public interface IQueryStageAggregator {
 
+    /**
+     * target field, default to name
+     */
+    String getField();
+
+    /**
+     * output name
+     */
     String getName();
 
     <T> T accept(IQueryStageAggregatorVisitor<T> visitor);
