@@ -110,7 +110,7 @@ public class SchemaJdbcStorage implements ISchemaStorage {
             schema.setSignature(hash);
             return schema;
         } catch (JsonProcessingException e) {
-            log.error(StringUtils.format("Error reading payload of schema [%s].", name), e);
+            log.error("Error reading payload of schema [{}]: {}", name, e.getMessage());
             return null;
         }
     }
