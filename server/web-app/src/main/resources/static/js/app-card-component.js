@@ -47,7 +47,7 @@ class AppCardComponent {
                     {
                         type: "cardinality",
                         name: "instanceCount",
-                        dimension: "instanceName"
+                        field: "instanceName"
                     }
                 ],
                 startTimeISO8601: moment().utc().subtract(12, 'hour').local().toISOString(),
