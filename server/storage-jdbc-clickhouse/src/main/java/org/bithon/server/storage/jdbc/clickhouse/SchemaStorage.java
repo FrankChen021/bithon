@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.OptBoolean;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.security.HashGenerator;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -61,7 +60,9 @@ public class SchemaStorage extends SchemaJdbcStorage {
 
     @Override
     public List<DataSourceSchema> getSchemas(long afterTimestamp) {
-        String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME, Tables.BITHON_META_SCHEMA.SCHEMA, Tables.BITHON_META_SCHEMA.SIGNATURE)
+        String sql = dslContext.select(Tables.BITHON_META_SCHEMA.NAME,
+                                       Tables.BITHON_META_SCHEMA.SCHEMA,
+                                       Tables.BITHON_META_SCHEMA.SIGNATURE)
                                .from(Tables.BITHON_META_SCHEMA)
                                .getSQL() + " FINAL WHERE ";
         sql += dslContext.renderInlined(Tables.BITHON_META_SCHEMA.TIMESTAMP.ge(new Timestamp(afterTimestamp)));
@@ -72,13 +73,10 @@ public class SchemaStorage extends SchemaJdbcStorage {
         }
 
         return records.stream().map((mapper) -> {
-            try {
-                DataSourceSchema schema = objectMapper.readValue(mapper.get(1, String.class), DataSourceSchema.class);
-                schema.setSignature(mapper.get(2, String.class));
-                return schema;
-            } catch (JsonProcessingException e) {
-                return null;
-            }
+            String name = mapper.get(0, String.class);
+            String schema = mapper.get(1, String.class);
+            String signature = mapper.get(2, String.class);
+            return toSchema(name, schema, signature);
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 

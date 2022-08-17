@@ -19,7 +19,6 @@ package org.bithon.server.storage.datasource.api;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import org.bithon.component.commons.utils.Preconditions;
 
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
@@ -32,50 +31,24 @@ import java.util.Objects;
  */
 
 public class QueryStageAggregators {
-    public static class CardinalityAggregator implements IQueryStageAggregator {
+    public static class CardinalityAggregator extends AbstractQueryStageAggregator {
         public static final String TYPE = "cardinality";
-        private final String name;
-        private final String dimension;
 
         @JsonCreator
         public CardinalityAggregator(@JsonProperty("name") @NotNull String name,
-                                     @JsonProperty("dimension") @NotNull String dimension) {
-            this.name = name;
-            this.dimension = dimension;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDimension() {
-            return dimension;
+                                     @JsonProperty("field") @NotNull String dimension) {
+            super(dimension, name, TYPE);
         }
 
         @Override
         public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
             return visitor.visit(this);
         }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            CardinalityAggregator that = (CardinalityAggregator) o;
-            return Objects.equals(name, that.name) && Objects.equals(dimension, that.dimension);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, dimension);
-        }
     }
 
     abstract static class AbstractQueryStageAggregator implements IQueryStageAggregator {
+        @Getter
+        protected final String field;
 
         // metric name and final output name
         @Getter
@@ -87,7 +60,8 @@ public class QueryStageAggregators {
         @Getter
         protected final String type;
 
-        public AbstractQueryStageAggregator(String name, String aggregator) {
+        public AbstractQueryStageAggregator(String field, String name, String aggregator) {
+            this.field = field == null ? name : field;
             this.name = name;
             this.type = aggregator;
         }
@@ -101,12 +75,12 @@ public class QueryStageAggregators {
                 return false;
             }
             AbstractQueryStageAggregator that = (AbstractQueryStageAggregator) o;
-            return Objects.equals(name, that.name) && Objects.equals(type, that.type);
+            return Objects.equals(field, that.field) && Objects.equals(name, that.name) && Objects.equals(type, that.type);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(name, type);
+            return Objects.hash(field, name, type);
         }
     }
 
@@ -115,8 +89,9 @@ public class QueryStageAggregators {
         public static final String TYPE = "sum";
 
         @JsonCreator
-        public SumAggregator(@JsonProperty("name") @NotNull String name) {
-            super(name, TYPE);
+        public SumAggregator(@JsonProperty("name") @NotNull String name,
+                             @JsonProperty("field") String field) {
+            super(field, name, TYPE);
         }
 
         @Override
@@ -130,8 +105,9 @@ public class QueryStageAggregators {
         public static final String TYPE = "count";
 
         @JsonCreator
-        public CountAggregator(@JsonProperty("name") @NotNull String name) {
-            super(name, TYPE);
+        public CountAggregator(@JsonProperty("name") @NotNull String name,
+                               @JsonProperty("field") String field) {
+            super(field, name, TYPE);
         }
 
         @Override
@@ -145,8 +121,9 @@ public class QueryStageAggregators {
         public static final String TYPE = "avg";
 
         @JsonCreator
-        public AvgAggregator(@JsonProperty("name") @NotNull String name) {
-            super(name, TYPE);
+        public AvgAggregator(@JsonProperty("name") String name,
+                             @JsonProperty("field") String field) {
+            super(field, name, TYPE);
         }
 
         @Override
@@ -160,8 +137,9 @@ public class QueryStageAggregators {
         public static final String TYPE = "max";
 
         @JsonCreator
-        public MaxAggregator(@JsonProperty("name") @NotNull String name) {
-            super(name, TYPE);
+        public MaxAggregator(@JsonProperty("name") String name,
+                             @JsonProperty("field") String field) {
+            super(field, name, TYPE);
         }
 
         @Override
@@ -175,8 +153,9 @@ public class QueryStageAggregators {
         public static final String TYPE = "min";
 
         @JsonCreator
-        public MinAggregator(@JsonProperty("name") @NotNull String name) {
-            super(name, TYPE);
+        public MinAggregator(@JsonProperty("name") String name,
+                             @JsonProperty("field") String field) {
+            super(field, name, TYPE);
         }
 
         @Override
@@ -188,8 +167,10 @@ public class QueryStageAggregators {
     public static class FirstAggregator extends AbstractQueryStageAggregator {
         public static final String TYPE = "first";
 
-        public FirstAggregator(@JsonProperty("name") @NotNull String name) {
-            super(name, TYPE);
+        @JsonCreator
+        public FirstAggregator(@JsonProperty("name") String name,
+                               @JsonProperty("field") String field) {
+            super(field, name, TYPE);
         }
 
         @Override
@@ -203,8 +184,9 @@ public class QueryStageAggregators {
         public static final String TYPE = "last";
 
         @JsonCreator
-        public LastAggregator(@JsonProperty("name") @NotNull String name) {
-            super(name, TYPE);
+        public LastAggregator(@JsonProperty("name") String name,
+                              @JsonProperty("field") String field) {
+            super(field, name, TYPE);
         }
 
         @Override
@@ -218,8 +200,9 @@ public class QueryStageAggregators {
         public static final String TYPE = "rate";
 
         @JsonCreator
-        public RateAggregator(@JsonProperty("name") @NotNull String name) {
-            super(name, TYPE);
+        public RateAggregator(@JsonProperty("name") String name,
+                              @JsonProperty("field") String field) {
+            super(field, name, TYPE);
         }
 
         @Override
@@ -228,20 +211,14 @@ public class QueryStageAggregators {
         }
     }
 
-    public static class GroupConcatAggregator implements IQueryStageAggregator {
+    public static class GroupConcatAggregator extends AbstractQueryStageAggregator {
 
         public static final String TYPE = "groupConcat";
-        @Getter
-        private final String name;
-
-        @Getter
-        private final String field;
 
         @JsonCreator
         public GroupConcatAggregator(@JsonProperty("name") @NotNull String name,
                                      @JsonProperty("field") @NotNull String field) {
-            this.name = Preconditions.checkArgumentNotNull("name", name);
-            this.field = Preconditions.checkArgumentNotNull("field", field);
+            super(field, name, TYPE);
         }
 
         @Override
