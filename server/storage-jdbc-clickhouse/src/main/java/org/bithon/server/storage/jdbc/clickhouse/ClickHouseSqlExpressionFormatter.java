@@ -56,7 +56,7 @@ class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
 
     @Override
     public String stringAggregator(String dimension, String name) {
-        return StringUtils.format("arrayStringConcat(arrayCompact(groupArray(%s)), ',') AS %s",
+        return StringUtils.format("arrayStringConcat(arrayCompact(arrayFilter(x -> x <> '', groupArray(%s))), ',') AS %s",
                                   dimension,
                                   name);
     }
