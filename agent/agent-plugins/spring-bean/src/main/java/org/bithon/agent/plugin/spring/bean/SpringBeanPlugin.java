@@ -18,9 +18,7 @@ package org.bithon.agent.plugin.spring.bean;
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.plugin.IPlugin;
-import org.bithon.agent.core.tracing.config.TraceConfig;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,14 +32,6 @@ public class SpringBeanPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-
-        TraceConfig traceConfig = AgentContext.getInstance()
-                                              .getAgentConfiguration()
-                                              .getConfig(TraceConfig.class);
-        if (traceConfig.isDisabled()) {
-            return Collections.emptyList();
-        }
-
         return Collections.singletonList(
             forClass("org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory")
                 .methods(

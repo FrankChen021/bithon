@@ -18,12 +18,9 @@ package org.bithon.agent.plugin.apache.druid;
 
 import org.bithon.agent.core.aop.descriptor.InterceptorDescriptor;
 import org.bithon.agent.core.aop.descriptor.MethodPointCutDescriptorBuilder;
-import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.plugin.IPlugin;
-import org.bithon.agent.core.tracing.config.TraceConfig;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.bithon.agent.core.aop.descriptor.InterceptorDescriptorBuilder.forClass;
@@ -36,13 +33,6 @@ public class ApacheDruidPlugin implements IPlugin {
 
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
-        TraceConfig traceConfig = AgentContext.getInstance()
-                                              .getAgentConfiguration()
-                                              .getConfig(TraceConfig.class);
-        if (traceConfig.isDisabled()) {
-            return Collections.emptyList();
-        }
-
         return Arrays.asList(
             forClass("org.apache.druid.sql.SqlLifecycle")
                 .methods(

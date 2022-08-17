@@ -31,3 +31,14 @@ dispatchers:
     servers: 127.0.0.1:9896
     batchSize: 100
     flushTime: 5000
+
+tracing:
+  samplingConfigs:
+    default:
+      samplingRate: 1
+    brpc:
+      samplingRate: 1
+    quartz:
+      samplingRate: 1
+    spring-scheduler:
+      samplingRate: 1
