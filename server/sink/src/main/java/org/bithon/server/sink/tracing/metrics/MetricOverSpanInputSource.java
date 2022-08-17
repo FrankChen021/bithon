@@ -38,6 +38,7 @@ import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.IInputSource;
 import org.bithon.server.storage.datasource.input.TransformSpec;
+import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
 
 import javax.validation.constraints.NotNull;
@@ -62,21 +63,32 @@ public class MetricOverSpanInputSource implements IInputSource {
     private final TransformSpec transformSpec;
 
     @JsonIgnore
+    private final IMetricStorage metricStorage;
+
+    @JsonIgnore
     private MetricOverSpanExtractor metricExtractor;
 
     @JsonCreator
     public MetricOverSpanInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
                                      @JacksonInject(useInput = OptBoolean.FALSE) TraceMessageProcessChain chain,
-                                     @JacksonInject(useInput = OptBoolean.FALSE) IMessageSink<SchemaMetricMessage> metricSink) {
+                                     @JacksonInject(useInput = OptBoolean.FALSE) IMessageSink<SchemaMetricMessage> metricSink,
+                                     @JacksonInject(useInput = OptBoolean.FALSE)IMetricStorage metricStorage) {
         Preconditions.checkArgumentNotNull("transformSpec", transformSpec);
 
         this.chain = chain;
         this.metricSink = metricSink;
         this.transformSpec = transformSpec;
+        this.metricStorage = metricStorage;
     }
 
     @Override
     public void start(DataSourceSchema schema) {
+        try {
+            this.metricStorage.createMetricWriter(schema).close();
+            log.info("Success to initialize metric storage for [{}].", schema.getName());
+        } catch (Exception e) {
+            log.info("Failed to initialize metric storage for [{}]: {}", schema.getName(), e.getMessage());
+        }
         log.info("Adding metric-extractor for [{}({})] to tracing logs processors...", schema.getName(), schema.getSignature());
         metricExtractor = this.chain.link(new MetricOverSpanExtractor(transformSpec, schema, metricSink));
     }
