@@ -52,11 +52,11 @@ public class TimeSpan {
     }
 
     public TimeSpan before(long value, TimeUnit timeUnit) {
-        return new TimeSpan(milliseconds - DateTimeUtils.offset(value, timeUnit));
+        return new TimeSpan(milliseconds - timeUnit.toMillis(value));
     }
 
     public TimeSpan after(long value, TimeUnit timeUnit) {
-        return new TimeSpan(milliseconds + DateTimeUtils.offset(value, timeUnit));
+        return new TimeSpan(milliseconds + timeUnit.toMillis(value));
     }
 
     public Timestamp toTimestamp() {
