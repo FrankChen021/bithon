@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -108,7 +109,7 @@ public class DashboardController {
     public void getAllDashboards(HttpServletResponse response) throws IOException {
         response.setContentType("application/json");
 
-        try (OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream())) {
+        try (OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8)) {
             writer.write('[');
             {
                 List<Dashboard> dashboards = this.dashboardManager.getDashboards();
@@ -144,7 +145,7 @@ public class DashboardController {
             response.setStatus(HttpStatus.NOT_FOUND.value());
             return;
         }
-        try (OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream())) {
+        try (OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8)) {
             writer.write(board.getPayload());
             response.setStatus(HttpStatus.OK.value());
         }
