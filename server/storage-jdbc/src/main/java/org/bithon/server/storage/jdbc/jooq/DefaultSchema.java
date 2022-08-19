@@ -17,6 +17,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanTagIndex;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonWebDashboard;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
@@ -28,7 +29,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = 31768137;
+    private static final long serialVersionUID = 593373252;
 
     /**
      * The reference instance of <code></code>
@@ -81,6 +82,11 @@ public class DefaultSchema extends SchemaImpl {
     public final BithonTraceSpanTagIndex BITHON_TRACE_SPAN_TAG_INDEX = org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX;
 
     /**
+     * The table <code>bithon_web_dashboard</code>.
+     */
+    public final BithonWebDashboard BITHON_WEB_DASHBOARD = org.bithon.server.storage.jdbc.jooq.tables.BithonWebDashboard.BITHON_WEB_DASHBOARD;
+
+    /**
      * No further instances allowed
      */
     private DefaultSchema() {
@@ -110,6 +116,7 @@ public class DefaultSchema extends SchemaImpl {
             BithonTraceMapping.BITHON_TRACE_MAPPING,
             BithonTraceSpan.BITHON_TRACE_SPAN,
             BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY,
-            BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX);
+            BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX,
+            BithonWebDashboard.BITHON_WEB_DASHBOARD);
     }
 }

@@ -13,6 +13,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanTagIndex;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonWebDashboard;
 
 
 /**
@@ -65,4 +66,9 @@ public class Tables {
      * The table <code>bithon_trace_span_tag_index</code>.
      */
     public static final BithonTraceSpanTagIndex BITHON_TRACE_SPAN_TAG_INDEX = BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX;
+
+    /**
+     * The table <code>bithon_web_dashboard</code>.
+     */
+    public static final BithonWebDashboard BITHON_WEB_DASHBOARD = BithonWebDashboard.BITHON_WEB_DASHBOARD;
 }

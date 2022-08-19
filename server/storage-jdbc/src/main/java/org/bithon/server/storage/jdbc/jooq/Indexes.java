@@ -13,6 +13,7 @@ import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceMapping;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpan;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanSummary;
 import org.bithon.server.storage.jdbc.jooq.tables.BithonTraceSpanTagIndex;
+import org.bithon.server.storage.jdbc.jooq.tables.BithonWebDashboard;
 import org.jooq.Index;
 import org.jooq.OrderField;
 import org.jooq.impl.Internal;
@@ -50,6 +51,8 @@ public class Indexes {
     public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME = Indexes0.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME;
     public static final Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP = Indexes0.BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP;
     public static final Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TSTI_TIMESTAMP = Indexes0.BITHON_TRACE_SPAN_TAG_INDEX_IDX_TSTI_TIMESTAMP;
+    public static final Index BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_NAME = Indexes0.BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_NAME;
+    public static final Index BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_TIMESTAMP = Indexes0.BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_TIMESTAMP;
 
     // -------------------------------------------------------------------------
     // [#1459] distribute members to avoid static initialisers > 64kb
@@ -78,5 +81,7 @@ public class Indexes {
         public static Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_START_TIME = Internal.createIndex("idx_tss_start_time", BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.STARTTIMEUS }, false);
         public static Index BITHON_TRACE_SPAN_SUMMARY_IDX_TSS_TIMESTAMP = Internal.createIndex("idx_tss_timestamp", BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY, new OrderField[] { BithonTraceSpanSummary.BITHON_TRACE_SPAN_SUMMARY.TIMESTAMP }, false);
         public static Index BITHON_TRACE_SPAN_TAG_INDEX_IDX_TSTI_TIMESTAMP = Internal.createIndex("idx_tsti_timestamp", BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX, new OrderField[] { BithonTraceSpanTagIndex.BITHON_TRACE_SPAN_TAG_INDEX.TIMESTAMP }, false);
+        public static Index BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_NAME = Internal.createIndex("idx_web_dashboard_name", BithonWebDashboard.BITHON_WEB_DASHBOARD, new OrderField[] { BithonWebDashboard.BITHON_WEB_DASHBOARD.NAME }, true);
+        public static Index BITHON_WEB_DASHBOARD_IDX_WEB_DASHBOARD_TIMESTAMP = Internal.createIndex("idx_web_dashboard_timestamp", BithonWebDashboard.BITHON_WEB_DASHBOARD, new OrderField[] { BithonWebDashboard.BITHON_WEB_DASHBOARD.TIMESTAMP }, false);
     }
 }

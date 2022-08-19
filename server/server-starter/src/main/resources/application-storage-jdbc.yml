@@ -31,6 +31,8 @@ bithon:
     setting:
       type: jdbc
       enabled: true
+    web:
+      type: jdbc
     providers:
       jdbc:
         enabled: true

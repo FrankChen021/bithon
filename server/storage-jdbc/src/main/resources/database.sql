@@ -14,6 +14,7 @@
 --    limitations under the License.
 --
 
+DROP DATABASE bithon_codegen;
 CREATE DATABASE IF NOT EXISTS `bithon_codegen` DEFAULT CHARSET utf8mb4;
 USE `bithon_codegen`;
 
@@ -171,4 +172,15 @@ CREATE TABLE `bithon_event`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='';
 
-
+DROP TABLE IF EXISTS `bithon_web_dashboard`;
+CREATE TABLE `bithon_web_dashboard`
+(
+    `timestamp`    TIMESTAMP(3) NOT NULL COMMENT 'Created Timestamp',
+    `name`         VARCHAR(64)  NOT NULL COMMENT 'Name',
+    `payload`      TEXT NOT NULL COMMENT 'Schema in JSON',
+    `signature`    VARCHAR(250) NOT NULL COMMENT 'Signature of payload field, currently SHA256 is applied',
+    `deleted`   INT NOT NULL COMMENT '',
+    UNIQUE `idx_web_dashboard_name` (`name`),
+    KEY `idx_web_dashboard_timestamp` (`timestamp`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT ='';

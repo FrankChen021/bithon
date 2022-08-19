@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.clickhouse;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import org.bithon.server.storage.jdbc.clickhouse.web.DashboardStorage;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -93,7 +94,8 @@ public class ClickHouseStorageAutoConfiguration {
                                          EventStorage.class,
                                          MetadataStorage.class,
                                          SchemaStorage.class,
-                                         SettingStorage.class);
+                                         SettingStorage.class,
+                                         DashboardStorage.class);
             }
         };
     }

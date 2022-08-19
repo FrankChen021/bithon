@@ -43,6 +43,12 @@
       <groupId>nz.net.ultraq.thymeleaf</groupId>
       <artifactId>thymeleaf-layout-dialect</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.bithon</groupId>
+      <artifactId>server-storage</artifactId>
+    </dependency>
+
   </dependencies>
 
   <build>
