@@ -78,6 +78,7 @@ public class JdbcDashboardStorage implements IDashboardStorage {
                       .set(Tables.BITHON_WEB_DASHBOARD.PAYLOAD, payload)
                       .set(Tables.BITHON_WEB_DASHBOARD.SIGNATURE, signature)
                       .set(Tables.BITHON_WEB_DASHBOARD.TIMESTAMP, new Timestamp(System.currentTimeMillis()))
+                      .set(Tables.BITHON_WEB_DASHBOARD.DELETED, 0)
                       .where(Tables.BITHON_WEB_DASHBOARD.NAME.eq(name))
                       .execute();
         }
