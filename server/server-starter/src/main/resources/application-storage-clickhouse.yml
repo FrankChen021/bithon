@@ -30,6 +30,8 @@ bithon:
     setting:
       type: clickhouse
       enabled: true
+    web:
+      type: clickhouse
     providers:
       clickhouse:
         enabled: true

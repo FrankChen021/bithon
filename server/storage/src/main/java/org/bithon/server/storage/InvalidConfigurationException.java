@@ -51,4 +51,10 @@ public class InvalidConfigurationException extends RuntimeException {
                                                                        : prop.prefix() + "." + propertyName));
         }
     }
+
+    public static void throwIf(boolean isTrue, String message) {
+        if (isTrue) {
+            throw new InvalidConfigurationException(message);
+        }
+    }
 }

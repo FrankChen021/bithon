@@ -25,6 +25,7 @@ import org.bithon.server.storage.jdbc.meta.SchemaJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.setting.SettingJdbcStorage;
 import org.bithon.server.storage.jdbc.tracing.TraceJdbcStorage;
+import org.bithon.server.storage.jdbc.web.JdbcDashboardStorage;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -85,7 +86,8 @@ public class JdbcStorageAutoConfiguration {
                                          SchemaJdbcStorage.class,
                                          EventJdbcStorage.class,
                                          MetadataJdbcStorage.class,
-                                         SettingJdbcStorage.class);
+                                         SettingJdbcStorage.class,
+                                         JdbcDashboardStorage.class);
             }
         };
     }
