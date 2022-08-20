@@ -37,6 +37,15 @@ jobs:
       - name: Code Check
         run: mvn --ntp -T 1C animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:4.2.2:check
 
+      # https://github.com/marketplace/actions/delete-tag-and-release
+      - name: Delete agent tag
+        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          delete_release: false # default: false
+          tag_name: agent-distribution-latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Release agent
         # if: github.ref == 'refs/heads/master'
         uses: svenstaro/upload-release-action@v2
