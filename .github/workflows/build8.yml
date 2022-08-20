@@ -17,12 +17,27 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
+
       - name: Setup JDK8
         uses: actions/setup-java@v2
         with:
           java-version: '8'
           distribution: 'adopt'
+
       - name: Compilation
         run: mvn clean install -ntp --activate-profiles shaded,jooq,server -Dmaven.javadoc.skip=true -DskipTests
+
       - name: Code Check
         run: mvn --ntp -T 1C animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:4.2.2:check
+
+      - name: Release agent
+        if: github.ref == 'refs/heads/master'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          body: "The latest agent"
+          overwrite: true
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          release_name: agent-distribution-latest
+          tag: agent-distribution-latest
+          asset_name: agent-distribution.zip
+          file: agent/agent-distribution/target/agent-distribution.zip
