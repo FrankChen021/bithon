@@ -24,11 +24,27 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
 
+      #
+      # separate shaded building from other modules because if it's built with other modules,
+      # there might be library pollution in the agent-distribution
+      #
+      - name: Install shaded libs
+        run: mvn clean install -T 1C -ntp --activate-profiles shaded -Dmaven.javadoc.skip=true -DskipTests
+
       - name: Compilation
-        run: mvn clean install -ntp --activate-profiles shaded,jooq,server -Dmaven.javadoc.skip=true -DskipTests
+        run: mvn clean install -T 1C -ntp --activate-profiles jooq,server,agent,component -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Code Check
         run: mvn --ntp -T 1C animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:4.2.2:check
+
+      # https://github.com/marketplace/actions/delete-tag-and-release
+      - name: Delete agent tag
+        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          delete_release: true # default: false
+          tag_name: agent-distribution-latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release agent
         if: github.ref == 'refs/heads/master'
