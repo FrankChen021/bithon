@@ -25,7 +25,7 @@ jobs:
           distribution: 'adopt'
 
       - name: Compilation
-        run: mvn clean install -T 1C -ntp --activate-profiles shaded,jooq,server -Dmaven.javadoc.skip=true -DskipTests
+        run: mvn clean install -T 1C -ntp --activate-profiles shaded,jooq,server,component,agent -Dmaven.javadoc.skip=true -DskipTests
 
       - name: Dependency Check
         run: mvn -T 1C -ntp dependency:analyze-only
