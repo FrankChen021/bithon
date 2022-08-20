@@ -23,12 +23,6 @@
     <spring-cloud.version>Hoxton.SR12</spring-cloud.version>
   </properties>
 
-  <modules>
-    <module>component</module>
-    <module>agent</module>
-    <!--server modules are defined in the profiles-->
-  </modules>
-
   <!-- Required info for sonatype -->
   <licenses>
     <license>
@@ -420,6 +414,26 @@
   </build>
 
   <profiles>
+
+    <profile>
+      <id>component</id>
+      <modules>
+        <module>component</module>
+      </modules>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+    </profile>
+
+    <profile>
+      <id>agent</id>
+      <modules>
+        <module>agent</module>
+      </modules>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+    </profile>
 
     <profile>
       <!--

@@ -44,13 +44,19 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home
 
 ## 3. build project
 
-For the first time to build this project, use following command to build all modules including its dependencies. 
+For the first time to build this project, use following command to build dependencies first: 
 
 ```bash
-mvn clean install --activate-profiles shaded,jooq,server
+mvn clean install --activate-profiles shaded,jooq
 ```
 
-After the first build, we can remove the `--activate-profiles shaded,jooq,server` to speed up the following build.
+and then execute following command to build the project. 
+
+```bash
+mvn clean install -DskipTests
+```
+
+After the first build, we don't need to build the dependencies anymore unless there're changes in these dependencies.
 
 # Run
 
