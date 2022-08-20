@@ -17,13 +17,15 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
+
       - name: Setup JDK11
         uses: actions/setup-java@v2
         with:
           java-version: '11'
           distribution: 'adopt'
+
       - name: Compilation
         run: mvn clean install -T 1C -ntp --activate-profiles shaded,jooq,server -Dmaven.javadoc.skip=true -DskipTests
+
       - name: Dependency Check
         run: mvn -T 1C -ntp dependency:analyze-only
-
