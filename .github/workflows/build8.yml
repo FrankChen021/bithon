@@ -38,7 +38,7 @@ jobs:
         run: mvn --ntp -T 1C animal-sniffer:check checkstyle:checkstyle com.github.spotbugs:spotbugs-maven-plugin:4.2.2:check
 
       - name: Release agent
-        if: github.ref == 'refs/heads/master'
+        # if: github.ref == 'refs/heads/master'
         uses: svenstaro/upload-release-action@v2
         with:
           body: "The latest agent"
