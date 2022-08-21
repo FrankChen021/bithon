@@ -32,6 +32,16 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.takesArguments;
 /**
  * jdk http-connection plugin
  *
+ * Following simple diagram demonstrates flow of all intercepted methods in this plugin
+ *
+ * URLConnection ---> HttpClient.New ---> HttpClient.ctor(not intercepted)
+ *                                            ---> NetworkClient.openServer
+ *                                                    ---> NetworkClient.doConnect (Socket returned)
+ *      ---> HttpClient.writeRequests
+ *              ---> Socket.getOutputStream
+ *      ---> HttpClient.parseHttp
+ *              ---> Socket.getInputStream
+ *
  * @author frankchen
  */
 public class JdkHttpClientPlugin implements IPlugin {
@@ -39,6 +49,25 @@ public class JdkHttpClientPlugin implements IPlugin {
     @Override
     public List<InterceptorDescriptor> getInterceptors() {
         return Arrays.asList(
+
+            forClass("java.net.Socket")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("getInputStream")
+                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetInputStream"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("getOutputStream")
+                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetOutputStream")
+                ),
+
+            forClass("sun.net.NetworkClient")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("doConnect")
+                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.NetworkClient$DoConnect")
+                ),
+
             forClass("sun.net.www.http.HttpClient")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
@@ -50,17 +79,17 @@ public class JdkHttpClientPlugin implements IPlugin {
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("writeRequests", "sun.net.www.MessageHeader")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$WriteRequest"),
+                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$WriteRequests"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethodAndArgs("writeRequests",
                                                                     "sun.net.www.MessageHeader",
                                                                     "sun.net.www.http.PosterOutputStream")
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$WriteRequest"),
+                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$WriteRequests"),
 
                     MethodPointCutDescriptorBuilder.build()
                                                    .onMethod(named("parseHTTP").and(Matchers.takesArgument(0, "sun.net.www.MessageHeader")))
-                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$ParseHttp")),
+                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.HttpClient$ParseHTTP")),
 
             // HttpsClient inherits from HttpClient
             forClass("sun.net.www.protocol.https.HttpsClient")

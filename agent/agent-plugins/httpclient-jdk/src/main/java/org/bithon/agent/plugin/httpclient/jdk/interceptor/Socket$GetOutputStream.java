@@ -18,33 +18,37 @@ package org.bithon.agent.plugin.httpclient.jdk.interceptor;
 
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
-import org.bithon.agent.bootstrap.aop.IBithonObject;
+
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/14 11:13 下午
+ * @date 2022/8/21 16:57
  */
-public class HttpsClient$New extends AbstractInterceptor {
-    /**
-     * inject HttpURLConnection instance, which creates HttpClient instance, into the instance of HttpClient as its parent
-     *
-     * @param aopContext
-     */
+public class Socket$GetOutputStream extends AbstractInterceptor {
+
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        IBithonObject bithonObject = aopContext.castReturningAs();
-        if (bithonObject == null) {
-            // usually there's exception thrown when establish connection
+        if (aopContext.hasException()) {
             return;
         }
 
-        java.net.HttpURLConnection urlConnection = aopContext.getArgAs(4);
-        if (bithonObject.getInjectedObject() == null) {
-            bithonObject.setInjectedObject(new HttpClientContext());
+        // this object is assigned at NetworkClient#doConnect
+        HttpClientContext clientContext = aopContext.castInjectedOnTargetAs();
+        if (clientContext == null) {
+            return;
         }
 
-        HttpClientContext clientContext = (HttpClientContext) bithonObject.getInjectedObject();
-        clientContext.setMethod(urlConnection.getRequestMethod());
-        clientContext.setUrl(urlConnection.getURL().toString());
+        OutputStream os = aopContext.castReturningAs();
+
+        aopContext.setReturning(new FilterOutputStream(os) {
+            @Override
+            public void write(byte[] b, int off, int len) throws IOException {
+                super.write(b, off, len);
+                clientContext.getSentBytes().update(len);
+            }
+        });
     }
 }

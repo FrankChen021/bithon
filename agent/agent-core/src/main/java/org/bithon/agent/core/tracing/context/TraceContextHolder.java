@@ -37,6 +37,11 @@ public class TraceContextHolder {
 
     public static String currentTraceId() {
         ITraceContext ctx = HOLDER.get();
-        return (ctx instanceof TraceContext) ? ((TraceContext) ctx).traceId() : null;
+        return (ctx instanceof TraceContext) ? ctx.traceId() : null;
+    }
+
+    public static ITraceSpan currentSpan() {
+        ITraceContext ctx = HOLDER.get();
+        return ctx == null ? null : ctx.currentSpan();
     }
 }

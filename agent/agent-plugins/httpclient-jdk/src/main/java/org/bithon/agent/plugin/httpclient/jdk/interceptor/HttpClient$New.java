@@ -26,6 +26,8 @@ import java.net.URL;
 
 /**
  * {@link sun.net.www.http.HttpClient#New(URL, Proxy, int, boolean, HttpURLConnection)}
+ * <p>
+ * NOTE: this method is returned after doConnect is called
  *
  * @author frank.chen021@outlook.com
  * @date 2021/2/21 11:13 下午
@@ -33,16 +35,22 @@ import java.net.URL;
 public class HttpClient$New extends AbstractInterceptor {
     /**
      * inject HttpURLConnection instance, which creates HttpClient instance, into the instance of HttpClient as its parent
-     *
      */
     @Override
     public void onMethodLeave(AopContext aopContext) {
-        IBithonObject injectedObject = aopContext.castReturningAs();
-        if (injectedObject == null) {
+        IBithonObject bithonObject = aopContext.castReturningAs();
+        if (bithonObject == null) {
             // usually there's exception thrown when establish connection
             return;
         }
 
-        injectedObject.setInjectedObject(aopContext.getArgs()[4]);
+        java.net.HttpURLConnection urlConnection = aopContext.getArgAs(4);
+        if (bithonObject.getInjectedObject() == null) {
+            bithonObject.setInjectedObject(new HttpClientContext());
+        }
+
+        HttpClientContext clientContext = (HttpClientContext) bithonObject.getInjectedObject();
+        clientContext.setMethod(urlConnection.getRequestMethod());
+        clientContext.setUrl(urlConnection.getURL().toString());
     }
 }

@@ -26,32 +26,31 @@ import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import sun.net.www.MessageHeader;
 
-import java.net.HttpURLConnection;
-
 /**
  * @author frankchen
  */
-public class HttpClient$WriteRequest extends AbstractInterceptor {
+public class HttpClient$WriteRequests extends AbstractInterceptor {
 
     @Override
     public InterceptionDecision onMethodEnter(AopContext aopContext) {
-        MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
+        IBithonObject injectedObject = aopContext.castTargetAs();
+        HttpClientContext clientContext = (HttpClientContext) injectedObject.getInjectedObject();
+
+        clientContext.setWriteAt(System.nanoTime());
 
         ITraceSpan span = TraceSpanFactory.newSpan("httpClient-jdk");
         if (span == null) {
             return InterceptionDecision.SKIP_LEAVE;
         }
 
-        IBithonObject injectedObject = aopContext.castTargetAs();
-        HttpURLConnection connection = (HttpURLConnection) injectedObject.getInjectedObject();
-
+        MessageHeader headers = (MessageHeader) aopContext.getArgs()[0];
         /*
          * starts a span which will be finished after HttpClient.parseHttp
          */
         aopContext.setUserContext(span.method(aopContext.getMethod())
                                       .kind(SpanKind.CLIENT)
-                                      .tag(Tags.HTTP_URI, connection.getURL().toString())
-                                      .tag(Tags.HTTP_METHOD, connection.getRequestMethod())
+                                      .tag(Tags.HTTP_URI, clientContext.getUrl())
+                                      .tag(Tags.HTTP_METHOD, clientContext.getMethod())
                                       .propagate(headers, (headersArgs, key, value) -> headersArgs.set(key, value))
                                       .start());
 

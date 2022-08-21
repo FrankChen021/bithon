@@ -52,10 +52,10 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
     /**
      * @param responseTime in nano-time
      */
-    public void addRequest(String uri,
-                           String method,
-                           int statusCode,
-                           long responseTime) {
+    public HttpOutgoingMetrics addRequest(String uri,
+                                          String method,
+                                          int statusCode,
+                                          long responseTime) {
         String path = uri.split("\\?")[0];
 
         int count4xx = 0, count5xx = 0;
@@ -67,8 +67,9 @@ public class HttpOutgoingMetricsRegistry extends MetricRegistry<HttpOutgoingMetr
             }
         }
 
-        getOrCreateMetrics(path, method, String.valueOf(statusCode))
-            .add(responseTime, count4xx, count5xx);
+        HttpOutgoingMetrics metrics = getOrCreateMetrics(path, method, String.valueOf(statusCode));
+        metrics.add(responseTime, count4xx, count5xx);
+        return metrics;
     }
 
     public void addBytes(String uri,
