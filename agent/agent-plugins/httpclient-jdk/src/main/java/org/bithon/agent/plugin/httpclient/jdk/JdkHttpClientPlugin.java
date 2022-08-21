@@ -31,16 +31,16 @@ import static shaded.net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 /**
  * jdk http-connection plugin
- *
+ * <p>
  * Following simple diagram demonstrates flow of all intercepted methods in this plugin
- *
+ * <p>
  * URLConnection ---> HttpClient.New ---> HttpClient.ctor(not intercepted)
- *                                            ---> NetworkClient.openServer
- *                                                    ---> NetworkClient.doConnect (Socket returned)
- *      ---> HttpClient.writeRequests
- *              ---> Socket.getOutputStream
- *      ---> HttpClient.parseHttp
- *              ---> Socket.getInputStream
+ * ---> NetworkClient.openServer
+ * ---> NetworkClient.doConnect (Socket returned)
+ * ---> HttpClient.writeRequests
+ * ---> Socket.getOutputStream
+ * ---> HttpClient.parseHttp
+ * ---> Socket.getInputStream
  *
  * @author frankchen
  */
@@ -51,6 +51,18 @@ public class JdkHttpClientPlugin implements IPlugin {
         return Arrays.asList(
 
             forClass("java.net.Socket")
+                .methods(
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("getInputStream")
+                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetInputStream"),
+
+                    MethodPointCutDescriptorBuilder.build()
+                                                   .onAllMethods("getOutputStream")
+                                                   .to("org.bithon.agent.plugin.httpclient.jdk.interceptor.Socket$GetOutputStream")
+                ),
+
+            // for HTTPS
+            forClass("sun.security.ssl.SSLSocketImpl")
                 .methods(
                     MethodPointCutDescriptorBuilder.build()
                                                    .onAllMethods("getInputStream")
