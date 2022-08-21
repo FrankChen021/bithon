@@ -20,18 +20,16 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
-import org.bithon.agent.core.tracing.context.ITraceContext;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
 import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.component.commons.utils.StringUtils;
 import sun.net.www.MessageHeader;
-import sun.net.www.protocol.http.HttpURLConnection;
 
 /**
  * @author frankchen
  */
-public class HttpClient$ParseHttp extends AbstractInterceptor {
+public class HttpClient$ParseHTTP extends AbstractInterceptor {
 
     private final HttpOutgoingMetricsRegistry metricRegistry = HttpOutgoingMetricsRegistry.get();
 
@@ -42,21 +40,23 @@ public class HttpClient$ParseHttp extends AbstractInterceptor {
         Integer statusCode = parseStatusCode(statusLine);
 
         IBithonObject bithonObject = aopContext.castTargetAs();
-        HttpURLConnection connection = (HttpURLConnection) bithonObject.getInjectedObject();
-        String httpMethod = connection.getRequestMethod();
-        String requestUri = connection.getURL().toString();
+        HttpClientContext clientContext = (HttpClientContext) bithonObject.getInjectedObject();
+        String httpMethod = clientContext.getMethod();
+        String requestUri = clientContext.getUrl();
         if (aopContext.hasException()) {
-            // TODO: aopContext.getCostTime here only returns the execution time of HttpClient.parseHTTP
-            metricRegistry.addExceptionRequest(requestUri, httpMethod, aopContext.getCostTime());
+            metricRegistry.addExceptionRequest(requestUri,
+                                               httpMethod,
+                                               System.nanoTime() - clientContext.getWriteAt());
         } else {
-            metricRegistry.addRequest(requestUri, httpMethod, statusCode, aopContext.getCostTime());
+            metricRegistry.addRequest(requestUri,
+                                      httpMethod,
+                                      statusCode,
+                                      System.nanoTime() - clientContext.getWriteAt())
+                          .addByteSize(clientContext.getSentBytes().get(),
+                                       clientContext.getReceiveBytes().get());
         }
 
-        ITraceContext traceContext = TraceContextHolder.current();
-        if (traceContext == null) {
-            return;
-        }
-        ITraceSpan span = traceContext.currentSpan();
+        ITraceSpan span = TraceContextHolder.currentSpan();
         if (span == null) {
             return;
         }
@@ -70,12 +70,12 @@ public class HttpClient$ParseHttp extends AbstractInterceptor {
      * HTTP/1.0 401 Unauthorized
      * It will return 200 and 401 respectively. Returns -1 if no code can be discerned
      */
-    private Integer parseStatusCode(String statusLine) {
+    private int parseStatusCode(String statusLine) {
         if (StringUtils.hasText(statusLine)) {
             String[] results = statusLine.split(" ");
             if (results.length >= 1) {
                 try {
-                    return Integer.valueOf(results[1]);
+                    return Integer.parseInt(results[1]);
                 } catch (NumberFormatException ignored) {
                 }
             }
