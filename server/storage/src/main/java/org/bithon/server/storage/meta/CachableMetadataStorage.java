@@ -35,6 +35,9 @@ public class CachableMetadataStorage implements IMetaStorage {
     private final Cache<Metadata, Long> metaCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofHours(1)).build();
     private final Cache<String, String> instanceCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(5)).build();
 
+    // avoid frequent queries on underlying storage if instance is not found
+    private final Cache<String, Boolean> instanceNotExistCache = Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(1)).build();
+
     public CachableMetadataStorage(IMetaStorage delegate) {
         this.delegate = delegate;
 
@@ -62,11 +65,18 @@ public class CachableMetadataStorage implements IMetaStorage {
 
     @Override
     public String getApplicationByInstance(String instanceName) {
+        Boolean notFound = instanceNotExistCache.getIfPresent(instanceName);
+        if (notFound != null) {
+            return null;
+        }
+
         String applicationName = instanceCache.getIfPresent(instanceName);
         if (applicationName == null) {
             applicationName = delegate.getApplicationByInstance(instanceName);
             if (applicationName != null) {
                 instanceCache.put(instanceName, applicationName);
+            } else {
+                instanceNotExistCache.put(instanceName, true);
             }
             return applicationName;
         }
