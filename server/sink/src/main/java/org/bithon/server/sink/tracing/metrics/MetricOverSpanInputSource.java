@@ -26,22 +26,26 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.sink.metrics.IMessageSink;
 import org.bithon.server.sink.metrics.MetricMessage;
+import org.bithon.server.sink.metrics.MetricMessageHandler;
 import org.bithon.server.sink.metrics.MetricsAggregator;
-import org.bithon.server.sink.metrics.SchemaMetricMessage;
+import org.bithon.server.sink.metrics.topo.TopoTransformers;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.TraceMessageProcessChain;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.IInputSource;
 import org.bithon.server.storage.datasource.input.TransformSpec;
+import org.bithon.server.storage.meta.IMetaStorage;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
+import org.springframework.context.ApplicationContext;
 
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,9 +60,6 @@ public class MetricOverSpanInputSource implements IInputSource {
     @JsonIgnore
     private final TraceMessageProcessChain chain;
 
-    @JsonIgnore
-    private final IMessageSink<SchemaMetricMessage> metricSink;
-
     @Getter
     private final TransformSpec transformSpec;
 
@@ -66,19 +67,22 @@ public class MetricOverSpanInputSource implements IInputSource {
     private final IMetricStorage metricStorage;
 
     @JsonIgnore
+    private final ApplicationContext applicationContext;
+
+    @JsonIgnore
     private MetricOverSpanExtractor metricExtractor;
 
     @JsonCreator
     public MetricOverSpanInputSource(@JsonProperty("transformSpec") @NotNull TransformSpec transformSpec,
                                      @JacksonInject(useInput = OptBoolean.FALSE) TraceMessageProcessChain chain,
-                                     @JacksonInject(useInput = OptBoolean.FALSE) IMessageSink<SchemaMetricMessage> metricSink,
-                                     @JacksonInject(useInput = OptBoolean.FALSE)IMetricStorage metricStorage) {
+                                     @JacksonInject(useInput = OptBoolean.FALSE) IMetricStorage metricStorage,
+                                     @JacksonInject(useInput = OptBoolean.FALSE) ApplicationContext applicationContext) {
         Preconditions.checkArgumentNotNull("transformSpec", transformSpec);
 
         this.chain = chain;
-        this.metricSink = metricSink;
         this.transformSpec = transformSpec;
         this.metricStorage = metricStorage;
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -90,7 +94,18 @@ public class MetricOverSpanInputSource implements IInputSource {
             log.info("Failed to initialize metric storage for [{}]: {}", schema.getName(), e.getMessage());
         }
         log.info("Adding metric-extractor for [{}({})] to tracing logs processors...", schema.getName(), schema.getSignature());
-        metricExtractor = this.chain.link(new MetricOverSpanExtractor(transformSpec, schema, metricSink));
+
+        MetricOverSpanExtractor extractor = null;
+        try {
+            extractor = new MetricOverSpanExtractor(transformSpec, schema, metricStorage, applicationContext);
+            metricExtractor = this.chain.link(extractor);
+        } catch (Exception e) {
+            if (extractor != null) {
+                this.chain.unlink(extractor);
+                extractor.close();
+            }
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -111,14 +126,20 @@ public class MetricOverSpanInputSource implements IInputSource {
     private static class MetricOverSpanExtractor implements ITraceMessageSink {
         private final TransformSpec transformSpec;
         private final DataSourceSchema schema;
-        private final IMessageSink<SchemaMetricMessage> metricSink;
+        private final MetricMessageHandler metricHandler;
 
         public MetricOverSpanExtractor(TransformSpec transformSpec,
                                        DataSourceSchema schema,
-                                       IMessageSink<SchemaMetricMessage> metricSink) {
+                                       IMetricStorage metricStorage,
+                                       ApplicationContext applicationContext) throws IOException {
             this.transformSpec = transformSpec;
             this.schema = schema;
-            this.metricSink = metricSink;
+            this.metricHandler = new MetricMessageHandler(schema.getName(),
+                                                          applicationContext.getBean(TopoTransformers.class),
+                                                          applicationContext.getBean(IMetaStorage.class),
+                                                          metricStorage,
+                                                          applicationContext.getBean(DataSourceSchemaManager.class),
+                                                          null);
         }
 
         @Override
@@ -147,14 +168,15 @@ public class MetricOverSpanInputSource implements IInputSource {
             //
             // sink the metrics
             //
-            metricSink.process(schema.getName(), SchemaMetricMessage.builder()
-                                                                    .schema(schema)
-                                                                    .metrics(metricRows)
-                                                                    .build());
+            metricHandler.process(metricRows);
         }
 
+        /**
+         * will be closed when this processor is unlinked from processor list
+         */
         @Override
         public void close() {
+            metricHandler.close();
         }
 
         private IInputRow spanToMetrics(TraceSpan span) {
