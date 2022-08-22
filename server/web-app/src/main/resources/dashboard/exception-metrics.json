@@ -25,8 +25,8 @@
         {
           "field": "traceId",
           "title": "Trace Id",
-          "format": "link",
-          "link": "/web/trace/detail?id={val}&type=trace"
+          "format": "template",
+          "template": "<a target='_blank' href='/web/trace/detail?id={value}&type=trace'>{value}</a>"
         },
         {
           "field": "exceptionClass",

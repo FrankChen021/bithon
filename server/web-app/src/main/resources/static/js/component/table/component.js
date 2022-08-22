@@ -34,10 +34,9 @@ class TableComponent {
         this.mFormatters['detail'] = (val, row, index) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="toggleTableDetailView('${option.tableId}', ${index})">Toggle</button>` : '';
         this.mFormatters['dialog'] = (val, row, index, field) => val !== "" ? `<button class="btn btn-sm btn-outline-info" onclick="showTableDetailViewInDlg('${option.tableId}', ${index}, '${field}')">Show</button>` : '';
         this.mFormatters['block'] = (val, row, index) => `<pre>${val}</pre>`;
-        this.mFormatters['link'] = (val, row, index, field) => {
+        this.mFormatters['template'] = (val, row, index, field) => {
             const column = this.mColumnMap[field];
-            const href = column.link.replaceAll('{val}', val);
-            return `<a target="_blank" href="${href}">${val}</a>`;
+            return column.template.replaceAll('{value}', val);
         };
 
         for (let i = 0; i < this.mColumns.length; i++) {
@@ -46,7 +45,7 @@ class TableComponent {
 
             this.mColumnMap[column.field] = column;
 
-            if (column.format !== undefined) {
+            if (column.format !== undefined && column.formatter == null) {
                 // formatter is an option provided by bootstrap-table
                 column.formatter = this.mFormatters[column.format];
                 if (column.format === 'detail') {
@@ -163,7 +162,7 @@ class TableComponent {
     #getQueryParams(params) {
         this.mQueryParam.pageNumber = params.pageNumber - 1;
         this.mQueryParam.pageSize = params.pageSize;
-        if (params.sortName === undefined) {
+        if (params.sortName === undefined || params.sortName == null) {
             delete this.mQueryParam.orderBy;
         } else {
             this.mQueryParam.orderBy = {

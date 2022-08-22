@@ -212,7 +212,8 @@ class Dashboard {
                 visible: chartDescriptor.details.tracing !== undefined,
                 onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
             }],
-            pageable);
+            pageable,
+            chartDescriptor.details.orderBy);
         chartComponent.setSelectionHandler(
             (option, start, end) => {
                 this.#refreshDetailView(chartDescriptor, detailView, fields, option, start, end);
@@ -457,8 +458,16 @@ class Dashboard {
         return [fields, columns];
     }
 
-    #createDetailView(id, parent, columns, buttons, pageable) {
-        return new TableComponent({tableId: id, parent: parent, columns: columns, buttons: buttons, pagination: pageable});
+    #createDetailView(id, parent, columns, buttons, pageable, orderBy) {
+        return new TableComponent({
+            tableId: id,
+            parent: parent,
+            columns: columns,
+            buttons: buttons,
+            pagination: pageable,
+            order: orderBy == null ? null : orderBy.order,
+            orderBy: orderBy == null ? null : orderBy.name
+        });
     }
 
     #refreshDetailView(chartDescriptor, detailView, fields, chartOption, startIndex, endIndex) {
@@ -592,6 +601,37 @@ class Dashboard {
     }
 
     createTableComponent(chartId, chartDescriptor) {
+
+        const lookup = chartDescriptor.lookup;
+
+        $.each(chartDescriptor.columns, (index, column) => {
+            // handle lookup
+            let lookupFn = null;
+            if (lookup !== undefined && lookup !== null) {
+                const fieldLookupTable = lookup[column.field];
+                if (fieldLookupTable != null) {
+                    lookupFn = (val) => {
+                        const mapped = fieldLookupTable[val];
+                        return mapped != null ? mapped + '(' + val + ')' : val;
+                    }
+                }
+            }
+
+            // handle format
+            const formatterFn = this._formatters[column.format];
+            if (lookupFn != null || formatterFn != null) {
+                column.formatter = (v) => {
+                    if (lookupFn != null) {
+                        v = lookupFn(v);
+                    }
+                    if (formatterFn != null) {
+                        v = formatterFn(v);
+                    }
+                    return v;
+                };
+            }
+        });
+
         const vParent = $('#' + chartId);
 
         const vTable = new TableComponent({
@@ -606,11 +646,6 @@ class Dashboard {
                 orderBy: 'timestamp',
             }
         );
-        // const chartComponent = new ChartComponent({
-        //     containerId: chartId,
-        //     metrics: chartDescriptor.metrics.map(metric => metric.name),
-        // }).header('<b>' + chartDescriptor.title + '</b>')
-        //     .setChartOption(chartOption);
 
         this._chartComponents[chartId] = vTable;
 
@@ -619,9 +654,9 @@ class Dashboard {
 
     refreshTable(chartDescriptor, tableComponent, interval) {
         const filters = this.vFilter.getSelectedFilters();
-        if (chartDescriptor.dimensions !== undefined) {
-            $.each(chartDescriptor.dimensions, (name, value) => {
-                filters.push(value);
+        if (chartDescriptor.filters != null) {
+            $.each(chartDescriptor.filters, (index, filter) => {
+                filters.push(filter);
             });
         }
 

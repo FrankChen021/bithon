@@ -38,8 +38,8 @@ public class MetricMessageHandlers {
         handlers.put(handler.getType(), handler);
     }
 
-    public void remove(String name) {
-        handlers.remove(name);
+    public MetricMessageHandler remove(String name) {
+        return handlers.remove(name);
     }
 
     public MetricMessageHandler getHandler(String name) {

@@ -16,6 +16,7 @@
 
 package org.bithon.server.webapp.ui;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -154,8 +155,15 @@ public class DashboardController {
     @PostMapping("/web/api/dashboard/update/{boardName}")
     public void updateDashboard(@PathVariable("boardName") String name, HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-        // check if it's well-formed
-        JsonNode dashboard = objectMapper.readTree(request.getInputStream());
+        JsonNode dashboard;
+        try {
+            // check if it's well-formed
+            dashboard = objectMapper.readTree(request.getInputStream());
+        } catch (JsonParseException e) {
+            response.getWriter().println(StringUtils.format("Invalid JSON formatted dashboard: %s", e.getMessage()));
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            return;
+        }
 
         JsonNode titleNode = dashboard.get("title");
         if (titleNode == null || StringUtils.isBlank(titleNode.asText())) {

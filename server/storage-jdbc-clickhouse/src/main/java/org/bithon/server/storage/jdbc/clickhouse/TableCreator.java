@@ -122,7 +122,11 @@ public class TableCreator {
                         }
                     }
                     for (SortField<?> f : idx.getFields()) {
-                        sb.append(StringUtils.format("`%s`,", f.getName()));
+                        if ("timestamp".equals(f.getName())) {
+                            sb.append(StringUtils.format("toStartOfHour(timestamp),"));
+                        } else {
+                            sb.append(StringUtils.format("%s,", f.getName()));
+                        }
                     }
                 }
                 sb.delete(sb.length() - 1, sb.length());

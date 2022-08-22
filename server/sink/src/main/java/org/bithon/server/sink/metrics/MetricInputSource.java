@@ -79,7 +79,10 @@ public class MetricInputSource implements IInputSource {
     @Override
     public void stop() {
         if (name != null) {
-            handlers.remove(name);
+            MetricMessageHandler handler = handlers.remove(name);
+            if (handler != null) {
+                handler.close();
+            }
         }
     }
 }
