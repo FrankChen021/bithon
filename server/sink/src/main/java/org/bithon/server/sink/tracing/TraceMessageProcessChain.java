@@ -55,13 +55,32 @@ public class TraceMessageProcessChain implements ITraceMessageSink {
     @Override
     public void process(String messageType, List<TraceSpan> spans) {
         for (ITraceMessageSink sink : sinks) {
-            executorService.execute(() -> {
-                try {
-                    sink.process(messageType, spans);
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
-            });
+            executorService.execute(new TraceMessageSinkRunnable(sink, messageType, spans));
+        }
+    }
+
+    /**
+     * Use an explicitly defined class instead of lamda
+     * because it helps improve the observability of tracing logs on ExecutorService.execute
+     */
+    static class TraceMessageSinkRunnable implements Runnable {
+        private final ITraceMessageSink sink;
+        private final String messageType;
+        private final List<TraceSpan> spans;
+
+        TraceMessageSinkRunnable(ITraceMessageSink sink, String messageType, List<TraceSpan> spans) {
+            this.sink = sink;
+            this.messageType = messageType;
+            this.spans = spans;
+        }
+
+        @Override
+        public void run() {
+            try {
+                sink.process(messageType, spans);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
         }
     }
 

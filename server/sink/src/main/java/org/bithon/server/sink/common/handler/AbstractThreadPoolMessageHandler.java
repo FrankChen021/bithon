@@ -52,13 +52,28 @@ public abstract class AbstractThreadPoolMessageHandler<MSG> implements IMessageH
 
     @Override
     public void submit(MSG msg) {
-        executor.execute(() -> {
+        executor.execute(new MessageHandlerRunnable(msg));
+    }
+
+    /**
+     * Use an explicitly defined class instead of lamda
+     * because it helps improve the observability of tracing log of ExecutorService.execute
+     */
+    class MessageHandlerRunnable implements Runnable {
+        private final MSG msg;
+
+        MessageHandlerRunnable(MSG msg) {
+            this.msg = msg;
+        }
+
+        @Override
+        public void run() {
             try {
                 onMessage(msg);
             } catch (Exception e) {
                 log.error("Error process message", e);
             }
-        });
+        }
     }
 
     protected abstract void onMessage(MSG msg) throws Exception;
