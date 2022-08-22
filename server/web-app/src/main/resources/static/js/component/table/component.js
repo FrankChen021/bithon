@@ -162,7 +162,7 @@ class TableComponent {
     #getQueryParams(params) {
         this.mQueryParam.pageNumber = params.pageNumber - 1;
         this.mQueryParam.pageSize = params.pageSize;
-        if (params.sortName === undefined) {
+        if (params.sortName === undefined || params.sortName == null) {
             delete this.mQueryParam.orderBy;
         } else {
             this.mQueryParam.orderBy = {

@@ -466,7 +466,7 @@ class Dashboard {
             buttons: buttons,
             pagination: pageable,
             order: orderBy == null ? null : orderBy.order,
-            orderBy: orderBy == null ? null : orderBy.by
+            orderBy: orderBy == null ? null : orderBy.name
         });
     }
 
