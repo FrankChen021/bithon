@@ -47,6 +47,7 @@ public class TimeSeriesQueryRequestV2 {
 
     private List<IFilter> filters = Collections.emptyList();
 
+    private List<String> metrics = Collections.emptyList();
     private List<IQueryStageAggregator> aggregators = Collections.emptyList();
 
     private List<String> groupBy = Collections.emptyList();

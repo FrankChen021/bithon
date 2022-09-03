@@ -108,7 +108,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                                      request.getMetrics(),
                                                                      request.getDimensions() != null ? request.getDimensions() : request.getFilters(),
                                                                      Interval.of(start, end),
-                                                                     request.getGroups()));
+                                                                     request.getGroups() == null ? Collections.emptyList() : request.getGroups()));
     }
 
     @Override
@@ -120,6 +120,7 @@ public class DataSourceApi implements IDataSourceApi {
 
         return dataSourceService.timeseriesQuery(TimeseriesQueryV2.builder()
                                                                   .dataSource(schema)
+                                                                  .metrics(request.getMetrics())
                                                                   .aggregators(request.getAggregators())
                                                                   .filters(request.getFilters())
                                                                   .interval(Interval.of(start, end, request.getInterval().getStep()))

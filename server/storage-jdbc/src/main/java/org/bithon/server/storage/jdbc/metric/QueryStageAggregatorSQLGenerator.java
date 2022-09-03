@@ -31,10 +31,12 @@ public class QueryStageAggregatorSQLGenerator implements IQueryStageAggregatorVi
     /**
      * in second
      */
-    private final long interval;
+    private final long step;
+    private final long length;
 
-    public QueryStageAggregatorSQLGenerator(ISqlExpressionFormatter sqlFormatter, long interval) {
-        this.interval = interval;
+    public QueryStageAggregatorSQLGenerator(ISqlExpressionFormatter sqlFormatter, long length, long step) {
+        this.step = step;
+        this.length = length;
         this.formatter = sqlFormatter;
     }
 
@@ -65,17 +67,17 @@ public class QueryStageAggregatorSQLGenerator implements IQueryStageAggregatorVi
 
     @Override
     public String visit(QueryStageAggregators.FirstAggregator aggregator) {
-        return null;
+        throw new RuntimeException("first agg not supported now");
     }
 
     @Override
     public String visit(QueryStageAggregators.LastAggregator aggregator) {
-        return null;
+        return formatter.lastAggregator(aggregator.getField(), aggregator.getName(), step);
     }
 
     @Override
     public String visit(QueryStageAggregators.RateAggregator aggregator) {
-        return StringUtils.format("sum(\"%s\")/%d AS \"%s\"", aggregator.getField(), interval, aggregator.getName());
+        return StringUtils.format("sum(\"%s\")/%d AS \"%s\"", aggregator.getField(), step, aggregator.getName());
     }
 
     @Override

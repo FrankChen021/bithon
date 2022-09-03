@@ -34,13 +34,15 @@ import java.util.List;
 public class TimeseriesQueryV2 {
     private DataSourceSchema dataSource;
 
+    private List<String> metrics;
+
     private List<IQueryStageAggregator> aggregators;
 
-    private Collection<IFilter> filters = Collections.emptyList();
+    private Collection<IFilter> filters;
     private Interval interval;
 
     /**
      * time series also have groupBy, in this case, there will be multiple series
      */
-    private List<String> groupBys = Collections.emptyList();
+    private List<String> groupBys;
 }

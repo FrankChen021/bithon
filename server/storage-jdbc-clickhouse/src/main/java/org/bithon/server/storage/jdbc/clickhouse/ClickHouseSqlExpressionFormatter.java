@@ -60,4 +60,9 @@ class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
                                   dimension,
                                   name);
     }
+
+    @Override
+    public String lastAggregator(String dimension, String name, long window) {
+        return StringUtils.format("argMax(\"%s\", \"timestamp\") AS %s", dimension, name);
+    }
 }

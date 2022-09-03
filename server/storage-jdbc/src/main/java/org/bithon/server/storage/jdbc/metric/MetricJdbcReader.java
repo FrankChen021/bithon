@@ -88,9 +88,29 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> timeseries(TimeseriesQueryV2 query) {
         String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
 
+        MetricFieldsClauseBuilder metricFieldsBuilder = this.createMetriClauseBuilder(sqlTableName,
+                                                                                      query.getDataSource(),
+                                                                                      ImmutableMap.of("interval",
+                                                                                                      query.getInterval().getTotalLength()));
+
+        // put non-post aggregator metrics before the post
+        String metricList = query.getMetrics()
+                                 .stream()
+                                 .map(m -> query.getDataSource().getMetricSpecByName(m))
+                                 .filter(metricSpec -> !(metricSpec instanceof PostAggregatorMetricSpec))
+                                 .map(metricSpec -> metricSpec.accept(metricFieldsBuilder))
+                                 .collect(Collectors.joining(","));
+
+        String postAggregatorMetrics = query.getMetrics()
+                                            .stream()
+                                            .map(m -> query.getDataSource().getMetricSpecByName(m))
+                                            .filter(metricSpec -> (metricSpec instanceof PostAggregatorMetricSpec))
+                                            .map(metricSpec -> metricSpec.accept(metricFieldsBuilder))
+                                            .collect(Collectors.joining(","));
+
         String aggregatorList = "";
         if (!query.getAggregators().isEmpty()) {
-            QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter, query.getInterval().getTotalLength());
+            QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter, query.getInterval().getTotalLength(), query.getInterval().getStep());
             aggregatorList = query.getAggregators()
                                   .stream()
                                   .map(aggregator -> aggregator.accept(generator))
@@ -104,9 +124,9 @@ public class MetricJdbcReader implements IMetricReader {
         String timestampExpression = sqlFormatter.timeFloor("timestamp", query.getInterval().getStep());
 
         String sql = StringUtils.format(
-            "SELECT  %s AS \"_timestamp\", %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s ORDER BY _timestamp",
+            "SELECT  %s AS \"_timestamp\", %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s ORDER BY \"_timestamp\"",
             timestampExpression,
-            Stream.of(groupByFields, aggregatorList)
+            Stream.of(groupByFields, metricList, postAggregatorMetrics, aggregatorList)
                   .filter(selector -> selector.length() > 0)
                   .collect(Collectors.joining(",")),
             sqlTableName,
@@ -143,10 +163,9 @@ public class MetricJdbcReader implements IMetricReader {
                                             .map(metricSpec -> metricSpec.accept(metricFieldsBuilder))
                                             .collect(Collectors.joining(","));
 
-
         String aggregatorList = "";
         if (!query.getAggregators().isEmpty()) {
-            QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter, query.getInterval().getTotalLength());
+            QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter, query.getInterval().getTotalLength(), query.getInterval().getStep());
             aggregatorList = query.getAggregators()
                                   .stream()
                                   .map(aggregator -> aggregator.accept(generator))
@@ -294,6 +313,11 @@ public class MetricJdbcReader implements IMetricReader {
         public String stringAggregator(String dimension, String name) {
             throw new RuntimeException("string agg is not supported.");
         }
+
+        @Override
+        public String lastAggregator(String dimension, String name, long window) {
+            throw new RuntimeException("last agg is not supported.");
+        }
     }
 
     static class H2SqlExpressionFormatter implements ISqlExpressionFormatter {
@@ -314,11 +338,19 @@ public class MetricJdbcReader implements IMetricReader {
             return StringUtils.format("group_concat(\"%s\") AS \"%s\"", dimension, name);
         }
 
+        @Override
+        public String lastAggregator(String dimension, String name, long window) {
+            return StringUtils.format(
+                "LAST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\") AS \"%s\"",
+                dimension,
+                this.timeFloor("timestamp", window),
+                name);
+        }
+
         /*
          * NOTE, H2 does not support timestamp comparison, we have to use ISO8601 format
          */
     }
-
 
     /**
      * build SQL clause which aggregates specified metric

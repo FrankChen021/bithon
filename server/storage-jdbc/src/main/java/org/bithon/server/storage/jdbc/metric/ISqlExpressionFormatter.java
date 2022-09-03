@@ -27,6 +27,8 @@ import org.bithon.server.commons.time.TimeSpan;
 public interface ISqlExpressionFormatter {
     /**
      * different DBMS has different functions to support time_floor semantics
+     *
+     * @param interval in seconds
      */
     default String timeFloor(String field, long interval) {
         return StringUtils.format("UNIX_TIMESTAMP(\"%s\")/ %d * %d", field, interval, interval);
@@ -94,4 +96,9 @@ public interface ISqlExpressionFormatter {
     }
 
     String stringAggregator(String dimension, String name);
+
+    /**
+     * @param window in seconds
+     */
+    String lastAggregator(String dimension, String name, long window);
 }
