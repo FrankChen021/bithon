@@ -16,21 +16,29 @@
 
 package org.bithon.server.collector.source.http;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.json.UTF8StreamJsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.collection.IteratorableCollection;
+import org.bithon.component.commons.utils.ReflectionUtils;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.sink.tracing.TraceSpanHelper;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -65,18 +73,53 @@ public class TraceHttpCollector {
     }
 
     @PostMapping("/api/collector/trace")
-    public void span(HttpServletRequest request) throws IOException {
+    public void span(HttpServletRequest request, HttpServletResponse response) throws IOException {
         InputStream is = request.getInputStream();
 
         String encoding = request.getHeader("Content-Encoding");
-        if ("gzip".equals(encoding)) {
-            is = new GZIPInputStream(is);
-        } else if ("deflate".equals(encoding)) {
-            is = new InflaterInputStream(is);
+        if (!StringUtils.isEmpty(encoding)) {
+            if ("gzip".equals(encoding)) {
+                is = new GZIPInputStream(is);
+            } else if ("deflate".equals(encoding)) {
+                is = new InflaterInputStream(is);
+            } else {
+                String message = StringUtils.format("Not supported Content-Encoding [%s] from remote [%s]", encoding, request.getRemoteAddr());
+                response.getWriter().println(message);
+                response.setStatus(HttpStatus.BAD_REQUEST.value());
+                return;
+            }
         }
 
-        final List<TraceSpan> spans = om.readValue(is, new TypeReference<ArrayList<TraceSpan>>() {
-        });
+        List<TraceSpan> spans;
+
+        // create parser manually so that this parser can be accessed in the catch handler
+        try (JsonParser parser = om.createParser(is)) {
+            try {
+                spans = om.readValue(parser, new TypeReference<ArrayList<TraceSpan>>() {
+                });
+            } catch (IOException e) {
+                String message = StringUtils.format("Invalid input from [%s]: %s", request.getRemoteAddr(), e.getMessage());
+                log.error(message, e);
+
+                //
+                // for parse exception, dump the buffer that fails to parse
+                //
+                if (e.getCause() instanceof JsonParseException && parser instanceof UTF8StreamJsonParser) {
+                    Object buffer = ReflectionUtils.getFieldValue(parser, "_inputBuffer");
+                    Object end = ReflectionUtils.getFieldValue(parser, "_inputEnd");
+                    if (buffer != null && end != null) {
+                        try {
+                            log.error("{}: Input content is:\n{}", message, new String((byte[]) buffer, 0, (int) end, StandardCharsets.UTF_8));
+                        } catch (RuntimeException ignored) {
+                        }
+                    }
+                }
+
+                response.getWriter().println(message);
+                response.setStatus(HttpStatus.BAD_REQUEST.value());
+                return;
+            }
+        }
         if (spans.isEmpty()) {
             return;
         }
@@ -163,13 +206,12 @@ public class TraceHttpCollector {
                 tags.put(key, val);
             }
 
-            // update parentSpanId
-            if ("00".equals(span.getParentSpanId())) {
+            if ("00".equals(span.getParentSpanId()) || "".equals(span.getParentSpanId())) {
                 span.setParentSpanId("");
                 span.setKind("SERVER");
             } else if ("HTTPHandler".equals(span.getClazz()) && "handleRequest".equals(span.getMethod())) {
                 span.setKind("SERVER");
-            } else if ("TCPHandler".equals(span.getClazz())) {
+            } else if ("TCPHandler".equals(span.getMethod())) {
                 span.setKind("SERVER");
             }
 

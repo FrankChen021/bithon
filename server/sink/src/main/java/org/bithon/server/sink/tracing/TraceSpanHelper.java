@@ -43,6 +43,9 @@ public class TraceSpanHelper {
             // compatibility
             status = tags.getOrDefault("status", "");
         }
+        if ("".equals(status)) {
+            status = tags.containsKey("exception") ? "500" : "200";
+        }
         span.setStatus(status);
 
         String uri = tags.getOrDefault("http.uri", "");
