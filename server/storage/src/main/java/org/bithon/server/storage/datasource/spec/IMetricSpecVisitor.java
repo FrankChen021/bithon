@@ -14,26 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.datasource.spec;
+
+import org.bithon.server.storage.datasource.spec.gauge.GaugeMetricSpec;
+import org.bithon.server.storage.datasource.spec.max.MaxMetricSpec;
+import org.bithon.server.storage.datasource.spec.min.MinMetricSpec;
+import org.bithon.server.storage.datasource.spec.sum.SumMetricSpec;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
 public interface IMetricSpecVisitor<T> {
-    T visit(LongSumMetricSpec metricSpec);
+    T visit(SumMetricSpec metricSpec);
+
+    T visit(GaugeMetricSpec metricSpec);
 
     T visit(CountMetricSpec metricSpec);
 
-    T visit(DoubleSumMetricSpec metricSpec);
-
     T visit(PostAggregatorMetricSpec metricSpec);
 
-    T visit(LongLastMetricSpec metricSpec);
+    T visit(MinMetricSpec metricSpec);
 
-    T visit(DoubleLastMetricSpec metricSpec);
-
-    T visit(LongMinMetricSpec metricSpec);
-
-    T visit(LongMaxMetricSpec metricSpec);
+    T visit(MaxMetricSpec metricSpec);
 }

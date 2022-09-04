@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.datasource.spec;
 
 import javax.validation.constraints.NotNull;
 import java.util.Locale;

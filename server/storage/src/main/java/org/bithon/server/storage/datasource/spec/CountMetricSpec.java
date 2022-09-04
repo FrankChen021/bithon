@@ -14,19 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.datasource.spec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.aggregator.DoubleLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.api.QueryStageAggregators;
-import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.datasource.typing.IValueType;
+import org.bithon.server.storage.datasource.typing.LongValueType;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -35,57 +34,53 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
-public class DoubleLastMetricSpec implements IMetricSpec {
+public class CountMetricSpec implements IMetricSpec {
+
+    public static final IMetricSpec INSTANCE = new CountMetricSpec("count", "count");
 
     @Getter
     private final String name;
 
     @Getter
     private final String field;
-
-    @Getter
-    private final String displayText;
-
-    @Getter
-    private final String unit;
-
-    @Getter
-    private final boolean visible;
-    private IQueryStageAggregator queryStageAggregator;
+    private final IQueryStageAggregator queryStageAggregator;
 
     @JsonCreator
-    public DoubleLastMetricSpec(@JsonProperty("name") @NotNull String name,
-                                @JsonProperty("field") @Nullable String field,
-                                @JsonProperty("displayText") @NotNull String displayText,
-                                @JsonProperty("unit") @NotNull String unit,
-                                @JsonProperty("visible") @Nullable Boolean visible) {
+    public CountMetricSpec(@JsonProperty("name") @NotNull String name,
+                           @JsonProperty("field") @Nullable String field) {
         this.name = name;
         this.field = field;
-        this.displayText = displayText;
-        this.unit = unit;
-        this.visible = visible == null || visible;
-        this.queryStageAggregator = new QueryStageAggregators.LastAggregator(name, field);
+        this.queryStageAggregator = new QueryStageAggregators.CountAggregator(name, field);
     }
 
     @JsonIgnore
     @Override
     public String getType() {
-        return DOUBLE_LAST;
+        return IMetricSpec.COUNT;
+    }
+
+    @Override
+    public boolean isVisible() {
+        return false;
+    }
+
+    @Override
+    public String getDisplayText() {
+        return "次数";
+    }
+
+    @Override
+    public String getUnit() {
+        return "次";
     }
 
     @Override
     public IValueType getValueType() {
-        return DoubleValueType.INSTANCE;
+        return LongValueType.INSTANCE;
     }
 
     @Override
     public void setOwner(DataSourceSchema dataSource) {
-
-    }
-
-    @Override
-    public String validate(Object input) {
-        return null;
     }
 
     @Override
@@ -95,7 +90,39 @@ public class DoubleLastMetricSpec implements IMetricSpec {
 
     @Override
     public NumberAggregator createAggregator() {
-        return new DoubleLastAggregator();
+        return new NumberAggregator() {
+            private long value;
+
+            @Override
+            public int intValue() {
+                return (int) value;
+            }
+
+            @Override
+            public long longValue() {
+                return value;
+            }
+
+            @Override
+            public float floatValue() {
+                return value;
+            }
+
+            @Override
+            public double doubleValue() {
+                return value;
+            }
+
+            @Override
+            public void aggregate(long timestamp, Object value) {
+                this.value++;
+            }
+
+            @Override
+            public Number getNumber() {
+                return value;
+            }
+        };
     }
 
     @JsonIgnore
@@ -111,11 +138,10 @@ public class DoubleLastMetricSpec implements IMetricSpec {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof DoubleLastMetricSpec) {
-            return this.name.equals(((DoubleLastMetricSpec) obj).name);
+        if (obj instanceof CountMetricSpec) {
+            return this.name.equals(((CountMetricSpec) obj).name);
         } else {
             return false;
         }
     }
-
 }

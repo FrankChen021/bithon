@@ -14,51 +14,45 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.datasource.spec.min;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.aggregator.LongMinAggregator;
-import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.api.QueryStageAggregators;
-import org.bithon.server.storage.datasource.typing.IValueType;
-import org.bithon.server.storage.datasource.typing.LongValueType;
-
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
+import org.bithon.server.storage.datasource.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.spec.IMetricSpecVisitor;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2021/3/16
  */
-public class LongMinMetricSpec implements IMetricSpec {
+public abstract class MinMetricSpec implements IMetricSpec {
 
     @Getter
-    private final String name;
+    protected final String name;
 
     @Getter
-    private final String field;
+    protected final String field;
 
     @Getter
-    private final String displayText;
+    protected final String displayText;
 
     @Getter
-    private final String unit;
+    protected final String unit;
 
     @Getter
-    private final boolean visible;
-    private final IQueryStageAggregator queryStageAggregator;
+    protected final boolean visible;
+    protected final IQueryStageAggregator queryStageAggregator;
 
     @JsonCreator
-    public LongMinMetricSpec(@JsonProperty("name") @NotNull String name,
-                             @JsonProperty("field") @Nullable String field,
-                             @JsonProperty("displayText") @NotNull String displayText,
-                             @JsonProperty("unit") @NotNull String unit,
-                             @JsonProperty("visible") @Nullable Boolean visible) {
+    public MinMetricSpec(String name,
+                         String field,
+                         String displayText,
+                         String unit,
+                         Boolean visible) {
         this.name = name;
         this.field = field;
         this.displayText = displayText;
@@ -67,34 +61,13 @@ public class LongMinMetricSpec implements IMetricSpec {
         this.queryStageAggregator = new QueryStageAggregators.MinAggregator(name, field);
     }
 
-    @JsonIgnore
-    @Override
-    public String getType() {
-        return IMetricSpec.LONG_MIN;
-    }
-
-    @Override
-    public IValueType getValueType() {
-        return LongValueType.INSTANCE;
-    }
-
     @Override
     public void setOwner(DataSourceSchema dataSource) {
     }
 
     @Override
-    public String validate(Object input) {
-        return null;
-    }
-
-    @Override
     public <T> T accept(IMetricSpecVisitor<T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public NumberAggregator createAggregator() {
-        return new LongMinAggregator();
     }
 
     @JsonIgnore
@@ -106,14 +79,5 @@ public class LongMinMetricSpec implements IMetricSpec {
     @Override
     public int hashCode() {
         return name.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof LongMinMetricSpec) {
-            return this.name.equals(((LongMinMetricSpec) obj).name);
-        } else {
-            return false;
-        }
     }
 }

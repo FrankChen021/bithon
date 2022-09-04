@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.datasource.spec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -149,11 +149,6 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
 
     @Override
     public String getField() {
-        return null;
-    }
-
-    @Override
-    public String validate(Object input) {
         return null;
     }
 

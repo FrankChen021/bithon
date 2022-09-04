@@ -22,19 +22,17 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.aggregator.spec.CountMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.DoubleLastMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.DoubleSumMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpecVisitor;
-import org.bithon.server.storage.datasource.aggregator.spec.LongLastMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.LongMaxMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.LongMinMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.LongSumMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.PostAggregatorExpressionVisitor;
-import org.bithon.server.storage.datasource.aggregator.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.api.QueryStageAggregators;
+import org.bithon.server.storage.datasource.spec.CountMetricSpec;
+import org.bithon.server.storage.datasource.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.spec.IMetricSpecVisitor;
+import org.bithon.server.storage.datasource.spec.PostAggregatorExpressionVisitor;
+import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
+import org.bithon.server.storage.datasource.spec.gauge.GaugeMetricSpec;
+import org.bithon.server.storage.datasource.spec.max.MaxMetricSpec;
+import org.bithon.server.storage.datasource.spec.min.MinMetricSpec;
+import org.bithon.server.storage.datasource.spec.sum.SumMetricSpec;
 import org.bithon.server.storage.jdbc.dsl.sql.GroupByExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.NameExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.OrderByExpression;
@@ -487,7 +485,7 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         @Override
-        public String visit(LongSumMetricSpec metricSpec) {
+        public String visit(SumMetricSpec metricSpec) {
             String expr = StringUtils.format("sum(\"%s\")", metricSpec.getName());
             existingAggregators.add(expr);
 
@@ -495,19 +493,6 @@ public class MetricJdbcReader implements IMetricReader {
             sb.append(expr);
             if (addAlias) {
                 sb.append(StringUtils.format(" AS \"%s\"", metricSpec.getName()));
-            }
-            return sb.toString();
-        }
-
-        @Override
-        public String visit(DoubleSumMetricSpec metricSpec) {
-            String expr = StringUtils.format("sum(\"%s\")", metricSpec.getName());
-            existingAggregators.add(expr);
-
-            StringBuilder sb = new StringBuilder();
-            sb.append(expr);
-            if (addAlias) {
-                sb.append(StringUtils.format(" \"%s\"", metricSpec.getName()));
             }
             return sb.toString();
         }
@@ -588,17 +573,12 @@ public class MetricJdbcReader implements IMetricReader {
          * A embedded query is created to simulate FIRST/LAST
          */
         @Override
-        public String visit(LongLastMetricSpec metricSpec) {
+        public String visit(GaugeMetricSpec metricSpec) {
             return visitLast(metricSpec.getName());
         }
 
         @Override
-        public String visit(DoubleLastMetricSpec metricSpec) {
-            return visitLast(metricSpec.getName());
-        }
-
-        @Override
-        public String visit(LongMinMetricSpec metricSpec) {
+        public String visit(MinMetricSpec metricSpec) {
             StringBuilder sb = new StringBuilder();
             sb.append(StringUtils.format("min(\"%s\")", metricSpec.getName()));
             if (addAlias) {
@@ -608,7 +588,7 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         @Override
-        public String visit(LongMaxMetricSpec metricSpec) {
+        public String visit(MaxMetricSpec metricSpec) {
             StringBuilder sb = new StringBuilder();
             sb.append(StringUtils.format("max(\"%s\")", metricSpec.getName()));
             if (addAlias) {

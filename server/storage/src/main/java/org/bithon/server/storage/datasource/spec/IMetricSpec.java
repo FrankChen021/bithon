@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.datasource.spec;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -22,6 +22,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.spec.gauge.DoubleGaugeMetricSpec;
+import org.bithon.server.storage.datasource.spec.gauge.LongGaugeMetricSpec;
+import org.bithon.server.storage.datasource.spec.max.LongMaxMetricSpec;
+import org.bithon.server.storage.datasource.spec.min.LongMinMetricSpec;
+import org.bithon.server.storage.datasource.spec.sum.DoubleSumMetricSpec;
+import org.bithon.server.storage.datasource.spec.sum.LongSumMetricSpec;
 import org.bithon.server.storage.datasource.typing.IValueType;
 
 /**
@@ -31,11 +37,11 @@ import org.bithon.server.storage.datasource.typing.IValueType;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
     @JsonSubTypes.Type(name = IMetricSpec.LONG_SUM, value = LongSumMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.LONG_LAST, value = LongLastMetricSpec.class),
+    @JsonSubTypes.Type(name = IMetricSpec.LONG_LAST, value = LongGaugeMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.LONG_MIN, value = LongMinMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.LONG_MAX, value = LongMaxMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_SUM, value = DoubleSumMetricSpec.class),
-    @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_LAST, value = DoubleLastMetricSpec.class),
+    @JsonSubTypes.Type(name = IMetricSpec.DOUBLE_LAST, value = DoubleGaugeMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.POST, value = PostAggregatorMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.COUNT, value = CountMetricSpec.class),
 })
@@ -90,13 +96,6 @@ public interface IMetricSpec {
     IValueType getValueType();
 
     void setOwner(DataSourceSchema dataSource);
-
-    /**
-     * 校验输入
-     *
-     * @return 验证结果，如果非null则为错误提示信息
-     */
-    String validate(Object input);
 
     <T> T accept(IMetricSpecVisitor<T> visitor);
 

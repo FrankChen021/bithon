@@ -14,17 +14,13 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.datasource.spec.sum;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.DoubleSumAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
-import org.bithon.server.storage.datasource.api.QueryStageAggregators;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.datasource.typing.IValueType;
 
@@ -35,23 +31,7 @@ import javax.validation.constraints.NotNull;
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
-public class DoubleSumMetricSpec implements IMetricSpec {
-
-    @Getter
-    private final String name;
-
-    @Getter
-    private final String field;
-
-    @Getter
-    private final String displayText;
-
-    @Getter
-    private final String unit;
-
-    @Getter
-    private final boolean visible;
-    private final IQueryStageAggregator queryStageAggregator;
+public class DoubleSumMetricSpec extends SumMetricSpec {
 
     @JsonCreator
     public DoubleSumMetricSpec(@JsonProperty("name") @NotNull String name,
@@ -59,12 +39,7 @@ public class DoubleSumMetricSpec implements IMetricSpec {
                                @JsonProperty("displayText") @NotNull String displayText,
                                @JsonProperty("unit") @NotNull String unit,
                                @JsonProperty("visible") @Nullable Boolean visible) {
-        this.name = name;
-        this.field = field;
-        this.displayText = displayText;
-        this.unit = unit;
-        this.visible = visible == null ? true : visible;
-        this.queryStageAggregator = new QueryStageAggregators.SumAggregator(name, field);
+        super(name, field, displayText, unit, visible);
     }
 
     @JsonIgnore
@@ -79,34 +54,8 @@ public class DoubleSumMetricSpec implements IMetricSpec {
     }
 
     @Override
-    public void setOwner(DataSourceSchema dataSource) {
-
-    }
-
-    @Override
-    public String validate(Object input) {
-        return null;
-    }
-
-    @Override
-    public <T> T accept(IMetricSpecVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
-
-    @Override
     public NumberAggregator createAggregator() {
         return new DoubleSumAggregator();
-    }
-
-    @JsonIgnore
-    @Override
-    public IQueryStageAggregator getQueryAggregator() {
-        return queryStageAggregator;
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
     }
 
     @Override

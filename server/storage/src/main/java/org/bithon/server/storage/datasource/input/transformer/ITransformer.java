@@ -19,11 +19,12 @@ package org.bithon.server.storage.datasource.input.transformer;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.datasource.spec.IMetricSpec;
 
 /**
  * A transformer allows adding new fields to input rows.
  * Each one has a "name" (the name of the new field) which can be referred to by {@link org.bithon.server.storage.datasource.dimension.IDimensionSpec},
- * or {@link org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec}.
+ * or {@link IMetricSpec}.
  * <p>
  * The transformer produces values for this new field based on looking at the entire input row.
  *

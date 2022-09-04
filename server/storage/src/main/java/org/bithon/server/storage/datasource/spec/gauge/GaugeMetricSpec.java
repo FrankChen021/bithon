@@ -14,52 +14,48 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.datasource.spec.gauge;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.api.QueryStageAggregators;
-import org.bithon.server.storage.datasource.typing.IValueType;
-import org.bithon.server.storage.datasource.typing.LongValueType;
-
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
+import org.bithon.server.storage.datasource.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.spec.IMetricSpecVisitor;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/2/26 11:08 下午
+ * @date 2022/9/4 20:24
  */
-public class LongLastMetricSpec implements IMetricSpec {
+public abstract class GaugeMetricSpec implements IMetricSpec {
 
     @Getter
-    private final String name;
+    protected final String name;
 
     @Getter
-    private final String field;
+    protected final String field;
 
     @Getter
-    private final String displayText;
+    protected final String displayText;
 
     @Getter
-    private final String unit;
+    protected final String unit;
 
     @Getter
-    private final boolean visible;
+    protected final boolean visible;
 
-    private final IQueryStageAggregator queryStageAggregator;
+    protected final IQueryStageAggregator queryStageAggregator;
 
     @JsonCreator
-    public LongLastMetricSpec(@JsonProperty("name") @NotNull String name,
-                              @JsonProperty("field") @Nullable String field,
-                              @JsonProperty("displayText") @NotNull String displayText,
-                              @JsonProperty("unit") @NotNull String unit,
-                              @JsonProperty("visible") @Nullable Boolean visible) {
+    public GaugeMetricSpec(String name,
+                           String field,
+                           String displayText,
+                           String unit,
+                           Boolean visible) {
         this.name = name;
         this.field = field;
         this.displayText = displayText;
@@ -68,29 +64,8 @@ public class LongLastMetricSpec implements IMetricSpec {
         this.queryStageAggregator = new QueryStageAggregators.LastAggregator(name, field);
     }
 
-    @JsonIgnore
-    @Override
-    public String getType() {
-        return IMetricSpec.LONG_LAST;
-    }
-
-    @Override
-    public IValueType getValueType() {
-        return LongValueType.INSTANCE;
-    }
-
     @Override
     public void setOwner(DataSourceSchema dataSource) {
-    }
-
-    @Override
-    public String validate(Object input) {
-        return null;
-    }
-
-    @Override
-    public <T> T accept(IMetricSpecVisitor<T> visitor) {
-        return visitor.visit(this);
     }
 
     @Override
@@ -105,16 +80,12 @@ public class LongLastMetricSpec implements IMetricSpec {
     }
 
     @Override
-    public int hashCode() {
-        return name.hashCode();
+    public final <T> T accept(IMetricSpecVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof LongLastMetricSpec) {
-            return this.name.equals(((LongLastMetricSpec) obj).name);
-        } else {
-            return false;
-        }
+    public int hashCode() {
+        return name.hashCode();
     }
 }
