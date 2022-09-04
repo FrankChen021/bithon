@@ -57,6 +57,7 @@ import org.jooq.Record;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -83,15 +84,14 @@ public class MetricJdbcReader implements IMetricReader {
 
     @Override
     public List<Map<String, Object>> timeseries(TimeseriesQuery query) {
-        String sql = new TimeSeriesSqlClauseBuilder(sqlFormatter,
-                                                    query.getInterval().getStartTime(),
-                                                    query.getInterval().getEndTime(),
-                                                    query.getDataSource(),
-                                                    query.getInterval().getStep()).filters(query.getFilters())
-                                                                                  .metrics(query.getMetrics())
-                                                                                  .groupBy(query.getGroupBys())
-                                                                                  .build();
-        return executeSql(sql);
+        return timeseries(TimeseriesQueryV2.builder()
+                                           .dataSource(query.getDataSource())
+                                           .metrics(query.getMetrics())
+                                           .aggregators(Collections.emptyList())
+                                           .interval(query.getInterval())
+                                           .groupBys(query.getGroupBys())
+                                           .filters(query.getFilters())
+                                           .build());
     }
 
     @Override
