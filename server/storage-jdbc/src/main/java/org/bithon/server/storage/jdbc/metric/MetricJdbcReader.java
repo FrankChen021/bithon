@@ -35,6 +35,13 @@ import org.bithon.server.storage.datasource.aggregator.spec.PostAggregatorExpres
 import org.bithon.server.storage.datasource.aggregator.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.api.QueryStageAggregators;
+import org.bithon.server.storage.jdbc.dsl.sql.GroupByExpression;
+import org.bithon.server.storage.jdbc.dsl.sql.NameExpression;
+import org.bithon.server.storage.jdbc.dsl.sql.OrderByExpression;
+import org.bithon.server.storage.jdbc.dsl.sql.SelectExpression;
+import org.bithon.server.storage.jdbc.dsl.sql.StringExpression;
+import org.bithon.server.storage.jdbc.dsl.sql.TableExpression;
+import org.bithon.server.storage.jdbc.dsl.sql.WhereExpression;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.GroupByQuery;
 import org.bithon.server.storage.metrics.IFilter;
@@ -91,94 +98,94 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> timeseries(TimeseriesQueryV2 query) {
         String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
 
-        MetricFieldsClauseBuilder metricFieldsBuilder = this.createMetriClauseBuilder(sqlTableName,
-                                                                                      query.getDataSource(),
-                                                                                      ImmutableMap.of("interval",
-                                                                                                      query.getInterval().getTotalLength()));
+        SelectExpression selectExpression = new SelectExpression();
+        selectExpression.setGroupBy(new GroupByExpression());
+        SelectExpression subSelectExpression = new SelectExpression();
 
+        //
+        // fields
+        //
+        boolean hasSubSelect = false;
         QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter,
                                                                                           query.getInterval().getTotalLength(),
                                                                                           query.getInterval().getStep());
 
-        // Step 1. Find window aggregators first
-        List<String> subQueryFields = new ArrayList<>(query.getAggregators().size());
-        List<String> outQueryFields = new ArrayList<>(query.getAggregators().size());
-        List<String> groupByFields = new ArrayList<>();
         for (IQueryStageAggregator aggregator : query.getAggregators()) {
+            // if window function is contained, the final SQL is different
             if (sqlFormatter.useWindowFunctionAsAggregator(aggregator)) {
-                subQueryFields.add(aggregator.accept(generator));
+                subSelectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
 
-                groupByFields.add(aggregator.getName());
+                selectExpression.getGroupBy().addField(aggregator.getName());
+                selectExpression.getFieldsExpression().addField(new NameExpression(aggregator.getName()));
 
-                // No need to add name to outQuery since all groupByFields will be on the outQuery
+                hasSubSelect = true;
             } else {
-                outQueryFields.add(aggregator.accept(generator));
+                selectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
             }
         }
-        groupByFields.addAll(query.getGroupBys());
 
-        // generate sub-query
-        // generate aggregators & post-aggregators at outter level
-
-        String postAggregatorExpression = CollectionUtils.isEmpty(query.getMetrics()) ?
-                                          "" : query.getMetrics()
-                                                    .stream()
-                                                    .map(m -> query.getDataSource().getMetricSpecByName(m))
-                                                    .filter(metricSpec -> (metricSpec instanceof PostAggregatorMetricSpec))
-                                                    .map(metricSpec -> metricSpec.accept(metricFieldsBuilder))
-                                                    .collect(Collectors.joining(","));
-
-        String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
+        // post aggregators
+        if (!CollectionUtils.isEmpty(query.getMetrics())) {
+            MetricFieldsClauseBuilder metricFieldsBuilder = this.createMetriClauseBuilder(sqlTableName,
+                                                                                          query.getDataSource(),
+                                                                                          ImmutableMap.of("interval",
+                                                                                                          query.getInterval().getTotalLength()));
 
 
-        String outFieldExpression = String.join(",", outQueryFields);
-
-        String groupByExpression = Stream.of(groupByFields, query.getGroupBys())
-                                         .flatMap(Collection::stream)
-                                         .map(f -> "\"" + f + "\"")
-                                         .collect(Collectors.joining(","));
-
-        String timestampExpression = sqlFormatter.timeFloor("timestamp", query.getInterval().getStep());
-
-        String sql;
-        if (subQueryFields.isEmpty()) {
-
-            sql = StringUtils.format(
-                "SELECT  %s AS \"_timestamp\", %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s ORDER BY \"_timestamp\"",
-                timestampExpression,
-                Stream.of(groupByExpression, postAggregatorExpression, outFieldExpression)
-                      .filter(selector -> selector.length() > 0)
-                      .collect(Collectors.joining(",")),
-                sqlTableName,
-                filter,
-                StringUtils.hasText(filter) ? "AND" : "",
-                sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
-                sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
-                sqlFormatter.groupByUseRawExpression() ? timestampExpression : TIMESTAMP_QUERY_NAME
-            );
-        } else {
-            // SELECT * FROM (
-            //      SELECT * FROM ... WHERE ...
-            // ) GROUP BY .... ORDER BY ...
-            sql = StringUtils.format(
-                "SELECT \"_timestamp\", %s FROM " +
-                "( SELECT  %s AS \"_timestamp\", %s FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s )"
-                + "GROUP BY %s ORDER BY \"_timestamp\"",
-                Stream.of(groupByExpression, postAggregatorExpression, outFieldExpression)
-                      .filter(selector -> selector.length() > 0)
-                      .collect(Collectors.joining(",")),
-                timestampExpression,
-                String.join(",", subQueryFields),
-                sqlTableName,
-                filter,
-                StringUtils.hasText(filter) ? "AND" : "",
-                sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
-                sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
-                "\"_timestamp\", " + groupByFields.stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","))
-            );
+            for (String metric : query.getMetrics()) {
+                IMetricSpec metricSpec = query.getDataSource().getMetricSpecByName(metric);
+                if (metricSpec instanceof PostAggregatorMetricSpec) {
+                    selectExpression.getFieldsExpression().addField(new StringExpression(metricSpec.accept(metricFieldsBuilder)));
+                }
+            }
         }
 
-        return executeSql(sql);
+        //
+        // build WhereExpression
+        //
+        WhereExpression whereExpression = new WhereExpression();
+        whereExpression.addExpression(StringUtils.format("\"timestamp\" >= %s", sqlFormatter.formatTimestamp(query.getInterval().getStartTime())));
+        whereExpression.addExpression(StringUtils.format("\"timestamp\" < %s", sqlFormatter.formatTimestamp(query.getInterval().getEndTime())));
+        for (IFilter filter : query.getFilters()) {
+            whereExpression.addExpression(filter.getMatcher().accept(new SQLFilterBuilder(query.getDataSource(), filter)));
+        }
+
+        //
+        // build GroupByExpression
+        //
+        selectExpression.getGroupBy()
+                        .addField("_timestamp")
+                        .addFields(query.getGroupBys());
+
+        //
+        // build OrderByExpression
+        //
+        selectExpression.setOrderBy(new OrderByExpression("_timestamp"));
+
+        //
+        // Link query and subQuery together
+        //
+        if (hasSubSelect) {
+            subSelectExpression.getFrom().setExpression(new TableExpression(sqlTableName));
+            subSelectExpression.setWhere(whereExpression);
+            subSelectExpression.getFieldsExpression()
+                               .insert(new StringExpression(StringUtils.format("%s AS \"_timestamp\"",
+                                                                               sqlFormatter.timeFloor("timestamp", query.getInterval().getStep()))));
+
+            selectExpression.getFrom().setExpression(subSelectExpression);
+            selectExpression.getFieldsExpression().insert(new NameExpression("_timestamp"));
+        } else {
+            selectExpression.getFieldsExpression()
+                            .insert(new StringExpression(StringUtils.format("%s AS \"_timestamp\"",
+                                                                            sqlFormatter.timeFloor("timestamp", query.getInterval().getStep()))));
+
+            selectExpression.getFrom().setExpression(new TableExpression(sqlTableName));
+            selectExpression.setWhere(whereExpression);
+        }
+
+        SQLGenerator sqlGenerator = new SQLGenerator();
+        selectExpression.accept(sqlGenerator);
+        return executeSql(sqlGenerator.getSQL());
     }
 
     @Override
