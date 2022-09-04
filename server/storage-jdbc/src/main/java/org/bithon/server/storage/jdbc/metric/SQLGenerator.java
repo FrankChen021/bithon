@@ -80,7 +80,7 @@ public class SQLGenerator implements IExpressionVisitor {
 
     @Override
     public void visit(FieldsExpression fieldsExpression) {
-        for(IExpression field : fieldsExpression.getFields()) {
+        for (IExpression field : fieldsExpression.getFields()) {
             field.accept(this);
 
             sb.append(',');

@@ -40,7 +40,7 @@ public class FieldsExpression implements IExpression {
     }
 
     public void addFields(List<String> fields) {
-        for(String field : fields) {
+        for (String field : fields) {
             this.fields.add(new NameExpression(field));
         }
     }
