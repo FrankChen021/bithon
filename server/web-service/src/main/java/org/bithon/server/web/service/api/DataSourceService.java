@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -164,15 +165,8 @@ public class DataSourceService {
      * Vals - an array of all data points. Each element represents a data point of a timestamp.
      */
     public TimeSeriesQueryResult timeseriesQuery(TimeseriesQueryV2 query) {
-        List<String> metrics = query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList());
-        metrics.addAll(query.getMetrics().stream().map(m -> {
-            IMetricSpec metricSpec = query.getDataSource().getMetricSpecByName(m);
-            if (metricSpec instanceof PostAggregatorMetricSpec) {
-                return m;
-            } else {
-                return null;
-            }
-        }).filter(Objects::nonNull).collect(Collectors.toList()));
+        Set<String> metrics = query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toSet());
+        metrics.addAll(query.getMetrics());
 
         List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
                                                              .timeseries(query);

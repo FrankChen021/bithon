@@ -39,6 +39,12 @@ public class FieldsExpression implements IExpression {
         return this;
     }
 
+    public void addFields(List<String> fields) {
+        for(String field : fields) {
+            this.fields.add(new NameExpression(field));
+        }
+    }
+
     @Override
     public void accept(IExpressionVisitor visitor) {
         visitor.visit(this);

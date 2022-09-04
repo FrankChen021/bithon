@@ -122,24 +122,9 @@ public class DataSourceApi implements IDataSourceApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getInterval().getEndISO8601());
 
-        List<IQueryStageAggregator> aggregators = new ArrayList<>(request.getAggregators());
-        if (CollectionUtils.isNotEmpty(request.getMetrics())) {
-            // to compatible with old interface
-            for (String metric : request.getMetrics()) {
-                IMetricSpec metricSpec = schema.getMetricSpecByName(metric);
-                if (metricSpec == null) {
-                    throw new RuntimeException(StringUtils.format("metric[%s] does not exist.", metric));
-                }
-                IQueryStageAggregator aggregator = metricSpec.getQueryAggregator();
-                if (aggregator != null) {
-                    aggregators.add(aggregator);
-                }
-            }
-        }
-
         return dataSourceService.timeseriesQuery(TimeseriesQueryV2.builder()
                                                                   .dataSource(schema)
-                                                                  .aggregators(aggregators)
+                                                                  .aggregators(request.getAggregators())
                                                                   .metrics(request.getMetrics())
                                                                   .filters(request.getFilters())
                                                                   .interval(Interval.of(start, end, request.getInterval().getStep()))

@@ -16,13 +16,19 @@
 
 package org.bithon.server.storage.metrics;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 15/3/22 3:00 PM
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderBy {
     private String name;
     private String order;
