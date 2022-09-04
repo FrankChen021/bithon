@@ -30,7 +30,9 @@ import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
 import org.bithon.server.storage.metrics.IMetricReader;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author frank.chen021@outlook.com
@@ -71,10 +73,11 @@ public class MetricStorage extends MetricJdbcStorage {
         public ClickHouseMetricClauseBuilder(ISqlExpressionFormatter sqlExpressionFormatter,
                                              String sqlTableName,
                                              String tableAlias,
+                                             Set<String> existingAggregators,
                                              DataSourceSchema dataSource,
                                              Map<String, Object> variables,
                                              boolean addAlias) {
-            super(sqlExpressionFormatter, sqlTableName, tableAlias, dataSource, variables, addAlias);
+            super(sqlExpressionFormatter, sqlTableName, tableAlias, existingAggregators, dataSource, variables, addAlias);
         }
 
         @Override
@@ -84,7 +87,7 @@ public class MetricStorage extends MetricJdbcStorage {
                                                                 DataSourceSchema dataSource,
                                                                 Map<String, Object> variables,
                                                                 boolean addAlias) {
-            return new ClickHouseMetricClauseBuilder(sqlExpressionFormatter, sqlTableName, tableAlias, dataSource, variables, addAlias);
+            return new ClickHouseMetricClauseBuilder(sqlExpressionFormatter, sqlTableName, tableAlias, new HashSet<>(existingAggregators), dataSource, variables, addAlias);
         }
 
         /**
@@ -105,8 +108,11 @@ public class MetricStorage extends MetricJdbcStorage {
     public IMetricReader createMetricReader(DataSourceSchema schema) {
         return new MetricJdbcReader(dslContext, getSqlExpressionFormatter()) {
             @Override
-            protected MetricFieldsClauseBuilder createMetriClauseBuilder(String tableName, DataSourceSchema dataSource, Map<String, Object> variables) {
-                return new ClickHouseMetricClauseBuilder(sqlFormatter, tableName, "OUTER", dataSource, variables, true);
+            protected MetricFieldsClauseBuilder createMetriClauseBuilder(String tableName,
+                                                                         DataSourceSchema dataSource,
+                                                                         Set<String> existingAggregators,
+                                                                         Map<String, Object> variables) {
+                return new ClickHouseMetricClauseBuilder(sqlFormatter, tableName, "OUTER", existingAggregators, dataSource, variables, true);
             }
         };
     }

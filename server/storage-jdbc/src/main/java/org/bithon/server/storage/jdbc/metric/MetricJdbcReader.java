@@ -153,6 +153,8 @@ public class MetricJdbcReader implements IMetricReader {
         selectExpression.setGroupBy(new GroupByExpression());
         SelectExpression subSelectExpression = new SelectExpression();
 
+        Set<String> aggregatorExpressions = new HashSet<>();
+
         //
         // fields
         //
@@ -160,7 +162,6 @@ public class MetricJdbcReader implements IMetricReader {
         QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter,
                                                                                           interval.getTotalLength(),
                                                                                           interval.getStep());
-
         for (IQueryStageAggregator aggregator : aggregatorList) {
             // if window function is contained, the final SQL is different
             if (sqlFormatter.useWindowFunctionAsAggregator(aggregator)) {
@@ -172,6 +173,8 @@ public class MetricJdbcReader implements IMetricReader {
                 hasSubSelect = true;
             } else {
                 selectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
+
+                aggregatorExpressions.add(StringUtils.format("%s(\"%s\")", aggregator.getType(), aggregator.getField()));
             }
         }
 
@@ -179,6 +182,7 @@ public class MetricJdbcReader implements IMetricReader {
         if (!CollectionUtils.isEmpty(metrics)) {
             MetricFieldsClauseBuilder metricFieldsBuilder = this.createMetriClauseBuilder(sqlTableName,
                                                                                           dataSource,
+                                                                                          aggregatorExpressions,
                                                                                           ImmutableMap.of("interval",
                                                                                                           interval.getTotalLength()));
 
@@ -242,8 +246,11 @@ public class MetricJdbcReader implements IMetricReader {
         return executeSql(sqlGenerator.getSQL());
     }
 
-    protected MetricFieldsClauseBuilder createMetriClauseBuilder(String tableName, DataSourceSchema dataSource, Map<String, Object> variables) {
-        return new MetricFieldsClauseBuilder(this.sqlFormatter, tableName, "OUTER", dataSource, variables);
+    protected MetricFieldsClauseBuilder createMetriClauseBuilder(String tableName,
+                                                                 DataSourceSchema dataSource,
+                                                                 Set<String> existingAggregators,
+                                                                 Map<String, Object> variables) {
+        return new MetricFieldsClauseBuilder(this.sqlFormatter, tableName, "OUTER", existingAggregators, dataSource, variables);
     }
 
     private String getOrderBySQL(OrderBy orderBy) {
@@ -436,20 +443,22 @@ public class MetricJdbcReader implements IMetricReader {
         /**
          * used to keep which metrics current SQL are using
          */
-        protected final Set<String> metrics;
+        protected final Set<String> existingAggregators;
         protected final ISqlExpressionFormatter sqlExpressionFormatter;
 
         public MetricFieldsClauseBuilder(ISqlExpressionFormatter sqlExpressionFormatter,
                                          String sqlTableName,
                                          String tableAlias,
+                                         Set<String> existingAggregators,
                                          DataSourceSchema dataSource,
                                          Map<String, Object> variables) {
-            this(sqlExpressionFormatter, sqlTableName, tableAlias, dataSource, variables, true);
+            this(sqlExpressionFormatter, sqlTableName, tableAlias, existingAggregators, dataSource, variables, true);
         }
 
         public MetricFieldsClauseBuilder(ISqlExpressionFormatter sqlExpressionFormatter,
                                          String sqlTableName,
                                          String tableAlias,
+                                         Set<String> existingAggregators,
                                          DataSourceSchema dataSource,
                                          Map<String, Object> variables,
                                          boolean addAlias) {
@@ -459,7 +468,7 @@ public class MetricJdbcReader implements IMetricReader {
             this.dataSource = dataSource;
             this.variables = variables;
             this.addAlias = addAlias;
-            this.metrics = new HashSet<>();
+            this.existingAggregators = existingAggregators;
         }
 
         public MetricFieldsClauseBuilder clone(ISqlExpressionFormatter sqlExpressionFormatter,
@@ -471,6 +480,7 @@ public class MetricJdbcReader implements IMetricReader {
             return new MetricFieldsClauseBuilder(sqlExpressionFormatter,
                                                  sqlTableName,
                                                  tableAlias,
+                                                 new HashSet<>(),
                                                  dataSource,
                                                  variables,
                                                  addAlias);
@@ -478,10 +488,11 @@ public class MetricJdbcReader implements IMetricReader {
 
         @Override
         public String visit(LongSumMetricSpec metricSpec) {
-            this.metrics.add(metricSpec.getName());
+            String expr = StringUtils.format("sum(\"%s\")", metricSpec.getName());
+            existingAggregators.add(expr);
 
             StringBuilder sb = new StringBuilder();
-            sb.append(StringUtils.format("sum(\"%s\")", metricSpec.getName()));
+            sb.append(expr);
             if (addAlias) {
                 sb.append(StringUtils.format(" AS \"%s\"", metricSpec.getName()));
             }
@@ -490,10 +501,11 @@ public class MetricJdbcReader implements IMetricReader {
 
         @Override
         public String visit(DoubleSumMetricSpec metricSpec) {
-            this.metrics.add(metricSpec.getName());
+            String expr = StringUtils.format("sum(\"%s\")", metricSpec.getName());
+            existingAggregators.add(expr);
 
             StringBuilder sb = new StringBuilder();
-            sb.append(StringUtils.format("sum(\"%s\")", metricSpec.getName()));
+            sb.append(expr);
             if (addAlias) {
                 sb.append(StringUtils.format(" \"%s\"", metricSpec.getName()));
             }
@@ -506,19 +518,21 @@ public class MetricJdbcReader implements IMetricReader {
             metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
                 @Override
                 public void visitMetric(IMetricSpec metricSpec) {
+                    String expr = metricSpec.accept(MetricFieldsClauseBuilder.this.clone(sqlExpressionFormatter,
+                                                                                         null,
+                                                                                         null,
+                                                                                         dataSource,
+                                                                                         variables,
+                                                                                         false));
+
                     if (!sqlExpressionFormatter.allowSameAggregatorExpression()
-                        && metrics.contains(metricSpec.getName())) {
+                        && existingAggregators.contains(expr)) {
                         // this metricSpec has been in the SQL,
                         // don't need to construct the aggregation expression for this post aggregator
                         // because some DBMS does not support duplicated aggregation expressions for one metric
                         sb.append(metricSpec.getName());
                     } else {
-                        sb.append(metricSpec.accept(MetricFieldsClauseBuilder.this.clone(sqlExpressionFormatter,
-                                                                                         null,
-                                                                                         null,
-                                                                                         dataSource,
-                                                                                         variables,
-                                                                                         false)));
+                        sb.append(expr);
                     }
                 }
 
@@ -558,10 +572,11 @@ public class MetricJdbcReader implements IMetricReader {
 
         @Override
         public String visit(CountMetricSpec metricSpec) {
-            this.metrics.add(metricSpec.getName());
+            String expr = StringUtils.format("count(1)", metricSpec.getName());
+            existingAggregators.add(expr);
 
             StringBuilder sb = new StringBuilder();
-            sb.append(StringUtils.format("count(1)", metricSpec.getName()));
+            sb.append(expr);
             if (addAlias) {
                 sb.append(StringUtils.format("count(1) AS \"%s\"", metricSpec.getName()));
             }
