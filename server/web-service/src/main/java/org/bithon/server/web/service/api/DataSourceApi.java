@@ -19,11 +19,14 @@ package org.bithon.server.web.service.api;
 import lombok.Data;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.common.TTLConfig;
 import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.metrics.GroupByQuery;
 import org.bithon.server.storage.metrics.IFilter;
@@ -41,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -118,10 +122,25 @@ public class DataSourceApi implements IDataSourceApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getInterval().getEndISO8601());
 
+        List<IQueryStageAggregator> aggregators = new ArrayList<>(request.getAggregators());
+        if (CollectionUtils.isNotEmpty(request.getMetrics())) {
+            // to compatible with old interface
+            for (String metric : request.getMetrics()) {
+                IMetricSpec metricSpec = schema.getMetricSpecByName(metric);
+                if (metricSpec == null) {
+                    throw new RuntimeException(StringUtils.format("metric[%s] does not exist.", metric));
+                }
+                IQueryStageAggregator aggregator = metricSpec.getQueryAggregator();
+                if (aggregator != null) {
+                    aggregators.add(aggregator);
+                }
+            }
+        }
+
         return dataSourceService.timeseriesQuery(TimeseriesQueryV2.builder()
                                                                   .dataSource(schema)
+                                                                  .aggregators(aggregators)
                                                                   .metrics(request.getMetrics())
-                                                                  .aggregators(request.getAggregators())
                                                                   .filters(request.getFilters())
                                                                   .interval(Interval.of(start, end, request.getInterval().getStep()))
                                                                   .groupBys(request.getGroupBy())

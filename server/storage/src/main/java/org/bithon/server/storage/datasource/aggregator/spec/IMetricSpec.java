@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.typing.IValueType;
 
 /**
@@ -100,4 +101,6 @@ public interface IMetricSpec {
     <T> T accept(IMetricSpecVisitor<T> visitor);
 
     NumberAggregator createAggregator();
+
+    IQueryStageAggregator getQueryAggregator();
 }

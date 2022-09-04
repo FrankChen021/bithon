@@ -23,6 +23,8 @@ import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.api.QueryStageAggregators;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
 
@@ -50,6 +52,8 @@ public class LongLastMetricSpec implements IMetricSpec {
     @Getter
     private final boolean visible;
 
+    private final IQueryStageAggregator queryStageAggregator;
+
     @JsonCreator
     public LongLastMetricSpec(@JsonProperty("name") @NotNull String name,
                               @JsonProperty("field") @Nullable String field,
@@ -61,6 +65,7 @@ public class LongLastMetricSpec implements IMetricSpec {
         this.displayText = displayText;
         this.unit = unit;
         this.visible = visible == null ? true : visible;
+        this.queryStageAggregator = new QueryStageAggregators.LastAggregator(name, field);
     }
 
     @JsonIgnore
@@ -91,6 +96,12 @@ public class LongLastMetricSpec implements IMetricSpec {
     @Override
     public NumberAggregator createAggregator() {
         return new LongLastAggregator();
+    }
+
+    @JsonIgnore
+    @Override
+    public IQueryStageAggregator getQueryAggregator() {
+        return queryStageAggregator;
     }
 
     @Override

@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.api.QueryStageAggregators;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
 
@@ -41,12 +43,14 @@ public class CountMetricSpec implements IMetricSpec {
 
     @Getter
     private final String field;
+    private final IQueryStageAggregator queryStageAggregator;
 
     @JsonCreator
     public CountMetricSpec(@JsonProperty("name") @NotNull String name,
                            @JsonProperty("field") @Nullable String field) {
         this.name = name;
         this.field = field;
+        this.queryStageAggregator = new QueryStageAggregators.CountAggregator(name, field);
     }
 
     @JsonIgnore
@@ -124,6 +128,12 @@ public class CountMetricSpec implements IMetricSpec {
                 return value;
             }
         };
+    }
+
+    @JsonIgnore
+    @Override
+    public IQueryStageAggregator getQueryAggregator() {
+        return queryStageAggregator;
     }
 
     @Override

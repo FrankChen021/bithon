@@ -18,6 +18,7 @@ package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 
 /**
  * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS
@@ -95,10 +96,16 @@ public interface ISqlExpressionFormatter {
         return "";
     }
 
-    String stringAggregator(String dimension, String name);
+    String stringAggregator(String field, String name);
+
+    String firstAggregator(String field, String name, long window);
 
     /**
      * @param window in seconds
      */
-    String lastAggregator(String dimension, String name, long window);
+    String lastAggregator(String field, String name, long window);
+
+    default boolean useWindowFunctionAsAggregator(IQueryStageAggregator aggregator) {
+        return false;
+    }
 }

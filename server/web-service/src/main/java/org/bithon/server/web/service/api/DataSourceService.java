@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.aggregator.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -36,8 +37,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -161,6 +164,16 @@ public class DataSourceService {
      * Vals - an array of all data points. Each element represents a data point of a timestamp.
      */
     public TimeSeriesQueryResult timeseriesQuery(TimeseriesQueryV2 query) {
+        List<String> metrics = query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList());
+        metrics.addAll(query.getMetrics().stream().map(m -> {
+            IMetricSpec metricSpec = query.getDataSource().getMetricSpecByName(m);
+            if (metricSpec instanceof PostAggregatorMetricSpec) {
+                return m;
+            } else {
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList()));
+
         List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
                                                              .timeseries(query);
 
@@ -175,33 +188,33 @@ public class DataSourceService {
 
         if (points.isEmpty()) {
             // fill empty data points
-            for (IQueryStageAggregator metric : query.getAggregators()) {
-                List<String> tags = Collections.singletonList(metric.getName());
+            for (String metric : metrics) {
+                List<String> tags = Collections.singletonList(metric);
 
                 map.computeIfAbsent(tags,
                                     v -> new TimeSeriesMetric(tags,
                                                               bucketCount,
-                                                              query.getDataSource().getMetricSpecByName(metric.getName())));
+                                                              query.getDataSource().getMetricSpecByName(metric)));
             }
         } else {
             for (Map<String, Object> point : points) {
                 long timestamp = ((Number) point.get(TIMESTAMP_QUERY_NAME)).longValue();
                 int bucketIndex = (int) (timestamp - startSecond) / step;
 
-                for (IQueryStageAggregator metric : query.getAggregators()) {
+                for (String metric : metrics) {
                     // this code is not so efficient
                     // we can wrap the point object to get the key and deserialize the wrap object directly
                     List<String> tags = new ArrayList<>();
                     for (String group : query.getGroupBys()) {
                         tags.add((String) point.get(group));
                     }
-                    tags.add(metric.getName());
+                    tags.add(metric);
 
                     map.computeIfAbsent(tags,
                                         v -> new TimeSeriesMetric(tags,
                                                                   bucketCount,
-                                                                  query.getDataSource().getMetricSpecByName(metric.getName())))
-                       .set(bucketIndex, point.get(metric.getName()));
+                                                                  query.getDataSource().getMetricSpecByName(metric)))
+                       .set(bucketIndex, point.get(metric));
                 }
             }
         }

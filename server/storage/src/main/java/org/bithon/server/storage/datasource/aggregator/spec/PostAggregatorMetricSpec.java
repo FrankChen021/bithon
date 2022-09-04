@@ -32,6 +32,7 @@ import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionLexer
 import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionParser;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
@@ -163,6 +164,12 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
 
     @Override
     public NumberAggregator createAggregator() {
+        return null;
+    }
+
+    @JsonIgnore
+    @Override
+    public IQueryStageAggregator getQueryAggregator() {
         return null;
     }
 

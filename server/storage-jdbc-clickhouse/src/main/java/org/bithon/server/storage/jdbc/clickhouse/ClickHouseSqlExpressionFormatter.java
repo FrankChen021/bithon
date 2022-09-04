@@ -55,14 +55,19 @@ class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
     }
 
     @Override
-    public String stringAggregator(String dimension, String name) {
+    public String stringAggregator(String field, String name) {
         return StringUtils.format("arrayStringConcat(arrayCompact(arrayFilter(x -> x <> '', groupArray(%s))), ',') AS %s",
-                                  dimension,
+                                  field,
                                   name);
     }
 
     @Override
-    public String lastAggregator(String dimension, String name, long window) {
-        return StringUtils.format("argMax(\"%s\", \"timestamp\") AS %s", dimension, name);
+    public String firstAggregator(String field, String name, long window) {
+        return StringUtils.format("argMin(\"%s\", \"timestamp\") AS %s", field, name);
+    }
+
+    @Override
+    public String lastAggregator(String field, String name, long window) {
+        return StringUtils.format("argMax(\"%s\", \"timestamp\") AS %s", field, name);
     }
 }

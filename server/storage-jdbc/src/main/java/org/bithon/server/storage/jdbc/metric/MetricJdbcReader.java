@@ -18,6 +18,7 @@ package org.bithon.server.storage.jdbc.metric;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -32,6 +33,8 @@ import org.bithon.server.storage.datasource.aggregator.spec.LongMinMetricSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.LongSumMetricSpec;
 import org.bithon.server.storage.datasource.aggregator.spec.PostAggregatorExpressionVisitor;
 import org.bithon.server.storage.datasource.aggregator.spec.PostAggregatorMetricSpec;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.api.QueryStageAggregators;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.GroupByQuery;
 import org.bithon.server.storage.metrics.IFilter;
@@ -93,49 +96,88 @@ public class MetricJdbcReader implements IMetricReader {
                                                                                       ImmutableMap.of("interval",
                                                                                                       query.getInterval().getTotalLength()));
 
-        // put non-post aggregator metrics before the post
-        String metricList = query.getMetrics()
-                                 .stream()
-                                 .map(m -> query.getDataSource().getMetricSpecByName(m))
-                                 .filter(metricSpec -> !(metricSpec instanceof PostAggregatorMetricSpec))
-                                 .map(metricSpec -> metricSpec.accept(metricFieldsBuilder))
-                                 .collect(Collectors.joining(","));
+        QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter,
+                                                                                          query.getInterval().getTotalLength(),
+                                                                                          query.getInterval().getStep());
 
-        String postAggregatorMetrics = query.getMetrics()
-                                            .stream()
-                                            .map(m -> query.getDataSource().getMetricSpecByName(m))
-                                            .filter(metricSpec -> (metricSpec instanceof PostAggregatorMetricSpec))
-                                            .map(metricSpec -> metricSpec.accept(metricFieldsBuilder))
-                                            .collect(Collectors.joining(","));
+        // Step 1. Find window aggregators first
+        List<String> subQueryFields = new ArrayList<>(query.getAggregators().size());
+        List<String> outQueryFields = new ArrayList<>(query.getAggregators().size());
+        List<String> groupByFields = new ArrayList<>();
+        for (IQueryStageAggregator aggregator : query.getAggregators()) {
+            if (sqlFormatter.useWindowFunctionAsAggregator(aggregator)) {
+                subQueryFields.add(aggregator.accept(generator));
 
-        String aggregatorList = "";
-        if (!query.getAggregators().isEmpty()) {
-            QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter, query.getInterval().getTotalLength(), query.getInterval().getStep());
-            aggregatorList = query.getAggregators()
-                                  .stream()
-                                  .map(aggregator -> aggregator.accept(generator))
-                                  .collect(Collectors.joining(","));
+                groupByFields.add(aggregator.getName());
+
+                // No need to add name to outQuery since all groupByFields will be on the outQuery
+            } else {
+                outQueryFields.add(aggregator.accept(generator));
+            }
         }
+        groupByFields.addAll(query.getGroupBys());
+
+        // generate sub-query
+        // generate aggregators & post-aggregators at outter level
+
+        String postAggregatorExpression = CollectionUtils.isEmpty(query.getMetrics()) ?
+                                          "" : query.getMetrics()
+                                                    .stream()
+                                                    .map(m -> query.getDataSource().getMetricSpecByName(m))
+                                                    .filter(metricSpec -> (metricSpec instanceof PostAggregatorMetricSpec))
+                                                    .map(metricSpec -> metricSpec.accept(metricFieldsBuilder))
+                                                    .collect(Collectors.joining(","));
 
         String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
 
-        String groupByFields = query.getGroupBys().stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","));
+
+        String outFieldExpression = String.join(",", outQueryFields);
+
+        String groupByExpression = Stream.of(groupByFields, query.getGroupBys())
+                                         .flatMap(Collection::stream)
+                                         .map(f -> "\"" + f + "\"")
+                                         .collect(Collectors.joining(","));
 
         String timestampExpression = sqlFormatter.timeFloor("timestamp", query.getInterval().getStep());
 
-        String sql = StringUtils.format(
-            "SELECT  %s AS \"_timestamp\", %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s ORDER BY \"_timestamp\"",
-            timestampExpression,
-            Stream.of(groupByFields, metricList, postAggregatorMetrics, aggregatorList)
-                  .filter(selector -> selector.length() > 0)
-                  .collect(Collectors.joining(",")),
-            sqlTableName,
-            filter,
-            StringUtils.hasText(filter) ? "AND" : "",
-            sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
-            sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
-            sqlFormatter.groupByUseRawExpression() ? timestampExpression : TIMESTAMP_QUERY_NAME
-        );
+        String sql;
+        if (subQueryFields.isEmpty()) {
+
+            sql = StringUtils.format(
+                "SELECT  %s AS \"_timestamp\", %s FROM \"%s\" OUTER WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s ORDER BY \"_timestamp\"",
+                timestampExpression,
+                Stream.of(groupByExpression, postAggregatorExpression, outFieldExpression)
+                      .filter(selector -> selector.length() > 0)
+                      .collect(Collectors.joining(",")),
+                sqlTableName,
+                filter,
+                StringUtils.hasText(filter) ? "AND" : "",
+                sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
+                sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
+                sqlFormatter.groupByUseRawExpression() ? timestampExpression : TIMESTAMP_QUERY_NAME
+            );
+        } else {
+            // SELECT * FROM (
+            //      SELECT * FROM ... WHERE ...
+            // ) GROUP BY .... ORDER BY ...
+            sql = StringUtils.format(
+                "SELECT \"_timestamp\", %s FROM " +
+                "( SELECT  %s AS \"_timestamp\", %s FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s )"
+                + "GROUP BY %s ORDER BY \"_timestamp\"",
+                Stream.of(groupByExpression, postAggregatorExpression, outFieldExpression)
+                      .filter(selector -> selector.length() > 0)
+                      .collect(Collectors.joining(",")),
+                timestampExpression,
+                String.join(",", subQueryFields),
+                sqlTableName,
+                filter,
+                StringUtils.hasText(filter) ? "AND" : "",
+                sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
+                sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
+                "\"_timestamp\", " + groupByFields.stream().map(f -> "\"" + f + "\"").collect(Collectors.joining(","))
+            );
+        }
+
         return executeSql(sql);
     }
 
@@ -165,7 +207,9 @@ public class MetricJdbcReader implements IMetricReader {
 
         String aggregatorList = "";
         if (!query.getAggregators().isEmpty()) {
-            QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter, query.getInterval().getTotalLength(), query.getInterval().getStep());
+            QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter,
+                                                                                              query.getInterval().getTotalLength(),
+                                                                                              query.getInterval().getStep());
             aggregatorList = query.getAggregators()
                                   .stream()
                                   .map(aggregator -> aggregator.accept(generator))
@@ -310,12 +354,17 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         @Override
-        public String stringAggregator(String dimension, String name) {
+        public String stringAggregator(String field, String name) {
             throw new RuntimeException("string agg is not supported.");
         }
 
         @Override
-        public String lastAggregator(String dimension, String name, long window) {
+        public String firstAggregator(String field, String name, long window) {
+            throw new RuntimeException("last agg is not supported.");
+        }
+
+        @Override
+        public String lastAggregator(String field, String name, long window) {
             throw new RuntimeException("last agg is not supported.");
         }
     }
@@ -334,17 +383,33 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         @Override
-        public String stringAggregator(String dimension, String name) {
-            return StringUtils.format("group_concat(\"%s\") AS \"%s\"", dimension, name);
+        public String stringAggregator(String field, String name) {
+            return StringUtils.format("group_concat(\"%s\") AS \"%s\"", field, name);
         }
 
         @Override
-        public String lastAggregator(String dimension, String name, long window) {
+        public String firstAggregator(String field, String name, long window) {
             return StringUtils.format(
-                "LAST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\") AS \"%s\"",
-                dimension,
+                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\") AS \"%s\"",
+                field,
                 this.timeFloor("timestamp", window),
                 name);
+        }
+
+        @Override
+        public String lastAggregator(String field, String name, long window) {
+            // NOTE: use FIRST_VALUE
+            return StringUtils.format(
+                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) AS \"%s\"",
+                field,
+                this.timeFloor("timestamp", window),
+                name);
+        }
+
+        @Override
+        public boolean useWindowFunctionAsAggregator(IQueryStageAggregator aggregator) {
+            return QueryStageAggregators.FirstAggregator.TYPE.equals(aggregator.getType())
+                   || QueryStageAggregators.LastAggregator.TYPE.equals(aggregator.getType());
         }
 
         /*
