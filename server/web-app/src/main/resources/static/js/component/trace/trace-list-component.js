@@ -48,7 +48,9 @@ class TraceListComponent {
                 field: 'traceId',
                 title: 'Trace Id',
                 formatter: function (value, row) {
-                    return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}&type=trace">${value}</a>`;
+                    // 24H is longer enough to determine the start
+                    const startISO8601 = moment(row.startTime / 1000 - 24 * 3600000).utc().toISOString();
+                    return `<a target="_blank" href="/web/trace/detail?id=${row.traceId}&type=trace&interval=${startISO8601}/">${value}</a>`;
                 },
             }, {
                 field: 'appName',
