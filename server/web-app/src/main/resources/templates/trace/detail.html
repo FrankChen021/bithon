@@ -31,7 +31,7 @@
                aria-controls="pills-map" aria-selected="false">Map</a>
         </li>
         <li class="nav-item" id="tool-bar" style="position: absolute; right: 0; margin-right: 5px">
-            <button class="btn btn-link" onclick="javascript: window.location.reload()">Reload</button>
+            <button class="btn btn-link" onclick="javascript: loadSpanLog()">Reload</button>
         </li>
     </ul>
     <div class="tab-content">
@@ -145,25 +145,31 @@
                     return text;
                 }
             }]
-        }).load({
-            url: apiHost + '/api/trace/getTraceById',
-            method: 'post',
-            contentType: "application/json",
-            data: () => {
-                return {
-                    id: window.queryParams['id'],
-                    type: window.queryParams['type'],
-                    startTimeISO8601: interval === null ? null : interval.start,
-                    endTimeISO8601: interval === null ? null : interval.end,
-                    hierachy: true
-                };
-            },
-            responseHandler: (data) => {
-                traceData = data;
-                return data.spans;
-            },
-            getChildren: (span) => span.children
         });
+
+        function loadSpanLog() {
+            vTreeTable.load({
+                url: apiHost + '/api/trace/getTraceById',
+                method: 'post',
+                contentType: "application/json",
+                data: () => {
+                    return {
+                        id: window.queryParams['id'],
+                        type: window.queryParams['type'],
+                        startTimeISO8601: interval === null ? null : interval.start,
+                        endTimeISO8601: interval === null ? null : interval.end,
+                        hierachy: true
+                    };
+                },
+                responseHandler: (data) => {
+                    traceData = data;
+                    return data.spans;
+                },
+                getChildren: (span) => span.children
+            });
+        }
+
+        loadSpanLog();
 
         function toTraceMapOption(map) {
             return {

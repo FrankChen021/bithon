@@ -56,13 +56,17 @@ class TreeTable {
     }
 
     load(option) {
-        this.mGetChildren = option.getChildren;
+        this.mGetChildrenFn = option.getChildren;
 
         let data = option.data;
         if (data instanceof Function) {
             data = data.apply();
         }
         this.#showLoading("Loading, please wait...");
+
+        // remove all children
+        this.vTableBody.replaceChildren();
+
         $.ajax({
             url: option.url,
             data: JSON.stringify(data),
@@ -80,7 +84,7 @@ class TreeTable {
                 }
             },
             error: (data) => {
-                this.#closeLoading();
+                this.#showLoading(`Error to load tracing logs: ${JSON.stringify(data, null, 2)} . You can reload the page to retry.`);
             }
         });
 
@@ -118,7 +122,7 @@ class TreeTable {
         rowData.__vRowIndex = globalRowIndex;
         this.mRowDatas.push(rowData);
 
-        const children = this.mGetChildren(rowData);
+        const children = this.mGetChildrenFn(rowData);
 
         //
         // build an HTML row for current row data
@@ -204,7 +208,7 @@ class TreeTable {
             return;
         }
 
-        const children = this.mGetChildren(parentRow);
+        const children = this.mGetChildrenFn(parentRow);
         for (let i = 0; i < children.length; i++) {
             const vChildRowIndex = children[i].__vRowIndex;
 
@@ -224,7 +228,7 @@ class TreeTable {
             return;
         }
 
-        const children = this.mGetChildren(parentRow);
+        const children = this.mGetChildrenFn(parentRow);
         for (let i = 0; i < children.length; i++) {
             // change the UI state
             const vChildRowIndex = children[i].__vRowIndex;
