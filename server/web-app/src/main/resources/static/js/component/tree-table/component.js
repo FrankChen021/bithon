@@ -9,7 +9,7 @@ class TreeTable {
             '        <div class="fixed-table-body">\n' +
             '            <div class="fixed-table-loading table table-bordered table-hover" style="top: 50px;">\n' +
             '               <span class="loading-wrap" style="margin-top: 50px">\n' +
-            '                   <span class="loading-text" style="font-size: 32px;">Loading, please wait</span>\n' +
+            '                   <span class="loading-text" style="font-size: 20px;">Loading, please wait</span>\n' +
             '               </span>\n' +
             '            </div>\n' +
             '            <table class="table table-bordered table-hover"></table>\n' +
@@ -73,7 +73,7 @@ class TreeTable {
             success: (data) => {
                 const rows = option.responseHandler(data);
                 if (rows.length === 0) {
-                    this.#showLoading("No tracing logs found for this trace");
+                    this.#showLoading("No tracing logs found for this trace. You can reload the page to retry.");
                 } else {
                     this.#renderTable(rows);
                     this.#closeLoading();

@@ -17,11 +17,11 @@
 </head>
 <body>
 <div style="padding-top:15px; padding-left: 5px; padding-right: 5px" layout:fragment="content">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="header">
         <!-- Navbar content -->
         <a class="navbar-brand" href="/web/home">Bithon</a>
     </nav>
-    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist" style="padding-top:50px">
+    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" id="pills-trace-tab" data-toggle="tab" href="#pills-trace" role="tab"
                aria-controls="pills-trace" aria-selected="true">Trace</a>
@@ -29,6 +29,9 @@
         <li class="nav-item">
             <a class="nav-link" id="pills-map-tab" data-toggle="tab" href="#pills-map" role="tab"
                aria-controls="pills-map" aria-selected="false">Map</a>
+        </li>
+        <li class="nav-item" id="tool-bar" style="position: absolute; right: 0; margin-right: 5px">
+            <button class="btn btn-link" onclick="javascript: window.location.reload()">Reload</button>
         </li>
     </ul>
     <div class="tab-content">
@@ -39,8 +42,6 @@
     </div>
 
     <script>
-        let traceData = [];
-
         let interval = window.queryParams['interval'];
         if (interval != null) {
             const parts = interval.split('/');
@@ -53,6 +54,22 @@
             interval = null;
         }
 
+        if (window.queryParams['embedded'] === '1') {
+            $('#header').css('display', 'none');
+
+            let href = window.location.origin + window.location.pathname + '/?';
+            $.each(window.queryParams, (name, val) => {
+                if (name !== 'embedded')
+                    href += `${name}=${encodeURIComponent(val)}&`;
+            });
+            $('#tool-bar').append(
+                `<a target="_blank" href="${href}" class="btn btn-link">Open</a>`
+            );
+        } else {
+            $('#pills-tab').css('padding-top', '50px');
+        }
+
+        let traceData = [];
         const vTreeTable = new TreeTable('#pills-trace', {
             treeColumn: 3,
             headerStyle: 'thead-light',
