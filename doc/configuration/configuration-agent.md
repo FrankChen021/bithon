@@ -1,11 +1,10 @@
-
 ## Static Configuration
 
 Configuration in agent.yml file located at 'agent/agent-main/resources' directory
 
 ## Dynamic Configuration
 
-Configurations via command line arguments or environment variables. 
+Configurations via command line arguments or environment variables.
 Each static configuration item has a corresponding dynamic configuration item.
 
 Given a static configuration `agent.plugin.http.incoming.filter.uri.suffixes`, it could be set by dynamic configuration as
@@ -54,7 +53,8 @@ dispatchers:
 ### Plugin Configuration
 
 #### Agent Plugin Enabler flag
-User can disable a specific plugin by passing a system property to the java application to debug or tailor unnecessary plugins. 
+
+User can disable a specific plugin by passing a system property to the java application to debug or tailor unnecessary plugins.
 Say we want to disable the `webserver-tomcat` plugin, passing the following property
 
 ```bash
@@ -74,12 +74,12 @@ Plugin configuration locates each plugin's resource directory with the name 'plu
 
 | configuration                         | description                                                                                     | default | example                                |
 |---------------------------------------|-------------------------------------------------------------------------------------------------|---------|----------------------------------------|
-| tracing.default.samplingRate          | percentage of incoming HTTP requests to be sampled. <br/>Value must be in the range of [0,100]. | 1       | 50(means 50% requests will be sampled) |
-| tracing.brpc.samplingRate             | percentage of BRPC requests to be sampled. <br/>Value must be in the range of [0,100].          | 1       | 50(means 50% requests will be sampled) |
-| tracing.quartz.samplingRate           | percentage of quartz jobs to be sampled. <br/>Value must be in the range of [0,100].            | 1       | 50(means 50% jobs will be sampled)     |
-| tracing.spring-scheduler.samplingRate | percentage of spring scheduled jobs to be sampled. <br/>Value must be in the range of [0,100].  | 1       | 50(means 50% jobs will be sampled)     |
-| tracing.debug                         | Whether to enable the logging of span events                                                    | false   |                                        |
-
+| tracing.default.samplingRate          | Percentage of incoming HTTP requests to be sampled. <br/>Value must be in the range of [0,100]. | 1       | 50(means 50% requests will be sampled) |
+| tracing.brpc.samplingRate             | Percentage of BRPC requests to be sampled. <br/>Value must be in the range of [0,100].          | 1       | 50(means 50% requests will be sampled) |
+| tracing.quartz.samplingRate           | Percentage of quartz jobs to be sampled. <br/>Value must be in the range of [0,100].            | 1       | 50(means 50% jobs will be sampled)     |
+| tracing.spring-scheduler.samplingRate | Percentage of spring scheduled jobs to be sampled. <br/>Value must be in the range of [0,100].  | 1       | 50(means 50% jobs will be sampled)     |
+| tracing.debug                         | Whether to enable the logging of span events.                                                   | false   |                                        |
+| tracing.traceIdInResponse             | The header name in a HTTP response that contains the trace-id.                                  | null    |                                        |                                  
 
 # Plugin Configurations
 
