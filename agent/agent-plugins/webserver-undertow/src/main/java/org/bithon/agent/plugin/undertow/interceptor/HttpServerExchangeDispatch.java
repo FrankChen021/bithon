@@ -19,6 +19,7 @@ package org.bithon.agent.plugin.undertow.interceptor;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.servlet.handlers.ServletRequestContext;
 import io.undertow.util.HeaderMap;
+import io.undertow.util.HttpString;
 import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
@@ -33,6 +34,7 @@ import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
  * @author frankchen
@@ -73,6 +75,11 @@ public class HttpServerExchangeDispatch extends AbstractInterceptor {
         if (traceContext.traceMode().equals(TraceMode.TRACE)) {
             ServletRequestContext servletRequestContext = exchange.getAttachment(ServletRequestContext.ATTACHMENT_KEY);
             servletRequestContext.getServletRequest().setAttribute("X-Bithon-TraceId", traceContext.traceId());
+
+            String traceIdHeader = traceConfig.getTraceIdInResponse();
+            if (StringUtils.hasText(traceIdHeader)) {
+                exchange.getResponseHeaders().add(HttpString.tryFromString(traceIdHeader), traceContext.traceId());
+            }
         }
 
         final long startTime = System.nanoTime();

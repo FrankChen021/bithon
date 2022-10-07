@@ -31,6 +31,7 @@ import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
 import org.bithon.agent.plugin.jetty.context.RequestContext;
+import org.bithon.component.commons.utils.StringUtils;
 import org.eclipse.jetty.server.HttpChannel;
 import org.eclipse.jetty.server.HttpChannelState;
 import org.eclipse.jetty.server.Request;
@@ -86,6 +87,11 @@ public class HttpChannel$Handle extends AbstractInterceptor {
                 // put the trace id in the header so that the applications have chance to know whether this request is being sampled
                 if (traceContext.traceMode().equals(TraceMode.TRACE)) {
                     request.setAttribute("X-Bithon-TraceId", traceContext.traceId());
+
+                    String traceIdHeader = traceConfig.getTraceIdInResponse();
+                    if (StringUtils.hasText(traceIdHeader)) {
+                        httpChannel.getResponse().addHeader(traceIdHeader, traceContext.traceId());
+                    }
                 }
             }
 

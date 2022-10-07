@@ -32,6 +32,7 @@ import org.bithon.agent.core.tracing.context.SpanKind;
 import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
  * {@link org.apache.catalina.core.StandardHostValve#invoke(Request, Response)}
@@ -89,6 +90,11 @@ public class StandardHostValveInvoke extends AbstractInterceptor {
         // put the trace id in the header so that the applications have chance to know whether this request is being sampled
         if (traceContext.traceMode().equals(TraceMode.TRACE)) {
             request.getRequest().setAttribute("X-Bithon-TraceId", traceContext.traceId());
+
+            String traceIdHeader = traceConfig.getTraceIdInResponse();
+            if (StringUtils.hasText(traceIdHeader)) {
+                request.getResponse().addHeader(traceIdHeader, traceContext.traceId());
+            }
         }
 
         aopContext.setUserContext(traceContext);
