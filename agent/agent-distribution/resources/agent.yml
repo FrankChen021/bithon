@@ -42,3 +42,4 @@ tracing:
       samplingRate: 1
     spring-scheduler:
       samplingRate: 1
+  traceIdInResponse: "X-Bithon-TraceId"
