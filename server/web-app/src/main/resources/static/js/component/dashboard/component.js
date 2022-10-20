@@ -814,10 +814,10 @@ class Dashboard {
     }
 
     refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
-        const appFilter = this.vFilter.getSelectedFilter('appName');
-        if (appFilter === undefined || appFilter === null) {
-            return;
-        }
+        // const appFilter = this.vFilter.getSelectedFilter('appName');
+        // if (appFilter === undefined || appFilter === null) {
+        //     return;
+        // }
 
         if (chartDescriptor.type === 'list') {
             this.refreshTable(chartDescriptor, chartComponent, interval);
