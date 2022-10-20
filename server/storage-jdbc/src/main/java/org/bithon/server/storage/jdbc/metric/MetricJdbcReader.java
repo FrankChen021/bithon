@@ -629,10 +629,12 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         TimeSeriesSqlClauseBuilder filters(Collection<IFilter> filters) {
-            this.filters = filters.stream()
-                                  .map(cond -> cond.getMatcher()
-                                                   .accept(new SQLFilterBuilder(this.schema, cond)))
-                                  .collect(Collectors.joining(" AND "));
+            StringBuilder sb = new StringBuilder(128);
+            for (IFilter filter : filters) {
+                sb.append(filter.getMatcher().accept(new SQLFilterBuilder(this.schema, filter)));
+                sb.append(" AND ");
+            }
+            this.filters = sb.toString();
             return this;
         }
 
@@ -647,7 +649,7 @@ public class MetricJdbcReader implements IMetricReader {
             String timestampExpression = sqlFormatter.timeFloor("timestamp", timeStep);
             if (rawExpressions.isEmpty()) {
                 return StringUtils.format(
-                    "SELECT %s AS \"_timestamp\", %s %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s %s %s",
+                    "SELECT %s AS \"_timestamp\", %s %s FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s GROUP BY %s %s %s",
                     timestampExpression,
                     String.join(",", postExpressions),
                     this.groupBy,
@@ -666,7 +668,7 @@ public class MetricJdbcReader implements IMetricReader {
                 return StringUtils.format(
                     "SELECT \"timestamp\" AS \"_timestamp\" %s ,%s FROM "
                     + "("
-                    + "     SELECT %s, %s \"timestamp\" %s FROM \"%s\" WHERE %s AND \"timestamp\" >= %s AND \"timestamp\" < %s"
+                    + "     SELECT %s, %s \"timestamp\" %s FROM \"%s\" WHERE %s \"timestamp\" >= %s AND \"timestamp\" < %s"
                     + ")GROUP BY \"%s\" %s %s",
                     this.groupBy,
                     String.join(",", postExpressions),

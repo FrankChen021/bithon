@@ -63,6 +63,15 @@ public class GlobalExceptionHandler {
                                                                                .build());
     }
 
+    @ExceptionHandler({Exception.class})
+    public ResponseEntity<ErrorResponse> handleException(HttpServletRequest request, Exception exception) {
+        log.error("Unexpected error", exception);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder()
+                                                                                         .path(request.getRequestURI())
+                                                                                         .message(exception.getMessage())
+                                                                                         .build());
+    }
+
     @Data
     @Builder
     public static class ErrorResponse {
