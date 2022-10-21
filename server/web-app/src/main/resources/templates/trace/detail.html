@@ -44,7 +44,7 @@
     <script>
         let interval = window.queryParams['interval'];
         if (interval != null) {
-            const parts = interval.split('/');
+            const parts = decodeURIComponent(interval).split('/');
             interval = {
                 start: parts[0],
                 end: parts[1]
@@ -59,8 +59,9 @@
 
             let href = window.location.origin + window.location.pathname + '/?';
             $.each(window.queryParams, (name, val) => {
+                // Remove the 'embedded param
                 if (name !== 'embedded')
-                    href += `${name}=${encodeURIComponent(val)}&`;
+                    href += `${name}=${val}&`;
             });
             $('#tool-bar').append(
                 `<a target="_blank" href="${href}" class="btn btn-link">Open</a>`
