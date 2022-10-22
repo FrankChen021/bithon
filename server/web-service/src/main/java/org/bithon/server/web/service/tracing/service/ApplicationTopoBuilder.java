@@ -32,12 +32,14 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * Build application topo for a specific tracing
+ *
  * @author frank.chen021@outlook.com
  * @date 24/11/21 7:06 pm
  */
 @Data
 @Slf4j
-public class TraceTopoBuilder {
+public class ApplicationTopoBuilder {
 
     static class Instance {
         String application;
