@@ -10,10 +10,12 @@
     <link rel="stylesheet" type="text/css" th:href="@{/lib/jquery-treegrid-0.2/css/jquery-treegrid.min.css}"/>
     <script th:src="@{/lib/sql-formatter-4.0.2/sql-formatter.min.js}"></script>
 
-    <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
-    <script th:src="@{/js/chart-component.js}"></script>
     <script th:src="@{/js/component/tree-table/component.js}"></script>
     <script th:src="@{/js/utils/location.js}"></script>
+
+    <script th:src="@{/lib/cytoscape.js-dagre/dagre-0.7.4.min.js}"></script>
+    <script th:src="@{/lib/cytoscape.js-dagre/cytoscape-3.23.0.min.js}"></script>
+    <script th:src="@{/lib/cytoscape.js-dagre/cytoscape-dagre.js}"></script>
 
     <style>
         .word-wrap {
@@ -47,7 +49,7 @@
     <div class="tab-content">
         <div class="tab-pane show active" id="pills-trace" role="tabpanel" aria-labelledby="pills-trace-tab">
         </div>
-        <div class="tab-pane fade" id="pills-map" role="tabpanel" aria-labelledby="pills-map-tab">
+        <div class="tab-pane fade" id="pills-map" role="tabpanel" aria-labelledby="pills-map-tab" style="height: 900px; width: 100%">
         </div>
     </div>
 
@@ -181,119 +183,8 @@
         }
 
         loadSpanLog();
-
-        function toTraceMapOption(topo) {
-            const width = 1200;
-            const height = 1000;
-
-            // construct categories
-            const legends = [];
-            const categories = [];
-            const categoryMap = {};
-            topo.nodes.forEach((node) => {
-                if (categoryMap[node.application] === undefined) {
-
-                    // map to index
-                    const categoryIndex = categories.length;
-                    categoryMap[node.application] = categoryIndex;
-
-                    categories.push({name: node.application});
-                    legends.push(node.application);
-                }
-            });
-
-            const symbolSize = 30;
-
-            return {
-                animationDurationUpdate: 1000,
-                animationEasingUpdate: 'quinticInOut',
-                legend: [{
-                    itemGap: 20,
-                    itemWidth: 15,
-                    data: legends
-                }],
-                series: [
-                    {
-                        type: 'graph',
-                        layout: 'none',
-                        symbolSize: symbolSize,
-                        roam: false,
-                        label: {
-                            show: true,
-                            position: 'bottom',
-                            formatter: (params) => params.data.tag.application
-                        },
-                        lineStyle: {
-                            opacity: 0.9,
-                            width: 2,
-                            curveness: 0,
-                            color: 'source'
-                        },
-                        edgeSymbol: ['none', 'arrow'],
-                        edgeSymbolSize: [0, 10],
-                        edgeLabel: {
-                            fontSize: 20
-                        },
-                        emphasis: {
-                            focus: 'adjacency',
-                            lineStyle: {
-                                width: 3
-                            },
-                            label: {
-                                position: 'bottom',
-                                show: true,
-                                formatter: (params) => params.data.tag.instance === null ? params.data.tag.application : params.data.tag.instance
-                            }
-                        },
-
-                        categories: categories,
-                        data: topo.nodes.map(node => {
-
-                            let y = 0;
-                            let size = symbolSize + 20;
-                            if (node.nodeCount * size > height) {
-                                let offsetY = height - node.nodeCount * size;
-                                y = node.nodeIndex * size + offsetY;
-                            } else {
-                                y = height / (node.nodeCount + 1) * node.nodeIndex;
-                            }
-
-                            return {
-                                // echarts required
-                                name: node.name,
-                                x: width / topo.maxLevel * (node.level - 1),
-                                y: y,
-                                category: categoryMap[node.application],
-
-                                // view property
-                                tag: node
-                                //symbol: `image:///images/nodes/${node.type.toLowerCase()}.png`
-                            };
-                        }),
-                        links: topo.links.map(link => {
-                            return {
-                                // minRT: link.minResponseTime,
-                                // maxRT: link.maxResponseTime,
-                                // avgRT: link.avgResponseTime,
-                                callCount: link.count,
-                                source: link.source,
-                                target: link.target,
-                                label: {
-                                    show: true,
-                                    formatter: (val) => {
-                                        return `${val.data.callCount}`;
-                                        //, Min:${nanoFormat(val.data.minRT)}, Max:${nanoFormat(val.data.maxRT)}, Avg:${nanoFormat(val.data.avgRT)}`;
-                                    },
-                                    fontSize: 10
-                                }
-                            };
-                        })
-                    }
-                ]
-            };
-        }
-
         let chartLoaded = false;
+
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
             if (!e.target.href.endsWith('-map')) {
                 return;
@@ -302,12 +193,73 @@
                 return;
             }
 
-            let mapComponent = new ChartComponent({
-                containerId: 'pills-map',
-                height: '900px'
+            const colors = ["#2F9323", "#D9B63A", "#2E2AA4", "#9F2E61", "#4D670C", "#BF675F", "#1F814A", "#357F88", "#673509", "#310937", "#1B9637", "#F7393C"];
+            let colorIndex = 0;
+            const appMap = {};
+            traceData.topo.nodes.forEach((node) => {
+                if (appMap[node.application] === undefined) {
+                    appMap[node.application] = colorIndex++;
+                }
+
+                // set color
+                node.color = colors[appMap[node.application]];
             });
-            const chartOption = toTraceMapOption(traceData.topo);
-            mapComponent.setChartOption(chartOption);
+
+            const maxLevel = traceData.topo.maxLevel;
+
+            const nodes = traceData.topo.nodes.map((node) => {
+                return {data: {id: node.name, tag: node}}
+            });
+
+            const links = traceData.topo.links.map((link) => {
+                return {data: link}
+            });
+
+            let cy = window.cy = cytoscape({
+                container: document.getElementById('pills-map'),
+
+                boxSelectionEnabled: false,
+                autounselectify: true,
+
+                layout: {
+                    name: 'dagre',
+                    rankDir: 'LR',
+                    animate: true,
+                    nodeDimensionsIncludeLabels: true
+                },
+
+                style: [{
+                    selector: 'node',
+                    style: {
+                        'background-color': (ele) => ele.data('tag.color'),
+                        'label': (ele) => {
+                            const instance = ele.data('tag.instance');
+                            const app = ele.data('tag.application');
+                            return instance === null ? app : app + '\n' + instance
+                        },
+                        'font-size': '10px',
+                        'text-valign': 'bottom',
+                        'text-wrap': 'wrap'
+                    }
+                }, {
+                    selector: 'edge',
+                    style: {
+                        'width': 2,
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier',
+                        'label': (ele) => `cnt=${ele.data('count')}`,
+                        'color': (ele) => ele.source().data('tag.color'),
+                        'line-color': (ele) => ele.source().data('tag.color'),
+                        'target-arrow-color': (ele) => ele.source().data('tag.color')
+                    }
+                }],
+
+                elements: {
+                    nodes: nodes,
+                    edges: links
+                }
+            });
+
             chartLoaded = true;
         })
 
