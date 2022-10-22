@@ -22,14 +22,14 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.context.AgentContext;
 import org.bithon.agent.core.metric.domain.sql.SqlMetricRegistry;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.component.commons.tracing.SpanKind;
-import org.bithon.component.commons.tracing.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.bithon.agent.core.utils.MiscUtils;
 import org.bithon.agent.plugin.alibaba.druid.DruidPlugin;
 import org.bithon.agent.plugin.alibaba.druid.config.DruidPluginConfig;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 
 import java.sql.Statement;
 
