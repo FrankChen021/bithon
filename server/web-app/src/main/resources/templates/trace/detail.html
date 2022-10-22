@@ -14,6 +14,16 @@
     <script th:src="@{/js/chart-component.js}"></script>
     <script th:src="@{/js/component/tree-table/component.js}"></script>
     <script th:src="@{/js/utils/location.js}"></script>
+
+    <style>
+        .tag-value {
+            /* CSS 3 */
+            white-space: -o-pre-wrap;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            white-space: -moz-pre-wrap;
+        }
+    </style>
 </head>
 <body>
 <div style="padding-top:15px; padding-left: 5px; padding-right: 5px" layout:fragment="content">
@@ -263,13 +273,18 @@
                     text = window.sqlFormatter.format(text);
                 } catch (e) {
                 }
+                text = `<pre>${text}\n</pre>`;
+            } else if (propName === 'http.uri') {
+                text = toShowContent(text.trim());
+            } else {
+                text = `<pre>${text}\n</pre>`;
             }
             bootbox.dialog({
                 centerVertical: true,
                 size: 'xl',
                 onEscape: true,
                 backdrop: true,
-                message: `<pre id="tagValueView">${text}\n</pre>`,
+                message: text
                 // buttons: {
                 //     copy: {
                 //         label: "Copy",
@@ -283,6 +298,45 @@
                 //     }
                 // }
             });
+        }
+
+        function toShowContent(url) {
+            const idx = url.indexOf('?');
+            if (idx === -1) {
+                return `<pre>${url}\n</pre>`;
+            }
+
+            const path = url.substring(0, idx);
+            const params = url.substring(idx + 1);
+            if (params.length === 0) {
+                return `<pre>${url}\n</pre>`;
+            }
+
+            const pairs = [];
+            const paramPairs = params.split("&");
+            for (let i = 0; i < paramPairs.length; i++) {
+                const pair = paramPairs[i].split("=");
+                const name = pair[0].trim();
+                const value = decodeURIComponent(pair[1]);
+                if (name === '') {
+                    continue;
+                }
+
+                pairs.push({name: name, value: value});
+            }
+            pairs.sort((l, r) => {
+                if (l.name > r.name)
+                    return 1;
+                if (l.name === r.name)
+                    return 0;
+                return -1;
+            })
+
+            let content = `<div>Path: ${path}</div>` + "<table class='table table-sm' style='table-layout: fixed; width: 100%'><tbody>";
+            pairs.forEach((p) => {
+                content += `<tr><td style="width: 10%">${p.name}</td><td class="tag-value">${p.value}</td></tr>`;
+            });
+            return content + "</tbody></table><br/>"
         }
     </script>
 </div>
