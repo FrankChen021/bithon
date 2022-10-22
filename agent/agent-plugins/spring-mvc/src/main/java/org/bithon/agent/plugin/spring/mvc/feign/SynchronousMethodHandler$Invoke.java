@@ -22,7 +22,7 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 
 /**

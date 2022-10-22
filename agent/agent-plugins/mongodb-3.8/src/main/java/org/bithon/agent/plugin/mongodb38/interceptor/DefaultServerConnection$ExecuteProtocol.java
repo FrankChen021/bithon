@@ -27,7 +27,7 @@ import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.metric.domain.mongo.MongoCommand;
 import org.bithon.agent.core.metric.domain.mongo.MongoDbMetricRegistry;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.SpanKind;
+import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;

@@ -20,8 +20,8 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.SpanKind;
-import org.bithon.agent.core.tracing.context.Tags;
+import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 import org.bithon.agent.core.tracing.context.TraceSpanFactory;
 import redis.clients.jedis.Client;
 
