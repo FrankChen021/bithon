@@ -27,16 +27,34 @@ import java.util.Collection;
  */
 @Data
 @AllArgsConstructor
-public class TraceMap {
+public class TraceTopo {
 
     @Data
     public static class Node {
-        private String name;
-        private int level;
-        private int levelIndex;
+        /**
+         * node name
+         */
+        private final String name;
+        private final String application;
+        private final String instance;
 
-        public Node(String name) {
+        private int level;
+
+        /**
+         * node index in a level from one
+         */
+        private int nodeIndex;
+
+        /**
+         * node count of the level that this node belongs to
+         */
+        private int nodeCount;
+
+        public Node(String name, String application, String instance) {
             this.name = name;
+            this.application = application;
+            this.instance = instance;
+            this.level = 1;
         }
     }
 
@@ -60,4 +78,10 @@ public class TraceMap {
 
     private Collection<Node> nodes;
     private Collection<Link> links;
+    private int maxLevel;
+
+    /**
+     * max node count in a level
+     */
+    private int maxNodeCount;
 }

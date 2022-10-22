@@ -26,6 +26,7 @@ import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.web.service.tracing.service.TraceService;
+import org.bithon.server.web.service.tracing.service.TraceTopoBuilder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,7 +61,8 @@ public class TraceApi {
                                                                   request.getEndTimeISO8601(),
                                                                   request.isHierachy());
 
-        return new GetTraceByIdResponse(spanList, traceService.buildMap(spanList));
+        return new GetTraceByIdResponse(spanList,
+                                        new TraceTopoBuilder().build(request.isHierachy() ? spanList : traceService.asTree(spanList)));
     }
 
     @Deprecated

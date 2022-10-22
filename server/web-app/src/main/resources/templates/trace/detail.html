@@ -38,7 +38,7 @@
         </li>
         <li class="nav-item">
             <a class="nav-link" id="pills-map-tab" data-toggle="tab" href="#pills-map" role="tab"
-               aria-controls="pills-map" aria-selected="false">Map</a>
+               aria-controls="pills-map" aria-selected="false">Application Topo</a>
         </li>
         <li class="nav-item" id="tool-bar" style="position: absolute; right: 0; margin-right: 5px">
             <button class="btn btn-link" onclick="javascript: loadSpanLog()">Reload</button>
@@ -80,7 +80,7 @@
             $('#pills-tab').css('padding-top', '50px');
         }
 
-        let traceData = [];
+        let traceData = {};
         const vTreeTable = new TreeTable('#pills-trace', {
             treeColumn: 3,
             headerStyle: 'thead-light',
@@ -182,34 +182,95 @@
 
         loadSpanLog();
 
-        function toTraceMapOption(map) {
+        function toTraceMapOption(topo) {
+            const width = 1200;
+            const height = 1000;
+
+            // construct categories
+            const legends = [];
+            const categories = [];
+            const categoryMap = {};
+            topo.nodes.forEach((node) => {
+                if (categoryMap[node.application] === undefined) {
+
+                    // map to index
+                    const categoryIndex = categories.length;
+                    categoryMap[node.application] = categoryIndex;
+
+                    categories.push({name: node.application});
+                    legends.push(node.application);
+                }
+            });
+
+            const symbolSize = 30;
+
             return {
                 animationDurationUpdate: 1000,
                 animationEasingUpdate: 'quinticInOut',
+                legend: [{
+                    itemGap: 20,
+                    itemWidth: 15,
+                    data: legends
+                }],
                 series: [
                     {
                         type: 'graph',
                         layout: 'none',
-                        symbolSize: 50,
-                        roam: true,
+                        symbolSize: symbolSize,
+                        roam: false,
                         label: {
                             show: true,
-                            position: 'bottom'
+                            position: 'bottom',
+                            formatter: (params) => params.data.tag.application
                         },
-                        edgeSymbol: ['circle', 'arrow'],
-                        edgeSymbolSize: [4, 10],
+                        lineStyle: {
+                            opacity: 0.9,
+                            width: 2,
+                            curveness: 0,
+                            color: 'source'
+                        },
+                        edgeSymbol: ['none', 'arrow'],
+                        edgeSymbolSize: [0, 10],
                         edgeLabel: {
                             fontSize: 20
                         },
-                        data: map.nodes.map(node => {
+                        emphasis: {
+                            focus: 'adjacency',
+                            lineStyle: {
+                                width: 3
+                            },
+                            label: {
+                                position: 'bottom',
+                                show: true,
+                                formatter: (params) => params.data.tag.instance === null ? params.data.tag.application : params.data.tag.instance
+                            }
+                        },
+
+                        categories: categories,
+                        data: topo.nodes.map(node => {
+
+                            let y = 0;
+                            let size = symbolSize + 20;
+                            if (node.nodeCount * size > height) {
+                                let offsetY = height - node.nodeCount * size;
+                                y = node.nodeIndex * size + offsetY;
+                            } else {
+                                y = height / (node.nodeCount + 1) * node.nodeIndex;
+                            }
+
                             return {
+                                // echarts required
                                 name: node.name,
-                                x: 50 * (node.level + 1),
-                                y: 50 * (node.levelIndex + 1),
+                                x: width / topo.maxLevel * (node.level - 1),
+                                y: y,
+                                category: categoryMap[node.application],
+
+                                // view property
+                                tag: node
                                 //symbol: `image:///images/nodes/${node.type.toLowerCase()}.png`
                             };
                         }),
-                        links: map.links.map(link => {
+                        links: topo.links.map(link => {
                             return {
                                 // minRT: link.minResponseTime,
                                 // maxRT: link.maxResponseTime,
@@ -224,17 +285,9 @@
                                         //, Min:${nanoFormat(val.data.minRT)}, Max:${nanoFormat(val.data.maxRT)}, Avg:${nanoFormat(val.data.avgRT)}`;
                                     },
                                     fontSize: 10
-                                },
-                                lineStyle: {
-                                    curveness: 0
                                 }
                             };
-                        }),
-                        lineStyle: {
-                            opacity: 0.9,
-                            width: 2,
-                            curveness: 0
-                        }
+                        })
                     }
                 ]
             };
@@ -251,9 +304,10 @@
 
             let mapComponent = new ChartComponent({
                 containerId: 'pills-map',
-                height: '600px'
-            }).header('Trace Map');
-            mapComponent.setChartOption(toTraceMapOption(traceData.map));
+                height: '900px'
+            });
+            const chartOption = toTraceMapOption(traceData.topo);
+            mapComponent.setChartOption(chartOption);
             chartLoaded = true;
         })
 
@@ -279,7 +333,7 @@
             }
 
             let dlgContent;
-            if(formatContent !== null) {
+            if (formatContent !== null) {
                 dlgContent = `<nav>
                   <div class="nav nav-tabs" id="nav-tab" role="tablist">
                     <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Formatted</a>
