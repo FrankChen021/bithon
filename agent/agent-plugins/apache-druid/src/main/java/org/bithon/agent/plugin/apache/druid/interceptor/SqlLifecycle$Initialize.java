@@ -20,8 +20,8 @@ import org.bithon.agent.bootstrap.aop.AbstractInterceptor;
 import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.InterceptionDecision;
 import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
+import org.bithon.component.commons.tracing.Tags;
 
 import java.util.Map;
 

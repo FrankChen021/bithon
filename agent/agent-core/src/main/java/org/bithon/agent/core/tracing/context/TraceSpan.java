@@ -17,6 +17,7 @@
 package org.bithon.agent.core.tracing.context;
 
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.tracing.SpanKind;
 
 import java.lang.reflect.Executable;
 import java.util.HashMap;

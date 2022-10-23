@@ -10,10 +10,22 @@
     <link rel="stylesheet" type="text/css" th:href="@{/lib/jquery-treegrid-0.2/css/jquery-treegrid.min.css}"/>
     <script th:src="@{/lib/sql-formatter-4.0.2/sql-formatter.min.js}"></script>
 
-    <script th:src="@{/lib/echarts5.0.1/echarts.min.js}"></script>
-    <script th:src="@{/js/chart-component.js}"></script>
     <script th:src="@{/js/component/tree-table/component.js}"></script>
     <script th:src="@{/js/utils/location.js}"></script>
+
+    <script th:src="@{/lib/cytoscape.js-dagre/dagre-0.7.4.min.js}"></script>
+    <script th:src="@{/lib/cytoscape.js-dagre/cytoscape-3.23.0.min.js}"></script>
+    <script th:src="@{/lib/cytoscape.js-dagre/cytoscape-dagre-2.4.0.js}"></script>
+
+    <style>
+        .word-wrap {
+            /* CSS 3 */
+            white-space: -o-pre-wrap;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            white-space: -moz-pre-wrap;
+        }
+    </style>
 </head>
 <body>
 <div style="padding-top:15px; padding-left: 5px; padding-right: 5px" layout:fragment="content">
@@ -28,7 +40,7 @@
         </li>
         <li class="nav-item">
             <a class="nav-link" id="pills-map-tab" data-toggle="tab" href="#pills-map" role="tab"
-               aria-controls="pills-map" aria-selected="false">Map</a>
+               aria-controls="pills-map" aria-selected="false">Application Topo</a>
         </li>
         <li class="nav-item" id="tool-bar" style="position: absolute; right: 0; margin-right: 5px">
             <button class="btn btn-link" onclick="javascript: loadSpanLog()">Reload</button>
@@ -37,14 +49,14 @@
     <div class="tab-content">
         <div class="tab-pane show active" id="pills-trace" role="tabpanel" aria-labelledby="pills-trace-tab">
         </div>
-        <div class="tab-pane fade" id="pills-map" role="tabpanel" aria-labelledby="pills-map-tab">
+        <div class="tab-pane fade" id="pills-map" role="tabpanel" aria-labelledby="pills-map-tab" style="height: 900px; width: 100%">
         </div>
     </div>
 
     <script>
         let interval = window.queryParams['interval'];
         if (interval != null) {
-            const parts = interval.split('/');
+            const parts = decodeURIComponent(interval).split('/');
             interval = {
                 start: parts[0],
                 end: parts[1]
@@ -59,8 +71,9 @@
 
             let href = window.location.origin + window.location.pathname + '/?';
             $.each(window.queryParams, (name, val) => {
+                // Remove the 'embedded param
                 if (name !== 'embedded')
-                    href += `${name}=${encodeURIComponent(val)}&`;
+                    href += `${name}=${val}&`;
             });
             $('#tool-bar').append(
                 `<a target="_blank" href="${href}" class="btn btn-link">Open</a>`
@@ -69,7 +82,7 @@
             $('#pills-tab').css('padding-top', '50px');
         }
 
-        let traceData = [];
+        let traceData = {};
         const vTreeTable = new TreeTable('#pills-trace', {
             treeColumn: 3,
             headerStyle: 'thead-light',
@@ -158,7 +171,7 @@
                         type: window.queryParams['type'],
                         startTimeISO8601: interval === null ? null : interval.start,
                         endTimeISO8601: interval === null ? null : interval.end,
-                        hierachy: true
+                        asTree: true
                     };
                 },
                 responseHandler: (data) => {
@@ -170,66 +183,8 @@
         }
 
         loadSpanLog();
-
-        function toTraceMapOption(map) {
-            return {
-                animationDurationUpdate: 1000,
-                animationEasingUpdate: 'quinticInOut',
-                series: [
-                    {
-                        type: 'graph',
-                        layout: 'none',
-                        symbolSize: 50,
-                        roam: true,
-                        label: {
-                            show: true,
-                            position: 'bottom'
-                        },
-                        edgeSymbol: ['circle', 'arrow'],
-                        edgeSymbolSize: [4, 10],
-                        edgeLabel: {
-                            fontSize: 20
-                        },
-                        data: map.nodes.map(node => {
-                            return {
-                                name: node.name,
-                                x: 50 * (node.level + 1),
-                                y: 50 * (node.levelIndex + 1),
-                                //symbol: `image:///images/nodes/${node.type.toLowerCase()}.png`
-                            };
-                        }),
-                        links: map.links.map(link => {
-                            return {
-                                // minRT: link.minResponseTime,
-                                // maxRT: link.maxResponseTime,
-                                // avgRT: link.avgResponseTime,
-                                callCount: link.count,
-                                source: link.source,
-                                target: link.target,
-                                label: {
-                                    show: true,
-                                    formatter: (val) => {
-                                        return `${val.data.callCount}`;
-                                        //, Min:${nanoFormat(val.data.minRT)}, Max:${nanoFormat(val.data.maxRT)}, Avg:${nanoFormat(val.data.avgRT)}`;
-                                    },
-                                    fontSize: 10
-                                },
-                                lineStyle: {
-                                    curveness: 0
-                                }
-                            };
-                        }),
-                        lineStyle: {
-                            opacity: 0.9,
-                            width: 2,
-                            curveness: 0
-                        }
-                    }
-                ]
-            };
-        }
-
         let chartLoaded = false;
+
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
             if (!e.target.href.endsWith('-map')) {
                 return;
@@ -238,17 +193,80 @@
                 return;
             }
 
-            let mapComponent = new ChartComponent({
-                containerId: 'pills-map',
-                height: '600px'
-            }).header('Trace Map');
-            mapComponent.setChartOption(toTraceMapOption(traceData.map));
+            const colors = ["#2F9323", "#D9B63A", "#2E2AA4", "#9F2E61", "#4D670C", "#BF675F", "#1F814A", "#357F88", "#673509", "#310937", "#1B9637", "#F7393C"];
+            let colorIndex = 0;
+            const appMap = {};
+            traceData.topo.nodes.forEach((node) => {
+                if (appMap[node.application] === undefined) {
+                    appMap[node.application] = (colorIndex++) % colors.length;
+                }
+
+                // set color
+                node.color = colors[appMap[node.application]];
+            });
+
+            const maxLevel = traceData.topo.maxLevel;
+
+            const nodes = traceData.topo.nodes.map((node) => {
+                return {data: {id: node.name, tag: node}}
+            });
+
+            const links = traceData.topo.links.map((link) => {
+                return {data: link}
+            });
+
+            let cy = window.cy = cytoscape({
+                container: document.getElementById('pills-map'),
+
+                boxSelectionEnabled: false,
+                autounselectify: true,
+
+                layout: {
+                    name: 'dagre',
+                    rankDir: 'LR',
+                    animate: true,
+                    nodeDimensionsIncludeLabels: true
+                },
+
+                style: [{
+                    selector: 'node',
+                    style: {
+                        'background-color': (ele) => ele.data('tag.color'),
+                        'label': (ele) => {
+                            const instance = ele.data('tag.instance');
+                            const app = ele.data('tag.application');
+                            return instance === null ? app : app + '\n' + instance
+                        },
+                        'font-size': '10px',
+                        'text-valign': 'bottom',
+                        'text-wrap': 'wrap'
+                    }
+                }, {
+                    selector: 'edge',
+                    style: {
+                        'width': 2,
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier',
+                        'label': (ele) => `cnt=${ele.data('count')}`,
+                        'color': (ele) => ele.source().data('tag.color'),
+                        'line-color': (ele) => ele.source().data('tag.color'),
+                        'target-arrow-color': (ele) => ele.source().data('tag.color')
+                    }
+                }],
+
+                elements: {
+                    nodes: nodes,
+                    edges: links
+                }
+            });
+
             chartLoaded = true;
         })
 
         function showTags(index, propName) {
             const span = vTreeTable.getRowData()[index];
 
+            let formatContent = null;
             let text = span.tags[propName];
             if (propName === 'sql'
                 ||
@@ -259,29 +277,78 @@
                 (span.method === 'query' && propName === 'statement')
             ) {
                 try {
-                    text = window.sqlFormatter.format(text);
+                    formatContent = `<pre>${window.sqlFormatter.format(text)}</pre>`;
                 } catch (e) {
                 }
+            } else if (propName === 'http.uri') {
+                formatContent = formatURL(text.trim());
+            }
+
+            let dlgContent;
+            if (formatContent !== null) {
+                dlgContent = `<nav>
+                  <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                    <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Formatted</a>
+                    <a class="nav-item nav-link" id="nav-profile-tab" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Raw</a>
+                  </div>
+                </nav>
+                <div class="tab-content" id="nav-tabContent">
+                  <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">${formatContent}</div>
+                  <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab"><pre class="word-wrap">${text}</pre></div>
+                </div>`;
+            } else {
+                dlgContent = `<pre>${text}</pre>`;
             }
             bootbox.dialog({
+                scrollable: true,
                 centerVertical: true,
                 size: 'xl',
                 onEscape: true,
                 backdrop: true,
-                message: `<pre id="tagValueView">${text}\n</pre>`,
-                // buttons: {
-                //     copy: {
-                //         label: "Copy",
-                //         className: 'btn-info',
-                //         callback: function () {
-                //             const valueView = document.getElementById('tagValueView');
-                //             valueView.select();
-                //             document.execCommand('copy');
-                //             return false;
-                //         }
-                //     }
-                // }
+                message: dlgContent
             });
+        }
+
+        function formatURL(url) {
+            const idx = url.indexOf('?');
+            if (idx === -1) {
+                return `<pre>${url}\n</pre>`;
+            }
+
+            const path = url.substring(0, idx);
+            const params = url.substring(idx + 1);
+            if (params.length === 0) {
+                return `<pre>${url}\n</pre>`;
+            }
+
+            const pairs = [];
+            const paramPairs = params.split("&");
+            for (let i = 0; i < paramPairs.length; i++) {
+                const pair = paramPairs[i].split("=");
+                const name = pair[0].trim();
+                const value = decodeURIComponent(pair[1]);
+                if (name === '') {
+                    continue;
+                }
+
+                pairs.push({name: name, value: value});
+            }
+            pairs.sort((l, r) => {
+                if (l.name > r.name)
+                    return 1;
+                if (l.name === r.name)
+                    return 0;
+                return -1;
+            })
+
+            let content = `<table class='table table-sm table-bordered' style='table-layout: fixed; width: 100%'>
+                            <tbody>
+                                <tr><td style="width: 10%"><b>http.uri.path</b></td><td>${path}</td></tr>
+                                <tr><td colspan="2"><b>http.uri.params</b></td></tr>`;
+            pairs.forEach((p) => {
+                content += `<tr><td  class="word-wrap" style="width: 10%">${p.name}</td><td class="word-wrap">${p.value}</td></tr>`;
+            });
+            return content + "</tbody></table><br/>"
         }
     </script>
 </div>

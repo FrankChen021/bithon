@@ -21,8 +21,8 @@ import org.bithon.agent.bootstrap.aop.AopContext;
 import org.bithon.agent.bootstrap.aop.IBithonObject;
 import org.bithon.agent.core.metric.domain.http.HttpOutgoingMetricsRegistry;
 import org.bithon.agent.core.tracing.context.ITraceSpan;
-import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
+import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.StringUtils;
 import sun.net.www.MessageHeader;
 

@@ -30,5 +30,5 @@ import java.util.List;
 @AllArgsConstructor
 public class GetTraceByIdResponse {
     private List<TraceSpan> spans;
-    private TraceMap map;
+    private TraceTopo topo;
 }
