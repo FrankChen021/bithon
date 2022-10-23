@@ -13,6 +13,7 @@
       "metrics": [
         {
           "name": "processCpuLoad",
+          "aggregator": "last",
           "format": "percentage",
           "chartType": "line"
         }
