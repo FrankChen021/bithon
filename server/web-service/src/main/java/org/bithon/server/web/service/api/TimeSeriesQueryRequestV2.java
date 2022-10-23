@@ -26,7 +26,6 @@ import org.bithon.server.storage.metrics.IFilter;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.Collections;
 import java.util.List;
 
 /**
