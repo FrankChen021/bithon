@@ -57,7 +57,14 @@ public class DataSourceService {
 
     public List<Map<String, Object>> oldTimeseriesQuery(TimeseriesQuery query) {
         List<Map<String, Object>> queryResult = this.metricStorage.createMetricReader(query.getDataSource())
-                                                                  .timeseries(query);
+                                                                  .timeseries(TimeseriesQueryV2.builder()
+                                                                                               .dataSource(query.getDataSource())
+                                                                                               .metrics(query.getMetrics())
+                                                                                               .aggregators(Collections.emptyList())
+                                                                                               .interval(query.getInterval())
+                                                                                               .groupBys(query.getGroupBys())
+                                                                                               .filters(query.getFilters())
+                                                                                               .build());
 
         //
         // fill empty time slot bucket
@@ -95,66 +102,6 @@ public class DataSourceService {
             returns.add(queryResult.get(j++));
         }
         return returns;
-    }
-
-    /**
-     * @return key - the name of a metric
-     * val - the time series values
-     */
-    public TimeSeriesQueryResult timeseriesQuery(TimeseriesQuery query) {
-        List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
-                                                             .timeseries(query);
-
-        TimeSpan start = query.getInterval().getStartTime();
-        TimeSpan end = query.getInterval().getEndTime();
-        int step = query.getInterval().getStep();
-        long startSecond = start.toSeconds() / step * step;
-        long endSecond = end.toSeconds() / step * step;
-        int bucketCount = (int) (endSecond - startSecond) / step;
-
-        Map<List<String>, TimeSeriesMetric> map = new HashMap<>();
-
-        if (points.isEmpty()) {
-            // fill empty data points
-            for (String metric : query.getMetrics()) {
-                List<String> tags = Collections.singletonList(metric);
-
-                map.computeIfAbsent(tags,
-                                    v -> new TimeSeriesMetric(tags,
-                                                              bucketCount,
-                                                              query.getDataSource().getMetricSpecByName(metric)));
-            }
-        } else {
-            for (Map<String, Object> point : points) {
-                long timestamp = ((Number) point.get(TIMESTAMP_QUERY_NAME)).longValue();
-                int bucketIndex = (int) (timestamp - startSecond) / step;
-
-                for (String metric : query.getMetrics()) {
-                    // this code is not so efficient
-                    // we can wrap the point object to get the key and deserialize the wrap object directly
-                    List<String> tags = new ArrayList<>();
-                    for (String group : query.getGroupBys()) {
-                        tags.add((String) point.get(group));
-                    }
-                    tags.add(metric);
-
-                    map.computeIfAbsent(tags,
-                                        v -> new TimeSeriesMetric(tags,
-                                                                  bucketCount,
-                                                                  query.getDataSource().getMetricSpecByName(metric)))
-                       .set(bucketIndex, point.get(metric));
-                }
-            }
-        }
-
-        TimeSeriesQueryResult result = new TimeSeriesQueryResult();
-        result.interval = step * 1000L;
-        result.startTimestamp = startSecond * 1000;
-        result.endTimestamp = endSecond * 1000;
-        result.count = bucketCount;
-        result.metrics = map.values();
-
-        return result;
     }
 
     /**

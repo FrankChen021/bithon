@@ -47,7 +47,6 @@ import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.OrderBy;
-import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.bithon.server.storage.metrics.TimeseriesQueryV2;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -55,7 +54,6 @@ import org.jooq.Record;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -78,18 +76,6 @@ public class MetricJdbcReader implements IMetricReader {
     public MetricJdbcReader(DSLContext dsl, ISqlExpressionFormatter sqlFormatter) {
         this.dsl = dsl;
         this.sqlFormatter = sqlFormatter;
-    }
-
-    @Override
-    public List<Map<String, Object>> timeseries(TimeseriesQuery query) {
-        return timeseries(TimeseriesQueryV2.builder()
-                                           .dataSource(query.getDataSource())
-                                           .metrics(query.getMetrics())
-                                           .aggregators(Collections.emptyList())
-                                           .interval(query.getInterval())
-                                           .groupBys(query.getGroupBys())
-                                           .filters(query.getFilters())
-                                           .build());
     }
 
     @Override
