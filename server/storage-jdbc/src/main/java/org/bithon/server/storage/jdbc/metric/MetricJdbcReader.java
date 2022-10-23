@@ -85,7 +85,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                                    query.getAggregators(),
                                                                    query.getFilters(),
                                                                    query.getInterval(),
-                                                                   query.getGroupBys(),
+                                                                   query.getGroupBy(),
                                                                    OrderBy.builder().name(TIMESTAMP_QUERY_NAME).build());
 
         SelectExpression timestampExpressionOn = selectExpression;

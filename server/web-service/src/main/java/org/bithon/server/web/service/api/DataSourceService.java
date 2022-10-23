@@ -62,7 +62,7 @@ public class DataSourceService {
                                                                                                .metrics(query.getMetrics())
                                                                                                .aggregators(Collections.emptyList())
                                                                                                .interval(query.getInterval())
-                                                                                               .groupBys(query.getGroupBys())
+                                                                                               .groupBy(query.getGroupBys())
                                                                                                .filters(query.getFilters())
                                                                                                .build());
 
@@ -144,7 +144,7 @@ public class DataSourceService {
                     // this code is not so efficient
                     // we can wrap the point object to get the key and deserialize the wrap object directly
                     List<String> tags = new ArrayList<>();
-                    for (String group : query.getGroupBys()) {
+                    for (String group : query.getGroupBy()) {
                         tags.add((String) point.get(group));
                     }
                     tags.add(metric);

@@ -43,5 +43,5 @@ public class TimeseriesQueryV2 {
     /**
      * time series also have groupBy, in this case, there will be multiple series
      */
-    private List<String> groupBys;
+    private List<String> groupBy;
 }

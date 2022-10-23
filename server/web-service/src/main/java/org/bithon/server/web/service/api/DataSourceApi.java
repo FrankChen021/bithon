@@ -115,7 +115,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                                   .metrics(query.getMetrics())
                                                                   .aggregators(Collections.emptyList())
                                                                   .interval(query.getInterval())
-                                                                  .groupBys(query.getGroupBys())
+                                                                  .groupBy(query.getGroupBys())
                                                                   .filters(query.getFilters())
                                                                   .build());
     }
@@ -129,11 +129,11 @@ public class DataSourceApi implements IDataSourceApi {
 
         return dataSourceService.timeseriesQuery(TimeseriesQueryV2.builder()
                                                                   .dataSource(schema)
-                                                                  .aggregators(request.getAggregators())
-                                                                  .metrics(request.getMetrics())
-                                                                  .filters(request.getFilters())
+                                                                  .aggregators(CollectionUtils.emptyOrOriginal(request.getAggregators()))
+                                                                  .metrics(CollectionUtils.emptyOrOriginal(request.getMetrics()))
+                                                                  .filters(CollectionUtils.emptyOrOriginal(request.getFilters()))
                                                                   .interval(Interval.of(start, end, request.getInterval().getStep()))
-                                                                  .groupBys(request.getGroupBy())
+                                                                  .groupBy(CollectionUtils.emptyOrOriginal(request.getGroupBy()))
                                                                   .build());
     }
 

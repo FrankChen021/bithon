@@ -45,10 +45,8 @@ public class TimeSeriesQueryRequestV2 {
     @NotEmpty
     private String dataSource;
 
-    private List<IFilter> filters = Collections.emptyList();
-
-    private List<String> metrics = Collections.emptyList();
-    private List<IQueryStageAggregator> aggregators = Collections.emptyList();
-
-    private List<String> groupBy = Collections.emptyList();
+    private List<IFilter> filters;
+    private List<String> metrics;
+    private List<IQueryStageAggregator> aggregators;
+    private List<String> groupBy;
 }
