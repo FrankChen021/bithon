@@ -100,7 +100,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                                    query.getFilters(),
                                                                    query.getInterval(),
                                                                    query.getGroupBys(),
-                                                                   OrderBy.builder().name("_timestamp").build());
+                                                                   OrderBy.builder().name(TIMESTAMP_QUERY_NAME).build());
 
         SelectExpression timestampExpressionOn = selectExpression;
         if (selectExpression.getFrom().getExpression() instanceof SelectExpression) {
@@ -181,8 +181,8 @@ public class MetricJdbcReader implements IMetricReader {
             MetricFieldsClauseBuilder metricFieldsBuilder = this.createMetriClauseBuilder(sqlTableName,
                                                                                           dataSource,
                                                                                           aggregatorExpressions,
-                                                                                          ImmutableMap.of("interval",
-                                                                                                          interval.getTotalLength()));
+                                                                                          ImmutableMap.of("interval", interval.getStep(),
+                                                                                                          "instanceCount", "count(distinct \"instanceName\")"));
 
             for (String metric : metrics) {
                 IMetricSpec metricSpec = dataSource.getMetricSpecByName(metric);
