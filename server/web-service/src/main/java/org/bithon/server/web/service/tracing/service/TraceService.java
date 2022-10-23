@@ -23,7 +23,6 @@ import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
-import org.bithon.server.web.service.tracing.api.TraceMap;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -82,10 +81,6 @@ public class TraceService {
         return new Bucket(seconds / length + (mod > 0 ? 1 : 0), length);
     }
 
-    public TraceMap buildMap(List<TraceSpan> spans) {
-        return new TraceMapBuilder().buildMap(spans);
-    }
-
     public List<TraceSpan> getTraceByParentSpanId(String parentSpanId) {
         return traceReader.getTraceByParentSpanId(parentSpanId);
     }
@@ -108,13 +103,10 @@ public class TraceService {
         TimeSpan end = StringUtils.hasText(endTimeISO8601) ? TimeSpan.fromISO8601(endTimeISO8601) : null;
         List<TraceSpan> spans = traceReader.getTraceByTraceId(txId, start, end);
 
-        if (!asTree) {
-            return spans;
-        }
+        return asTree ? asTree(spans) : spans;
+    }
 
-        //
-        // build as tree
-        //
+    public List<TraceSpan> asTree(List<TraceSpan> spans) {
         Map<String, TraceSpanBo> boMap = spans.stream().collect(Collectors.toMap(span -> span.spanId, val -> {
             TraceSpanBo bo = new TraceSpanBo();
             BeanUtils.copyProperties(val, bo);

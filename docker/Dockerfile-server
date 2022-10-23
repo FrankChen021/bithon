@@ -16,7 +16,7 @@
 
 ARG JDK=8
 
-FROM maven:3.8.1-jdk-${JDK}-slim as builder
+FROM maven:3.8.6-jdk-${JDK}-slim as builder
 
 ARG BUILD_FROM_SOURCE="true"
 

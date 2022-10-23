@@ -17,6 +17,7 @@
 package org.bithon.agent.core.tracing.context;
 
 import org.bithon.agent.core.tracing.propagation.injector.PropagationSetter;
+import org.bithon.component.commons.tracing.SpanKind;
 
 import java.lang.reflect.Executable;
 import java.util.Map;

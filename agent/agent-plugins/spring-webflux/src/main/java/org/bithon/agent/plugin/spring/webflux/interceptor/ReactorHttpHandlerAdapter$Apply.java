@@ -28,8 +28,6 @@ import org.bithon.agent.core.plugin.PluginConfigurationManager;
 import org.bithon.agent.core.tracing.Tracer;
 import org.bithon.agent.core.tracing.config.TraceConfig;
 import org.bithon.agent.core.tracing.context.ITraceContext;
-import org.bithon.agent.core.tracing.context.SpanKind;
-import org.bithon.agent.core.tracing.context.Tags;
 import org.bithon.agent.core.tracing.context.TraceContextHolder;
 import org.bithon.agent.core.tracing.propagation.ITracePropagator;
 import org.bithon.agent.core.tracing.propagation.TraceMode;
@@ -38,7 +36,10 @@ import org.bithon.agent.plugin.spring.webflux.config.ResponseConfigs;
 import org.bithon.agent.plugin.spring.webflux.context.HttpServerContext;
 import org.bithon.component.commons.logging.ILogAdaptor;
 import org.bithon.component.commons.logging.LoggerFactory;
+import org.bithon.component.commons.tracing.SpanKind;
+import org.bithon.component.commons.tracing.Tags;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.StringUtils;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.server.HttpServerRequest;
 import reactor.netty.http.server.HttpServerResponse;
@@ -122,6 +123,13 @@ public class ReactorHttpHandlerAdapter$Apply extends AbstractInterceptor {
                 // put the trace id in the header so that the applications have chance to know whether this request is being sampled
                 if (traceContext.traceMode().equals(TraceMode.TRACE)) {
                     request.requestHeaders().set("X-Bithon-TraceId", traceContext.traceId());
+
+                    // Add trace id to response
+                    String traceIdHeader = traceConfig.getTraceIdInResponse();
+                    if (StringUtils.hasText(traceIdHeader)) {
+                        final HttpServerResponse response = aopContext.getArgAs(1);
+                        response.addHeader(traceIdHeader, traceContext.traceId());
+                    }
                 }
 
                 ((HttpServerContext) injected).setTraceContext(traceContext);

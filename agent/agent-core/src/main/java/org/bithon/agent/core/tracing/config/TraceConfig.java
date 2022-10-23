@@ -92,4 +92,18 @@ public class TraceConfig {
      * headers that should be recorded in trace span
      */
     private final List<String> headers = Collections.emptyList();
+
+    /**
+     * If this field is set, the trace id(if current request has) will be added to the header of response.
+     * The header name is the value of this field, header value is the trace id.
+     */
+    private String traceIdInResponse;
+
+    public String getTraceIdInResponse() {
+        return traceIdInResponse;
+    }
+
+    public void setTraceIdInResponse(String traceIdInResponse) {
+        this.traceIdInResponse = traceIdInResponse;
+    }
 }

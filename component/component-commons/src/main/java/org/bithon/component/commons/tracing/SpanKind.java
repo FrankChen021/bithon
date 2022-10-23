@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.agent.core.tracing.context;
+package org.bithon.component.commons.tracing;
 
 /**
  * @author frank.chen021@outlook.com
