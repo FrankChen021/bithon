@@ -39,7 +39,7 @@ import java.util.Objects;
  */
 @Data
 @Slf4j
-public class ApplicationTopoBuilder {
+public class TraceTopoBuilder {
 
     static class Instance {
         String application;

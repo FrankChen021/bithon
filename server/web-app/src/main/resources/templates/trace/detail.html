@@ -171,7 +171,7 @@
                         type: window.queryParams['type'],
                         startTimeISO8601: interval === null ? null : interval.start,
                         endTimeISO8601: interval === null ? null : interval.end,
-                        hierachy: true
+                        asTree: true
                     };
                 },
                 responseHandler: (data) => {
@@ -198,7 +198,7 @@
             const appMap = {};
             traceData.topo.nodes.forEach((node) => {
                 if (appMap[node.application] === undefined) {
-                    appMap[node.application] = colorIndex++;
+                    appMap[node.application] = (colorIndex++) % colors.length;
                 }
 
                 // set color
