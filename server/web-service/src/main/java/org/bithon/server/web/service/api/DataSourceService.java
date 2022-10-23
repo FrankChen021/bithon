@@ -33,6 +33,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -110,7 +112,9 @@ public class DataSourceService {
      * Vals - an array of all data points. Each element represents a data point of a timestamp.
      */
     public TimeSeriesQueryResult timeseriesQuery(TimeseriesQueryV2 query) {
-        Set<String> metrics = query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toSet());
+        // Use LinkedHashSet to keep the order of input metric list
+        Set<String> metrics = new LinkedHashSet(query.getAggregators().size() + query.getMetrics().size());
+        metrics.addAll(query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList()));
         metrics.addAll(query.getMetrics());
 
         List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
@@ -123,7 +127,8 @@ public class DataSourceService {
         long endSecond = end.toSeconds() / step * step;
         int bucketCount = (int) (endSecond - startSecond) / step;
 
-        Map<List<String>, TimeSeriesMetric> map = new HashMap<>(query.getAggregators().size());
+        // Use LinkedHashMap to retain the order of input metric list
+        Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(query.getAggregators().size());
 
         if (points.isEmpty()) {
             // fill empty data points
