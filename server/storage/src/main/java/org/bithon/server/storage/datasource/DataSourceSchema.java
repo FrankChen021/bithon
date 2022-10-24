@@ -22,10 +22,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
-import org.bithon.server.storage.datasource.aggregator.spec.CountMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.input.IInputSource;
+import org.bithon.server.storage.datasource.spec.CountMetricSpec;
+import org.bithon.server.storage.datasource.spec.IMetricSpec;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;

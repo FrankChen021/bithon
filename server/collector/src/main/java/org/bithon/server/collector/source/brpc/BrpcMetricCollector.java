@@ -31,13 +31,13 @@ import org.bithon.server.sink.metrics.MetricMessage;
 import org.bithon.server.sink.metrics.SchemaMetricMessage;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.TimestampSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.LongLastMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.LongMaxMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.LongMinMetricSpec;
-import org.bithon.server.storage.datasource.aggregator.spec.LongSumMetricSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.dimension.StringDimensionSpec;
+import org.bithon.server.storage.datasource.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.spec.gauge.LongGaugeMetricSpec;
+import org.bithon.server.storage.datasource.spec.max.LongMaxMetricSpec;
+import org.bithon.server.storage.datasource.spec.min.LongMinMetricSpec;
+import org.bithon.server.storage.datasource.spec.sum.LongSumMetricSpec;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -98,7 +98,7 @@ public class BrpcMetricCollector implements IMetricCollector, AutoCloseable {
                                                                return new LongSumMetricSpec(metricSpec.getName(), null, metricSpec.getName(), "", true);
                                                            }
                                                            if ("longLast".equals(metricSpec.getType())) {
-                                                               return new LongLastMetricSpec(metricSpec.getName(), null, metricSpec.getName(), "", true);
+                                                               return new LongGaugeMetricSpec(metricSpec.getName(), null, metricSpec.getName(), "", true);
                                                            }
 
                                                            return null;

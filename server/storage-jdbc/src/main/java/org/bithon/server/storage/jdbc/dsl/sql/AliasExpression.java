@@ -14,22 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+package org.bithon.server.storage.jdbc.dsl.sql;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 15/3/22 3:00 PM
+ * @date 2022/9/4 16:34
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class OrderBy {
-    private String name;
-    private String order;
+public class AliasExpression extends NameExpression {
+    public AliasExpression(String name) {
+        super(name);
+    }
+
+    @Override
+    public void accept(IExpressionVisitor visitor) {
+        visitor.visit(this);
+    }
 }

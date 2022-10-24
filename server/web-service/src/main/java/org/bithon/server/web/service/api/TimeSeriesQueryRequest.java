@@ -24,7 +24,6 @@ import org.bithon.server.storage.metrics.IFilter;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -48,7 +47,7 @@ public class TimeSeriesQueryRequest {
     @Size(min = 1)
     private List<String> metrics;
 
-    private List<String> groups = Collections.emptyList();
+    private List<String> groups;
 
     private List<IFilter> filters;
 

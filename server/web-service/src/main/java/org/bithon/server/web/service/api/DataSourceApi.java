@@ -104,11 +104,20 @@ public class DataSourceApi implements IDataSourceApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
-        return dataSourceService.timeseriesQuery(new TimeseriesQuery(schema,
-                                                                     request.getMetrics(),
-                                                                     request.getDimensions() != null ? request.getDimensions() : request.getFilters(),
-                                                                     Interval.of(start, end),
-                                                                     request.getGroups()));
+        TimeseriesQuery query = new TimeseriesQuery(schema,
+                                                    request.getMetrics(),
+                                                    request.getDimensions() != null ? request.getDimensions() : request.getFilters(),
+                                                    Interval.of(start, end),
+                                                    request.getGroups() == null ? Collections.emptyList() : request.getGroups());
+
+        return dataSourceService.timeseriesQuery(TimeseriesQueryV2.builder()
+                                                                  .dataSource(query.getDataSource())
+                                                                  .metrics(query.getMetrics())
+                                                                  .aggregators(Collections.emptyList())
+                                                                  .interval(query.getInterval())
+                                                                  .groupBy(query.getGroupBys())
+                                                                  .filters(query.getFilters())
+                                                                  .build());
     }
 
     @Override
@@ -120,10 +129,11 @@ public class DataSourceApi implements IDataSourceApi {
 
         return dataSourceService.timeseriesQuery(TimeseriesQueryV2.builder()
                                                                   .dataSource(schema)
-                                                                  .aggregators(request.getAggregators())
-                                                                  .filters(request.getFilters())
+                                                                  .aggregators(CollectionUtils.emptyOrOriginal(request.getAggregators()))
+                                                                  .metrics(CollectionUtils.emptyOrOriginal(request.getMetrics()))
+                                                                  .filters(CollectionUtils.emptyOrOriginal(request.getFilters()))
                                                                   .interval(Interval.of(start, end, request.getInterval().getStep()))
-                                                                  .groupBys(request.getGroupBy())
+                                                                  .groupBy(CollectionUtils.emptyOrOriginal(request.getGroupBy()))
                                                                   .build());
     }
 

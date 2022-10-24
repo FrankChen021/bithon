@@ -14,17 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.datasource.spec;
 
-import javax.validation.constraints.NotNull;
-import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/11
+ * @date 2020/12/23
  */
-public class InvalidExpressionException extends RuntimeException {
-    public InvalidExpressionException(@NotNull String expression, int charPos, String parseExceptionMessage) {
-        super(String.format(Locale.ENGLISH, "Invalid expression [%s] at position %d, %s", expression, charPos, parseExceptionMessage));
-    }
+public interface PostAggregatorExpressionVisitor {
+    void visitMetric(IMetricSpec metricSpec);
+
+    void visitNumber(String number);
+
+    void visitorOperator(String operator);
+
+    void startBrace();
+
+    void endBrace();
+
+    void visitVariable(String variable);
 }

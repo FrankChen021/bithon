@@ -14,95 +14,55 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.datasource.spec.gauge;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.aggregator.DoubleSumAggregator;
+import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.typing.DoubleValueType;
+import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.IValueType;
+import org.bithon.server.storage.datasource.typing.LongValueType;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/23
+ * @date 2021/2/26 11:08 下午
  */
-public class DoubleSumMetricSpec implements IMetricSpec {
-
-    @Getter
-    private final String name;
-
-    @Getter
-    private final String field;
-
-    @Getter
-    private final String displayText;
-
-    @Getter
-    private final String unit;
-
-    @Getter
-    private final boolean visible;
+public class LongGaugeMetricSpec extends GaugeMetricSpec {
 
     @JsonCreator
-    public DoubleSumMetricSpec(@JsonProperty("name") @NotNull String name,
+    public LongGaugeMetricSpec(@JsonProperty("name") @NotNull String name,
                                @JsonProperty("field") @Nullable String field,
                                @JsonProperty("displayText") @NotNull String displayText,
                                @JsonProperty("unit") @NotNull String unit,
                                @JsonProperty("visible") @Nullable Boolean visible) {
-        this.name = name;
-        this.field = field;
-        this.displayText = displayText;
-        this.unit = unit;
-        this.visible = visible == null ? true : visible;
+        super(name, field, displayText, unit, visible);
     }
 
     @JsonIgnore
     @Override
     public String getType() {
-        return DOUBLE_SUM;
+        return IMetricSpec.LONG_LAST;
     }
 
     @Override
     public IValueType getValueType() {
-        return DoubleValueType.INSTANCE;
-    }
-
-    @Override
-    public void setOwner(DataSourceSchema dataSource) {
-
-    }
-
-    @Override
-    public String validate(Object input) {
-        return null;
-    }
-
-    @Override
-    public <T> T accept(IMetricSpecVisitor<T> visitor) {
-        return visitor.visit(this);
+        return LongValueType.INSTANCE;
     }
 
     @Override
     public NumberAggregator createAggregator() {
-        return new DoubleSumAggregator();
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
+        return new LongLastAggregator();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof DoubleSumMetricSpec) {
-            return this.name.equals(((DoubleSumMetricSpec) obj).name);
+        if (obj instanceof LongGaugeMetricSpec) {
+            return this.name.equals(((LongGaugeMetricSpec) obj).name);
         } else {
             return false;
         }

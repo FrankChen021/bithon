@@ -14,23 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.jdbc.dsl.sql;
 
+import lombok.Data;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/23
+ * @date 2022/9/4 15:43
  */
-public interface PostAggregatorExpressionVisitor {
-    void visitMetric(IMetricSpec metricSpec);
+@Data
+public class FromExpression implements IExpression {
+    private IExpression expression;
 
-    void visitNumber(String number);
-
-    void visitorOperator(String operator);
-
-    void startBrace();
-
-    void endBrace();
-
-    void visitVariable(String variable);
+    @Override
+    public void accept(IExpressionVisitor visitor) {
+        visitor.visit(this);
+        expression.accept(visitor);
+    }
 }

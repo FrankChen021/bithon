@@ -14,22 +14,27 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.storage.datasource.spec;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.bithon.server.storage.datasource.spec.gauge.GaugeMetricSpec;
+import org.bithon.server.storage.datasource.spec.max.MaxMetricSpec;
+import org.bithon.server.storage.datasource.spec.min.MinMetricSpec;
+import org.bithon.server.storage.datasource.spec.sum.SumMetricSpec;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 15/3/22 3:00 PM
+ * @date 2020/12/23
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class OrderBy {
-    private String name;
-    private String order;
+public interface IMetricSpecVisitor<T> {
+    T visit(SumMetricSpec metricSpec);
+
+    T visit(GaugeMetricSpec metricSpec);
+
+    T visit(CountMetricSpec metricSpec);
+
+    T visit(PostAggregatorMetricSpec metricSpec);
+
+    T visit(MinMetricSpec metricSpec);
+
+    T visit(MaxMetricSpec metricSpec);
 }

@@ -14,34 +14,38 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.storage.jdbc.dsl.sql;
 
-import lombok.Builder;
 import lombok.Getter;
-import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
- * @author Frank Chen
- * @date 1/11/21 2:50 pm
+ * @author frank.chen021@outlook.com
+ * @date 2022/9/4 14:55
  */
-@Getter
-@Builder
-public class TimeseriesQueryV2 {
-    private DataSourceSchema dataSource;
+public class OrderByExpression implements IExpression {
 
-    private List<String> metrics;
+    @Getter
+    private final String field;
 
-    private List<IQueryStageAggregator> aggregators;
+    @Getter
+    private final String order;
 
-    private Collection<IFilter> filters;
-    private Interval interval;
+    public OrderByExpression(String field) {
+        this.field = field;
+        this.order = null;
+    }
 
     /**
-     * time series also have groupBy, in this case, there will be multiple series
+     * @param field
+     * @param order ASC or DESC
      */
-    private List<String> groupBy;
+    public OrderByExpression(String field, String order) {
+        this.field = field;
+        this.order = order;
+    }
+
+    @Override
+    public void accept(IExpressionVisitor visitor) {
+        visitor.visit(this);
+    }
 }

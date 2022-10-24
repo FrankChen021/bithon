@@ -17,16 +17,12 @@
 package org.bithon.server.web.service.tracing.service;
 
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricStorage;
-import org.bithon.server.storage.metrics.Interval;
-import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.bithon.server.storage.tracing.ITraceReader;
 import org.bithon.server.storage.tracing.ITraceStorage;
 import org.bithon.server.storage.tracing.TraceSpan;
-import org.bithon.server.web.service.tracing.api.GetTraceDistributionResponse;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -34,7 +30,6 @@ import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -156,32 +151,6 @@ public class TraceService {
                                         order,
                                         pageNumber, pageSize);
     }
-
-    @Deprecated
-    public GetTraceDistributionResponse getTraceDistribution(List<IFilter> filters,
-                                                             String startTimeISO8601,
-                                                             String endTimeISO8601) {
-        TimeSpan start = TimeSpan.fromISO8601(startTimeISO8601);
-        TimeSpan end = TimeSpan.fromISO8601(endTimeISO8601);
-        Interval interval = Interval.of(start,
-                                        end,
-                                        getTimeBucket(start.getMilliseconds(), end.getMilliseconds()).getLength());
-
-        // create a virtual data source to use current metric API to query
-        DataSourceSchema schema = this.schemaManager.getDataSourceSchema("trace_span_summary");
-
-        TimeseriesQuery query = new TimeseriesQuery(schema,
-                                                    Collections.singletonList("count"),
-                                                    filters,
-                                                    interval,
-                                                    Collections.emptyList());
-
-        // TODO 2：Provide a custom query
-        // OR implement a new interface
-        return new GetTraceDistributionResponse(metricStorage.createMetricReader(schema).timeseries(query),
-                                                interval.getStep());
-    }
-
 
     @Deprecated
     public List<ITraceReader.Histogram> getTraceDistributionV2(List<IFilter> filters,

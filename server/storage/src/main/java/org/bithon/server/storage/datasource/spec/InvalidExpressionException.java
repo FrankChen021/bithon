@@ -14,22 +14,17 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.storage.datasource.spec;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import javax.validation.constraints.NotNull;
+import java.util.Locale;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 15/3/22 3:00 PM
+ * @date 2021/3/11
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class OrderBy {
-    private String name;
-    private String order;
+public class InvalidExpressionException extends RuntimeException {
+    public InvalidExpressionException(@NotNull String expression, int charPos, String parseExceptionMessage) {
+        super(String.format(Locale.ENGLISH, "Invalid expression [%s] at position %d, %s", expression, charPos, parseExceptionMessage));
+    }
 }

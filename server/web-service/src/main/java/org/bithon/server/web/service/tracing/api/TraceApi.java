@@ -66,20 +66,6 @@ public class TraceApi {
     }
 
     @Deprecated
-    @PostMapping("/api/trace/getTraceDistribution")
-    public GetTraceDistributionResponse getTraceDistribution(@Valid @RequestBody GetTraceDistributionRequest request) {
-        // backward compatibility
-        if (StringUtils.hasText(request.getApplication())) {
-            request.setFilters(new ArrayList<>(request.getFilters()));
-            request.getFilters().add(new DimensionFilter("appName", new StringEqualMatcher(request.getApplication())));
-        }
-
-        return traceService.getTraceDistribution(request.getFilters(),
-                                                 request.getStartTimeISO8601(),
-                                                 request.getEndTimeISO8601());
-    }
-
-    @Deprecated
     @PostMapping("/api/trace/getTraceDistribution/v2")
     public List<ITraceReader.Histogram> getTraceDistributionV2(@Valid @RequestBody GetTraceDistributionRequest request) {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());

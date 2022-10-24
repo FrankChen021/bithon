@@ -17,6 +17,7 @@
 package org.bithon.server.storage.datasource.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
@@ -57,6 +58,7 @@ public class QueryStageAggregators {
         /**
          * aggregator type
          */
+        @JsonIgnore
         @Getter
         protected final String type;
 

@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.datasource.spec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -32,6 +32,7 @@ import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionLexer
 import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionParser;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
@@ -152,17 +153,18 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     }
 
     @Override
-    public String validate(Object input) {
-        return null;
-    }
-
-    @Override
     public <T> T accept(IMetricSpecVisitor<T> visitor) {
         return visitor.visit(this);
     }
 
     @Override
     public NumberAggregator createAggregator() {
+        return null;
+    }
+
+    @JsonIgnore
+    @Override
+    public IQueryStageAggregator getQueryAggregator() {
         return null;
     }
 

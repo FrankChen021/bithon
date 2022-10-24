@@ -17,6 +17,8 @@
 package org.bithon.component.commons.utils;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,5 +45,13 @@ public class CollectionUtils {
 
     public static boolean isEmpty(Object[] objs) {
         return objs == null || objs.length == 0;
+    }
+
+    public static <E> Collection<E> emptyOrOriginal(Collection<E> collection) {
+        return collection == null ? Collections.emptyList() : collection;
+    }
+
+    public static <E> List<E> emptyOrOriginal(List<E> collection) {
+        return collection == null ? Collections.emptyList() : collection;
     }
 }

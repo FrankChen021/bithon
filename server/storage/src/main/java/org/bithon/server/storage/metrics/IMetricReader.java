@@ -29,8 +29,6 @@ import java.util.Map;
  */
 public interface IMetricReader {
 
-    List<Map<String, Object>> timeseries(TimeseriesQuery query);
-
     List<Map<String, Object>> timeseries(TimeseriesQueryV2 query);
 
     /**

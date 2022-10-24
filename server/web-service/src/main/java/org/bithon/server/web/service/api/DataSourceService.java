@@ -19,8 +19,8 @@ package org.bithon.server.web.service.api;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.aggregator.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.TimeseriesQuery;
@@ -30,13 +30,18 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author frank.chen021@outlook.com
@@ -54,7 +59,14 @@ public class DataSourceService {
 
     public List<Map<String, Object>> oldTimeseriesQuery(TimeseriesQuery query) {
         List<Map<String, Object>> queryResult = this.metricStorage.createMetricReader(query.getDataSource())
-                                                                  .timeseries(query);
+                                                                  .timeseries(TimeseriesQueryV2.builder()
+                                                                                               .dataSource(query.getDataSource())
+                                                                                               .metrics(query.getMetrics())
+                                                                                               .aggregators(Collections.emptyList())
+                                                                                               .interval(query.getInterval())
+                                                                                               .groupBy(query.getGroupBys())
+                                                                                               .filters(query.getFilters())
+                                                                                               .build());
 
         //
         // fill empty time slot bucket
@@ -95,58 +107,16 @@ public class DataSourceService {
     }
 
     /**
-     * @return key - the name of a metric
-     * val - the time series values
-     */
-    public TimeSeriesQueryResult timeseriesQuery(TimeseriesQuery query) {
-        List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
-                                                             .timeseries(query);
-
-        TimeSpan start = query.getInterval().getStartTime();
-        TimeSpan end = query.getInterval().getEndTime();
-        int step = query.getInterval().getStep();
-        long startSecond = start.toSeconds() / step * step;
-        long endSecond = end.toSeconds() / step * step;
-        int bucketCount = (int) (endSecond - startSecond) / step;
-
-        Map<List<String>, TimeSeriesMetric> map = new HashMap<>();
-
-        for (Map<String, Object> point : points) {
-            long timestamp = ((Number) point.get(TIMESTAMP_QUERY_NAME)).longValue();
-            int bucketIndex = (int) (timestamp - startSecond) / step;
-
-            for (String metric : query.getMetrics()) {
-                // this code is not so efficient
-                // we can wrap the point object to get the key and deserialize the wrap object directly
-                List<String> tags = new ArrayList<>();
-                for (String group : query.getGroupBys()) {
-                    tags.add((String) point.get(group));
-                }
-                tags.add(metric);
-
-                map.computeIfAbsent(tags,
-                                    v -> new TimeSeriesMetric(tags,
-                                                              bucketCount,
-                                                              query.getDataSource().getMetricSpecByName(metric)))
-                   .set(bucketIndex, point.get(metric));
-            }
-        }
-
-        TimeSeriesQueryResult result = new TimeSeriesQueryResult();
-        result.interval = step * 1000L;
-        result.startTimestamp = startSecond * 1000;
-        result.endTimestamp = endSecond * 1000;
-        result.count = bucketCount;
-        result.metrics = map.values();
-
-        return result;
-    }
-
-    /**
-     * @return key - the name of a metric
-     * val - the time series values
+     * @return Map<Tags, Vals>
+     * Tags - dimension of a series
+     * Vals - an array of all data points. Each element represents a data point of a timestamp.
      */
     public TimeSeriesQueryResult timeseriesQuery(TimeseriesQueryV2 query) {
+        // Use LinkedHashSet to keep the order of input metric list
+        Set<String> metrics = new LinkedHashSet(query.getAggregators().size() + query.getMetrics().size());
+        metrics.addAll(query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList()));
+        metrics.addAll(query.getMetrics());
+
         List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
                                                              .timeseries(query);
 
@@ -157,26 +127,39 @@ public class DataSourceService {
         long endSecond = end.toSeconds() / step * step;
         int bucketCount = (int) (endSecond - startSecond) / step;
 
-        Map<List<String>, TimeSeriesMetric> map = new HashMap<>();
+        // Use LinkedHashMap to retain the order of input metric list
+        Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(query.getAggregators().size());
 
-        for (Map<String, Object> point : points) {
-            long timestamp = ((Number) point.get(TIMESTAMP_QUERY_NAME)).longValue();
-            int bucketIndex = (int) (timestamp - startSecond) / step;
-
-            for (IQueryStageAggregator metric : query.getAggregators()) {
-                // this code is not so efficient
-                // we can wrap the point object to get the key and deserialize the wrap object directly
-                List<String> tags = new ArrayList<>();
-                for (String group : query.getGroupBys()) {
-                    tags.add((String) point.get(group));
-                }
-                tags.add(metric.getName());
+        if (points.isEmpty()) {
+            // fill empty data points
+            for (String metric : metrics) {
+                List<String> tags = Collections.singletonList(metric);
 
                 map.computeIfAbsent(tags,
                                     v -> new TimeSeriesMetric(tags,
                                                               bucketCount,
-                                                              query.getDataSource().getMetricSpecByName(metric.getName())))
-                   .set(bucketIndex, point.get(metric.getName()));
+                                                              query.getDataSource().getMetricSpecByName(metric)));
+            }
+        } else {
+            for (Map<String, Object> point : points) {
+                long timestamp = ((Number) point.get(TIMESTAMP_QUERY_NAME)).longValue();
+                int bucketIndex = (int) (timestamp - startSecond) / step;
+
+                for (String metric : metrics) {
+                    // this code is not so efficient
+                    // we can wrap the point object to get the key and deserialize the wrap object directly
+                    List<String> tags = new ArrayList<>();
+                    for (String group : query.getGroupBy()) {
+                        tags.add((String) point.get(group));
+                    }
+                    tags.add(metric);
+
+                    map.computeIfAbsent(tags,
+                                        v -> new TimeSeriesMetric(tags,
+                                                                  bucketCount,
+                                                                  query.getDataSource().getMetricSpecByName(metric)))
+                       .set(bucketIndex, point.get(metric));
+                }
             }
         }
 
@@ -192,14 +175,14 @@ public class DataSourceService {
 
     @Data
     public static class TimeSeriesMetric {
-        private List<String> tags;
+        private final List<String> tags;
 
         /**
          * Actual type of values is either double or long.
          * {@link java.lang.Number} is not used because if an element is not set, the serialized value is null.
          * Since we want to keep the serialized value to be 0, the raw number type is the best
          */
-        private Object values;
+        private final Object values;
 
         @JsonIgnore
         private BiConsumer<Integer, Object> valueSetter;

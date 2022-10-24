@@ -26,7 +26,6 @@ import org.bithon.server.storage.metrics.IFilter;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,9 +44,8 @@ public class TimeSeriesQueryRequestV2 {
     @NotEmpty
     private String dataSource;
 
-    private List<IFilter> filters = Collections.emptyList();
-
-    private List<IQueryStageAggregator> aggregators = Collections.emptyList();
-
-    private List<String> groupBy = Collections.emptyList();
+    private List<IFilter> filters;
+    private List<String> metrics;
+    private List<IQueryStageAggregator> aggregators;
+    private List<String> groupBy;
 }

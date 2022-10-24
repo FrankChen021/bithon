@@ -32,8 +32,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.server.datasource.input.filter.FilterExpressionBaseVisitor;
 import org.bithon.server.datasource.input.filter.FilterExpressionLexer;
 import org.bithon.server.datasource.input.filter.FilterExpressionParser;
-import org.bithon.server.storage.datasource.aggregator.spec.InvalidExpressionException;
 import org.bithon.server.storage.datasource.input.IInputRow;
+import org.bithon.server.storage.datasource.spec.InvalidExpressionException;
 
 import java.util.Arrays;
 import java.util.Locale;

@@ -14,26 +14,24 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.aggregator.spec;
+package org.bithon.server.storage.jdbc.dsl.sql;
+
+import lombok.Getter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/23
+ * @date 2022/9/4 15:04
  */
-public interface IMetricSpecVisitor<T> {
-    T visit(LongSumMetricSpec metricSpec);
+public class TableExpression implements IExpression {
+    @Getter
+    private final String name;
 
-    T visit(CountMetricSpec metricSpec);
+    public TableExpression(String name) {
+        this.name = name;
+    }
 
-    T visit(DoubleSumMetricSpec metricSpec);
-
-    T visit(PostAggregatorMetricSpec metricSpec);
-
-    T visit(LongLastMetricSpec metricSpec);
-
-    T visit(DoubleLastMetricSpec metricSpec);
-
-    T visit(LongMinMetricSpec metricSpec);
-
-    T visit(LongMaxMetricSpec metricSpec);
+    @Override
+    public void accept(IExpressionVisitor visitor) {
+        visitor.visit(this);
+    }
 }
