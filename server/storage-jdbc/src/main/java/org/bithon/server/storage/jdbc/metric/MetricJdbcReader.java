@@ -110,6 +110,34 @@ public class MetricJdbcReader implements IMetricReader {
         return executeSql(sqlGenerator.getSQL());
     }
 
+    /**
+     * Example result SQL if window function is used for first/last aggregator
+     *
+     * SELECT
+     *   "timestamp" AS "_timestamp",
+     *   sum("totalTaskCount") AS "totalTaskCount",
+     *   queuedTaskCount
+     * FROM
+     *   (
+     *     SELECT
+     *       UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
+     *       FIRST_VALUE("queuedTaskCount") OVER (
+     *         partition by CAST(toUnixTimestamp("timestamp") / 10 AS Int64) * 10 ORDER BY "timestamp" DESC
+     *       ) AS "queuedTaskCount",
+     *       "totalTaskCount",
+     *     FROM
+     *       "bithon_thread_pool_metrics"
+     *     WHERE
+     *       "appName" = 'bithon-server-live'
+     *       AND "timestamp" >= fromUnixTimestamp(1666578760)
+     *       AND "timestamp" < fromUnixTimestamp(1666589560)
+     *   )
+     * GROUP BY
+     *   "_timestamp", queuedTaskCount
+     * ORDER BY
+     *   "_timestamp"
+     *
+     */
     private SelectExpression createSelectExpression(DataSourceSchema dataSource,
                                                     List<String> metrics,
                                                     List<IQueryStageAggregator> aggregators,
@@ -120,8 +148,10 @@ public class MetricJdbcReader implements IMetricReader {
         String sqlTableName = "bithon_" + dataSource.getName().replace("-", "_");
 
         List<IQueryStageAggregator> aggregatorList = new ArrayList<>(aggregators);
+        //
+        // To compatible with old interface, turn metric list into aggregators
+        //
         if (CollectionUtils.isNotEmpty(metrics)) {
-            // to compatible with old interface
             for (String metric : metrics) {
                 IMetricSpec metricSpec = dataSource.getMetricSpecByName(metric);
                 if (metricSpec == null) {
@@ -148,16 +178,21 @@ public class MetricJdbcReader implements IMetricReader {
                                                                                           interval.getTotalLength(),
                                                                                           interval.getStep());
         for (IQueryStageAggregator aggregator : aggregatorList) {
-            // if window function is contained, the final SQL is different
+            // if window function is contained, the final SQL has an sub-query
             if (sqlFormatter.useWindowFunctionAsAggregator(aggregator)) {
                 subSelectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
 
+                // this window fields should be in the group-by clause and select clause,
+                // see the javadoc above
                 selectExpression.getGroupBy().addField(aggregator.getName());
                 selectExpression.getFieldsExpression().addField(new NameExpression(aggregator.getName()));
 
                 hasSubSelect = true;
             } else {
                 selectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
+
+                // This metric should also be in the sub-query, see the example in the javadoc above
+                subSelectExpression.getFieldsExpression().addField(new NameExpression(aggregator.getName()));
 
                 aggregatorExpressions.add(StringUtils.format("%s(\"%s\")", aggregator.getType(), aggregator.getField()));
             }
