@@ -277,6 +277,10 @@ class ChartComponent {
         this._chart.dispose();
     }
 
+    getChart() {
+        return this._chart;
+    }
+
     setOpenHandler(openHandler) {
         if ($(this._card).find('btn-open').length === 0) {
             const ctrl = $(this._card).find('.tools');

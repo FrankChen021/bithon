@@ -119,6 +119,22 @@ class Dashboard {
             this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
         });
 
+        // Connect the charts to show tooltip synchronize
+        const charts = [];
+        for (const id in this._chartComponents) {
+            try {
+                const chartInstance = this._chartComponents[id].getChart();
+                charts.push(chartInstance);
+
+                // Ignore brush event for connection
+                chartInstance.on('brushEnd', (params) => params.escapeConnect = true);
+                chartInstance.on('brushSelected', (params) => params.escapeConnect = true);
+            } catch(ignored) {
+                // this chart component might be TableComponent
+            }
+        }
+        echarts.connect(charts);
+
         const dataSourceFilter = this._dashboard.charts[0].dataSource;
 
         //
