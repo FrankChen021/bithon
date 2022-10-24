@@ -68,7 +68,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MetricJdbcReader implements IMetricReader {
 
-    private static final String TIMESTAMP_QUERY_NAME = "_timestamp";
+    private static final String TIMESTAMP_ALIAS_NAME = "_timestamp";
 
     protected final DSLContext dsl;
     protected final ISqlExpressionFormatter sqlFormatter;
@@ -86,7 +86,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                                    query.getFilters(),
                                                                    query.getInterval(),
                                                                    query.getGroupBy(),
-                                                                   OrderBy.builder().name(TIMESTAMP_QUERY_NAME).build());
+                                                                   OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build());
 
         SelectExpression timestampExpressionOn = selectExpression;
         if (selectExpression.getFrom().getExpression() instanceof SelectExpression) {
@@ -94,15 +94,16 @@ public class MetricJdbcReader implements IMetricReader {
             timestampExpressionOn = (SelectExpression) selectExpression.getFrom().getExpression();
 
             // Add timestamp field to outer query
-            selectExpression.getFieldsExpression().insert(new NameExpression("_timestamp"));
+            selectExpression.getFieldsExpression().insert(new NameExpression(TIMESTAMP_ALIAS_NAME));
         }
 
         // Add timestamp expression to sub-query
         timestampExpressionOn.getFieldsExpression()
-                             .insert(new StringExpression(StringUtils.format("%s AS \"_timestamp\"",
-                                                                             sqlFormatter.timeFloor("timestamp", query.getInterval().getStep()))));
+                             .insert(new StringExpression(StringUtils.format("%s AS \"%s\"",
+                                                                             sqlFormatter.timeFloor("timestamp", query.getInterval().getStep()),
+                                                                             TIMESTAMP_ALIAS_NAME)));
 
-        selectExpression.getGroupBy().addField("_timestamp");
+        selectExpression.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
 
         SQLGenerator sqlGenerator = new SQLGenerator();
         selectExpression.accept(sqlGenerator);
