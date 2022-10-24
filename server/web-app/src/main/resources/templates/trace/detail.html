@@ -13,10 +13,12 @@
     <script th:src="@{/js/component/tree-table/component.js}"></script>
     <script th:src="@{/js/utils/location.js}"></script>
 
+    <!-- topo -->
     <script th:src="@{/lib/cytoscape.js-dagre/dagre-0.7.4.min.js}"></script>
     <script th:src="@{/lib/cytoscape.js-dagre/cytoscape-3.23.0.min.js}"></script>
     <script th:src="@{/lib/cytoscape.js-dagre/cytoscape-dagre-2.4.0.js}"></script>
 
+    <script th:src="@{/js/utils/number.js}"></script>
     <style>
         .word-wrap {
             /* CSS 3 */
@@ -161,9 +163,7 @@
         });
 
         function escapeHTML(str) {
-            const p = document.createElement("p");
-            p.appendChild(document.createTextNode(str));
-            return p.innerHTML;
+            return str.htmlEncode();
         }
 
         function loadSpanLog() {
