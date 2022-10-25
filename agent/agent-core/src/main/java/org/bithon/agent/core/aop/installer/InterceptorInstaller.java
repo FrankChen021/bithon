@@ -48,6 +48,7 @@ import shaded.net.bytebuddy.utility.JavaModule;
 import shaded.net.bytebuddy.utility.RandomString;
 
 import java.lang.instrument.Instrumentation;
+import java.security.ProtectionDomain;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -78,7 +79,7 @@ public class InterceptorInstaller {
         agentBuilder
             .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(nameStartsWith("shaded.").or(isSynthetic())))
             .type(new NameMatcher<>(new StringSetMatcher(types)))
-            .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule) -> {
+            .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
                 //
                 // get interceptor def for target class
                 //
