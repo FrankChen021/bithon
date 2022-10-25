@@ -48,6 +48,7 @@ public class InterceptorResolver extends FieldDescription.InDefinedShape.Abstrac
         return declaringType;
     }
 
+    @Nonnull
     @Override
     public TypeDescription.Generic getType() {
         return INTERCEPTOR_TYPE;
@@ -58,11 +59,13 @@ public class InterceptorResolver extends FieldDescription.InDefinedShape.Abstrac
         return ACC_PRIVATE | ACC_STATIC;
     }
 
+    @Nonnull
     @Override
     public String getName() {
         return fieldName;
     }
 
+    @Nonnull
     @Override
     public AnnotationList getDeclaredAnnotations() {
         return new AnnotationList.Empty();
