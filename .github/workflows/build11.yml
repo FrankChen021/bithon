@@ -13,7 +13,7 @@ concurrency:
   # https://stackoverflow.com/questions/68418857/how-to-cancel-existing-runs-when-a-new-push-happens-on-github-actions-but-only
   # Documentation suggests ${{ github.head_ref }}, but that's only available on pull_request/pull_request_target triggers, so using ${{ github.ref }}.
   # On master, we want all builds to complete even if merging happens faster to make it easier to discover at which point something broke.
-  group: ${{ github.ref == 'refs/heads/master' && format('ci-master-{0}', github.sha) || format('ci-{0}', github.ref) }}
+  group: ${{ github.ref == 'refs/heads/master' && format('ci-master-jdk11-{0}', github.sha) || format('ci-jdk11-{0}', github.ref) }}
   cancel-in-progress: true
 
 jobs:
