@@ -64,3 +64,4 @@ jobs:
           tag: agent-distribution-latest
           asset_name: agent-distribution.zip
           file: agent/agent-distribution/target/agent-distribution.zip
+
