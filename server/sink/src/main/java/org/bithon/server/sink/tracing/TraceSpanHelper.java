@@ -16,6 +16,7 @@
 
 package org.bithon.server.sink.tracing;
 
+import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.server.sink.common.service.UriNormalizer;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.util.CollectionUtils;
@@ -34,7 +35,7 @@ public class TraceSpanHelper {
      */
     public static void flatten(TraceSpan span, UriNormalizer uriNormalizer) {
         Map<String, String> tags = span.getTags();
-        if (!"SERVER".equals(span.getKind()) || CollectionUtils.isEmpty(tags)) {
+        if (!SpanKind.isRootSpan(span.getKind()) || CollectionUtils.isEmpty(tags)) {
             return;
         }
 

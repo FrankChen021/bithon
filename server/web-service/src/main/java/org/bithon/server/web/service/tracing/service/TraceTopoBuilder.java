@@ -18,6 +18,7 @@ package org.bithon.server.web.service.tracing.service;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.tracing.Tags;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.bithon.server.web.service.tracing.api.TraceSpanBo;
@@ -126,15 +127,34 @@ public class TraceTopoBuilder {
         return nodeCountOfLevels.compute(level, (k, old) -> old == null ? 1 : old + 1);
     }
 
+    @SuppressWarnings("unchecked")
     public TraceTopo build(List<? extends TraceSpan> spans) {
-        TraceSpanBo user = new TraceSpanBo();
-        user.setAppName("user");
-
         //
         // Step 2. Traverse the tree to get Topo
         //
-        buildLink(user, spans);
+        for (TraceSpanBo root : (List<TraceSpanBo>) spans) {
+            buildLink(root, root.children);
+        }
 
+        //
+        // Step 3. create user node if necessary
+        //
+        TraceSpanBo user = new TraceSpanBo();
+        user.setAppName("user");
+
+        TraceSpanBo producer = new TraceSpanBo();
+        producer.setAppName("producer");
+        for (TraceSpan root : spans) {
+            if ("SERVER".equals(root.kind)) {
+                // TODO: we can detect the root.tags['http.header.User-Agent'] to decide the name of user
+                // For example, if the user-agent is like 'chrome', the name could be chrome and icon could also be chrome style
+                this.addLink(user, root).incrCount();
+            } else if (SpanKind.CONSUMER.name().equals(root.kind)) {
+                this.addLink(producer, root).incrCount();
+            }
+        }
+
+        // Step 3. set level/node property for each node
         Collection<TraceTopo.Node> topoNodes = nodes.values();
         topoNodes.forEach((node) -> {
             int nodeCount = this.nodeCountOfLevels.getOrDefault(node.getLevel(), 1);
