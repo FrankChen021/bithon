@@ -31,6 +31,7 @@ import shaded.net.bytebuddy.matcher.NameMatcher;
 import shaded.net.bytebuddy.matcher.StringSetMatcher;
 import shaded.net.bytebuddy.utility.JavaModule;
 
+import java.security.ProtectionDomain;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -75,7 +76,7 @@ public class DynamicInterceptorInstaller {
                                   .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
                                   .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                                   .type(ElementMatchers.named(descriptor.targetClass))
-                                  .transform((builder, typeDescription, classLoader, javaModule) -> install(descriptor, typeDescription, classLoader, builder))
+                                  .transform((builder, typeDescription, classLoader, javaModule, protectionDomain) -> install(descriptor, typeDescription, classLoader, builder))
                                   .with(new AopDebugger(new HashSet<>(Collections.singletonList(descriptor.getTargetClass()))))
                                   .installOn(InstrumentationHelper.getInstance());
     }
@@ -88,7 +89,7 @@ public class DynamicInterceptorInstaller {
                                   .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
                                   .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
                                   .type(typeMatcher)
-                                  .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule) -> {
+                                  .transform((DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule, ProtectionDomain protectionDomain) -> {
                                       AopDescriptor descriptor = descriptors.get(typeDescription.getTypeName());
                                       if (descriptor == null) {
                                           // this must be an error

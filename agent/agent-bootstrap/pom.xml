@@ -16,6 +16,14 @@
       <artifactId>shaded-bytebuddy</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
+
+    <!-- javax.annotations -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.2</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <!--    <scm>&lt;!&ndash; buildnumber插件需要先设置为空 &ndash;&gt;-->

@@ -21,6 +21,8 @@ import shaded.net.bytebuddy.description.annotation.AnnotationList;
 import shaded.net.bytebuddy.description.field.FieldDescription;
 import shaded.net.bytebuddy.description.type.TypeDescription;
 
+import javax.annotation.Nonnull;
+
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_PRIVATE;
 import static shaded.net.bytebuddy.jar.asm.Opcodes.ACC_STATIC;
 
@@ -34,17 +36,19 @@ public class InterceptorResolver extends FieldDescription.InDefinedShape.Abstrac
     private final TypeDescription declaringType;
     private final String fieldName;
 
-    public InterceptorResolver(TypeDescription declaringType,
+    public InterceptorResolver(@Nonnull TypeDescription declaringType,
                                String fieldName) {
         this.declaringType = declaringType;
         this.fieldName = fieldName;
     }
 
+    @Nonnull
     @Override
     public TypeDescription getDeclaringType() {
         return declaringType;
     }
 
+    @Nonnull
     @Override
     public TypeDescription.Generic getType() {
         return INTERCEPTOR_TYPE;
@@ -55,13 +59,15 @@ public class InterceptorResolver extends FieldDescription.InDefinedShape.Abstrac
         return ACC_PRIVATE | ACC_STATIC;
     }
 
+    @Nonnull
     @Override
     public String getName() {
         return fieldName;
     }
 
+    @Nonnull
     @Override
     public AnnotationList getDeclaredAnnotations() {
-        return null;
+        return new AnnotationList.Empty();
     }
 }
