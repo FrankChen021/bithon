@@ -65,6 +65,6 @@ public class InterceptorResolver extends FieldDescription.InDefinedShape.Abstrac
 
     @Override
     public AnnotationList getDeclaredAnnotations() {
-        return null;
+        return new AnnotationList.Empty();
     }
 }
