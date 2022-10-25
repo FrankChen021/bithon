@@ -9,6 +9,13 @@ on:
   pull_request:
     branches: [ master ]
 
+concurrency:
+  # https://stackoverflow.com/questions/68418857/how-to-cancel-existing-runs-when-a-new-push-happens-on-github-actions-but-only
+  # Documentation suggests ${{ github.head_ref }}, but that's only available on pull_request/pull_request_target triggers, so using ${{ github.ref }}.
+  # On master, we want all builds to complete even if merging happens faster to make it easier to discover at which point something broke.
+  group: ${{ github.ref == 'refs/heads/master' && format('ci-master-jdk17-{0}', github.sha) || format('ci-jdk17-{0}', github.ref) }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,4 +31,3 @@ jobs:
           distribution: 'adopt'
       - name: Compilation
         run: mvn clean install -T 1C -ntp --activate-profiles shaded,jooq,server,component,agent -Dmaven.javadoc.skip=true -DskipTests
-  
