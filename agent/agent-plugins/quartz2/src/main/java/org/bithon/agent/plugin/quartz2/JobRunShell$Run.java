@@ -76,7 +76,7 @@ public class JobRunShell$Run extends AbstractInterceptor {
 
         aopContext.setUserContext(context.currentSpan()
                                          .component("quartz")
-                                         .kind(SpanKind.SERVER)
+                                         .kind(SpanKind.TIMER)
                                          .method(aopContext.getMethod())
                                          .start());
 

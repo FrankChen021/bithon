@@ -18,6 +18,7 @@ package org.bithon.server.storage.jdbc.tracing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.bithon.component.commons.tracing.SpanKind;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.sink.tracing.TraceConfig;
 import org.bithon.server.storage.jdbc.jooq.Tables;
@@ -157,7 +158,9 @@ public class TraceJdbcWriter implements ITraceWriter {
                       Collection<TagIndex> tagIndices) {
 
         TransactionalRunnable runnable = (configuration) -> {
-            List<TraceSpan> summary = spans.stream().filter((span) -> "SERVER".equals(span.getKind())).collect(Collectors.toList());
+            List<TraceSpan> summary = spans.stream()
+                                           .filter((span) -> SpanKind.isRootSpan(span.getKind()))
+                                           .collect(Collectors.toList());
             this.writeSpans(summary, Tables.BITHON_TRACE_SPAN_SUMMARY);
             this.writeSpans(spans, Tables.BITHON_TRACE_SPAN);
             this.writeMappings(mappings);

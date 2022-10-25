@@ -21,19 +21,47 @@ package org.bithon.component.commons.tracing;
  * @date 2021/2/5 8:51 下午
  */
 public enum SpanKind {
+    /**
+     * Unspecified.
+     */
     NONE,
 
     /**
      * a client is a termination of trace in current context.
      * It spreads the trace context to next hop.
-     *
+     * <p>
      * For such type, 'targetType' and 'uri' must be filled in `tags`
      */
     CLIENT,
+
+    /**
+     * Indicates that the span covers server-side handling of an RPC or other remote network request.
+     */
     SERVER,
+
+    /**
+     * Indicates that the span describes producer sending a message to a broker.
+     * Unlike client and server, there is no direct critical path latency relationship between producer and consumer spans (e.g. publishing a message to a pubsub service).
+     */
     PRODUCER,
-    CONSUMER;
+
+    /**
+     * Indicates that the span describes consumer receiving a message from a broker.
+     * Unlike client and server, there is no direct critical path latency relationship between producer and consumer spans (e.g. receiving a message from a pubsub service subscription).
+     */
+    CONSUMER,
+
+    /**
+     * Bithon extended.
+     * For timer-based routines such as spring-quartz or spring-scheduling or sth else.
+     * Maybe it's not a good name.
+     */
+    TIMER;
 
     SpanKind() {
+    }
+
+    public static boolean isRootSpan(String kind) {
+        return SERVER.name().equals(kind) || TIMER.name().equals(kind) || CONSUMER.name().equals(kind);
     }
 }
