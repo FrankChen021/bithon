@@ -13,10 +13,12 @@
     <script th:src="@{/js/component/tree-table/component.js}"></script>
     <script th:src="@{/js/utils/location.js}"></script>
 
+    <!-- topo -->
     <script th:src="@{/lib/cytoscape.js-dagre/dagre-0.7.4.min.js}"></script>
     <script th:src="@{/lib/cytoscape.js-dagre/cytoscape-3.23.0.min.js}"></script>
     <script th:src="@{/lib/cytoscape.js-dagre/cytoscape-dagre-2.4.0.js}"></script>
 
+    <script th:src="@{/js/utils/number.js}"></script>
     <style>
         .word-wrap {
             /* CSS 3 */
@@ -148,9 +150,9 @@
                         const returnPos = propVal.indexOf('\n');
                         if (propName !== 'uri' && propName !== 'query_id' && (propVal.length > 30 || returnPos !== -1)) {
                             const truncateIndex = returnPos !== -1 ? Math.min(returnPos, 30) : 30;
-                            text += `<b>${propName}</b>: ${propVal.substring(0, truncateIndex)}<a href="javascript:showTags(${globalRowIndex}, '${propName}')" class="badge badge-info">...</a><br/>`;
+                            text += `<b>${propName}</b>: ${escapeHTML(propVal.substring(0, truncateIndex))}<a href="javascript:showTags(${globalRowIndex}, '${propName}')" class="badge badge-info">...</a><br/>`;
                         } else {
-                            text += `<b>${propName}</b>: ${propVal}<br/>`;
+                            text += `<b>${propName}</b>: ${escapeHTML(propVal)}<br/>`;
                         }
                     }
                     text += '</pre>';
@@ -159,6 +161,10 @@
                 }
             }]
         });
+
+        function escapeHTML(str) {
+            return str.htmlEncode();
+        }
 
         function loadSpanLog() {
             vTreeTable.load({
@@ -294,10 +300,10 @@
                 </nav>
                 <div class="tab-content" id="nav-tabContent">
                   <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">${formatContent}</div>
-                  <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab"><pre class="word-wrap">${text}</pre></div>
+                  <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab"><pre class="word-wrap">${escapeHTML(text)}</pre></div>
                 </div>`;
             } else {
-                dlgContent = `<pre>${text}</pre>`;
+                dlgContent = `<pre>${escapeHTML(text)}</pre>`;
             }
             bootbox.dialog({
                 scrollable: true,

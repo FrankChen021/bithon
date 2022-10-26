@@ -119,6 +119,22 @@ class Dashboard {
             this._chartDescriptors[chartDescriptor.id] = chartDescriptor;
         });
 
+        // Connect the charts to show tooltip synchronize
+        const charts = [];
+        for (const id in this._chartComponents) {
+            try {
+                const chartInstance = this._chartComponents[id].getChart();
+                charts.push(chartInstance);
+
+                // Ignore brush event for connection
+                chartInstance.on('brushEnd', (params) => params.escapeConnect = true);
+                chartInstance.on('brushSelected', (params) => params.escapeConnect = true);
+            } catch(ignored) {
+                // this chart component might be TableComponent
+            }
+        }
+        echarts.connect(charts);
+
         const dataSourceFilter = this._dashboard.charts[0].dataSource;
 
         //
@@ -370,7 +386,7 @@ class Dashboard {
                 title: name,
                 align: 'center',
                 sortable: true,
-                formatter: (v) => v.htmlEncode()
+                formatter: (v) => typeof v === 'string' ? v.htmlEncode() : v
             };
 
             // set up lookup for this dimension
@@ -442,7 +458,7 @@ class Dashboard {
             if (formatterFn == null) {
                 // if this metric is not found, format in default ways
                 formatterFn = (v) => {
-                    return v.formatCompactNumber();
+                    return v === undefined ? "undefined" : v.formatCompactNumber();
                 };
             }
 
@@ -778,7 +794,13 @@ class Dashboard {
         }
         const chartComponent = new ChartComponent({
             containerId: chartId,
-            metrics: chartDescriptor.metrics.map(metric => metric.name),
+            metrics: chartDescriptor.metrics.filter(metric => metric.aggregator === undefined).map(metric => metric.name),
+            aggregators: chartDescriptor.metrics.filter(metric => metric.aggregator !== undefined).map(metric => {
+                return {
+                    name: metric.name,
+                    type: metric.aggregator
+                };
+            }),
         }).header('<b>' + chartDescriptor.title + '</b>')
             .setChartOption(chartOption);
 
@@ -824,82 +846,12 @@ class Dashboard {
             return;
         }
 
+        if (metricNamePrefix == null) {
+            metricNamePrefix = '';
+        }
+
         if (mode === undefined) {
             mode = 'refresh';
-        }
-
-        if (chartDescriptor.groupBy !== undefined) {
-            // in future, the version 2 method should be used for all cases
-            this.refreshChart2(chartDescriptor, chartComponent, interval, metricNamePrefix, mode);
-            return;
-        }
-
-        if (metricNamePrefix == null) {
-            metricNamePrefix = '';
-        }
-        const filters = this.vFilter.getSelectedFilters();
-        if (chartDescriptor.dimensions !== undefined) {
-            $.each(chartDescriptor.dimensions, (name, value) => {
-                filters.push(value);
-            });
-        }
-
-        chartComponent.load({
-            url: apiHost + "/api/datasource/metrics",
-            ajaxData: JSON.stringify({
-                dataSource: chartDescriptor.dataSource,
-                startTimeISO8601: interval.start,
-                endTimeISO8601: interval.end,
-                filters: filters,
-                groups: chartDescriptor.groupBy,
-                metrics: chartComponent.getOption().metrics
-            }),
-            processResult: (data) => {
-                const timeLabels = data.map(d => moment(d._timestamp).local().format('HH:mm:ss'));
-
-                const series = chartDescriptor.metrics.map(metric => {
-                    const chartType = metric.chartType || 'line';
-                    const isLine = chartType === 'line';
-                    const isArea = isLine && (metric.fill === undefined ? true : metric.fill);
-                    return {
-                        name: metricNamePrefix + (metric.displayName === undefined ? metric.name : metric.displayName),
-                        type: chartType,
-
-                        data: data.map(d => metric.transformer(d[metric.name])),
-                        yAxisIndex: metric.yAxis == null ? 0 : metric.yAxis,
-
-                        areaStyle: isArea ? {opacity: 0.3} : null,
-                        lineStyle: isLine ? {width: 1} : null,
-                        itemStyle: isLine ? {opacity: 0} : null,
-                        barWidth: 10,
-
-                        // selected is not a property of series
-                        // this is used to render default selected state of legend by chart-component
-                        selected: metric.selected === undefined ? true : metric.selected
-                    }
-                });
-
-                return {
-                    // for a groupBy query, always replace the series because one group may not exist in a following query
-                    refreshMode: chartDescriptor.groupBy != null ? 'replace' : mode,
-
-                    // save the timestamp for further processing
-                    timestamp: {
-                        start: data.length === 0 ? 0 : data[0]._timestamp,
-                        interval: data.length === 0 ? 0 : data[1]._timestamp - data[0]._timestamp
-                    },
-                    xAxis: {
-                        data: timeLabels
-                    },
-                    series: series
-                }
-            }
-        });
-    }
-
-    refreshChart2(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
-        if (metricNamePrefix == null) {
-            metricNamePrefix = '';
         }
 
         let dimensions = this.vFilter.getSelectedFilters();
@@ -910,14 +862,17 @@ class Dashboard {
         }
 
         chartComponent.load({
-            url: apiHost + "/api/datasource/timeseries",
+            url: apiHost + "/api/datasource/timeseries/v2",
             ajaxData: JSON.stringify({
                 dataSource: chartDescriptor.dataSource,
-                startTimeISO8601: interval.start,
-                endTimeISO8601: interval.end,
-                dimensions: dimensions,
-                groups: chartDescriptor.groupBy,
-                metrics: chartComponent.getOption().metrics
+                interval: {
+                    startISO8601: interval.start,
+                    endISO8601: interval.end
+                },
+                filters: dimensions,
+                groupBy: chartDescriptor.groupBy === undefined ? [] : chartDescriptor.groupBy,
+                metrics: chartComponent.getOption().metrics,
+                aggregators: chartComponent.getOption().aggregators
             }),
             processResult: (data) => {
                 const timeLabels = [];
@@ -938,18 +893,23 @@ class Dashboard {
                         group += "-";
                     }
 
+                    const chartType = metricDef.chartType || 'line';
+                    const isLine = chartType === 'line';
+                    const isArea = isLine && (metricDef.fill === undefined ? true : metricDef.fill);
+
                     const n = metricNamePrefix + group + (metricDef.displayName === undefined ? metricDef.name : metricDef.displayName);
                     let s = {
                         id: n,
                         name: n,
-                        type: metricDef.chartType || 'line',
+                        type: chartType,
 
-                        data: metric.values,
+                        data: metric.values.map(val => metricDef.transformer(val)),
                         yAxisIndex: metricDef.yAxis == null ? 0 : metricDef.yAxis,
 
-                        areaStyle: {opacity: 0.3},
-                        lineStyle: {width: 1},
-                        itemStyle: {opacity: 0},
+                        areaStyle: isArea ? {opacity: 0.3} : null,
+                        lineStyle: isLine ? {width: 1} : null,
+                        itemStyle: isLine ? {opacity: 0} : null,
+                        barWidth: 10,
 
                         // selected is not a property of series
                         // this is used to render default selected state of legend by chart-component
@@ -975,7 +935,7 @@ class Dashboard {
 
                 return {
                     // for a groupBy query, always replace the series because one group may not exist in a following query
-                    refreshMode: chartDescriptor.groupBy != null ? 'replace' : mode,
+                    refreshMode: chartDescriptor.groupBy !== undefined ? 'replace' : mode,
 
                     // save the timestamp for further processing
                     timestamp: {
