@@ -19,19 +19,35 @@ package org.bithon.server.storage.datasource.api;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
+import org.bithon.component.commons.utils.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
- * count(distinct )
  *
  * @author Frank Chen
  * @date 1/11/21 2:37 pm
  */
 
 public class QueryStageAggregators {
+
+    public static IQueryStageAggregator create(String type, String name, String field) {
+        if (StringUtils.isEmpty(field)) {
+            field = name;
+        }
+
+        String json = StringUtils.format("{\"type\": \"%s\", \"name\": \"%s\", \"field\": \"%s\"}", type, name, field == null ? "" : field);
+        try {
+            return new ObjectMapper().readValue(json, IQueryStageAggregator.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static class CardinalityAggregator extends AbstractQueryStageAggregator {
         public static final String TYPE = "cardinality";
 

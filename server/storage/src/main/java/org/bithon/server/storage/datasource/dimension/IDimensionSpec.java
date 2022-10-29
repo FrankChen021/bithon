@@ -19,6 +19,7 @@ package org.bithon.server.storage.datasource.dimension;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.typing.IValueType;
 
 /**
@@ -29,11 +30,9 @@ import org.bithon.server.storage.datasource.typing.IValueType;
     @JsonSubTypes.Type(name = "long", value = LongDimensionSpec.class),
     @JsonSubTypes.Type(name = "string", value = StringDimensionSpec.class)
 })
-public interface IDimensionSpec {
+public interface IDimensionSpec extends IColumnSpec {
 
     String getAlias();
-
-    String getName();
 
     String getDisplayText();
 

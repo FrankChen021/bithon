@@ -101,13 +101,14 @@ public class DataSourceApi implements IDataSourceApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
-        return this.metricStorage.createMetricReader(schema).groupBy(new GroupByQuery(schema,
-                                                                                      request.getMetrics(),
-                                                                                      request.getAggregators(),
-                                                                                      request.getFilters(),
-                                                                                      Interval.of(start, end),
-                                                                                      request.getGroupBy(),
-                                                                                      request.getOrderBy()));
+        return this.metricStorage.createMetricReader(schema).groupBy(GroupByQuery.builder()
+                                                                                 .dataSource(schema)
+                                                                                 .metrics(request.getMetrics())
+                                                                                 .aggregators(request.getAggregators())
+                                                                                 .filters(request.getFilters())
+                                                                                 .interval(Interval.of(start, end))
+                                                                                 .groupBys(request.getGroupBy())
+                                                                                 .orderBy(request.getOrderBy()).build());
     }
 
     @Override
@@ -125,6 +126,19 @@ public class DataSourceApi implements IDataSourceApi {
         // TODO: refactor the storage reader so that the data source is working for all storages
         IMetricReader reader = this.metricStorage.createMetricReader(schema);
         return new ListQueryResponse(reader.listSize(query), reader.list(query));
+    }
+
+    @Override
+    public List<Map<String, Object>> query(GeneralQueryRequest request) {
+        if ("groupBy".equals(request.getType())) {
+
+            DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+            GroupByQuery groupByQuery = this.dataSourceService.convertToGroupByQuery(schema, request);
+
+            return this.metricStorage.createMetricReader(schema).groupBy(groupByQuery);
+        }
+        return null;
     }
 
     @Override
@@ -186,6 +200,7 @@ public class DataSourceApi implements IDataSourceApi {
                             .collect(Collectors.toList());
     }
 
+    @Deprecated
     @Override
     public Collection<Map<String, String>> getDimensions(GetDimensionRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());

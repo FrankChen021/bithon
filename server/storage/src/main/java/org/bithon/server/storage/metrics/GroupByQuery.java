@@ -16,13 +16,15 @@
 
 package org.bithon.server.storage.metrics;
 
+import lombok.Builder;
 import lombok.Data;
+import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,12 +32,14 @@ import java.util.List;
  * @date 1/11/21 2:50 pm
  */
 @Data
+@Builder
 public class GroupByQuery {
     private final DataSourceSchema dataSource;
 
     private final List<String> metrics;
     private final List<IQueryStageAggregator> aggregators;
 
+    private final List<PostAggregatorMetricSpec> postAggregators;
     private final Collection<IFilter> filters;
     private final Interval interval;
 
@@ -45,16 +49,18 @@ public class GroupByQuery {
     public GroupByQuery(DataSourceSchema dataSource,
                         List<String> metrics,
                         @Nullable List<IQueryStageAggregator> aggregators,
+                        @Nullable List<PostAggregatorMetricSpec> postAggregators,
                         Collection<IFilter> filters,
                         Interval interval,
                         @Nullable List<String> groupBys,
                         @Nullable OrderBy orderBy) {
         this.dataSource = dataSource;
-        this.metrics = metrics == null ? Collections.emptyList() : metrics;
-        this.aggregators = aggregators == null ? Collections.emptyList() : aggregators;
+        this.metrics = CollectionUtils.emptyOrOriginal(metrics);
+        this.aggregators = CollectionUtils.emptyOrOriginal(aggregators);
+        this.postAggregators = CollectionUtils.emptyOrOriginal(postAggregators);
         this.filters = filters;
         this.interval = interval;
-        this.groupBys = groupBys == null ? Collections.emptyList() : groupBys;
+        this.groupBys = CollectionUtils.emptyOrOriginal(groupBys);
         this.orderBy = orderBy;
     }
 }

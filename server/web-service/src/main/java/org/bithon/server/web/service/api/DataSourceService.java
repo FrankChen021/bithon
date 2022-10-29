@@ -18,11 +18,20 @@ package org.bithon.server.web.service.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
+import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.api.QueryStageAggregators;
+import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
+import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
+import org.bithon.server.storage.metrics.GroupByQuery;
 import org.bithon.server.storage.metrics.IMetricStorage;
+import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.TimeseriesQueryV2;
 import org.springframework.stereotype.Service;
 
@@ -62,7 +71,7 @@ public class DataSourceService {
      */
     public TimeSeriesQueryResult timeseriesQuery(TimeseriesQueryV2 query) {
         // Use LinkedHashSet to keep the order of input metric list
-        Set<String> metrics = new LinkedHashSet(query.getAggregators().size() + query.getMetrics().size());
+        Set<String> metrics = new LinkedHashSet<>(query.getAggregators().size() + query.getMetrics().size());
         metrics.addAll(query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList()));
         metrics.addAll(query.getMetrics());
 
@@ -120,6 +129,61 @@ public class DataSourceService {
         result.metrics = map.values();
 
         return result;
+    }
+
+    public GroupByQuery convertToGroupByQuery(DataSourceSchema schema, GeneralQueryRequest query) {
+        GroupByQuery.GroupByQueryBuilder builder = GroupByQuery.builder();
+
+        List<PostAggregatorMetricSpec> postAggregators = new ArrayList<>(4);
+        List<String> groupBys = new ArrayList<>(4);
+        List<IQueryStageAggregator> aggregators = new ArrayList<>(4);
+
+        for (GeneralQueryRequest.AbstractQueryColumn column : query.getColumns()) {
+            if (column instanceof GeneralQueryRequest.ExpressionQueryColumn) {
+                // expression metric
+                PostAggregatorMetricSpec post = new PostAggregatorMetricSpec(column.getName(),
+                                                                             column.getName(),
+                                                                             "",
+                                                                             ((GeneralQueryRequest.ExpressionQueryColumn) column).getExpression(),
+                                                                             null,
+                                                                             false);
+                post.setOwner(schema);
+                postAggregators.add(post);
+                continue;
+            }
+
+            GeneralQueryRequest.QueryColumn queryColumn = (GeneralQueryRequest.QueryColumn) column;
+
+            IColumnSpec columnSpec = schema.getColumnByName(queryColumn.getName());
+            if (columnSpec == null) {
+                throw new RuntimeException(StringUtils.format("column [%s] does not exist.", column.getName()));
+            }
+            if (columnSpec instanceof IDimensionSpec) {
+                groupBys.add(columnSpec.getName());
+                continue;
+            }
+
+            // metric
+            IQueryStageAggregator aggregator;
+            if (queryColumn.getAggregator() != null) {
+                aggregator = QueryStageAggregators.create(queryColumn.getAggregator(), queryColumn.getName(), queryColumn.getField());
+            } else {
+                aggregator = ((IMetricSpec) columnSpec).getQueryAggregator();
+            }
+            aggregators.add(aggregator);
+        }
+
+        TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
+        TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
+
+        return builder.groupBys(groupBys)
+                      .aggregators(aggregators)
+                      .postAggregators(postAggregators)
+                      .dataSource(schema)
+                      .filters(CollectionUtils.emptyOrOriginal(query.getFilters()))
+                      .interval(Interval.of(start, end, (int) (end.toSeconds() - start.toSeconds())))
+                      .orderBy(query.getOrderBy())
+                      .build();
     }
 
     @Data

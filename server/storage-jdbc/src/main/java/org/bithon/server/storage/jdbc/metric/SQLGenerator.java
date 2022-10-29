@@ -66,8 +66,7 @@ public class SQLGenerator implements IExpressionVisitor {
 
     @Override
     public void visit(OrderByExpression orderByExpression) {
-        sb.append("ORDER BY ");
-        sb.append('\"');
+        sb.append("\nORDER BY \"");
         sb.append(orderByExpression.getField());
         sb.append('\"');
 
@@ -83,7 +82,7 @@ public class SQLGenerator implements IExpressionVisitor {
         for (IExpression field : fieldsExpression.getFields()) {
             field.accept(this);
 
-            sb.append(',');
+            sb.append(",\n");
         }
         int last = sb.length() - 1;
         if (sb.charAt(last) == ',') {
@@ -137,17 +136,17 @@ public class SQLGenerator implements IExpressionVisitor {
 
     @Override
     public void visit(WhereExpression whereExpression) {
-        sb.append("WHERE ");
+        sb.append("\nWHERE ");
         for (String expression : whereExpression.getExpressions()) {
             sb.append(expression);
-            sb.append(" AND ");
+            sb.append("\nAND ");
         }
         sb.delete(sb.length() - 4, sb.length());
     }
 
     @Override
     public void visit(GroupByExpression groupByExpression) {
-        sb.append("GROUP BY ");
+        sb.append("\nGROUP BY ");
         for (String field : groupByExpression.getFields()) {
             sb.append('\"');
             sb.append(field);

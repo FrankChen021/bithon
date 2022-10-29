@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.spec.gauge.DoubleGaugeMetricSpec;
@@ -45,7 +46,7 @@ import org.bithon.server.storage.datasource.typing.IValueType;
     @JsonSubTypes.Type(name = IMetricSpec.POST, value = PostAggregatorMetricSpec.class),
     @JsonSubTypes.Type(name = IMetricSpec.COUNT, value = CountMetricSpec.class),
 })
-public interface IMetricSpec {
+public interface IMetricSpec extends IColumnSpec {
 
     /**
      * for Gauge
@@ -64,12 +65,6 @@ public interface IMetricSpec {
     String LONG_MAX = "longMax";
 
     String getType();
-
-    /**
-     * the name in the metric storage.
-     * can NOT be null
-     */
-    String getName();
 
     /**
      * the name in the original message.

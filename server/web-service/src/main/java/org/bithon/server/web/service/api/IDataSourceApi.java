@@ -41,6 +41,12 @@ public interface IDataSourceApi {
     @PostMapping("/api/datasource/list")
     ListQueryResponse list(@Validated @RequestBody ListQueryRequest request);
 
+    /**
+     * A unified interface that will supersede {@link #groupBy(GroupByQueryRequest)} and {@link #list(ListQueryRequest)}
+     */
+    @PostMapping("/api/datasource/query")
+    List<Map<String, Object>> query(@Validated @RequestBody GeneralQueryRequest request);
+    
     @PostMapping("/api/datasource/schemas")
     Map<String, DataSourceSchema> getSchemas();
 

@@ -54,6 +54,7 @@ import org.jooq.Record;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -83,6 +84,7 @@ public class MetricJdbcReader implements IMetricReader {
         SelectExpression selectExpression = createSelectExpression(query.getDataSource(),
                                                                    query.getMetrics(),
                                                                    query.getAggregators(),
+                                                                   Collections.emptyList(),
                                                                    query.getFilters(),
                                                                    query.getInterval(),
                                                                    query.getGroupBy(),
@@ -112,7 +114,7 @@ public class MetricJdbcReader implements IMetricReader {
 
     /**
      * Example result SQL if window function is used for first/last aggregator
-     *
+     * <p>
      * SELECT
      *   "timestamp" AS "_timestamp",
      *   sum("totalTaskCount") AS "totalTaskCount",
@@ -141,6 +143,7 @@ public class MetricJdbcReader implements IMetricReader {
     private SelectExpression createSelectExpression(DataSourceSchema dataSource,
                                                     List<String> metrics,
                                                     List<IQueryStageAggregator> aggregators,
+                                                    List<PostAggregatorMetricSpec> postAggregators,
                                                     Collection<IFilter> filters,
                                                     Interval interval,
                                                     List<String> groupBys,
@@ -178,7 +181,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                                                           interval.getTotalLength(),
                                                                                           interval.getStep());
         for (IQueryStageAggregator aggregator : aggregatorList) {
-            // if window function is contained, the final SQL has an sub-query
+            // if window function is contained, the final SQL has a sub-query
             if (sqlFormatter.useWindowFunctionAsAggregator(aggregator)) {
                 subSelectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
 
@@ -199,7 +202,7 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         // post aggregators
-        if (!CollectionUtils.isEmpty(metrics)) {
+        if (!CollectionUtils.isEmpty(metrics) || !CollectionUtils.isEmpty(postAggregators)) {
             MetricFieldsClauseBuilder metricFieldsBuilder = this.createMetriClauseBuilder(sqlTableName,
                                                                                           dataSource,
                                                                                           aggregatorExpressions,
@@ -211,6 +214,9 @@ public class MetricJdbcReader implements IMetricReader {
                 if (metricSpec instanceof PostAggregatorMetricSpec) {
                     selectExpression.getFieldsExpression().addField(new StringExpression(metricSpec.accept(metricFieldsBuilder)));
                 }
+            }
+            for (PostAggregatorMetricSpec postMetricSpec : postAggregators) {
+                selectExpression.getFieldsExpression().addField(new StringExpression(postMetricSpec.accept(metricFieldsBuilder)));
             }
         }
 
@@ -227,6 +233,7 @@ public class MetricJdbcReader implements IMetricReader {
         //
         // build GroupByExpression
         //
+        subSelectExpression.getFieldsExpression().addFields(groupBys);
         selectExpression.getFieldsExpression().addFields(groupBys);
         selectExpression.getGroupBy().addFields(groupBys);
 
@@ -256,6 +263,7 @@ public class MetricJdbcReader implements IMetricReader {
         SelectExpression selectExpression = createSelectExpression(query.getDataSource(),
                                                                    query.getMetrics(),
                                                                    query.getAggregators(),
+                                                                   query.getPostAggregators(),
                                                                    query.getFilters(),
                                                                    query.getInterval(),
                                                                    query.getGroupBys(),

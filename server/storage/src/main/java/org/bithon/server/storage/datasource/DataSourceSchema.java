@@ -153,6 +153,11 @@ public class DataSourceSchema {
         return null;
     }
 
+    public IColumnSpec getColumnByName(String name) {
+        IDimensionSpec dimSpec = dimensionMap.get(name);
+        return dimSpec == null ? getMetricSpecByName(name) : dimSpec;
+    }
+
     @Override
     public int hashCode() {
         return this.name.hashCode();
