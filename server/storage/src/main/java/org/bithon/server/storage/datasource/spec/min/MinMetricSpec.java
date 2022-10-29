@@ -58,7 +58,10 @@ public abstract class MinMetricSpec implements IMetricSpec {
         this.displayText = displayText;
         this.unit = unit;
         this.visible = visible == null ? true : visible;
-        this.queryStageAggregator = new QueryStageAggregators.MinAggregator(name, field);
+
+        // For IMetricSpec, the `name` property is the right text mapped a column in underlying database,
+        // So the two parameters of following ctor are all `name` properties
+        this.queryStageAggregator = new QueryStageAggregators.MinAggregator(name, name);
     }
 
     @Override

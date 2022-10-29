@@ -56,7 +56,7 @@ public abstract class SumMetricSpec implements IMetricSpec {
         this.displayText = displayText;
         this.unit = unit;
         this.visible = visible == null ? true : visible;
-        this.queryStageAggregator = new QueryStageAggregators.SumAggregator(name, field);
+        this.queryStageAggregator = new QueryStageAggregators.SumAggregator(name, name);
     }
 
     @Override

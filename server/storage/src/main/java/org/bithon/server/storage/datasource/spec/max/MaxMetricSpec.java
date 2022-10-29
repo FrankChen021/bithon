@@ -58,7 +58,7 @@ public abstract class MaxMetricSpec implements IMetricSpec {
         this.displayText = displayText;
         this.unit = unit;
         this.visible = visible == null ? true : visible;
-        this.queryStageAggregator = new QueryStageAggregators.MaxAggregator(name, field);
+        this.queryStageAggregator = new QueryStageAggregators.MaxAggregator(name, name);
     }
 
     @Override
