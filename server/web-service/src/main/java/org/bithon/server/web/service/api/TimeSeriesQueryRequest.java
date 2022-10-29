@@ -20,37 +20,32 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.metrics.IFilter;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/1/9 1:03 下午
+ * @date 2021/1/30 8:20 下午
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TimeSeriesQueryRequest {
-    @NotEmpty
-    private String startTimeISO8601;
-
-    @NotEmpty
-    private String endTimeISO8601;
+    @Valid
+    @NotNull
+    private IntervalRequest interval;
 
     @NotEmpty
     private String dataSource;
 
-    @Size(min = 1)
-    private List<String> metrics;
-
-    private List<String> groups;
-
     private List<IFilter> filters;
-
-    @Deprecated
-    private List<IFilter> dimensions;
+    private List<String> metrics;
+    private List<IQueryStageAggregator> aggregators;
+    private List<String> groupBy;
 }

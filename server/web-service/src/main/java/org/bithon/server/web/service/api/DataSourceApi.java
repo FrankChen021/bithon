@@ -33,14 +33,11 @@ import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
-import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.bithon.server.storage.metrics.TimeseriesQueryV2;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -80,48 +77,8 @@ public class DataSourceApi implements IDataSourceApi {
         private List<String> groups = Collections.emptyList();
     }
 
-    @Deprecated
-    @PostMapping("/api/datasource/metrics")
-    public List<Map<String, Object>> metrics(@Valid @RequestBody GetMetricsRequest request) {
-        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
-
-        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
-
-        return dataSourceService.oldTimeseriesQuery(new TimeseriesQuery(schema,
-                                                                        request.getMetrics(),
-                                                                        CollectionUtils.isNotEmpty(request.getDimensions())
-                                                                        ? request.getDimensions().values()
-                                                                        : request.getFilters(),
-                                                                        Interval.of(start, end),
-                                                                        request.getGroups()));
-    }
-
     @Override
     public DataSourceService.TimeSeriesQueryResult timeseries(TimeSeriesQueryRequest request) {
-        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
-
-        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
-
-        TimeseriesQuery query = new TimeseriesQuery(schema,
-                                                    request.getMetrics(),
-                                                    request.getDimensions() != null ? request.getDimensions() : request.getFilters(),
-                                                    Interval.of(start, end),
-                                                    request.getGroups() == null ? Collections.emptyList() : request.getGroups());
-
-        return dataSourceService.timeseriesQuery(TimeseriesQueryV2.builder()
-                                                                  .dataSource(query.getDataSource())
-                                                                  .metrics(query.getMetrics())
-                                                                  .aggregators(Collections.emptyList())
-                                                                  .interval(query.getInterval())
-                                                                  .groupBy(query.getGroupBys())
-                                                                  .filters(query.getFilters())
-                                                                  .build());
-    }
-
-    @Override
-    public DataSourceService.TimeSeriesQueryResult timeseries(TimeSeriesQueryRequestV2 request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         TimeSpan start = TimeSpan.fromISO8601(request.getInterval().getStartISO8601());
