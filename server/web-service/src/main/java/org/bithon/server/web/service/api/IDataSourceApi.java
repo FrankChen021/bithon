@@ -32,11 +32,8 @@ import java.util.Map;
  */
 public interface IDataSourceApi {
 
-    @PostMapping("/api/datasource/timeseries")
-    DataSourceService.TimeSeriesQueryResult timeseries(@Validated @RequestBody TimeSeriesQueryRequest request);
-
     @PostMapping("/api/datasource/timeseries/v2")
-    DataSourceService.TimeSeriesQueryResult timeseries(@Validated @RequestBody TimeSeriesQueryRequestV2 request);
+    DataSourceService.TimeSeriesQueryResult timeseries(@Validated @RequestBody TimeSeriesQueryRequest request);
 
     @PostMapping("/api/datasource/groupBy")
     List<Map<String, Object>> groupBy(@Validated @RequestBody GroupByQueryRequest request);
@@ -59,6 +56,7 @@ public interface IDataSourceApi {
     @PostMapping("/api/datasource/name")
     Collection<DisplayableText> getSchemaNames();
 
+    @Deprecated
     @PostMapping("/api/datasource/dimensions")
     Collection<Map<String, String>> getDimensions(@Validated @RequestBody GetDimensionRequest request);
 

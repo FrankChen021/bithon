@@ -23,7 +23,6 @@ import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.metrics.IMetricStorage;
-import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.bithon.server.storage.metrics.TimeseriesQueryV2;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -55,55 +53,6 @@ public class DataSourceService {
 
     public DataSourceService(IMetricStorage metricStorage) {
         this.metricStorage = metricStorage;
-    }
-
-    public List<Map<String, Object>> oldTimeseriesQuery(TimeseriesQuery query) {
-        List<Map<String, Object>> queryResult = this.metricStorage.createMetricReader(query.getDataSource())
-                                                                  .timeseries(TimeseriesQueryV2.builder()
-                                                                                               .dataSource(query.getDataSource())
-                                                                                               .metrics(query.getMetrics())
-                                                                                               .aggregators(Collections.emptyList())
-                                                                                               .interval(query.getInterval())
-                                                                                               .groupBy(query.getGroupBys())
-                                                                                               .filters(query.getFilters())
-                                                                                               .build());
-
-        //
-        // fill empty time slot bucket
-        //
-        List<Map<String, Object>> returns = new ArrayList<>();
-        int j = 0;
-        TimeSpan start = query.getInterval().getStartTime();
-        TimeSpan end = query.getInterval().getEndTime();
-        int step = query.getInterval().getStep();
-        for (long bucket = start.toSeconds() / step * step, endBucket = end.toSeconds() / step * step;
-             bucket < endBucket;
-             bucket += step) {
-            if (j < queryResult.size()) {
-                long nextSlot = ((Number) queryResult.get(j).get(TIMESTAMP_QUERY_NAME)).longValue();
-                while (bucket < nextSlot) {
-                    Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
-                    empty.put(TIMESTAMP_QUERY_NAME, bucket * 1000);
-                    query.getMetrics().forEach((metric) -> empty.put(metric, 0));
-                    returns.add(empty);
-                    bucket += step;
-                }
-
-                // convert to millisecond
-                queryResult.get(j).put(TIMESTAMP_QUERY_NAME, nextSlot * 1000);
-                returns.add(queryResult.get(j++));
-            } else {
-                Map<String, Object> empty = new HashMap<>(query.getMetrics().size());
-                empty.put(TIMESTAMP_QUERY_NAME, bucket * 1000);
-                query.getMetrics().forEach((metric) -> empty.put(metric, 0));
-                returns.add(empty);
-            }
-        }
-        while (j < queryResult.size()) {
-            queryResult.get(j).put(TIMESTAMP_QUERY_NAME, ((Number) queryResult.get(j).get(TIMESTAMP_QUERY_NAME)).longValue() * 1000L);
-            returns.add(queryResult.get(j++));
-        }
-        return returns;
     }
 
     /**
