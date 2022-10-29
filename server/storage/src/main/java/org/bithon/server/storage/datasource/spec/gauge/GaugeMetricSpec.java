@@ -61,7 +61,7 @@ public abstract class GaugeMetricSpec implements IMetricSpec {
         this.displayText = displayText;
         this.unit = unit;
         this.visible = visible == null ? true : visible;
-        this.queryStageAggregator = new QueryStageAggregators.LastAggregator(name, field);
+        this.queryStageAggregator = new QueryStageAggregators.LastAggregator(name, name);
     }
 
     @Override

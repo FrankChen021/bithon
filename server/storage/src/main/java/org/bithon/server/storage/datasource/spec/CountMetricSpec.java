@@ -50,7 +50,7 @@ public class CountMetricSpec implements IMetricSpec {
                            @JsonProperty("field") @Nullable String field) {
         this.name = name;
         this.field = field;
-        this.queryStageAggregator = new QueryStageAggregators.CountAggregator(name, field);
+        this.queryStageAggregator = new QueryStageAggregators.CountAggregator(name, name);
     }
 
     @JsonIgnore
