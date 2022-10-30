@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.Getter;
 import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.metrics.Limit;
 import org.bithon.server.storage.metrics.OrderBy;
 
 import javax.annotation.Nullable;
@@ -112,8 +113,5 @@ public class GeneralQueryRequest {
     private OrderBy orderBy;
 
     @Nullable
-    private Integer limit;
-
-    @Nullable
-    private Integer offset;
+    private Limit limit;
 }

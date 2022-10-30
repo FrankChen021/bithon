@@ -24,6 +24,7 @@ import org.bithon.server.storage.jdbc.dsl.sql.FunctionExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.GroupByExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.IExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.IExpressionVisitor;
+import org.bithon.server.storage.jdbc.dsl.sql.LimitExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.NameExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.OrderByExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.SelectExpression;
@@ -37,19 +38,19 @@ import org.bithon.server.storage.jdbc.dsl.sql.WhereExpression;
  */
 public class SQLGenerator implements IExpressionVisitor {
 
-    private final StringBuilder sb = new StringBuilder(512);
+    private final StringBuilder sql = new StringBuilder(512);
     private int nestedSelect = 0;
 
     public String getSQL() {
-        return sb.toString();
+        return sql.toString();
     }
 
     @Override
     public void before(SelectExpression selectExpression) {
         if (nestedSelect++ > 0) {
-            sb.append("( ");
+            sql.append("( ");
         }
-        sb.append("SELECT ");
+        sql.append("SELECT ");
     }
 
     @Override
@@ -60,21 +61,21 @@ public class SQLGenerator implements IExpressionVisitor {
     @Override
     public void after(SelectExpression selectExpression) {
         if (--nestedSelect > 0) {
-            sb.append(") ");
+            sql.append(") ");
         }
     }
 
     @Override
     public void visit(OrderByExpression orderByExpression) {
-        sb.append("ORDER BY ");
-        sb.append('\"');
-        sb.append(orderByExpression.getField());
-        sb.append('\"');
+        sql.append("ORDER BY ");
+        sql.append('\"');
+        sql.append(orderByExpression.getField());
+        sql.append('\"');
 
         if (!StringUtils.isEmpty(orderByExpression.getOrder())) {
-            sb.append(' ');
-            sb.append(orderByExpression.getOrder());
-            sb.append(' ');
+            sql.append(' ');
+            sql.append(orderByExpression.getOrder());
+            sql.append(' ');
         }
     }
 
@@ -83,11 +84,21 @@ public class SQLGenerator implements IExpressionVisitor {
         for (IExpression field : fieldsExpression.getFields()) {
             field.accept(this);
 
-            sb.append(',');
+            sql.append(',');
         }
-        int last = sb.length() - 1;
-        if (sb.charAt(last) == ',') {
-            sb.delete(sb.length() - 1, sb.length());
+        int last = sql.length() - 1;
+        if (sql.charAt(last) == ',') {
+            sql.delete(sql.length() - 1, sql.length());
+        }
+    }
+
+    @Override
+    public void visit(LimitExpression limitExpression) {
+        sql.append(" LIMIT ");
+        sql.append(limitExpression.getLimit());
+        if (limitExpression.getOffset() != null && limitExpression.getOffset() > 0) {
+            sql.append(" OFFSET ");
+            sql.append(limitExpression.getOffset());
         }
     }
 
@@ -103,57 +114,57 @@ public class SQLGenerator implements IExpressionVisitor {
 
     @Override
     public void visit(StringExpression stringExpression) {
-        sb.append(stringExpression.getStr());
+        sql.append(stringExpression.getStr());
     }
 
     @Override
     public void visit(AliasExpression aliasExpression) {
-        sb.append("AS");
-        sb.append('\"');
-        sb.append(aliasExpression.getName());
-        sb.append('\"');
+        sql.append("AS");
+        sql.append('\"');
+        sql.append(aliasExpression.getName());
+        sql.append('\"');
     }
 
     @Override
     public void visit(NameExpression nameExpression) {
-        sb.append('\"');
-        sb.append(nameExpression.getName());
-        sb.append('\"');
-        sb.append(' ');
+        sql.append('\"');
+        sql.append(nameExpression.getName());
+        sql.append('\"');
+        sql.append(' ');
     }
 
     @Override
     public void visit(FromExpression fromExpression) {
-        sb.append(" FROM ");
+        sql.append(" FROM ");
     }
 
     @Override
     public void visit(TableExpression table) {
-        sb.append('\"');
-        sb.append(table.getName());
-        sb.append('\"');
-        sb.append(' ');
+        sql.append('\"');
+        sql.append(table.getName());
+        sql.append('\"');
+        sql.append(' ');
     }
 
     @Override
     public void visit(WhereExpression whereExpression) {
-        sb.append("WHERE ");
+        sql.append("WHERE ");
         for (String expression : whereExpression.getExpressions()) {
-            sb.append(expression);
-            sb.append(" AND ");
+            sql.append(expression);
+            sql.append(" AND ");
         }
-        sb.delete(sb.length() - 4, sb.length());
+        sql.delete(sql.length() - 4, sql.length());
     }
 
     @Override
     public void visit(GroupByExpression groupByExpression) {
-        sb.append("GROUP BY ");
+        sql.append("GROUP BY ");
         for (String field : groupByExpression.getFields()) {
-            sb.append('\"');
-            sb.append(field);
-            sb.append('\"');
-            sb.append(" ,");
+            sql.append('\"');
+            sql.append(field);
+            sql.append('\"');
+            sql.append(" ,");
         }
-        sb.delete(sb.length() - 1, sb.length());
+        sql.delete(sql.length() - 1, sql.length());
     }
 }

@@ -43,8 +43,13 @@ public class GroupByQuery {
     private final Collection<IFilter> filters;
     private final Interval interval;
 
-    private final List<String> groupBys;
+    private final List<String> groupBy;
+
+    @Nullable
     private final OrderBy orderBy;
+
+    @Nullable
+    private final Limit limit;
 
     public GroupByQuery(DataSourceSchema dataSource,
                         List<String> metrics,
@@ -52,15 +57,17 @@ public class GroupByQuery {
                         @Nullable List<PostAggregatorMetricSpec> postAggregators,
                         Collection<IFilter> filters,
                         Interval interval,
-                        @Nullable List<String> groupBys,
-                        @Nullable OrderBy orderBy) {
+                        @Nullable List<String> groupBy,
+                        @Nullable OrderBy orderBy,
+                        @Nullable Limit limit) {
         this.dataSource = dataSource;
         this.metrics = CollectionUtils.emptyOrOriginal(metrics);
         this.aggregators = CollectionUtils.emptyOrOriginal(aggregators);
         this.postAggregators = CollectionUtils.emptyOrOriginal(postAggregators);
         this.filters = filters;
         this.interval = interval;
-        this.groupBys = CollectionUtils.emptyOrOriginal(groupBys);
+        this.groupBy = CollectionUtils.emptyOrOriginal(groupBy);
         this.orderBy = orderBy;
+        this.limit = limit;
     }
 }

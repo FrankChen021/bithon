@@ -32,6 +32,7 @@ public class SelectExpression implements IExpression {
     private WhereExpression where;
     private GroupByExpression groupBy;
     private OrderByExpression orderBy;
+    private LimitExpression limit;
 
     @Override
     public void accept(IExpressionVisitor visitor) {
@@ -47,6 +48,9 @@ public class SelectExpression implements IExpression {
             }
             if (orderBy != null) {
                 orderBy.accept(visitor);
+            }
+            if (limit != null) {
+                limit.accept(visitor);
             }
         }
         visitor.after(this);

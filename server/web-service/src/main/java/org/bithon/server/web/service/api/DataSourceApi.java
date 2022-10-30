@@ -107,7 +107,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                                                  .aggregators(request.getAggregators())
                                                                                  .filters(request.getFilters())
                                                                                  .interval(Interval.of(start, end))
-                                                                                 .groupBys(request.getGroupBy())
+                                                                                 .groupBy(request.getGroupBy())
                                                                                  .orderBy(request.getOrderBy()).build());
     }
 

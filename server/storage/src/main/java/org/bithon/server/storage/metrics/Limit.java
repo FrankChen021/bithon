@@ -24,8 +24,6 @@ import lombok.Data;
  */
 @Data
 public class Limit {
-    public static Limit DEFAULT = new Limit();
-
     private int limit = 10;
     private int offset = 0;
 }

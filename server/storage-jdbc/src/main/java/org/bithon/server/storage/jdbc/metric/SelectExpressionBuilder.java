@@ -27,6 +27,7 @@ import org.bithon.server.storage.datasource.spec.MetricSpecVisitorAdaptor;
 import org.bithon.server.storage.datasource.spec.PostAggregatorExpressionVisitor;
 import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.jdbc.dsl.sql.GroupByExpression;
+import org.bithon.server.storage.jdbc.dsl.sql.LimitExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.NameExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.OrderByExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.SelectExpression;
@@ -36,8 +37,10 @@ import org.bithon.server.storage.jdbc.dsl.sql.WhereExpression;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.Interval;
+import org.bithon.server.storage.metrics.Limit;
 import org.bithon.server.storage.metrics.OrderBy;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,7 +70,12 @@ public class SelectExpressionBuilder {
     private Interval interval;
 
     private List<String> groupBy;
+
+    @Nullable
     private OrderBy orderBy;
+
+    @Nullable
+    private Limit limit;
 
     private ISqlDialect sqlDialect;
 
@@ -113,8 +121,13 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    public SelectExpressionBuilder orderBy(OrderBy orderBy) {
+    public SelectExpressionBuilder orderBy(@Nullable OrderBy orderBy) {
         this.orderBy = orderBy;
+        return this;
+    }
+
+    public SelectExpressionBuilder limit(@Nullable Limit limit) {
+        this.limit = limit;
         return this;
     }
 
@@ -381,10 +394,13 @@ public class SelectExpressionBuilder {
         selectExpression.getGroupBy().addFields(groupBy);
 
         //
-        // build OrderByExpression
+        // build OrderBy/Limit expression
         //
         if (orderBy != null) {
             selectExpression.setOrderBy(new OrderByExpression(orderBy.getName(), orderBy.getOrder()));
+        }
+        if (limit != null) {
+            selectExpression.setLimit(new LimitExpression(limit.getLimit(), limit.getOffset()));
         }
 
         //

@@ -135,9 +135,10 @@ public class DataSourceService {
         GroupByQuery.GroupByQueryBuilder builder = GroupByQuery.builder();
 
         List<PostAggregatorMetricSpec> postAggregators = new ArrayList<>(4);
-        List<String> groupBys = new ArrayList<>(4);
+        List<String> groupBy = new ArrayList<>(4);
         List<IQueryStageAggregator> aggregators = new ArrayList<>(4);
 
+        // Turn into internal objects(post aggregators...)
         for (GeneralQueryRequest.AbstractQueryColumn column : query.getColumns()) {
             if (column instanceof GeneralQueryRequest.ExpressionQueryColumn) {
                 // expression metric
@@ -159,7 +160,7 @@ public class DataSourceService {
                 throw new RuntimeException(StringUtils.format("column [%s] does not exist.", column.getName()));
             }
             if (columnSpec instanceof IDimensionSpec) {
-                groupBys.add(columnSpec.getName());
+                groupBy.add(columnSpec.getName());
                 continue;
             }
 
@@ -176,13 +177,14 @@ public class DataSourceService {
         TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
 
-        return builder.groupBys(groupBys)
+        return builder.groupBy(groupBy)
                       .aggregators(aggregators)
                       .postAggregators(postAggregators)
                       .dataSource(schema)
                       .filters(CollectionUtils.emptyOrOriginal(query.getFilters()))
                       .interval(Interval.of(start, end, (int) (end.toSeconds() - start.toSeconds())))
                       .orderBy(query.getOrderBy())
+                      .limit(query.getLimit())
                       .build();
     }
 

@@ -103,8 +103,9 @@ public class MetricJdbcReader implements IMetricReader {
                                                                    .postAggregators(query.getPostAggregators())
                                                                    .filters(query.getFilters())
                                                                    .interval(query.getInterval())
-                                                                   .groupBys(query.getGroupBys())
+                                                                   .groupBys(query.getGroupBy())
                                                                    .orderBy(query.getOrderBy())
+                                                                   .limit(query.getLimit())
                                                                    .sqlDialect(this.sqlDialect)
                                                                    .build();
 

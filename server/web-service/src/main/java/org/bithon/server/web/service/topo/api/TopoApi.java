@@ -72,7 +72,7 @@ public class TopoApi {
                                                                       new DimensionFilter("srcEndpointType",
                                                                                           new StringEqualMatcher(EndPointType.APPLICATION.name()))))
                                                .interval(Interval.of(start, end))
-                                               .groupBys(Arrays.asList("dstEndpoint", "dstEndpointType"))
+                                               .groupBy(Arrays.asList("dstEndpoint", "dstEndpointType"))
                                                .build();
 
         List<Map<String, Object>> callees = metricReader.groupBy(calleeQuery);
@@ -113,7 +113,7 @@ public class TopoApi {
                                                                       new DimensionFilter("dstEndpointType",
                                                                                           new StringEqualMatcher(EndPointType.APPLICATION.name()))))
                                                .interval(Interval.of(start, end))
-                                               .groupBys(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
+                                               .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
         List<Map<String, Object>> callers = metricReader.groupBy(callerQuery);
 
         y = 300;

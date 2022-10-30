@@ -47,4 +47,6 @@ public interface IExpressionVisitor {
     void visit(StringExpression stringExpression);
 
     void visit(FieldsExpression fieldsExpression);
+
+    void visit(LimitExpression limitExpression);
 }

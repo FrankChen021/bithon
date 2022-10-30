@@ -18,25 +18,24 @@ package org.bithon.server.storage.jdbc.dsl.sql;
 
 import lombok.Getter;
 
+import javax.annotation.Nullable;
+
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:55
+ * @date 2022/10/30 15:08
  */
-public class OrderByExpression implements IExpression {
+public class LimitExpression implements IExpression {
 
     @Getter
-    private final String field;
+    private int limit;
 
     @Getter
-    private final String order;
+    @Nullable
+    private Integer offset;
 
-    /**
-     * @param field
-     * @param order ASC or DESC
-     */
-    public OrderByExpression(String field, String order) {
-        this.field = field;
-        this.order = order;
+    public LimitExpression(int limit, @Nullable Integer offset) {
+        this.limit = limit;
+        this.offset = offset;
     }
 
     @Override
