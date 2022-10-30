@@ -108,10 +108,10 @@ public class MetricStorage extends MetricJdbcStorage {
     public IMetricReader createMetricReader(DataSourceSchema schema) {
         return new MetricJdbcReader(dslContext, getSqlExpressionFormatter()) {
             @Override
-            protected MetricFieldsClauseBuilder createMetriClauseBuilder(String tableName,
-                                                                         DataSourceSchema dataSource,
-                                                                         Set<String> existingAggregators,
-                                                                         Map<String, Object> variables) {
+            protected MetricFieldsClauseBuilder createMetricClauseBuilder(String tableName,
+                                                                          DataSourceSchema dataSource,
+                                                                          Set<String> existingAggregators,
+                                                                          Map<String, Object> variables) {
                 return new ClickHouseMetricClauseBuilder(sqlFormatter, tableName, "OUTER", existingAggregators, dataSource, variables, true);
             }
         };

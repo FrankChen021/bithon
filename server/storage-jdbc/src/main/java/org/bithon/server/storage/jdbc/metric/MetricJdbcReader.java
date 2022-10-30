@@ -203,10 +203,10 @@ public class MetricJdbcReader implements IMetricReader {
 
         // post aggregators
         if (!CollectionUtils.isEmpty(metrics) || !CollectionUtils.isEmpty(postAggregators)) {
-            MetricFieldsClauseBuilder metricFieldsBuilder = this.createMetriClauseBuilder(sqlTableName,
-                                                                                          dataSource,
-                                                                                          aggregatorExpressions,
-                                                                                          ImmutableMap.of("interval", interval.getStep(),
+            MetricFieldsClauseBuilder metricFieldsBuilder = this.createMetricClauseBuilder(sqlTableName,
+                                                                                           dataSource,
+                                                                                           aggregatorExpressions,
+                                                                                           ImmutableMap.of("interval", interval.getStep(),
                                                                                                           "instanceCount", "count(distinct \"instanceName\")"));
 
             for (String metric : metrics) {
@@ -274,10 +274,10 @@ public class MetricJdbcReader implements IMetricReader {
         return executeSql(sqlGenerator.getSQL());
     }
 
-    protected MetricFieldsClauseBuilder createMetriClauseBuilder(String tableName,
-                                                                 DataSourceSchema dataSource,
-                                                                 Set<String> existingAggregators,
-                                                                 Map<String, Object> variables) {
+    protected MetricFieldsClauseBuilder createMetricClauseBuilder(String tableName,
+                                                                  DataSourceSchema dataSource,
+                                                                  Set<String> existingAggregators,
+                                                                  Map<String, Object> variables) {
         return new MetricFieldsClauseBuilder(this.sqlFormatter, tableName, "OUTER", existingAggregators, dataSource, variables);
     }
 
