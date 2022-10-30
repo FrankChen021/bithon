@@ -139,13 +139,13 @@ public class DataSourceService {
         List<IQueryStageAggregator> aggregators = new ArrayList<>(4);
 
         // Turn into internal objects(post aggregators...)
-        for (QueryColumn.AbstractQueryColumn column : query.getColumns()) {
-            if (column instanceof QueryColumn.ExpressionQueryColumn) {
+        for (QueryColumn column : query.getColumns()) {
+            if (column.getExpression() != null) {
                 // expression metric
                 PostAggregatorMetricSpec post = new PostAggregatorMetricSpec(column.getName(),
                                                                              column.getName(),
                                                                              "",
-                                                                             ((QueryColumn.ExpressionQueryColumn) column).getExpression(),
+                                                                             column.getExpression(),
                                                                              null,
                                                                              false);
                 post.setOwner(schema);
@@ -153,16 +153,14 @@ public class DataSourceService {
                 continue;
             }
 
-            QueryColumn.DefaultQueryColumn queryColumn = (QueryColumn.DefaultQueryColumn) column;
-
-            if (queryColumn.getAggregator() != null) {
-                aggregators.add(QueryStageAggregators.create(queryColumn.getAggregator(),
-                                                             queryColumn.getName(),
-                                                             queryColumn.getField()));
+            if (column.getAggregator() != null) {
+                aggregators.add(QueryStageAggregators.create(column.getAggregator(),
+                                                             column.getName(),
+                                                             column.getField()));
             } else {
-                IColumnSpec columnSpec = schema.getColumnByName(queryColumn.getField());
+                IColumnSpec columnSpec = schema.getColumnByName(column.getField());
                 if (columnSpec == null) {
-                    throw new RuntimeException(StringUtils.format("column [%s] does not exist.", queryColumn.getField()));
+                    throw new RuntimeException(StringUtils.format("column [%s] does not exist.", column.getField()));
                 }
                 if (columnSpec instanceof IDimensionSpec) {
                     groupBy.add(columnSpec.getName());

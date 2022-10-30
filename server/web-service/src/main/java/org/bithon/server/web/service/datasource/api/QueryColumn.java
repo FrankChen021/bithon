@@ -18,8 +18,6 @@ package org.bithon.server.web.service.datasource.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 
 import javax.annotation.Nullable;
@@ -28,58 +26,43 @@ import javax.annotation.Nullable;
  * @author frank.chen021@outlook.com
  * @date 2022/10/30 15:40
  */
+@Getter
 public class QueryColumn {
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = DefaultQueryColumn.class)
-    @JsonSubTypes(value = {
-        @JsonSubTypes.Type(name = "expression", value = ExpressionQueryColumn.class)
-    })
-    @Getter
-    public abstract static class AbstractQueryColumn {
-        protected final String name;
 
-        protected AbstractQueryColumn(String name) {
-            this.name = name;
-        }
+    /**
+     * the output name
+     */
+    private final String name;
+
+    /**
+     * the internal name in storage layer
+     */
+    @Nullable
+    private final String field;
+
+    /**
+     * Expression and aggregator properties are mutually exclusive.
+     * If both of them are provided, expression will take effect.
+     */
+    @Nullable
+    private final String expression;
+
+    @Nullable
+    private final String aggregator;
+
+    @JsonCreator
+    public QueryColumn(@JsonProperty("name") String name,
+                       @JsonProperty("field") String field,
+                       @JsonProperty("aggregator") String aggregator,
+                       @JsonProperty("expression") String expression) {
+        this.name = name;
+        this.field = field == null ? name : field;
+        this.aggregator = aggregator;
+        this.expression = expression;
     }
 
-    @Getter
-    public static class DefaultQueryColumn extends AbstractQueryColumn {
-        @Nullable
-        private final String aggregator;
-
-        @Nullable
-        private final String field;
-
-        @JsonCreator
-        public DefaultQueryColumn(@JsonProperty("name") String name,
-                                  @JsonProperty("field") String field,
-                                  @JsonProperty("aggregator") String aggregator) {
-            super(name);
-            this.aggregator = aggregator;
-            this.field = field == null ? name : field;
-        }
-
-        @JsonCreator
-        public static DefaultQueryColumn fromString(String str) {
-            return new DefaultQueryColumn(str, str, null);
-        }
-    }
-
-    @Getter
-    public static class ExpressionQueryColumn extends AbstractQueryColumn {
-        @Nullable
-        private final String expression;
-
-        @Nullable
-        private final String field;
-
-        @JsonCreator
-        public ExpressionQueryColumn(@JsonProperty("name") String name,
-                                     @JsonProperty("expression") String expression,
-                                     @JsonProperty("field") String field) {
-            super(name);
-            this.expression = expression;
-            this.field = field;
-        }
+    @JsonCreator
+    public static QueryColumn fromString(String str) {
+        return new QueryColumn(str, str, null, null);
     }
 }

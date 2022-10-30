@@ -34,7 +34,7 @@ public class GeneralQueryRequestTest {
                             + "  \"columns\": [\n"
                             + "    \"appName\",\n"
                             + "    {\"name\": \"instanceUpTime\", \"formatter\": \"compact_number\" },\n"
-                            + "    {\"name\": \"errorCount\", \"type\": \"expression\", \"expression\": \"errorCount/totalCount*100.0\",\"formatter\": \"compact_number\"}"
+                            + "    {\"name\": \"errorCount\", \"expression\": \"errorCount/totalCount*100.0\",\"formatter\": \"compact_number\"}"
                             + "  ],\n"
                             + "  \"orderBy\": {\n"
                             + "    \"name\": \"instanceUpTime\",\n"
@@ -44,9 +44,6 @@ public class GeneralQueryRequestTest {
 
         GeneralQueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                                                         .readValue(json, GeneralQueryRequest.class);
-        Assert.assertEquals(QueryColumn.DefaultQueryColumn.class, request.getColumns().get(0).getClass());
-        Assert.assertEquals(QueryColumn.DefaultQueryColumn.class, request.getColumns().get(1).getClass());
-        Assert.assertEquals(QueryColumn.ExpressionQueryColumn.class, request.getColumns().get(2).getClass());
 
         Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
         Assert.assertEquals("desc", request.getOrderBy().getOrder());
