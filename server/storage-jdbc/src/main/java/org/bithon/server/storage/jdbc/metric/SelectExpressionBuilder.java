@@ -41,6 +41,7 @@ import org.bithon.server.storage.metrics.OrderBy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class SelectExpressionBuilder {
     private DataSourceSchema dataSource;
 
     private List<String> metrics;
-    private List<IQueryStageAggregator> aggregators;
+    private Map<String, IQueryStageAggregator> aggregators;
 
     /**
      * This is an optional field, so a default value is needed.
@@ -86,7 +87,9 @@ public class SelectExpressionBuilder {
 
     public SelectExpressionBuilder aggregators(List<IQueryStageAggregator> aggregators) {
         // Create a new instance for empty aggregators because they might be modified during building
-        this.aggregators = CollectionUtils.isEmpty(aggregators) ? new ArrayList<>(4) : aggregators;
+        this.aggregators = CollectionUtils.isEmpty(aggregators) ?
+                           new HashMap<>(4) :
+                           aggregators.stream().collect(Collectors.toMap(IQueryStageAggregator::getName, (agg) -> agg));
         return this;
     }
 
@@ -122,30 +125,27 @@ public class SelectExpressionBuilder {
 
     static class PreAggregatorExtractor implements PostAggregatorExpressionVisitor {
 
-        private final List<IQueryStageAggregator> preAggregators;
-        private final Set<String> preAggregatorSet;
+        private final Map<String, IQueryStageAggregator> preAggregators;
         private final ISqlExpressionFormatter sqlExpressionFormatter;
 
         @Getter
         private final Set<String> metrics = new HashSet<>();
 
-        PreAggregatorExtractor(List<IQueryStageAggregator> queryStageAggregators, ISqlExpressionFormatter sqlFormatter) {
+        PreAggregatorExtractor(Map<String, IQueryStageAggregator> queryStageAggregators, ISqlExpressionFormatter sqlFormatter) {
             this.preAggregators = queryStageAggregators;
-            this.preAggregatorSet = queryStageAggregators.stream().map((IQueryStageAggregator::getName)).collect(Collectors.toSet());
             this.sqlExpressionFormatter = sqlFormatter;
         }
 
         @Override
         public void visitMetric(IMetricSpec metricSpec) {
-            if (preAggregatorSet.contains(metricSpec.getName())) {
+            if (preAggregators.containsKey(metricSpec.getName())) {
                 return;
             }
 
             if (sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getQueryAggregator())) {
                 // The aggregator uses WindowFunction, it will be in a sub-query of generated SQL
                 // So, we turn the metric into a pre-aggregator
-                preAggregators.add(metricSpec.getQueryAggregator());
-                preAggregatorSet.add(metricSpec.getName());
+                preAggregators.put(metricSpec.getName(), metricSpec.getQueryAggregator());
             } else {
                 // this metric should also be in the sub-query expression
                 metrics.add(metricSpec.getName());
@@ -178,11 +178,14 @@ public class SelectExpressionBuilder {
         private final QueryStageAggregatorSQLGenerator queryStageAggregatorSQLGenerator;
 
         protected final Map<String, Object> internalVariables;
+        private final Map<String, IQueryStageAggregator> preAggregators;
 
         PostAggregatorExpressionGenerator(ISqlExpressionFormatter sqlExpressionFormatter,
+                                          Map<String, IQueryStageAggregator> preAggregators,
                                           QueryStageAggregatorSQLGenerator queryStageAggregatorSQLGenerator,
                                           Map<String, Object> internalVariables) {
             this.sqlExpressionFormatter = sqlExpressionFormatter;
+            this.preAggregators = preAggregators;
             this.queryStageAggregatorSQLGenerator = queryStageAggregatorSQLGenerator;
             this.internalVariables = internalVariables;
         }
@@ -195,8 +198,13 @@ public class SelectExpressionBuilder {
 
                 @Override
                 public void visitMetric(IMetricSpec metricSpec) {
-                    if (!sqlExpressionFormatter.allowSameAggregatorExpression()
-                        || sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getQueryAggregator())) {
+                    // Case 1. The field used in window function is presented in a sub-query, at the root query level we only reference the name
+                    boolean useWindowFunctionAsAggregator = sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getQueryAggregator());
+
+                    // Case 2. Some DB does not allow same aggregation expressions, we use the existing expression
+                    boolean hasSameExpression = !sqlExpressionFormatter.allowSameAggregatorExpression() && preAggregators.containsKey(metricSpec.getName());
+
+                    if (useWindowFunctionAsAggregator || hasSameExpression) {
                         sb.append('"');
                         sb.append(metricSpec.getName());
                         sb.append('"');
@@ -291,7 +299,7 @@ public class SelectExpressionBuilder {
                 if (metricSpec instanceof PostAggregatorMetricSpec) {
                     postAggregators.add((PostAggregatorMetricSpec) metricSpec);
                 } else {
-                    aggregators.add(metricSpec.getQueryAggregator());
+                    aggregators.put(metricSpec.getName(), metricSpec.getQueryAggregator());
                 }
             }
         }
@@ -315,7 +323,7 @@ public class SelectExpressionBuilder {
         QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter,
                                                                                           interval.getTotalLength(),
                                                                                           interval.getStep());
-        for (IQueryStageAggregator aggregator : this.aggregators) {
+        for (IQueryStageAggregator aggregator : this.aggregators.values()) {
             // if window function is contained, the final SQL has a sub-query
             if (sqlFormatter.useWindowFunctionAsAggregator(aggregator)) {
                 subSelectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
@@ -346,6 +354,7 @@ public class SelectExpressionBuilder {
                                                                     "instanceCount",
                                                                     "count(distinct \"instanceName\")");
             PostAggregatorExpressionGenerator postAggregatorExpressionGenerator = new PostAggregatorExpressionGenerator(sqlFormatter,
+                                                                                                                        aggregators,
                                                                                                                         generator.noAlias(),
                                                                                                                         internalVariables);
 
