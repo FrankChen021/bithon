@@ -36,7 +36,6 @@ import org.bithon.server.web.service.datasource.api.DataSourceService;
 import org.bithon.server.web.service.datasource.api.DisplayableText;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
-import org.bithon.server.web.service.datasource.api.GetDimensionRequestV2;
 import org.bithon.server.web.service.datasource.api.GroupByQueryRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
 import org.bithon.server.web.service.datasource.api.ListQueryRequest;
@@ -193,7 +192,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public Collection<Map<String, String>> getDimensionsV2(GetDimensionRequestV2 request) {
+    public Collection<Map<String, String>> getDimensions(GetDimensionRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         IDimensionSpec dimensionSpec;
@@ -206,13 +205,12 @@ public class DataSourceApi implements IDataSourceApi {
         }
         Preconditions.checkNotNull(dimensionSpec, "dimension [%s] not defined.", request.getName());
 
-        return this.metricStorage.createMetricReader(schema).getDimensionValueList(
-            TimeSpan.fromISO8601(request.getStartTimeISO8601()),
-            TimeSpan.fromISO8601(request.getEndTimeISO8601()),
-            schema,
-            request.getFilters(),
-            dimensionSpec.getName()
-        );
+        return this.metricStorage.createMetricReader(schema)
+                                 .getDimensionValueList(TimeSpan.fromISO8601(request.getStartTimeISO8601()),
+                                                        TimeSpan.fromISO8601(request.getEndTimeISO8601()),
+                                                        schema,
+                                                        request.getFilters(),
+                                                        dimensionSpec.getName());
     }
 
     @Override

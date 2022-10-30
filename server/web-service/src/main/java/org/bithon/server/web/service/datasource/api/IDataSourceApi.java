@@ -61,7 +61,7 @@ public interface IDataSourceApi {
     Collection<DisplayableText> getSchemaNames();
 
     @PostMapping("/api/datasource/dimensions/v2")
-    Collection<Map<String, String>> getDimensionsV2(@Validated @RequestBody GetDimensionRequestV2 request);
+    Collection<Map<String, String>> getDimensions(@Validated @RequestBody GetDimensionRequest request);
 
     @PostMapping("api/datasource/ttl/update")
     void updateSpecifiedDataSourceTTL(@RequestBody UpdateTTLRequest request);

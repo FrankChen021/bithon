@@ -18,7 +18,6 @@ package org.bithon.server.web.service.datasource.api;
 
 import lombok.Data;
 import org.bithon.server.storage.metrics.IFilter;
-import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -31,7 +30,6 @@ import java.util.Collections;
  * @date 2021/3/7 5:29 下午
  */
 @Data
-@Validated
 public class GetDimensionRequest {
 
     @NotEmpty
@@ -44,8 +42,18 @@ public class GetDimensionRequest {
     private String dataSource;
 
     @Valid
-    private Collection<IFilter> conditions = Collections.emptyList();
+    private Collection<IFilter> filters = Collections.emptyList();
 
+    /**
+     * dimension name
+     */
     @NotNull
-    private String dimension;
+    private String name;
+
+    /**
+     * Indicate the type of {@link #name}
+     * name
+     * alias
+     */
+    private String type = "name";
 }
