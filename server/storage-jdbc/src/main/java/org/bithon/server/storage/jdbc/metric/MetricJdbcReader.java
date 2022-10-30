@@ -22,15 +22,6 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.api.QueryStageAggregators;
-import org.bithon.server.storage.datasource.spec.CountMetricSpec;
-import org.bithon.server.storage.datasource.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.spec.IMetricSpecVisitor;
-import org.bithon.server.storage.datasource.spec.PostAggregatorExpressionVisitor;
-import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
-import org.bithon.server.storage.datasource.spec.gauge.GaugeMetricSpec;
-import org.bithon.server.storage.datasource.spec.max.MaxMetricSpec;
-import org.bithon.server.storage.datasource.spec.min.MinMetricSpec;
-import org.bithon.server.storage.datasource.spec.sum.SumMetricSpec;
 import org.bithon.server.storage.jdbc.dsl.sql.NameExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.SelectExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.StringExpression;
@@ -47,10 +38,8 @@ import org.jooq.Record;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -122,13 +111,6 @@ public class MetricJdbcReader implements IMetricReader {
         SQLGenerator sqlGenerator = new SQLGenerator();
         selectExpression.accept(sqlGenerator);
         return executeSql(sqlGenerator.getSQL());
-    }
-
-    protected MetricFieldsClauseBuilder createMetricClauseBuilder(String tableName,
-                                                                  DataSourceSchema dataSource,
-                                                                  Set<String> existingAggregators,
-                                                                  Map<String, Object> variables) {
-        return new MetricFieldsClauseBuilder(this.sqlFormatter, tableName, "OUTER", existingAggregators, dataSource, variables);
     }
 
     private String getOrderBySQL(OrderBy orderBy) {
@@ -288,8 +270,7 @@ public class MetricJdbcReader implements IMetricReader {
 
         @Override
         public String lastAggregator(String field, String name, long window) {
-            String expression = "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) AS \"%s\"";
-            // NOTE: use FIRST_VALUE
+            // NOTE: use FIRST_VALUE since LAST_VALUE returns wrong result
             if (name.length() > 0) {
                 return StringUtils.format(
                     "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) AS \"%s\"",
@@ -313,193 +294,5 @@ public class MetricJdbcReader implements IMetricReader {
         /*
          * NOTE, H2 does not support timestamp comparison, we have to use ISO8601 format
          */
-    }
-
-    /**
-     * build SQL clause which aggregates specified metric
-     */
-    public static class MetricFieldsClauseBuilder implements IMetricSpecVisitor<String> {
-
-        protected final String sqlTableName;
-        protected final String tableAlias;
-        protected final DataSourceSchema dataSource;
-        protected final boolean addAlias;
-        protected final Map<String, Object> variables;
-
-        /**
-         * used to keep which metrics current SQL are using
-         */
-        protected final Set<String> existingAggregators;
-        protected final ISqlExpressionFormatter sqlExpressionFormatter;
-
-        public MetricFieldsClauseBuilder(ISqlExpressionFormatter sqlExpressionFormatter,
-                                         String sqlTableName,
-                                         String tableAlias,
-                                         Set<String> existingAggregators,
-                                         DataSourceSchema dataSource,
-                                         Map<String, Object> variables) {
-            this(sqlExpressionFormatter, sqlTableName, tableAlias, existingAggregators, dataSource, variables, true);
-        }
-
-        public MetricFieldsClauseBuilder(ISqlExpressionFormatter sqlExpressionFormatter,
-                                         String sqlTableName,
-                                         String tableAlias,
-                                         Set<String> existingAggregators,
-                                         DataSourceSchema dataSource,
-                                         Map<String, Object> variables,
-                                         boolean addAlias) {
-            this.sqlExpressionFormatter = sqlExpressionFormatter;
-            this.sqlTableName = sqlTableName;
-            this.tableAlias = tableAlias;
-            this.dataSource = dataSource;
-            this.variables = variables;
-            this.addAlias = addAlias;
-            this.existingAggregators = existingAggregators;
-        }
-
-        public MetricFieldsClauseBuilder clone(ISqlExpressionFormatter sqlExpressionFormatter,
-                                               String sqlTableName,
-                                               String tableAlias,
-                                               DataSourceSchema dataSource,
-                                               Map<String, Object> variables,
-                                               boolean addAlias) {
-            return new MetricFieldsClauseBuilder(sqlExpressionFormatter,
-                                                 sqlTableName,
-                                                 tableAlias,
-                                                 new HashSet<>(),
-                                                 dataSource,
-                                                 variables,
-                                                 addAlias);
-        }
-
-        @Override
-        public String visit(SumMetricSpec metricSpec) {
-            String expr = StringUtils.format("sum(\"%s\")", metricSpec.getName());
-            existingAggregators.add(expr);
-
-            StringBuilder sb = new StringBuilder();
-            sb.append(expr);
-            if (addAlias) {
-                sb.append(StringUtils.format(" AS \"%s\"", metricSpec.getName()));
-            }
-            return sb.toString();
-        }
-
-        @Override
-        public String visit(PostAggregatorMetricSpec metricSpec) {
-            StringBuilder sb = new StringBuilder();
-            metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
-                @Override
-                public void visitMetric(IMetricSpec metricSpec) {
-                    String expr = metricSpec.accept(MetricFieldsClauseBuilder.this.clone(sqlExpressionFormatter,
-                                                                                         null,
-                                                                                         null,
-                                                                                         dataSource,
-                                                                                         variables,
-                                                                                         false));
-
-                    if (!sqlExpressionFormatter.allowSameAggregatorExpression()
-                        && existingAggregators.contains(expr)) {
-                        // this metricSpec has been in the SQL,
-                        // don't need to construct the aggregation expression for this post aggregator
-                        // because some DBMS does not support duplicated aggregation expressions for one metric
-                        sb.append(metricSpec.getName());
-                    } else {
-                        sb.append(expr);
-                    }
-                }
-
-                @Override
-                public void visitNumber(String number) {
-                    sb.append(number);
-                }
-
-                @Override
-                public void visitorOperator(String operator) {
-                    sb.append(operator);
-                }
-
-                @Override
-                public void startBrace() {
-                    sb.append('(');
-                }
-
-                @Override
-                public void endBrace() {
-                    sb.append(')');
-                }
-
-                @Override
-                public void visitVariable(String variable) {
-                    Object variableValue = variables.get(variable);
-                    if (variableValue == null) {
-                        throw new RuntimeException(StringUtils.format("variable (%s) not provided in context",
-                                                                      variable));
-                    }
-                    sb.append(variableValue);
-                }
-            });
-            sb.append(StringUtils.format(" \"%s\"", metricSpec.getName()));
-            return sb.toString();
-        }
-
-        @Override
-        public String visit(CountMetricSpec metricSpec) {
-            String expr = StringUtils.format("count(1)", metricSpec.getName());
-            existingAggregators.add(expr);
-
-            StringBuilder sb = new StringBuilder();
-            sb.append(expr);
-            if (addAlias) {
-                sb.append(StringUtils.format("count(1) AS \"%s\"", metricSpec.getName()));
-            }
-            return sb.toString();
-        }
-
-        /**
-         * Since FIRST/LAST aggregators are not supported in many SQL databases,
-         * A embedded query is created to simulate FIRST/LAST
-         */
-        @Override
-        public String visit(GaugeMetricSpec metricSpec) {
-            return visitLast(metricSpec.getName());
-        }
-
-        @Override
-        public String visit(MinMetricSpec metricSpec) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(StringUtils.format("min(\"%s\")", metricSpec.getName()));
-            if (addAlias) {
-                sb.append(StringUtils.format(" \"%s\"", metricSpec.getName()));
-            }
-            return sb.toString();
-        }
-
-        @Override
-        public String visit(MaxMetricSpec metricSpec) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(StringUtils.format("max(\"%s\")", metricSpec.getName()));
-            if (addAlias) {
-                sb.append(StringUtils.format(" \"%s\"", metricSpec.getName()));
-            }
-            return sb.toString();
-        }
-
-        protected String visitLast(String metricName) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(StringUtils.format(
-                "(SELECT \"%s\" FROM \"%s\" B WHERE B.\"timestamp\" = \"%s\".\"timestamp\" ORDER BY \"timestamp\" DESC LIMIT 1)",
-                metricName,
-                sqlTableName,
-                tableAlias));
-
-            if (addAlias) {
-                sb.append(' ');
-                sb.append('"');
-                sb.append(metricName);
-                sb.append('"');
-            }
-            return sb.toString();
-        }
     }
 }
