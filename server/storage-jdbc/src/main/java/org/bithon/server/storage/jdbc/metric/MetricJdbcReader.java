@@ -81,7 +81,6 @@ public class MetricJdbcReader implements IMetricReader {
                                                                    .groupBys(query.getGroupBy())
                                                                    .orderBy(OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build())
                                                                    .sqlFormatter(this.sqlFormatter)
-                                                                   .metricFieldsClauseBuilderSupplier(this::createMetricClauseBuilder)
                                                                    .build();
 
         SelectExpression timestampExpressionOn = selectExpression;
@@ -118,7 +117,6 @@ public class MetricJdbcReader implements IMetricReader {
                                                                    .groupBys(query.getGroupBys())
                                                                    .orderBy(query.getOrderBy())
                                                                    .sqlFormatter(this.sqlFormatter)
-                                                                   .metricFieldsClauseBuilderSupplier(this::createMetricClauseBuilder)
                                                                    .build();
 
         SQLGenerator sqlGenerator = new SQLGenerator();
