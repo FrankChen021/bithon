@@ -139,13 +139,13 @@ public class DataSourceService {
         List<IQueryStageAggregator> aggregators = new ArrayList<>(4);
 
         // Turn into internal objects(post aggregators...)
-        for (GeneralQueryRequest.AbstractQueryColumn column : query.getColumns()) {
-            if (column instanceof GeneralQueryRequest.ExpressionQueryColumn) {
+        for (QueryColumn.AbstractQueryColumn column : query.getColumns()) {
+            if (column instanceof QueryColumn.ExpressionQueryColumn) {
                 // expression metric
                 PostAggregatorMetricSpec post = new PostAggregatorMetricSpec(column.getName(),
                                                                              column.getName(),
                                                                              "",
-                                                                             ((GeneralQueryRequest.ExpressionQueryColumn) column).getExpression(),
+                                                                             ((QueryColumn.ExpressionQueryColumn) column).getExpression(),
                                                                              null,
                                                                              false);
                 post.setOwner(schema);
@@ -153,7 +153,7 @@ public class DataSourceService {
                 continue;
             }
 
-            GeneralQueryRequest.QueryColumn queryColumn = (GeneralQueryRequest.QueryColumn) column;
+            QueryColumn.DefaultQueryColumn queryColumn = (QueryColumn.DefaultQueryColumn) column;
 
             IColumnSpec columnSpec = schema.getColumnByName(queryColumn.getName());
             if (columnSpec == null) {

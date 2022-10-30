@@ -16,12 +16,7 @@
 
 package org.bithon.server.web.service.datasource.api;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
-import lombok.Getter;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.Limit;
 import org.bithon.server.storage.metrics.OrderBy;
@@ -40,60 +35,9 @@ import java.util.List;
 @Data
 public class GeneralQueryRequest {
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = QueryColumn.class)
-    @JsonSubTypes(value = {
-        @JsonSubTypes.Type(name = "expression", value = ExpressionQueryColumn.class)
-    })
-    @Getter
-    public abstract static class AbstractQueryColumn {
-        protected final String name;
-
-        protected AbstractQueryColumn(String name) {
-            this.name = name;
-        }
-    }
-
-    @Getter
-    public static class QueryColumn extends AbstractQueryColumn {
-        @Nullable
-        private final String aggregator;
-
-        @Nullable
-        private final String field;
-
-        @JsonCreator
-        public QueryColumn(@JsonProperty("name") String name,
-                           @JsonProperty("aggregator") String aggregator,
-                           @JsonProperty("field") String field) {
-            super(name);
-            this.aggregator = aggregator;
-            this.field = field;
-        }
-
-        @JsonCreator
-        public static QueryColumn fromString(String str) {
-            return new QueryColumn(str, null, null);
-        }
-    }
-
-    @Getter
-    public static class ExpressionQueryColumn extends AbstractQueryColumn {
-        @Nullable
-        private final String expression;
-
-        @Nullable
-        private final String field;
-
-        @JsonCreator
-        public ExpressionQueryColumn(@JsonProperty("name") String name,
-                                     @JsonProperty("expression") String expression,
-                                     @JsonProperty("field") String field) {
-            super(name);
-            this.expression = expression;
-            this.field = field;
-        }
-    }
-
+    /**
+     * groupBy
+     */
     @NotEmpty
     private String type;
 
@@ -107,7 +51,7 @@ public class GeneralQueryRequest {
     private Collection<IFilter> filters;
 
     @NotEmpty
-    private List<AbstractQueryColumn> columns;
+    private List<QueryColumn.AbstractQueryColumn> columns;
 
     @Nullable
     private OrderBy orderBy;
