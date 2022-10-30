@@ -101,6 +101,7 @@ public interface ISqlExpressionFormatter {
     String firstAggregator(String field, String name, long window);
 
     /**
+     * @param name can be empty if no alias is needed
      * @param window in seconds
      */
     String lastAggregator(String field, String name, long window);

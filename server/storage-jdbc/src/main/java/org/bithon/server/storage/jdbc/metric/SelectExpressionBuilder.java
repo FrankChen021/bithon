@@ -17,6 +17,7 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import com.google.common.collect.ImmutableMap;
+import lombok.Getter;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -39,6 +40,7 @@ import org.bithon.server.storage.metrics.OrderBy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +58,10 @@ public class SelectExpressionBuilder {
     private List<String> metrics;
     private List<IQueryStageAggregator> aggregators;
 
-    private List<PostAggregatorMetricSpec> postAggregators;
+    /**
+     * This is an optional field, so a default value is needed.
+     */
+    private List<PostAggregatorMetricSpec> postAggregators = Collections.emptyList();
     private Collection<IFilter> filters;
     private Interval interval;
 
@@ -121,6 +126,9 @@ public class SelectExpressionBuilder {
         private final Set<String> preAggregatorSet;
         private final ISqlExpressionFormatter sqlExpressionFormatter;
 
+        @Getter
+        private final Set<String> metrics = new HashSet<>();
+
         PreAggregatorExtractor(List<IQueryStageAggregator> queryStageAggregators, ISqlExpressionFormatter sqlFormatter) {
             this.preAggregators = queryStageAggregators;
             this.preAggregatorSet = queryStageAggregators.stream().map((IQueryStageAggregator::getName)).collect(Collectors.toSet());
@@ -129,12 +137,18 @@ public class SelectExpressionBuilder {
 
         @Override
         public void visitMetric(IMetricSpec metricSpec) {
-            if (!preAggregatorSet.contains(metricSpec.getName())
-                && sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getQueryAggregator())) {
+            if (preAggregatorSet.contains(metricSpec.getName())) {
+                return;
+            }
+
+            if (sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getQueryAggregator())) {
                 // The aggregator uses WindowFunction, it will be in a sub-query of generated SQL
                 // So, we turn the metric into a pre-aggregator
                 preAggregators.add(metricSpec.getQueryAggregator());
                 preAggregatorSet.add(metricSpec.getName());
+            } else {
+                // this metric should also be in the sub-query expression
+                metrics.add(metricSpec.getName());
             }
         }
 
@@ -160,15 +174,15 @@ public class SelectExpressionBuilder {
     }
 
     static class PostAggregatorExpressionGenerator extends MetricSpecVisitorAdaptor<StringExpression> {
-        private final Set<String> preAggregatorSet;
+        private final ISqlExpressionFormatter sqlExpressionFormatter;
         private final QueryStageAggregatorSQLGenerator queryStageAggregatorSQLGenerator;
 
         protected final Map<String, Object> internalVariables;
 
-        PostAggregatorExpressionGenerator(List<IQueryStageAggregator> queryStageAggregators,
+        PostAggregatorExpressionGenerator(ISqlExpressionFormatter sqlExpressionFormatter,
                                           QueryStageAggregatorSQLGenerator queryStageAggregatorSQLGenerator,
                                           Map<String, Object> internalVariables) {
-            this.preAggregatorSet = queryStageAggregators.stream().map((IQueryStageAggregator::getName)).collect(Collectors.toSet());
+            this.sqlExpressionFormatter = sqlExpressionFormatter;
             this.queryStageAggregatorSQLGenerator = queryStageAggregatorSQLGenerator;
             this.internalVariables = internalVariables;
         }
@@ -181,7 +195,8 @@ public class SelectExpressionBuilder {
 
                 @Override
                 public void visitMetric(IMetricSpec metricSpec) {
-                    if (preAggregatorSet.contains(metricSpec.getName())) {
+                    if (!sqlExpressionFormatter.allowSameAggregatorExpression()
+                        || sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getQueryAggregator())) {
                         sb.append('"');
                         sb.append(metricSpec.getName());
                         sb.append('"');
@@ -260,7 +275,8 @@ public class SelectExpressionBuilder {
         String sqlTableName = "bithon_" + dataSource.getName().replace("-", "_");
 
         //
-        // To compatible with old interface, turn metric list into aggregators
+        // To compatible with old interface, turn metric list into (pre/post)aggregators.
+        // Needs to be cleaned in the future.
         //
         if (CollectionUtils.isNotEmpty(metrics)) {
 
@@ -281,20 +297,16 @@ public class SelectExpressionBuilder {
         }
 
         //
-        // Turn some aggregators in expression into pre-aggregator first
+        // Turn some metrics in expression into pre-aggregator first
         //
-        if (postAggregators.size() > 0) {
-            PostAggregatorExpressionVisitor visitor = new PreAggregatorExtractor(this.aggregators, this.sqlFormatter);
-            for (PostAggregatorMetricSpec postAggregator : postAggregators) {
-                postAggregator.visitExpression(visitor);
-            }
+        PreAggregatorExtractor postAggregatorExtractor = new PreAggregatorExtractor(this.aggregators, this.sqlFormatter);
+        for (PostAggregatorMetricSpec postAggregator : postAggregators) {
+            postAggregator.visitExpression(postAggregatorExtractor);
         }
 
         SelectExpression selectExpression = new SelectExpression();
         selectExpression.setGroupBy(new GroupByExpression());
         SelectExpression subSelectExpression = new SelectExpression();
-
-        Set<String> aggregatorExpressions = new HashSet<>();
 
         //
         // fields
@@ -319,23 +331,26 @@ public class SelectExpressionBuilder {
 
                 // This metric should also be in the sub-query, see the example in the javadoc above
                 subSelectExpression.getFieldsExpression().addField(new NameExpression(aggregator.getName()));
-
-                aggregatorExpressions.add(StringUtils.format("%s(\"%s\")", aggregator.getType(), aggregator.getField()));
             }
         }
 
-        // post aggregators
+        // Make sure all referenced metrics in expression are in the sub-query
+        for (String metric : postAggregatorExtractor.getMetrics()) {
+            subSelectExpression.getFieldsExpression().addField(new NameExpression(metric));
+        }
+
+        // Generate expression for post aggregators
         if (!CollectionUtils.isEmpty(postAggregators)) {
             Map<String, Object> internalVariables = ImmutableMap.of("interval",
                                                                     interval.getStep(),
                                                                     "instanceCount",
                                                                     "count(distinct \"instanceName\")");
-            PostAggregatorExpressionGenerator postAggregatorExpressionGenerator = new PostAggregatorExpressionGenerator(aggregators,
-                                                                                                                        generator,
+            PostAggregatorExpressionGenerator postAggregatorExpressionGenerator = new PostAggregatorExpressionGenerator(sqlFormatter,
+                                                                                                                        generator.noAlias(),
                                                                                                                         internalVariables);
 
-            for (PostAggregatorMetricSpec postMetricSpec : postAggregators) {
-                selectExpression.getFieldsExpression().addField(postMetricSpec.accept(postAggregatorExpressionGenerator));
+            for (PostAggregatorMetricSpec postAggregator : postAggregators) {
+                selectExpression.getFieldsExpression().addField(postAggregator.accept(postAggregatorExpressionGenerator));
             }
         }
 

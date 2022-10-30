@@ -288,12 +288,20 @@ public class MetricJdbcReader implements IMetricReader {
 
         @Override
         public String lastAggregator(String field, String name, long window) {
+            String expression = "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) AS \"%s\"";
             // NOTE: use FIRST_VALUE
-            return StringUtils.format(
-                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) AS \"%s\"",
-                field,
-                this.timeFloor("timestamp", window),
-                name);
+            if (name.length() > 0) {
+                return StringUtils.format(
+                    "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) AS \"%s\"",
+                    field,
+                    this.timeFloor("timestamp", window),
+                    name);
+            } else {
+                return StringUtils.format(
+                    "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC)",
+                    field,
+                    this.timeFloor("timestamp", window));
+            }
         }
 
         @Override

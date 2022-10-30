@@ -42,7 +42,7 @@ class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
     }
 
     /**
-     * ClickHouse does not support ISO8601 very well, we treat it as timestamp, which only accepts timestamp in seconds not milli-seconds
+     * ClickHouse does not support ISO8601 very well, we treat it as timestamp, which only accepts timestamp in seconds not milliseconds
      */
     @Override
     public String formatTimestamp(TimeSpan timeSpan) {
@@ -68,6 +68,10 @@ class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
 
     @Override
     public String lastAggregator(String field, String name, long window) {
-        return StringUtils.format("argMax(\"%s\", \"timestamp\") AS %s", field, name);
+        if (name.length() > 0) {
+            return StringUtils.format("argMax(\"%s\", \"timestamp\") AS %s", field, name);
+        } else {
+            return StringUtils.format("argMax(\"%s\", \"timestamp\")", field);
+        }
     }
 }

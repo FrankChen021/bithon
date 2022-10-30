@@ -34,35 +34,59 @@ public class QueryStageAggregatorSQLGenerator implements IQueryStageAggregatorVi
     private final long step;
     private final long length;
 
+    private final boolean hasAlias;
+
     public QueryStageAggregatorSQLGenerator(ISqlExpressionFormatter sqlFormatter, long length, long step) {
+        this(sqlFormatter, length, step, true);
+    }
+
+    public QueryStageAggregatorSQLGenerator(ISqlExpressionFormatter sqlFormatter, long length, long step, boolean hasAlias) {
         this.step = step;
         this.length = length;
         this.formatter = sqlFormatter;
+        this.hasAlias = hasAlias;
     }
 
     @Override
     public String visit(QueryStageAggregators.CardinalityAggregator aggregator) {
-        return StringUtils.format("count(DISTINCT \"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
+        if (hasAlias) {
+            return StringUtils.format("count(DISTINCT \"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
+        } else {
+            return StringUtils.format("count(DISTINCT \"%s\")", aggregator.getField());
+        }
     }
 
     @Override
     public String visit(QueryStageAggregators.SumAggregator aggregator) {
-        return StringUtils.format("sum(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
+        if (hasAlias) {
+            return StringUtils.format("sum(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
+        } else {
+            return StringUtils.format("sum(\"%s\")", aggregator.getField());
+        }
     }
 
     @Override
     public String visit(QueryStageAggregators.GroupConcatAggregator aggregator) {
+        // No need to pass hasAlias because this type of field can't be on a expression as of now
         return formatter.stringAggregator(aggregator.getField(), aggregator.getName());
     }
 
     @Override
     public String visit(QueryStageAggregators.CountAggregator aggregator) {
-        return StringUtils.format("count(1) AS \"%s\"", aggregator.getName());
+        if (hasAlias) {
+            return StringUtils.format("count(1) AS \"%s\"", aggregator.getName());
+        } else {
+            return "count(1)";
+        }
     }
 
     @Override
     public String visit(QueryStageAggregators.AvgAggregator aggregator) {
-        return StringUtils.format("avg(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
+        if (hasAlias) {
+            return StringUtils.format("avg(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
+        } else {
+            return StringUtils.format("avg(\"%s\")", aggregator.getField());
+        }
     }
 
     @Override
@@ -72,21 +96,40 @@ public class QueryStageAggregatorSQLGenerator implements IQueryStageAggregatorVi
 
     @Override
     public String visit(QueryStageAggregators.LastAggregator aggregator) {
-        return formatter.lastAggregator(aggregator.getField(), aggregator.getName(), step);
+        return formatter.lastAggregator(aggregator.getField(), hasAlias ? aggregator.getName() : "", step);
     }
 
     @Override
     public String visit(QueryStageAggregators.RateAggregator aggregator) {
-        return StringUtils.format("sum(\"%s\")/%d AS \"%s\"", aggregator.getField(), step, aggregator.getName());
+        if (hasAlias) {
+            return StringUtils.format("sum(\"%s\")/%d AS \"%s\"", aggregator.getField(), step, aggregator.getName());
+        } else {
+            return StringUtils.format("sum(\"%s\")/%d", aggregator.getField(), step);
+        }
     }
 
     @Override
     public String visit(QueryStageAggregators.MaxAggregator aggregator) {
-        return StringUtils.format("max(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
+        if (hasAlias) {
+            return StringUtils.format("max(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
+        } else {
+            return StringUtils.format("max(\"%s\")", aggregator.getField());
+        }
     }
 
     @Override
     public String visit(QueryStageAggregators.MinAggregator aggregator) {
-        return StringUtils.format("min(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
+        if (hasAlias) {
+            return StringUtils.format("min(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
+        } else {
+            return StringUtils.format("min(\"%s\")", aggregator.getField());
+        }
+    }
+
+    /**
+     * Clone a generator with alias disabled
+     */
+    public QueryStageAggregatorSQLGenerator noAlias() {
+        return new QueryStageAggregatorSQLGenerator(this.formatter, this.length, this.step, false);
     }
 }
