@@ -60,10 +60,6 @@ public interface IDataSourceApi {
     @PostMapping("/api/datasource/name")
     Collection<DisplayableText> getSchemaNames();
 
-    @Deprecated
-    @PostMapping("/api/datasource/dimensions")
-    Collection<Map<String, String>> getDimensions(@Validated @RequestBody GetDimensionRequest request);
-
     @PostMapping("/api/datasource/dimensions/v2")
     Collection<Map<String, String>> getDimensionsV2(@Validated @RequestBody GetDimensionRequestV2 request);
 

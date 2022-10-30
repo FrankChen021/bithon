@@ -192,24 +192,6 @@ public class DataSourceApi implements IDataSourceApi {
                             .collect(Collectors.toList());
     }
 
-    @Deprecated
-    @Override
-    public Collection<Map<String, String>> getDimensions(GetDimensionRequest request) {
-        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
-
-        String dim = request.getDimension();
-        IDimensionSpec dimensionSpec = schema.getDimensionSpecByName(dim);
-        Preconditions.checkNotNull(dimensionSpec, "dimension [%s] not defined.", dim);
-
-        return this.metricStorage.createMetricReader(schema).getDimensionValueList(
-            TimeSpan.fromISO8601(request.getStartTimeISO8601()),
-            TimeSpan.fromISO8601(request.getEndTimeISO8601()),
-            schema,
-            request.getConditions(),
-            dimensionSpec.getName()
-        );
-    }
-
     @Override
     public Collection<Map<String, String>> getDimensionsV2(GetDimensionRequestV2 request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
