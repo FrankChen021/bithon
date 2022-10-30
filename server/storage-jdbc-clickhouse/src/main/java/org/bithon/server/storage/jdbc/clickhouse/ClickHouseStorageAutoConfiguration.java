@@ -70,7 +70,7 @@ public class ClickHouseStorageAutoConfiguration {
     }
 
     @Bean
-    ClickHouseSqlDialect createFormatter() {
+    ClickHouseSqlDialect clickHouseSqlDialect() {
         return new ClickHouseSqlDialect();
     }
 

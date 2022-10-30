@@ -34,15 +34,15 @@ import org.bithon.server.storage.jdbc.metric.MetricTable;
 @JsonTypeName("clickhouse")
 public class MetricStorage extends MetricJdbcStorage {
 
-    private final ClickHouseSqlDialect formatter;
+    private final ClickHouseSqlDialect sqlDialect;
     private final ClickHouseConfig config;
 
     @JsonCreator
     public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
-                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlDialect formatter,
+                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlDialect sqlDialect,
                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
         super(dslContextHolder.getDslContext());
-        this.formatter = formatter;
+        this.sqlDialect = sqlDialect;
         this.config = config;
     }
 
@@ -52,8 +52,8 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    protected ISqlDialect getSqlExpressionFormatter() {
-        return formatter;
+    protected ISqlDialect getSqlDialect() {
+        return sqlDialect;
     }
 
     @Override

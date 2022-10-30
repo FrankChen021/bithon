@@ -52,11 +52,11 @@ public class MetricJdbcReader implements IMetricReader {
     private static final String TIMESTAMP_ALIAS_NAME = "_timestamp";
 
     protected final DSLContext dsl;
-    protected final ISqlDialect sqlFormatter;
+    protected final ISqlDialect sqlDialect;
 
-    public MetricJdbcReader(DSLContext dsl, ISqlDialect sqlFormatter) {
+    public MetricJdbcReader(DSLContext dsl, ISqlDialect sqlDialect) {
         this.dsl = dsl;
-        this.sqlFormatter = sqlFormatter;
+        this.sqlDialect = sqlDialect;
     }
 
     @Override
@@ -69,7 +69,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                                    .interval(query.getInterval())
                                                                    .groupBys(query.getGroupBy())
                                                                    .orderBy(OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build())
-                                                                   .sqlFormatter(this.sqlFormatter)
+                                                                   .sqlDialect(this.sqlDialect)
                                                                    .build();
 
         SelectExpression timestampExpressionOn = selectExpression;
@@ -84,7 +84,7 @@ public class MetricJdbcReader implements IMetricReader {
         // Add timestamp expression to sub-query
         timestampExpressionOn.getFieldsExpression()
                              .insert(new StringExpression(StringUtils.format("%s AS \"%s\"",
-                                                                             sqlFormatter.timeFloor("timestamp", query.getInterval().getStep()),
+                                                                             sqlDialect.timeFloor("timestamp", query.getInterval().getStep()),
                                                                              TIMESTAMP_ALIAS_NAME)));
 
         selectExpression.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
@@ -105,7 +105,7 @@ public class MetricJdbcReader implements IMetricReader {
                                                                    .interval(query.getInterval())
                                                                    .groupBys(query.getGroupBys())
                                                                    .orderBy(query.getOrderBy())
-                                                                   .sqlFormatter(this.sqlFormatter)
+                                                                   .sqlDialect(this.sqlDialect)
                                                                    .build();
 
         SQLGenerator sqlGenerator = new SQLGenerator();
@@ -131,8 +131,8 @@ public class MetricJdbcReader implements IMetricReader {
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
-            sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
-            sqlFormatter.formatTimestamp(query.getInterval().getEndTime()),
+            sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
+            sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
             getOrderBySQL(query.getOrderBy()),
             query.getPageSize(),
             query.getPageNumber() * query.getPageSize()
@@ -152,8 +152,8 @@ public class MetricJdbcReader implements IMetricReader {
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
-            sqlFormatter.formatTimestamp(query.getInterval().getStartTime()),
-            sqlFormatter.formatTimestamp(query.getInterval().getEndTime())
+            sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
+            sqlDialect.formatTimestamp(query.getInterval().getEndTime())
         );
 
         Record record = dsl.fetchOne(sql);
@@ -194,8 +194,8 @@ public class MetricJdbcReader implements IMetricReader {
             dimension,
             "bithon_" + dataSourceSchema.getName().replace("-", "_"),
             condition,
-            sqlFormatter.formatTimestamp(start),
-            sqlFormatter.formatTimestamp(end),
+            sqlDialect.formatTimestamp(start),
+            sqlDialect.formatTimestamp(end),
             dimension,
             dimension
         );

@@ -61,7 +61,7 @@ public class MetricJdbcStorage implements IMetricStorage {
 
     @Override
     public IMetricReader createMetricReader(DataSourceSchema schema) {
-        return new MetricJdbcReader(dslContext, getSqlExpressionFormatter());
+        return new MetricJdbcReader(dslContext, getSqlDialect());
     }
 
     @SuppressWarnings("unchecked")
@@ -79,7 +79,7 @@ public class MetricJdbcStorage implements IMetricStorage {
         };
     }
 
-    protected ISqlDialect getSqlExpressionFormatter() {
+    protected ISqlDialect getSqlDialect() {
         if (dslContext.dialect() == SQLDialect.H2) {
             return MetricJdbcReader.H2SqlDialect.INSTANCE;
         } else {

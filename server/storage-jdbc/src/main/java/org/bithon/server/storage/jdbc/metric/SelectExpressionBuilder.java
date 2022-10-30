@@ -69,7 +69,7 @@ public class SelectExpressionBuilder {
     private List<String> groupBy;
     private OrderBy orderBy;
 
-    private ISqlDialect sqlFormatter;
+    private ISqlDialect sqlDialect;
 
     public static SelectExpressionBuilder builder() {
         return new SelectExpressionBuilder();
@@ -118,8 +118,8 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    public SelectExpressionBuilder sqlFormatter(ISqlDialect sqlFormatter) {
-        this.sqlFormatter = sqlFormatter;
+    public SelectExpressionBuilder sqlDialect(ISqlDialect sqlDialect) {
+        this.sqlDialect = sqlDialect;
         return this;
     }
 
@@ -174,17 +174,17 @@ public class SelectExpressionBuilder {
     }
 
     static class PostAggregatorExpressionGenerator extends MetricSpecVisitorAdaptor<StringExpression> {
-        private final ISqlDialect sqlExpressionFormatter;
+        private final ISqlDialect sqlDialect;
         private final QueryStageAggregatorSQLGenerator queryStageAggregatorSQLGenerator;
 
         protected final Map<String, Object> internalVariables;
         private final Map<String, IQueryStageAggregator> preAggregators;
 
-        PostAggregatorExpressionGenerator(ISqlDialect sqlExpressionFormatter,
+        PostAggregatorExpressionGenerator(ISqlDialect sqlDialect,
                                           Map<String, IQueryStageAggregator> preAggregators,
                                           QueryStageAggregatorSQLGenerator queryStageAggregatorSQLGenerator,
                                           Map<String, Object> internalVariables) {
-            this.sqlExpressionFormatter = sqlExpressionFormatter;
+            this.sqlDialect = sqlDialect;
             this.preAggregators = preAggregators;
             this.queryStageAggregatorSQLGenerator = queryStageAggregatorSQLGenerator;
             this.internalVariables = internalVariables;
@@ -199,10 +199,10 @@ public class SelectExpressionBuilder {
                 @Override
                 public void visitMetric(IMetricSpec metricSpec) {
                     // Case 1. The field used in window function is presented in a sub-query, at the root query level we only reference the name
-                    boolean useWindowFunctionAsAggregator = sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getQueryAggregator());
+                    boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(metricSpec.getQueryAggregator());
 
                     // Case 2. Some DB does not allow same aggregation expressions, we use the existing expression
-                    boolean hasSameExpression = !sqlExpressionFormatter.allowSameAggregatorExpression() && preAggregators.containsKey(metricSpec.getName());
+                    boolean hasSameExpression = !sqlDialect.allowSameAggregatorExpression() && preAggregators.containsKey(metricSpec.getName());
 
                     if (useWindowFunctionAsAggregator || hasSameExpression) {
                         sb.append('"');
@@ -307,7 +307,7 @@ public class SelectExpressionBuilder {
         //
         // Turn some metrics in expression into pre-aggregator first
         //
-        PreAggregatorExtractor postAggregatorExtractor = new PreAggregatorExtractor(this.aggregators, this.sqlFormatter);
+        PreAggregatorExtractor postAggregatorExtractor = new PreAggregatorExtractor(this.aggregators, this.sqlDialect);
         for (PostAggregatorMetricSpec postAggregator : postAggregators) {
             postAggregator.visitExpression(postAggregatorExtractor);
         }
@@ -320,12 +320,12 @@ public class SelectExpressionBuilder {
         // fields
         //
         boolean hasSubSelect = false;
-        QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter,
+        QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlDialect,
                                                                                           interval.getTotalLength(),
                                                                                           interval.getStep());
         for (IQueryStageAggregator aggregator : this.aggregators.values()) {
             // if window function is contained, the final SQL has a sub-query
-            if (sqlFormatter.useWindowFunctionAsAggregator(aggregator)) {
+            if (sqlDialect.useWindowFunctionAsAggregator(aggregator)) {
                 subSelectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
 
                 // this window fields should be in the group-by clause and select clause,
@@ -353,7 +353,7 @@ public class SelectExpressionBuilder {
                                                                     interval.getStep(),
                                                                     "instanceCount",
                                                                     "count(distinct \"instanceName\")");
-            PostAggregatorExpressionGenerator postAggregatorExpressionGenerator = new PostAggregatorExpressionGenerator(sqlFormatter,
+            PostAggregatorExpressionGenerator postAggregatorExpressionGenerator = new PostAggregatorExpressionGenerator(sqlDialect,
                                                                                                                         aggregators,
                                                                                                                         generator.noAlias(),
                                                                                                                         internalVariables);
@@ -367,8 +367,8 @@ public class SelectExpressionBuilder {
         // build WhereExpression
         //
         WhereExpression whereExpression = new WhereExpression();
-        whereExpression.addExpression(StringUtils.format("\"timestamp\" >= %s", sqlFormatter.formatTimestamp(interval.getStartTime())));
-        whereExpression.addExpression(StringUtils.format("\"timestamp\" < %s", sqlFormatter.formatTimestamp(interval.getEndTime())));
+        whereExpression.addExpression(StringUtils.format("\"timestamp\" >= %s", sqlDialect.formatTimestamp(interval.getStartTime())));
+        whereExpression.addExpression(StringUtils.format("\"timestamp\" < %s", sqlDialect.formatTimestamp(interval.getEndTime())));
         for (IFilter filter : filters) {
             whereExpression.addExpression(filter.getMatcher().accept(new SQLFilterBuilder(dataSource, filter)));
         }
