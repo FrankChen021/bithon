@@ -14,38 +14,48 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.web.service.datasource.api;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.metrics.IFilter;
-import org.springframework.validation.annotation.Validated;
+import org.bithon.server.storage.metrics.OrderBy;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.util.Collection;
+import javax.validation.constraints.Size;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/3/7 5:29 下午
+ * @date 2022/11/01 14:28
  */
 @Data
-@Validated
-public class GetDimensionRequest {
-
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class GroupByQueryRequest {
     @NotEmpty
     private String startTimeISO8601;
 
     @NotEmpty
     private String endTimeISO8601;
 
-    @NotNull
+    @NotEmpty
     private String dataSource;
 
-    @Valid
-    private Collection<IFilter> conditions = Collections.emptyList();
+    private List<IFilter> filters = Collections.emptyList();
 
-    @NotNull
-    private String dimension;
+    private List<String> metrics = Collections.emptyList();
+    private List<IQueryStageAggregator> aggregators = Collections.emptyList();
+
+    @Valid
+    @Size(min = 1)
+    private List<String> groupBy;
+
+    private OrderBy orderBy;
 }

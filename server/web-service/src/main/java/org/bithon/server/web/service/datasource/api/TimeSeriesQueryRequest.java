@@ -14,22 +14,38 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.web.service.datasource.api;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import org.bithon.agent.sentinel.flow.FlowRuleDto;
+import lombok.NoArgsConstructor;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.metrics.IFilter;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/6 7:19 下午
+ * @date 2021/1/30 8:20 下午
  */
 @Data
-public class CreateFlowRuleRequest extends FlowRuleDto {
-    /**
-     * application name with profile
-     */
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TimeSeriesQueryRequest {
+    @Valid
     @NotNull
-    private String appName;
+    private IntervalRequest interval;
+
+    @NotEmpty
+    private String dataSource;
+
+    private List<IFilter> filters;
+    private List<String> metrics;
+    private List<IQueryStageAggregator> aggregators;
+    private List<String> groupBy;
 }

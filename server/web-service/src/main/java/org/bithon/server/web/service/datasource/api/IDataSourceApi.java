@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.web.service.datasource.api;
 
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.springframework.validation.annotation.Validated;

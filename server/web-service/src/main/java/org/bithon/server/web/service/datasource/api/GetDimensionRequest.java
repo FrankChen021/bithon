@@ -14,38 +14,38 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.web.service.datasource.api;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.metrics.IFilter;
+import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/1/30 8:20 下午
+ * @date 2021/3/7 5:29 下午
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class TimeSeriesQueryRequest {
-    @Valid
-    @NotNull
-    private IntervalRequest interval;
+@Validated
+public class GetDimensionRequest {
 
     @NotEmpty
+    private String startTimeISO8601;
+
+    @NotEmpty
+    private String endTimeISO8601;
+
+    @NotNull
     private String dataSource;
 
-    private List<IFilter> filters;
-    private List<String> metrics;
-    private List<IQueryStageAggregator> aggregators;
-    private List<String> groupBy;
+    @Valid
+    private Collection<IFilter> conditions = Collections.emptyList();
+
+    @NotNull
+    private String dimension;
 }

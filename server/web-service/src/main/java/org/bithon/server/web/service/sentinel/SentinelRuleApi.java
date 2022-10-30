@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.web.service.sentinel;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bithon.agent.sentinel.degrade.IDegradingRuleManager;

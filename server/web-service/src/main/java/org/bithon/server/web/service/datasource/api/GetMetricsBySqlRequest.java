@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.web.service.datasource.api;
 
 import lombok.Data;
 
@@ -22,13 +22,13 @@ import javax.validation.constraints.NotEmpty;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/6 6:48 下午
+ * @date 2021/1/31 4:27 下午
  */
 @Data
-public class DeleteRuleRequest {
-    @NotEmpty
-    private String appName;
+public class GetMetricsBySqlRequest {
+
+    private String dataSource;
 
     @NotEmpty
-    private String ruleId;
+    private String sql;
 }

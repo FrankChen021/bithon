@@ -14,22 +14,18 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.web.service.datasource.api;
 
-import lombok.Data;
-import org.bithon.agent.sentinel.degrade.DegradingRuleDto;
-
-import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2021/7/6 7:19 下午
+ * @date 2021/3/6 1:35 下午
  */
-@Data
-public class CreateDegradingRuleRequest extends DegradingRuleDto {
-    /**
-     * application name with profile
-     */
-    @NotNull
-    private String appName;
+@Getter
+@AllArgsConstructor
+public class DisplayableText {
+    private final String value;
+    private final String text;
 }

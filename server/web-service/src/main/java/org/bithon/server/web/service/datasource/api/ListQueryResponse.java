@@ -14,39 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.web.service.datasource.api;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.bithon.server.storage.metrics.IFilter;
-import org.bithon.server.storage.metrics.OrderBy;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2/2/22 11:20 AM
  */
 @Data
-public class ListQueryRequest {
-    @NotBlank
-    private String startTimeISO8601;
-
-    @NotBlank
-    private String endTimeISO8601;
-
-    @NotBlank
-    private String dataSource;
-
-    private List<IFilter> filters = Collections.emptyList();
-
-    @Size(min = 1)
-    private List<String> columns;
-
-    private OrderBy orderBy;
-
-    private int pageNumber = 0;
-    private int pageSize = 10;
+@AllArgsConstructor
+public class ListQueryResponse {
+    private int total;
+    private List<Map<String, Object>> rows;
 }

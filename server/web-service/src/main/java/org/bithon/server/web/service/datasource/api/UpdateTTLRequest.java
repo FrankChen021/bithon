@@ -14,33 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.web.service.datasource.api;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.bithon.server.commons.time.Period;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
- * @author Frank Chen
- * @date 22/3/22 3:27 PM
+ * @author frank.chen021@outlook.com
+ * @date 20201-09-30
  */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class IntervalRequest {
-    @NotBlank
-    private String startISO8601;
-
-    @NotBlank
-    private String endISO8601;
-
-    /**
-     * in seconds. The frontend in most cases don't need to set this value.
-     * Can be null. If it's null, it will be default to {@link org.bithon.server.metric.storage.Interval#calculateDefaultStep()}
-     */
-    private Integer step;
+public class UpdateTTLRequest {
+    @NotNull
+    private Period ttl;
 }

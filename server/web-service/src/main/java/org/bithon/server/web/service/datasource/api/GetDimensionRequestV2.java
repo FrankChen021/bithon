@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.web.service.datasource.api;
 
 import lombok.Data;
 import org.bithon.server.storage.metrics.IFilter;

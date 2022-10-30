@@ -19,6 +19,7 @@ package org.bithon.server.web.service.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.junit.Assert;
 import org.junit.Test;
 

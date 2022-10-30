@@ -14,21 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.web.service.api;
+package org.bithon.server.web.service.sentinel;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.List;
-import java.util.Map;
+import javax.validation.constraints.NotEmpty;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2/2/22 11:20 AM
+ * @date 2021/7/6 6:48 下午
  */
 @Data
-@AllArgsConstructor
-public class ListQueryResponse {
-    private int total;
-    private List<Map<String, Object>> rows;
+public class DeleteRuleRequest {
+    @NotEmpty
+    private String appName;
+
+    @NotEmpty
+    private String ruleId;
 }
