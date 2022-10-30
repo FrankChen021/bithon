@@ -16,9 +16,7 @@
 
 package org.bithon.server.storage.jdbc.metric;
 
-import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
-import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
@@ -33,18 +31,13 @@ import org.bithon.server.storage.datasource.spec.gauge.GaugeMetricSpec;
 import org.bithon.server.storage.datasource.spec.max.MaxMetricSpec;
 import org.bithon.server.storage.datasource.spec.min.MinMetricSpec;
 import org.bithon.server.storage.datasource.spec.sum.SumMetricSpec;
-import org.bithon.server.storage.jdbc.dsl.sql.GroupByExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.NameExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.OrderByExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.SelectExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.StringExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.TableExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.WhereExpression;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.GroupByQuery;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
-import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.OrderBy;
 import org.bithon.server.storage.metrics.TimeseriesQueryV2;
@@ -52,9 +45,7 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -81,14 +72,17 @@ public class MetricJdbcReader implements IMetricReader {
 
     @Override
     public List<Map<String, Object>> timeseries(TimeseriesQueryV2 query) {
-        SelectExpression selectExpression = createSelectExpression(query.getDataSource(),
-                                                                   query.getMetrics(),
-                                                                   query.getAggregators(),
-                                                                   Collections.emptyList(),
-                                                                   query.getFilters(),
-                                                                   query.getInterval(),
-                                                                   query.getGroupBy(),
-                                                                   OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build());
+        SelectExpression selectExpression = SelectExpressionBuilder.builder()
+                                                                   .dataSource(query.getDataSource())
+                                                                   .metrics(query.getMetrics())
+                                                                   .aggregators(query.getAggregators())
+                                                                   .filters(query.getFilters())
+                                                                   .interval(query.getInterval())
+                                                                   .groupBys(query.getGroupBy())
+                                                                   .orderBy(OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build())
+                                                                   .sqlFormatter(this.sqlFormatter)
+                                                                   .metricFieldsClauseBuilderSupplier(this::createMetricClauseBuilder)
+                                                                   .build();
 
         SelectExpression timestampExpressionOn = selectExpression;
         if (selectExpression.getFrom().getExpression() instanceof SelectExpression) {
@@ -112,162 +106,20 @@ public class MetricJdbcReader implements IMetricReader {
         return executeSql(sqlGenerator.getSQL());
     }
 
-    /**
-     * Example result SQL if window function is used for first/last aggregator
-     * <p>
-     * SELECT
-     *   "timestamp" AS "_timestamp",
-     *   sum("totalTaskCount") AS "totalTaskCount",
-     *   queuedTaskCount
-     * FROM
-     *   (
-     *     SELECT
-     *       UNIX_TIMESTAMP("timestamp")/ 10 * 10 AS "_timestamp",
-     *       FIRST_VALUE("queuedTaskCount") OVER (
-     *         partition by CAST(toUnixTimestamp("timestamp") / 10 AS Int64) * 10 ORDER BY "timestamp" DESC
-     *       ) AS "queuedTaskCount",
-     *       "totalTaskCount",
-     *     FROM
-     *       "bithon_thread_pool_metrics"
-     *     WHERE
-     *       "appName" = 'bithon-server-live'
-     *       AND "timestamp" >= fromUnixTimestamp(1666578760)
-     *       AND "timestamp" < fromUnixTimestamp(1666589560)
-     *   )
-     * GROUP BY
-     *   "_timestamp", queuedTaskCount
-     * ORDER BY
-     *   "_timestamp"
-     *
-     */
-    private SelectExpression createSelectExpression(DataSourceSchema dataSource,
-                                                    List<String> metrics,
-                                                    List<IQueryStageAggregator> aggregators,
-                                                    List<PostAggregatorMetricSpec> postAggregators,
-                                                    Collection<IFilter> filters,
-                                                    Interval interval,
-                                                    List<String> groupBys,
-                                                    OrderBy orderBy) {
-        String sqlTableName = "bithon_" + dataSource.getName().replace("-", "_");
-
-        List<IQueryStageAggregator> aggregatorList = new ArrayList<>(aggregators);
-        //
-        // To compatible with old interface, turn metric list into aggregators
-        //
-        if (CollectionUtils.isNotEmpty(metrics)) {
-            for (String metric : metrics) {
-                IMetricSpec metricSpec = dataSource.getMetricSpecByName(metric);
-                if (metricSpec == null) {
-                    throw new RuntimeException(StringUtils.format("metric[%s] does not exist.", metric));
-                }
-                IQueryStageAggregator aggregator = metricSpec.getQueryAggregator();
-                if (aggregator != null) {
-                    aggregatorList.add(aggregator);
-                }
-            }
-        }
-
-        SelectExpression selectExpression = new SelectExpression();
-        selectExpression.setGroupBy(new GroupByExpression());
-        SelectExpression subSelectExpression = new SelectExpression();
-
-        Set<String> aggregatorExpressions = new HashSet<>();
-
-        //
-        // fields
-        //
-        boolean hasSubSelect = false;
-        QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlFormatter,
-                                                                                          interval.getTotalLength(),
-                                                                                          interval.getStep());
-        for (IQueryStageAggregator aggregator : aggregatorList) {
-            // if window function is contained, the final SQL has a sub-query
-            if (sqlFormatter.useWindowFunctionAsAggregator(aggregator)) {
-                subSelectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
-
-                // this window fields should be in the group-by clause and select clause,
-                // see the javadoc above
-                selectExpression.getGroupBy().addField(aggregator.getName());
-                selectExpression.getFieldsExpression().addField(new NameExpression(aggregator.getName()));
-
-                hasSubSelect = true;
-            } else {
-                selectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
-
-                // This metric should also be in the sub-query, see the example in the javadoc above
-                subSelectExpression.getFieldsExpression().addField(new NameExpression(aggregator.getName()));
-
-                aggregatorExpressions.add(StringUtils.format("%s(\"%s\")", aggregator.getType(), aggregator.getField()));
-            }
-        }
-
-        // post aggregators
-        if (!CollectionUtils.isEmpty(metrics) || !CollectionUtils.isEmpty(postAggregators)) {
-            MetricFieldsClauseBuilder metricFieldsBuilder = this.createMetricClauseBuilder(sqlTableName,
-                                                                                           dataSource,
-                                                                                           aggregatorExpressions,
-                                                                                           ImmutableMap.of("interval", interval.getStep(),
-                                                                                                          "instanceCount", "count(distinct \"instanceName\")"));
-
-            for (String metric : metrics) {
-                IMetricSpec metricSpec = dataSource.getMetricSpecByName(metric);
-                if (metricSpec instanceof PostAggregatorMetricSpec) {
-                    selectExpression.getFieldsExpression().addField(new StringExpression(metricSpec.accept(metricFieldsBuilder)));
-                }
-            }
-            for (PostAggregatorMetricSpec postMetricSpec : postAggregators) {
-                selectExpression.getFieldsExpression().addField(new StringExpression(postMetricSpec.accept(metricFieldsBuilder)));
-            }
-        }
-
-        //
-        // build WhereExpression
-        //
-        WhereExpression whereExpression = new WhereExpression();
-        whereExpression.addExpression(StringUtils.format("\"timestamp\" >= %s", sqlFormatter.formatTimestamp(interval.getStartTime())));
-        whereExpression.addExpression(StringUtils.format("\"timestamp\" < %s", sqlFormatter.formatTimestamp(interval.getEndTime())));
-        for (IFilter filter : filters) {
-            whereExpression.addExpression(filter.getMatcher().accept(new SQLFilterBuilder(dataSource, filter)));
-        }
-
-        //
-        // build GroupByExpression
-        //
-        subSelectExpression.getFieldsExpression().addFields(groupBys);
-        selectExpression.getFieldsExpression().addFields(groupBys);
-        selectExpression.getGroupBy().addFields(groupBys);
-
-        //
-        // build OrderByExpression
-        //
-        if (orderBy != null) {
-            selectExpression.setOrderBy(new OrderByExpression(orderBy.getName(), orderBy.getOrder()));
-        }
-
-        //
-        // Link query and subQuery together
-        //
-        if (hasSubSelect) {
-            subSelectExpression.getFrom().setExpression(new TableExpression(sqlTableName));
-            subSelectExpression.setWhere(whereExpression);
-            selectExpression.getFrom().setExpression(subSelectExpression);
-        } else {
-            selectExpression.getFrom().setExpression(new TableExpression(sqlTableName));
-            selectExpression.setWhere(whereExpression);
-        }
-        return selectExpression;
-    }
-
     @Override
     public List<Map<String, Object>> groupBy(GroupByQuery query) {
-        SelectExpression selectExpression = createSelectExpression(query.getDataSource(),
-                                                                   query.getMetrics(),
-                                                                   query.getAggregators(),
-                                                                   query.getPostAggregators(),
-                                                                   query.getFilters(),
-                                                                   query.getInterval(),
-                                                                   query.getGroupBys(),
-                                                                   query.getOrderBy());
+        SelectExpression selectExpression = SelectExpressionBuilder.builder()
+                                                                   .dataSource(query.getDataSource())
+                                                                   .metrics(query.getMetrics())
+                                                                   .aggregators(query.getAggregators())
+                                                                   .postAggregators(query.getPostAggregators())
+                                                                   .filters(query.getFilters())
+                                                                   .interval(query.getInterval())
+                                                                   .groupBys(query.getGroupBys())
+                                                                   .orderBy(query.getOrderBy())
+                                                                   .sqlFormatter(this.sqlFormatter)
+                                                                   .metricFieldsClauseBuilderSupplier(this::createMetricClauseBuilder)
+                                                                   .build();
 
         SQLGenerator sqlGenerator = new SQLGenerator();
         selectExpression.accept(sqlGenerator);
