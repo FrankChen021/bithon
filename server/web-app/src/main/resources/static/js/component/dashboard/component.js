@@ -129,7 +129,7 @@ class Dashboard {
                 // Ignore brush event for connection
                 chartInstance.on('brushEnd', (params) => params.escapeConnect = true);
                 chartInstance.on('brushSelected', (params) => params.escapeConnect = true);
-            } catch(ignored) {
+            } catch (ignored) {
                 // this chart component might be TableComponent
             }
         }

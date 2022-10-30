@@ -39,20 +39,22 @@ class AppCardComponent {
     // private
     #loadAppOverview() {
         $.ajax({
-            url: this._apiHost + "/api/datasource/groupBy",
+            url: this._apiHost + "/api/datasource/groupBy/v2",
             data: JSON.stringify({
                 dataSource: 'jvm-metrics',
-                metrics: ["instanceStartTime"],
-                aggregators: [
+                columns: [
+                    "appName",
+                    "instanceStartTime",
                     {
-                        type: "cardinality",
                         name: "instanceCount",
-                        field: "instanceName"
+                        field: "instanceName",
+                        aggregator: "cardinality"
                     }
                 ],
-                startTimeISO8601: moment().utc().subtract(12, 'hour').local().toISOString(),
-                endTimeISO8601: moment().utc().local().toISOString(),
-                groupBy: ["appName"],
+                interval: {
+                    startISO8601: moment().utc().subtract(12, 'hour').local().toISOString(),
+                    endISO8601: moment().utc().local().toISOString()
+                },
                 orderBy: {
                     name: "appName",
                     order: "asc"
