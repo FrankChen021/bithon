@@ -16,7 +16,6 @@
 
 package org.bithon.server.web.service.datasource.api.impl;
 
-import lombok.Data;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.commons.time.TimeSpan;
@@ -26,14 +25,13 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.metrics.GroupByQuery;
-import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
-import org.bithon.server.storage.metrics.TimeseriesQueryV2;
+import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.bithon.server.web.service.datasource.api.DataSourceService;
 import org.bithon.server.web.service.datasource.api.DisplayableText;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
@@ -50,7 +48,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -77,17 +74,6 @@ public class DataSourceApi implements IDataSourceApi {
         this.dataSourceService = dataSourceService;
     }
 
-    @Data
-    public static class GetMetricsRequest {
-        private String startTimeISO8601;
-        private String endTimeISO8601;
-        private String dataSource;
-        private Map<String, IFilter> dimensions;
-        private List<IFilter> filters = Collections.emptyList();
-        private List<String> metrics;
-        private List<String> groups = Collections.emptyList();
-    }
-
     @Override
     public DataSourceService.TimeSeriesQueryResult timeseries(TimeSeriesQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
@@ -95,14 +81,14 @@ public class DataSourceApi implements IDataSourceApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getInterval().getEndISO8601());
 
-        return dataSourceService.timeseriesQuery(TimeseriesQueryV2.builder()
-                                                                  .dataSource(schema)
-                                                                  .aggregators(CollectionUtils.emptyOrOriginal(request.getAggregators()))
-                                                                  .metrics(CollectionUtils.emptyOrOriginal(request.getMetrics()))
-                                                                  .filters(CollectionUtils.emptyOrOriginal(request.getFilters()))
-                                                                  .interval(Interval.of(start, end, request.getInterval().getStep()))
-                                                                  .groupBy(CollectionUtils.emptyOrOriginal(request.getGroupBy()))
-                                                                  .build());
+        return dataSourceService.timeseriesQuery(TimeseriesQuery.builder()
+                                                                .dataSource(schema)
+                                                                .aggregators(CollectionUtils.emptyOrOriginal(request.getAggregators()))
+                                                                .metrics(CollectionUtils.emptyOrOriginal(request.getMetrics()))
+                                                                .filters(CollectionUtils.emptyOrOriginal(request.getFilters()))
+                                                                .interval(Interval.of(start, end, request.getInterval().getStep()))
+                                                                .groupBy(CollectionUtils.emptyOrOriginal(request.getGroupBy()))
+                                                                .build());
     }
 
     @Override
@@ -140,16 +126,11 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public List<Map<String, Object>> query(GeneralQueryRequest request) {
-        if ("groupBy".equals(request.getType())) {
+    public List<Map<String, Object>> groupBy(GeneralQueryRequest request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-            DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
-
-            GroupByQuery groupByQuery = this.dataSourceService.convertToGroupByQuery(schema, request);
-
-            return this.metricStorage.createMetricReader(schema).groupBy(groupByQuery);
-        }
-        return null;
+        GroupByQuery groupByQuery = this.dataSourceService.convertToGroupByQuery(schema, request);
+        return this.metricStorage.createMetricReader(schema).groupBy(groupByQuery);
     }
 
     @Override

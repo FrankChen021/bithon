@@ -32,7 +32,7 @@ import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.metrics.GroupByQuery;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
-import org.bithon.server.storage.metrics.TimeseriesQueryV2;
+import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -69,7 +69,7 @@ public class DataSourceService {
      * Tags - dimension of a series
      * Vals - an array of all data points. Each element represents a data point of a timestamp.
      */
-    public TimeSeriesQueryResult timeseriesQuery(TimeseriesQueryV2 query) {
+    public TimeSeriesQueryResult timeseriesQuery(TimeseriesQuery query) {
         // Use LinkedHashSet to keep the order of input metric list
         Set<String> metrics = new LinkedHashSet<>(query.getAggregators().size() + query.getMetrics().size());
         metrics.addAll(query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList()));
@@ -155,23 +155,21 @@ public class DataSourceService {
 
             QueryColumn.DefaultQueryColumn queryColumn = (QueryColumn.DefaultQueryColumn) column;
 
-            IColumnSpec columnSpec = schema.getColumnByName(queryColumn.getName());
-            if (columnSpec == null) {
-                throw new RuntimeException(StringUtils.format("column [%s] does not exist.", column.getName()));
-            }
-            if (columnSpec instanceof IDimensionSpec) {
-                groupBy.add(columnSpec.getName());
-                continue;
-            }
-
-            // metric
-            IQueryStageAggregator aggregator;
             if (queryColumn.getAggregator() != null) {
-                aggregator = QueryStageAggregators.create(queryColumn.getAggregator(), queryColumn.getName(), queryColumn.getField());
+                aggregators.add(QueryStageAggregators.create(queryColumn.getAggregator(),
+                                                             queryColumn.getName(),
+                                                             queryColumn.getField()));
             } else {
-                aggregator = ((IMetricSpec) columnSpec).getQueryAggregator();
+                IColumnSpec columnSpec = schema.getColumnByName(queryColumn.getField());
+                if (columnSpec == null) {
+                    throw new RuntimeException(StringUtils.format("column [%s] does not exist.", queryColumn.getField()));
+                }
+                if (columnSpec instanceof IDimensionSpec) {
+                    groupBy.add(columnSpec.getName());
+                } else {
+                    aggregators.add(((IMetricSpec) columnSpec).getQueryAggregator());
+                }
             }
-            aggregators.add(aggregator);
         }
 
         TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());

@@ -35,18 +35,16 @@ public interface IDataSourceApi {
     @PostMapping("/api/datasource/timeseries/v2")
     DataSourceService.TimeSeriesQueryResult timeseries(@Validated @RequestBody TimeSeriesQueryRequest request);
 
+    @Deprecated
     @PostMapping("/api/datasource/groupBy")
     List<Map<String, Object>> groupBy(@Validated @RequestBody GroupByQueryRequest request);
+
+    @PostMapping("/api/datasource/groupBy/v2")
+    List<Map<String, Object>> groupBy(@Validated @RequestBody GeneralQueryRequest request);
 
     @PostMapping("/api/datasource/list")
     ListQueryResponse list(@Validated @RequestBody ListQueryRequest request);
 
-    /**
-     * A unified interface that will supersede {@link #groupBy(GroupByQueryRequest)} and {@link #list(ListQueryRequest)}
-     */
-    @PostMapping("/api/datasource/query")
-    List<Map<String, Object>> query(@Validated @RequestBody GeneralQueryRequest request);
-    
     @PostMapping("/api/datasource/schemas")
     Map<String, DataSourceSchema> getSchemas();
 

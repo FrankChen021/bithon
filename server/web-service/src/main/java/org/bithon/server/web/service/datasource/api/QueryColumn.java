@@ -52,16 +52,16 @@ public class QueryColumn {
 
         @JsonCreator
         public DefaultQueryColumn(@JsonProperty("name") String name,
-                                  @JsonProperty("aggregator") String aggregator,
-                                  @JsonProperty("field") String field) {
+                                  @JsonProperty("field") String field,
+                                  @JsonProperty("aggregator") String aggregator) {
             super(name);
             this.aggregator = aggregator;
-            this.field = field;
+            this.field = field == null ? name : field;
         }
 
         @JsonCreator
         public static DefaultQueryColumn fromString(String str) {
-            return new DefaultQueryColumn(str, null, null);
+            return new DefaultQueryColumn(str, str, null);
         }
     }
 

@@ -35,12 +35,6 @@ import java.util.List;
 @Data
 public class GeneralQueryRequest {
 
-    /**
-     * groupBy
-     */
-    @NotEmpty
-    private String type;
-
     @NotEmpty
     private String dataSource;
 
