@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import org.bithon.component.commons.time.DateTime;
 import org.bithon.server.storage.common.IStorageCleaner;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
+import org.bithon.server.storage.jdbc.metric.ISqlDialect;
 import org.bithon.server.storage.jdbc.metric.MetricJdbcStorage;
 import org.bithon.server.storage.jdbc.metric.MetricTable;
 
@@ -34,12 +34,12 @@ import org.bithon.server.storage.jdbc.metric.MetricTable;
 @JsonTypeName("clickhouse")
 public class MetricStorage extends MetricJdbcStorage {
 
-    private final ClickHouseSqlExpressionFormatter formatter;
+    private final ClickHouseSqlDialect formatter;
     private final ClickHouseConfig config;
 
     @JsonCreator
     public MetricStorage(@JacksonInject(useInput = OptBoolean.FALSE) ClickHouseJooqContextHolder dslContextHolder,
-                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlExpressionFormatter formatter,
+                         @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseSqlDialect formatter,
                          @JacksonInject(useInput = OptBoolean.FALSE) ClickHouseConfig config) {
         super(dslContextHolder.getDslContext());
         this.formatter = formatter;
@@ -52,7 +52,7 @@ public class MetricStorage extends MetricJdbcStorage {
     }
 
     @Override
-    protected ISqlExpressionFormatter getSqlExpressionFormatter() {
+    protected ISqlDialect getSqlExpressionFormatter() {
         return formatter;
     }
 

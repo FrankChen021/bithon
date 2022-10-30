@@ -18,13 +18,13 @@ package org.bithon.server.storage.jdbc.clickhouse;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.jdbc.metric.ISqlExpressionFormatter;
+import org.bithon.server.storage.jdbc.metric.ISqlDialect;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 1/11/21 5:21 pm
  */
-class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
+class ClickHouseSqlDialect implements ISqlDialect {
 
     @Override
     public String timeFloor(String field, long interval) {
@@ -47,11 +47,6 @@ class ClickHouseSqlExpressionFormatter implements ISqlExpressionFormatter {
     @Override
     public String formatTimestamp(TimeSpan timeSpan) {
         return StringUtils.format("fromUnixTimestamp(%d)", timeSpan.getMilliseconds() / 1000);
-    }
-
-    @Override
-    public String orderByTimestamp(String timestampField) {
-        return "ORDER BY \"" + timestampField + "\"";
     }
 
     @Override

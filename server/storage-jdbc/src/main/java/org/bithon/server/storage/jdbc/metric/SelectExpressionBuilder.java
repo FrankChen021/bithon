@@ -69,7 +69,7 @@ public class SelectExpressionBuilder {
     private List<String> groupBy;
     private OrderBy orderBy;
 
-    private ISqlExpressionFormatter sqlFormatter;
+    private ISqlDialect sqlFormatter;
 
     public static SelectExpressionBuilder builder() {
         return new SelectExpressionBuilder();
@@ -118,7 +118,7 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    public SelectExpressionBuilder sqlFormatter(ISqlExpressionFormatter sqlFormatter) {
+    public SelectExpressionBuilder sqlFormatter(ISqlDialect sqlFormatter) {
         this.sqlFormatter = sqlFormatter;
         return this;
     }
@@ -126,12 +126,12 @@ public class SelectExpressionBuilder {
     static class PreAggregatorExtractor implements PostAggregatorExpressionVisitor {
 
         private final Map<String, IQueryStageAggregator> preAggregators;
-        private final ISqlExpressionFormatter sqlExpressionFormatter;
+        private final ISqlDialect sqlExpressionFormatter;
 
         @Getter
         private final Set<String> metrics = new HashSet<>();
 
-        PreAggregatorExtractor(Map<String, IQueryStageAggregator> queryStageAggregators, ISqlExpressionFormatter sqlFormatter) {
+        PreAggregatorExtractor(Map<String, IQueryStageAggregator> queryStageAggregators, ISqlDialect sqlFormatter) {
             this.preAggregators = queryStageAggregators;
             this.sqlExpressionFormatter = sqlFormatter;
         }
@@ -174,13 +174,13 @@ public class SelectExpressionBuilder {
     }
 
     static class PostAggregatorExpressionGenerator extends MetricSpecVisitorAdaptor<StringExpression> {
-        private final ISqlExpressionFormatter sqlExpressionFormatter;
+        private final ISqlDialect sqlExpressionFormatter;
         private final QueryStageAggregatorSQLGenerator queryStageAggregatorSQLGenerator;
 
         protected final Map<String, Object> internalVariables;
         private final Map<String, IQueryStageAggregator> preAggregators;
 
-        PostAggregatorExpressionGenerator(ISqlExpressionFormatter sqlExpressionFormatter,
+        PostAggregatorExpressionGenerator(ISqlDialect sqlExpressionFormatter,
                                           Map<String, IQueryStageAggregator> preAggregators,
                                           QueryStageAggregatorSQLGenerator queryStageAggregatorSQLGenerator,
                                           Map<String, Object> internalVariables) {

@@ -52,9 +52,9 @@ public class MetricJdbcReader implements IMetricReader {
     private static final String TIMESTAMP_ALIAS_NAME = "_timestamp";
 
     protected final DSLContext dsl;
-    protected final ISqlExpressionFormatter sqlFormatter;
+    protected final ISqlDialect sqlFormatter;
 
-    public MetricJdbcReader(DSLContext dsl, ISqlExpressionFormatter sqlFormatter) {
+    public MetricJdbcReader(DSLContext dsl, ISqlDialect sqlFormatter) {
         this.dsl = dsl;
         this.sqlFormatter = sqlFormatter;
     }
@@ -212,8 +212,8 @@ public class MetricJdbcReader implements IMetricReader {
         }).collect(Collectors.toList());
     }
 
-    static class DefaultSqlExpressionFormatter implements ISqlExpressionFormatter {
-        public static ISqlExpressionFormatter INSTANCE = new DefaultSqlExpressionFormatter();
+    static class DefaultSqlDialect implements ISqlDialect {
+        public static ISqlDialect INSTANCE = new DefaultSqlDialect();
 
         @Override
         public boolean groupByUseRawExpression() {
@@ -241,8 +241,8 @@ public class MetricJdbcReader implements IMetricReader {
         }
     }
 
-    static class H2SqlExpressionFormatter implements ISqlExpressionFormatter {
-        public static ISqlExpressionFormatter INSTANCE = new H2SqlExpressionFormatter();
+    static class H2SqlDialect implements ISqlDialect {
+        public static ISqlDialect INSTANCE = new H2SqlDialect();
 
         @Override
         public boolean groupByUseRawExpression() {

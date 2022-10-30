@@ -26,7 +26,7 @@ import org.bithon.server.storage.datasource.api.QueryStageAggregators;
  */
 public class QueryStageAggregatorSQLGenerator implements IQueryStageAggregatorVisitor<String> {
 
-    private final ISqlExpressionFormatter formatter;
+    private final ISqlDialect formatter;
 
     /**
      * in second
@@ -36,11 +36,11 @@ public class QueryStageAggregatorSQLGenerator implements IQueryStageAggregatorVi
 
     private final boolean hasAlias;
 
-    public QueryStageAggregatorSQLGenerator(ISqlExpressionFormatter sqlFormatter, long length, long step) {
+    public QueryStageAggregatorSQLGenerator(ISqlDialect sqlFormatter, long length, long step) {
         this(sqlFormatter, length, step, true);
     }
 
-    public QueryStageAggregatorSQLGenerator(ISqlExpressionFormatter sqlFormatter, long length, long step, boolean hasAlias) {
+    public QueryStageAggregatorSQLGenerator(ISqlDialect sqlFormatter, long length, long step, boolean hasAlias) {
         this.step = step;
         this.length = length;
         this.formatter = sqlFormatter;

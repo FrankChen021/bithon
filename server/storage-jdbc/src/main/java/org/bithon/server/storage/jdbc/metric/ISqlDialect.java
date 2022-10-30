@@ -25,7 +25,7 @@ import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
  * @author frank.chen021@outlook.com
  * @date 2021-10-26
  */
-public interface ISqlExpressionFormatter {
+public interface ISqlDialect {
     /**
      * different DBMS has different functions to support time_floor semantics
      *
@@ -86,14 +86,6 @@ public interface ISqlExpressionFormatter {
 
     default String formatTimestamp(TimeSpan timeSpan) {
         return "'" + timeSpan.toISO8601() + "'";
-    }
-
-    /**
-     * some DBMS returns data out of timestamp order
-     * this interface returns a ORDER-BY SQL clause for such DBMS
-     */
-    default String orderByTimestamp(String timestampField) {
-        return "";
     }
 
     String stringAggregator(String field, String name);

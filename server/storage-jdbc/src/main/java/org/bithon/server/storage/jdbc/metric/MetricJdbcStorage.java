@@ -79,11 +79,11 @@ public class MetricJdbcStorage implements IMetricStorage {
         };
     }
 
-    protected ISqlExpressionFormatter getSqlExpressionFormatter() {
+    protected ISqlDialect getSqlExpressionFormatter() {
         if (dslContext.dialect() == SQLDialect.H2) {
-            return MetricJdbcReader.H2SqlExpressionFormatter.INSTANCE;
+            return MetricJdbcReader.H2SqlDialect.INSTANCE;
         } else {
-            return MetricJdbcReader.DefaultSqlExpressionFormatter.INSTANCE;
+            return MetricJdbcReader.DefaultSqlDialect.INSTANCE;
         }
     }
 
