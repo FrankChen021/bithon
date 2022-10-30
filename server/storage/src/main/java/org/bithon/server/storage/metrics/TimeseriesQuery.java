@@ -16,39 +16,32 @@
 
 package org.bithon.server.storage.metrics;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 
 import java.util.Collection;
 import java.util.List;
 
 /**
- * @author frank.chen021@outlook.com
+ * @author Frank Chen
  * @date 1/11/21 2:50 pm
  */
-@Data
+@Getter
+@Builder
 public class TimeseriesQuery {
-    private final DataSourceSchema dataSource;
+    private DataSourceSchema dataSource;
 
-    private final List<String> metrics;
+    private List<String> metrics;
 
-    private final Collection<IFilter> filters;
-    private final Interval interval;
+    private List<IQueryStageAggregator> aggregators;
+
+    private Collection<IFilter> filters;
+    private Interval interval;
 
     /**
      * time series also have groupBy, in this case, there will be multiple series
      */
-    private final List<String> groupBys;
-
-    public TimeseriesQuery(DataSourceSchema dataSource,
-                           List<String> metrics,
-                           Collection<IFilter> filters,
-                           Interval interval,
-                           List<String> groupBys) {
-        this.dataSource = dataSource;
-        this.metrics = metrics;
-        this.filters = filters;
-        this.interval = interval;
-        this.groupBys = groupBys;
-    }
+    private List<String> groupBy;
 }

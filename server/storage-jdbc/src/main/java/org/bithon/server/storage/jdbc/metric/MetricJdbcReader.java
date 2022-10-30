@@ -31,7 +31,7 @@ import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.OrderBy;
-import org.bithon.server.storage.metrics.TimeseriesQueryV2;
+import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -60,7 +60,7 @@ public class MetricJdbcReader implements IMetricReader {
     }
 
     @Override
-    public List<Map<String, Object>> timeseries(TimeseriesQueryV2 query) {
+    public List<Map<String, Object>> timeseries(TimeseriesQuery query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
                                                                    .dataSource(query.getDataSource())
                                                                    .metrics(query.getMetrics())
