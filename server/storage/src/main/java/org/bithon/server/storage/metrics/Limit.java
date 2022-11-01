@@ -16,14 +16,35 @@
 
 package org.bithon.server.storage.metrics;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 17/4/22 5:23 PM
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Limit {
     private int limit = 10;
     private int offset = 0;
+
+    /**
+     * Support simple format
+     */
+    @JsonCreator
+    public static Limit fromString(String limit) {
+        return new Limit(Integer.parseInt(limit), 0);
+    }
+
+    /**
+     * Support simple format
+     */
+    @JsonCreator
+    public static Limit fromNumber(Number limit) {
+        return new Limit(limit.intValue(), 0);
+    }
 }
