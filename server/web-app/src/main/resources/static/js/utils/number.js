@@ -67,6 +67,47 @@ Number.prototype.formatWithNoTrailingZeros = function (fraction) {
     return n;
 };
 
+/**
+ * @timestamp The diff between the given timestamp and current timestamp
+ * @return e.g. 2 minutes ago
+ */
+// Number.prototype.formatTimeDiff(timestamp) {
+//
+// }
+
+/**
+ * value in milli-second
+ * @returns {string}
+ */
+Number.prototype.formatTimeDuration = function() {
+    const duration = +this.valueOf();
+
+    let seconds = Math.floor(duration / 1000);
+
+    const days = Math.floor(seconds / (24 * 3600));
+    seconds = seconds % (24 * 3600); // get the left seconds for hours
+
+    const hours = Math.floor(seconds / (3600));
+    seconds = seconds % (3600);  // get the left seconds for minutes
+
+    const minutes = Math.floor(seconds / (60));
+    seconds = seconds % (60); // left seconds
+
+    let text = '';
+    if (days > 0)
+        text += days + 'Day ';
+    if (hours > 0)
+        text += hours + 'Hour ';
+    if (minutes > 0)
+        text += minutes + 'Min';
+
+    // no need to show seconds to make the text short
+    if (text.length === 0 && seconds > 0)
+        text += seconds + 'Second';
+
+    return text;
+}
+
 String.prototype.htmlEncode = function () {
     return this.replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')

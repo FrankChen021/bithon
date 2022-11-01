@@ -44,7 +44,7 @@ class AppCardComponent {
                 dataSource: 'jvm-metrics',
                 columns: [
                     "appName",
-                    "instanceStartTime",
+                    "instanceUpTime",
                     {
                         name: "instanceCount",
                         field: "instanceName",
@@ -68,36 +68,11 @@ class AppCardComponent {
                     const appCard = this.#getOrCreateAppCard(overview.appName);
                     $(appCard).find('.instance-count').html('<b>Instances</b>：' + overview.instanceCount);
                     $(appCard).find('.start-time').html('<b>Started at</b>：' + moment(overview.instanceStartTime).local().format('YYYY-MM-DD HH:mm:ss'));
-                    $(appCard).find('.up-time').html('<b>Up Time</b>：' + this.timeDiff(overview.instanceStartTime));
+                    $(appCard).find('.up-time').html('<b>Up Time</b>：' + overview.instanceStartTime.formatTimeDuration());
                 });
             }
         });
     }
 
-    timeDiff(before) {
-        let seconds = Math.floor((new Date().getTime() - before) / 1000);
 
-        const days = Math.floor(seconds / (24 * 3600));
-        seconds = seconds % (24 * 3600); // get the left seconds for hours
-
-        const hours = Math.floor(seconds / (3600));
-        seconds = seconds % (3600);  // get the left seconds for minutes
-
-        const minutes = Math.floor(seconds / (60));
-        seconds = seconds % (60); // left seconds
-
-        let text = '';
-        if (days > 0)
-            text += days + 'Day ';
-        if (hours > 0)
-            text += hours + 'Hour ';
-        if (minutes > 0)
-            text += minutes + 'Min';
-
-        // no need to show seconds to make the text short
-        if (text.length === 0 && seconds > 0)
-            text += seconds + 'Second';
-
-        return text;
-    }
 }

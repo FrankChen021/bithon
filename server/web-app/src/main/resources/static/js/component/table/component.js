@@ -16,7 +16,7 @@ class TableComponent {
      */
     constructor(option) {
         // view
-        this.vTableContainer = $(`<div></div>`);
+        this.vTableContainer = $(`<div class="card card-block chart-container"></div>`);
         this.vTable = this.vTableContainer.append(`<table id="${option.tableId}"></table>`).find('table');
         option.parent.append(this.vTableContainer);
 
@@ -38,6 +38,7 @@ class TableComponent {
             const column = this.mColumnMap[field];
             return column.template.replaceAll('{value}', val);
         };
+        this.mFormatters['timeDuration'] = (val) => val.formatTimeDuration();
 
         for (let i = 0; i < this.mColumns.length; i++) {
 
@@ -78,6 +79,14 @@ class TableComponent {
             window.gTableComponents = {};
         }
         window.gTableComponents[option.tableId] = this;
+    }
+
+    header(text) {
+        if ( this._header == null ) {
+            this._header = $(this.vTableContainer).prepend('<div class="card-header"></div>').find('.card-header');
+        }
+        $(this._header).html(text);
+        return this;
     }
 
     onButtonClick(rowIndex, buttonIndex) {

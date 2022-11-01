@@ -29,6 +29,8 @@ class Dashboard {
         this._formatters['byte_rate'] = (v) => v.formatBinaryByte() + "/s";
         this._formatters['dateTime'] = (v) => new Date(v).format('yyyy-MM-dd hh:mm:ss');
         this._formatters['shortDateTime'] = (v) => new Date(v).format('MM-dd hh:mm:ss');
+        this._formatters['timeDuration'] = (v) => v.formatTimeDuration();
+        this._formatters['timeDiff'] = (v) => v.formatTimeDiff();
     }
 
     // PUBLIC
@@ -616,10 +618,9 @@ class Dashboard {
         window.open(url);
     }
 
-    createTableComponent(chartId, chartDescriptor) {
+    createListComponent(chartId, chartDescriptor) {
 
         const lookup = chartDescriptor.lookup;
-
         $.each(chartDescriptor.columns, (index, column) => {
             // handle lookup
             let lookupFn = null;
@@ -668,7 +669,101 @@ class Dashboard {
         return vTable;
     }
 
+    createTableComponent(chartId, chartDescriptor) {
+
+        const lookup = chartDescriptor.lookup;
+        const columns = chartDescriptor.query.columns.map((column) => {
+            if (typeof column !== 'object') {
+                return {
+                    title: column,
+                    field: column
+                };
+            }
+
+            const tableColumn = {
+                field: column.name,
+                title: column.title || column.name,
+            };
+
+            // handle lookup
+            let lookupFn = null;
+            if (lookup !== undefined && lookup !== null) {
+                const fieldLookupTable = lookup[column.name];
+                if (fieldLookupTable != null) {
+                    lookupFn = (val) => {
+                        const mapped = fieldLookupTable[val];
+                        return mapped != null ? mapped + '(' + val + ')' : val;
+                    }
+                }
+            }
+
+            // handle format
+            if (column.format !== undefined) {
+                const formatterFn = this._formatters[column.format];
+                if (lookupFn != null || formatterFn != null) {
+                    tableColumn.formatter = (v) => {
+                        if (lookupFn != null) {
+                            v = lookupFn(v);
+                        }
+                        if (formatterFn != null) {
+                            v = formatterFn(v);
+                        }
+                        return v;
+                    };
+                }
+            }
+            return tableColumn;
+        });
+
+        const vParent = $('#' + chartId);
+
+        const vTable = new TableComponent({
+                tableId: chartId + '_table',
+                parent: vParent,
+                columns: columns,
+                pagination: false,
+                detailView: false,
+
+                // default order
+                order: chartDescriptor.query.orderBy?.order,
+                orderBy: chartDescriptor.query.orderBy?.name,
+            }
+        );
+
+        if (chartDescriptor.title !== undefined) {
+            vTable.header('<b>' + chartDescriptor.title + '</b>');
+        }
+        this._chartComponents[chartId] = vTable;
+
+        return vTable;
+    }
+
     refreshTable(chartDescriptor, tableComponent, interval) {
+        const filters = this.vFilter.getSelectedFilters();
+        if (chartDescriptor.filters != null) {
+            $.each(chartDescriptor.filters, (index, filter) => {
+                filters.push(filter);
+            });
+        }
+
+        const loadOptions = {
+            url: apiHost + "/api/datasource/groupBy/v2",
+            ajaxData: {
+                dataSource: chartDescriptor.dataSource,
+                interval: {
+                    startISO8601: interval.start,
+                    endISO8601: interval.end
+                },
+                filters: filters,
+                columns: chartDescriptor.query.columns,
+                orderBy: chartDescriptor.query.orderBy,
+                limit: chartDescriptor.query.limit === undefined ? null : chartDescriptor.query.limit
+            }
+        };
+        tableComponent.load(loadOptions);
+    }
+
+    refreshList(chartDescriptor, tableComponent, interval) {
         const filters = this.vFilter.getSelectedFilters();
         if (chartDescriptor.filters != null) {
             $.each(chartDescriptor.filters, (index, filter) => {
@@ -694,6 +789,9 @@ class Dashboard {
     // PRIVATE
     createChartComponent(chartId, chartDescriptor) {
         if (chartDescriptor.type === 'list') {
+            return this.createListComponent(chartId, chartDescriptor);
+        }
+        if (chartDescriptor.type === 'table') {
             return this.createTableComponent(chartId, chartDescriptor);
         }
 
@@ -842,6 +940,10 @@ class Dashboard {
         // }
 
         if (chartDescriptor.type === 'list') {
+            this.refreshList(chartDescriptor, chartComponent, interval);
+            return;
+        }
+        if (chartDescriptor.type === 'table') {
             this.refreshTable(chartDescriptor, chartComponent, interval);
             return;
         }
