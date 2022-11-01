@@ -1,4 +1,4 @@
-package org.bithon.server.storage.datasource.aggregator;/*
+/*
  *    Copyright 2020 bithon.org
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,8 @@ package org.bithon.server.storage.datasource.aggregator;/*
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+package org.bithon.server.storage.datasource.aggregator;
 
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.PostAggregatorExpressionVisitor;

@@ -173,7 +173,7 @@ public class DataSourceService {
         TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
 
-        /*
+        /**
          * For Window functions, since the timestamp of records might cross two windows,
          * we need to make sure the record in the given time range has only one window.
          */
