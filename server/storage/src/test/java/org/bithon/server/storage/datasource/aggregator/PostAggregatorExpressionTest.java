@@ -1,4 +1,4 @@
-/*
+package org.bithon.server.storage.datasource.aggregator;/*
  *    Copyright 2020 bithon.org
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ import org.junit.Test;
 public class PostAggregatorExpressionTest {
 
     @Test
-    public void testIntervalExpression() {
+    public void testVariableExpression() {
         PostAggregatorMetricSpec metricSpec = new PostAggregatorMetricSpec("avg",
                                                                            "dis",
                                                                            "",
@@ -38,7 +38,7 @@ public class PostAggregatorExpressionTest {
             }
 
             @Override
-            public void visitNumber(String number) {
+            public void visitConstant(String number) {
                 sb.append(number);
             }
 
@@ -48,11 +48,11 @@ public class PostAggregatorExpressionTest {
             }
 
             @Override
-            public void startBrace() {
+            public void beginSubExpression() {
             }
 
             @Override
-            public void endBrace() {
+            public void endSubExpression() {
             }
 
             @Override
@@ -61,5 +61,41 @@ public class PostAggregatorExpressionTest {
             }
         });
         Assert.assertEquals("1000/10", sb.toString());
+    }
+
+    @Test
+    public void testFunctionExpression() {
+        String functionExpression = "round(100)";
+        PostAggregatorMetricSpec metricSpec = new PostAggregatorMetricSpec("avg",
+                                                                           "dis",
+                                                                           "",
+                                                                           functionExpression,
+                                                                           "long",
+                                                                           true);
+
+        final StringBuilder sb = new StringBuilder();
+        metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
+            @Override
+            public void visitConstant(String number) {
+                sb.append(number);
+            }
+
+            @Override
+            public void visitVariable(String variable) {
+                sb.append(10);
+            }
+
+            @Override
+            public void beginFunction(String name) {
+                sb.append(name);
+                sb.append('(');
+            }
+
+            @Override
+            public void endFunctionArgument(int argIndex, int argCount) {
+                sb.append(')');
+            }
+        });
+        Assert.assertEquals(functionExpression, sb.toString());
     }
 }

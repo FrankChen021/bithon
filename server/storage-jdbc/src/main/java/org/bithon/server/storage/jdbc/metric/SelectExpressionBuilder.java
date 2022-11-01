@@ -166,7 +166,7 @@ public class SelectExpressionBuilder {
         }
 
         @Override
-        public void visitNumber(String number) {
+        public void visitConstant(String number) {
         }
 
         @Override
@@ -174,11 +174,11 @@ public class SelectExpressionBuilder {
         }
 
         @Override
-        public void startBrace() {
+        public void beginSubExpression() {
         }
 
         @Override
-        public void endBrace() {
+        public void endSubExpression() {
         }
 
         @Override
@@ -228,7 +228,7 @@ public class SelectExpressionBuilder {
                 }
 
                 @Override
-                public void visitNumber(String number) {
+                public void visitConstant(String number) {
                     sb.append(number);
                 }
 
@@ -238,12 +238,12 @@ public class SelectExpressionBuilder {
                 }
 
                 @Override
-                public void startBrace() {
+                public void beginSubExpression() {
                     sb.append('(');
                 }
 
                 @Override
-                public void endBrace() {
+                public void endSubExpression() {
                     sb.append(')');
                 }
 

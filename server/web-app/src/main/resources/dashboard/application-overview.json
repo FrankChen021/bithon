@@ -1,0 +1,46 @@
+{
+  "title": "Application Overview",
+  "charts": [
+    {
+      "dataSource": "jvm-metrics",
+      "title": "Instance",
+      "width": 4,
+      "type": "table",
+      "query": {
+        "type": "groupBy",
+        "columns": [
+          "instanceName",
+          "processors",
+          {"name": "instanceStartTime", "title": "startTime", "format": "dateTime" },
+          {"name": "instanceUpTime", "title": "upTime", "format": "timeDuration" },
+          {"name": "heapUsed", "expression": "heapUsed * 100.0/heapMax", "title": "heapUsed(%)" },
+          {"name" : "processCpuLoad", "title": "processCpuLoad(%)" }
+        ],
+        "orderBy": {
+          "name": "instanceUpTime",
+          "order": "desc"
+        }
+      }
+    },
+    {
+      "dataSource": "http-incoming-metrics",
+      "title": "HTTP Incoming",
+      "width": 4,
+      "type": "table",
+      "query": {
+        "type": "groupBy",
+        "columns": [
+          "uri",
+          {"name": "totalCount", "format": "compact_number"},
+          {"name": "errorCount", "format": "compact_number"},
+          {"name": "errorRate", "expression": "errorCount*100.0/totalCount", "title": "errorRate(%)"}
+        ],
+        "limit": 10,
+        "orderBy": {
+          "name": "totalCount",
+          "order": "desc"
+        }
+      }
+    }
+  ]
+}

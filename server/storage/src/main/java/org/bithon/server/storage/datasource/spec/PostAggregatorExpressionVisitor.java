@@ -22,15 +22,32 @@ package org.bithon.server.storage.datasource.spec;
  * @date 2020/12/23
  */
 public interface PostAggregatorExpressionVisitor {
-    void visitMetric(IMetricSpec metricSpec);
+    default void visitMetric(IMetricSpec metricSpec) {
+    }
 
-    void visitNumber(String number);
+    default void visitConstant(String number) {
+    }
 
-    void visitorOperator(String operator);
+    default void visitorOperator(String operator) {
+    }
 
-    void startBrace();
+    default void beginSubExpression() {
+    }
 
-    void endBrace();
+    default void endSubExpression() {
+    }
 
     void visitVariable(String variable);
+
+    default void beginFunction(String name) {
+    }
+
+    default void endFunction() {
+    }
+
+    default void beginFunctionArgument(int argIndex, int argCount) {
+    }
+
+    default void endFunctionArgument(int argIndex, int argCount) {
+    }
 }
