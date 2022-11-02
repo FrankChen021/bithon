@@ -140,29 +140,28 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                 }
 
                 @Override
-                public Void visitExpression(PostAggregatorExpressionParser.ExpressionContext ctx) {
-                    if (ctx.getChild(0) instanceof PostAggregatorExpressionParser.FunctionNameExpressionContext) {
-                        String functionName = ctx.getChild(0).getText();
-                        Function function = Functions.getInstance().getFunction(functionName);
-                        if (function == null) {
-                            throw new IllegalStateException(StringUtils.format("function [%s] is not defined.", functionName));
-                        }
-
-                        List<PostAggregatorExpressionParser.ExpressionContext> argumentExpressions = ctx.getRuleContexts(PostAggregatorExpressionParser.ExpressionContext.class);
-                        int argumentSize = argumentExpressions.size();
-                        if (argumentSize != function.getParameters().size()) {
-                            throw new IllegalStateException(StringUtils.format("In expression [%s], function [%s] has [%d] parameters, but only given [%d]",
-                                                                               ctx.getText(),
-                                                                               functionName,
-                                                                               function.getParameters().size(),
-                                                                               argumentSize));
-                        }
-                        for (int i = 0; i < argumentSize; i++) {
-                            PostAggregatorExpressionParser.ExpressionContext argExpression = argumentExpressions.get(i);
-                            function.getValidator().accept(i, argExpression);
-                        }
+                public Void visitFunctionExpression(PostAggregatorExpressionParser.FunctionExpressionContext ctx) {
+                    String functionName = ctx.getChild(0).getText();
+                    Function function = Functions.getInstance().getFunction(functionName);
+                    if (function == null) {
+                        throw new IllegalStateException(StringUtils.format("function [%s] is not defined.", functionName));
                     }
-                    return super.visitExpression(ctx);
+
+                    List<PostAggregatorExpressionParser.ExpressionContext> argumentExpressions = ctx.getRuleContexts(PostAggregatorExpressionParser.ExpressionContext.class);
+                    int argumentSize = argumentExpressions.size();
+                    if (argumentSize != function.getParameters().size()) {
+                        throw new IllegalStateException(StringUtils.format("In expression [%s], function [%s] has [%d] parameters, but only given [%d]",
+                                                                           ctx.getText(),
+                                                                           functionName,
+                                                                           function.getParameters().size(),
+                                                                           argumentSize));
+                    }
+                    for (int i = 0; i < argumentSize; i++) {
+                        PostAggregatorExpressionParser.ExpressionContext argExpression = argumentExpressions.get(i);
+                        function.getValidator().accept(i, argExpression);
+                    }
+
+                    return null;
                 }
             });
             return parser;
@@ -233,33 +232,35 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                         }
                     }
                     default:
-                        ParseTree firstChild = ctx.getChild(0);
-                        if (firstChild instanceof PostAggregatorExpressionParser.FunctionNameExpressionContext) {
-                            // Processing function call
-                            visitor.beginFunction(firstChild.getText());
-
-                            // Processing function arguments
-                            List<PostAggregatorExpressionParser.ExpressionContext> argumentExpressions = ctx.getRuleContexts(PostAggregatorExpressionParser.ExpressionContext.class);
-                            int argumentSize = argumentExpressions.size();
-
-                            for (int i = 0; i < argumentSize; i++) {
-                                PostAggregatorExpressionParser.ExpressionContext argExpression = argumentExpressions.get(i);
-                                visitor.beginFunctionArgument(i, argumentSize);
-                                this.visit(argExpression);
-                                visitor.endFunctionArgument(i, argumentSize);
-                            }
-
-                            visitor.endFunction();
-
-                            return null;
-                        } else {
-                            // no such case
-                            throw new IllegalStateException("ChildCount is "
-                                                            + ctx.getChildCount()
-                                                            + ", Text="
-                                                            + ctx.getText());
-                        }
+                        // no such case
+                        throw new IllegalStateException("ChildCount is "
+                                                        + ctx.getChildCount()
+                                                        + ", Text="
+                                                        + ctx.getText());
                 }
+            }
+
+            @Override
+            public Void visitFunctionExpression(PostAggregatorExpressionParser.FunctionExpressionContext ctx) {
+                ParseTree functionName = ctx.getChild(0);
+
+                // Processing function call
+                visitor.beginFunction(functionName.getText());
+
+                // Processing function arguments
+                List<PostAggregatorExpressionParser.ExpressionContext> argumentExpressions = ctx.getRuleContexts(PostAggregatorExpressionParser.ExpressionContext.class);
+                int argumentSize = argumentExpressions.size();
+
+                for (int i = 0; i < argumentSize; i++) {
+                    PostAggregatorExpressionParser.ExpressionContext argExpression = argumentExpressions.get(i);
+                    visitor.beginFunctionArgument(i, argumentSize);
+                    this.visit(argExpression);
+                    visitor.endFunctionArgument(i, argumentSize);
+                }
+
+                visitor.endFunction();
+
+                return null;
             }
 
             @Override

@@ -9,7 +9,7 @@ expression
   | fieldNameExpression
   | variableExpression
   | expression op=(ADD|SUB|MUL|DIV) expression
-  | functionNameExpression LEFT_PARENTHESES expression (COMMA expression)* RIGHT_PARENTHESES
+  | functionExpression
   | LEFT_PARENTHESES expression RIGHT_PARENTHESES
   ;
 
@@ -17,11 +17,15 @@ fieldNameExpression
   : ID
   ;
 
+variableExpression: '{' ID '}';
+
+functionExpression
+  : functionNameExpression LEFT_PARENTHESES expression (COMMA expression)* RIGHT_PARENTHESES
+  ;
+
 functionNameExpression
   : ID
   ;
-
-variableExpression: '{' ID '}';
 
 NUMBER: [0-9]+('.'?[0-9]+)?;
 

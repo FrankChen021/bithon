@@ -44,6 +44,23 @@ public class PostAggregatorExpressionTest {
         Assert.assertEquals("1000/{interval}", g.getGenerated());
     }
 
+    /**
+     * Make sure the lexer and parser won't treat the expression as function expression
+     */
+    @Test
+    public void testParenthesesAroundExpression() {
+        PostAggregatorMetricSpec metricSpec = new PostAggregatorMetricSpec("avg",
+                                                                           "dis",
+                                                                           "",
+                                                                           "({interval}*100)",
+                                                                           "long",
+                                                                           true);
+
+        ExpressionGenerator g = new ExpressionGenerator();
+        metricSpec.visitExpression(g);
+        Assert.assertEquals("({interval}*100)", g.getGenerated());
+    }
+
     @Test
     public void testFunctionExpression() {
         String functionExpression = "round(100,2)";
@@ -145,6 +162,16 @@ public class PostAggregatorExpressionTest {
             if (argIndex < count - 1) {
                 sb.append(',');
             }
+        }
+
+        @Override
+        public void beginSubExpression() {
+            sb.append('(');
+        }
+
+        @Override
+        public void endSubExpression() {
+            sb.append(')');
         }
 
         public String getGenerated() {
