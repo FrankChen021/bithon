@@ -46,7 +46,7 @@ public class PostAggregatorExpressionTest {
 
     @Test
     public void testFunctionExpression() {
-        String functionExpression = "round(100)";
+        String functionExpression = "round(100,2)";
         PostAggregatorMetricSpec metricSpec = new PostAggregatorMetricSpec("avg",
                                                                            "dis",
                                                                            "",
@@ -62,8 +62,10 @@ public class PostAggregatorExpressionTest {
     @Test
     public void testExpressionInFunctionExpression() {
         DataSourceSchema schema = new DataSourceSchema("display", "name", null, Collections.emptyList(),
-                                                       Stream.of("a", "b", "c", "d").map((s)->new LongSumMetricSpec(s, s, s, s, true)).collect(Collectors.toList()));
-        String functionExpression = "round(a*b/c+d)";
+                                                       Stream.of("a", "b", "c", "d")
+                                                             .map((s) -> new LongSumMetricSpec(s, s, s, s, true))
+                                                             .collect(Collectors.toList()));
+        String functionExpression = "round(a*b/c+d,2)";
         PostAggregatorMetricSpec metricSpec = new PostAggregatorMetricSpec("avg",
                                                                            "dis",
                                                                            "",
@@ -87,9 +89,15 @@ public class PostAggregatorExpressionTest {
                                                                            "long",
                                                                            true);
 
-        ExpressionGenerator g = new ExpressionGenerator();
-        metricSpec.visitExpression(g);
-        Assert.assertEquals(functionExpression, g.getGenerated());
+        try {
+            ExpressionGenerator g = new ExpressionGenerator();
+            metricSpec.visitExpression(g);
+
+            // Should never go here
+            Assert.fail();
+        } catch (IllegalStateException e) {
+            Assert.assertEquals("In expression [round(100,99,98)], function [round] has [2] parameters, but only given [3]", e.getMessage());
+        }
     }
 
     private static class ExpressionGenerator implements PostAggregatorExpressionVisitor {
@@ -133,8 +141,8 @@ public class PostAggregatorExpressionTest {
         }
 
         @Override
-        public void endFunctionArgument(int argIndex, boolean isLast) {
-            if (!isLast) {
+        public void endFunctionArgument(int argIndex, int count) {
+            if (argIndex < count - 1) {
                 sb.append(',');
             }
         }

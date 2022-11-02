@@ -256,6 +256,24 @@ public class SelectExpressionBuilder {
                     }
                     sb.append(variableValue);
                 }
+
+                @Override
+                public void beginFunction(String name) {
+                    sb.append(name);
+                    sb.append('(');
+                }
+
+                @Override
+                public void endFunction() {
+                    sb.append(')');
+                }
+
+                @Override
+                public void endFunctionArgument(int argIndex, int count) {
+                    if (argIndex < count - 1) {
+                        sb.append(',');
+                    }
+                }
             });
 
             sb.append(StringUtils.format(" AS \"%s\"", metricSpec.getName()));

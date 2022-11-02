@@ -29,18 +29,22 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.utils.Preconditions;
+import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionBaseVisitor;
 import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionLexer;
 import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionParser;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.builtin.Function;
+import org.bithon.server.storage.datasource.builtin.Functions;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
@@ -134,6 +138,32 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                     }
                     return null;
                 }
+
+                @Override
+                public Void visitExpression(PostAggregatorExpressionParser.ExpressionContext ctx) {
+                    if (ctx.getChild(0) instanceof PostAggregatorExpressionParser.FunctionNameExpressionContext) {
+                        String functionName = ctx.getChild(0).getText();
+                        Function function = Functions.getInstance().getFunction(functionName);
+                        if (function == null) {
+                            throw new IllegalStateException(StringUtils.format("function [%s] is not defined.", functionName));
+                        }
+
+                        List<PostAggregatorExpressionParser.ExpressionContext> argumentExpressions = ctx.getRuleContexts(PostAggregatorExpressionParser.ExpressionContext.class);
+                        int argumentSize = argumentExpressions.size();
+                        if (argumentSize != function.getParameters().size()) {
+                            throw new IllegalStateException(StringUtils.format("In expression [%s], function [%s] has [%d] parameters, but only given [%d]",
+                                                                               ctx.getText(),
+                                                                               functionName,
+                                                                               function.getParameters().size(),
+                                                                               argumentSize));
+                        }
+                        for (int i = 0; i < argumentSize; i++) {
+                            PostAggregatorExpressionParser.ExpressionContext argExpression = argumentExpressions.get(i);
+                            function.getValidator().accept(i, argExpression);
+                        }
+                    }
+                    return super.visitExpression(ctx);
+                }
             });
             return parser;
         };
@@ -208,17 +238,17 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                             // Processing function call
                             visitor.beginFunction(firstChild.getText());
 
-                            int argumentIndex = 0;
-                            int first = 2; // The first two are function name and the left parentheses, skip them
-                            int last = ctx.getChildCount() - 2; // The last child is the right parentheses, skip them
-                            for (int i = first; i <= last; i += 2, argumentIndex++) {
-                                boolean isLast = i + 2 >= ctx.getChildCount();
-                                ParseTree argumentExpression = ctx.getChild(i);
+                            // Processing function arguments
+                            List<PostAggregatorExpressionParser.ExpressionContext> argumentExpressions = ctx.getRuleContexts(PostAggregatorExpressionParser.ExpressionContext.class);
+                            int argumentSize = argumentExpressions.size();
 
-                                visitor.beginFunctionArgument(argumentIndex, isLast);
-                                this.visit(argumentExpression);
-                                visitor.endFunctionArgument(argumentIndex, isLast);
+                            for (int i = 0; i < argumentSize; i++) {
+                                PostAggregatorExpressionParser.ExpressionContext argExpression = argumentExpressions.get(i);
+                                visitor.beginFunctionArgument(i, argumentSize);
+                                this.visit(argExpression);
+                                visitor.endFunctionArgument(i, argumentSize);
                             }
+
                             visitor.endFunction();
 
                             return null;

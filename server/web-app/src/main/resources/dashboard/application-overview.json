@@ -9,11 +9,12 @@
       "query": {
         "type": "groupBy",
         "columns": [
-          "instanceName",
+          {"name": "instanceName", "title": "instance" },
           "processors",
           {"name": "instanceStartTime", "title": "startTime", "format": "dateTime" },
           {"name": "instanceUpTime", "title": "upTime", "format": "timeDuration" },
-          {"name": "heapUsed", "expression": "heapUsed * 100.0/heapMax", "title": "heapUsed(%)" },
+          {"name": "heapUsed", "expression": "round(heapUsed * 100.0/heapMax, 2)", "title": "heapUsed(%)" },
+          {"name": "heapMax", "format": "binary_byte" },
           {"name" : "processCpuLoad", "title": "processCpuLoad(%)" }
         ],
         "orderBy": {
@@ -24,7 +25,7 @@
     },
     {
       "dataSource": "http-incoming-metrics",
-      "title": "HTTP Incoming",
+      "title": "HTTP Incoming(Top N)",
       "width": 4,
       "type": "table",
       "query": {
@@ -33,7 +34,8 @@
           "uri",
           {"name": "totalCount", "format": "compact_number"},
           {"name": "errorCount", "format": "compact_number"},
-          {"name": "errorRate", "expression": "errorCount*100.0/totalCount", "title": "errorRate(%)"}
+          {"name": "errorRate", "expression": "round(errorCount*100.0/totalCount, 2)", "title": "errorRate(%)"},
+          {"name": "avgResponseTime", "format": "millisecond"}
         ],
         "limit": 10,
         "orderBy": {

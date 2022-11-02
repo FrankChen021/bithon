@@ -14,40 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.spec;
+package org.bithon.server.storage.datasource.builtin;
 
+import lombok.Getter;
+import org.bithon.server.storage.datasource.typing.IValueType;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/23
+ * @date 2022/11/2 17:37
  */
-public interface PostAggregatorExpressionVisitor {
-    default void visitMetric(IMetricSpec metricSpec) {
-    }
+@Getter
+public class Parameter {
+    private final IValueType type;
 
-    default void visitConstant(String number) {
-    }
-
-    default void visitorOperator(String operator) {
-    }
-
-    default void beginSubExpression() {
-    }
-
-    default void endSubExpression() {
-    }
-
-    void visitVariable(String variable);
-
-    default void beginFunction(String name) {
-    }
-
-    default void endFunction() {
-    }
-
-    default void beginFunctionArgument(int argIndex, int count) {
-    }
-
-    default void endFunctionArgument(int argIndex, int count) {
+    public Parameter(IValueType type) {
+        this.type = type;
     }
 }
