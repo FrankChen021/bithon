@@ -165,7 +165,11 @@ public class DataSourceService {
                 if (columnSpec instanceof IDimensionSpec) {
                     groupBy.add(columnSpec.getName());
                 } else {
-                    aggregators.add(((IMetricSpec) columnSpec).getQueryAggregator());
+                    if (columnSpec instanceof PostAggregatorMetricSpec) {
+                        postAggregators.add((PostAggregatorMetricSpec) columnSpec);
+                    } else {
+                        aggregators.add(((IMetricSpec) columnSpec).getQueryAggregator());
+                    }
                 }
             }
         }
@@ -178,7 +182,7 @@ public class DataSourceService {
          * we need to make sure the record in the given time range has only one window.
          */
         long windowLength = end.toSeconds() - start.toSeconds();
-        if (start.getMilliseconds() / windowLength != end.getMilliseconds() / windowLength) {
+        while (start.getMilliseconds() / windowLength != end.getMilliseconds() / windowLength) {
             windowLength *= 2;
         }
 
