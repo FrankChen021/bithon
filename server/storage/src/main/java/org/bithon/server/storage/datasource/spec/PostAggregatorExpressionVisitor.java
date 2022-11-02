@@ -45,9 +45,9 @@ public interface PostAggregatorExpressionVisitor {
     default void endFunction() {
     }
 
-    default void beginFunctionArgument(int argIndex, int argCount) {
+    default void beginFunctionArgument(int argIndex, boolean isLast) {
     }
 
-    default void endFunctionArgument(int argIndex, int argCount) {
+    default void endFunctionArgument(int argIndex, boolean isLast) {
     }
 }

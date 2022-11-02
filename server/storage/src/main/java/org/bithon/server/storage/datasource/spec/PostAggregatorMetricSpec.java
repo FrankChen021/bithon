@@ -207,12 +207,17 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                         if (firstChild instanceof PostAggregatorExpressionParser.FunctionNameExpressionContext) {
                             // Processing function call
                             visitor.beginFunction(firstChild.getText());
-                            int argCount = ctx.getChildCount() - 3; // 3 = name, left brace, right brace
-                            for (int i = 0; i < argCount; i++) {
-                                visitor.beginFunctionArgument(i, argCount);
-                                ParseTree argument = ctx.getChild(i + 2); // 2 = function name, left brace
-                                this.visit(argument);
-                                visitor.endFunctionArgument(i, argCount);
+
+                            int argumentIndex = 0;
+                            int first = 2; // The first two are function name and the left parentheses, skip them
+                            int last = ctx.getChildCount() - 2; // The last child is the right parentheses, skip them
+                            for (int i = first; i <= last; i += 2, argumentIndex++) {
+                                boolean isLast = i + 2 >= ctx.getChildCount();
+                                ParseTree argumentExpression = ctx.getChild(i);
+
+                                visitor.beginFunctionArgument(argumentIndex, isLast);
+                                this.visit(argumentExpression);
+                                visitor.endFunctionArgument(argumentIndex, isLast);
                             }
                             visitor.endFunction();
 
@@ -231,6 +236,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
             public Void visitTerminal(TerminalNode node) {
                 switch (node.getSymbol().getType()) {
                     case Token.EOF:
+                    case PostAggregatorExpressionParser.COMMA:
                         return null;
                     case PostAggregatorExpressionParser.NUMBER:
                         visitor.visitConstant(node.getText());

@@ -16,11 +16,17 @@
 
 package org.bithon.server.storage.datasource.aggregator;
 
+import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.PostAggregatorExpressionVisitor;
 import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
+import org.bithon.server.storage.datasource.spec.sum.LongSumMetricSpec;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PostAggregatorExpressionTest {
 
@@ -33,36 +39,9 @@ public class PostAggregatorExpressionTest {
                                                                            "long",
                                                                            true);
 
-        final StringBuilder sb = new StringBuilder();
-        metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
-            @Override
-            public void visitMetric(IMetricSpec metricSpec) {
-            }
-
-            @Override
-            public void visitConstant(String number) {
-                sb.append(number);
-            }
-
-            @Override
-            public void visitorOperator(String operator) {
-                sb.append(operator);
-            }
-
-            @Override
-            public void beginSubExpression() {
-            }
-
-            @Override
-            public void endSubExpression() {
-            }
-
-            @Override
-            public void visitVariable(String variable) {
-                sb.append(10);
-            }
-        });
-        Assert.assertEquals("1000/10", sb.toString());
+        ExpressionGenerator g = new ExpressionGenerator();
+        metricSpec.visitExpression(g);
+        Assert.assertEquals("1000/{interval}", g.getGenerated());
     }
 
     @Test
@@ -75,29 +54,93 @@ public class PostAggregatorExpressionTest {
                                                                            "long",
                                                                            true);
 
-        final StringBuilder sb = new StringBuilder();
-        metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
-            @Override
-            public void visitConstant(String number) {
-                sb.append(number);
-            }
+        ExpressionGenerator g = new ExpressionGenerator();
+        metricSpec.visitExpression(g);
+        Assert.assertEquals(functionExpression, g.getGenerated());
+    }
 
-            @Override
-            public void visitVariable(String variable) {
-                sb.append(10);
-            }
+    @Test
+    public void testExpressionInFunctionExpression() {
+        DataSourceSchema schema = new DataSourceSchema("display", "name", null, Collections.emptyList(),
+                                                       Stream.of("a", "b", "c", "d").map((s)->new LongSumMetricSpec(s, s, s, s, true)).collect(Collectors.toList()));
+        String functionExpression = "round(a*b/c+d)";
+        PostAggregatorMetricSpec metricSpec = new PostAggregatorMetricSpec("avg",
+                                                                           "dis",
+                                                                           "",
+                                                                           functionExpression,
+                                                                           "long",
+                                                                           true);
+        metricSpec.setOwner(schema);
 
-            @Override
-            public void beginFunction(String name) {
-                sb.append(name);
-                sb.append('(');
-            }
+        ExpressionGenerator g = new ExpressionGenerator();
+        metricSpec.visitExpression(g);
+        Assert.assertEquals(functionExpression, g.getGenerated());
+    }
 
-            @Override
-            public void endFunctionArgument(int argIndex, int argCount) {
-                sb.append(')');
+    @Test
+    public void testMoreArgumentInFunctionExpression() {
+        String functionExpression = "round(100,99,98)";
+        PostAggregatorMetricSpec metricSpec = new PostAggregatorMetricSpec("avg",
+                                                                           "dis",
+                                                                           "",
+                                                                           functionExpression,
+                                                                           "long",
+                                                                           true);
+
+        ExpressionGenerator g = new ExpressionGenerator();
+        metricSpec.visitExpression(g);
+        Assert.assertEquals(functionExpression, g.getGenerated());
+    }
+
+    private static class ExpressionGenerator implements PostAggregatorExpressionVisitor {
+        private final StringBuilder sb;
+
+        public ExpressionGenerator() {
+            this.sb = new StringBuilder(64);
+        }
+
+        @Override
+        public void visitMetric(IMetricSpec metricSpec) {
+            sb.append(metricSpec.getName());
+        }
+
+        @Override
+        public void visitConstant(String number) {
+            sb.append(number);
+        }
+
+        @Override
+        public void visitorOperator(String operator) {
+            sb.append(operator);
+        }
+
+        @Override
+        public void visitVariable(String variable) {
+            sb.append('{');
+            sb.append(variable);
+            sb.append('}');
+        }
+
+        @Override
+        public void beginFunction(String name) {
+            sb.append(name);
+            sb.append('(');
+        }
+
+        @Override
+        public void endFunction() {
+            sb.append(')');
+        }
+
+        @Override
+        public void endFunctionArgument(int argIndex, boolean isLast) {
+            if (!isLast) {
+                sb.append(',');
             }
-        });
-        Assert.assertEquals(functionExpression, sb.toString());
+        }
+
+        public String getGenerated() {
+            return sb.toString();
+        }
     }
 }

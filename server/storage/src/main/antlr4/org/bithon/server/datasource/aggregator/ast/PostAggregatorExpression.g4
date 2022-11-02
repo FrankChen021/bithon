@@ -9,8 +9,8 @@ expression
   | fieldNameExpression
   | variableExpression
   | expression op=(ADD|SUB|MUL|DIV) expression
-  | functionNameExpression '(' expression (',' expression)* ')'
-  | '(' expression ')'
+  | functionNameExpression LEFT_PARENTHESES expression (COMMA expression)* RIGHT_PARENTHESES
+  | LEFT_PARENTHESES expression RIGHT_PARENTHESES
   ;
 
 fieldNameExpression
@@ -26,10 +26,12 @@ variableExpression: '{' ID '}';
 NUMBER: [0-9]+('.'?[0-9]+)?;
 
 ID : [a-zA-Z_][a-zA-Z_0-9]*;
-COMMA:     ',';
+COMMA: ',';
 ADD: '+';
 SUB: '-';
 MUL: '*';
 DIV: '/';
+LEFT_PARENTHESES: '(';
+RIGHT_PARENTHESES: ')';
 
 WS: [ \n\t\r]+ -> skip;
