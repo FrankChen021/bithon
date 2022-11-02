@@ -22,6 +22,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.api.QueryStageAggregators;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.MetricSpecVisitorAdaptor;
 import org.bithon.server.storage.datasource.spec.PostAggregatorExpressionVisitor;
@@ -338,9 +339,9 @@ public class SelectExpressionBuilder {
         //
         // Turn some metrics in expression into pre-aggregator first
         //
-        PreAggregatorExtractor postAggregatorExtractor = new PreAggregatorExtractor(this.aggregators, this.sqlDialect);
+        PreAggregatorExtractor preAggregatorExtractor = new PreAggregatorExtractor(this.aggregators, this.sqlDialect);
         for (PostAggregatorMetricSpec postAggregator : postAggregators) {
-            postAggregator.visitExpression(postAggregatorExtractor);
+            postAggregator.visitExpression(preAggregatorExtractor);
         }
 
         SelectExpression selectExpression = new SelectExpression();
@@ -361,6 +362,7 @@ public class SelectExpressionBuilder {
 
                 // this window fields should be in the group-by clause and select clause,
                 // see the javadoc above
+                // Use name in the groupBy expression because we have alias for corresponding field in sub-query expression
                 selectExpression.getGroupBy().addField(aggregator.getName());
                 selectExpression.getFieldsExpression().addField(new NameExpression(aggregator.getName()));
 
@@ -368,13 +370,20 @@ public class SelectExpressionBuilder {
             } else {
                 selectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
 
+                // Special case for some aggregators, they must also be grouped in sub-query
+                // for cardinality, we put it here instead of in `convertToGroupByQuery`
+                // because in some cases, this operator don't need to be in the groupBy expression which is constructed in that method
+                if (aggregator.getType().equals(QueryStageAggregators.CardinalityAggregator.TYPE)) {
+                    selectExpression.getGroupBy().addField(aggregator.getField());
+                }
+
                 // This metric should also be in the sub-query, see the example in the javadoc above
-                subSelectExpression.getFieldsExpression().addField(new NameExpression(aggregator.getName()));
+                subSelectExpression.getFieldsExpression().addField(new NameExpression(aggregator.getField()));
             }
         }
 
         // Make sure all referenced metrics in expression are in the sub-query
-        for (String metric : postAggregatorExtractor.getMetrics()) {
+        for (String metric : preAggregatorExtractor.getMetrics()) {
             subSelectExpression.getFieldsExpression().addField(new NameExpression(metric));
         }
 
