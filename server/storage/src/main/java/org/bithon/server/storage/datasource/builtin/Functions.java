@@ -30,10 +30,10 @@ import java.util.Map;
  * @date 2022/11/2 17:34
  */
 public class Functions {
-    private static final Functions instance = new Functions();
+    private static final Functions INSTANCE = new Functions();
 
     public static Functions getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     private final Map<String, Function> functionMap = new HashMap<>(17);
