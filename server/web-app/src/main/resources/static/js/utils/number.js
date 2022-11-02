@@ -95,15 +95,15 @@ Number.prototype.formatTimeDuration = function() {
 
     let text = '';
     if (days > 0)
-        text += days + 'Day ';
+        text += days + ' days ';
     if (hours > 0)
-        text += hours + 'Hour ';
+        text += hours + ' hours ';
     if (minutes > 0)
-        text += minutes + 'Min';
+        text += minutes + ' mins';
 
     // no need to show seconds to make the text short
     if (text.length === 0 && seconds > 0)
-        text += seconds + 'Second';
+        text += seconds + ' sec';
 
     return text;
 }
