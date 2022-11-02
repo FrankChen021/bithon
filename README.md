@@ -87,7 +87,7 @@ Once the application has started, visit [http://localhost:9897/web/home](http://
 > 
 > You can make changes to `server/server-starter/src/main/resources/application.yml` to reflect your own settings.
 > 
-> You can also use enable [Alibaba Nacos](doc/configuration/configuration-nacos.md) as your configuration storage center.
+> You can also use enable [Alibaba Nacos](doc/configuration/server/configuration-nacos.md) as your configuration storage center.
 
 ## 2. Attach agent to your java application
 
