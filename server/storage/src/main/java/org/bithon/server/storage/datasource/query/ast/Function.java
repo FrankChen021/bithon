@@ -14,24 +14,32 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.dsl;
+package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:49
+ * @date 2022/9/4 16:40
  */
-public class StringExpression implements IExpression {
-    @Getter
-    private final String str;
+@Getter
+public class Function implements IAST {
+    private final String fnName;
+    private final List<IAST> arguments = new ArrayList<>();
 
-    public StringExpression(String str) {
-        this.str = str;
+    public Function(String fnName) {
+        this.fnName = fnName;
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
-        visitor.visit(this);
+    public void accept(IASTVisitor visitor) {
+        visitor.before(this);
+        for (IAST arg : arguments) {
+            arg.accept(visitor);
+        }
+        visitor.after(this);
     }
 }

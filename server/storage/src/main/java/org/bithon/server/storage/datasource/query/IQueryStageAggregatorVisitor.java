@@ -16,28 +16,30 @@
 
 package org.bithon.server.storage.datasource.query;
 
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
+
 /**
  * @author Frank Chen
  * @date 1/11/21 3:12 pm
  */
 public interface IQueryStageAggregatorVisitor<T> {
-    T visit(QueryStageAggregators.CardinalityAggregator aggregator);
+    T visit(SimpleAggregators.CardinalityAggregator aggregator);
 
-    T visit(QueryStageAggregators.CountAggregator aggregator);
+    T visit(SimpleAggregators.CountAggregator aggregator);
 
-    T visit(QueryStageAggregators.AvgAggregator aggregator);
+    T visit(SimpleAggregators.AvgAggregator aggregator);
 
-    T visit(QueryStageAggregators.FirstAggregator aggregator);
+    T visit(SimpleAggregators.FirstAggregator aggregator);
 
-    T visit(QueryStageAggregators.LastAggregator aggregator);
+    T visit(SimpleAggregators.LastAggregator aggregator);
 
-    T visit(QueryStageAggregators.RateAggregator aggregator);
+    T visit(SimpleAggregators.RateAggregator aggregator);
 
-    T visit(QueryStageAggregators.MaxAggregator aggregator);
+    T visit(SimpleAggregators.MaxAggregator aggregator);
 
-    T visit(QueryStageAggregators.MinAggregator aggregator);
+    T visit(SimpleAggregators.MinAggregator aggregator);
 
-    T visit(QueryStageAggregators.SumAggregator aggregator);
+    T visit(SimpleAggregators.SumAggregator aggregator);
 
-    T visit(QueryStageAggregators.GroupConcatAggregator aggregator);
+    T visit(SimpleAggregators.GroupConcatAggregator aggregator);
 }

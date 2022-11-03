@@ -23,9 +23,12 @@ import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
-import org.bithon.server.storage.datasource.query.ast.FieldExpressionVisitorAdaptor;
-import org.bithon.server.storage.datasource.query.ast.FieldExpressionParserImpl;
+import org.bithon.server.storage.datasource.query.ast.Expression;
+import org.bithon.server.storage.datasource.query.ast.Field;
+import org.bithon.server.storage.datasource.query.ast.IAST;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
+import org.bithon.server.storage.datasource.query.parser.FieldExpressionParserImpl;
+import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
@@ -105,7 +108,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
 
     @JsonIgnore
     @Override
-    public IQueryStageAggregator getQueryAggregator() {
+    public SimpleAggregator getQueryAggregator() {
         return null;
     }
 
@@ -131,5 +134,9 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
         } else {
             return false;
         }
+    }
+
+    public IAST toAST() {
+        return new Field(new Expression(this.expression), this.name);
     }
 }

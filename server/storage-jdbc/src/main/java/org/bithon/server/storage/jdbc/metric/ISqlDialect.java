@@ -18,7 +18,6 @@ package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
 
 /**
  * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS
@@ -88,17 +87,16 @@ public interface ISqlDialect {
         return "'" + timeSpan.toISO8601() + "'";
     }
 
-    String stringAggregator(String field, String name);
+    String stringAggregator(String field);
 
     String firstAggregator(String field, String name, long window);
 
     /**
-     * @param name can be empty if no alias is needed
      * @param window in seconds
      */
-    String lastAggregator(String field, String name, long window);
+    String lastAggregator(String field, long window);
 
-    default boolean useWindowFunctionAsAggregator(IQueryStageAggregator aggregator) {
+    default boolean useWindowFunctionAsAggregator(String aggregator) {
         return false;
     }
 }

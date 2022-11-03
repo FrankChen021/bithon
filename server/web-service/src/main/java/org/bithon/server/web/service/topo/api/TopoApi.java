@@ -24,6 +24,9 @@ import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.server.storage.datasource.query.ast.Field;
+import org.bithon.server.storage.datasource.query.ast.Name;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.meta.EndPointType;
@@ -31,7 +34,6 @@ import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
-import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.web.service.topo.service.EndpointBo;
 import org.bithon.server.web.service.topo.service.Link;
 import org.bithon.server.web.service.topo.service.Topo;
@@ -77,12 +79,12 @@ public class TopoApi {
                                                .map((metric) -> {
                                                    IColumnSpec spec = topoSchema.getColumnByName(metric);
                                                    if (spec instanceof IDimensionSpec) {
-                                                       return spec.getName();
+                                                       return new Field(new Name(spec.getName()));
                                                    }
                                                    if (spec instanceof PostAggregatorMetricSpec) {
-                                                       return spec;
+                                                       return (Field) ((PostAggregatorMetricSpec) spec).toAST();
                                                    }
-                                                   return ((IMetricSpec) spec).getQueryAggregator();
+                                                   return new Field(((IMetricSpec) spec).getQueryAggregator(), spec.getName());
                                                })
                                                .collect(Collectors.toList()))
                                  .filters(Arrays.asList(new DimensionFilter("srcEndpoint",
@@ -130,12 +132,12 @@ public class TopoApi {
                                                .map((metric) -> {
                                                    IColumnSpec spec = topoSchema.getColumnByName(metric);
                                                    if (spec instanceof IDimensionSpec) {
-                                                       return spec.getName();
+                                                       return new Field(new Name(spec.getName()));
                                                    }
                                                    if (spec instanceof PostAggregatorMetricSpec) {
-                                                       return spec;
+                                                       return (Field) ((PostAggregatorMetricSpec) spec).toAST();
                                                    }
-                                                   return ((IMetricSpec) spec).getQueryAggregator();
+                                                   return new Field(((IMetricSpec) spec).getQueryAggregator(), spec.getName());
                                                })
                                                .collect(Collectors.toList()))
                                  .filters(Arrays.asList(new DimensionFilter("dstEndpoint",

@@ -16,26 +16,35 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
-
-import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.IColumnSpec;
+import lombok.Getter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/23
+ * @date 2022/9/4 16:11
  */
-public abstract class FieldExpressionVisitorAdaptor2 implements FieldExpressionVisitorAdaptor {
+@Getter
+public class Field implements IAST {
+    private IAST field;
+    private Name alias;
 
-    final public void visitField(String field) {
-        IColumnSpec columnSpec = getSchema().getColumnByName(field);
-        if (columnSpec == null) {
-            throw new RuntimeException(StringUtils.format("field [%s] can't be found in [%s].", field, getSchema().getName()));
-        }
-        visitField(columnSpec);
+    public Field(IAST field) {
+        this(field, (String) null);
     }
 
-    public abstract void visitField(IColumnSpec columnSpec);
+    public Field(IAST field, String alias) {
+        this(field, alias == null ? null : new Alias(alias));
+    }
 
-    protected abstract DataSourceSchema getSchema();
+    public Field(IAST field, Name alias) {
+        this.field = field;
+        this.alias = alias;
+    }
+
+    @Override
+    public void accept(IASTVisitor visitor) {
+        field.accept(visitor);
+        if (alias != null) {
+            alias.accept(visitor);
+        }
+    }
 }

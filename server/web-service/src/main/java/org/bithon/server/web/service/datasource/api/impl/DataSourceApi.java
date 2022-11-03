@@ -23,17 +23,18 @@ import org.bithon.server.storage.common.TTLConfig;
 import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
-import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.server.storage.datasource.query.ast.Field;
+import org.bithon.server.storage.datasource.query.ast.Name;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.Interval;
-import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
-import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.web.service.datasource.api.DataSourceService;
 import org.bithon.server.web.service.datasource.api.DisplayableText;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
@@ -49,7 +50,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -84,13 +84,16 @@ public class DataSourceApi implements IDataSourceApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getInterval().getEndISO8601());
 
-        List<Object> fields = request.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList());
+        List<Field> fields = request.getAggregators()
+                                    .stream()
+                                    .map(QueryAggregator::toAST)
+                                    .collect(Collectors.toList());
         fields.addAll(request.getMetrics().stream().map((metric) -> {
             IMetricSpec spec = schema.getMetricSpecByName(metric);
             if (spec instanceof PostAggregatorMetricSpec) {
-                return spec;
+                return (Field) ((PostAggregatorMetricSpec) spec).toAST();
             }
-            return spec.getQueryAggregator();
+            return new Field(spec.getQueryAggregator(), spec.getName());
         }).collect(Collectors.toList()));
 
         return dataSourceService.timeseriesQuery(Query.builder()
@@ -117,16 +120,16 @@ public class DataSourceApi implements IDataSourceApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
-        List<Object> metrics = request.getMetrics().stream().map((metric) -> {
+        List<Field> metrics = request.getMetrics().stream().map((metric) -> {
             IMetricSpec spec = schema.getMetricSpecByName(metric);
             if (spec instanceof PostAggregatorMetricSpec) {
-                return spec;
+                return (Field) ((PostAggregatorMetricSpec) spec).toAST();
             } else {
-                return spec.getQueryAggregator();
+                return new Field(spec.getQueryAggregator(), spec.getName());
             }
         }).collect(Collectors.toList());
-        metrics.addAll(request.getAggregators());
-        metrics.addAll(request.getGroupBy());
+        metrics.addAll(request.getAggregators().stream().map(QueryAggregator::toAST).collect(Collectors.toList()));
+        metrics.addAll(request.getGroupBy().stream().map(g -> new Field(new Name(g))).collect(Collectors.toList()));
 
         return (List<Map<String, Object>>) this.metricStorage.createMetricReader(schema).groupBy(Query.builder()
                                                                                                       .dataSource(schema)
@@ -145,7 +148,7 @@ public class DataSourceApi implements IDataSourceApi {
 
         Query query = Query.builder()
                            .dataSource(schema)
-                           .fields(Arrays.asList(request.getColumns().toArray()))
+                           .fields(request.getColumns().stream().map((n) -> new Field(new Name(n))).collect(Collectors.toList()))
                            .filters(request.getFilters())
                            .interval(Interval.of(TimeSpan.fromISO8601(request.getStartTimeISO8601()), TimeSpan.fromISO8601(request.getEndTimeISO8601())))
                            .orderBy(request.getOrderBy())

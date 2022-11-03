@@ -20,6 +20,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.query.ast.Field;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.Interval;
 
@@ -36,7 +37,7 @@ import java.util.List;
 public class Query {
     private final DataSourceSchema dataSource;
 
-    private final List<Object> fields;
+    private final List<Field> fields;
 
     private final Collection<IFilter> filters;
     private final Interval interval;
@@ -57,7 +58,7 @@ public class Query {
     }
 
     public Query(DataSourceSchema dataSource,
-                 List<Object> fields,
+                 List<Field> fields,
                  Collection<IFilter> filters,
                  Interval interval,
                  @Nullable List<String> groupBy,

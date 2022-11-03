@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.dsl;
+package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Data;
 import lombok.Getter;
@@ -24,21 +24,21 @@ import lombok.Getter;
  * @date 2022/9/4 14:55
  */
 @Data
-public class SelectExpression implements IExpression {
+public class SelectStatement implements IAST {
     @Getter
-    private final FieldsExpression fieldsExpression = new FieldsExpression();
+    private final Fields fields = new Fields();
 
-    private final FromExpression from = new FromExpression();
-    private WhereExpression where;
-    private GroupByExpression groupBy;
-    private OrderByExpression orderBy;
-    private LimitExpression limit;
+    private final From from = new From();
+    private Where where;
+    private GroupBy groupBy;
+    private OrderBy orderBy;
+    private Limit limit;
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IASTVisitor visitor) {
         visitor.before(this);
         {
-            fieldsExpression.accept(visitor);
+            fields.accept(visitor);
             from.accept(visitor);
             if (where != null) {
                 where.accept(visitor);

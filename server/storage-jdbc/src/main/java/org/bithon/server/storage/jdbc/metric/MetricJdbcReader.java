@@ -20,16 +20,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
-import org.bithon.server.storage.datasource.query.QueryStageAggregators;
-import org.bithon.server.storage.datasource.query.dsl.NameExpression;
-import org.bithon.server.storage.datasource.query.dsl.SelectExpression;
-import org.bithon.server.storage.datasource.query.dsl.StringExpression;
+import org.bithon.server.storage.datasource.query.OrderBy;
+import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.server.storage.datasource.query.ast.Name;
+import org.bithon.server.storage.datasource.query.ast.SelectStatement;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
+import org.bithon.server.storage.datasource.query.ast.StringExpression;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
-import org.bithon.server.storage.datasource.query.OrderBy;
-import org.bithon.server.storage.datasource.query.Query;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -59,53 +58,53 @@ public class MetricJdbcReader implements IMetricReader {
 
     @Override
     public List<Map<String, Object>> timeseries(Query query) {
-        SelectExpression selectExpression = SelectExpressionBuilder.builder()
-                                                                   .dataSource(query.getDataSource())
-                                                                   .fields(query.getFields())
-                                                                   .filters(query.getFilters())
-                                                                   .interval(query.getInterval())
-                                                                   .groupBys(query.getGroupBy())
-                                                                   .orderBy(OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build())
-                                                                   .sqlDialect(this.sqlDialect)
-                                                                   .build();
+        SelectStatement selectStatement = SelectExpressionBuilder.builder()
+                                                                 .dataSource(query.getDataSource())
+                                                                 .fields(query.getFields())
+                                                                 .filters(query.getFilters())
+                                                                 .interval(query.getInterval())
+                                                                 .groupBys(query.getGroupBy())
+                                                                 .orderBy(OrderBy.builder().name(TIMESTAMP_ALIAS_NAME).build())
+                                                                 .sqlDialect(this.sqlDialect)
+                                                                 .build();
 
-        SelectExpression timestampFilterExpression = selectExpression;
-        if (selectExpression.getFrom().getExpression() instanceof SelectExpression) {
+        SelectStatement timestampFilterExpression = selectStatement;
+        if (selectStatement.getFrom().getExpression() instanceof SelectStatement) {
             // Has a sub-query, timestampExpression will be put in sub-query
-            timestampFilterExpression = (SelectExpression) selectExpression.getFrom().getExpression();
+            timestampFilterExpression = (SelectStatement) selectStatement.getFrom().getExpression();
 
             // Add timestamp field to outer query at first position
-            selectExpression.getFieldsExpression().insert(new NameExpression(TIMESTAMP_ALIAS_NAME));
+            selectStatement.getFields().insert(new Name(TIMESTAMP_ALIAS_NAME));
         }
 
         // Add timestamp expression to sub-query
-        timestampFilterExpression.getFieldsExpression()
+        timestampFilterExpression.getFields()
                                  .insert(new StringExpression(StringUtils.format("%s AS \"%s\"",
                                                                                  sqlDialect.timeFloor("timestamp", query.getInterval().getStep()),
                                                                                  TIMESTAMP_ALIAS_NAME)));
 
-        selectExpression.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
+        selectStatement.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
 
         SQLGenerator sqlGenerator = new SQLGenerator();
-        selectExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
         return executeSql(sqlGenerator.getSQL());
     }
 
     @Override
     public List<?> groupBy(Query query) {
-        SelectExpression selectExpression = SelectExpressionBuilder.builder()
-                                                                   .dataSource(query.getDataSource())
-                                                                   .fields(query.getFields())
-                                                                   .filters(query.getFilters())
-                                                                   .interval(query.getInterval())
-                                                                   .groupBys(query.getGroupBy())
-                                                                   .orderBy(query.getOrderBy())
-                                                                   .limit(query.getLimit())
-                                                                   .sqlDialect(this.sqlDialect)
-                                                                   .build();
+        SelectStatement selectStatement = SelectExpressionBuilder.builder()
+                                                                 .dataSource(query.getDataSource())
+                                                                 .fields(query.getFields())
+                                                                 .filters(query.getFilters())
+                                                                 .interval(query.getInterval())
+                                                                 .groupBys(query.getGroupBy())
+                                                                 .orderBy(query.getOrderBy())
+                                                                 .limit(query.getLimit())
+                                                                 .sqlDialect(this.sqlDialect)
+                                                                 .build();
 
         SQLGenerator sqlGenerator = new SQLGenerator();
-        selectExpression.accept(sqlGenerator);
+        selectStatement.accept(sqlGenerator);
         return fetch(sqlGenerator.getSQL(), query.getResultFormat());
     }
 
@@ -123,7 +122,7 @@ public class MetricJdbcReader implements IMetricReader {
         String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s %s LIMIT %d OFFSET %d",
-            query.getFields().stream().map(column -> "\"" + column + "\"").collect(Collectors.joining(",")),
+            query.getFields().stream().map(field -> "\"" + field.getField() + "\"").collect(Collectors.joining(",")),
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
@@ -143,8 +142,7 @@ public class MetricJdbcReader implements IMetricReader {
 
         String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
         String sql = StringUtils.format(
-            "SELECT count(\"%s\") FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s",
-            query.getFields().get(0),
+            "SELECT count(1) FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s",
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
@@ -240,7 +238,7 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         @Override
-        public String stringAggregator(String field, String name) {
+        public String stringAggregator(String field) {
             throw new RuntimeException("string agg is not supported.");
         }
 
@@ -250,7 +248,7 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         @Override
-        public String lastAggregator(String field, String name, long window) {
+        public String lastAggregator(String field, long window) {
             throw new RuntimeException("last agg is not supported.");
         }
     }
@@ -269,8 +267,8 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         @Override
-        public String stringAggregator(String field, String name) {
-            return StringUtils.format("group_concat(\"%s\") AS \"%s\"", field, name);
+        public String stringAggregator(String field) {
+            return StringUtils.format("group_concat(\"%s\")", field);
         }
 
         @Override
@@ -283,26 +281,18 @@ public class MetricJdbcReader implements IMetricReader {
         }
 
         @Override
-        public String lastAggregator(String field, String name, long window) {
+        public String lastAggregator(String field, long window) {
             // NOTE: use FIRST_VALUE since LAST_VALUE returns wrong result
-            if (name.length() > 0) {
-                return StringUtils.format(
-                    "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC) AS \"%s\"",
-                    field,
-                    this.timeFloor("timestamp", window),
-                    name);
-            } else {
-                return StringUtils.format(
-                    "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC)",
-                    field,
-                    this.timeFloor("timestamp", window));
-            }
+            return StringUtils.format(
+                "FIRST_VALUE(\"%s\") OVER (partition by %s ORDER BY \"timestamp\" DESC)",
+                field,
+                this.timeFloor("timestamp", window));
         }
 
         @Override
-        public boolean useWindowFunctionAsAggregator(IQueryStageAggregator aggregator) {
-            return QueryStageAggregators.FirstAggregator.TYPE.equals(aggregator.getType())
-                   || QueryStageAggregators.LastAggregator.TYPE.equals(aggregator.getType());
+        public boolean useWindowFunctionAsAggregator(String aggregator) {
+            return SimpleAggregators.FirstAggregator.TYPE.equals(aggregator)
+                   || SimpleAggregators.LastAggregator.TYPE.equals(aggregator);
         }
 
         /*

@@ -14,34 +14,24 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.dsl;
+package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:58
+ * @date 2022/9/4 16:49
  */
-public class GroupByExpression implements IExpression {
+public class StringExpression implements IAST {
     @Getter
-    private final List<String> fields = new ArrayList<>(4);
+    private final String str;
 
-    public GroupByExpression addField(String field) {
-        this.fields.add(field);
-        return this;
-    }
-
-    public GroupByExpression addFields(Collection<String> fields) {
-        this.fields.addAll(fields);
-        return this;
+    public StringExpression(String str) {
+        this.str = str;
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IASTVisitor visitor) {
         visitor.visit(this);
     }
 }

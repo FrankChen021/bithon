@@ -23,15 +23,18 @@ import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IColumnSpec;
-import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
-import org.bithon.server.storage.datasource.query.QueryStageAggregators;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.server.storage.datasource.query.ast.Expression;
+import org.bithon.server.storage.datasource.query.ast.Field;
+import org.bithon.server.storage.datasource.query.ast.Name;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
-import org.bithon.server.storage.datasource.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -69,14 +72,11 @@ public class DataSourceService {
     public TimeSeriesQueryResult timeseriesQuery(Query query) {
         List<String> metrics = query.getFields().stream()
                                     .map((f) -> {
-                                        if (f instanceof IColumnSpec) {
-                                            return ((IColumnSpec) f).getName();
+                                        if (f.getAlias() != null) {
+                                            return f.getAlias().getName();
                                         }
-                                        if (f instanceof String) {
-                                            return (String) f;
-                                        }
-                                        if (f instanceof IQueryStageAggregator) {
-                                            return ((IQueryStageAggregator) f).getName();
+                                        if (f.getField() instanceof Name) {
+                                            return ((Name) f.getField()).getName();
                                         }
                                         throw new RuntimeException("");
                                     }).collect(Collectors.toList());
@@ -142,38 +142,36 @@ public class DataSourceService {
         List<String> groupBy = new ArrayList<>(4);
 
         // Turn into internal objects(post aggregators...)
-        List<Object> fields = new ArrayList<>(query.getFields().size());
+        List<Field> fields = new ArrayList<>(query.getFields().size());
         for (QueryField field : query.getFields()) {
             if (field.getExpression() != null) {
-                // expression metric
-                PostAggregatorMetricSpec post = new PostAggregatorMetricSpec(field.getName(),
-                                                                             field.getName(),
-                                                                             "",
-                                                                             field.getExpression(),
-                                                                             null,
-                                                                             false);
-                post.setOwner(schema);
-                fields.add(post);
+
+                fields.add(new Field(new Expression(field.getExpression()), field.getName()));
+
                 continue;
             }
 
             if (field.getAggregator() != null) {
-                fields.add(QueryStageAggregators.create(field.getAggregator(),
-                                                        field.getName(),
-                                                        field.getField()));
+                org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregators.create(field.getAggregator(),
+                                                                                                                field.getField() == null
+                                                                                                                ? field.getName()
+                                                                                                                : field.getField());
+                fields.add(new Field(function, field.getName()));
             } else {
                 IColumnSpec columnSpec = schema.getColumnByName(field.getField());
                 if (columnSpec == null) {
                     throw new RuntimeException(StringUtils.format("field [%s] does not exist.", field.getField()));
                 }
                 if (columnSpec instanceof IDimensionSpec) {
-                    fields.add(columnSpec.getName());
+                    fields.add(new Field(new Name(columnSpec.getName())));
                     groupBy.add(columnSpec.getName());
                 } else {
                     if (columnSpec instanceof PostAggregatorMetricSpec) {
-                        fields.add(columnSpec);
+                        PostAggregatorMetricSpec post = (PostAggregatorMetricSpec) (columnSpec);
+                        fields.add(new Field(new Expression(post.getExpression()), post.getName()));
                     } else {
-                        fields.add(((IMetricSpec) columnSpec).getQueryAggregator());
+                        SimpleAggregator aggregator = ((IMetricSpec) columnSpec).getQueryAggregator();
+                        fields.add(new Field(aggregator, columnSpec.getName()));
                     }
                 }
             }

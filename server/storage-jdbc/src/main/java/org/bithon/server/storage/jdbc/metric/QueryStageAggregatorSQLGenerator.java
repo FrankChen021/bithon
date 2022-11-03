@@ -18,7 +18,7 @@ package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.query.IQueryStageAggregatorVisitor;
-import org.bithon.server.storage.datasource.query.QueryStageAggregators;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
 
 /**
  * @author Frank Chen
@@ -34,102 +34,60 @@ public class QueryStageAggregatorSQLGenerator implements IQueryStageAggregatorVi
     private final long step;
     private final long length;
 
-    private final boolean hasAlias;
-
     public QueryStageAggregatorSQLGenerator(ISqlDialect sqlFormatter, long length, long step) {
-        this(sqlFormatter, length, step, true);
-    }
-
-    public QueryStageAggregatorSQLGenerator(ISqlDialect sqlFormatter, long length, long step, boolean hasAlias) {
         this.step = step;
         this.length = length;
         this.formatter = sqlFormatter;
-        this.hasAlias = hasAlias;
     }
 
     @Override
-    public String visit(QueryStageAggregators.CardinalityAggregator aggregator) {
-        if (hasAlias) {
-            return StringUtils.format("count(DISTINCT \"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
-        } else {
-            return StringUtils.format("count(DISTINCT \"%s\")", aggregator.getField());
-        }
+    public String visit(SimpleAggregators.CardinalityAggregator aggregator) {
+        return StringUtils.format("count(DISTINCT \"%s\")", aggregator.getTargetField());
     }
 
     @Override
-    public String visit(QueryStageAggregators.SumAggregator aggregator) {
-        if (hasAlias) {
-            return StringUtils.format("sum(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
-        } else {
-            return StringUtils.format("sum(\"%s\")", aggregator.getField());
-        }
+    public String visit(SimpleAggregators.SumAggregator aggregator) {
+        return StringUtils.format("sum(\"%s\")", aggregator.getTargetField());
     }
 
     @Override
-    public String visit(QueryStageAggregators.GroupConcatAggregator aggregator) {
-        // No need to pass hasAlias because this type of field can't be on a expression as of now
-        return formatter.stringAggregator(aggregator.getField(), aggregator.getName());
+    public String visit(SimpleAggregators.GroupConcatAggregator aggregator) {
+        // No need to pass hasAlias because this type of field can't be on an expression as of now
+        return formatter.stringAggregator(aggregator.getTargetField());
     }
 
     @Override
-    public String visit(QueryStageAggregators.CountAggregator aggregator) {
-        if (hasAlias) {
-            return StringUtils.format("count(1) AS \"%s\"", aggregator.getName());
-        } else {
-            return "count(1)";
-        }
+    public String visit(SimpleAggregators.CountAggregator aggregator) {
+        return "count(1)";
     }
 
     @Override
-    public String visit(QueryStageAggregators.AvgAggregator aggregator) {
-        if (hasAlias) {
-            return StringUtils.format("avg(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
-        } else {
-            return StringUtils.format("avg(\"%s\")", aggregator.getField());
-        }
+    public String visit(SimpleAggregators.AvgAggregator aggregator) {
+        return StringUtils.format("avg(\"%s\")", aggregator.getTargetField());
     }
 
     @Override
-    public String visit(QueryStageAggregators.FirstAggregator aggregator) {
+    public String visit(SimpleAggregators.FirstAggregator aggregator) {
         throw new RuntimeException("first agg not supported now");
     }
 
     @Override
-    public String visit(QueryStageAggregators.LastAggregator aggregator) {
-        return formatter.lastAggregator(aggregator.getField(), hasAlias ? aggregator.getName() : "", step);
+    public String visit(SimpleAggregators.LastAggregator aggregator) {
+        return formatter.lastAggregator(aggregator.getTargetField(), step);
     }
 
     @Override
-    public String visit(QueryStageAggregators.RateAggregator aggregator) {
-        if (hasAlias) {
-            return StringUtils.format("sum(\"%s\")/%d AS \"%s\"", aggregator.getField(), step, aggregator.getName());
-        } else {
-            return StringUtils.format("sum(\"%s\")/%d", aggregator.getField(), step);
-        }
+    public String visit(SimpleAggregators.RateAggregator aggregator) {
+        return StringUtils.format("sum(\"%s\")/%d", aggregator.getTargetField(), step);
     }
 
     @Override
-    public String visit(QueryStageAggregators.MaxAggregator aggregator) {
-        if (hasAlias) {
-            return StringUtils.format("max(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
-        } else {
-            return StringUtils.format("max(\"%s\")", aggregator.getField());
-        }
+    public String visit(SimpleAggregators.MaxAggregator aggregator) {
+        return StringUtils.format("max(\"%s\")", aggregator.getTargetField());
     }
 
     @Override
-    public String visit(QueryStageAggregators.MinAggregator aggregator) {
-        if (hasAlias) {
-            return StringUtils.format("min(\"%s\") AS \"%s\"", aggregator.getField(), aggregator.getName());
-        } else {
-            return StringUtils.format("min(\"%s\")", aggregator.getField());
-        }
-    }
-
-    /**
-     * Clone a generator with alias disabled
-     */
-    public QueryStageAggregatorSQLGenerator noAlias() {
-        return new QueryStageAggregatorSQLGenerator(this.formatter, this.length, this.step, false);
+    public String visit(SimpleAggregators.MinAggregator aggregator) {
+        return StringUtils.format("min(\"%s\")", aggregator.getTargetField());
     }
 }

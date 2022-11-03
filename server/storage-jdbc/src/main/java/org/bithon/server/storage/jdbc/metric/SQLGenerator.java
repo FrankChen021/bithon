@@ -17,26 +17,27 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.query.dsl.AliasExpression;
-import org.bithon.server.storage.datasource.query.dsl.FieldsExpression;
-import org.bithon.server.storage.datasource.query.dsl.FromExpression;
-import org.bithon.server.storage.datasource.query.dsl.FunctionExpression;
-import org.bithon.server.storage.datasource.query.dsl.GroupByExpression;
-import org.bithon.server.storage.datasource.query.dsl.IExpression;
-import org.bithon.server.storage.datasource.query.dsl.IExpressionVisitor;
-import org.bithon.server.storage.datasource.query.dsl.LimitExpression;
-import org.bithon.server.storage.datasource.query.dsl.NameExpression;
-import org.bithon.server.storage.datasource.query.dsl.OrderByExpression;
-import org.bithon.server.storage.datasource.query.dsl.SelectExpression;
-import org.bithon.server.storage.datasource.query.dsl.StringExpression;
-import org.bithon.server.storage.datasource.query.dsl.TableExpression;
-import org.bithon.server.storage.datasource.query.dsl.WhereExpression;
+import org.bithon.server.storage.datasource.query.ast.Alias;
+import org.bithon.server.storage.datasource.query.ast.Expression;
+import org.bithon.server.storage.datasource.query.ast.Fields;
+import org.bithon.server.storage.datasource.query.ast.From;
+import org.bithon.server.storage.datasource.query.ast.Function;
+import org.bithon.server.storage.datasource.query.ast.GroupBy;
+import org.bithon.server.storage.datasource.query.ast.IAST;
+import org.bithon.server.storage.datasource.query.ast.IASTVisitor;
+import org.bithon.server.storage.datasource.query.ast.Limit;
+import org.bithon.server.storage.datasource.query.ast.Name;
+import org.bithon.server.storage.datasource.query.ast.OrderBy;
+import org.bithon.server.storage.datasource.query.ast.SelectStatement;
+import org.bithon.server.storage.datasource.query.ast.StringExpression;
+import org.bithon.server.storage.datasource.query.ast.Table;
+import org.bithon.server.storage.datasource.query.ast.Where;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 15:38
  */
-public class SQLGenerator implements IExpressionVisitor {
+public class SQLGenerator implements IASTVisitor {
 
     private final StringBuilder sql = new StringBuilder(512);
     private int nestedSelect = 0;
@@ -46,7 +47,7 @@ public class SQLGenerator implements IExpressionVisitor {
     }
 
     @Override
-    public void before(SelectExpression selectExpression) {
+    public void before(SelectStatement selectStatement) {
         if (nestedSelect++ > 0) {
             sql.append("( ");
         }
@@ -54,34 +55,34 @@ public class SQLGenerator implements IExpressionVisitor {
     }
 
     @Override
-    public void visit(SelectExpression select) {
+    public void visit(SelectStatement select) {
         select.accept(this);
     }
 
     @Override
-    public void after(SelectExpression selectExpression) {
+    public void after(SelectStatement selectStatement) {
         if (--nestedSelect > 0) {
             sql.append(") ");
         }
     }
 
     @Override
-    public void visit(OrderByExpression orderByExpression) {
+    public void visit(OrderBy orderBy) {
         sql.append("ORDER BY ");
         sql.append('\"');
-        sql.append(orderByExpression.getField());
+        sql.append(orderBy.getField());
         sql.append('\"');
 
-        if (!StringUtils.isEmpty(orderByExpression.getOrder())) {
+        if (!StringUtils.isEmpty(orderBy.getOrder())) {
             sql.append(' ');
-            sql.append(orderByExpression.getOrder());
+            sql.append(orderBy.getOrder());
             sql.append(' ');
         }
     }
 
     @Override
-    public void visit(FieldsExpression fieldsExpression) {
-        for (IExpression field : fieldsExpression.getFields()) {
+    public void visit(Fields fields) {
+        for (IAST field : fields.getFields()) {
             field.accept(this);
 
             sql.append(',');
@@ -93,23 +94,29 @@ public class SQLGenerator implements IExpressionVisitor {
     }
 
     @Override
-    public void visit(LimitExpression limitExpression) {
+    public void visit(Limit limit) {
         sql.append(" LIMIT ");
-        sql.append(limitExpression.getLimit());
-        if (limitExpression.getOffset() != null && limitExpression.getOffset() > 0) {
+        sql.append(limit.getLimit());
+        if (limit.getOffset() != null && limit.getOffset() > 0) {
             sql.append(" OFFSET ");
-            sql.append(limitExpression.getOffset());
+            sql.append(limit.getOffset());
         }
     }
 
     @Override
-    public void before(FunctionExpression functionExpression) {
+    public void visit(Expression expression) {
 
     }
 
     @Override
-    public void after(FunctionExpression functionExpression) {
+    public void before(Function function) {
+        sql.append(function.getFnName());
+        sql.append('(');
+    }
 
+    @Override
+    public void after(Function function) {
+        sql.append(')');
     }
 
     @Override
@@ -118,28 +125,28 @@ public class SQLGenerator implements IExpressionVisitor {
     }
 
     @Override
-    public void visit(AliasExpression aliasExpression) {
-        sql.append("AS");
+    public void visit(Alias alias) {
+        sql.append(" AS ");
         sql.append('\"');
-        sql.append(aliasExpression.getName());
+        sql.append(alias.getName());
         sql.append('\"');
     }
 
     @Override
-    public void visit(NameExpression nameExpression) {
+    public void visit(Name name) {
         sql.append('\"');
-        sql.append(nameExpression.getName());
+        sql.append(name.getName());
         sql.append('\"');
         sql.append(' ');
     }
 
     @Override
-    public void visit(FromExpression fromExpression) {
+    public void visit(From from) {
         sql.append(" FROM ");
     }
 
     @Override
-    public void visit(TableExpression table) {
+    public void visit(Table table) {
         sql.append('\"');
         sql.append(table.getName());
         sql.append('\"');
@@ -147,9 +154,9 @@ public class SQLGenerator implements IExpressionVisitor {
     }
 
     @Override
-    public void visit(WhereExpression whereExpression) {
+    public void visit(Where where) {
         sql.append("WHERE ");
-        for (String expression : whereExpression.getExpressions()) {
+        for (String expression : where.getExpressions()) {
             sql.append(expression);
             sql.append(" AND ");
         }
@@ -157,9 +164,9 @@ public class SQLGenerator implements IExpressionVisitor {
     }
 
     @Override
-    public void visit(GroupByExpression groupByExpression) {
+    public void visit(GroupBy groupBy) {
         sql.append("GROUP BY ");
-        for (String field : groupByExpression.getFields()) {
+        for (String field : groupBy.getFields()) {
             sql.append('\"');
             sql.append(field);
             sql.append('\"');

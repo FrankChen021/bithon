@@ -14,33 +14,23 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.dsl;
+package org.bithon.server.web.service.datasource.api.impl;
 
-import lombok.Getter;
+import lombok.Data;
+import org.bithon.server.storage.datasource.query.ast.Field;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:55
+ * @date 2022/11/4 00:18
  */
-public class OrderByExpression implements IExpression {
+@Data
+public class QueryAggregator {
+    private String type;
+    private String name;
+    private String field;
 
-    @Getter
-    private final String field;
-
-    @Getter
-    private final String order;
-
-    /**
-     * @param field
-     * @param order ASC or DESC
-     */
-    public OrderByExpression(String field, String order) {
-        this.field = field;
-        this.order = order;
-    }
-
-    @Override
-    public void accept(IExpressionVisitor visitor) {
-        visitor.visit(this);
+    public Field toAST() {
+        return new Field(SimpleAggregators.create(type, field == null ? name : field), name);
     }
 }

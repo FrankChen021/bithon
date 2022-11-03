@@ -14,32 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.dsl;
-
-import lombok.Getter;
-
-import java.util.ArrayList;
-import java.util.List;
+package org.bithon.server.storage.datasource.query.ast;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:40
+ * @date 2022/9/4 15:03
  */
-@Getter
-public class FunctionExpression implements IExpression {
-    private final String fnName;
-    private final List<IExpression> arguments = new ArrayList<>();
-
-    public FunctionExpression(String fnName) {
-        this.fnName = fnName;
-    }
-
-    @Override
-    public void accept(IExpressionVisitor visitor) {
-        visitor.before(this);
-        for (IExpression arg : arguments) {
-            arg.accept(visitor);
-        }
-        visitor.after(this);
-    }
+public interface IAST {
+    void accept(IASTVisitor visitor);
 }

@@ -14,25 +14,19 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.dsl;
-
-import lombok.Getter;
+package org.bithon.server.storage.datasource.query.ast;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:11
+ * @date 2022/9/4 16:34
  */
-@Getter
-public class NameExpression implements IExpression {
-
-    private final String name;
-
-    public NameExpression(String name) {
-        this.name = name;
+public class Alias extends Name {
+    public Alias(String name) {
+        super(name);
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IASTVisitor visitor) {
         visitor.visit(this);
     }
 }

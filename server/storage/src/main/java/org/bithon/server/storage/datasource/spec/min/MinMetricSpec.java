@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
-import org.bithon.server.storage.datasource.query.QueryStageAggregators;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpecVisitor;
 
@@ -45,7 +45,7 @@ public abstract class MinMetricSpec implements IMetricSpec {
 
     @Getter
     protected final boolean visible;
-    protected final IQueryStageAggregator queryStageAggregator;
+    protected final SimpleAggregator queryStageAggregator;
 
     @JsonCreator
     public MinMetricSpec(String name,
@@ -61,7 +61,7 @@ public abstract class MinMetricSpec implements IMetricSpec {
 
         // For IMetricSpec, the `name` property is the right text mapped a column in underlying database,
         // So the two parameters of following ctor are all `name` properties
-        this.queryStageAggregator = new QueryStageAggregators.MinAggregator(name, name);
+        this.queryStageAggregator = new SimpleAggregators.MinAggregator(name);
     }
 
     @Override
@@ -75,7 +75,7 @@ public abstract class MinMetricSpec implements IMetricSpec {
 
     @JsonIgnore
     @Override
-    public IQueryStageAggregator getQueryAggregator() {
+    public SimpleAggregator getQueryAggregator() {
         return queryStageAggregator;
     }
 

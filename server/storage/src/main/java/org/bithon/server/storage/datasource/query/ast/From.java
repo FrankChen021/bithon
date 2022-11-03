@@ -14,12 +14,21 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.dsl;
+package org.bithon.server.storage.datasource.query.ast;
+
+import lombok.Data;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 15:03
+ * @date 2022/9/4 15:43
  */
-public interface IExpression {
-    void accept(IExpressionVisitor visitor);
+@Data
+public class From implements IAST {
+    private IAST expression;
+
+    @Override
+    public void accept(IASTVisitor visitor) {
+        visitor.visit(this);
+        expression.accept(visitor);
+    }
 }

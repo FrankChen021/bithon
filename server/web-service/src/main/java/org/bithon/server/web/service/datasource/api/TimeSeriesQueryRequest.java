@@ -20,8 +20,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
 import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.web.service.datasource.api.impl.QueryAggregator;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -46,6 +46,7 @@ public class TimeSeriesQueryRequest {
 
     private List<IFilter> filters;
     private List<String> metrics;
-    private List<IQueryStageAggregator> aggregators;
+    private List<QueryAggregator> aggregators;
+
     private List<String> groupBy;
 }

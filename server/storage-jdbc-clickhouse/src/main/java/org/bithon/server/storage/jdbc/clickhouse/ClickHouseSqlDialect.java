@@ -50,10 +50,9 @@ class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String stringAggregator(String field, String name) {
-        return StringUtils.format("arrayStringConcat(arrayCompact(arrayFilter(x -> x <> '', groupArray(%s))), ',') AS %s",
-                                  field,
-                                  name);
+    public String stringAggregator(String field) {
+        return StringUtils.format("arrayStringConcat(arrayCompact(arrayFilter(x -> x <> '', groupArray(%s))), ',')",
+                                  field);
     }
 
     @Override
@@ -62,11 +61,7 @@ class ClickHouseSqlDialect implements ISqlDialect {
     }
 
     @Override
-    public String lastAggregator(String field, String name, long window) {
-        if (name.length() > 0) {
-            return StringUtils.format("argMax(\"%s\", \"timestamp\") AS %s", field, name);
-        } else {
-            return StringUtils.format("argMax(\"%s\", \"timestamp\")", field);
-        }
+    public String lastAggregator(String field, long window) {
+        return StringUtils.format("argMax(\"%s\", \"timestamp\")", field);
     }
 }

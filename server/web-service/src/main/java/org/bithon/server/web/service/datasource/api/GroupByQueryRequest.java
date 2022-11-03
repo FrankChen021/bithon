@@ -20,9 +20,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
-import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.datasource.query.OrderBy;
+import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.web.service.datasource.api.impl.QueryAggregator;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -51,7 +51,7 @@ public class GroupByQueryRequest {
     private List<IFilter> filters = Collections.emptyList();
 
     private List<String> metrics = Collections.emptyList();
-    private List<IQueryStageAggregator> aggregators = Collections.emptyList();
+    private List<QueryAggregator> aggregators = Collections.emptyList();
 
     @Valid
     @Size(min = 1)

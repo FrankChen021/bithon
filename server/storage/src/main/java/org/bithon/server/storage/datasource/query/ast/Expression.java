@@ -14,32 +14,32 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.dsl;
+package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
-
-import javax.annotation.Nullable;
+import org.bithon.server.storage.datasource.query.parser.FieldExpressionParserImpl;
+import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/10/30 15:08
+ * @date 2022/11/3 22:18
  */
-public class LimitExpression implements IExpression {
+public class Expression implements IAST {
 
     @Getter
-    private int limit;
+    private final String expression;
 
-    @Getter
-    @Nullable
-    private Integer offset;
+    public Expression(String expression) {
+        this.expression = expression;
+    }
 
-    public LimitExpression(int limit, @Nullable Integer offset) {
-        this.limit = limit;
-        this.offset = offset;
+    public void visitExpression(FieldExpressionVisitorAdaptor visitorAdaptor) {
+        FieldExpressionParserImpl parser = FieldExpressionParserImpl.create(this.expression);
+        parser.visit(visitorAdaptor);
     }
 
     @Override
-    public void accept(IExpressionVisitor visitor) {
+    public void accept(IASTVisitor visitor) {
         visitor.visit(this);
     }
 }

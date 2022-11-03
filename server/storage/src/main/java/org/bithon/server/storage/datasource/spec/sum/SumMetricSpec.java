@@ -19,8 +19,8 @@ package org.bithon.server.storage.datasource.spec.sum;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
-import org.bithon.server.storage.datasource.query.QueryStageAggregators;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpecVisitor;
 
@@ -44,7 +44,7 @@ public abstract class SumMetricSpec implements IMetricSpec {
 
     @Getter
     protected final boolean visible;
-    protected final IQueryStageAggregator queryStageAggregator;
+    protected final SimpleAggregator queryStageAggregator;
 
     public SumMetricSpec(String name,
                          String field,
@@ -56,7 +56,7 @@ public abstract class SumMetricSpec implements IMetricSpec {
         this.displayText = displayText;
         this.unit = unit;
         this.visible = visible == null ? true : visible;
-        this.queryStageAggregator = new QueryStageAggregators.SumAggregator(name, name);
+        this.queryStageAggregator = new SimpleAggregators.SumAggregator(name);
     }
 
     @Override
@@ -65,7 +65,7 @@ public abstract class SumMetricSpec implements IMetricSpec {
 
     @JsonIgnore
     @Override
-    public IQueryStageAggregator getQueryAggregator() {
+    public SimpleAggregator getQueryAggregator() {
         return queryStageAggregator;
     }
 

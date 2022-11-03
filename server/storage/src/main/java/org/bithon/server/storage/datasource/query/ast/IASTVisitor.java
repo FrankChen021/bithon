@@ -16,40 +16,39 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
-
 /**
  * @author frank.chen021@outlook.com
- * @date 2020/12/23
+ * @date 2022/9/4 15:05
  */
-public interface FieldExpressionVisitorAdaptor {
+public interface IASTVisitor {
 
-    default void visitField(String field) {
-    }
+    void before(SelectStatement selectStatement);
+    void visit(SelectStatement selectStatement);
+    void after(SelectStatement selectStatement);
 
-    default void visitConstant(String number) {
-    }
+    void visit(OrderBy orderBy);
 
-    default void visitorOperator(String operator) {
-    }
+    void visit(Table table);
 
-    default void beginSubExpression() {
-    }
+    void visit(Where where);
 
-    default void endSubExpression() {
-    }
+    void visit(GroupBy groupBy);
 
-    default void visitVariable(String variable) {
-    }
+    void visit(From from);
 
-    default void beginFunction(String name) {
-    }
+    void visit(Alias alias);
 
-    default void endFunction() {
-    }
+    void visit(Name name);
 
-    default void beginFunctionArgument(int argIndex, int count) {
-    }
+    void before(Function function);
 
-    default void endFunctionArgument(int argIndex, int count) {
-    }
+    void after(Function function);
+
+    void visit(StringExpression stringExpression);
+
+    void visit(Fields fields);
+
+    void visit(Limit limit);
+
+    void visit(Expression expression);
 }

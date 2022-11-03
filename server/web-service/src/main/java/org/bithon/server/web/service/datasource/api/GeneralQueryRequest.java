@@ -17,10 +17,10 @@
 package org.bithon.server.web.service.datasource.api;
 
 import lombok.Data;
-import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.server.storage.metrics.IFilter;
 
 import javax.annotation.Nullable;
 import javax.validation.Valid;

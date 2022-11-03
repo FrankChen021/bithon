@@ -14,29 +14,42 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.query.dsl;
+package org.bithon.server.storage.datasource.query.parser;
 
-import lombok.Getter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:55
+ * @date 2020/12/23
  */
-@Getter
-public class WhereExpression implements IExpression {
+public interface FieldExpressionVisitorAdaptor {
 
-    private final List<String> expressions = new ArrayList<>();
-
-    public WhereExpression addExpression(String expression) {
-        expressions.add(expression);
-        return this;
+    default void visitField(String field) {
     }
 
-    @Override
-    public void accept(IExpressionVisitor visitor) {
-        visitor.visit(this);
+    default void visitConstant(String number) {
+    }
+
+    default void visitorOperator(String operator) {
+    }
+
+    default void beginSubExpression() {
+    }
+
+    default void endSubExpression() {
+    }
+
+    default void visitVariable(String variable) {
+    }
+
+    default void beginFunction(String name) {
+    }
+
+    default void endFunction() {
+    }
+
+    default void beginFunctionArgument(int argIndex, int count) {
+    }
+
+    default void endFunctionArgument(int argIndex, int count) {
     }
 }
