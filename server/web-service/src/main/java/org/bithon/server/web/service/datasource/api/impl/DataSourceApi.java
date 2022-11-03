@@ -31,7 +31,7 @@ import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.Interval;
-import org.bithon.server.storage.metrics.ListQuery;
+import org.bithon.server.storage.metrics.Limit;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.storage.metrics.Query;
 import org.bithon.server.web.service.datasource.api.DataSourceService;
@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -135,15 +136,15 @@ public class DataSourceApi implements IDataSourceApi {
     public ListQueryResponse list(ListQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        ListQuery query = new ListQuery(schema,
-                                        request.getColumns(),
-                                        request.getFilters(),
-                                        Interval.of(TimeSpan.fromISO8601(request.getStartTimeISO8601()), TimeSpan.fromISO8601(request.getEndTimeISO8601())),
-                                        request.getOrderBy(),
-                                        request.getPageNumber(),
-                                        request.getPageSize());
+        Query query = Query.builder()
+                           .dataSource(schema)
+                           .fields(Arrays.asList(request.getColumns().toArray()))
+                           .filters(request.getFilters())
+                           .interval(Interval.of(TimeSpan.fromISO8601(request.getStartTimeISO8601()), TimeSpan.fromISO8601(request.getEndTimeISO8601())))
+                           .orderBy(request.getOrderBy())
+                           .limit(new Limit(request.getPageSize(), request.getPageNumber() * request.getPageSize()))
+                           .build();
 
-        // TODO: refactor the storage reader so that the data source is working for all storages
         IMetricReader reader = this.metricStorage.createMetricReader(schema);
         return new ListQueryResponse(reader.listSize(query), reader.list(query));
     }

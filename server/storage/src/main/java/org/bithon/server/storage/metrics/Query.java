@@ -35,7 +35,7 @@ import java.util.List;
 public class Query {
     private final DataSourceSchema dataSource;
 
-    private final Collection<Object> fields;
+    private final List<Object> fields;
 
     private final Collection<IFilter> filters;
     private final Interval interval;
@@ -56,7 +56,7 @@ public class Query {
     }
 
     public Query(DataSourceSchema dataSource,
-                 Collection<Object> fields,
+                 List<Object> fields,
                  Collection<IFilter> filters,
                  Interval interval,
                  @Nullable List<String> groupBy,

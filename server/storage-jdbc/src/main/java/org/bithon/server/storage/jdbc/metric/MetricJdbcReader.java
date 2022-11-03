@@ -26,11 +26,10 @@ import org.bithon.server.storage.jdbc.dsl.sql.NameExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.SelectExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.StringExpression;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.metrics.Query;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
-import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.OrderBy;
+import org.bithon.server.storage.metrics.Query;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -118,34 +117,34 @@ public class MetricJdbcReader implements IMetricReader {
     }
 
     @Override
-    public List<Map<String, Object>> list(ListQuery query) {
-        String sqlTableName = "bithon_" + query.getSchema().getName().replace("-", "_");
+    public List<Map<String, Object>> list(Query query) {
+        String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
 
-        String filter = SQLFilterBuilder.build(query.getSchema(), query.getFilters());
+        String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s %s LIMIT %d OFFSET %d",
-            query.getColumns().stream().map(column -> "\"" + column + "\"").collect(Collectors.joining(",")),
+            query.getFields().stream().map(column -> "\"" + column + "\"").collect(Collectors.joining(",")),
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
             sqlDialect.formatTimestamp(query.getInterval().getStartTime()),
             sqlDialect.formatTimestamp(query.getInterval().getEndTime()),
             getOrderBySQL(query.getOrderBy()),
-            query.getPageSize(),
-            query.getPageNumber() * query.getPageSize()
+            query.getLimit().getLimit(),
+            query.getLimit().getOffset()
         );
 
         return executeSql(sql);
     }
 
     @Override
-    public int listSize(ListQuery query) {
-        String sqlTableName = "bithon_" + query.getSchema().getName().replace("-", "_");
+    public int listSize(Query query) {
+        String sqlTableName = "bithon_" + query.getDataSource().getName().replace("-", "_");
 
-        String filter = SQLFilterBuilder.build(query.getSchema(), query.getFilters());
+        String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
         String sql = StringUtils.format(
             "SELECT count(\"%s\") FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s",
-            query.getColumns().get(0),
+            query.getFields().get(0),
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",
@@ -162,7 +161,7 @@ public class MetricJdbcReader implements IMetricReader {
 
         List<Record> records = dsl.fetch(sql);
 
-        if(resultFormat == Query.ResultFormat.Object) {
+        if (resultFormat == Query.ResultFormat.Object) {
             return records.stream().map(record -> {
                 Map<String, Object> mapObject = new HashMap<>(record.fields().length);
                 for (Field<?> field : record.fields()) {

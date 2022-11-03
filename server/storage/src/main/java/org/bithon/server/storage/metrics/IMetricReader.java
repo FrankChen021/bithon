@@ -36,8 +36,8 @@ public interface IMetricReader {
      */
     List<?> groupBy(Query query);
 
-    List<Map<String, Object>> list(ListQuery listQuery);
-    int listSize(ListQuery listQuery);
+    List<Map<String, Object>> list(Query query);
+    int listSize(Query query);
 
     List<Map<String, Object>> executeSql(String sql);
 
