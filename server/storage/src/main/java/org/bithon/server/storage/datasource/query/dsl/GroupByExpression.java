@@ -14,20 +14,30 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.dsl.sql;
+package org.bithon.server.storage.datasource.query.dsl;
 
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:49
+ * @date 2022/9/4 14:58
  */
-public class StringExpression implements IExpression {
+public class GroupByExpression implements IExpression {
     @Getter
-    private final String str;
+    private final List<String> fields = new ArrayList<>(4);
 
-    public StringExpression(String str) {
-        this.str = str;
+    public GroupByExpression addField(String field) {
+        this.fields.add(field);
+        return this;
+    }
+
+    public GroupByExpression addFields(Collection<String> fields) {
+        this.fields.addAll(fields);
+        return this;
     }
 
     @Override

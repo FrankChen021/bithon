@@ -14,21 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.dsl.sql;
+package org.bithon.server.storage.datasource.query.dsl;
 
 import lombok.Getter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:11
+ * @date 2022/9/4 16:49
  */
-@Getter
-public class NameExpression implements IExpression {
+public class StringExpression implements IExpression {
+    @Getter
+    private final String str;
 
-    private final String name;
-
-    public NameExpression(String name) {
-        this.name = name;
+    public StringExpression(String str) {
+        this.str = str;
     }
 
     @Override

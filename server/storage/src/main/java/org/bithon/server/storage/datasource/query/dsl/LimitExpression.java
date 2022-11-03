@@ -14,20 +14,28 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.dsl.sql;
+package org.bithon.server.storage.datasource.query.dsl;
 
 import lombok.Getter;
 
+import javax.annotation.Nullable;
+
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 15:04
+ * @date 2022/10/30 15:08
  */
-public class TableExpression implements IExpression {
-    @Getter
-    private final String name;
+public class LimitExpression implements IExpression {
 
-    public TableExpression(String name) {
-        this.name = name;
+    @Getter
+    private int limit;
+
+    @Getter
+    @Nullable
+    private Integer offset;
+
+    public LimitExpression(int limit, @Nullable Integer offset) {
+        this.limit = limit;
+        this.offset = offset;
     }
 
     @Override

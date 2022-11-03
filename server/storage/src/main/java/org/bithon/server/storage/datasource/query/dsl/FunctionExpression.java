@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.dsl.sql;
+package org.bithon.server.storage.datasource.query.dsl;
 
 import lombok.Getter;
 
@@ -23,20 +23,23 @@ import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:55
+ * @date 2022/9/4 16:40
  */
 @Getter
-public class WhereExpression implements IExpression {
+public class FunctionExpression implements IExpression {
+    private final String fnName;
+    private final List<IExpression> arguments = new ArrayList<>();
 
-    private final List<String> expressions = new ArrayList<>();
-
-    public WhereExpression addExpression(String expression) {
-        expressions.add(expression);
-        return this;
+    public FunctionExpression(String fnName) {
+        this.fnName = fnName;
     }
 
     @Override
     public void accept(IExpressionVisitor visitor) {
-        visitor.visit(this);
+        visitor.before(this);
+        for (IExpression arg : arguments) {
+            arg.accept(visitor);
+        }
+        visitor.after(this);
     }
 }

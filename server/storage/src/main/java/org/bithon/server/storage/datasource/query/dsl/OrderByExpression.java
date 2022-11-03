@@ -14,33 +14,33 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.dsl.sql;
+package org.bithon.server.storage.datasource.query.dsl;
 
 import lombok.Getter;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:11
+ * @date 2022/9/4 14:55
  */
-@Getter
-public class FieldExpression implements IExpression {
-    private IExpression field;
-    private NameExpression alias;
+public class OrderByExpression implements IExpression {
 
-    public FieldExpression(IExpression field) {
-        this(field, null);
-    }
+    @Getter
+    private final String field;
 
-    public FieldExpression(IExpression field, String alias) {
+    @Getter
+    private final String order;
+
+    /**
+     * @param field
+     * @param order ASC or DESC
+     */
+    public OrderByExpression(String field, String order) {
         this.field = field;
-        this.alias = alias == null ? null : new AliasExpression(alias);
+        this.order = order;
     }
 
     @Override
     public void accept(IExpressionVisitor visitor) {
-        field.accept(visitor);
-        if (alias != null) {
-            alias.accept(visitor);
-        }
+        visitor.visit(this);
     }
 }

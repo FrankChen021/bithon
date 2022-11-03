@@ -14,35 +14,20 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.dsl.sql;
+package org.bithon.server.storage.datasource.query.dsl;
 
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:56
+ * @date 2022/9/4 15:04
  */
-public class FieldsExpression implements IExpression {
+public class TableExpression implements IExpression {
     @Getter
-    private final List<IExpression> fields = new ArrayList<>(8);
+    private final String name;
 
-    public FieldsExpression insert(IExpression field) {
-        fields.add(0, field);
-        return this;
-    }
-
-    public FieldsExpression addField(IExpression field) {
-        fields.add(field);
-        return this;
-    }
-
-    public void addFields(List<String> fields) {
-        for (String field : fields) {
-            this.fields.add(new NameExpression(field));
-        }
+    public TableExpression(String name) {
+        this.name = name;
     }
 
     @Override

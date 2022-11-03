@@ -14,12 +14,29 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.dsl.sql;
+package org.bithon.server.storage.datasource.query.dsl;
+
+import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 15:03
+ * @date 2022/9/4 14:55
  */
-public interface IExpression {
-    void accept(IExpressionVisitor visitor);
+@Getter
+public class WhereExpression implements IExpression {
+
+    private final List<String> expressions = new ArrayList<>();
+
+    public WhereExpression addExpression(String expression) {
+        expressions.add(expression);
+        return this;
+    }
+
+    @Override
+    public void accept(IExpressionVisitor visitor) {
+        visitor.visit(this);
+    }
 }

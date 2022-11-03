@@ -17,20 +17,20 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.jdbc.dsl.sql.AliasExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.FieldsExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.FromExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.FunctionExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.GroupByExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.IExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.IExpressionVisitor;
-import org.bithon.server.storage.jdbc.dsl.sql.LimitExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.NameExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.OrderByExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.SelectExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.StringExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.TableExpression;
-import org.bithon.server.storage.jdbc.dsl.sql.WhereExpression;
+import org.bithon.server.storage.datasource.query.dsl.AliasExpression;
+import org.bithon.server.storage.datasource.query.dsl.FieldsExpression;
+import org.bithon.server.storage.datasource.query.dsl.FromExpression;
+import org.bithon.server.storage.datasource.query.dsl.FunctionExpression;
+import org.bithon.server.storage.datasource.query.dsl.GroupByExpression;
+import org.bithon.server.storage.datasource.query.dsl.IExpression;
+import org.bithon.server.storage.datasource.query.dsl.IExpressionVisitor;
+import org.bithon.server.storage.datasource.query.dsl.LimitExpression;
+import org.bithon.server.storage.datasource.query.dsl.NameExpression;
+import org.bithon.server.storage.datasource.query.dsl.OrderByExpression;
+import org.bithon.server.storage.datasource.query.dsl.SelectExpression;
+import org.bithon.server.storage.datasource.query.dsl.StringExpression;
+import org.bithon.server.storage.datasource.query.dsl.TableExpression;
+import org.bithon.server.storage.datasource.query.dsl.WhereExpression;
 
 /**
  * @author frank.chen021@outlook.com

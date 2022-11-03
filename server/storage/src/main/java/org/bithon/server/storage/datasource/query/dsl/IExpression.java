@@ -14,32 +14,12 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.jdbc.dsl.sql;
-
-import lombok.Getter;
-
-import javax.annotation.Nullable;
+package org.bithon.server.storage.datasource.query.dsl;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/10/30 15:08
+ * @date 2022/9/4 15:03
  */
-public class LimitExpression implements IExpression {
-
-    @Getter
-    private int limit;
-
-    @Getter
-    @Nullable
-    private Integer offset;
-
-    public LimitExpression(int limit, @Nullable Integer offset) {
-        this.limit = limit;
-        this.offset = offset;
-    }
-
-    @Override
-    public void accept(IExpressionVisitor visitor) {
-        visitor.visit(this);
-    }
+public interface IExpression {
+    void accept(IExpressionVisitor visitor);
 }
