@@ -31,7 +31,6 @@ import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.OrderBy;
-import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -71,20 +70,20 @@ public class MetricJdbcReader implements IMetricReader {
                                                                    .sqlDialect(this.sqlDialect)
                                                                    .build();
 
-        SelectExpression timestampExpressionOn = selectExpression;
+        SelectExpression timestampFilterExpression = selectExpression;
         if (selectExpression.getFrom().getExpression() instanceof SelectExpression) {
             // Has a sub-query, timestampExpression will be put in sub-query
-            timestampExpressionOn = (SelectExpression) selectExpression.getFrom().getExpression();
+            timestampFilterExpression = (SelectExpression) selectExpression.getFrom().getExpression();
 
             // Add timestamp field to outer query at first position
             selectExpression.getFieldsExpression().insert(new NameExpression(TIMESTAMP_ALIAS_NAME));
         }
 
         // Add timestamp expression to sub-query
-        timestampExpressionOn.getFieldsExpression()
-                             .insert(new StringExpression(StringUtils.format("%s AS \"%s\"",
-                                                                             sqlDialect.timeFloor("timestamp", query.getInterval().getStep()),
-                                                                             TIMESTAMP_ALIAS_NAME)));
+        timestampFilterExpression.getFieldsExpression()
+                                 .insert(new StringExpression(StringUtils.format("%s AS \"%s\"",
+                                                                                 sqlDialect.timeFloor("timestamp", query.getInterval().getStep()),
+                                                                                 TIMESTAMP_ALIAS_NAME)));
 
         selectExpression.getGroupBy().addField(TIMESTAMP_ALIAS_NAME);
 
@@ -94,7 +93,7 @@ public class MetricJdbcReader implements IMetricReader {
     }
 
     @Override
-    public List<Map<String, Object>> groupBy(Query query) {
+    public List<?> groupBy(Query query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
                                                                    .dataSource(query.getDataSource())
                                                                    .fields(query.getFields())
@@ -108,7 +107,7 @@ public class MetricJdbcReader implements IMetricReader {
 
         SQLGenerator sqlGenerator = new SQLGenerator();
         selectExpression.accept(sqlGenerator);
-        return executeSql(sqlGenerator.getSQL());
+        return fetch(sqlGenerator.getSQL(), query.getResultFormat());
     }
 
     private String getOrderBySQL(OrderBy orderBy) {
@@ -156,6 +155,24 @@ public class MetricJdbcReader implements IMetricReader {
 
         Record record = dsl.fetchOne(sql);
         return ((Number) record.get(0)).intValue();
+    }
+
+    private List<?> fetch(String sql, Query.ResultFormat resultFormat) {
+        log.info("Executing {}", sql);
+
+        List<Record> records = dsl.fetch(sql);
+
+        if(resultFormat == Query.ResultFormat.Object) {
+            return records.stream().map(record -> {
+                Map<String, Object> mapObject = new HashMap<>(record.fields().length);
+                for (Field<?> field : record.fields()) {
+                    mapObject.put(field.getName(), record.get(field));
+                }
+                return mapObject;
+            }).collect(Collectors.toList());
+        } else {
+            return records.stream().map(Record::intoArray).collect(Collectors.toList());
+        }
     }
 
     @Override

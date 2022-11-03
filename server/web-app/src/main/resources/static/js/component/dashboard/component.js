@@ -746,6 +746,107 @@ class Dashboard {
         return vTable;
     }
 
+    createLineComponent(chartId, chartDescriptor) {
+        const chartOption = this.getDefaultChartOption();
+
+        let yAxisFormatters = [];
+        for (const column in chartDescriptor.columns) {
+            // legend
+            chartOption.legend.data.push({
+                name: column.name,
+                icon: 'circle'
+            });
+
+            // formatter
+            const yFormatter = this.getFormatter(column.format === undefined ? 'compact_number' : column.format);
+            yAxisFormatters.push(yFormatter);
+
+            // yAxis, can only be 0 or 1
+            const yAxis = column.yAxis === undefined ? 0 : (column.yAxis.index || 0);
+            while (chartOption.yAxis.length < yAxis + 1) {
+                chartOption.yAxis.push({
+                    type: 'value',
+                    min: 0,
+                    minInterval: 1,
+                    scale: true,
+                    splitLine: {show: true},
+                    axisLine: {show: false},
+                    axisTick: {show: false,},
+                    axisLabel: {},
+                });
+            }
+            if (column.yAxis !== undefined) {
+                chartOption.yAxis[yAxis] = {
+                    type: 'value',
+                    min: 0 || column.yAxis.min,
+                    minInterval: 1 || column.yAxis.minInterval,
+                    interval: column.yAxis.interval,
+                    inverse: column.yAxis.inverse === undefined ? false : column.yAxis.inverse,
+                    splitLine: {show: true},
+                    axisLine: {show: false},
+                    scale: false,
+                    axisTick: {
+                        show: false,
+                    },
+                    axisLabel: {
+                        formatter: yFormatter
+                    },
+                }
+            }
+        }
+
+        chartOption.tooltip.formatter = series => {
+            const currentChartOption = this.getChartCurrentOption(chartId);
+
+            const start = currentChartOption.timestamp.start;
+            const interval = currentChartOption.timestamp.interval;
+            const dataIndex = series[0].dataIndex;
+            const timeText = moment(start + dataIndex * interval).local().format('yyyy-MM-DD HH:mm:ss');
+
+            let tooltip = timeText;
+            series.forEach(s => {
+                //Use the yAxis defined formatter to format the data
+                const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
+
+                let formatterFn = yAxisFormatters[yAxisIndex];
+
+                const text = formatterFn(s.data);
+
+                //Concat the tooltip
+                //marker can be seen as the style of legend of this series
+                tooltip += `<br />${s.marker}${s.seriesName}: ${text}`;
+            });
+            return tooltip;
+        };
+        if (chartOption.yAxis.length === 1) {
+            chartOption.grid.right = 15;
+        }
+        if (chartDescriptor.details != null) {
+            chartOption.brush = {
+                xAxisIndex: 'all',
+                brushLink: 'all',
+                outOfBrush: {
+                    colorAlpha: 0.1
+                }
+            };
+            chartOption.toolbox = {
+                // the toolbox is disabled because the ChartComponent takes over the functionalities
+                show: false
+            };
+        }
+        const chartComponent = new ChartComponent({
+            containerId: chartId,
+
+            // Keep query object in the chart for further query
+            query: chartDescriptor.query
+        }).header('<b>' + chartDescriptor.title + '</b>')
+            .setChartOption(chartOption);
+
+        this._chartComponents[chartId] = chartComponent;
+
+        return chartComponent;
+    }
+
     refreshTable(chartDescriptor, tableComponent, interval) {
         const filters = this.vFilter.getSelectedFilters();
         if (chartDescriptor.filters != null) {
@@ -761,6 +862,7 @@ class Dashboard {
                 endISO8601: interval.end
             },
             filters: filters,
+            resultFormat: 'Object'
         }, chartDescriptor.query);
 
         const loadOptions = {
@@ -800,6 +902,9 @@ class Dashboard {
         }
         if (chartDescriptor.type === 'table') {
             return this.createTableComponent(chartId, chartDescriptor);
+        }
+        if (chartDescriptor.type === 'line') {
+            return this.createLineComponent(chartId, chartDescriptor);
         }
 
         const chartOption = this.getDefaultChartOption();
@@ -936,8 +1041,120 @@ class Dashboard {
         // refresh each chart
         const interval = this.getSelectedTimeInterval();
         for (const id in this._chartComponents) {
-            this.refreshChart(this._chartDescriptors[id], this._chartComponents[id], interval);
+            const chartDescriptor = this._chartDescriptors[id];
+            const chartComponent = this._chartComponents[id];
+            switch (chartDescriptor.type) {
+                case 'list':
+                    this.refreshList(chartDescriptor, chartComponent, interval);
+                    break;
+                case 'table':
+                    this.refreshTable(chartDescriptor, chartComponent, interval);
+                    break;
+                case 'line':
+                    this.refreshLine(chartDescriptor, chartComponent, interval);
+                    break;
+                default:
+                    this.refreshChart(chartDescriptor, chartComponent, interval);
+                    break;
+            }
         }
+    }
+
+    refreshLine(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
+        let filters = this.vFilter.getSelectedFilters();
+        if (chartDescriptor.dimensions !== undefined) {
+            $.each(chartDescriptor.dimensions, (index, filter) => {
+                filters.push(filter);
+            });
+        }
+
+        const query = Object.assign({
+            dataSource: chartDescriptor.dataSource,
+            interval: {
+                startISO8601: interval.start,
+                endISO8601: interval.end
+            },
+            filters: filters
+        }, chartComponent.getOption().query);
+
+        chartComponent.load({
+            url: apiHost + "/api/datasource/timeseries/v3",
+            ajaxData: JSON.stringify(query),
+            processResult: (data) => {
+                const timeLabels = [];
+                for (let t = data.startTimestamp; t <= data.endTimestamp; t += data.interval) {
+                    timeLabels.push(moment(t).local().format('HH:mm:ss'));
+                }
+                const series = [];
+                $.each(data.metrics, (index, metric) => {
+                    let metricName = metric.tags[metric.tags.length - 1];
+                    let metricDef = chartDescriptor.metricMap[metricName];
+                    if (metricDef === undefined) {
+                        return;
+                    }
+
+                    let group = "";
+                    for (let i = 0; i < metric.tags.length - 1; i++) {
+                        group += metric.tags[i];
+                        group += "-";
+                    }
+
+                    const chartType = metricDef.chartType || 'line';
+                    const isLine = chartType === 'line';
+                    const isArea = isLine && (metricDef.fill === undefined ? true : metricDef.fill);
+
+                    const n = metricNamePrefix + group + (metricDef.displayName === undefined ? metricDef.name : metricDef.displayName);
+                    let s = {
+                        id: n,
+                        name: n,
+                        type: chartType,
+
+                        data: metric.values.map(val => metricDef.transformer(val)),
+                        yAxisIndex: metricDef.yAxis == null ? 0 : metricDef.yAxis,
+
+                        areaStyle: isArea ? {opacity: 0.3} : null,
+                        lineStyle: isLine ? {width: 1} : null,
+                        itemStyle: isLine ? {opacity: 0} : null,
+                        barWidth: 10,
+
+                        // selected is not a property of series
+                        // this is used to render default selected state of legend by chart-component
+                        selected: metricDef.selected === undefined ? true : metricDef.selected
+                    };
+                    series.push(s);
+                });
+
+                // a groupBy query might return empty data
+                if (series.length === 0) {
+                    series.push({
+                        id: 'empty',
+                        name: 'empty',
+                        type: 'line',
+                        data: new Array(data.count).fill(0),
+                        yAxisIndex: 0,
+                        areaStyle: {opacity: 0.3},
+                        lineStyle: {width: 1},
+                        itemStyle: {opacity: 0},
+                        selected: true
+                    });
+                }
+
+                return {
+                    // for a groupBy query, always replace the series because one group may not exist in a following query
+                    refreshMode: chartDescriptor.groupBy !== undefined ? 'replace' : mode,
+
+                    // save the timestamp for further processing
+                    timestamp: {
+                        start: data.startTimestamp,
+                        interval: data.interval
+                    },
+                    xAxis: {
+                        data: timeLabels
+                    },
+                    series: series
+                }
+            }
+        });
     }
 
     refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
@@ -945,15 +1162,6 @@ class Dashboard {
         // if (appFilter === undefined || appFilter === null) {
         //     return;
         // }
-
-        if (chartDescriptor.type === 'list') {
-            this.refreshList(chartDescriptor, chartComponent, interval);
-            return;
-        }
-        if (chartDescriptor.type === 'table') {
-            this.refreshTable(chartDescriptor, chartComponent, interval);
-            return;
-        }
 
         if (metricNamePrefix == null) {
             metricNamePrefix = '';

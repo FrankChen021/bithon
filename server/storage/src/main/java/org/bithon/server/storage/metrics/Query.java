@@ -22,6 +22,7 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.Null;
 import java.util.Collection;
 import java.util.List;
 
@@ -47,13 +48,21 @@ public class Query {
     @Nullable
     private final Limit limit;
 
+    private final ResultFormat resultFormat;
+
+    public enum ResultFormat {
+        ValueArray,
+        Object
+    }
+
     public Query(DataSourceSchema dataSource,
                  Collection<Object> fields,
                  Collection<IFilter> filters,
                  Interval interval,
                  @Nullable List<String> groupBy,
                  @Nullable OrderBy orderBy,
-                 @Nullable Limit limit) {
+                 @Nullable Limit limit,
+                 @Nullable ResultFormat resultFormat) {
         this.dataSource = dataSource;
         this.fields = CollectionUtils.emptyOrOriginal(fields);
         this.filters = filters;
@@ -61,5 +70,6 @@ public class Query {
         this.groupBy = CollectionUtils.emptyOrOriginal(groupBy);
         this.orderBy = orderBy;
         this.limit = limit;
+        this.resultFormat = resultFormat == null ? ResultFormat.Object : resultFormat;
     }
 }

@@ -34,7 +34,7 @@ public interface IMetricReader {
     /**
      * Aggregate metrics by their pre-defined aggregators in the given period
      */
-    List<Map<String, Object>> groupBy(Query query);
+    List<?> groupBy(Query query);
 
     List<Map<String, Object>> list(ListQuery listQuery);
     int listSize(ListQuery listQuery);

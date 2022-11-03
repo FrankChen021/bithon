@@ -20,6 +20,7 @@ import lombok.Data;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.Limit;
 import org.bithon.server.storage.metrics.OrderBy;
+import org.bithon.server.storage.metrics.Query;
 
 import javax.annotation.Nullable;
 import javax.validation.Valid;
@@ -52,4 +53,6 @@ public class GeneralQueryRequest {
 
     @Nullable
     private Limit limit;
+
+    private Query.ResultFormat resultFormat;
 }

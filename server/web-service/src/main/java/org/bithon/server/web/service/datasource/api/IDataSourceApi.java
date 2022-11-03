@@ -40,10 +40,10 @@ public interface IDataSourceApi {
     List<Map<String, Object>> groupBy(@Validated @RequestBody GroupByQueryRequest request);
 
     @PostMapping("/api/datasource/timeseries/v3")
-    List<Map<String, Object>> timeseriesV3(@Validated @RequestBody GeneralQueryRequest request);
+    DataSourceService.TimeSeriesQueryResult  timeseriesV3(@Validated @RequestBody GeneralQueryRequest request);
 
     @PostMapping("/api/datasource/groupBy/v2")
-    List<Map<String, Object>> groupBy(@Validated @RequestBody GeneralQueryRequest request);
+    List<?> groupBy(@Validated @RequestBody GeneralQueryRequest request);
 
     @PostMapping("/api/datasource/list")
     ListQueryResponse list(@Validated @RequestBody ListQueryRequest request);

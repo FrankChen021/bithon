@@ -32,7 +32,6 @@ import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.Query;
-import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -41,11 +40,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -69,22 +66,30 @@ public class DataSourceService {
      * Tags - dimension of a series
      * Vals - an array of all data points. Each element represents a data point of a timestamp.
      */
-    public TimeSeriesQueryResult timeseriesQuery(TimeseriesQuery query) {
+    public TimeSeriesQueryResult timeseriesQuery(Query query) {
         // Use LinkedHashSet to keep the order of input metric list
-        Set<String> metrics = new LinkedHashSet<>(query.getAggregators().size() + query.getMetrics().size());
-        metrics.addAll(query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList()));
-        metrics.addAll(query.getMetrics());
+//        Set<String> metrics = new LinkedHashSet<>(query.getAggregators().size() + query.getMetrics().size());
+//        metrics.addAll(query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList()));
+//        metrics.addAll(query.getMetrics());
 
-        List<Object> fields = query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList());
-        fields.addAll(query.getMetrics().stream().map((metric) -> query.getDataSource().getMetricSpecByName(metric)).collect(Collectors.toList()));
+//        List<Object> fields = query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList());
+//        fields.addAll(query.getMetrics().stream().map((metric) -> query.getDataSource().getMetricSpecByName(metric)).collect(Collectors.toList()));
+
+        List<String> metrics = query.getFields().stream()
+                                    .map((f) -> {
+                                        if (f instanceof IColumnSpec) {
+                                            return ((IColumnSpec) f).getName();
+                                        }
+                                        if (f instanceof String) {
+                                            return (String) f;
+                                        }
+                                        if(f instanceof IQueryStageAggregator) {
+                                            return ((IQueryStageAggregator) f).getName();
+                                        }
+                                        throw new RuntimeException("");
+                                    }).collect(Collectors.toList());
         List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
-                                                             .timeseries(Query.builder()
-                                                                              .dataSource(query.getDataSource())
-                                                                              .fields(fields)
-                                                                              .filters(query.getFilters())
-                                                                              .groupBy(query.getGroupBy())
-                                                                              .interval(query.getInterval())
-                                                                              .build());
+                                                             .timeseries(query);
 
         TimeSpan start = query.getInterval().getStartTime();
         TimeSpan end = query.getInterval().getEndTime();
@@ -94,7 +99,7 @@ public class DataSourceService {
         int bucketCount = (int) (endSecond - startSecond) / step;
 
         // Use LinkedHashMap to retain the order of input metric list
-        Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(query.getAggregators().size());
+        Map<List<String>, TimeSeriesMetric> map = new LinkedHashMap<>(7);
 
         if (points.isEmpty()) {
             // fill empty data points
@@ -210,6 +215,7 @@ public class DataSourceService {
                       .interval(Interval.of(start, end, (int) windowLength))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
+                      .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())
                       .build();
     }
 
