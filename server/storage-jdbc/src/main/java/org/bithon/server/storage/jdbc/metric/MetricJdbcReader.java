@@ -26,7 +26,7 @@ import org.bithon.server.storage.jdbc.dsl.sql.NameExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.SelectExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.StringExpression;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
-import org.bithon.server.storage.metrics.GroupByQuery;
+import org.bithon.server.storage.metrics.Query;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.ListQuery;
@@ -60,7 +60,7 @@ public class MetricJdbcReader implements IMetricReader {
     }
 
     @Override
-    public List<Map<String, Object>> timeseries(TimeseriesQuery query) {
+    public List<Map<String, Object>> timeseries(Query query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
                                                                    .dataSource(query.getDataSource())
                                                                    .metrics(query.getMetrics())
@@ -95,7 +95,7 @@ public class MetricJdbcReader implements IMetricReader {
     }
 
     @Override
-    public List<Map<String, Object>> groupBy(GroupByQuery query) {
+    public List<Map<String, Object>> groupBy(Query query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
                                                                    .dataSource(query.getDataSource())
                                                                    .metrics(query.getMetrics())

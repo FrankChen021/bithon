@@ -33,7 +33,7 @@ import java.util.List;
  */
 @Data
 @Builder
-public class GroupByQuery {
+public class Query {
     private final DataSourceSchema dataSource;
 
     private final List<String> metrics;
@@ -51,15 +51,15 @@ public class GroupByQuery {
     @Nullable
     private final Limit limit;
 
-    public GroupByQuery(DataSourceSchema dataSource,
-                        List<String> metrics,
-                        @Nullable List<IQueryStageAggregator> aggregators,
-                        @Nullable List<PostAggregatorMetricSpec> postAggregators,
-                        Collection<IFilter> filters,
-                        Interval interval,
-                        @Nullable List<String> groupBy,
-                        @Nullable OrderBy orderBy,
-                        @Nullable Limit limit) {
+    public Query(DataSourceSchema dataSource,
+                 List<String> metrics,
+                 @Nullable List<IQueryStageAggregator> aggregators,
+                 @Nullable List<PostAggregatorMetricSpec> postAggregators,
+                 Collection<IFilter> filters,
+                 Interval interval,
+                 @Nullable List<String> groupBy,
+                 @Nullable OrderBy orderBy,
+                 @Nullable Limit limit) {
         this.dataSource = dataSource;
         this.metrics = CollectionUtils.emptyOrOriginal(metrics);
         this.aggregators = CollectionUtils.emptyOrOriginal(aggregators);

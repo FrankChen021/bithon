@@ -29,12 +29,12 @@ import java.util.Map;
  */
 public interface IMetricReader {
 
-    List<Map<String, Object>> timeseries(TimeseriesQuery query);
+    List<Map<String, Object>> timeseries(Query query);
 
     /**
      * Aggregate metrics by their pre-defined aggregators in the given period
      */
-    List<Map<String, Object>> groupBy(GroupByQuery groupByQuery);
+    List<Map<String, Object>> groupBy(Query query);
 
     List<Map<String, Object>> list(ListQuery listQuery);
     int listSize(ListQuery listQuery);

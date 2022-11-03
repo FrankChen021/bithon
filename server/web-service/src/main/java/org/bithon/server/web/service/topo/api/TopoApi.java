@@ -24,7 +24,7 @@ import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.meta.EndPointType;
 import org.bithon.server.storage.metrics.DimensionFilter;
-import org.bithon.server.storage.metrics.GroupByQuery;
+import org.bithon.server.storage.metrics.Query;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
@@ -65,15 +65,15 @@ public class TopoApi {
         TimeSpan start = new TimeSpan(TimeSpan.fromISO8601(request.getStartTimeISO8601()).getMilliseconds() / 60_000 * 60_000);
         TimeSpan end = new TimeSpan((TimeSpan.fromISO8601(request.getEndTimeISO8601()).getMilliseconds()) / 60_000 * 60_000);
 
-        GroupByQuery calleeQuery = GroupByQuery.builder().dataSource(topoSchema)
-                                               .metrics(Arrays.asList("callCount", "avgResponseTime", "maxResponseTime", "minResponseTime"))
-                                               .filters(Arrays.asList(new DimensionFilter("srcEndpoint",
+        Query calleeQuery = Query.builder().dataSource(topoSchema)
+                                 .metrics(Arrays.asList("callCount", "avgResponseTime", "maxResponseTime", "minResponseTime"))
+                                 .filters(Arrays.asList(new DimensionFilter("srcEndpoint",
                                                                                           new StringEqualMatcher(request.getApplication())),
                                                                       new DimensionFilter("srcEndpointType",
                                                                                           new StringEqualMatcher(EndPointType.APPLICATION.name()))))
-                                               .interval(Interval.of(start, end))
-                                               .groupBy(Arrays.asList("dstEndpoint", "dstEndpointType"))
-                                               .build();
+                                 .interval(Interval.of(start, end))
+                                 .groupBy(Arrays.asList("dstEndpoint", "dstEndpointType"))
+                                 .build();
 
         List<Map<String, Object>> callees = metricReader.groupBy(calleeQuery);
 
@@ -106,14 +106,14 @@ public class TopoApi {
             y += nodeHeight;
         }
 
-        GroupByQuery callerQuery = GroupByQuery.builder().dataSource(topoSchema)
-                                               .metrics(Arrays.asList("callCount", "avgResponseTime", "maxResponseTime", "minResponseTime"))
-                                               .filters(Arrays.asList(new DimensionFilter("dstEndpoint",
+        Query callerQuery = Query.builder().dataSource(topoSchema)
+                                 .metrics(Arrays.asList("callCount", "avgResponseTime", "maxResponseTime", "minResponseTime"))
+                                 .filters(Arrays.asList(new DimensionFilter("dstEndpoint",
                                                                                           new StringEqualMatcher(request.getApplication())),
                                                                       new DimensionFilter("dstEndpointType",
                                                                                           new StringEqualMatcher(EndPointType.APPLICATION.name()))))
-                                               .interval(Interval.of(start, end))
-                                               .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
+                                 .interval(Interval.of(start, end))
+                                 .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
         List<Map<String, Object>> callers = metricReader.groupBy(callerQuery);
 
         y = 300;

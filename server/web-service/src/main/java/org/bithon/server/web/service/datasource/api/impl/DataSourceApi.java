@@ -24,13 +24,13 @@ import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
-import org.bithon.server.storage.metrics.GroupByQuery;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.ListQuery;
 import org.bithon.server.storage.metrics.MetricStorageConfig;
+import org.bithon.server.storage.metrics.Query;
 import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.bithon.server.web.service.datasource.api.DataSourceService;
 import org.bithon.server.web.service.datasource.api.DisplayableText;
@@ -91,20 +91,28 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
+    public List<Map<String, Object>> timeseriesV3(GeneralQueryRequest request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        Query query = this.dataSourceService.convertToQuery(schema, request, true);
+        return this.metricStorage.createMetricReader(schema).timeseries(query);
+    }
+
+    @Override
     public List<Map<String, Object>> groupBy(GroupByQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
-        return this.metricStorage.createMetricReader(schema).groupBy(GroupByQuery.builder()
-                                                                                 .dataSource(schema)
-                                                                                 .metrics(request.getMetrics())
-                                                                                 .aggregators(request.getAggregators())
-                                                                                 .filters(request.getFilters())
-                                                                                 .interval(Interval.of(start, end))
-                                                                                 .groupBy(request.getGroupBy())
-                                                                                 .orderBy(request.getOrderBy()).build());
+        return this.metricStorage.createMetricReader(schema).groupBy(Query.builder()
+                                                                          .dataSource(schema)
+                                                                          .metrics(request.getMetrics())
+                                                                          .aggregators(request.getAggregators())
+                                                                          .filters(request.getFilters())
+                                                                          .interval(Interval.of(start, end))
+                                                                          .groupBy(request.getGroupBy())
+                                                                          .orderBy(request.getOrderBy()).build());
     }
 
     @Override
@@ -128,8 +136,8 @@ public class DataSourceApi implements IDataSourceApi {
     public List<Map<String, Object>> groupBy(GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
-        GroupByQuery groupByQuery = this.dataSourceService.convertToGroupByQuery(schema, request);
-        return this.metricStorage.createMetricReader(schema).groupBy(groupByQuery);
+        Query query = this.dataSourceService.convertToQuery(schema, request, false);
+        return this.metricStorage.createMetricReader(schema).groupBy(query);
     }
 
     @Override

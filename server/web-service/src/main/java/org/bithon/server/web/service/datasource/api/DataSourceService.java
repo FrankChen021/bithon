@@ -29,7 +29,7 @@ import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
-import org.bithon.server.storage.metrics.GroupByQuery;
+import org.bithon.server.storage.metrics.Query;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
 import org.bithon.server.storage.metrics.TimeseriesQuery;
@@ -76,7 +76,14 @@ public class DataSourceService {
         metrics.addAll(query.getMetrics());
 
         List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
-                                                             .timeseries(query);
+                                                             .timeseries(Query.builder()
+                                                                              .dataSource(query.getDataSource())
+                                                                              .aggregators(query.getAggregators())
+                                                                              .filters(query.getFilters())
+                                                                              .groupBy(query.getGroupBy())
+                                                                              .interval(query.getInterval())
+                                                                              .metrics(query.getMetrics())
+                                                                              .build());
 
         TimeSpan start = query.getInterval().getStartTime();
         TimeSpan end = query.getInterval().getEndTime();
@@ -131,8 +138,8 @@ public class DataSourceService {
         return result;
     }
 
-    public GroupByQuery convertToGroupByQuery(DataSourceSchema schema, GeneralQueryRequest query) {
-        GroupByQuery.GroupByQueryBuilder builder = GroupByQuery.builder();
+    public Query convertToQuery(DataSourceSchema schema, GeneralQueryRequest query, boolean bucketTimestamp) {
+        Query.QueryBuilder builder = Query.builder();
 
         List<PostAggregatorMetricSpec> postAggregators = new ArrayList<>(4);
         List<String> groupBy = new ArrayList<>(4);
@@ -178,12 +185,22 @@ public class DataSourceService {
         TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
 
         /*
-         * For Window functions, since the timestamp of records might cross two windows,
-         * we need to make sure the record in the given time range has only one window.
+         * For timeseries query, divide the timestamp by default step
+         * For groupBy query, use the whole length of interval as step
          */
-        long windowLength = end.toSeconds() - start.toSeconds();
-        while (start.getMilliseconds() / windowLength != end.getMilliseconds() / windowLength) {
-            windowLength *= 2;
+        long windowLength;
+        if (bucketTimestamp) {
+            windowLength = Interval.calculateDefaultStep(start, end);
+        } else {
+            /*
+             * For Window functions, since the timestamp of records might cross two windows,
+             * we need to make sure the record in the given time range has only one window.
+             */
+            windowLength = end.toSeconds() - start.toSeconds();
+            while (start.getMilliseconds() / windowLength != end.getMilliseconds() / windowLength) {
+                windowLength *= 2;
+            }
+
         }
 
         return builder.groupBy(groupBy)
