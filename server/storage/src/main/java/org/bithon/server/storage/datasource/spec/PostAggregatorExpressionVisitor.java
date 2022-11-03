@@ -37,7 +37,8 @@ public interface PostAggregatorExpressionVisitor {
     default void endSubExpression() {
     }
 
-    void visitVariable(String variable);
+    default void visitVariable(String variable) {
+    }
 
     default void beginFunction(String name) {
     }

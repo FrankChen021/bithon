@@ -105,10 +105,13 @@ public class DataSourceApi implements IDataSourceApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
+        List<Object> metrics = request.getMetrics().stream().map(schema::getMetricSpecByName).collect(Collectors.toList());
+        metrics.addAll(request.getAggregators());
+        metrics.addAll(request.getGroupBy());
+        
         return this.metricStorage.createMetricReader(schema).groupBy(Query.builder()
                                                                           .dataSource(schema)
-                                                                          .metrics(request.getMetrics())
-                                                                          .aggregators(request.getAggregators())
+                                                                          .fields(metrics)
                                                                           .filters(request.getFilters())
                                                                           .interval(Interval.of(start, end))
                                                                           .groupBy(request.getGroupBy())

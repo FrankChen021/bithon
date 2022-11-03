@@ -20,8 +20,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
-import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -36,10 +34,8 @@ import java.util.List;
 public class Query {
     private final DataSourceSchema dataSource;
 
-    private final List<String> metrics;
-    private final List<IQueryStageAggregator> aggregators;
+    private final Collection<Object> fields;
 
-    private final List<PostAggregatorMetricSpec> postAggregators;
     private final Collection<IFilter> filters;
     private final Interval interval;
 
@@ -52,18 +48,14 @@ public class Query {
     private final Limit limit;
 
     public Query(DataSourceSchema dataSource,
-                 List<String> metrics,
-                 @Nullable List<IQueryStageAggregator> aggregators,
-                 @Nullable List<PostAggregatorMetricSpec> postAggregators,
+                 Collection<Object> fields,
                  Collection<IFilter> filters,
                  Interval interval,
                  @Nullable List<String> groupBy,
                  @Nullable OrderBy orderBy,
                  @Nullable Limit limit) {
         this.dataSource = dataSource;
-        this.metrics = CollectionUtils.emptyOrOriginal(metrics);
-        this.aggregators = CollectionUtils.emptyOrOriginal(aggregators);
-        this.postAggregators = CollectionUtils.emptyOrOriginal(postAggregators);
+        this.fields = CollectionUtils.emptyOrOriginal(fields);
         this.filters = filters;
         this.interval = interval;
         this.groupBy = CollectionUtils.emptyOrOriginal(groupBy);

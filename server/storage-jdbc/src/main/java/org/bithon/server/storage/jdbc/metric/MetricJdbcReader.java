@@ -63,8 +63,7 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> timeseries(Query query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
                                                                    .dataSource(query.getDataSource())
-                                                                   .metrics(query.getMetrics())
-                                                                   .aggregators(query.getAggregators())
+                                                                   .fields(query.getFields())
                                                                    .filters(query.getFilters())
                                                                    .interval(query.getInterval())
                                                                    .groupBys(query.getGroupBy())
@@ -77,7 +76,7 @@ public class MetricJdbcReader implements IMetricReader {
             // Has a sub-query, timestampExpression will be put in sub-query
             timestampExpressionOn = (SelectExpression) selectExpression.getFrom().getExpression();
 
-            // Add timestamp field to outer query
+            // Add timestamp field to outer query at first position
             selectExpression.getFieldsExpression().insert(new NameExpression(TIMESTAMP_ALIAS_NAME));
         }
 
@@ -98,9 +97,7 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> groupBy(Query query) {
         SelectExpression selectExpression = SelectExpressionBuilder.builder()
                                                                    .dataSource(query.getDataSource())
-                                                                   .metrics(query.getMetrics())
-                                                                   .aggregators(query.getAggregators())
-                                                                   .postAggregators(query.getPostAggregators())
+                                                                   .fields(query.getFields())
                                                                    .filters(query.getFilters())
                                                                    .interval(query.getInterval())
                                                                    .groupBys(query.getGroupBy())

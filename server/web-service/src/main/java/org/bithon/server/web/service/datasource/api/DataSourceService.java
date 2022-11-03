@@ -29,9 +29,9 @@ import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
-import org.bithon.server.storage.metrics.Query;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
+import org.bithon.server.storage.metrics.Query;
 import org.bithon.server.storage.metrics.TimeseriesQuery;
 import org.springframework.stereotype.Service;
 
@@ -75,14 +75,15 @@ public class DataSourceService {
         metrics.addAll(query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList()));
         metrics.addAll(query.getMetrics());
 
+        List<Object> fields = query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList());
+        fields.addAll(query.getMetrics().stream().map((metric) -> query.getDataSource().getMetricSpecByName(metric)).collect(Collectors.toList()));
         List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
                                                              .timeseries(Query.builder()
                                                                               .dataSource(query.getDataSource())
-                                                                              .aggregators(query.getAggregators())
+                                                                              .fields(fields)
                                                                               .filters(query.getFilters())
                                                                               .groupBy(query.getGroupBy())
                                                                               .interval(query.getInterval())
-                                                                              .metrics(query.getMetrics())
                                                                               .build());
 
         TimeSpan start = query.getInterval().getStartTime();
@@ -141,11 +142,10 @@ public class DataSourceService {
     public Query convertToQuery(DataSourceSchema schema, GeneralQueryRequest query, boolean bucketTimestamp) {
         Query.QueryBuilder builder = Query.builder();
 
-        List<PostAggregatorMetricSpec> postAggregators = new ArrayList<>(4);
         List<String> groupBy = new ArrayList<>(4);
-        List<IQueryStageAggregator> aggregators = new ArrayList<>(4);
 
         // Turn into internal objects(post aggregators...)
+        List<Object> fields = new ArrayList<>(query.getFields().size());
         for (QueryField field : query.getFields()) {
             if (field.getExpression() != null) {
                 // expression metric
@@ -156,26 +156,27 @@ public class DataSourceService {
                                                                              null,
                                                                              false);
                 post.setOwner(schema);
-                postAggregators.add(post);
+                fields.add(post);
                 continue;
             }
 
             if (field.getAggregator() != null) {
-                aggregators.add(QueryStageAggregators.create(field.getAggregator(),
-                                                             field.getName(),
-                                                             field.getField()));
+                fields.add(QueryStageAggregators.create(field.getAggregator(),
+                                                        field.getName(),
+                                                        field.getField()));
             } else {
                 IColumnSpec columnSpec = schema.getColumnByName(field.getField());
                 if (columnSpec == null) {
                     throw new RuntimeException(StringUtils.format("field [%s] does not exist.", field.getField()));
                 }
                 if (columnSpec instanceof IDimensionSpec) {
+                    fields.add(columnSpec.getName());
                     groupBy.add(columnSpec.getName());
                 } else {
                     if (columnSpec instanceof PostAggregatorMetricSpec) {
-                        postAggregators.add((PostAggregatorMetricSpec) columnSpec);
+                        fields.add(columnSpec);
                     } else {
-                        aggregators.add(((IMetricSpec) columnSpec).getQueryAggregator());
+                        fields.add(((IMetricSpec) columnSpec).getQueryAggregator());
                     }
                 }
             }
@@ -200,12 +201,10 @@ public class DataSourceService {
             while (start.getMilliseconds() / windowLength != end.getMilliseconds() / windowLength) {
                 windowLength *= 2;
             }
-
         }
 
         return builder.groupBy(groupBy)
-                      .aggregators(aggregators)
-                      .postAggregators(postAggregators)
+                      .fields(fields)
                       .dataSource(schema)
                       .filters(CollectionUtils.emptyOrOriginal(query.getFilters()))
                       .interval(Interval.of(start, end, (int) windowLength))
