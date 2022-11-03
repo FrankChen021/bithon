@@ -22,7 +22,6 @@ import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.Null;
 import java.util.Collection;
 import java.util.List;
 

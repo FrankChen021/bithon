@@ -83,7 +83,7 @@ public class DataSourceService {
                                         if (f instanceof String) {
                                             return (String) f;
                                         }
-                                        if(f instanceof IQueryStageAggregator) {
+                                        if (f instanceof IQueryStageAggregator) {
                                             return ((IQueryStageAggregator) f).getName();
                                         }
                                         throw new RuntimeException("");

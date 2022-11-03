@@ -87,6 +87,23 @@
           "order": "desc"
         }
       }
+    },
+    {
+      "title": "Exceptions",
+      "width": 4,
+      "type": "line",
+      "columns": [{
+        "name": "eventCount", "format": "compact_number", "title": "exceptionCount",
+        "yAxis": {"min": 0, "interval": 1}
+        }
+      ],
+      "query": {
+        "dataSource": "exception-metrics",
+        "type": "timeseries",
+        "fields": [
+          "eventCount"
+        ]
+      }
     }
   ]
 }
