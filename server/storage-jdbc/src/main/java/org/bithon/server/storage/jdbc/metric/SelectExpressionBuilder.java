@@ -20,11 +20,12 @@ import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.api.QueryStageAggregators;
+import org.bithon.server.storage.datasource.query.ast.FieldExpressionVisitorAdaptor2;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.MetricSpecVisitorAdaptor;
-import org.bithon.server.storage.datasource.spec.PostAggregatorExpressionVisitor;
 import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.jdbc.dsl.sql.GroupByExpression;
 import org.bithon.server.storage.jdbc.dsl.sql.LimitExpression;
@@ -116,7 +117,7 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    static class FieldExpressionAnalyzer implements PostAggregatorExpressionVisitor {
+    static class FieldExpressionAnalyzer extends FieldExpressionVisitorAdaptor2 {
 
         private final Map<String, IQueryStageAggregator> preAggregators;
         private final ISqlDialect sqlExpressionFormatter;
@@ -126,14 +127,28 @@ public class SelectExpressionBuilder {
 
         @Getter
         private final Set<String> metrics = new HashSet<>();
+        private final DataSourceSchema schema;
 
-        FieldExpressionAnalyzer(Map<String, IQueryStageAggregator> queryStageAggregators, ISqlDialect sqlFormatter) {
+        FieldExpressionAnalyzer(DataSourceSchema schema,
+                                Map<String, IQueryStageAggregator> queryStageAggregators,
+                                ISqlDialect sqlFormatter) {
+            this.schema = schema;
             this.preAggregators = queryStageAggregators;
             this.sqlExpressionFormatter = sqlFormatter;
         }
 
         @Override
-        public void visitMetric(IMetricSpec metricSpec) {
+        protected DataSourceSchema getSchema() {
+            return schema;
+        }
+
+        @Override
+        public void visitField(IColumnSpec columnSpec) {
+            if (!(columnSpec instanceof IMetricSpec)) {
+                throw new RuntimeException(StringUtils.format("field [%s] is not a metric", columnSpec.getName()));
+            }
+
+            IMetricSpec metricSpec = (IMetricSpec) columnSpec;
             if (preAggregators.containsKey(metricSpec.getName())) {
                 return;
             }
@@ -158,10 +173,14 @@ public class SelectExpressionBuilder {
         protected final Map<String, Object> internalVariables;
         private final Map<String, IQueryStageAggregator> existingAggregators;
 
-        FieldExpressionSQLGenerator(ISqlDialect sqlDialect,
+        private final DataSourceSchema schema;
+
+        FieldExpressionSQLGenerator(DataSourceSchema schema,
+                                    ISqlDialect sqlDialect,
                                     Map<String, IQueryStageAggregator> existingAggregators,
                                     QueryStageAggregatorSQLGenerator queryStageAggregatorSQLGenerator,
                                     Map<String, Object> internalVariables) {
+            this.schema = schema;
             this.sqlDialect = sqlDialect;
             this.existingAggregators = existingAggregators;
             this.queryStageAggregatorSQLGenerator = queryStageAggregatorSQLGenerator;
@@ -172,10 +191,13 @@ public class SelectExpressionBuilder {
         public StringExpression visit(PostAggregatorMetricSpec metricSpec) {
 
             final StringBuilder sb = new StringBuilder(32);
-            metricSpec.visitExpression(new PostAggregatorExpressionVisitor() {
+            metricSpec.visitExpression(new FieldExpressionVisitorAdaptor2() {
 
                 @Override
-                public void visitMetric(IMetricSpec metricSpec) {
+                public void visitField(IColumnSpec columnSpec) {
+
+                    IMetricSpec metricSpec = (IMetricSpec) columnSpec;
+
                     // Case 1. The field used in window function is presented in a sub-query, at the root query level we only reference the name
                     boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(metricSpec.getQueryAggregator());
 
@@ -190,6 +212,11 @@ public class SelectExpressionBuilder {
                         // generate a aggregation expression
                         sb.append(metricSpec.getQueryAggregator().accept(queryStageAggregatorSQLGenerator));
                     }
+                }
+
+                @Override
+                protected DataSourceSchema getSchema() {
+                    return schema;
                 }
 
                 @Override
@@ -298,7 +325,8 @@ public class SelectExpressionBuilder {
                                                                                           interval.getTotalLength(),
                                                                                           interval.getStep());
 
-        FieldExpressionSQLGenerator fieldExpressionSQLGenerator = new FieldExpressionSQLGenerator(sqlDialect,
+        FieldExpressionSQLGenerator fieldExpressionSQLGenerator = new FieldExpressionSQLGenerator(dataSource,
+                                                                                                  sqlDialect,
                                                                                                   existingAggregators,
                                                                                                   generator.noAlias(),
                                                                                                   ImmutableMap.of("interval",
@@ -345,7 +373,7 @@ public class SelectExpressionBuilder {
         }
 
         // Make sure all referenced metrics in field expression are in the sub-query
-        FieldExpressionAnalyzer fieldExpressionAnalyzer = new FieldExpressionAnalyzer(existingAggregators, this.sqlDialect);
+        FieldExpressionAnalyzer fieldExpressionAnalyzer = new FieldExpressionAnalyzer(this.dataSource, existingAggregators, this.sqlDialect);
         this.fields.stream()
                    .filter((f) -> f instanceof PostAggregatorMetricSpec)
                    .forEach((postAggregator) -> ((PostAggregatorMetricSpec) postAggregator).visitExpression(fieldExpressionAnalyzer));

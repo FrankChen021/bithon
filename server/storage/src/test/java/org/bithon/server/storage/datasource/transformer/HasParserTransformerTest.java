@@ -31,7 +31,7 @@ import java.util.HashMap;
  * @author frank.chen021@outlook.com
  * @date 14/4/22 5:26 PM
  */
-public class HasFieldTransformerTest {
+public class HasParserTransformerTest {
 
     @Test
     public void testHasField() throws JsonProcessingException {

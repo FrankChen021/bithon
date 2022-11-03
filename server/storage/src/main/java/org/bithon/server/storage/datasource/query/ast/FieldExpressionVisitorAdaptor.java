@@ -14,15 +14,16 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.spec;
+package org.bithon.server.storage.datasource.query.ast;
 
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2020/12/23
  */
-public interface PostAggregatorExpressionVisitor {
-    default void visitMetric(IMetricSpec metricSpec) {
+public interface FieldExpressionVisitorAdaptor {
+
+    default void visitField(String field) {
     }
 
     default void visitConstant(String number) {
