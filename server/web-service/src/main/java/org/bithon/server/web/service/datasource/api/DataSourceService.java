@@ -67,14 +67,6 @@ public class DataSourceService {
      * Vals - an array of all data points. Each element represents a data point of a timestamp.
      */
     public TimeSeriesQueryResult timeseriesQuery(Query query) {
-        // Use LinkedHashSet to keep the order of input metric list
-//        Set<String> metrics = new LinkedHashSet<>(query.getAggregators().size() + query.getMetrics().size());
-//        metrics.addAll(query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList()));
-//        metrics.addAll(query.getMetrics());
-
-//        List<Object> fields = query.getAggregators().stream().map(IQueryStageAggregator::getName).collect(Collectors.toList());
-//        fields.addAll(query.getMetrics().stream().map((metric) -> query.getDataSource().getMetricSpecByName(metric)).collect(Collectors.toList()));
-
         List<String> metrics = query.getFields().stream()
                                     .map((f) -> {
                                         if (f instanceof IColumnSpec) {
