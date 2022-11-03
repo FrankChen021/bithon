@@ -352,7 +352,7 @@ public class SelectExpressionBuilder {
         for (String metric : fieldExpressionAnalyzer.getMetrics()) {
             subSelectExpression.getFieldsExpression().addField(new NameExpression(metric));
         }
-        for(IQueryStageAggregator aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
+        for (IQueryStageAggregator aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
             subSelectExpression.getFieldsExpression().addField(new StringExpression(aggregator.accept(generator)));
 
             // this window fields should be in the group-by clause and select clause,

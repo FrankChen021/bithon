@@ -182,7 +182,7 @@ public class DataSourceService {
         TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
 
-        /*
+        /**
          * For timeseries query, divide the timestamp by default step
          * For groupBy query, use the whole length of interval as step
          */
