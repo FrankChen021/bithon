@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.storage.datasource.query;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.AllArgsConstructor;

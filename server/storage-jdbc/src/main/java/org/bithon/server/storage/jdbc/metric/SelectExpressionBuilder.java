@@ -38,8 +38,8 @@ import org.bithon.server.storage.jdbc.dsl.sql.WhereExpression;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.Interval;
-import org.bithon.server.storage.metrics.Limit;
-import org.bithon.server.storage.metrics.OrderBy;
+import org.bithon.server.storage.datasource.query.Limit;
+import org.bithon.server.storage.datasource.query.OrderBy;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

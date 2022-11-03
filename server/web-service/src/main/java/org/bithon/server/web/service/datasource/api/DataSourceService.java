@@ -31,7 +31,7 @@ import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
-import org.bithon.server.storage.metrics.Query;
+import org.bithon.server.storage.datasource.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;

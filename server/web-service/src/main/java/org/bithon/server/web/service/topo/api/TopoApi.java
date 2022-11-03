@@ -31,7 +31,7 @@ import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
-import org.bithon.server.storage.metrics.Query;
+import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.web.service.topo.service.EndpointBo;
 import org.bithon.server.web.service.topo.service.Link;
 import org.bithon.server.web.service.topo.service.Topo;

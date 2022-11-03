@@ -14,12 +14,14 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.metrics;
+package org.bithon.server.storage.datasource.query;
 
 import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.metrics.IFilter;
+import org.bithon.server.storage.metrics.Interval;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

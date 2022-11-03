@@ -22,7 +22,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
 import org.bithon.server.storage.metrics.IFilter;
-import org.bithon.server.storage.metrics.OrderBy;
+import org.bithon.server.storage.datasource.query.OrderBy;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
