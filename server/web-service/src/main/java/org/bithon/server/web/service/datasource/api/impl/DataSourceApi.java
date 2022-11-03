@@ -117,7 +117,14 @@ public class DataSourceApi implements IDataSourceApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
-        List<Object> metrics = request.getMetrics().stream().map(schema::getMetricSpecByName).collect(Collectors.toList());
+        List<Object> metrics = request.getMetrics().stream().map((metric) -> {
+            IMetricSpec spec = schema.getMetricSpecByName(metric);
+            if (spec instanceof PostAggregatorMetricSpec) {
+                return spec;
+            } else {
+                return spec.getQueryAggregator();
+            }
+        }).collect(Collectors.toList());
         metrics.addAll(request.getAggregators());
         metrics.addAll(request.getGroupBy());
 
