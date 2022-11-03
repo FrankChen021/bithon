@@ -23,6 +23,7 @@ import org.bithon.server.storage.datasource.typing.LongValueType;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -51,10 +52,10 @@ public class Functions {
     }
 
     private void register(Function function) {
-        functionMap.put(function.getName().toLowerCase(), function);
+        functionMap.put(function.getName().toLowerCase(Locale.ENGLISH), function);
     }
 
     public Function getFunction(String name) {
-        return functionMap.get(name.toLowerCase());
+        return functionMap.get(name.toLowerCase(Locale.ENGLISH));
     }
 }
