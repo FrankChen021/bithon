@@ -91,7 +91,7 @@ public class ExpressionFilter implements IInputRowFilter {
                 throw new InvalidExpressionException(expression, charPositionInLine, msg);
             }
         });
-        delegation = parser.prog().expression().accept(new Builder(this.debug));
+        delegation = parser.parse().filterExpression().accept(new Builder(this.debug));
     }
 
     @Override
@@ -107,7 +107,7 @@ public class ExpressionFilter implements IInputRowFilter {
         }
 
         @Override
-        public IInputRowFilter visitExpression(FilterExpressionParser.ExpressionContext ctx) {
+        public IInputRowFilter visitFilterExpression(FilterExpressionParser.FilterExpressionContext ctx) {
             if (ctx.getChildCount() == 3) {
 
                 // case 1: '(' expression ')'

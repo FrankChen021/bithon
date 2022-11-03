@@ -1,14 +1,14 @@
 grammar FilterExpression;
 
 
-prog
-   : expression
+parse
+   : filterExpression EOF
    ;
 
-expression
+filterExpression
   : binaryExpression
-  | expression logicOperator expression
-  | '(' expression ')'
+  | filterExpression logicOperator filterExpression
+  | '(' filterExpression ')'
   ;
 
 binaryExpression
