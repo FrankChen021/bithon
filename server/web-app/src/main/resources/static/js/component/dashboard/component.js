@@ -74,10 +74,12 @@ class Dashboard {
 
             // set up a data source to charts mapping
             const dataSourceName = chartDescriptor.dataSource;
-            if (dataSource2Charts[dataSourceName] == null) {
-                dataSource2Charts[dataSourceName] = [];
+            if (dataSourceName !== undefined) {
+                if (dataSource2Charts[dataSourceName] == null) {
+                    dataSource2Charts[dataSourceName] = [];
+                }
+                dataSource2Charts[dataSourceName].push(chartId);
             }
-            dataSource2Charts[dataSourceName].push(chartId);
         });
 
         //
@@ -141,8 +143,11 @@ class Dashboard {
 
         //
         // Loaded Dimension Filter
+        // This is legacy implementation. Should be refactored to decouple the filter from the dataSource field
         //
+        let hasSchema = false;
         for (const dataSourceName in dataSource2Charts) {
+            hasSchema = true;
             this._schemaApi.getSchema({
                 name: dataSourceName,
                 successCallback: (schema) => {
@@ -185,6 +190,9 @@ class Dashboard {
                 errorCallback: (error) => {
                 }
             });
+        }
+        if (!hasSchema) {
+            this.refreshDashboard();
         }
     }
 
@@ -672,7 +680,7 @@ class Dashboard {
     createTableComponent(chartId, chartDescriptor) {
 
         const lookup = chartDescriptor.lookup;
-        const columns = chartDescriptor.query.columns.map((column) => {
+        const columns = chartDescriptor.columns.map((column) => {
             if (typeof column !== 'object') {
                 return {
                     title: column,
@@ -746,19 +754,18 @@ class Dashboard {
             });
         }
 
+        const query = Object.assign({
+            dataSource: chartDescriptor.dataSource,
+            interval: {
+                startISO8601: interval.start,
+                endISO8601: interval.end
+            },
+            filters: filters,
+        }, chartDescriptor.query);
+
         const loadOptions = {
             url: apiHost + "/api/datasource/groupBy/v2",
-            ajaxData: {
-                dataSource: chartDescriptor.dataSource,
-                interval: {
-                    startISO8601: interval.start,
-                    endISO8601: interval.end
-                },
-                filters: filters,
-                columns: chartDescriptor.query.columns,
-                orderBy: chartDescriptor.query.orderBy,
-                limit: chartDescriptor.query.limit === undefined ? null : chartDescriptor.query.limit
-            }
+            ajaxData: query
         };
         tableComponent.load(loadOptions);
     }

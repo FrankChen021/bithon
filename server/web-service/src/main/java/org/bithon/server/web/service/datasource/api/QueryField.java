@@ -27,10 +27,10 @@ import javax.annotation.Nullable;
  * @date 2022/10/30 15:40
  */
 @Getter
-public class QueryColumn {
+public class QueryField {
 
     /**
-     * the output name
+     * the output name. Can be seen as the name in 'AS' expression of a SQL.
      */
     private final String name;
 
@@ -51,10 +51,10 @@ public class QueryColumn {
     private final String aggregator;
 
     @JsonCreator
-    public QueryColumn(@JsonProperty("name") String name,
-                       @JsonProperty("field") String field,
-                       @JsonProperty("aggregator") String aggregator,
-                       @JsonProperty("expression") String expression) {
+    public QueryField(@JsonProperty("name") String name,
+                      @JsonProperty("field") String field,
+                      @JsonProperty("aggregator") String aggregator,
+                      @JsonProperty("expression") String expression) {
         this.name = name;
         this.field = field == null ? name : field;
         this.aggregator = aggregator;
@@ -62,7 +62,7 @@ public class QueryColumn {
     }
 
     @JsonCreator
-    public static QueryColumn fromString(String str) {
-        return new QueryColumn(str, str, null, null);
+    public static QueryField fromString(String str) {
+        return new QueryField(str, str, null, null);
     }
 }

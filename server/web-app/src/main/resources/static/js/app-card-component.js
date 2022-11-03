@@ -42,9 +42,9 @@ class AppCardComponent {
             url: this._apiHost + "/api/datasource/groupBy/v2",
             data: JSON.stringify({
                 dataSource: 'jvm-metrics',
-                columns: [
+                fields: [
                     "appName",
-                    "instanceUpTime",
+                    "instanceStartTime",
                     {
                         name: "instanceCount",
                         field: "instanceName",
@@ -68,7 +68,7 @@ class AppCardComponent {
                     const appCard = this.#getOrCreateAppCard(overview.appName);
                     $(appCard).find('.instance-count').html('<b>Instances</b>：' + overview.instanceCount);
                     $(appCard).find('.start-time').html('<b>Started at</b>：' + moment(overview.instanceStartTime).local().format('YYYY-MM-DD HH:mm:ss'));
-                    $(appCard).find('.up-time').html('<b>Up Time</b>：' + overview.instanceStartTime.formatTimeDuration());
+                    $(appCard).find('.up-time').html('<b>Up Time</b>：' + (new Date().getTime() - overview.instanceStartTime).formatTimeDuration());
                 });
             }
         });

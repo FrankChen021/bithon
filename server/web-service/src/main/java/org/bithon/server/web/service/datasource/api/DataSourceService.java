@@ -139,13 +139,13 @@ public class DataSourceService {
         List<IQueryStageAggregator> aggregators = new ArrayList<>(4);
 
         // Turn into internal objects(post aggregators...)
-        for (QueryColumn column : query.getColumns()) {
-            if (column.getExpression() != null) {
+        for (QueryField field : query.getFields()) {
+            if (field.getExpression() != null) {
                 // expression metric
-                PostAggregatorMetricSpec post = new PostAggregatorMetricSpec(column.getName(),
-                                                                             column.getName(),
+                PostAggregatorMetricSpec post = new PostAggregatorMetricSpec(field.getName(),
+                                                                             field.getName(),
                                                                              "",
-                                                                             column.getExpression(),
+                                                                             field.getExpression(),
                                                                              null,
                                                                              false);
                 post.setOwner(schema);
@@ -153,14 +153,14 @@ public class DataSourceService {
                 continue;
             }
 
-            if (column.getAggregator() != null) {
-                aggregators.add(QueryStageAggregators.create(column.getAggregator(),
-                                                             column.getName(),
-                                                             column.getField()));
+            if (field.getAggregator() != null) {
+                aggregators.add(QueryStageAggregators.create(field.getAggregator(),
+                                                             field.getName(),
+                                                             field.getField()));
             } else {
-                IColumnSpec columnSpec = schema.getColumnByName(column.getField());
+                IColumnSpec columnSpec = schema.getColumnByName(field.getField());
                 if (columnSpec == null) {
-                    throw new RuntimeException(StringUtils.format("column [%s] does not exist.", column.getField()));
+                    throw new RuntimeException(StringUtils.format("field [%s] does not exist.", field.getField()));
                 }
                 if (columnSpec instanceof IDimensionSpec) {
                     groupBy.add(columnSpec.getName());
@@ -177,7 +177,7 @@ public class DataSourceService {
         TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
 
-        /**
+        /*
          * For Window functions, since the timestamp of records might cross two windows,
          * we need to make sure the record in the given time range has only one window.
          */

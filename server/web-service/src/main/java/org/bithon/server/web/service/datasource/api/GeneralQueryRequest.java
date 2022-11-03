@@ -45,7 +45,7 @@ public class GeneralQueryRequest {
     private Collection<IFilter> filters;
 
     @NotEmpty
-    private List<QueryColumn> columns;
+    private List<QueryField> fields;
 
     @Nullable
     private OrderBy orderBy;
