@@ -18,7 +18,7 @@ package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.commons.time.TimeSpan;
-import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
 
 /**
  * Since we're writing some complex SQLs, we have to deal with different SQL syntax on different DBMS

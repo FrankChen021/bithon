@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.spec.gauge.DoubleGaugeMetricSpec;
 import org.bithon.server.storage.datasource.spec.gauge.LongGaugeMetricSpec;
 import org.bithon.server.storage.datasource.spec.max.LongMaxMetricSpec;

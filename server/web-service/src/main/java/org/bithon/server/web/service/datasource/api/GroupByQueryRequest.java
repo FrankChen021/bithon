@@ -20,7 +20,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.OrderBy;
 

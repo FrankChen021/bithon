@@ -17,8 +17,8 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.api.IQueryStageAggregatorVisitor;
-import org.bithon.server.storage.datasource.api.QueryStageAggregators;
+import org.bithon.server.storage.datasource.query.IQueryStageAggregatorVisitor;
+import org.bithon.server.storage.datasource.query.QueryStageAggregators;
 
 /**
  * @author Frank Chen

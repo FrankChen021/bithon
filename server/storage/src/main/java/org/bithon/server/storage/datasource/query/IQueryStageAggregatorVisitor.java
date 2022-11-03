@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.bithon.server.storage.datasource.api;
+package org.bithon.server.storage.datasource.query;
 
 /**
  * @author Frank Chen

@@ -23,7 +23,7 @@ import lombok.Getter;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.query.IQueryStageAggregator;
 import org.bithon.server.storage.datasource.query.ast.FieldExpressionVisitorAdaptor;
 import org.bithon.server.storage.datasource.query.ast.FieldExpressionParserImpl;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
