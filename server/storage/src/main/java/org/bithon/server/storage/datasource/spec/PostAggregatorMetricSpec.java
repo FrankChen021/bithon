@@ -30,9 +30,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionBaseVisitor;
-import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionLexer;
-import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionParser;
+import org.bithon.server.datasource.ast.FieldExpressionBaseVisitor;
+import org.bithon.server.datasource.ast.FieldExpressionLexer;
+import org.bithon.server.datasource.ast.FieldExpressionParser;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
@@ -74,7 +74,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
      * runtime property
      */
     @JsonIgnore
-    private final Supplier<PostAggregatorExpressionParser> parsers;
+    private final Supplier<FieldExpressionParser> parsers;
 
     @JsonIgnore
     private DataSourceSchema owner;
@@ -94,7 +94,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
         this.visible = visible == null ? true : visible;
 
         this.parsers = () -> {
-            PostAggregatorExpressionLexer lexer = new PostAggregatorExpressionLexer(CharStreams.fromString(expression));
+            FieldExpressionLexer lexer = new FieldExpressionLexer(CharStreams.fromString(expression));
             lexer.getErrorListeners().clear();
             lexer.addErrorListener(new BaseErrorListener() {
                 @Override
@@ -108,7 +108,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                 }
             });
             CommonTokenStream tokens = new CommonTokenStream(lexer);
-            PostAggregatorExpressionParser parser = new PostAggregatorExpressionParser(tokens);
+            FieldExpressionParser parser = new FieldExpressionParser(tokens);
             parser.getErrorListeners().clear();
             parser.addErrorListener(new BaseErrorListener() {
                 @Override
@@ -125,10 +125,10 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
             /*
              * Verify the expression for fast failure
              */
-            parser.parse().accept(new PostAggregatorExpressionBaseVisitor<Void>() {
+            parser.parse().accept(new FieldExpressionBaseVisitor<Void>() {
 
                 @Override
-                public Void visitFieldNameExpression(PostAggregatorExpressionParser.FieldNameExpressionContext ctx) {
+                public Void visitFieldNameExpression(FieldExpressionParser.FieldNameExpressionContext ctx) {
                     String fieldName = ctx.getText();
                     if (!owner.containsMetric(fieldName)) {
                         throw new IllegalStateException(String.format(Locale.ENGLISH,
@@ -140,14 +140,14 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                 }
 
                 @Override
-                public Void visitFunctionExpression(PostAggregatorExpressionParser.FunctionExpressionContext ctx) {
+                public Void visitFunctionExpression(FieldExpressionParser.FunctionExpressionContext ctx) {
                     String functionName = ctx.getChild(0).getText();
                     Function function = Functions.getInstance().getFunction(functionName);
                     if (function == null) {
                         throw new IllegalStateException(StringUtils.format("function [%s] is not defined.", functionName));
                     }
 
-                    List<PostAggregatorExpressionParser.ExpressionContext> argumentExpressions = ctx.getRuleContexts(PostAggregatorExpressionParser.ExpressionContext.class);
+                    List<FieldExpressionParser.FieldExpressionContext> argumentExpressions = ctx.getRuleContexts(FieldExpressionParser.FieldExpressionContext.class);
                     int argumentSize = argumentExpressions.size();
                     if (argumentSize != function.getParameters().size()) {
                         throw new IllegalStateException(StringUtils.format("In expression [%s], function [%s] has [%d] parameters, but only given [%d]",
@@ -157,7 +157,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
                                                                            argumentSize));
                     }
                     for (int i = 0; i < argumentSize; i++) {
-                        PostAggregatorExpressionParser.ExpressionContext argExpression = argumentExpressions.get(i);
+                        FieldExpressionParser.FieldExpressionContext argExpression = argumentExpressions.get(i);
                         function.getValidator().accept(i, argExpression);
                     }
 
@@ -201,12 +201,12 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     }
 
     public void visitExpression(PostAggregatorExpressionVisitor visitor) {
-        PostAggregatorExpressionParser parser = this.parsers.get();
+        FieldExpressionParser parser = this.parsers.get();
         parser.reset();
         // TODO: dead-loop detection if expression contains THIS metricSpec
-        parser.parse().accept(new PostAggregatorExpressionBaseVisitor<Void>() {
+        parser.parse().accept(new FieldExpressionBaseVisitor<Void>() {
             @Override
-            public Void visitExpression(PostAggregatorExpressionParser.ExpressionContext ctx) {
+            public Void visitFieldExpression(FieldExpressionParser.FieldExpressionContext ctx) {
                 switch (ctx.getChildCount()) {
                     case 1:
                         return visitChildren(ctx);
@@ -241,18 +241,18 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
             }
 
             @Override
-            public Void visitFunctionExpression(PostAggregatorExpressionParser.FunctionExpressionContext ctx) {
+            public Void visitFunctionExpression(FieldExpressionParser.FunctionExpressionContext ctx) {
                 ParseTree functionName = ctx.getChild(0);
 
                 // Processing function call
                 visitor.beginFunction(functionName.getText());
 
                 // Processing function arguments
-                List<PostAggregatorExpressionParser.ExpressionContext> argumentExpressions = ctx.getRuleContexts(PostAggregatorExpressionParser.ExpressionContext.class);
+                List<FieldExpressionParser.FieldExpressionContext> argumentExpressions = ctx.getRuleContexts(FieldExpressionParser.FieldExpressionContext.class);
                 int argumentSize = argumentExpressions.size();
 
                 for (int i = 0; i < argumentSize; i++) {
-                    PostAggregatorExpressionParser.ExpressionContext argExpression = argumentExpressions.get(i);
+                    FieldExpressionParser.FieldExpressionContext argExpression = argumentExpressions.get(i);
                     visitor.beginFunctionArgument(i, argumentSize);
                     this.visit(argExpression);
                     visitor.endFunctionArgument(i, argumentSize);
@@ -267,12 +267,12 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
             public Void visitTerminal(TerminalNode node) {
                 switch (node.getSymbol().getType()) {
                     case Token.EOF:
-                    case PostAggregatorExpressionParser.COMMA:
+                    case FieldExpressionParser.COMMA:
                         return null;
-                    case PostAggregatorExpressionParser.NUMBER:
+                    case FieldExpressionParser.NUMBER:
                         visitor.visitConstant(node.getText());
                         return null;
-                    case PostAggregatorExpressionParser.ID:
+                    case FieldExpressionParser.ID:
                         visitor.visitMetric(owner.getMetricSpecByName(node.getText()));
                         return null;
                     default:
@@ -284,7 +284,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
             }
 
             @Override
-            public Void visitVariableExpression(PostAggregatorExpressionParser.VariableExpressionContext ctx) {
+            public Void visitVariableExpression(FieldExpressionParser.VariableExpressionContext ctx) {
                 visitor.visitVariable(ctx.getChild(1).getText());
                 return null;
             }

@@ -17,7 +17,7 @@
 package org.bithon.server.storage.datasource.builtin;
 
 import lombok.Getter;
-import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionParser;
+import org.bithon.server.datasource.ast.FieldExpressionParser;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,15 +32,15 @@ public class Function {
     private final String name;
     private final List<Parameter> parameters;
 
-    public Function(String name, BiConsumer<Integer, PostAggregatorExpressionParser.ExpressionContext> validator) {
+    public Function(String name, BiConsumer<Integer, FieldExpressionParser.FieldExpressionContext> validator) {
         this(name, Collections.emptyList(), validator);
     }
 
-    public Function(String name, List<Parameter> parameters, BiConsumer<Integer, PostAggregatorExpressionParser.ExpressionContext> validator) {
+    public Function(String name, List<Parameter> parameters, BiConsumer<Integer, FieldExpressionParser.FieldExpressionContext> validator) {
         this.name = name;
         this.parameters = parameters;
         this.validator = validator;
     }
 
-    private final BiConsumer<Integer, PostAggregatorExpressionParser.ExpressionContext> validator;
+    private final BiConsumer<Integer, FieldExpressionParser.FieldExpressionContext> validator;
 }

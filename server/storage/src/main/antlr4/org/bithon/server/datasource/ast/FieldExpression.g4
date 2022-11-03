@@ -1,16 +1,16 @@
-grammar PostAggregatorExpression;
+grammar FieldExpression;
 
 parse
-   : expression EOF
+   : fieldExpression EOF
    ;
 
-expression
+fieldExpression
   : NUMBER
   | fieldNameExpression
   | variableExpression
-  | expression op=(ADD|SUB|MUL|DIV) expression
+  | fieldExpression op=(ADD|SUB|MUL|DIV) fieldExpression
   | functionExpression
-  | LEFT_PARENTHESES expression RIGHT_PARENTHESES
+  | LEFT_PARENTHESES fieldExpression RIGHT_PARENTHESES
   ;
 
 fieldNameExpression
@@ -20,7 +20,7 @@ fieldNameExpression
 variableExpression: '{' ID '}';
 
 functionExpression
-  : functionNameExpression LEFT_PARENTHESES expression (COMMA expression)* RIGHT_PARENTHESES
+  : functionNameExpression LEFT_PARENTHESES fieldExpression (COMMA fieldExpression)* RIGHT_PARENTHESES
   ;
 
 functionNameExpression

@@ -17,7 +17,7 @@
 package org.bithon.server.storage.datasource.builtin;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionParser;
+import org.bithon.server.datasource.ast.FieldExpressionParser;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
 
@@ -41,7 +41,7 @@ public class Functions {
     public Functions() {
         register(new Function("round", Arrays.asList(new Parameter(DoubleValueType.INSTANCE), new Parameter(LongValueType.INSTANCE)),
                               (index, expression) -> {
-                                  if (index == 1 && expression.getToken(PostAggregatorExpressionParser.NUMBER, 0) == null) {
+                                  if (index == 1 && expression.getToken(FieldExpressionParser.NUMBER, 0) == null) {
                                       throw new RuntimeException(StringUtils.format(
                                           "Function [round] requires the 2nd parameter as a constant value, but given an expression as %s",
                                           expression.getText()));
