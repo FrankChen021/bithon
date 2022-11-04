@@ -24,22 +24,21 @@ import javax.annotation.Nullable;
  * @author frank.chen021@outlook.com
  * @date 2022/10/30 15:08
  */
-public class Limit implements IAST {
+public class Limit implements IASTNode {
 
     @Getter
     private int limit;
 
     @Getter
-    @Nullable
-    private Integer offset;
+    private int offset;
 
-    public Limit(int limit, @Nullable Integer offset) {
+    public Limit(int limit, int offset) {
         this.limit = limit;
         this.offset = offset;
     }
 
     @Override
-    public void accept(IASTVisitor visitor) {
+    public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
     }
 }

@@ -42,18 +42,18 @@ public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateF
 
     @Override
     public String visit(SimpleAggregateFunctions.CardinalityAggregateFunction aggregator) {
-        return StringUtils.format("count(DISTINCT \"%s\")", aggregator.getTargetField());
+        return StringUtils.format("count(DISTINCT \"%s\")", aggregator.getTargetColumn());
     }
 
     @Override
     public String visit(SimpleAggregateFunctions.SumAggregateFunction aggregator) {
-        return StringUtils.format("sum(\"%s\")", aggregator.getTargetField());
+        return StringUtils.format("sum(\"%s\")", aggregator.getTargetColumn());
     }
 
     @Override
     public String visit(SimpleAggregateFunctions.GroupConcatAggregateFunction aggregator) {
         // No need to pass hasAlias because this type of field can't be on an expression as of now
-        return formatter.stringAggregator(aggregator.getTargetField());
+        return formatter.stringAggregator(aggregator.getTargetColumn());
     }
 
     @Override
@@ -63,7 +63,7 @@ public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateF
 
     @Override
     public String visit(SimpleAggregateFunctions.AvgAggregateFunction aggregator) {
-        return StringUtils.format("avg(\"%s\")", aggregator.getTargetField());
+        return StringUtils.format("avg(\"%s\")", aggregator.getTargetColumn());
     }
 
     @Override
@@ -73,21 +73,21 @@ public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateF
 
     @Override
     public String visit(SimpleAggregateFunctions.LastAggregateFunction aggregator) {
-        return formatter.lastAggregator(aggregator.getTargetField(), step);
+        return formatter.lastAggregator(aggregator.getTargetColumn(), step);
     }
 
     @Override
     public String visit(SimpleAggregateFunctions.RateAggregateFunction aggregator) {
-        return StringUtils.format("sum(\"%s\")/%d", aggregator.getTargetField(), step);
+        return StringUtils.format("sum(\"%s\")/%d", aggregator.getTargetColumn(), step);
     }
 
     @Override
     public String visit(SimpleAggregateFunctions.MaxAggregateFunction aggregator) {
-        return StringUtils.format("max(\"%s\")", aggregator.getTargetField());
+        return StringUtils.format("max(\"%s\")", aggregator.getTargetColumn());
     }
 
     @Override
     public String visit(SimpleAggregateFunctions.MinAggregateFunction aggregator) {
-        return StringUtils.format("min(\"%s\")", aggregator.getTargetField());
+        return StringUtils.format("min(\"%s\")", aggregator.getTargetColumn());
     }
 }

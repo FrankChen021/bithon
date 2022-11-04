@@ -38,19 +38,12 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    abstract static class AbstractQueryStageAggregateFunction extends SimpleAggregateFunction {
-        public AbstractQueryStageAggregateFunction(String field, String aggregator) {
-            super(aggregator);
-            getArguments().add(new Name(field));
-        }
-    }
-
-    public static class CardinalityAggregateFunction extends AbstractQueryStageAggregateFunction {
+    public static class CardinalityAggregateFunction extends SimpleAggregateFunction {
         public static final String TYPE = "cardinality";
 
         @JsonCreator
         public CardinalityAggregateFunction(@JsonProperty("field") String field) {
-            super(field, TYPE);
+            super(TYPE, field);
         }
 
         @Override
@@ -59,13 +52,13 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class SumAggregateFunction extends AbstractQueryStageAggregateFunction {
+    public static class SumAggregateFunction extends SimpleAggregateFunction {
 
         public static final String TYPE = "sum";
 
         @JsonCreator
         public SumAggregateFunction(@JsonProperty("field") String field) {
-            super(field, TYPE);
+            super(TYPE, field);
         }
 
         @Override
@@ -74,13 +67,13 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class CountAggregateFunction extends AbstractQueryStageAggregateFunction {
+    public static class CountAggregateFunction extends SimpleAggregateFunction {
 
         public static final String TYPE = "count";
 
         @JsonCreator
         public CountAggregateFunction(@JsonProperty("field") String field) {
-            super(field, TYPE);
+            super(TYPE, field);
         }
 
         @Override
@@ -89,13 +82,13 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class AvgAggregateFunction extends AbstractQueryStageAggregateFunction {
+    public static class AvgAggregateFunction extends SimpleAggregateFunction {
 
         public static final String TYPE = "avg";
 
         @JsonCreator
         public AvgAggregateFunction(@JsonProperty("field") String field) {
-            super(field, TYPE);
+            super(TYPE, field);
         }
 
         @Override
@@ -104,13 +97,13 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class MaxAggregateFunction extends AbstractQueryStageAggregateFunction {
+    public static class MaxAggregateFunction extends SimpleAggregateFunction {
 
         public static final String TYPE = "max";
 
         @JsonCreator
         public MaxAggregateFunction(@JsonProperty("field") String field) {
-            super(field, TYPE);
+            super(TYPE, field);
         }
 
         @Override
@@ -119,13 +112,13 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class MinAggregateFunction extends AbstractQueryStageAggregateFunction {
+    public static class MinAggregateFunction extends SimpleAggregateFunction {
 
         public static final String TYPE = "min";
 
         @JsonCreator
         public MinAggregateFunction(@JsonProperty("field") String field) {
-            super(field, TYPE);
+            super(TYPE, field);
         }
 
         @Override
@@ -134,12 +127,12 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class FirstAggregateFunction extends AbstractQueryStageAggregateFunction {
+    public static class FirstAggregateFunction extends SimpleAggregateFunction {
         public static final String TYPE = "first";
 
         @JsonCreator
         public FirstAggregateFunction(@JsonProperty("field") String field) {
-            super(field, TYPE);
+            super(TYPE, field);
         }
 
         @Override
@@ -148,13 +141,13 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class LastAggregateFunction extends AbstractQueryStageAggregateFunction {
+    public static class LastAggregateFunction extends SimpleAggregateFunction {
 
         public static final String TYPE = "last";
 
         @JsonCreator
         public LastAggregateFunction(@JsonProperty("field") String field) {
-            super(field, TYPE);
+            super(TYPE, field);
         }
 
         @Override
@@ -163,13 +156,13 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class RateAggregateFunction extends AbstractQueryStageAggregateFunction {
+    public static class RateAggregateFunction extends SimpleAggregateFunction {
 
         public static final String TYPE = "rate";
 
         @JsonCreator
         public RateAggregateFunction(@JsonProperty("field") String field) {
-            super(field, TYPE);
+            super(TYPE, field);
         }
 
         @Override
@@ -178,13 +171,13 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class GroupConcatAggregateFunction extends AbstractQueryStageAggregateFunction {
+    public static class GroupConcatAggregateFunction extends SimpleAggregateFunction {
 
         public static final String TYPE = "groupConcat";
 
         @JsonCreator
         public GroupConcatAggregateFunction(@JsonProperty("field") String field) {
-            super(field, TYPE);
+            super(TYPE, field);
         }
 
         @Override

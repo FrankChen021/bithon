@@ -24,22 +24,26 @@ import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorA
  * @author frank.chen021@outlook.com
  * @date 2022/11/3 22:18
  */
-public class Expression implements IAST {
+public class Expression implements IASTNode {
 
     @Getter
     private final String expression;
+
+    private FieldExpressionParserImpl parser;
 
     public Expression(String expression) {
         this.expression = expression;
     }
 
     public void visitExpression(FieldExpressionVisitorAdaptor visitorAdaptor) {
-        FieldExpressionParserImpl parser = FieldExpressionParserImpl.create(this.expression);
+        if (parser == null) {
+            parser = FieldExpressionParserImpl.create(this.expression);
+        }
         parser.visit(visitorAdaptor);
     }
 
     @Override
-    public void accept(IASTVisitor visitor) {
+    public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
     }
 }

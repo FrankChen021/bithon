@@ -21,20 +21,14 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collector;
-import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 14:56
  */
-public class ResultColumnList implements IAST {
+public class ResultColumnList implements IASTNode {
     @Getter
     private final List<ResultColumn> columns;
-
-    public static ResultColumnList fromNames(List<String> columns) {
-        ResultColumnList list = new ResultColumnList();
-        return list.addAll(columns);
-    }
 
     public static ResultColumnList from(List<ResultColumn> columns) {
         return new ResultColumnList(columns);
@@ -51,7 +45,10 @@ public class ResultColumnList implements IAST {
     /**
      * insert the column at first place
      */
-    public ResultColumnList insert(IAST columnExpression) {
+    public ResultColumnList insert(IASTNode columnExpression) {
+        if (columnExpression instanceof ResultColumn) {
+            throw new RuntimeException("Can't add typeof ResultColumn");
+        }
         columns.add(0, new ResultColumn(columnExpression));
         return this;
     }
@@ -61,18 +58,28 @@ public class ResultColumnList implements IAST {
         return this;
     }
 
-    public ResultColumnList add(IAST columnExpression) {
+    public ResultColumnList add(IASTNode columnExpression) {
+        if (columnExpression instanceof ResultColumn) {
+            throw new RuntimeException("Can't add typeof ResultColumn");
+        }
+
         columns.add(new ResultColumn(columnExpression));
         return this;
     }
 
-    public ResultColumnList add(IAST columnExpression, String alias) {
-        columns.add(new ResultColumn(columnExpression, alias));
+    public ResultColumnList add(IASTNode columnExpression, String columnAlias) {
+        if (columnExpression instanceof ResultColumn) {
+            throw new RuntimeException("Can't add typeof ResultColumn");
+        }
+        columns.add(new ResultColumn(columnExpression, columnAlias));
         return this;
     }
 
-    public ResultColumnList add(IAST columnExpression, Alias alias) {
-        columns.add(new ResultColumn(columnExpression, alias));
+    public ResultColumnList add(IASTNode columnExpression, ColumnAlias columnAlias) {
+        if (columnExpression instanceof ResultColumn) {
+            throw new RuntimeException("Can't add typeof ResultColumn");
+        }
+        columns.add(new ResultColumn(columnExpression, columnAlias));
         return this;
     }
 
@@ -85,23 +92,12 @@ public class ResultColumnList implements IAST {
 
     public <C> C getColumnNames(Collector<String, ?, C> collector) {
         return columns.stream()
-                      .map((column) -> {
-                          if (column.getAlias() != null) {
-                              return column.getAlias().getName();
-                          }
-                          if (column.getColumnExpression() instanceof Column) {
-                              return ((Name) column.getColumnExpression()).getName();
-                          }
-                          throw new RuntimeException("");
-                      }).collect(collector);
-    }
-
-    public Stream<ResultColumn> columnStream() {
-        return this.columns.stream();
+                      .map(ResultColumn::getResultColumnName)
+                      .collect(collector);
     }
 
     @Override
-    public void accept(IASTVisitor visitor) {
+    public void accept(IASTNodeVisitor visitor) {
         for (int i = 0, size = this.columns.size(); i < size; i++) {
             visitor.visit(i, size, this.columns.get(i));
         }

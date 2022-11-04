@@ -20,11 +20,16 @@ import lombok.Data;
 import lombok.Getter;
 
 /**
+ * Take SQL as an example, this AST node represents a whole SELECT statement.
+ * Since statement is a concept in SQL, here we don't use that concept but use 'expression',
+ * so this class is called as 'SelectExpression'
+ *
+ *
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 14:55
  */
 @Data
-public class SelectStatement implements IAST {
+public class SelectExpression implements IASTNode {
     @Getter
     private final ResultColumnList resultColumnList = new ResultColumnList();
 
@@ -35,7 +40,7 @@ public class SelectStatement implements IAST {
     private Limit limit;
 
     @Override
-    public void accept(IASTVisitor visitor) {
+    public void accept(IASTNodeVisitor visitor) {
         visitor.before(this);
         {
             resultColumnList.accept(visitor);

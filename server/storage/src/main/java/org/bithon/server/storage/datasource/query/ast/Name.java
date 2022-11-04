@@ -23,7 +23,7 @@ import lombok.Getter;
  * @date 2022/9/4 16:11
  */
 @Getter
-public class Name implements IAST {
+public abstract class Name implements IASTNode {
 
     private final String name;
 
@@ -31,10 +31,6 @@ public class Name implements IAST {
         this.name = name;
     }
 
-    @Override
-    public void accept(IASTVisitor visitor) {
-        visitor.visit(this);
-    }
 
     @Override
     public String toString() {

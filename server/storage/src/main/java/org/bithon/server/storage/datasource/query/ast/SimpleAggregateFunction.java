@@ -16,7 +16,6 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.component.commons.utils.StringUtils;
@@ -42,26 +41,22 @@ import org.bithon.component.commons.utils.StringUtils;
     @JsonSubTypes.Type(name = SimpleAggregateFunctions.GroupConcatAggregateFunction.TYPE, value = SimpleAggregateFunctions.GroupConcatAggregateFunction.class),
 })
 public abstract class SimpleAggregateFunction extends Function {
-    public SimpleAggregateFunction(String fnName) {
+    public SimpleAggregateFunction(String fnName, String field) {
         super(fnName);
-    }
-
-    @JsonIgnore
-    public String getType() {
-        return this.getFnName();
+        getArguments().add(new Column(field));
     }
 
     /**
-     * target field, default to name
+     * get the column that aggregation is performed on
      */
-    public String getTargetField() {
-        return ((Name)this.getArguments().get(0)).getName();
+    public String getTargetColumn() {
+        return ((Column) this.getArguments().get(0)).getName();
     }
 
     public abstract <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor);
 
     @Override
     public String toString() {
-        return StringUtils.format("%s(%s)", this.getFnName(), getTargetField());
+        return StringUtils.format("%s(%s)", this.getFnName(), getTargetColumn());
     }
 }

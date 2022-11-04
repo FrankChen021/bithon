@@ -27,7 +27,7 @@ public class Column extends Name {
     }
 
     @Override
-    public void accept(IASTVisitor visitor) {
+    public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
     }
 }

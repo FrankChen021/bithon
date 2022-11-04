@@ -22,7 +22,7 @@ import lombok.Getter;
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 14:55
  */
-public class OrderBy implements IAST {
+public class OrderBy implements IASTNode {
 
     @Getter
     private final String field;
@@ -40,7 +40,7 @@ public class OrderBy implements IAST {
     }
 
     @Override
-    public void accept(IASTVisitor visitor) {
+    public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
     }
 }

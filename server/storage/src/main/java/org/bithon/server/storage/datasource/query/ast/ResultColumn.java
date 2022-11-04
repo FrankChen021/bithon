@@ -17,35 +17,48 @@
 package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
+import org.bithon.component.commons.utils.StringUtils;
 
 /**
+ * Take SQL as example, this AST nodes represent a column that appears right after SELECT keyword
+ *
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 16:11
  */
 @Getter
-public class ResultColumn implements IAST {
-    private final IAST columnExpression;
-    private final Alias alias;
+public class ResultColumn implements IASTNode {
+    private final IASTNode columnExpression;
+    private final ColumnAlias alias;
 
     public ResultColumn(String name) {
-        this(new Column(name), (Alias) null);
+        this(new Column(name), (ColumnAlias) null);
     }
 
-    ResultColumn(IAST columnExpression) {
+    ResultColumn(IASTNode columnExpression) {
         this(columnExpression, (String) null);
     }
 
-    public ResultColumn(IAST columnExpression, String alias) {
-        this(columnExpression, alias == null ? null : new Alias(alias));
+    public ResultColumn(IASTNode columnExpression, String alias) {
+        this(columnExpression, alias == null ? null : new ColumnAlias(alias));
     }
 
-    public ResultColumn(IAST columnExpression, Alias alias) {
+    public ResultColumn(IASTNode columnExpression, ColumnAlias alias) {
         this.columnExpression = columnExpression;
         this.alias = alias;
     }
 
+    public String getResultColumnName() {
+        if (alias != null) {
+            return alias.getName();
+        }
+        if (columnExpression instanceof Column) {
+            return ((Column) columnExpression).getName();
+        }
+        throw new RuntimeException(StringUtils.format("no result name for result column [%s]", columnExpression));
+    }
+
     @Override
-    public void accept(IASTVisitor visitor) {
+    public void accept(IASTNodeVisitor visitor) {
         columnExpression.accept(visitor);
         if (alias != null) {
             alias.accept(visitor);

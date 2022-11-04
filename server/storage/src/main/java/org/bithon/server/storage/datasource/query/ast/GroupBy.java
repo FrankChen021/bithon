@@ -26,9 +26,9 @@ import java.util.List;
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 14:58
  */
-public class GroupBy implements IAST {
+public class GroupBy implements IASTNode {
     @Getter
-    private final List<String> fields = new ArrayList<>(4);
+    private final List<String> fields = new ArrayList<>(2);
 
     public GroupBy addField(String field) {
         this.fields.add(field);
@@ -41,7 +41,7 @@ public class GroupBy implements IAST {
     }
 
     @Override
-    public void accept(IASTVisitor visitor) {
+    public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
     }
 }

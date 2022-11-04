@@ -18,41 +18,15 @@ package org.bithon.server.storage.datasource.query.ast;
 
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 15:05
+ * @date 2022/9/4 16:34
  */
-public interface IASTVisitor {
+public class ColumnAlias extends Name {
+    public ColumnAlias(String name) {
+        super(name);
+    }
 
-    void before(SelectStatement selectStatement);
-
-    void visit(SelectStatement selectStatement);
-
-    void after(SelectStatement selectStatement);
-
-    void visit(OrderBy orderBy);
-
-    void visit(Table table);
-
-    void visit(Where where);
-
-    void visit(GroupBy groupBy);
-
-    void visit(From from);
-
-    void before(Function function);
-
-    void after(Function function);
-
-    void visit(StringExpression stringExpression);
-
-    void visit(int index, int Count, ResultColumn resultColumn);
-
-    void visit(Column column);
-
-    void visit(Name name);
-
-    void visit(Alias alias);
-
-    void visit(Limit limit);
-
-    void visit(Expression expression);
+    @Override
+    public void accept(IASTNodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

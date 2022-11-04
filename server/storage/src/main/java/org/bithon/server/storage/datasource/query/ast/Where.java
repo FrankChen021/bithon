@@ -26,7 +26,7 @@ import java.util.List;
  * @date 2022/9/4 14:55
  */
 @Getter
-public class Where implements IAST {
+public class Where implements IASTNode {
 
     private final List<String> expressions = new ArrayList<>();
 
@@ -36,7 +36,7 @@ public class Where implements IAST {
     }
 
     @Override
-    public void accept(IASTVisitor visitor) {
+    public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
     }
 }

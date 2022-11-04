@@ -16,25 +16,41 @@
 
 package org.bithon.server.storage.datasource.query.ast;
 
-import lombok.Getter;
-
 /**
- *
- * An expression that uses string to hold raw string
- *
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 16:49
+ * @date 2022/9/4 15:05
  */
-public class StringExpression implements IAST {
-    @Getter
-    private final String str;
+public interface IASTNodeVisitor {
 
-    public StringExpression(String str) {
-        this.str = str;
-    }
+    void before(SelectExpression selectExpression);
 
-    @Override
-    public void accept(IASTVisitor visitor) {
-        visitor.visit(this);
-    }
+    void visit(SelectExpression selectExpression);
+
+    void after(SelectExpression selectExpression);
+
+    void visit(OrderBy orderBy);
+
+    void visit(Table table);
+
+    void visit(Where where);
+
+    void visit(GroupBy groupBy);
+
+    void visit(From from);
+
+    void before(Function function);
+
+    void after(Function function);
+
+    void visit(StringNode stringNode);
+
+    void visit(int index, int count, ResultColumn resultColumn);
+
+    void visit(Column column);
+
+    void visit(ColumnAlias alias);
+
+    void visit(Limit limit);
+
+    void visit(Expression expression);
 }

@@ -20,6 +20,6 @@ package org.bithon.server.storage.datasource.query.ast;
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 15:03
  */
-public interface IAST {
-    void accept(IASTVisitor visitor);
+public interface IASTNode {
+    void accept(IASTNodeVisitor visitor);
 }

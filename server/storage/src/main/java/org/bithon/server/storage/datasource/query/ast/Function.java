@@ -26,18 +26,18 @@ import java.util.List;
  * @date 2022/9/4 16:40
  */
 @Getter
-public class Function implements IAST {
+public class Function implements IASTNode {
     private final String fnName;
-    private final List<IAST> arguments = new ArrayList<>();
+    private final List<IASTNode> arguments = new ArrayList<>();
 
     public Function(String fnName) {
         this.fnName = fnName;
     }
 
     @Override
-    public void accept(IASTVisitor visitor) {
+    public void accept(IASTNodeVisitor visitor) {
         visitor.before(this);
-        for (IAST arg : arguments) {
+        for (IASTNode arg : arguments) {
             arg.accept(visitor);
         }
         visitor.after(this);

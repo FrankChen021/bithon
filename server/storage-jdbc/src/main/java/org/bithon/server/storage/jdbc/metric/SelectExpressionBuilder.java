@@ -24,15 +24,15 @@ import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
-import org.bithon.server.storage.datasource.query.ast.IAST;
+import org.bithon.server.storage.datasource.query.ast.IASTNode;
 import org.bithon.server.storage.datasource.query.ast.Limit;
 import org.bithon.server.storage.datasource.query.ast.Name;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SelectStatement;
+import org.bithon.server.storage.datasource.query.ast.SelectExpression;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunction;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunctions;
-import org.bithon.server.storage.datasource.query.ast.StringExpression;
+import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
 import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor2;
@@ -187,7 +187,7 @@ public class SelectExpressionBuilder {
             this.internalVariables = internalVariables;
         }
 
-        public StringExpression visit(Expression expression) {
+        public StringNode visit(Expression expression) {
 
             final StringBuilder sb = new StringBuilder(32);
             expression.visitExpression(new FieldExpressionVisitorAdaptor2() {
@@ -267,7 +267,7 @@ public class SelectExpressionBuilder {
                 }
             });
 
-            return new StringExpression(sb.toString());
+            return new StringNode(sb.toString());
         }
     }
 
@@ -299,7 +299,7 @@ public class SelectExpressionBuilder {
      *   "_timestamp"
      * </pre>
      */
-    public SelectStatement build() {
+    public SelectExpression build() {
         String sqlTableName = "bithon_" + dataSource.getName().replace("-", "_");
 
         //
@@ -307,12 +307,12 @@ public class SelectExpressionBuilder {
         //
         Set<String> aggregatedFields = this.resultColumns.stream()
                                                          .filter((f) -> f.getColumnExpression() instanceof SimpleAggregateFunction)
-                                                         .map(resultColumn -> ((SimpleAggregateFunction) resultColumn.getColumnExpression()).getTargetField())
+                                                         .map(resultColumn -> ((SimpleAggregateFunction) resultColumn.getColumnExpression()).getTargetColumn())
                                                          .collect(Collectors.toSet());
 
-        SelectStatement selectStatement = new SelectStatement();
-        selectStatement.setGroupBy(new GroupBy());
-        SelectStatement subSelectStatement = new SelectStatement();
+        SelectExpression selectExpression = new SelectExpression();
+        selectExpression.setGroupBy(new GroupBy());
+        SelectExpression subSelectExpression = new SelectExpression();
 
         //
         // fields
@@ -332,23 +332,23 @@ public class SelectExpressionBuilder {
                                                                                                       "count(distinct \"instanceName\")"));
 
         for (ResultColumn resultColumn : this.resultColumns) {
-            IAST columnExpression = resultColumn.getColumnExpression();
+            IASTNode columnExpression = resultColumn.getColumnExpression();
             if (columnExpression instanceof SimpleAggregateFunction) {
                 SimpleAggregateFunction function = (SimpleAggregateFunction) columnExpression;
 
                 // if window function is contained, the final SQL has a sub-query
                 if (sqlDialect.useWindowFunctionAsAggregator(function.getFnName())) {
-                    subSelectStatement.getResultColumnList().add(new StringExpression(function.accept(generator)), resultColumn.getAlias());
+                    subSelectExpression.getResultColumnList().add(new StringNode(function.accept(generator)), resultColumn.getAlias());
 
                     // this window fields should be in the group-by clause and select clause,
                     // see the javadoc above
                     // Use name in the groupBy expression because we have alias for corresponding field in sub-query expression
-                    selectStatement.getGroupBy().addField(resultColumn.getAlias().getName());
-                    selectStatement.getResultColumnList().add(resultColumn.getAlias().getName());
+                    selectExpression.getGroupBy().addField(resultColumn.getAlias().getName());
+                    selectExpression.getResultColumnList().add(resultColumn.getAlias().getName());
 
                     hasSubSelect = true;
                 } else {
-                    selectStatement.getResultColumnList().add(new StringExpression(function.accept(generator)), resultColumn.getAlias());
+                    selectExpression.getResultColumnList().add(new StringNode(function.accept(generator)), resultColumn.getAlias());
 
                     String underlyingFieldName = ((Name) function.getArguments().get(0)).getName();
 
@@ -356,17 +356,17 @@ public class SelectExpressionBuilder {
                     // for cardinality, we put it here instead of in `convertToGroupByQuery`
                     // because in some cases, this operator don't need to be in the groupBy expression which is constructed in that method
                     if (function.getFnName().equals(SimpleAggregateFunctions.CardinalityAggregateFunction.TYPE)) {
-                        selectStatement.getGroupBy().addField(underlyingFieldName);
+                        selectExpression.getGroupBy().addField(underlyingFieldName);
                     }
 
                     // This metric should also be in the sub-query, see the example in the javadoc above
-                    subSelectStatement.getResultColumnList().add(underlyingFieldName);
+                    subSelectExpression.getResultColumnList().add(underlyingFieldName);
                 }
             } else if (columnExpression instanceof Expression) {
-                selectStatement.getResultColumnList().add(sqlGenerator4Expression.visit((Expression) columnExpression),
-                                                          resultColumn.getAlias());
+                selectExpression.getResultColumnList().add(sqlGenerator4Expression.visit((Expression) columnExpression),
+                                                           resultColumn.getAlias());
             } else if (columnExpression instanceof Column) {
-                selectStatement.getResultColumnList().add(columnExpression);
+                selectExpression.getResultColumnList().add(columnExpression);
             } else {
                 throw new RuntimeException(StringUtils.format("Invalid field[%s] with type[%s]", resultColumn.toString(), resultColumn.getClass().getName()));
             }
@@ -378,16 +378,16 @@ public class SelectExpressionBuilder {
                           .filter((f) -> f.getColumnExpression() instanceof Expression)
                           .forEach((f) -> ((Expression) f.getColumnExpression()).visitExpression(fieldExpressionAnalyzer));
         for (String metric : fieldExpressionAnalyzer.getMetrics()) {
-            subSelectStatement.getResultColumnList().add(metric);
+            subSelectExpression.getResultColumnList().add(metric);
         }
         for (IMetricSpec aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
-            subSelectStatement.getResultColumnList()
-                              .add(new StringExpression(aggregator.getAggregateExpression().accept(generator)), aggregator.getName());
+            subSelectExpression.getResultColumnList()
+                               .add(new StringNode(aggregator.getAggregateExpression().accept(generator)), aggregator.getName());
 
             // this window fields should be in the group-by clause and select clause,
             // see the javadoc above
             // Use name in the groupBy expression because we have alias for corresponding field in sub-query expression
-            selectStatement.getGroupBy().addField(aggregator.getName());
+            selectExpression.getGroupBy().addField(aggregator.getName());
         }
 
         //
@@ -403,19 +403,19 @@ public class SelectExpressionBuilder {
         //
         // build GroupByExpression
         //
-        subSelectStatement.getResultColumnList().addAll(groupBy);
-        selectStatement.getGroupBy().addFields(groupBy);
+        subSelectExpression.getResultColumnList().addAll(groupBy);
+        selectExpression.getGroupBy().addFields(groupBy);
 
         // Make sure all fields in the groupBy are in the fields list
         if (!groupBy.isEmpty()) {
-            Set<String> existingFields = selectStatement.getResultColumnList().getColumnNames(Collectors.toSet());
+            Set<String> existingFields = selectExpression.getResultColumnList().getColumnNames(Collectors.toSet());
 
             for (String name : groupBy) {
                 if (existingFields.add(name)) {
-                    IAST column = new Column(name);
+                    IASTNode column = new Column(name);
 
-                    selectStatement.getResultColumnList().add(column);
-                    subSelectStatement.getResultColumnList().add(column);
+                    selectExpression.getResultColumnList().add(column);
+                    subSelectExpression.getResultColumnList().add(column);
                 }
             }
         }
@@ -425,23 +425,23 @@ public class SelectExpressionBuilder {
         // build OrderBy/Limit expression
         //
         if (orderBy != null) {
-            selectStatement.setOrderBy(new OrderBy(orderBy.getName(), orderBy.getOrder()));
+            selectExpression.setOrderBy(new OrderBy(orderBy.getName(), orderBy.getOrder()));
         }
         if (limit != null) {
-            selectStatement.setLimit(new Limit(limit.getLimit(), limit.getOffset()));
+            selectExpression.setLimit(new Limit(limit.getLimit(), limit.getOffset()));
         }
 
         //
         // Link query and subQuery together
         //
         if (hasSubSelect) {
-            subSelectStatement.getFrom().setExpression(new Table(sqlTableName));
-            subSelectStatement.setWhere(where);
-            selectStatement.getFrom().setExpression(subSelectStatement);
+            subSelectExpression.getFrom().setExpression(new Table(sqlTableName));
+            subSelectExpression.setWhere(where);
+            selectExpression.getFrom().setExpression(subSelectExpression);
         } else {
-            selectStatement.getFrom().setExpression(new Table(sqlTableName));
-            selectStatement.setWhere(where);
+            selectExpression.getFrom().setExpression(new Table(sqlTableName));
+            selectExpression.setWhere(where);
         }
-        return selectStatement;
+        return selectExpression;
     }
 }

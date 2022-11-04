@@ -17,19 +17,18 @@
 package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.query.ast.Alias;
 import org.bithon.server.storage.datasource.query.ast.Column;
+import org.bithon.server.storage.datasource.query.ast.ColumnAlias;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.From;
 import org.bithon.server.storage.datasource.query.ast.Function;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
-import org.bithon.server.storage.datasource.query.ast.IASTVisitor;
+import org.bithon.server.storage.datasource.query.ast.IASTNodeVisitor;
 import org.bithon.server.storage.datasource.query.ast.Limit;
-import org.bithon.server.storage.datasource.query.ast.Name;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SelectStatement;
-import org.bithon.server.storage.datasource.query.ast.StringExpression;
+import org.bithon.server.storage.datasource.query.ast.SelectExpression;
+import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
 
@@ -37,7 +36,7 @@ import org.bithon.server.storage.datasource.query.ast.Where;
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 15:38
  */
-public class SQLGenerator implements IASTVisitor {
+public class SqlGenerator implements IASTNodeVisitor {
 
     private final StringBuilder sql = new StringBuilder(512);
     private int nestedSelect = 0;
@@ -47,7 +46,7 @@ public class SQLGenerator implements IASTVisitor {
     }
 
     @Override
-    public void before(SelectStatement selectStatement) {
+    public void before(SelectExpression selectExpression) {
         if (nestedSelect++ > 0) {
             sql.append("( ");
         }
@@ -55,12 +54,12 @@ public class SQLGenerator implements IASTVisitor {
     }
 
     @Override
-    public void visit(SelectStatement select) {
+    public void visit(SelectExpression select) {
         select.accept(this);
     }
 
     @Override
-    public void after(SelectStatement selectStatement) {
+    public void after(SelectExpression selectExpression) {
         if (--nestedSelect > 0) {
             sql.append(") ");
         }
@@ -84,7 +83,7 @@ public class SQLGenerator implements IASTVisitor {
     public void visit(Limit limit) {
         sql.append(" LIMIT ");
         sql.append(limit.getLimit());
-        if (limit.getOffset() != null && limit.getOffset() > 0) {
+        if (limit.getOffset() > 0) {
             sql.append(" OFFSET ");
             sql.append(limit.getOffset());
         }
@@ -107,8 +106,8 @@ public class SQLGenerator implements IASTVisitor {
     }
 
     @Override
-    public void visit(StringExpression stringExpression) {
-        sql.append(stringExpression.getStr());
+    public void visit(StringNode stringNode) {
+        sql.append(stringNode.getStr());
     }
 
     @Override
@@ -130,19 +129,11 @@ public class SQLGenerator implements IASTVisitor {
     }
 
     @Override
-    public void visit(Alias alias) {
+    public void visit(ColumnAlias alias) {
         sql.append(" AS ");
         sql.append('\"');
         sql.append(alias.getName());
         sql.append('\"');
-    }
-
-    @Override
-    public void visit(Name name) {
-        sql.append('\"');
-        sql.append(name.getName());
-        sql.append('\"');
-        sql.append(' ');
     }
 
     @Override

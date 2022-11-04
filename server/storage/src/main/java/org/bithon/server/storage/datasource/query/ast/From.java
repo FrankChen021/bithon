@@ -23,11 +23,11 @@ import lombok.Data;
  * @date 2022/9/4 15:43
  */
 @Data
-public class From implements IAST {
-    private IAST expression;
+public class From implements IASTNode {
+    private IASTNode expression;
 
     @Override
-    public void accept(IASTVisitor visitor) {
+    public void accept(IASTNodeVisitor visitor) {
         visitor.visit(this);
         expression.accept(visitor);
     }
