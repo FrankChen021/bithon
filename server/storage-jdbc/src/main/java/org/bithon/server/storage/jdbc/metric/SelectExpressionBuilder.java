@@ -46,6 +46,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -403,6 +404,36 @@ public class SelectExpressionBuilder {
         //
         subSelectStatement.getFields().addFields(groupBy);
         selectStatement.getGroupBy().addFields(groupBy);
+
+        // Make sure all fields in the groupBy are in the fields list
+        if (!groupBy.isEmpty()) {
+            Set<String> existingFields = selectStatement.getFields().getFields().stream().map((field) -> {
+                if (field instanceof Name) {
+                    return field.toString();
+                }
+                if (field instanceof Field) {
+                    Name alias = ((Field) field).getAlias();
+                    if (alias != null) {
+                        return alias.toString();
+                    }
+                    field = ((Field) field).getField();
+                    if (field instanceof Name) {
+                        return field.toString();
+                    }
+                }
+                return null;
+            }).filter(Objects::nonNull).collect(Collectors.toSet());
+
+            for (String name : groupBy) {
+                if (existingFields.add(name)) {
+                    IAST ast = new Name(name);
+
+                    selectStatement.getFields().addField(ast);
+                    subSelectStatement.getFields().addField(ast);
+                }
+            }
+        }
+
 
         //
         // build OrderBy/Limit expression
