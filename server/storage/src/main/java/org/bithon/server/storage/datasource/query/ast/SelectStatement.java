@@ -26,7 +26,7 @@ import lombok.Getter;
 @Data
 public class SelectStatement implements IAST {
     @Getter
-    private final Fields fields = new Fields();
+    private final ResultColumnList resultColumnList = new ResultColumnList();
 
     private final From from = new From();
     private Where where;
@@ -38,7 +38,7 @@ public class SelectStatement implements IAST {
     public void accept(IASTVisitor visitor) {
         visitor.before(this);
         {
-            fields.accept(visitor);
+            resultColumnList.accept(visitor);
             from.accept(visitor);
             if (where != null) {
                 where.accept(visitor);

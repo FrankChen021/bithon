@@ -20,12 +20,11 @@ import lombok.Builder;
 import lombok.Data;
 import org.bithon.component.commons.utils.CollectionUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
-import org.bithon.server.storage.datasource.query.ast.Field;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.metrics.IFilter;
 import org.bithon.server.storage.metrics.Interval;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -37,9 +36,9 @@ import java.util.List;
 public class Query {
     private final DataSourceSchema dataSource;
 
-    private final List<Field> fields;
+    private final List<ResultColumn> resultColumns;
 
-    private final Collection<IFilter> filters;
+    private final List<IFilter> filters;
     private final Interval interval;
 
     private final List<String> groupBy;
@@ -58,15 +57,15 @@ public class Query {
     }
 
     public Query(DataSourceSchema dataSource,
-                 List<Field> fields,
-                 Collection<IFilter> filters,
+                 List<ResultColumn> resultColumns,
+                 List<IFilter> filters,
                  Interval interval,
                  @Nullable List<String> groupBy,
                  @Nullable OrderBy orderBy,
                  @Nullable Limit limit,
                  @Nullable ResultFormat resultFormat) {
         this.dataSource = dataSource;
-        this.fields = CollectionUtils.emptyOrOriginal(fields);
+        this.resultColumns = resultColumns;
         this.filters = filters;
         this.interval = interval;
         this.groupBy = CollectionUtils.emptyOrOriginal(groupBy);

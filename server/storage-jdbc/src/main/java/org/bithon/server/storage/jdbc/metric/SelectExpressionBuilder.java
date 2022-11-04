@@ -21,13 +21,15 @@ import lombok.Getter;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IColumnSpec;
+import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.Field;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
 import org.bithon.server.storage.datasource.query.ast.IAST;
 import org.bithon.server.storage.datasource.query.ast.Limit;
 import org.bithon.server.storage.datasource.query.ast.Name;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.ResultColumnList;
 import org.bithon.server.storage.datasource.query.ast.SelectStatement;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
@@ -46,7 +48,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,7 +59,7 @@ public class SelectExpressionBuilder {
 
     private DataSourceSchema dataSource;
 
-    private Collection<Field> fields;
+    private ResultColumnList resultColumnList;
 
     private Collection<IFilter> filters;
     private Interval interval;
@@ -82,8 +83,8 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    public SelectExpressionBuilder fields(Collection<Field> fields) {
-        this.fields = fields;
+    public SelectExpressionBuilder fields(ResultColumnList resultColumnList) {
+        this.resultColumnList = resultColumnList;
         return this;
     }
 
@@ -305,10 +306,10 @@ public class SelectExpressionBuilder {
         //
         // Turn some metrics(those use window functions for aggregation) in expression into pre-aggregator first
         //
-        Map<String, Object> existingAggregators = this.fields.stream()
-                                                             .filter((f) -> f.getField() instanceof SimpleAggregator)
-                                                             .collect(Collectors.toMap((f) -> ((SimpleAggregator) f.getField()).getTargetField(),
-                                                                                       (v) -> v));
+        Map<String, Object> existingAggregators = this.resultColumnList.columnStream()
+                                                                       .filter((f) -> f.getColumnExpression() instanceof SimpleAggregator)
+                                                                       .collect(Collectors.toMap((f) -> ((SimpleAggregator) f.getColumnExpression()).getTargetField(),
+                                                                                                 (v) -> v));
 
         SelectStatement selectStatement = new SelectStatement();
         selectStatement.setGroupBy(new GroupBy());
@@ -331,57 +332,58 @@ public class SelectExpressionBuilder {
                                                                                                                   "instanceCount",
                                                                                                                   "count(distinct \"instanceName\")"));
 
-        for (Field field : this.fields) {
-            IAST fieldExpr = field.getField();
+        for (ResultColumn resultColumn : this.resultColumnList.getColumns()) {
+            IAST fieldExpr = resultColumn.getColumnExpression();
             if (fieldExpr instanceof SimpleAggregator) {
                 SimpleAggregator function = (SimpleAggregator) fieldExpr;
 
                 // if window function is contained, the final SQL has a sub-query
                 if (sqlDialect.useWindowFunctionAsAggregator(function.getFnName())) {
-                    subSelectStatement.getFields().addField(new Field(new StringExpression(function.accept(generator)), field.getAlias().getName()));
+                    subSelectStatement.getResultColumnList().add(new StringExpression(function.accept(generator)), resultColumn.getAlias());
 
                     // this window fields should be in the group-by clause and select clause,
                     // see the javadoc above
                     // Use name in the groupBy expression because we have alias for corresponding field in sub-query expression
-                    selectStatement.getGroupBy().addField(field.getAlias().getName());
-                    selectStatement.getFields().addField(new Name(field.getAlias().getName()));
+                    selectStatement.getGroupBy().addField(resultColumn.getAlias().getName());
+                    selectStatement.getResultColumnList().add(resultColumn.getAlias().getName());
 
                     hasSubSelect = true;
                 } else {
-                    selectStatement.getFields().addField(new Field(new StringExpression(function.accept(generator)), field.getAlias().getName()));
+                    selectStatement.getResultColumnList().add(new StringExpression(function.accept(generator)), resultColumn.getAlias());
 
-                    String underlyingField = ((Name) function.getArguments().get(0)).getName();
+                    String underlyingFieldName = ((Name) function.getArguments().get(0)).getName();
 
                     // Special case for some aggregators, they must also be grouped in sub-query
                     // for cardinality, we put it here instead of in `convertToGroupByQuery`
                     // because in some cases, this operator don't need to be in the groupBy expression which is constructed in that method
                     if (function.getFnName().equals(SimpleAggregators.CardinalityAggregator.TYPE)) {
-                        selectStatement.getGroupBy().addField(underlyingField);
+                        selectStatement.getGroupBy().addField(underlyingFieldName);
                     }
 
                     // This metric should also be in the sub-query, see the example in the javadoc above
-                    subSelectStatement.getFields().addField(new Name(underlyingField));
+                    subSelectStatement.getResultColumnList().add(underlyingFieldName);
                 }
             } else if (fieldExpr instanceof Expression) {
-                selectStatement.getFields().addField(new Field(fieldExpressionSQLGenerator.visit((Expression) fieldExpr),
-                                                               field.getAlias()));
-            } else if (fieldExpr instanceof Name) {
-                selectStatement.getFields().addField(field);
+                selectStatement.getResultColumnList().add(fieldExpressionSQLGenerator.visit((Expression) fieldExpr),
+                                                          resultColumn.getAlias());
+            } else if (fieldExpr instanceof Column) {
+                selectStatement.getResultColumnList().add(fieldExpr);
             } else {
-                throw new RuntimeException(StringUtils.format("Invalid field[%s] with type[%s]", field.toString(), field.getClass().getName()));
+                throw new RuntimeException(StringUtils.format("Invalid field[%s] with type[%s]", resultColumn.toString(), resultColumn.getClass().getName()));
             }
         }
 
         // Make sure all referenced metrics in field expression are in the sub-query
         FieldExpressionAnalyzer fieldExpressionAnalyzer = new FieldExpressionAnalyzer(this.dataSource, existingAggregators, this.sqlDialect);
-        this.fields.stream()
-                   .filter((f) -> f.getField() instanceof Expression)
-                   .forEach((f) -> ((Expression) f.getField()).visitExpression(fieldExpressionAnalyzer));
+        this.resultColumnList.columnStream()
+                             .filter((f) -> f.getColumnExpression() instanceof Expression)
+                             .forEach((f) -> ((Expression) f.getColumnExpression()).visitExpression(fieldExpressionAnalyzer));
         for (String metric : fieldExpressionAnalyzer.getMetrics()) {
-            subSelectStatement.getFields().addField(new Field(new Name(metric), metric));
+            subSelectStatement.getResultColumnList().add(metric);
         }
         for (IMetricSpec aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
-            subSelectStatement.getFields().addField(new Field(new StringExpression(aggregator.getQueryAggregator().accept(generator)), aggregator.getName()));
+            subSelectStatement.getResultColumnList()
+                              .add(new StringExpression(aggregator.getQueryAggregator().accept(generator)), aggregator.getName());
 
             // this window fields should be in the group-by clause and select clause,
             // see the javadoc above
@@ -402,34 +404,19 @@ public class SelectExpressionBuilder {
         //
         // build GroupByExpression
         //
-        subSelectStatement.getFields().addFields(groupBy);
+        subSelectStatement.getResultColumnList().addAll(groupBy);
         selectStatement.getGroupBy().addFields(groupBy);
 
         // Make sure all fields in the groupBy are in the fields list
         if (!groupBy.isEmpty()) {
-            Set<String> existingFields = selectStatement.getFields().getFields().stream().map((field) -> {
-                if (field instanceof Name) {
-                    return field.toString();
-                }
-                if (field instanceof Field) {
-                    Name alias = ((Field) field).getAlias();
-                    if (alias != null) {
-                        return alias.toString();
-                    }
-                    field = ((Field) field).getField();
-                    if (field instanceof Name) {
-                        return field.toString();
-                    }
-                }
-                return null;
-            }).filter(Objects::nonNull).collect(Collectors.toSet());
+            Set<String> existingFields = selectStatement.getResultColumnList().getColumnNames(Collectors.toSet());
 
             for (String name : groupBy) {
                 if (existingFields.add(name)) {
-                    IAST ast = new Name(name);
+                    IAST column = new Column(name);
 
-                    selectStatement.getFields().addField(ast);
-                    subSelectStatement.getFields().addField(ast);
+                    selectStatement.getResultColumnList().add(column);
+                    subSelectStatement.getResultColumnList().add(column);
                 }
             }
         }

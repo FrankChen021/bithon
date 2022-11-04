@@ -26,8 +26,8 @@ import org.bithon.server.storage.datasource.DataSourceSchemaManager;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Field;
-import org.bithon.server.storage.datasource.query.ast.Name;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.ResultColumnList;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.metrics.IMetricReader;
@@ -84,21 +84,21 @@ public class DataSourceApi implements IDataSourceApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getInterval().getEndISO8601());
 
-        List<Field> fields = request.getAggregators()
-                                    .stream()
-                                    .map(QueryAggregator::toAST)
-                                    .collect(Collectors.toList());
-        fields.addAll(request.getMetrics().stream().map((metric) -> {
+        List<ResultColumn> resultColumns = request.getAggregators()
+                                                  .stream()
+                                                  .map(QueryAggregator::toAST)
+                                                  .collect(Collectors.toList());
+        resultColumns.addAll(request.getMetrics().stream().map((metric) -> {
             IMetricSpec spec = schema.getMetricSpecByName(metric);
             if (spec instanceof PostAggregatorMetricSpec) {
-                return (Field) ((PostAggregatorMetricSpec) spec).toAST();
+                return (ResultColumn) ((PostAggregatorMetricSpec) spec).toAST();
             }
-            return new Field(spec.getQueryAggregator(), spec.getName());
+            return new ResultColumn(spec.getQueryAggregator(), spec.getName());
         }).collect(Collectors.toList()));
 
         return dataSourceService.timeseriesQuery(Query.builder()
                                                       .dataSource(schema)
-                                                      .fields(fields)
+                                                      .resultColumns(resultColumns)
                                                       .filters(CollectionUtils.emptyOrOriginal(request.getFilters()))
                                                       .interval(Interval.of(start, end, request.getInterval().getStep()))
                                                       .groupBy(CollectionUtils.emptyOrOriginal(request.getGroupBy()))
@@ -120,20 +120,19 @@ public class DataSourceApi implements IDataSourceApi {
         TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
         TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
 
-        List<Field> metrics = request.getMetrics().stream().map((metric) -> {
+        List<ResultColumn> resultColumns = request.getMetrics().stream().map((metric) -> {
             IMetricSpec spec = schema.getMetricSpecByName(metric);
             if (spec instanceof PostAggregatorMetricSpec) {
-                return (Field) ((PostAggregatorMetricSpec) spec).toAST();
+                return (ResultColumn) ((PostAggregatorMetricSpec) spec).toAST();
             } else {
-                return new Field(spec.getQueryAggregator(), spec.getName());
+                return new ResultColumn(spec.getQueryAggregator(), spec.getName());
             }
         }).collect(Collectors.toList());
-        metrics.addAll(request.getAggregators().stream().map(QueryAggregator::toAST).collect(Collectors.toList()));
-        metrics.addAll(request.getGroupBy().stream().map(g -> new Field(new Name(g))).collect(Collectors.toList()));
+        resultColumns.addAll(request.getAggregators().stream().map(QueryAggregator::toAST).collect(Collectors.toList()));
 
         return (List<Map<String, Object>>) this.metricStorage.createMetricReader(schema).groupBy(Query.builder()
                                                                                                       .dataSource(schema)
-                                                                                                      .fields(metrics)
+                                                                                                      .resultColumns(resultColumns)
                                                                                                       .filters(request.getFilters())
                                                                                                       .interval(Interval.of(start, end))
                                                                                                       .groupBy(request.getGroupBy())
@@ -148,7 +147,7 @@ public class DataSourceApi implements IDataSourceApi {
 
         Query query = Query.builder()
                            .dataSource(schema)
-                           .fields(request.getColumns().stream().map((n) -> new Field(new Name(n))).collect(Collectors.toList()))
+                           .resultColumns(request.getColumns().stream().map(ResultColumn::new).collect(Collectors.toList()))
                            .filters(request.getFilters())
                            .interval(Interval.of(TimeSpan.fromISO8601(request.getStartTimeISO8601()), TimeSpan.fromISO8601(request.getEndTimeISO8601())))
                            .orderBy(request.getOrderBy())

@@ -43,7 +43,7 @@ public class GeneralQueryRequest {
     @Valid
     private IntervalRequest interval;
 
-    private Collection<IFilter> filters;
+    private List<IFilter> filters;
 
     @NotEmpty
     private List<QueryField> fields;

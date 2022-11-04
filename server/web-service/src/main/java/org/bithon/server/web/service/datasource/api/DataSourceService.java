@@ -26,8 +26,8 @@ import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.Field;
-import org.bithon.server.storage.datasource.query.ast.Name;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.ResultColumnList;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
@@ -70,16 +70,7 @@ public class DataSourceService {
      * Vals - an array of all data points. Each element represents a data point of a timestamp.
      */
     public TimeSeriesQueryResult timeseriesQuery(Query query) {
-        List<String> metrics = query.getFields().stream()
-                                    .map((f) -> {
-                                        if (f.getAlias() != null) {
-                                            return f.getAlias().getName();
-                                        }
-                                        if (f.getField() instanceof Name) {
-                                            return ((Name) f.getField()).getName();
-                                        }
-                                        throw new RuntimeException("");
-                                    }).collect(Collectors.toList());
+        List<String> metrics = ResultColumnList.from(query.getResultColumns()).getColumnNames(Collectors.toList());
         List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
                                                              .timeseries(query);
 
@@ -142,36 +133,36 @@ public class DataSourceService {
         List<String> groupBy = new ArrayList<>(4);
 
         // Turn into internal objects(post aggregators...)
-        List<Field> fields = new ArrayList<>(query.getFields().size());
+        List<ResultColumn> resultColumnList = new ArrayList<>(query.getFields().size());
         for (QueryField field : query.getFields()) {
             if (field.getExpression() != null) {
 
-                fields.add(new Field(new Expression(field.getExpression()), field.getName()));
+                resultColumnList.add(new ResultColumn(new Expression(field.getExpression()), field.getName()));
 
                 continue;
             }
 
             if (field.getAggregator() != null) {
                 org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregators.create(field.getAggregator(),
-                                                                                                                field.getField() == null
-                                                                                                                ? field.getName()
-                                                                                                                : field.getField());
-                fields.add(new Field(function, field.getName()));
+                                                                                                            field.getField() == null
+                                                                                                            ? field.getName()
+                                                                                                            : field.getField());
+                resultColumnList.add(new ResultColumn(function, field.getName()));
             } else {
                 IColumnSpec columnSpec = schema.getColumnByName(field.getField());
                 if (columnSpec == null) {
                     throw new RuntimeException(StringUtils.format("field [%s] does not exist.", field.getField()));
                 }
                 if (columnSpec instanceof IDimensionSpec) {
-                    fields.add(new Field(new Name(columnSpec.getName())));
+                    resultColumnList.add(new ResultColumn(columnSpec.getName()));
                     groupBy.add(columnSpec.getName());
                 } else {
                     if (columnSpec instanceof PostAggregatorMetricSpec) {
                         PostAggregatorMetricSpec post = (PostAggregatorMetricSpec) (columnSpec);
-                        fields.add(new Field(new Expression(post.getExpression()), post.getName()));
+                        resultColumnList.add(new ResultColumn(new Expression(post.getExpression()), post.getName()));
                     } else {
                         SimpleAggregator aggregator = ((IMetricSpec) columnSpec).getQueryAggregator();
-                        fields.add(new Field(aggregator, columnSpec.getName()));
+                        resultColumnList.add(new ResultColumn(aggregator, columnSpec.getName()));
                     }
                 }
             }
@@ -199,7 +190,7 @@ public class DataSourceService {
         }
 
         return builder.groupBy(groupBy)
-                      .fields(fields)
+                      .resultColumns(resultColumnList)
                       .dataSource(schema)
                       .filters(CollectionUtils.emptyOrOriginal(query.getFilters()))
                       .interval(Interval.of(start, end, (int) windowLength))

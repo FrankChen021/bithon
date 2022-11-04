@@ -18,16 +18,16 @@ package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.query.ast.Alias;
+import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.Fields;
 import org.bithon.server.storage.datasource.query.ast.From;
 import org.bithon.server.storage.datasource.query.ast.Function;
 import org.bithon.server.storage.datasource.query.ast.GroupBy;
-import org.bithon.server.storage.datasource.query.ast.IAST;
 import org.bithon.server.storage.datasource.query.ast.IASTVisitor;
 import org.bithon.server.storage.datasource.query.ast.Limit;
 import org.bithon.server.storage.datasource.query.ast.Name;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SelectStatement;
 import org.bithon.server.storage.datasource.query.ast.StringExpression;
 import org.bithon.server.storage.datasource.query.ast.Table;
@@ -81,19 +81,6 @@ public class SQLGenerator implements IASTVisitor {
     }
 
     @Override
-    public void visit(Fields fields) {
-        for (IAST field : fields.getFields()) {
-            field.accept(this);
-
-            sql.append(',');
-        }
-        int last = sql.length() - 1;
-        if (sql.charAt(last) == ',') {
-            sql.delete(sql.length() - 1, sql.length());
-        }
-    }
-
-    @Override
     public void visit(Limit limit) {
         sql.append(" LIMIT ");
         sql.append(limit.getLimit());
@@ -122,6 +109,24 @@ public class SQLGenerator implements IASTVisitor {
     @Override
     public void visit(StringExpression stringExpression) {
         sql.append(stringExpression.getStr());
+    }
+
+    @Override
+    public void visit(int index, int count, ResultColumn resultColumn) {
+
+        resultColumn.accept(this);
+
+        if (index < count - 1) {
+            sql.append(',');
+        }
+    }
+
+    @Override
+    public void visit(Column column) {
+        sql.append('\"');
+        sql.append(column);
+        sql.append('\"');
+        sql.append(' ');
     }
 
     @Override

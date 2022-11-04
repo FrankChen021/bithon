@@ -22,7 +22,8 @@ import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Name;
+import org.bithon.server.storage.datasource.query.ast.Column;
+import org.bithon.server.storage.datasource.query.ast.ResultColumnList;
 import org.bithon.server.storage.datasource.query.ast.SelectStatement;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
 import org.bithon.server.storage.datasource.query.ast.StringExpression;
@@ -60,7 +61,7 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> timeseries(Query query) {
         SelectStatement selectStatement = SelectExpressionBuilder.builder()
                                                                  .dataSource(query.getDataSource())
-                                                                 .fields(query.getFields())
+                                                                 .fields(ResultColumnList.from(query.getResultColumns()))
                                                                  .filters(query.getFilters())
                                                                  .interval(query.getInterval())
                                                                  .groupBys(query.getGroupBy())
@@ -74,11 +75,11 @@ public class MetricJdbcReader implements IMetricReader {
             timestampFilterExpression = (SelectStatement) selectStatement.getFrom().getExpression();
 
             // Add timestamp field to outer query at first position
-            selectStatement.getFields().insert(new Name(TIMESTAMP_ALIAS_NAME));
+            selectStatement.getResultColumnList().insert(new Column(TIMESTAMP_ALIAS_NAME));
         }
 
         // Add timestamp expression to sub-query
-        timestampFilterExpression.getFields()
+        timestampFilterExpression.getResultColumnList()
                                  .insert(new StringExpression(StringUtils.format("%s AS \"%s\"",
                                                                                  sqlDialect.timeFloor("timestamp", query.getInterval().getStep()),
                                                                                  TIMESTAMP_ALIAS_NAME)));
@@ -94,7 +95,7 @@ public class MetricJdbcReader implements IMetricReader {
     public List<?> groupBy(Query query) {
         SelectStatement selectStatement = SelectExpressionBuilder.builder()
                                                                  .dataSource(query.getDataSource())
-                                                                 .fields(query.getFields())
+                                                                 .fields(ResultColumnList.from(query.getResultColumns()))
                                                                  .filters(query.getFilters())
                                                                  .interval(query.getInterval())
                                                                  .groupBys(query.getGroupBy())
@@ -122,7 +123,7 @@ public class MetricJdbcReader implements IMetricReader {
         String filter = SQLFilterBuilder.build(query.getDataSource(), query.getFilters());
         String sql = StringUtils.format(
             "SELECT %s FROM \"%s\" WHERE %s %s \"timestamp\" >= %s AND \"timestamp\" < %s %s LIMIT %d OFFSET %d",
-            query.getFields().stream().map(field -> "\"" + field.getField() + "\"").collect(Collectors.joining(",")),
+            query.getResultColumns().stream().map(field -> "\"" + field.getColumnExpression() + "\"").collect(Collectors.joining(",")),
             sqlTableName,
             filter,
             StringUtils.hasText(filter) ? "AND" : "",

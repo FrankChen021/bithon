@@ -18,35 +18,37 @@ package org.bithon.server.storage.datasource.query.ast;
 
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author frank.chen021@outlook.com
- * @date 2022/9/4 14:56
+ * @date 2022/9/4 16:11
  */
-public class Fields implements IAST {
-    @Getter
-    private final List<IAST> fields = new ArrayList<>(8);
+@Getter
+public class ResultColumn implements IAST {
+    private final IAST columnExpression;
+    private final Alias alias;
 
-    public Fields insert(IAST field) {
-        fields.add(0, field);
-        return this;
+    public ResultColumn(String name) {
+        this(new Column(name), (Alias) null);
     }
 
-    public Fields addField(IAST field) {
-        fields.add(field);
-        return this;
+    ResultColumn(IAST columnExpression) {
+        this(columnExpression, (String) null);
     }
 
-    public void addFields(List<String> fields) {
-        for (String field : fields) {
-            this.fields.add(new Name(field));
-        }
+    public ResultColumn(IAST columnExpression, String alias) {
+        this(columnExpression, alias == null ? null : new Alias(alias));
+    }
+
+    public ResultColumn(IAST columnExpression, Alias alias) {
+        this.columnExpression = columnExpression;
+        this.alias = alias;
     }
 
     @Override
     public void accept(IASTVisitor visitor) {
-        visitor.visit(this);
+        columnExpression.accept(visitor);
+        if (alias != null) {
+            alias.accept(visitor);
+        }
     }
 }

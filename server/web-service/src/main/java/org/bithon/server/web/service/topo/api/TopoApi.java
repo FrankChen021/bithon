@@ -25,8 +25,7 @@ import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.query.Query;
-import org.bithon.server.storage.datasource.query.ast.Field;
-import org.bithon.server.storage.datasource.query.ast.Name;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.meta.EndPointType;
@@ -75,18 +74,24 @@ public class TopoApi {
 
         Query calleeQuery = Query.builder()
                                  .dataSource(topoSchema)
-                                 .fields(Stream.of("dstEndpoint", "dstEndpointType", "callCount", "avgResponseTime", "maxResponseTime", "minResponseTime")
-                                               .map((metric) -> {
-                                                   IColumnSpec spec = topoSchema.getColumnByName(metric);
-                                                   if (spec instanceof IDimensionSpec) {
-                                                       return new Field(new Name(spec.getName()));
-                                                   }
-                                                   if (spec instanceof PostAggregatorMetricSpec) {
-                                                       return (Field) ((PostAggregatorMetricSpec) spec).toAST();
-                                                   }
-                                                   return new Field(((IMetricSpec) spec).getQueryAggregator(), spec.getName());
-                                               })
-                                               .collect(Collectors.toList()))
+                                 .resultColumns(Stream.of("dstEndpoint",
+                                                          "dstEndpointType",
+                                                          "callCount",
+                                                          "avgResponseTime",
+                                                          "maxResponseTime",
+                                                          "minResponseTime")
+                                                      .map((column) -> {
+                                                          IColumnSpec spec = topoSchema.getColumnByName(column);
+                                                          if (spec instanceof IDimensionSpec) {
+                                                              return new ResultColumn(spec.getName());
+                                                          }
+                                                          if (spec instanceof PostAggregatorMetricSpec) {
+                                                              return (ResultColumn) ((PostAggregatorMetricSpec) spec).toAST();
+                                                          }
+                                                          return new ResultColumn(((IMetricSpec) spec).getQueryAggregator(),
+                                                                                  spec.getName());
+                                                      })
+                                                      .collect(Collectors.toList()))
                                  .filters(Arrays.asList(new DimensionFilter("srcEndpoint",
                                                                             new StringEqualMatcher(request.getApplication())),
                                                         new DimensionFilter("srcEndpointType",
@@ -128,18 +133,24 @@ public class TopoApi {
 
         Query callerQuery = Query.builder()
                                  .dataSource(topoSchema)
-                                 .fields(Stream.of("srcEndpoint", "srcEndpointType", "callCount", "avgResponseTime", "maxResponseTime", "minResponseTime")
-                                               .map((metric) -> {
-                                                   IColumnSpec spec = topoSchema.getColumnByName(metric);
-                                                   if (spec instanceof IDimensionSpec) {
-                                                       return new Field(new Name(spec.getName()));
-                                                   }
-                                                   if (spec instanceof PostAggregatorMetricSpec) {
-                                                       return (Field) ((PostAggregatorMetricSpec) spec).toAST();
-                                                   }
-                                                   return new Field(((IMetricSpec) spec).getQueryAggregator(), spec.getName());
-                                               })
-                                               .collect(Collectors.toList()))
+                                 .resultColumns(Stream.of("srcEndpoint",
+                                                          "srcEndpointType",
+                                                          "callCount",
+                                                          "avgResponseTime",
+                                                          "maxResponseTime",
+                                                          "minResponseTime")
+                                                      .map((column) -> {
+                                                          IColumnSpec spec = topoSchema.getColumnByName(column);
+                                                          if (spec instanceof IDimensionSpec) {
+                                                              return new ResultColumn(spec.getName());
+                                                          }
+                                                          if (spec instanceof PostAggregatorMetricSpec) {
+                                                              return (ResultColumn) ((PostAggregatorMetricSpec) spec).toAST();
+                                                          }
+                                                          return new ResultColumn(((IMetricSpec) spec).getQueryAggregator(),
+                                                                                  spec.getName());
+                                                      })
+                                                      .collect(Collectors.toList()))
                                  .filters(Arrays.asList(new DimensionFilter("dstEndpoint",
                                                                             new StringEqualMatcher(request.getApplication())),
                                                         new DimensionFilter("dstEndpointType",

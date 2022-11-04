@@ -24,7 +24,7 @@ import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.Expression;
-import org.bithon.server.storage.datasource.query.ast.Field;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.IAST;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
 import org.bithon.server.storage.datasource.query.parser.FieldExpressionParserImpl;
@@ -137,6 +137,6 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     }
 
     public IAST toAST() {
-        return new Field(new Expression(this.expression), this.name);
+        return new ResultColumn(new Expression(this.expression), this.name);
     }
 }

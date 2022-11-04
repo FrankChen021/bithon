@@ -27,7 +27,7 @@ public class Name implements IAST {
 
     private final String name;
 
-    public Name(String name) {
+    Name(String name) {
         this.name = name;
     }
 

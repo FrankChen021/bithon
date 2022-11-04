@@ -23,7 +23,9 @@ package org.bithon.server.storage.datasource.query.ast;
 public interface IASTVisitor {
 
     void before(SelectStatement selectStatement);
+
     void visit(SelectStatement selectStatement);
+
     void after(SelectStatement selectStatement);
 
     void visit(OrderBy orderBy);
@@ -36,17 +38,19 @@ public interface IASTVisitor {
 
     void visit(From from);
 
-    void visit(Alias alias);
-
-    void visit(Name name);
-
     void before(Function function);
 
     void after(Function function);
 
     void visit(StringExpression stringExpression);
 
-    void visit(Fields fields);
+    void visit(int index, int Count, ResultColumn resultColumn);
+
+    void visit(Column column);
+
+    void visit(Name name);
+
+    void visit(Alias alias);
 
     void visit(Limit limit);
 
