@@ -22,8 +22,8 @@ import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.LongLastAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunction;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunctions;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpecVisitor;
 
@@ -48,7 +48,7 @@ public abstract class GaugeMetricSpec implements IMetricSpec {
     @Getter
     protected final boolean visible;
 
-    protected final SimpleAggregator queryStageAggregator;
+    protected final SimpleAggregateFunction aggregateExpression;
 
     @JsonCreator
     public GaugeMetricSpec(String name,
@@ -61,7 +61,7 @@ public abstract class GaugeMetricSpec implements IMetricSpec {
         this.displayText = displayText;
         this.unit = unit;
         this.visible = visible == null ? true : visible;
-        this.queryStageAggregator = new SimpleAggregators.LastAggregator(name);
+        this.aggregateExpression = new SimpleAggregateFunctions.LastAggregateFunction(name);
     }
 
     @Override
@@ -75,8 +75,8 @@ public abstract class GaugeMetricSpec implements IMetricSpec {
 
     @JsonIgnore
     @Override
-    public SimpleAggregator getQueryAggregator() {
-        return queryStageAggregator;
+    public SimpleAggregateFunction getAggregateExpression() {
+        return aggregateExpression;
     }
 
     @Override

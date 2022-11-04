@@ -27,7 +27,6 @@ import org.bithon.server.storage.datasource.input.InputRow;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.meta.EndPointType;
 import org.bithon.server.storage.metrics.DimensionFilter;
 import org.bithon.server.storage.metrics.IMetricReader;
@@ -85,11 +84,7 @@ public class TopoApi {
                                                           if (spec instanceof IDimensionSpec) {
                                                               return new ResultColumn(spec.getName());
                                                           }
-                                                          if (spec instanceof PostAggregatorMetricSpec) {
-                                                              return (ResultColumn) ((PostAggregatorMetricSpec) spec).toAST();
-                                                          }
-                                                          return new ResultColumn(((IMetricSpec) spec).getQueryAggregator(),
-                                                                                  spec.getName());
+                                                          return ((IMetricSpec) spec).getResultColumn();
                                                       })
                                                       .collect(Collectors.toList()))
                                  .filters(Arrays.asList(new DimensionFilter("srcEndpoint",
@@ -144,11 +139,7 @@ public class TopoApi {
                                                           if (spec instanceof IDimensionSpec) {
                                                               return new ResultColumn(spec.getName());
                                                           }
-                                                          if (spec instanceof PostAggregatorMetricSpec) {
-                                                              return (ResultColumn) ((PostAggregatorMetricSpec) spec).toAST();
-                                                          }
-                                                          return new ResultColumn(((IMetricSpec) spec).getQueryAggregator(),
-                                                                                  spec.getName());
+                                                          return ((IMetricSpec) spec).getResultColumn();
                                                       })
                                                       .collect(Collectors.toList()))
                                  .filters(Arrays.asList(new DimensionFilter("dstEndpoint",

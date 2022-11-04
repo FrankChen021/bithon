@@ -23,9 +23,8 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Column;
-import org.bithon.server.storage.datasource.query.ast.ResultColumnList;
 import org.bithon.server.storage.datasource.query.ast.SelectStatement;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunctions;
 import org.bithon.server.storage.datasource.query.ast.StringExpression;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.IFilter;
@@ -61,7 +60,7 @@ public class MetricJdbcReader implements IMetricReader {
     public List<Map<String, Object>> timeseries(Query query) {
         SelectStatement selectStatement = SelectExpressionBuilder.builder()
                                                                  .dataSource(query.getDataSource())
-                                                                 .fields(ResultColumnList.from(query.getResultColumns()))
+                                                                 .fields(query.getResultColumns())
                                                                  .filters(query.getFilters())
                                                                  .interval(query.getInterval())
                                                                  .groupBys(query.getGroupBy())
@@ -95,7 +94,7 @@ public class MetricJdbcReader implements IMetricReader {
     public List<?> groupBy(Query query) {
         SelectStatement selectStatement = SelectExpressionBuilder.builder()
                                                                  .dataSource(query.getDataSource())
-                                                                 .fields(ResultColumnList.from(query.getResultColumns()))
+                                                                 .fields(query.getResultColumns())
                                                                  .filters(query.getFilters())
                                                                  .interval(query.getInterval())
                                                                  .groupBys(query.getGroupBy())
@@ -292,8 +291,8 @@ public class MetricJdbcReader implements IMetricReader {
 
         @Override
         public boolean useWindowFunctionAsAggregator(String aggregator) {
-            return SimpleAggregators.FirstAggregator.TYPE.equals(aggregator)
-                   || SimpleAggregators.LastAggregator.TYPE.equals(aggregator);
+            return SimpleAggregateFunctions.FirstAggregateFunction.TYPE.equals(aggregator)
+                   || SimpleAggregateFunctions.LastAggregateFunction.TYPE.equals(aggregator);
         }
 
         /*

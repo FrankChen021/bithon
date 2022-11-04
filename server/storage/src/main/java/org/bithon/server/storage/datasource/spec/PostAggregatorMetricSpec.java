@@ -25,17 +25,13 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.IAST;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
-import org.bithon.server.storage.datasource.query.parser.FieldExpressionParserImpl;
-import org.bithon.server.storage.datasource.query.parser.FieldExpressionVisitorAdaptor;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunction;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
-import java.util.function.Supplier;
 
 /**
  * @author frankchen
@@ -59,15 +55,6 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     @Getter
     private final boolean visible;
 
-    /**
-     * runtime property
-     */
-    @JsonIgnore
-    private final Supplier<FieldExpressionParserImpl> parserSupplier;
-
-    @JsonIgnore
-    private DataSourceSchema owner;
-
     @JsonCreator
     public PostAggregatorMetricSpec(@JsonProperty("name") @NotNull String name,
                                     @JsonProperty("displayText") @NotNull String displayText,
@@ -81,8 +68,6 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
         this.expression = Preconditions.checkArgumentNotNull("expression", expression).trim();
         this.valueType = "long".equalsIgnoreCase(valueType) ? LongValueType.INSTANCE : DoubleValueType.INSTANCE;
         this.visible = visible == null ? true : visible;
-
-        this.parserSupplier = () -> FieldExpressionParserImpl.create(expression);
     }
 
     @JsonIgnore
@@ -108,18 +93,12 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
 
     @JsonIgnore
     @Override
-    public SimpleAggregator getQueryAggregator() {
+    public SimpleAggregateFunction getAggregateExpression() {
         return null;
     }
 
     @Override
     public void setOwner(DataSourceSchema dataSource) {
-        this.owner = dataSource;
-    }
-
-    public void visitExpression(FieldExpressionVisitorAdaptor visitor) {
-        FieldExpressionParserImpl parser = this.parserSupplier.get();
-        parser.visit(visitor);
     }
 
     @Override
@@ -136,7 +115,8 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
         }
     }
 
-    public IAST toAST() {
+    @Override
+    public ResultColumn getResultColumn() {
         return new ResultColumn(new Expression(this.expression), this.name);
     }
 }

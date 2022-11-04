@@ -28,10 +28,8 @@ import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.ResultColumnList;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunctions;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
@@ -143,10 +141,10 @@ public class DataSourceService {
             }
 
             if (field.getAggregator() != null) {
-                org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregators.create(field.getAggregator(),
-                                                                                                            field.getField() == null
-                                                                                                            ? field.getName()
-                                                                                                            : field.getField());
+                org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregateFunctions.create(field.getAggregator(),
+                                                                                                                   field.getField() == null
+                                                                                                                   ? field.getName()
+                                                                                                                   : field.getField());
                 resultColumnList.add(new ResultColumn(function, field.getName()));
             } else {
                 IColumnSpec columnSpec = schema.getColumnByName(field.getField());
@@ -157,13 +155,7 @@ public class DataSourceService {
                     resultColumnList.add(new ResultColumn(columnSpec.getName()));
                     groupBy.add(columnSpec.getName());
                 } else {
-                    if (columnSpec instanceof PostAggregatorMetricSpec) {
-                        PostAggregatorMetricSpec post = (PostAggregatorMetricSpec) (columnSpec);
-                        resultColumnList.add(new ResultColumn(new Expression(post.getExpression()), post.getName()));
-                    } else {
-                        SimpleAggregator aggregator = ((IMetricSpec) columnSpec).getQueryAggregator();
-                        resultColumnList.add(new ResultColumn(aggregator, columnSpec.getName()));
-                    }
+                    resultColumnList.add(((IMetricSpec) columnSpec).getResultColumn());
                 }
             }
         }

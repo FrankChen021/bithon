@@ -19,6 +19,9 @@ package org.bithon.server.storage.datasource.query.ast;
 import lombok.Getter;
 
 /**
+ *
+ * An expression that uses string to hold raw string
+ *
  * @author frank.chen021@outlook.com
  * @date 2022/9/4 16:49
  */

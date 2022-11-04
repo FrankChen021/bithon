@@ -27,9 +27,7 @@ import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.ResultColumnList;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
-import org.bithon.server.storage.datasource.spec.PostAggregatorMetricSpec;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.IMetricWriter;
@@ -86,14 +84,11 @@ public class DataSourceApi implements IDataSourceApi {
 
         List<ResultColumn> resultColumns = request.getAggregators()
                                                   .stream()
-                                                  .map(QueryAggregator::toAST)
+                                                  .map(QueryAggregator::toResultColumnExpression)
                                                   .collect(Collectors.toList());
         resultColumns.addAll(request.getMetrics().stream().map((metric) -> {
             IMetricSpec spec = schema.getMetricSpecByName(metric);
-            if (spec instanceof PostAggregatorMetricSpec) {
-                return (ResultColumn) ((PostAggregatorMetricSpec) spec).toAST();
-            }
-            return new ResultColumn(spec.getQueryAggregator(), spec.getName());
+            return spec.getResultColumn();
         }).collect(Collectors.toList()));
 
         return dataSourceService.timeseriesQuery(Query.builder()
@@ -122,13 +117,9 @@ public class DataSourceApi implements IDataSourceApi {
 
         List<ResultColumn> resultColumns = request.getMetrics().stream().map((metric) -> {
             IMetricSpec spec = schema.getMetricSpecByName(metric);
-            if (spec instanceof PostAggregatorMetricSpec) {
-                return (ResultColumn) ((PostAggregatorMetricSpec) spec).toAST();
-            } else {
-                return new ResultColumn(spec.getQueryAggregator(), spec.getName());
-            }
+            return spec.getResultColumn();
         }).collect(Collectors.toList());
-        resultColumns.addAll(request.getAggregators().stream().map(QueryAggregator::toAST).collect(Collectors.toList()));
+        resultColumns.addAll(request.getAggregators().stream().map(QueryAggregator::toResultColumnExpression).collect(Collectors.toList()));
 
         return (List<Map<String, Object>>) this.metricStorage.createMetricReader(schema).groupBy(Query.builder()
                                                                                                       .dataSource(schema)

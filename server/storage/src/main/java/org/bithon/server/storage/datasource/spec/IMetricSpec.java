@@ -22,7 +22,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunction;
 import org.bithon.server.storage.datasource.spec.gauge.DoubleGaugeMetricSpec;
 import org.bithon.server.storage.datasource.spec.gauge.LongGaugeMetricSpec;
 import org.bithon.server.storage.datasource.spec.max.LongMaxMetricSpec;
@@ -96,5 +97,9 @@ public interface IMetricSpec extends IColumnSpec {
 
     NumberAggregator createAggregator();
 
-    SimpleAggregator getQueryAggregator();
+    SimpleAggregateFunction getAggregateExpression();
+
+    default ResultColumn getResultColumn() {
+        return new ResultColumn(getAggregateExpression(), getName());
+    }
 }

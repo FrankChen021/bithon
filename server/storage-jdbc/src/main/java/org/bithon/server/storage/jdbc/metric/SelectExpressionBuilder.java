@@ -29,10 +29,9 @@ import org.bithon.server.storage.datasource.query.ast.Limit;
 import org.bithon.server.storage.datasource.query.ast.Name;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.ResultColumnList;
 import org.bithon.server.storage.datasource.query.ast.SelectStatement;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregator;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregators;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunction;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunctions;
 import org.bithon.server.storage.datasource.query.ast.StringExpression;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
@@ -59,7 +58,7 @@ public class SelectExpressionBuilder {
 
     private DataSourceSchema dataSource;
 
-    private ResultColumnList resultColumnList;
+    private List<ResultColumn> resultColumns;
 
     private Collection<IFilter> filters;
     private Interval interval;
@@ -83,8 +82,8 @@ public class SelectExpressionBuilder {
         return this;
     }
 
-    public SelectExpressionBuilder fields(ResultColumnList resultColumnList) {
-        this.resultColumnList = resultColumnList;
+    public SelectExpressionBuilder fields(List<ResultColumn> resultColumns) {
+        this.resultColumns = resultColumns;
         return this;
     }
 
@@ -120,7 +119,7 @@ public class SelectExpressionBuilder {
 
     static class FieldExpressionAnalyzer extends FieldExpressionVisitorAdaptor2 {
 
-        private final Map<String, Object> preAggregators;
+        private final Set<String> aggregatedColumn;
         private final ISqlDialect sqlExpressionFormatter;
 
         @Getter
@@ -131,10 +130,10 @@ public class SelectExpressionBuilder {
         private final DataSourceSchema schema;
 
         FieldExpressionAnalyzer(DataSourceSchema schema,
-                                Map<String, Object> queryStageAggregators,
+                                Set<String> aggregatedColumns,
                                 ISqlDialect sqlFormatter) {
             this.schema = schema;
-            this.preAggregators = queryStageAggregators;
+            this.aggregatedColumn = aggregatedColumns;
             this.sqlExpressionFormatter = sqlFormatter;
         }
 
@@ -150,14 +149,14 @@ public class SelectExpressionBuilder {
             }
 
             IMetricSpec metricSpec = (IMetricSpec) columnSpec;
-            if (preAggregators.containsKey(metricSpec.getName())) {
+            if (aggregatedColumn.contains(metricSpec.getName())) {
                 return;
             }
 
-            if (sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getQueryAggregator().getType())) {
+            if (sqlExpressionFormatter.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getFnName())) {
                 // The aggregator uses WindowFunction, it will be in a sub-query of generated SQL
                 // So, we turn the metric into a pre-aggregator
-                preAggregators.put(metricSpec.getName(), metricSpec.getQueryAggregator());
+                aggregatedColumn.add(metricSpec.getName());
 
                 windowFunctionAggregators.add(metricSpec);
             } else {
@@ -167,24 +166,24 @@ public class SelectExpressionBuilder {
         }
     }
 
-    static class FieldExpressionSQLGenerator {
+    static class SQLGenerator4Expression {
         private final ISqlDialect sqlDialect;
-        private final QueryStageAggregatorSQLGenerator queryStageAggregatorSQLGenerator;
+        private final SqlGenerator4SimpleAggregationFunction sqlGenerator4SimpleAggregationFunction;
 
         protected final Map<String, Object> internalVariables;
-        private final Map<String, Object> existingAggregators;
+        private final Set<String> aggregatedFields;
 
         private final DataSourceSchema schema;
 
-        FieldExpressionSQLGenerator(DataSourceSchema schema,
-                                    ISqlDialect sqlDialect,
-                                    Map<String, Object> existingAggregators,
-                                    QueryStageAggregatorSQLGenerator queryStageAggregatorSQLGenerator,
-                                    Map<String, Object> internalVariables) {
+        SQLGenerator4Expression(DataSourceSchema schema,
+                                ISqlDialect sqlDialect,
+                                Set<String> aggregatedFields,
+                                SqlGenerator4SimpleAggregationFunction sqlGenerator4SimpleAggregationFunction,
+                                Map<String, Object> internalVariables) {
             this.schema = schema;
             this.sqlDialect = sqlDialect;
-            this.existingAggregators = existingAggregators;
-            this.queryStageAggregatorSQLGenerator = queryStageAggregatorSQLGenerator;
+            this.aggregatedFields = aggregatedFields;
+            this.sqlGenerator4SimpleAggregationFunction = sqlGenerator4SimpleAggregationFunction;
             this.internalVariables = internalVariables;
         }
 
@@ -199,10 +198,10 @@ public class SelectExpressionBuilder {
                     IMetricSpec metricSpec = (IMetricSpec) columnSpec;
 
                     // Case 1. The field used in window function is presented in a sub-query, at the root query level we only reference the name
-                    boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(metricSpec.getQueryAggregator().getType());
+                    boolean useWindowFunctionAsAggregator = sqlDialect.useWindowFunctionAsAggregator(metricSpec.getAggregateExpression().getFnName());
 
                     // Case 2. Some DB does not allow same aggregation expressions, we use the existing expression
-                    boolean hasSameExpression = !sqlDialect.allowSameAggregatorExpression() && existingAggregators.containsKey(metricSpec.getName());
+                    boolean hasSameExpression = !sqlDialect.allowSameAggregatorExpression() && aggregatedFields.contains(metricSpec.getName());
 
                     if (useWindowFunctionAsAggregator || hasSameExpression) {
                         sb.append('"');
@@ -210,7 +209,7 @@ public class SelectExpressionBuilder {
                         sb.append('"');
                     } else {
                         // generate a aggregation expression
-                        sb.append(metricSpec.getQueryAggregator().accept(queryStageAggregatorSQLGenerator));
+                        sb.append(metricSpec.getAggregateExpression().accept(sqlGenerator4SimpleAggregationFunction));
                     }
                 }
 
@@ -306,10 +305,10 @@ public class SelectExpressionBuilder {
         //
         // Turn some metrics(those use window functions for aggregation) in expression into pre-aggregator first
         //
-        Map<String, Object> existingAggregators = this.resultColumnList.columnStream()
-                                                                       .filter((f) -> f.getColumnExpression() instanceof SimpleAggregator)
-                                                                       .collect(Collectors.toMap((f) -> ((SimpleAggregator) f.getColumnExpression()).getTargetField(),
-                                                                                                 (v) -> v));
+        Set<String> aggregatedFields = this.resultColumns.stream()
+                                                         .filter((f) -> f.getColumnExpression() instanceof SimpleAggregateFunction)
+                                                         .map(resultColumn -> ((SimpleAggregateFunction) resultColumn.getColumnExpression()).getTargetField())
+                                                         .collect(Collectors.toSet());
 
         SelectStatement selectStatement = new SelectStatement();
         selectStatement.setGroupBy(new GroupBy());
@@ -319,23 +318,23 @@ public class SelectExpressionBuilder {
         // fields
         //
         boolean hasSubSelect = false;
-        QueryStageAggregatorSQLGenerator generator = new QueryStageAggregatorSQLGenerator(sqlDialect,
-                                                                                          interval.getTotalLength(),
-                                                                                          interval.getStep());
+        SqlGenerator4SimpleAggregationFunction generator = new SqlGenerator4SimpleAggregationFunction(sqlDialect,
+                                                                                                      interval.getTotalLength(),
+                                                                                                      interval.getStep());
 
-        FieldExpressionSQLGenerator fieldExpressionSQLGenerator = new FieldExpressionSQLGenerator(dataSource,
-                                                                                                  sqlDialect,
-                                                                                                  existingAggregators,
-                                                                                                  generator,
-                                                                                                  ImmutableMap.of("interval",
-                                                                                                                  interval.getStep(),
-                                                                                                                  "instanceCount",
-                                                                                                                  "count(distinct \"instanceName\")"));
+        SQLGenerator4Expression sqlGenerator4Expression = new SQLGenerator4Expression(dataSource,
+                                                                                      sqlDialect,
+                                                                                      aggregatedFields,
+                                                                                      generator,
+                                                                                      ImmutableMap.of("interval",
+                                                                                                      interval.getStep(),
+                                                                                                      "instanceCount",
+                                                                                                      "count(distinct \"instanceName\")"));
 
-        for (ResultColumn resultColumn : this.resultColumnList.getColumns()) {
-            IAST fieldExpr = resultColumn.getColumnExpression();
-            if (fieldExpr instanceof SimpleAggregator) {
-                SimpleAggregator function = (SimpleAggregator) fieldExpr;
+        for (ResultColumn resultColumn : this.resultColumns) {
+            IAST columnExpression = resultColumn.getColumnExpression();
+            if (columnExpression instanceof SimpleAggregateFunction) {
+                SimpleAggregateFunction function = (SimpleAggregateFunction) columnExpression;
 
                 // if window function is contained, the final SQL has a sub-query
                 if (sqlDialect.useWindowFunctionAsAggregator(function.getFnName())) {
@@ -356,34 +355,34 @@ public class SelectExpressionBuilder {
                     // Special case for some aggregators, they must also be grouped in sub-query
                     // for cardinality, we put it here instead of in `convertToGroupByQuery`
                     // because in some cases, this operator don't need to be in the groupBy expression which is constructed in that method
-                    if (function.getFnName().equals(SimpleAggregators.CardinalityAggregator.TYPE)) {
+                    if (function.getFnName().equals(SimpleAggregateFunctions.CardinalityAggregateFunction.TYPE)) {
                         selectStatement.getGroupBy().addField(underlyingFieldName);
                     }
 
                     // This metric should also be in the sub-query, see the example in the javadoc above
                     subSelectStatement.getResultColumnList().add(underlyingFieldName);
                 }
-            } else if (fieldExpr instanceof Expression) {
-                selectStatement.getResultColumnList().add(fieldExpressionSQLGenerator.visit((Expression) fieldExpr),
+            } else if (columnExpression instanceof Expression) {
+                selectStatement.getResultColumnList().add(sqlGenerator4Expression.visit((Expression) columnExpression),
                                                           resultColumn.getAlias());
-            } else if (fieldExpr instanceof Column) {
-                selectStatement.getResultColumnList().add(fieldExpr);
+            } else if (columnExpression instanceof Column) {
+                selectStatement.getResultColumnList().add(columnExpression);
             } else {
                 throw new RuntimeException(StringUtils.format("Invalid field[%s] with type[%s]", resultColumn.toString(), resultColumn.getClass().getName()));
             }
         }
 
         // Make sure all referenced metrics in field expression are in the sub-query
-        FieldExpressionAnalyzer fieldExpressionAnalyzer = new FieldExpressionAnalyzer(this.dataSource, existingAggregators, this.sqlDialect);
-        this.resultColumnList.columnStream()
-                             .filter((f) -> f.getColumnExpression() instanceof Expression)
-                             .forEach((f) -> ((Expression) f.getColumnExpression()).visitExpression(fieldExpressionAnalyzer));
+        FieldExpressionAnalyzer fieldExpressionAnalyzer = new FieldExpressionAnalyzer(this.dataSource, aggregatedFields, this.sqlDialect);
+        this.resultColumns.stream()
+                          .filter((f) -> f.getColumnExpression() instanceof Expression)
+                          .forEach((f) -> ((Expression) f.getColumnExpression()).visitExpression(fieldExpressionAnalyzer));
         for (String metric : fieldExpressionAnalyzer.getMetrics()) {
             subSelectStatement.getResultColumnList().add(metric);
         }
         for (IMetricSpec aggregator : fieldExpressionAnalyzer.getWindowFunctionAggregators()) {
             subSelectStatement.getResultColumnList()
-                              .add(new StringExpression(aggregator.getQueryAggregator().accept(generator)), aggregator.getName());
+                              .add(new StringExpression(aggregator.getAggregateExpression().accept(generator)), aggregator.getName());
 
             // this window fields should be in the group-by clause and select clause,
             // see the javadoc above

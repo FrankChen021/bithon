@@ -21,175 +21,174 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bithon.component.commons.utils.StringUtils;
-import org.bithon.server.storage.datasource.query.IQueryStageAggregatorVisitor;
 
 /**
  * @author Frank Chen
  * @date 1/11/21 2:37 pm
  */
 
-public class SimpleAggregators {
+public class SimpleAggregateFunctions {
 
-    public static SimpleAggregator create(String type, String field) {
+    public static SimpleAggregateFunction create(String type, String field) {
         String json = StringUtils.format("{\"type\": \"%s\", \"field\": \"%s\"}", type, field);
         try {
-            return new ObjectMapper().readValue(json, SimpleAggregator.class);
+            return new ObjectMapper().readValue(json, SimpleAggregateFunction.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    abstract static class AbstractQueryStageAggregator extends SimpleAggregator {
-        public AbstractQueryStageAggregator(String field, String aggregator) {
+    abstract static class AbstractQueryStageAggregateFunction extends SimpleAggregateFunction {
+        public AbstractQueryStageAggregateFunction(String field, String aggregator) {
             super(aggregator);
             getArguments().add(new Name(field));
         }
     }
 
-    public static class CardinalityAggregator extends AbstractQueryStageAggregator {
+    public static class CardinalityAggregateFunction extends AbstractQueryStageAggregateFunction {
         public static final String TYPE = "cardinality";
 
         @JsonCreator
-        public CardinalityAggregator(@JsonProperty("field") String field) {
+        public CardinalityAggregateFunction(@JsonProperty("field") String field) {
             super(field, TYPE);
         }
 
         @Override
-        public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
+        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class SumAggregator extends AbstractQueryStageAggregator {
+    public static class SumAggregateFunction extends AbstractQueryStageAggregateFunction {
 
         public static final String TYPE = "sum";
 
         @JsonCreator
-        public SumAggregator(@JsonProperty("field") String field) {
+        public SumAggregateFunction(@JsonProperty("field") String field) {
             super(field, TYPE);
         }
 
         @Override
-        public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
+        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class CountAggregator extends AbstractQueryStageAggregator {
+    public static class CountAggregateFunction extends AbstractQueryStageAggregateFunction {
 
         public static final String TYPE = "count";
 
         @JsonCreator
-        public CountAggregator(@JsonProperty("field") String field) {
+        public CountAggregateFunction(@JsonProperty("field") String field) {
             super(field, TYPE);
         }
 
         @Override
-        public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
+        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class AvgAggregator extends AbstractQueryStageAggregator {
+    public static class AvgAggregateFunction extends AbstractQueryStageAggregateFunction {
 
         public static final String TYPE = "avg";
 
         @JsonCreator
-        public AvgAggregator(@JsonProperty("field") String field) {
+        public AvgAggregateFunction(@JsonProperty("field") String field) {
             super(field, TYPE);
         }
 
         @Override
-        public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
+        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class MaxAggregator extends AbstractQueryStageAggregator {
+    public static class MaxAggregateFunction extends AbstractQueryStageAggregateFunction {
 
         public static final String TYPE = "max";
 
         @JsonCreator
-        public MaxAggregator(@JsonProperty("field") String field) {
+        public MaxAggregateFunction(@JsonProperty("field") String field) {
             super(field, TYPE);
         }
 
         @Override
-        public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
+        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class MinAggregator extends AbstractQueryStageAggregator {
+    public static class MinAggregateFunction extends AbstractQueryStageAggregateFunction {
 
         public static final String TYPE = "min";
 
         @JsonCreator
-        public MinAggregator(@JsonProperty("field") String field) {
+        public MinAggregateFunction(@JsonProperty("field") String field) {
             super(field, TYPE);
         }
 
         @Override
-        public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
+        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class FirstAggregator extends AbstractQueryStageAggregator {
+    public static class FirstAggregateFunction extends AbstractQueryStageAggregateFunction {
         public static final String TYPE = "first";
 
         @JsonCreator
-        public FirstAggregator(@JsonProperty("field") String field) {
+        public FirstAggregateFunction(@JsonProperty("field") String field) {
             super(field, TYPE);
         }
 
         @Override
-        public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
+        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class LastAggregator extends AbstractQueryStageAggregator {
+    public static class LastAggregateFunction extends AbstractQueryStageAggregateFunction {
 
         public static final String TYPE = "last";
 
         @JsonCreator
-        public LastAggregator(@JsonProperty("field") String field) {
+        public LastAggregateFunction(@JsonProperty("field") String field) {
             super(field, TYPE);
         }
 
         @Override
-        public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
+        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class RateAggregator extends AbstractQueryStageAggregator {
+    public static class RateAggregateFunction extends AbstractQueryStageAggregateFunction {
 
         public static final String TYPE = "rate";
 
         @JsonCreator
-        public RateAggregator(@JsonProperty("field") String field) {
+        public RateAggregateFunction(@JsonProperty("field") String field) {
             super(field, TYPE);
         }
 
         @Override
-        public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
+        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }
 
-    public static class GroupConcatAggregator extends AbstractQueryStageAggregator {
+    public static class GroupConcatAggregateFunction extends AbstractQueryStageAggregateFunction {
 
         public static final String TYPE = "groupConcat";
 
         @JsonCreator
-        public GroupConcatAggregator(@JsonProperty("field") String field) {
+        public GroupConcatAggregateFunction(@JsonProperty("field") String field) {
             super(field, TYPE);
         }
 
         @Override
-        public <T> T accept(IQueryStageAggregatorVisitor<T> visitor) {
+        public <T> T accept(ISimpleAggregateFunctionVisitor<T> visitor) {
             return visitor.visit(this);
         }
     }

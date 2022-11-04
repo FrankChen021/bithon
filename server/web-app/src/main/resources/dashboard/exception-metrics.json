@@ -5,6 +5,23 @@
       "dataSource": "exception-metrics",
       "title": "Exceptions",
       "width": 4,
+      "yAxis": [
+        {
+          "format": "compact_number"
+        }
+      ],
+      "metrics": [
+        {
+          "name": "eventCount",
+          "chartType": "line",
+          "fill": false
+        }
+      ]
+    },
+    {
+      "dataSource": "exception-metrics",
+      "title": "Exception List",
+      "width": 4,
       "type":  "list",
       "columns": [
         {
