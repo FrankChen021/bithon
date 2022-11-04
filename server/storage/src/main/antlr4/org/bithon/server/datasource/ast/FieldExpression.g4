@@ -9,7 +9,7 @@ fieldExpression
   | fieldNameExpression
   | variableExpression
   | fieldExpression op=(ADD|SUB|MUL|DIV) fieldExpression
-  | function
+  | functionExpression
   | LEFT_PARENTHESES fieldExpression RIGHT_PARENTHESES
   ;
 
@@ -19,7 +19,7 @@ fieldNameExpression
 
 variableExpression: '{' ID '}';
 
-function
+functionExpression
   : functionNameExpression LEFT_PARENTHESES fieldExpression (COMMA fieldExpression)* RIGHT_PARENTHESES
   ;
 
