@@ -14,4 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-mvn checkstyle:checkstyle -T 8 --fail-at-end
+mvn checkstyle:checkstyle com.mycila:license-maven-plugin:check  -T 1C --fail-at-end

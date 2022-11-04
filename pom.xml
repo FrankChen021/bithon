@@ -248,6 +248,8 @@
             <licenseSet>
               <header>licenses/template.txt</header>
               <excludes>
+                <exclude>**/Dockerfile*</exclude>
+                <exclude>**/spring.factories</exclude>
                 <exclude>**/README</exclude>
                 <exclude>**/jOOQ/**</exclude>
                 <exclude>**/jooq/**</exclude>
