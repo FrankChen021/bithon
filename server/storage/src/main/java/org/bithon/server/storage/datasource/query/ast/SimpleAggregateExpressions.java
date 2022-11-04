@@ -27,22 +27,22 @@ import org.bithon.component.commons.utils.StringUtils;
  * @date 1/11/21 2:37 pm
  */
 
-public class SimpleAggregateFunctions {
+public class SimpleAggregateExpressions {
 
-    public static SimpleAggregateFunction create(String type, String field) {
+    public static SimpleAggregateExpression create(String type, String field) {
         String json = StringUtils.format("{\"type\": \"%s\", \"field\": \"%s\"}", type, field);
         try {
-            return new ObjectMapper().readValue(json, SimpleAggregateFunction.class);
+            return new ObjectMapper().readValue(json, SimpleAggregateExpression.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static class CardinalityAggregateFunction extends SimpleAggregateFunction {
+    public static class CardinalityAggregateExpression extends SimpleAggregateExpression {
         public static final String TYPE = "cardinality";
 
         @JsonCreator
-        public CardinalityAggregateFunction(@JsonProperty("field") String field) {
+        public CardinalityAggregateExpression(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -52,12 +52,12 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class SumAggregateFunction extends SimpleAggregateFunction {
+    public static class SumAggregateExpression extends SimpleAggregateExpression {
 
         public static final String TYPE = "sum";
 
         @JsonCreator
-        public SumAggregateFunction(@JsonProperty("field") String field) {
+        public SumAggregateExpression(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -67,12 +67,12 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class CountAggregateFunction extends SimpleAggregateFunction {
+    public static class CountAggregateExpression extends SimpleAggregateExpression {
 
         public static final String TYPE = "count";
 
         @JsonCreator
-        public CountAggregateFunction(@JsonProperty("field") String field) {
+        public CountAggregateExpression(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -82,12 +82,12 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class AvgAggregateFunction extends SimpleAggregateFunction {
+    public static class AvgAggregateExpression extends SimpleAggregateExpression {
 
         public static final String TYPE = "avg";
 
         @JsonCreator
-        public AvgAggregateFunction(@JsonProperty("field") String field) {
+        public AvgAggregateExpression(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -97,12 +97,12 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class MaxAggregateFunction extends SimpleAggregateFunction {
+    public static class MaxAggregateExpression extends SimpleAggregateExpression {
 
         public static final String TYPE = "max";
 
         @JsonCreator
-        public MaxAggregateFunction(@JsonProperty("field") String field) {
+        public MaxAggregateExpression(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -112,12 +112,12 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class MinAggregateFunction extends SimpleAggregateFunction {
+    public static class MinAggregateExpression extends SimpleAggregateExpression {
 
         public static final String TYPE = "min";
 
         @JsonCreator
-        public MinAggregateFunction(@JsonProperty("field") String field) {
+        public MinAggregateExpression(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -127,11 +127,11 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class FirstAggregateFunction extends SimpleAggregateFunction {
+    public static class FirstAggregateExpression extends SimpleAggregateExpression {
         public static final String TYPE = "first";
 
         @JsonCreator
-        public FirstAggregateFunction(@JsonProperty("field") String field) {
+        public FirstAggregateExpression(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -141,12 +141,12 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class LastAggregateFunction extends SimpleAggregateFunction {
+    public static class LastAggregateExpression extends SimpleAggregateExpression {
 
         public static final String TYPE = "last";
 
         @JsonCreator
-        public LastAggregateFunction(@JsonProperty("field") String field) {
+        public LastAggregateExpression(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -156,12 +156,12 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class RateAggregateFunction extends SimpleAggregateFunction {
+    public static class RateAggregateExpression extends SimpleAggregateExpression {
 
         public static final String TYPE = "rate";
 
         @JsonCreator
-        public RateAggregateFunction(@JsonProperty("field") String field) {
+        public RateAggregateExpression(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 
@@ -171,12 +171,12 @@ public class SimpleAggregateFunctions {
         }
     }
 
-    public static class GroupConcatAggregateFunction extends SimpleAggregateFunction {
+    public static class GroupConcatAggregateExpression extends SimpleAggregateExpression {
 
         public static final String TYPE = "groupConcat";
 
         @JsonCreator
-        public GroupConcatAggregateFunction(@JsonProperty("field") String field) {
+        public GroupConcatAggregateExpression(@JsonProperty("field") String field) {
             super(TYPE, field);
         }
 

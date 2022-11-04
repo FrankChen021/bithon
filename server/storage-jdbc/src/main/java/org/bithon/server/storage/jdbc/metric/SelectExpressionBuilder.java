@@ -30,8 +30,8 @@ import org.bithon.server.storage.datasource.query.ast.Name;
 import org.bithon.server.storage.datasource.query.ast.OrderBy;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.SelectExpression;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunction;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunctions;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.datasource.query.ast.Table;
 import org.bithon.server.storage.datasource.query.ast.Where;
@@ -306,8 +306,8 @@ public class SelectExpressionBuilder {
         // Turn some metrics(those use window functions for aggregation) in expression into pre-aggregator first
         //
         Set<String> aggregatedFields = this.resultColumns.stream()
-                                                         .filter((f) -> f.getColumnExpression() instanceof SimpleAggregateFunction)
-                                                         .map(resultColumn -> ((SimpleAggregateFunction) resultColumn.getColumnExpression()).getTargetColumn())
+                                                         .filter((f) -> f.getColumnExpression() instanceof SimpleAggregateExpression)
+                                                         .map(resultColumn -> ((SimpleAggregateExpression) resultColumn.getColumnExpression()).getTargetColumn())
                                                          .collect(Collectors.toSet());
 
         SelectExpression selectExpression = new SelectExpression();
@@ -333,8 +333,8 @@ public class SelectExpressionBuilder {
 
         for (ResultColumn resultColumn : this.resultColumns) {
             IASTNode columnExpression = resultColumn.getColumnExpression();
-            if (columnExpression instanceof SimpleAggregateFunction) {
-                SimpleAggregateFunction function = (SimpleAggregateFunction) columnExpression;
+            if (columnExpression instanceof SimpleAggregateExpression) {
+                SimpleAggregateExpression function = (SimpleAggregateExpression) columnExpression;
 
                 // if window function is contained, the final SQL has a sub-query
                 if (sqlDialect.useWindowFunctionAsAggregator(function.getFnName())) {
@@ -355,7 +355,7 @@ public class SelectExpressionBuilder {
                     // Special case for some aggregators, they must also be grouped in sub-query
                     // for cardinality, we put it here instead of in `convertToGroupByQuery`
                     // because in some cases, this operator don't need to be in the groupBy expression which is constructed in that method
-                    if (function.getFnName().equals(SimpleAggregateFunctions.CardinalityAggregateFunction.TYPE)) {
+                    if (function.getFnName().equals(SimpleAggregateExpressions.CardinalityAggregateExpression.TYPE)) {
                         selectExpression.getGroupBy().addField(underlyingFieldName);
                     }
 

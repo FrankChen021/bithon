@@ -28,7 +28,7 @@ import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.query.ast.ResultColumnList;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunctions;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.metrics.IMetricStorage;
@@ -141,7 +141,7 @@ public class DataSourceService {
             }
 
             if (field.getAggregator() != null) {
-                org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregateFunctions.create(field.getAggregator(),
+                org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregateExpressions.create(field.getAggregator(),
                                                                                                                    field.getField() == null
                                                                                                                    ? field.getName()
                                                                                                                    : field.getField());

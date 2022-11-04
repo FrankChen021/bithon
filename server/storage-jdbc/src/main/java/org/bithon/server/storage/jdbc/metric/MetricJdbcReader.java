@@ -24,7 +24,7 @@ import org.bithon.server.storage.datasource.query.OrderBy;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Column;
 import org.bithon.server.storage.datasource.query.ast.SelectExpression;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunctions;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.query.ast.StringNode;
 import org.bithon.server.storage.jdbc.utils.SQLFilterBuilder;
 import org.bithon.server.storage.metrics.IFilter;
@@ -291,8 +291,8 @@ public class MetricJdbcReader implements IMetricReader {
 
         @Override
         public boolean useWindowFunctionAsAggregator(String aggregator) {
-            return SimpleAggregateFunctions.FirstAggregateFunction.TYPE.equals(aggregator)
-                   || SimpleAggregateFunctions.LastAggregateFunction.TYPE.equals(aggregator);
+            return SimpleAggregateExpressions.FirstAggregateExpression.TYPE.equals(aggregator)
+                   || SimpleAggregateExpressions.LastAggregateExpression.TYPE.equals(aggregator);
         }
 
         /*

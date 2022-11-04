@@ -25,7 +25,7 @@ import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunction;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
@@ -93,7 +93,7 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
 
     @JsonIgnore
     @Override
-    public SimpleAggregateFunction getAggregateExpression() {
+    public SimpleAggregateExpression getAggregateExpression() {
         return null;
     }
 

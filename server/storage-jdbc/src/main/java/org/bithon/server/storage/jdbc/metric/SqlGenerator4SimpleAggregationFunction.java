@@ -18,7 +18,7 @@ package org.bithon.server.storage.jdbc.metric;
 
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.query.ast.ISimpleAggregateFunctionVisitor;
-import org.bithon.server.storage.datasource.query.ast.SimpleAggregateFunctions;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 
 /**
  * @author Frank Chen
@@ -41,53 +41,53 @@ public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateF
     }
 
     @Override
-    public String visit(SimpleAggregateFunctions.CardinalityAggregateFunction aggregator) {
+    public String visit(SimpleAggregateExpressions.CardinalityAggregateExpression aggregator) {
         return StringUtils.format("count(DISTINCT \"%s\")", aggregator.getTargetColumn());
     }
 
     @Override
-    public String visit(SimpleAggregateFunctions.SumAggregateFunction aggregator) {
+    public String visit(SimpleAggregateExpressions.SumAggregateExpression aggregator) {
         return StringUtils.format("sum(\"%s\")", aggregator.getTargetColumn());
     }
 
     @Override
-    public String visit(SimpleAggregateFunctions.GroupConcatAggregateFunction aggregator) {
+    public String visit(SimpleAggregateExpressions.GroupConcatAggregateExpression aggregator) {
         // No need to pass hasAlias because this type of field can't be on an expression as of now
         return formatter.stringAggregator(aggregator.getTargetColumn());
     }
 
     @Override
-    public String visit(SimpleAggregateFunctions.CountAggregateFunction aggregator) {
+    public String visit(SimpleAggregateExpressions.CountAggregateExpression aggregator) {
         return "count(1)";
     }
 
     @Override
-    public String visit(SimpleAggregateFunctions.AvgAggregateFunction aggregator) {
+    public String visit(SimpleAggregateExpressions.AvgAggregateExpression aggregator) {
         return StringUtils.format("avg(\"%s\")", aggregator.getTargetColumn());
     }
 
     @Override
-    public String visit(SimpleAggregateFunctions.FirstAggregateFunction aggregator) {
+    public String visit(SimpleAggregateExpressions.FirstAggregateExpression aggregator) {
         throw new RuntimeException("first agg not supported now");
     }
 
     @Override
-    public String visit(SimpleAggregateFunctions.LastAggregateFunction aggregator) {
+    public String visit(SimpleAggregateExpressions.LastAggregateExpression aggregator) {
         return formatter.lastAggregator(aggregator.getTargetColumn(), step);
     }
 
     @Override
-    public String visit(SimpleAggregateFunctions.RateAggregateFunction aggregator) {
+    public String visit(SimpleAggregateExpressions.RateAggregateExpression aggregator) {
         return StringUtils.format("sum(\"%s\")/%d", aggregator.getTargetColumn(), step);
     }
 
     @Override
-    public String visit(SimpleAggregateFunctions.MaxAggregateFunction aggregator) {
+    public String visit(SimpleAggregateExpressions.MaxAggregateExpression aggregator) {
         return StringUtils.format("max(\"%s\")", aggregator.getTargetColumn());
     }
 
     @Override
-    public String visit(SimpleAggregateFunctions.MinAggregateFunction aggregator) {
+    public String visit(SimpleAggregateExpressions.MinAggregateExpression aggregator) {
         return StringUtils.format("min(\"%s\")", aggregator.getTargetColumn());
     }
 }
