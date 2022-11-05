@@ -184,7 +184,7 @@ class Dashboard {
 
                     // init the detail
                     $.each(dashboard.charts, (index, chartDescriptor) => {
-                        this.#initChartDetail(chartDescriptor);
+                        this.createChartDetail(chartDescriptor);
                     });
                 },
                 errorCallback: (error) => {
@@ -196,7 +196,7 @@ class Dashboard {
         }
     }
 
-    #initChartDetail(chartDescriptor) {
+    createChartDetail(chartDescriptor) {
         // create detail view for this chart
         if (chartDescriptor.details == null) {
             return;
@@ -229,17 +229,22 @@ class Dashboard {
         }
 
         const pageable = chartDescriptor.details.groupBy === undefined || chartDescriptor.details.groupBy.length === 0;
-        const detailView = this.#createDetailView(detailViewId,
-            chartComponent.getUIContainer(),
-            columns,
-            [{
+        const orderBy = chartDescriptor.details.orderBy;
+        const detailView = new TableComponent({
+            tableId: detailViewId,
+            parent: chartComponent.getUIContainer(),
+            columns: columns,
+            buttons: [{
                 title: "Tracing Log",
                 text: "Search...",
                 visible: chartDescriptor.details.tracing !== undefined,
                 onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
             }],
-            pageable,
-            chartDescriptor.details.orderBy);
+            pagination: pageable,
+            order: orderBy == null ? null : orderBy.order,
+            orderBy: orderBy == null ? null : orderBy.name
+        });
+
         chartComponent.setSelectionHandler(
             (option, start, end) => {
                 this.#refreshDetailView(chartDescriptor, detailView, fields, option, start, end);
@@ -484,18 +489,6 @@ class Dashboard {
         return [fields, columns];
     }
 
-    #createDetailView(id, parent, columns, buttons, pageable, orderBy) {
-        return new TableComponent({
-            tableId: id,
-            parent: parent,
-            columns: columns,
-            buttons: buttons,
-            pagination: pageable,
-            order: orderBy == null ? null : orderBy.order,
-            orderBy: orderBy == null ? null : orderBy.name
-        });
-    }
-
     #refreshDetailView(chartDescriptor, detailView, fields, chartOption, startIndex, endIndex) {
         // get the time range
         const start = chartOption.timestamp.start;
@@ -729,7 +722,7 @@ class Dashboard {
                 tableId: chartId + '_table',
                 parent: vParent,
                 columns: columns,
-                pagination: false,
+                pagination: chartDescriptor.pagination,
                 detailView: false,
 
                 // default order
@@ -865,8 +858,14 @@ class Dashboard {
             resultFormat: 'Object'
         }, chartDescriptor.query);
 
+        let path;
+        if (chartDescriptor.query.type === 'list') {
+            path = '/api/datasource/list'
+        } else {
+            path = '/api/datasource/groupBy/v2';
+        }
         const loadOptions = {
-            url: apiHost + "/api/datasource/groupBy/v2",
+            url: apiHost + path,
             ajaxData: query
         };
         tableComponent.load(loadOptions);
@@ -897,9 +896,6 @@ class Dashboard {
 
     // PRIVATE
     createChartComponent(chartId, chartDescriptor) {
-        if (chartDescriptor.type === 'list') {
-            return this.createListComponent(chartId, chartDescriptor);
-        }
         if (chartDescriptor.type === 'table') {
             return this.createTableComponent(chartId, chartDescriptor);
         }

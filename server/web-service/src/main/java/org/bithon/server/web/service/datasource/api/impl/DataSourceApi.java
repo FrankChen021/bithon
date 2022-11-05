@@ -23,8 +23,8 @@ import org.bithon.server.storage.common.TTLConfig;
 import org.bithon.server.storage.datasource.DataSourceExistException;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IColumnSpec;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
-import org.bithon.server.storage.datasource.query.Limit;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
@@ -39,7 +39,6 @@ import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.GroupByQueryRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
-import org.bithon.server.web.service.datasource.api.ListQueryRequest;
 import org.bithon.server.web.service.datasource.api.ListQueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryRequest;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
@@ -133,16 +132,22 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public ListQueryResponse list(ListQueryRequest request) {
+    public ListQueryResponse list(GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         Query query = Query.builder()
                            .dataSource(schema)
-                           .resultColumns(request.getColumns().stream().map(ResultColumn::new).collect(Collectors.toList()))
+                           .resultColumns(request.getFields()
+                                                 .stream()
+                                                 .map((field) -> {
+                                                     IColumnSpec spec = schema.getColumnByName(field.getField());
+                                                     return new ResultColumn(spec.getName(), field.getName());
+                                                 }).collect(Collectors.toList()))
                            .filters(request.getFilters())
-                           .interval(Interval.of(TimeSpan.fromISO8601(request.getStartTimeISO8601()), TimeSpan.fromISO8601(request.getEndTimeISO8601())))
+                           .interval(Interval.of(TimeSpan.fromISO8601(request.getInterval().getStartISO8601()),
+                                                 TimeSpan.fromISO8601(request.getInterval().getEndISO8601())))
                            .orderBy(request.getOrderBy())
-                           .limit(new Limit(request.getPageSize(), request.getPageNumber() * request.getPageSize()))
+                           .limit(request.getLimit())
                            .build();
 
         IMetricReader reader = this.metricStorage.createMetricReader(schema);

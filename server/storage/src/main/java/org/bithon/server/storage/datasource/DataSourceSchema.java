@@ -23,6 +23,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bithon.server.commons.time.Period;
 import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
+import org.bithon.server.storage.datasource.dimension.LongDimensionSpec;
 import org.bithon.server.storage.datasource.input.IInputSource;
 import org.bithon.server.storage.datasource.spec.CountMetricSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
@@ -93,6 +94,8 @@ public class DataSourceSchema {
     @JsonIgnore
     private boolean isVirtual = false;
 
+    private static IDimensionSpec TIMESTAMP_COLUMN = new LongDimensionSpec("timestamp", "timestamp", null, true, true);
+
     public DataSourceSchema(String displayText,
                             String name,
                             TimestampSpec timestampSpec,
@@ -119,6 +122,7 @@ public class DataSourceSchema {
 
         this.dimensionsSpec.forEach((dimensionSpec) -> dimensionMap.put(dimensionSpec.getName(), dimensionSpec));
         this.metricsSpec.forEach((metricSpec) -> metricsMap.put(metricSpec.getName(), metricSpec));
+        this.dimensionMap.put(TIMESTAMP_COLUMN.getName(), TIMESTAMP_COLUMN);
 
         // set owner after initialization
         this.metricsSpec.forEach((metricSpec) -> metricSpec.setOwner(this));

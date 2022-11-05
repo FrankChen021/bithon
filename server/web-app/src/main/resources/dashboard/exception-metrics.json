@@ -22,43 +22,61 @@
       "dataSource": "exception-metrics",
       "title": "Exception List",
       "width": 4,
-      "type":  "list",
+      "type":  "table",
       "columns": [
         {
-          "field": "timestamp",
+          "name": "timestamp",
           "title": "Time",
           "format": "shortDateTime",
           "width": 150
         },
         {
-          "field": "instanceName",
+          "name": "instanceName",
           "title": "Instance"
         },
         {
-          "field": "thread",
+          "name": "thread",
           "title": "Thread",
           "width": 150
         },
         {
-          "field": "traceId",
+          "name": "traceId",
           "title": "Trace Id",
           "format": "template",
           "template": "<a target='_blank' href='/web/trace/detail?id={value}&type=trace'>{value}</a>"
         },
         {
-          "field": "exceptionClass",
+          "name": "exceptionClass",
           "title": "Exception"
         },
         {
-          "field": "message",
+          "name": "message",
           "title": "Message"
         },
         {
-          "field": "stack",
+          "name": "stack",
           "title": "Stack Trace",
           "format": "detail"
         }
-      ]
+      ],
+      "pagination": [25, 50, 100],
+      "query": {
+        "dataSource": "exception-metrics",
+        "type": "list",
+        "fields": [
+          "timestamp",
+          "instanceName",
+          "thread",
+          "traceId",
+          "exceptionClass",
+          "message",
+          "stack"
+        ],
+        "orderBy": {
+          "name": "timestamp",
+          "order": "desc"
+        }
+      }
     }
   ]
 }

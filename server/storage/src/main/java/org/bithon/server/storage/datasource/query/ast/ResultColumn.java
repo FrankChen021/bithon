@@ -34,6 +34,10 @@ public class ResultColumn implements IASTNode {
         this(new Column(name), (ColumnAlias) null);
     }
 
+    public ResultColumn(String name, String alias) {
+        this(new Column(name), alias == null ? null : new ColumnAlias(alias));
+    }
+
     ResultColumn(IASTNode columnExpression) {
         this(columnExpression, (String) null);
     }

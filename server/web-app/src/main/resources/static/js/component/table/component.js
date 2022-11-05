@@ -22,7 +22,8 @@ class TableComponent {
 
         this.mColumns = option.columns;
         this.mCreated = false;
-        this.mPagination = option.pagination === undefined ? false : option.pagination;
+        this.mHasPagination = option.pagination !== undefined;
+        this.mPagination = option.pagination;
         this.mDetailViewField = null;
         this.mColumnMap = {};
 
@@ -82,7 +83,7 @@ class TableComponent {
     }
 
     header(text) {
-        if ( this._header == null ) {
+        if (this._header == null) {
             this._header = $(this.vTableContainer).prepend('<div class="card-header"></div>').find('.card-header');
         }
         $(this._header).html(text);
@@ -123,9 +124,9 @@ class TableComponent {
                 showRefresh: false,
 
                 sidePagination: "server",
-                pagination: this.mPagination,
+                pagination: this.mHasPagination,
 
-                serverSort: this.mPagination,
+                serverSort: this.mHasPagination,
                 sortName: this.mDefaultOrderBy,
                 sortOrder: this.mDefaultOrder,
 
@@ -142,12 +143,12 @@ class TableComponent {
                 stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
                 theadClasses: 'thead-light'
             };
-            if (this.mPagination) {
+            if (this.mHasPagination) {
                 tableOption.paginationPreText = '<';
                 tableOption.paginationNextText = '>';
                 tableOption.pageNumber = 1;
                 tableOption.pageSize = 10;
-                tableOption.pageList = [10, 25, 50, 100];
+                tableOption.pageList = this.mPagination;
             }
 
             this.vTable.bootstrapTable(tableOption);
@@ -169,8 +170,17 @@ class TableComponent {
     }
 
     #getQueryParams(params) {
-        this.mQueryParam.pageNumber = params.pageNumber - 1;
-        this.mQueryParam.pageSize = params.pageSize;
+        if (this.mHasPagination) {
+            // Compatible with old interface
+            this.mQueryParam.pageNumber = params.pageNumber - 1;
+            this.mQueryParam.pageSize = params.pageSize;
+
+            this.mQueryParam.limit = {
+                limit: params.pageSize,
+                offset: this.mQueryParam.pageNumber * this.mQueryParam.pageSize
+            }
+        }
+
         if (params.sortName === undefined || params.sortName == null) {
             delete this.mQueryParam.orderBy;
         } else {

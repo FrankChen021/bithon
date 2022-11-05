@@ -46,7 +46,7 @@ public interface IDataSourceApi {
     List<?> groupBy(@Validated @RequestBody GeneralQueryRequest request);
 
     @PostMapping("/api/datasource/list")
-    ListQueryResponse list(@Validated @RequestBody ListQueryRequest request);
+    ListQueryResponse list(@Validated @RequestBody GeneralQueryRequest request);
 
     @PostMapping("/api/datasource/schemas")
     Map<String, DataSourceSchema> getSchemas();
