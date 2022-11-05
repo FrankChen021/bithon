@@ -110,8 +110,13 @@ class TableComponent {
     load(option) {
         console.log(option);
 
-        this.mStartTimestamp = option.start;
-        this.mEndTimestamp = option.end;
+        if (option.start !== undefined) {
+            this.mStartTimestamp = option.start;
+            this.mEndTimestamp = option.end;
+        } else {
+            this.mStartTimestamp = option.ajaxData.interval.startISO8601;
+            this.mEndTimestamp = option.ajaxData.interval.endISO8601;
+        }
         this.mQueryParam = option.ajaxData;
 
         if (!this.mCreated) {

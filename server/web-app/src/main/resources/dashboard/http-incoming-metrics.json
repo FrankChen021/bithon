@@ -22,14 +22,26 @@
         }
       ],
       "details": {
-        "groupBy": [
+        "type": "groupBy",
+        "columns": [
           "uri",
-          "statusCode"
-        ],
-        "metrics": [
+          "statusCode",
           "qps",
           "totalCount"
         ],
+        "query": {
+          "dataSource": "http-incoming-metrics",
+          "fields": [
+            "uri",
+            "statusCode",
+            "qps",
+            "totalCount"
+          ],
+          "orderBy": {
+            "name": "totalCount",
+            "order": "desc"
+          }
+        },
         "tracing": {
           "dimensionMaps": {
             "uri": "url",
