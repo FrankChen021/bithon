@@ -19,6 +19,7 @@ package org.bithon.server.storage.jdbc.metric;
 import org.bithon.component.commons.utils.StringUtils;
 import org.bithon.server.storage.datasource.query.ast.ISimpleAggregateFunctionVisitor;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
+import org.bithon.server.storage.metrics.Interval;
 
 /**
  * @author Frank Chen
@@ -26,18 +27,34 @@ import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions
  */
 public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateFunctionVisitor<String> {
 
-    private final ISqlDialect formatter;
+    private final ISqlDialect sqlDialect;
 
     /**
      * in second
      */
-    private final long step;
-    private final long length;
+    private final int step;
+    private long windowFunctionLength;
 
-    public SqlGenerator4SimpleAggregationFunction(ISqlDialect sqlFormatter, long length, long step) {
-        this.step = step;
-        this.length = length;
-        this.formatter = sqlFormatter;
+    public SqlGenerator4SimpleAggregationFunction(ISqlDialect sqlDialect, Interval interval) {
+        this.sqlDialect = sqlDialect;
+
+        if (interval.getStep() != null) {
+            windowFunctionLength = interval.getStep();
+            step = interval.getStep();
+        } else {
+            /**
+             * For Window functions, since the timestamp of records might cross two windows,
+             * we need to make sure the record in the given time range has only one window.
+             */
+            long endTime = interval.getEndTime().getMilliseconds();
+            long startTime = interval.getStartTime().getMilliseconds();
+            windowFunctionLength = (endTime - startTime) / 1000;
+            while (startTime / windowFunctionLength != endTime / windowFunctionLength) {
+                windowFunctionLength *= 2;
+            }
+
+            step = interval.getTotalLength();
+        }
     }
 
     @Override
@@ -53,7 +70,7 @@ public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateF
     @Override
     public String visit(SimpleAggregateExpressions.GroupConcatAggregateExpression aggregator) {
         // No need to pass hasAlias because this type of field can't be on an expression as of now
-        return formatter.stringAggregator(aggregator.getTargetColumn());
+        return sqlDialect.stringAggregator(aggregator.getTargetColumn());
     }
 
     @Override
@@ -73,7 +90,7 @@ public class SqlGenerator4SimpleAggregationFunction implements ISimpleAggregateF
 
     @Override
     public String visit(SimpleAggregateExpressions.LastAggregateExpression aggregator) {
-        return formatter.lastAggregator(aggregator.getTargetColumn(), step);
+        return sqlDialect.lastAggregator(aggregator.getTargetColumn(), windowFunctionLength);
     }
 
     @Override

@@ -94,7 +94,7 @@ public class DataSourceApi implements IDataSourceApi {
                                                       .dataSource(schema)
                                                       .resultColumns(resultColumns)
                                                       .filters(CollectionUtils.emptyOrOriginal(request.getFilters()))
-                                                      .interval(Interval.of(start, end, request.getInterval().getStep()))
+                                                      .interval(Interval.ofDefault(start, end, request.getInterval().getStep()))
                                                       .groupBy(CollectionUtils.emptyOrOriginal(request.getGroupBy()))
                                                       .build());
     }

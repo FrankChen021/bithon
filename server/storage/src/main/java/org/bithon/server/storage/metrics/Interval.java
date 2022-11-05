@@ -32,19 +32,23 @@ public class Interval {
      * in second
      */
     @Getter
-    private final int step;
+    private final Integer step;
 
-    private Interval(TimeSpan startTime, TimeSpan endTime, int step) {
+    private Interval(TimeSpan startTime, TimeSpan endTime, Integer step) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.step = step;
     }
 
     public static Interval of(TimeSpan start, TimeSpan end) {
-        return of(start, end, calculateDefaultStep(start, end));
+        return of(start, end, null);
     }
 
     public static Interval of(TimeSpan start, TimeSpan end, Integer step) {
+        return new Interval(start, end, step);
+    }
+
+    public static Interval ofDefault(TimeSpan start, TimeSpan end, Integer step) {
         return new Interval(start, end, step == null ? calculateDefaultStep(start, end) : step);
     }
 

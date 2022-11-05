@@ -125,7 +125,9 @@ public class DataSourceService {
         return result;
     }
 
-    public Query convertToQuery(DataSourceSchema schema, GeneralQueryRequest query, boolean bucketTimestamp) {
+    public Query convertToQuery(DataSourceSchema schema,
+                                GeneralQueryRequest query,
+                                boolean bucketTimestamp) {
         Query.QueryBuilder builder = Query.builder();
 
         List<String> groupBy = new ArrayList<>(4);
@@ -142,9 +144,9 @@ public class DataSourceService {
 
             if (field.getAggregator() != null) {
                 org.bithon.server.storage.datasource.query.ast.Function function = SimpleAggregateExpressions.create(field.getAggregator(),
-                                                                                                                   field.getField() == null
-                                                                                                                   ? field.getName()
-                                                                                                                   : field.getField());
+                                                                                                                     field.getField() == null
+                                                                                                                     ? field.getName()
+                                                                                                                     : field.getField());
                 resultColumnList.add(new ResultColumn(function, field.getName()));
             } else {
                 IColumnSpec columnSpec = schema.getColumnByName(field.getField());
@@ -163,29 +165,11 @@ public class DataSourceService {
         TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
 
-        /**
-         * For timeseries query, divide the timestamp by default step
-         * For groupBy query, use the whole length of interval as step
-         */
-        long windowLength;
-        if (bucketTimestamp) {
-            windowLength = Interval.calculateDefaultStep(start, end);
-        } else {
-            /*
-             * For Window functions, since the timestamp of records might cross two windows,
-             * we need to make sure the record in the given time range has only one window.
-             */
-            windowLength = end.toSeconds() - start.toSeconds();
-            while (start.getMilliseconds() / windowLength != end.getMilliseconds() / windowLength) {
-                windowLength *= 2;
-            }
-        }
-
         return builder.groupBy(groupBy)
                       .resultColumns(resultColumnList)
                       .dataSource(schema)
                       .filters(CollectionUtils.emptyOrOriginal(query.getFilters()))
-                      .interval(Interval.of(start, end, (int) windowLength))
+                      .interval(Interval.of(start, end, bucketTimestamp ? Interval.calculateDefaultStep(start, end) : null))
                       .orderBy(query.getOrderBy())
                       .limit(query.getLimit())
                       .resultFormat(query.getResultFormat() == null ? Query.ResultFormat.Object : query.getResultFormat())

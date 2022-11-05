@@ -319,15 +319,16 @@ public class SelectExpressionBuilder {
         //
         boolean hasSubSelect = false;
         SqlGenerator4SimpleAggregationFunction generator = new SqlGenerator4SimpleAggregationFunction(sqlDialect,
-                                                                                                      interval.getTotalLength(),
-                                                                                                      interval.getStep());
+                                                                                                      interval);
 
         SQLGenerator4Expression sqlGenerator4Expression = new SQLGenerator4Expression(dataSource,
                                                                                       sqlDialect,
                                                                                       aggregatedFields,
                                                                                       generator,
                                                                                       ImmutableMap.of("interval",
-                                                                                                      interval.getStep(),
+                                                                                                      interval.getStep() == null
+                                                                                                      ? interval.getTotalLength()
+                                                                                                      : interval.getStep(),
                                                                                                       "instanceCount",
                                                                                                       "count(distinct \"instanceName\")"));
 
