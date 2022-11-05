@@ -17,9 +17,12 @@
 package org.bithon.server.storage.datasource.query;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import javax.annotation.Nullable;
 
 /**
  * @author frank.chen021@outlook.com
@@ -32,19 +35,19 @@ public class Limit {
     private int limit = 10;
     private int offset = 0;
 
-    /**
-     * Support simple format
-     */
     @JsonCreator
-    public static Limit fromString(String limit) {
-        return new Limit(Integer.parseInt(limit), 0);
+    public Limit(@JsonProperty("limit") Integer limit,
+                 @Nullable @JsonProperty("offset") Integer offset) {
+        this.limit = limit;
+        this.offset = offset == null ? 0 : offset;
     }
 
     /**
      * Support simple format
+     * Only string is supported when there's also an object format
      */
     @JsonCreator
-    public static Limit fromNumber(Number limit) {
-        return new Limit(limit.intValue(), 0);
+    public static Limit fromString(String limit) {
+        return new Limit(Integer.parseInt(limit), 0);
     }
 }
