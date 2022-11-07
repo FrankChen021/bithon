@@ -127,6 +127,7 @@ class TableComponent {
                 method: 'post',
                 contentType: "application/json",
                 showRefresh: false,
+                responseHandler: option.responseHandler,
 
                 sidePagination: "server",
                 pagination: this.mHasPagination,

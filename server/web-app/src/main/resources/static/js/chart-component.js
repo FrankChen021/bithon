@@ -196,7 +196,7 @@ class ChartComponent {
                             });
                             returnedOption.legend = legend;
                         }
-                        this._chart.setOption(returnedOption);
+                        this.setChartOption(returnedOption);
                         break;
                     case 'replace':
                     {
