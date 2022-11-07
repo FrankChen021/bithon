@@ -50,7 +50,7 @@ public class GeneralQueryRequestTest {
     }
 
     @Test
-    public void testSimpleLimit() throws JsonProcessingException {
+    public void testStringFormatLimit() throws JsonProcessingException {
         final String json = "{"
                             + "  \"columns\": [\n"
                             + "    \"appName\",\n"
@@ -62,6 +62,29 @@ public class GeneralQueryRequestTest {
                             + "    \"order\": \"desc\"\n"
                             + "  },"
                             + "  \"limit\": \"15\""
+                            + "}";
+
+        GeneralQueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                                                        .readValue(json, GeneralQueryRequest.class);
+
+        Assert.assertEquals("instanceUpTime", request.getOrderBy().getName());
+        Assert.assertEquals("desc", request.getOrderBy().getOrder());
+        Assert.assertEquals(15, request.getLimit().getLimit());
+    }
+
+    @Test
+    public void testNumberFormatLimit() throws JsonProcessingException {
+        final String json = "{"
+                            + "  \"columns\": [\n"
+                            + "    \"appName\",\n"
+                            + "    {\"name\": \"instanceUpTime\", \"formatter\": \"compact_number\" },\n"
+                            + "    {\"name\": \"errorCount\", \"expression\": \"errorCount/totalCount*100.0\",\"formatter\": \"compact_number\"}"
+                            + "  ],\n"
+                            + "  \"orderBy\": {\n"
+                            + "    \"name\": \"instanceUpTime\",\n"
+                            + "    \"order\": \"desc\"\n"
+                            + "  },"
+                            + "  \"limit\": 15"
                             + "}";
 
         GeneralQueryRequest request = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

@@ -50,4 +50,9 @@ public class Limit {
     public static Limit fromString(String limit) {
         return new Limit(Integer.parseInt(limit), 0);
     }
+
+    @JsonCreator
+    public static Limit fromLong(long limit) {
+        return new Limit((int) limit, 0);
+    }
 }

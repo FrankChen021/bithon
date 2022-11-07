@@ -36,6 +36,7 @@ import org.bithon.server.storage.metrics.MetricStorageConfig;
 import org.bithon.server.web.service.datasource.api.DataSourceService;
 import org.bithon.server.web.service.datasource.api.DisplayableText;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
+import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
 import org.bithon.server.web.service.datasource.api.GroupByQueryRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
@@ -100,11 +101,17 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public DataSourceService.TimeSeriesQueryResult timeseriesV3(@Validated @RequestBody GeneralQueryRequest request) {
+    public GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         Query query = this.dataSourceService.convertToQuery(schema, request, true);
-        return this.dataSourceService.timeseriesQuery(query);
+        DataSourceService.TimeSeriesQueryResult result = this.dataSourceService.timeseriesQuery(query);
+        return GeneralQueryResponse.builder()
+                                   .data(result.getMetrics())
+                                   .startTimestamp(result.getStartTimestamp())
+                                   .endTimestamp(result.getEndTimestamp())
+                                   .interval(result.getInterval())
+                                   .build();
     }
 
     @Override
@@ -155,11 +162,43 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public List<?> groupBy(GeneralQueryRequest request) {
+    public GeneralQueryResponse listV2(GeneralQueryRequest request) {
+        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
+
+        Query query = Query.builder()
+                           .dataSource(schema)
+                           .resultColumns(request.getFields()
+                                                 .stream()
+                                                 .map((field) -> {
+                                                     IColumnSpec spec = schema.getColumnByName(field.getField());
+                                                     return new ResultColumn(spec.getName(), field.getName());
+                                                 }).collect(Collectors.toList()))
+                           .filters(request.getFilters())
+                           .interval(Interval.of(TimeSpan.fromISO8601(request.getInterval().getStartISO8601()),
+                                                 TimeSpan.fromISO8601(request.getInterval().getEndISO8601())))
+                           .orderBy(request.getOrderBy())
+                           .limit(request.getLimit())
+                           .build();
+
+        IMetricReader reader = this.metricStorage.createMetricReader(schema);
+        return GeneralQueryResponse.builder()
+                                   .total(reader.listSize(query))
+                                   .data(reader.list(query))
+                                   .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                   .startTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                   .build();
+    }
+
+    @Override
+    public GeneralQueryResponse groupBy(GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         Query query = this.dataSourceService.convertToQuery(schema, request, false);
-        return this.metricStorage.createMetricReader(schema).groupBy(query);
+        return GeneralQueryResponse.builder()
+                                   .startTimestamp(query.getInterval().getStartTime().getMilliseconds())
+                                   .endTimestamp(query.getInterval().getEndTime().getMilliseconds())
+                                   .data(this.metricStorage.createMetricReader(schema).groupBy(query))
+                                   .build();
     }
 
     @Override
