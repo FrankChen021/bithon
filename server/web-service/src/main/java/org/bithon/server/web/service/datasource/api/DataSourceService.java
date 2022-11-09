@@ -27,7 +27,6 @@ import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.query.Query;
 import org.bithon.server.storage.datasource.query.ast.Expression;
 import org.bithon.server.storage.datasource.query.ast.ResultColumn;
-import org.bithon.server.storage.datasource.query.ast.ResultColumnList;
 import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
@@ -41,9 +40,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -68,7 +70,13 @@ public class DataSourceService {
      * Vals - an array of all data points. Each element represents a data point of a timestamp.
      */
     public TimeSeriesQueryResult timeseriesQuery(Query query) {
-        List<String> metrics = ResultColumnList.from(query.getResultColumns()).getColumnNames(Collectors.toList());
+        List<String> metrics = query.getResultColumns()
+                                    .stream()
+                                    .map((resultColumn) -> query.getDataSource()
+                                                                .getMetricSpecByName(resultColumn.getResultColumnName()))
+                                    .filter(Objects::nonNull)
+                                    .map(IColumnSpec::getName)
+                                    .collect(Collectors.toList());
         List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
                                                              .timeseries(query);
 
@@ -165,7 +173,7 @@ public class DataSourceService {
         TimeSpan start = TimeSpan.fromISO8601(query.getInterval().getStartISO8601());
         TimeSpan end = TimeSpan.fromISO8601(query.getInterval().getEndISO8601());
 
-        return builder.groupBy(groupBy)
+        return builder.groupBy(new ArrayList<>(groupBy))
                       .resultColumns(resultColumnList)
                       .dataSource(schema)
                       .filters(CollectionUtils.emptyOrOriginal(query.getFilters()))
@@ -197,7 +205,7 @@ public class DataSourceService {
             this.tags = tags;
 
             // by using double[] or long[], the empty slots are default to zero
-            if (metricSpec.getValueType() instanceof DoubleValueType) {
+            if (metricSpec == null || metricSpec.getValueType() instanceof DoubleValueType) {
                 this.values = new double[size + 1];
                 this.valueSetter = (index, number) -> ((double[]) values)[index] = number == null ? 0 : ((Number) number).doubleValue();
                 this.valueGetter = (index) -> ((double[]) values)[index];

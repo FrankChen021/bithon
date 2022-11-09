@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,14 +35,6 @@ public interface IDataSourceApi {
     @PostMapping("/api/datasource/timeseries/v2")
     DataSourceService.TimeSeriesQueryResult timeseries(@Validated @RequestBody TimeSeriesQueryRequest request);
 
-    @Deprecated
-    @PostMapping("/api/datasource/groupBy")
-    List<Map<String, Object>> groupBy(@Validated @RequestBody GroupByQueryRequest request);
-
-    @Deprecated
-    @PostMapping("/api/datasource/list")
-    ListQueryResponse list(@Validated @RequestBody GeneralQueryRequest request);
-
     @PostMapping("/api/datasource/timeseries/v3")
     GeneralQueryResponse timeseriesV3(@Validated @RequestBody GeneralQueryRequest request);
 
@@ -51,7 +42,7 @@ public interface IDataSourceApi {
     GeneralQueryResponse groupBy(@Validated @RequestBody GeneralQueryRequest request);
 
     @PostMapping("/api/datasource/list/v2")
-    GeneralQueryResponse listV2(@Validated @RequestBody GeneralQueryRequest request);
+    GeneralQueryResponse list(@Validated @RequestBody GeneralQueryRequest request);
 
     @PostMapping("/api/datasource/schemas")
     Map<String, DataSourceSchema> getSchemas();

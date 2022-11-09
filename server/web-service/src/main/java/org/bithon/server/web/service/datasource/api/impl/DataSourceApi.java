@@ -38,9 +38,7 @@ import org.bithon.server.web.service.datasource.api.DisplayableText;
 import org.bithon.server.web.service.datasource.api.GeneralQueryRequest;
 import org.bithon.server.web.service.datasource.api.GeneralQueryResponse;
 import org.bithon.server.web.service.datasource.api.GetDimensionRequest;
-import org.bithon.server.web.service.datasource.api.GroupByQueryRequest;
 import org.bithon.server.web.service.datasource.api.IDataSourceApi;
-import org.bithon.server.web.service.datasource.api.ListQueryResponse;
 import org.bithon.server.web.service.datasource.api.TimeSeriesQueryRequest;
 import org.bithon.server.web.service.datasource.api.UpdateTTLRequest;
 import org.springframework.validation.annotation.Validated;
@@ -115,54 +113,7 @@ public class DataSourceApi implements IDataSourceApi {
     }
 
     @Override
-    public List<Map<String, Object>> groupBy(GroupByQueryRequest request) {
-        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
-
-        TimeSpan start = TimeSpan.fromISO8601(request.getStartTimeISO8601());
-        TimeSpan end = TimeSpan.fromISO8601(request.getEndTimeISO8601());
-
-        List<ResultColumn> resultColumns = request.getMetrics().stream().map((metric) -> {
-            IMetricSpec spec = schema.getMetricSpecByName(metric);
-            return spec.getResultColumn();
-        }).collect(Collectors.toList());
-        resultColumns.addAll(request.getAggregators().stream().map(QueryAggregator::toResultColumnExpression).collect(Collectors.toList()));
-
-        return (List<Map<String, Object>>) this.metricStorage.createMetricReader(schema).groupBy(Query.builder()
-                                                                                                      .dataSource(schema)
-                                                                                                      .resultColumns(resultColumns)
-                                                                                                      .filters(request.getFilters())
-                                                                                                      .interval(Interval.of(start, end))
-                                                                                                      .groupBy(request.getGroupBy())
-                                                                                                      .orderBy(request.getOrderBy())
-                                                                                                      .resultFormat(Query.ResultFormat.Object)
-                                                                                                      .build());
-    }
-
-    @Override
-    public ListQueryResponse list(GeneralQueryRequest request) {
-        DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
-
-        Query query = Query.builder()
-                           .dataSource(schema)
-                           .resultColumns(request.getFields()
-                                                 .stream()
-                                                 .map((field) -> {
-                                                     IColumnSpec spec = schema.getColumnByName(field.getField());
-                                                     return new ResultColumn(spec.getName(), field.getName());
-                                                 }).collect(Collectors.toList()))
-                           .filters(request.getFilters())
-                           .interval(Interval.of(TimeSpan.fromISO8601(request.getInterval().getStartISO8601()),
-                                                 TimeSpan.fromISO8601(request.getInterval().getEndISO8601())))
-                           .orderBy(request.getOrderBy())
-                           .limit(request.getLimit())
-                           .build();
-
-        IMetricReader reader = this.metricStorage.createMetricReader(schema);
-        return new ListQueryResponse(reader.listSize(query), reader.list(query));
-    }
-
-    @Override
-    public GeneralQueryResponse listV2(GeneralQueryRequest request) {
+    public GeneralQueryResponse list(GeneralQueryRequest request) {
         DataSourceSchema schema = schemaManager.getDataSourceSchema(request.getDataSource());
 
         Query query = Query.builder()
