@@ -64,7 +64,8 @@ class AppCardComponent {
             async: true,
             contentType: "application/json",
             success: (data) => {
-                $.each(data, (index, overview) => {
+                const items = data.data;
+                $.each(items, (index, overview) => {
                     const appCard = this.#getOrCreateAppCard(overview.appName);
                     $(appCard).find('.instance-count').html('<b>Instances</b>：' + overview.instanceCount);
                     $(appCard).find('.start-time').html('<b>Started at</b>：' + moment(overview.instanceStartTime).local().format('YYYY-MM-DD HH:mm:ss'));

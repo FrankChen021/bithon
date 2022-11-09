@@ -106,12 +106,12 @@
         "fields": [
           "exceptionClass",
           "eventCount"
-        ]
-      },
-      "limit": 10,
-      "orderBy": {
-        "name": "eventCount",
-        "order": "desc"
+        ],
+        "limit": 10,
+        "orderBy": {
+          "name": "eventCount",
+          "order": "desc"
+        }
       }
     }
   ]
