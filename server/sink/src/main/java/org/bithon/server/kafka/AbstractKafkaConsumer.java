@@ -91,15 +91,18 @@ public abstract class AbstractKafkaConsumer<MSG> implements IKafkaConsumer, Mess
                                                      record.value()));
         }
 
-        Header type = record.headers().lastHeader("type");
-        if (type != null) {
-            onMessage(new String(type.value(), StandardCharsets.UTF_8), iterator);
-        } else {
-            log.error("No header in message from topic: {}", this.topic);
-        }
         try {
-            iterator.close();
-        } catch (IOException ignored) {
+            Header type = record.headers().lastHeader("type");
+            if (type != null) {
+                onMessage(new String(type.value(), StandardCharsets.UTF_8), iterator);
+            } else {
+                log.error("No header in message from topic: {}", this.topic);
+            }
+        } finally {
+            try {
+                iterator.close();
+            } catch (IOException ignored) {
+            }
         }
     }
 
