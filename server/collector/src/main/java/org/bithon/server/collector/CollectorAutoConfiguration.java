@@ -19,7 +19,6 @@ package org.bithon.server.collector;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bithon.server.collector.sink.SinkConfig;
 import org.bithon.server.collector.sink.kafka.KafkaEventSink;
 import org.bithon.server.collector.sink.kafka.KafkaMetricSink;
 import org.bithon.server.collector.sink.kafka.KafkaTraceSink;
@@ -75,7 +74,7 @@ public class CollectorAutoConfiguration {
     @ConditionalOnExpression(value = "${collector-brpc.enabled: false} or ${collector-http.enabled: false}")
     public IMessageSink<SchemaMetricMessage> schemaMetricSink(BrpcCollectorConfig config,
                                                               ApplicationContext applicationContext) {
-        if ("local".equals(config.getSink().getType())) {
+        if ("local".equals(config.getSinks().getMetrics().getType())) {
             return new LocalSchemaMetricSink(applicationContext);
         } else {
             // TODO
@@ -88,20 +87,20 @@ public class CollectorAutoConfiguration {
     @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
     public IMetricMessageSink metricSink(BrpcCollectorConfig config,
                                          ObjectMapper om) throws IOException {
-        return SinkConfig.createSink(config.getSink(), om, IMetricMessageSink.class);
+        return config.getSinks().getMetrics().createSink(om, IMetricMessageSink.class);
     }
 
     @Bean
     @ConditionalOnProperty(value = "collector-brpc.enabled", havingValue = "true")
     public IEventMessageSink eventSink(BrpcCollectorConfig config,
                                        ObjectMapper om) throws IOException {
-        return SinkConfig.createSink(config.getSink(), om, IEventMessageSink.class);
+        return config.getSinks().getEvents().createSink(om, IEventMessageSink.class);
     }
 
     @Bean
     @ConditionalOnExpression(value = "${collector-brpc.enabled: false} or ${collector-http.enabled: false}")
     public TraceMessageProcessChain traceSink(BrpcCollectorConfig config,
                                               ObjectMapper om) throws IOException {
-        return new TraceMessageProcessChain(SinkConfig.createSink(config.getSink(), om, ITraceMessageSink.class));
+        return new TraceMessageProcessChain(config.getSinks().getTracing().createSink(om, ITraceMessageSink.class));
     }
 }

@@ -24,8 +24,10 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.tracing.ITraceMessageSink;
 import org.bithon.server.storage.tracing.TraceSpan;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -44,14 +46,18 @@ public class KafkaTraceSink implements ITraceMessageSink {
 
     private final KafkaTemplate<String, String> producer;
     private final ObjectMapper objectMapper;
+    private final String topic;
 
     @JsonCreator
     public KafkaTraceSink(@JsonProperty("props") Map<String, Object> props,
                           @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        this.topic = (String) props.remove("topic");
+        Preconditions.checkNotNull(topic, "topic is not configured for tracing sink");
+
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
                                                                               new StringSerializer(),
                                                                               new StringSerializer()),
-                                            ImmutableMap.of("client.id", "trace"));
+                                            ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "trace"));
         this.objectMapper = objectMapper;
     }
 
@@ -82,13 +88,13 @@ public class KafkaTraceSink implements ITraceMessageSink {
             messageText.append('\n');
         }
 
-        ProducerRecord<String, String> record = new ProducerRecord<>("bithon-trace", key, messageText.toString());
+        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, messageText.toString());
         record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
         producer.send(record);
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         producer.destroy();
     }
 }

@@ -80,16 +80,40 @@ collector-brpc:
     event: 9896
     metric: 9898
     ctrl: 9899
-  sink:
-    type: kafka
-    props:
-      "[bootstrap.servers]": localhost:9092
-      "[batch.size]": 65536
-      "[buffer.memory]": 67108864
-      "[linger.ms]": 50
-      "[compression.type]": lz4
-      "[max.in.flight.requests.per.connection]": 1
-      "[retries]": 3
+  sinks:
+     event:
+        type: local
+        props:
+           topic: bithon-events
+           "[bootstrap.servers]": localhost:9092
+           "[batch.size]": 65536
+           "[buffer.memory]": 67108864
+           "[linger.ms]": 50
+           "[compression.type]": lz4
+           "[max.in.flight.requests.per.connection]": 1
+           "[retries]": 3
+     metrics:
+        type: local
+        props:
+           topic: bithon-metrics
+           "[bootstrap.servers]": localhost:9092
+           "[batch.size]": 65536
+           "[buffer.memory]": 67108864
+           "[linger.ms]": 50
+           "[compression.type]": lz4
+           "[max.in.flight.requests.per.connection]": 1
+           "[retries]": 3
+     tracing:
+        type: local
+        props:
+           topic: bithon-spans
+           "[bootstrap.servers]": localhost:9092
+           "[batch.size]": 65536
+           "[buffer.memory]": 67108864
+           "[linger.ms]": 50
+           "[compression.type]": lz4
+           "[max.in.flight.requests.per.connection]": 1
+           "[retries]": 3
 ```
 
 > Note: 

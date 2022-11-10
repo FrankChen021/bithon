@@ -24,9 +24,11 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.bithon.component.commons.utils.CollectionUtils;
+import org.bithon.component.commons.utils.Preconditions;
 import org.bithon.server.sink.metrics.IMetricMessageSink;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -45,14 +47,18 @@ public class KafkaMetricSink implements IMetricMessageSink {
 
     private final KafkaTemplate<String, String> producer;
     private final ObjectMapper objectMapper;
+    private final String topic;
 
     @JsonCreator
     public KafkaMetricSink(@JsonProperty("props") Map<String, Object> props,
                            @JacksonInject(useInput = OptBoolean.FALSE) ObjectMapper objectMapper) {
+        this.topic = (String) props.remove("topic");
+        Preconditions.checkNotNull(topic, "topic is not configured for metrics sink");
+
         this.producer = new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(props,
                                                                               new StringSerializer(),
                                                                               new StringSerializer()),
-                                            ImmutableMap.of("client.id", "metric"));
+                                            ImmutableMap.of(ProducerConfig.CLIENT_ID_CONFIG, "metrics"));
 
         this.objectMapper = objectMapper;
     }
@@ -86,14 +92,14 @@ public class KafkaMetricSink implements IMetricMessageSink {
             messageText.append('\n');
         }
 
-        ProducerRecord<String, String> record = new ProducerRecord<>("bithon-metrics", key, messageText.toString());
+        ProducerRecord<String, String> record = new ProducerRecord<>(this.topic, key, messageText.toString());
         record.headers().add("type", messageType.getBytes(StandardCharsets.UTF_8));
 
         this.producer.send(record);
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         this.producer.destroy();
     }
 }
