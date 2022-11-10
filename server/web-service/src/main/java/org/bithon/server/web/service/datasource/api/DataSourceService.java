@@ -43,7 +43,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -68,13 +67,14 @@ public class DataSourceService {
      * Vals - an array of all data points. Each element represents a data point of a timestamp.
      */
     public TimeSeriesQueryResult timeseriesQuery(Query query) {
+        // Remove any dimensions
         List<String> metrics = query.getResultColumns()
                                     .stream()
-                                    .map((resultColumn) -> query.getDataSource()
-                                                                .getMetricSpecByName(resultColumn.getResultColumnName()))
-                                    .filter(Objects::nonNull)
-                                    .map(IColumnSpec::getName)
+                                    .filter((resultColumn) -> query.getDataSource()
+                                                                   .getDimensionSpecByName(resultColumn.getResultColumnName()) == null)
+                                    .map((ResultColumn::getResultColumnName))
                                     .collect(Collectors.toList());
+
         List<Map<String, Object>> points = this.metricStorage.createMetricReader(query.getDataSource())
                                                              .timeseries(query);
 
