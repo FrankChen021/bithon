@@ -17,8 +17,6 @@
 package org.bithon.server.kafka;
 
 import lombok.SneakyThrows;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.bithon.server.sink.event.EventMessageHandlers;
 import org.bithon.server.sink.event.LocalEventSink;
 import org.bithon.server.sink.metrics.LocalMetricSink;
@@ -33,7 +31,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author frank.chen021@outlook.com
