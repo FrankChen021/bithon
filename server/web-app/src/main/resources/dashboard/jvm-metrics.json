@@ -5,197 +5,259 @@
       "dataSource": "jvm-metrics",
       "title": "CPU",
       "width": 2,
-      "yAxis": [
+      "type": "line",
+      "columns": [
         {
+          "name": "processCpuLoad",
           "format": "percentage"
         }
       ],
-      "metrics": [
-        {
-          "name": "processCpuLoad",
-          "aggregator": "last",
-          "format": "percentage",
-          "chartType": "line"
-        }
-      ]
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          "processCpuLoad"
+        ]
+      }
     },
     {
       "dataSource": "jvm-metrics",
       "title": "Threads",
       "width": 2,
-      "metrics": [
+      "type": "line",
+      "columns": [
+        "activeThreads",
         {
-          "name": "activeThreads"
-        },
-        {
-          "name": "totalThreads"
+          "name": "totalThreads",
+          "fill": false
         }
-      ]
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          "activeThreads",
+          "totalThreads"
+        ]
+      }
     },
     {
       "dataSource": "jvm-metrics",
       "title": "Heap",
       "width": 1,
+      "type": "line",
       "yAxis": [
         {
           "minInterval": 1048576,
           "format": "binary_byte"
         }
       ],
-      "metrics": [
+      "columns": [
         {
           "name": "heapUsed",
-          "displayName": "used"
+          "title": "used"
         },
         {
           "name": "heapMax",
-          "displayName": "max"
+          "title": "max",
+          "fill": false
         },
         {
           "name": "heapCommitted",
-          "displayName": "committed",
-          "selected": false
+          "title": "committed",
+          "fill": false
         }
-      ]
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          "heapUsed",
+          "heapMax",
+          "heapCommitted"
+        ]
+      }
     },
     {
       "dataSource": "jvm-metrics",
       "title": "Non-Heap",
       "width": 1,
+      "type": "line",
       "yAxis": [
         {
           "minInterval": 1048576,
           "format": "binary_byte"
         }
       ],
-      "metrics": [
+      "columns": [
         {
           "name": "nonHeapUsed",
-          "displayName": "used"
+          "title": "used"
         },
         {
           "name": "nonHeapMax",
-          "displayName": "max"
+          "title": "max",
+          "fill": false
         },
         {
           "name": "nonHeapCommitted",
-          "displayName": "committed",
-          "selected": false
+          "title": "committed",
+          "fill": false
         }
-      ]
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          "nonHeapUsed",
+          "nonHeapMax",
+          "nonHeapCommitted"
+        ]
+      }
     },
     {
       "dataSource": "jvm-metrics",
       "title": "Metaspace",
       "width": 1,
+      "type": "line",
       "yAxis": [
         {
           "minInterval": 1048576,
           "format": "binary_byte"
         }
       ],
-      "metrics": [
+      "columns": [
         {
           "name": "metaspaceUsed",
-          "displayName": "used"
+          "title": "used"
         },
         {
           "name": "metaspaceMax",
-          "displayName": "max"
+          "title": "max",
+          "fill": false
         },
         {
           "name": "metaspaceCommitted",
-          "displayName": "committed",
-          "selected": false
+          "title": "committed",
+          "fill": false
         }
-      ]
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          "metaspaceUsed",
+          "metaspaceMax",
+          "metaspaceCommitted"
+        ]
+      }
     },
     {
       "dataSource": "jvm-metrics",
       "title": "Direct Memory",
       "width": 1,
+      "type": "line",
       "yAxis": [
         {
           "minInterval": 1048576,
           "format": "binary_byte"
         }
       ],
-      "metrics": [
+      "columns": [
         {
           "name": "directUsed",
-          "displayName": "used"
+          "title": "used"
         },
         {
           "name": "directMax",
-          "displayName": "max"
+          "title": "max",
+          "fill": false
         }
-      ]
+      ],
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-metrics",
+        "fields": [
+          "directUsed",
+          "directMax"
+        ]
+      }
     },
     {
       "dataSource": "jvm-gc-metrics",
       "title": "Young GC",
       "width": 4,
+      "type": "line",
       "yAxis": [
-        {
-        },
+        {},
         {
           "format": "millisecond"
         }
       ],
-      "dimensions": {
-        "generation": {
-          "dimension": "generation",
-          "matcher": {
-            "type": "equal",
-            "pattern": "new"
-          }
-        }
-      },
-      "metrics": [
-        {
-          "name": "gcCount"
-        },
+      "columns": [
+        "gcCount",
         {
           "name": "avgGcTime",
-          "yAxis": 1
+          "yAxis": 1,
+          "fill": false
         }
       ],
-      "groupBy" : [
-        "gcName"
-      ]
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-gc-metrics",
+        "fields": [
+          "gcName",
+          "gcCount",
+          "avgGcTime"
+        ],
+        "filters": {
+          "generation": {
+            "dimension": "generation",
+            "matcher": {
+              "type": "equal",
+              "pattern": "new"
+            }
+          }
+        }
+      }
     },
     {
       "dataSource": "jvm-gc-metrics",
       "title": "Old GC",
       "width": 4,
+      "type": "line",
       "yAxis": [
-        {
-        },
+        {},
         {
           "format": "millisecond"
         }
       ],
-      "dimensions": {
-        "generation": {
-          "dimension": "generation",
-          "matcher": {
-            "type": "equal",
-            "pattern": "old"
-          }
-        }
-      },
-      "metrics": [
-        {
-          "name": "gcCount"
-        },
+      "columns": [
+        "gcCount",
         {
           "name": "avgGcTime",
-          "yAxis": 1
+          "yAxis": 1,
+          "fill": false
         }
       ],
-      "groupBy": [
-        "gcName"
-      ]
+      "query": {
+        "type": "timeseries",
+        "dataSource": "jvm-gc-metrics",
+        "fields": [
+          "gcName",
+          "gcCount",
+          "avgGcTime"
+        ],
+        "filters": {
+          "generation": {
+            "dimension": "generation",
+            "matcher": {
+              "type": "equal",
+              "pattern": "old"
+            }
+          }
+        }
+      }
     }
   ]
 }

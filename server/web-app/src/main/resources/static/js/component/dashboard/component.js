@@ -493,6 +493,11 @@ class Dashboard {
                 };
             }
 
+            // Default to sortable
+            if (tableColumn.sortable === undefined) {
+                tableColumn.sortable = true;
+            }
+
             return tableColumn;
         });
 
@@ -540,7 +545,16 @@ class Dashboard {
         if (chartDescriptor.yAxis === undefined) {
             chartDescriptor.yAxis = [];
         }
-        chartDescriptor.columns.forEach((column) => {
+        for (let i = 0, size = chartDescriptor.columns.length; i < size; i++) {
+            let column = chartDescriptor.columns[i];
+
+            // string type of column is allowed for simple configuration
+            // during rendering, it's turned into object for simple processing
+            if (typeof column === 'string') {
+                chartDescriptor.columns[i] = {name: column};
+                column = chartDescriptor.columns[i];
+            }
+
             // Set up a map
             chartDescriptor.columnMap[column.name] = column;
 
@@ -551,20 +565,23 @@ class Dashboard {
             });
 
             // formatter
-            const yFormatter = this.getFormatter(column.format === undefined ? 'compact_number' : column.format);
-            yAxisFormatters.push(yFormatter);
-
             const yAxisIndex = column.yAxis || 0;
             // Make sure the array has enough object for further access
             while (chartDescriptor.yAxis.length < yAxisIndex + 1) {
                 chartDescriptor.yAxis.push({});
             }
-
             const yAxis = chartDescriptor.yAxis[yAxisIndex];
+            if (yAxis.format === undefined) {
+                yAxis.format = column.format === undefined ? 'compact_number' : column.format;
+            }
+
+            const yFormatter = this.getFormatter(yAxis.format);
+            yAxisFormatters.push(yFormatter);
+
             if (yAxis.formatter === undefined) {
                 yAxis.formatter = yFormatter;
             }
-        });
+        }
 
         chartOption.yAxis = chartDescriptor.yAxis.map((yAxis, index) => {
             return {
@@ -818,6 +835,8 @@ class Dashboard {
         };
         thisQuery.filters = filters;
 
+        const queryFieldsCount = chartDescriptor.query.fields.length;
+
         chartComponent.load({
             url: apiHost + "/api/datasource/timeseries/v3",
             ajaxData: JSON.stringify(thisQuery),
@@ -826,11 +845,11 @@ class Dashboard {
                 for (let t = data.startTimestamp; t <= data.endTimestamp; t += data.interval) {
                     timeLabels.push(moment(t).local().format('HH:mm:ss'));
                 }
+
                 const series = [];
                 $.each(data.data, (index, metric) => {
                     let metricName = metric.tags[metric.tags.length - 1];
 
-                    // TODO: should search columnsMap
                     let column = chartDescriptor.columnMap[metricName];
                     if (column === undefined) {
                         console.warn(`Cant find definition of ${metricName}`);
@@ -884,9 +903,19 @@ class Dashboard {
                     });
                 }
 
+                if (mode === undefined) {
+                    if (data.data.length === 0) {
+                        // no data returned
+                        mode = 'replace';
+                    } else {
+                        // If the returned count of series is less than the given fields count, that's a group-by.
+                        // In this case, we always replace the series because one group may not exist in a following query.
+                        mode = data.data.length < queryFieldsCount ? 'replace' : 'refresh'
+                    }
+                }
+
                 return {
-                    // for a groupBy query, always replace the series because one group may not exist in a following query
-                    refreshMode: chartDescriptor.groupBy !== undefined ? 'replace' : mode,
+                    refreshMode: mode,
 
                     // save the timestamp for further processing
                     timestamp: {
