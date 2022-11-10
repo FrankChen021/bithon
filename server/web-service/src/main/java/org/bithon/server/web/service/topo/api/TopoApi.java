@@ -20,11 +20,15 @@ import org.bithon.server.commons.matcher.StringEqualMatcher;
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.DataSourceSchemaManager;
+import org.bithon.server.storage.datasource.IColumnSpec;
+import org.bithon.server.storage.datasource.dimension.IDimensionSpec;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.input.InputRow;
+import org.bithon.server.storage.datasource.query.Query;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.meta.EndPointType;
 import org.bithon.server.storage.metrics.DimensionFilter;
-import org.bithon.server.storage.metrics.GroupByQuery;
 import org.bithon.server.storage.metrics.IMetricReader;
 import org.bithon.server.storage.metrics.IMetricStorage;
 import org.bithon.server.storage.metrics.Interval;
@@ -38,9 +42,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author frank.chen021@outlook.com
@@ -66,17 +71,31 @@ public class TopoApi {
         TimeSpan start = new TimeSpan(TimeSpan.fromISO8601(request.getStartTimeISO8601()).getMilliseconds() / 60_000 * 60_000);
         TimeSpan end = new TimeSpan((TimeSpan.fromISO8601(request.getEndTimeISO8601()).getMilliseconds()) / 60_000 * 60_000);
 
-        GroupByQuery calleeQuery = new GroupByQuery(topoSchema,
-                                                    Arrays.asList("callCount", "avgResponseTime", "maxResponseTime", "minResponseTime"),
-                                                    Collections.emptyList(),
-                                                    Arrays.asList(new DimensionFilter("srcEndpoint",
-                                                                                      new StringEqualMatcher(request.getApplication())),
-                                                                  new DimensionFilter("srcEndpointType",
-                                                                                      new StringEqualMatcher(EndPointType.APPLICATION.name()))),
-                                                    Interval.of(start, end),
-                                                    Arrays.asList("dstEndpoint", "dstEndpointType"),
-                                                    null);
-        List<Map<String, Object>> callees = metricReader.groupBy(calleeQuery);
+        Query calleeQuery = Query.builder()
+                                 .dataSource(topoSchema)
+                                 .resultColumns(Stream.of("dstEndpoint",
+                                                          "dstEndpointType",
+                                                          "callCount",
+                                                          "avgResponseTime",
+                                                          "maxResponseTime",
+                                                          "minResponseTime")
+                                                      .map((column) -> {
+                                                          IColumnSpec spec = topoSchema.getColumnByName(column);
+                                                          if (spec instanceof IDimensionSpec) {
+                                                              return new ResultColumn(spec.getName());
+                                                          }
+                                                          return ((IMetricSpec) spec).getResultColumn();
+                                                      })
+                                                      .collect(Collectors.toList()))
+                                 .filters(Arrays.asList(new DimensionFilter("srcEndpoint",
+                                                                            new StringEqualMatcher(request.getApplication())),
+                                                        new DimensionFilter("srcEndpointType",
+                                                                            new StringEqualMatcher(EndPointType.APPLICATION.name()))))
+                                 .interval(Interval.of(start, end))
+                                 .groupBy(Arrays.asList("dstEndpoint", "dstEndpointType"))
+                                 .build();
+
+        List<Map<String, Object>> callees = (List<Map<String, Object>>) metricReader.groupBy(calleeQuery);
 
         int x = 300;
         int y = 300;
@@ -107,17 +126,29 @@ public class TopoApi {
             y += nodeHeight;
         }
 
-        GroupByQuery callerQuery = new GroupByQuery(topoSchema,
-                                                    Arrays.asList("callCount", "avgResponseTime", "maxResponseTime", "minResponseTime"),
-                                                    Collections.emptyList(),
-                                                    Arrays.asList(new DimensionFilter("dstEndpoint",
-                                                                                      new StringEqualMatcher(request.getApplication())),
-                                                                  new DimensionFilter("dstEndpointType",
-                                                                                      new StringEqualMatcher(EndPointType.APPLICATION.name()))),
-                                                    Interval.of(start, end),
-                                                    Arrays.asList("srcEndpoint", "srcEndpointType"),
-                                                    null);
-        List<Map<String, Object>> callers = metricReader.groupBy(callerQuery);
+        Query callerQuery = Query.builder()
+                                 .dataSource(topoSchema)
+                                 .resultColumns(Stream.of("srcEndpoint",
+                                                          "srcEndpointType",
+                                                          "callCount",
+                                                          "avgResponseTime",
+                                                          "maxResponseTime",
+                                                          "minResponseTime")
+                                                      .map((column) -> {
+                                                          IColumnSpec spec = topoSchema.getColumnByName(column);
+                                                          if (spec instanceof IDimensionSpec) {
+                                                              return new ResultColumn(spec.getName());
+                                                          }
+                                                          return ((IMetricSpec) spec).getResultColumn();
+                                                      })
+                                                      .collect(Collectors.toList()))
+                                 .filters(Arrays.asList(new DimensionFilter("dstEndpoint",
+                                                                            new StringEqualMatcher(request.getApplication())),
+                                                        new DimensionFilter("dstEndpointType",
+                                                                            new StringEqualMatcher(EndPointType.APPLICATION.name()))))
+                                 .interval(Interval.of(start, end))
+                                 .groupBy(Arrays.asList("srcEndpoint", "srcEndpointType")).build();
+        List<Map<String, Object>> callers = (List<Map<String, Object>>) metricReader.groupBy(callerQuery);
 
         y = 300;
         for (Map<String, Object> caller : callers) {

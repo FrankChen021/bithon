@@ -18,6 +18,7 @@ package org.bithon.server.storage.metrics;
 
 import org.bithon.server.commons.time.TimeSpan;
 import org.bithon.server.storage.datasource.DataSourceSchema;
+import org.bithon.server.storage.datasource.query.Query;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,15 +30,15 @@ import java.util.Map;
  */
 public interface IMetricReader {
 
-    List<Map<String, Object>> timeseries(TimeseriesQueryV2 query);
+    List<Map<String, Object>> timeseries(Query query);
 
     /**
      * Aggregate metrics by their pre-defined aggregators in the given period
      */
-    List<Map<String, Object>> groupBy(GroupByQuery groupByQuery);
+    List<?> groupBy(Query query);
 
-    List<Map<String, Object>> list(ListQuery listQuery);
-    int listSize(ListQuery listQuery);
+    List<Map<String, Object>> list(Query query);
+    int listSize(Query query);
 
     List<Map<String, Object>> executeSql(String sql);
 

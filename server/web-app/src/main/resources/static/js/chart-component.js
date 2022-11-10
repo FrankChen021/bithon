@@ -16,7 +16,7 @@ class ChartComponent {
 
         this._chartId = option.containerId + '_chart';
         this._card = $('#' + option.containerId).append(
-            '    <div class="card card-block" style="border-radius: .0em !important;">                             ' +
+            '    <div class="card card-block chart-container">                             ' +
             '        <div class="card-body" style="padding: 0.25em">                    ' +
             '            <div class="card-chart"></div> ' +
             '        </div>                                     ' +
@@ -196,7 +196,7 @@ class ChartComponent {
                             });
                             returnedOption.legend = legend;
                         }
-                        this._chart.setOption(returnedOption);
+                        this.setChartOption(returnedOption);
                         break;
                     case 'replace':
                     {

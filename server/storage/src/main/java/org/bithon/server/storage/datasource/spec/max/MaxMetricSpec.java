@@ -21,8 +21,8 @@ import lombok.Getter;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.LongMaxAggregator;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
-import org.bithon.server.storage.datasource.api.QueryStageAggregators;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpressions;
 import org.bithon.server.storage.datasource.spec.IMetricSpec;
 import org.bithon.server.storage.datasource.spec.IMetricSpecVisitor;
 
@@ -46,7 +46,7 @@ public abstract class MaxMetricSpec implements IMetricSpec {
 
     @Getter
     protected final boolean visible;
-    protected final IQueryStageAggregator queryStageAggregator;
+    protected final SimpleAggregateExpression aggregateExpression;
 
     public MaxMetricSpec(String name,
                          String field,
@@ -58,7 +58,7 @@ public abstract class MaxMetricSpec implements IMetricSpec {
         this.displayText = displayText;
         this.unit = unit;
         this.visible = visible == null ? true : visible;
-        this.queryStageAggregator = new QueryStageAggregators.MaxAggregator(name, name);
+        this.aggregateExpression = new SimpleAggregateExpressions.MaxAggregateExpression(name);
     }
 
     @Override
@@ -72,8 +72,8 @@ public abstract class MaxMetricSpec implements IMetricSpec {
 
     @JsonIgnore
     @Override
-    public IQueryStageAggregator getQueryAggregator() {
-        return queryStageAggregator;
+    public SimpleAggregateExpression getAggregateExpression() {
+        return aggregateExpression;
     }
 
     public <T> T accept(IMetricSpecVisitor<T> visitor) {

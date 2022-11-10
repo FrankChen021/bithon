@@ -1,0 +1,118 @@
+{
+  "title": "Application Overview",
+  "charts": [
+    {
+      "title": "Instance",
+      "width": 4,
+      "type": "table",
+      "columns": [
+        {"name": "instanceName", "title": "instance" },
+        {"name" : "processCpuLoad", "title": "processCpuLoad(%)" },
+        "processors",
+        {"name": "instanceStartTime", "title": "startTime", "format": "dateTime" },
+        {"name": "instanceUpTime", "title": "upTime", "format": "timeDuration" },
+        {"name": "heapUsed", "title": "heapUsed(%)" },
+        {"name": "heapMax", "format": "binary_byte" }
+      ],
+      "query": {
+        "dataSource": "jvm-metrics",
+        "type": "groupBy",
+        "fields": [
+          "instanceName",
+          "processors",
+          "instanceStartTime",
+          "instanceUpTime",
+          {"name": "heapUsed", "expression": "round(heapUsed * 100.0/heapMax, 2)"},
+          "heapMax",
+          "processCpuLoad"
+        ],
+        "orderBy": {
+          "name": "instanceUpTime",
+          "order": "desc"
+        }
+      }
+    },
+    {
+      "title": "Top 10 Incoming HTTP Requests",
+      "width": 4,
+      "type": "table",
+      "columns": [
+        "uri",
+        "qps",
+        {"name": "totalCount",      "format": "compact_number"},
+        {"name": "errorCount",      "format": "compact_number"},
+        {"name": "errorRate",       "title": "errorRate(%)"},
+        {"name": "avgResponseTime", "format": "millisecond"}
+      ],
+      "query": {
+        "dataSource": "http-incoming-metrics",
+        "type": "groupBy",
+        "fields": [
+          "uri",
+          "qps",
+          "totalCount",
+          "errorCount",
+          {"name": "errorRate", "expression": "round(errorCount*100.0/totalCount, 2)"},
+          "avgResponseTime"
+        ],
+        "limit": "10",
+        "orderBy": {
+          "name": "totalCount",
+          "order": "desc"
+        }
+      }
+    },
+    {
+      "title": "Top 10 Outgoing HTTP Requests",
+      "width": 4,
+      "type": "table",
+      "columns": [
+        "path",
+        "qps",
+        {"name": "requestCount",    "format": "compact_number", "title": "totalCount"},
+        {"name": "errorCount",      "format": "compact_number"},
+        {"name": "errorRate",       "title": "errorRate(%)"},
+        {"name": "avgResponseTime", "format": "millisecond"}
+      ],
+      "query": {
+        "dataSource": "http-outgoing-metrics",
+        "type": "groupBy",
+        "fields": [
+          "path",
+          "qps",
+          "requestCount",
+          {"name": "errorCount", "expression": "count4xx + count5xx"},
+          {"name": "errorRate",  "expression": "round((count4xx + count5xx)*100.0/requestCount, 2)"},
+          "avgResponseTime"
+        ],
+        "limit": "10",
+        "orderBy": {
+          "name": "requestCount",
+          "order": "desc"
+        }
+      }
+    },
+    {
+      "title": "Top 10 exceptions",
+      "width": 4,
+      "type": "table",
+      "columns": [
+        "exceptionClass",
+        {"name": "eventCount", "title": "exceptionCount"}
+      ],
+      "query": {
+        "dataSource": "exception-metrics",
+        "type": "timeseries",
+        "fields": [
+          "exceptionClass",
+          "eventCount"
+        ],
+        "limit": 10,
+        "orderBy": {
+          "name": "eventCount",
+          "order": "desc"
+        }
+      }
+    }
+  ]
+}

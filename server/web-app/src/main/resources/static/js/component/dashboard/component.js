@@ -29,6 +29,8 @@ class Dashboard {
         this._formatters['byte_rate'] = (v) => v.formatBinaryByte() + "/s";
         this._formatters['dateTime'] = (v) => new Date(v).format('yyyy-MM-dd hh:mm:ss');
         this._formatters['shortDateTime'] = (v) => new Date(v).format('MM-dd hh:mm:ss');
+        this._formatters['timeDuration'] = (v) => v.formatTimeDuration();
+        this._formatters['timeDiff'] = (v) => v.formatTimeDiff();
     }
 
     // PUBLIC
@@ -64,18 +66,14 @@ class Dashboard {
             const chartId = 'chart_' + index;
             chartDescriptor['id'] = chartId;
 
-            // turn into metrics object into map
-            chartDescriptor.metricMap = {};
-            $.each(chartDescriptor.metrics, (index, metricDef) => {
-                chartDescriptor.metricMap[metricDef.name] = metricDef;
-            });
-
             // set up a data source to charts mapping
             const dataSourceName = chartDescriptor.dataSource;
-            if (dataSource2Charts[dataSourceName] == null) {
-                dataSource2Charts[dataSourceName] = [];
+            if (dataSourceName !== undefined) {
+                if (dataSource2Charts[dataSourceName] == null) {
+                    dataSource2Charts[dataSourceName] = [];
+                }
+                dataSource2Charts[dataSourceName].push(chartId);
             }
-            dataSource2Charts[dataSourceName].push(chartId);
         });
 
         //
@@ -129,7 +127,7 @@ class Dashboard {
                 // Ignore brush event for connection
                 chartInstance.on('brushEnd', (params) => params.escapeConnect = true);
                 chartInstance.on('brushSelected', (params) => params.escapeConnect = true);
-            } catch(ignored) {
+            } catch (ignored) {
                 // this chart component might be TableComponent
             }
         }
@@ -139,8 +137,11 @@ class Dashboard {
 
         //
         // Loaded Dimension Filter
+        // This is legacy implementation. Should be refactored to decouple the filter from the dataSource field
         //
+        let hasSchema = false;
         for (const dataSourceName in dataSource2Charts) {
+            hasSchema = true;
             this._schemaApi.getSchema({
                 name: dataSourceName,
                 successCallback: (schema) => {
@@ -177,253 +178,190 @@ class Dashboard {
 
                     // init the detail
                     $.each(dashboard.charts, (index, chartDescriptor) => {
-                        this.#initChartDetail(chartDescriptor);
+                        this.createChartDetail(chartDescriptor);
                     });
                 },
                 errorCallback: (error) => {
                 }
             });
         }
+        if (!hasSchema) {
+            this.refreshDashboard();
+        }
     }
 
-    #initChartDetail(chartDescriptor) {
+    createChartDetail(chartDescriptor) {
         // create detail view for this chart
         if (chartDescriptor.details == null) {
             return;
         }
 
-        const chartComponent = this._chartComponents[chartDescriptor.id];
-
-        let fields = [];
-        let columns = [
-            {
-                field: 'id',
-                title: 'No.',
-                align: 'center',
-                width: 20,
-                formatter: (cell, row, index, field) => {
-                    return (index + 1);
-                }
-            }
-        ];
-
         const detailViewId = chartDescriptor.id + '_detailView';
-        if (chartDescriptor.details.columns !== undefined) {
-            const r = this.#createDetailViewColumns(detailViewId, chartDescriptor);
-            fields = r[0];
-            columns = columns.concat(r[1]);
-        } else {
-            const r = this.#createColumnsLagecy(chartDescriptor);
-            fields = r[0];
-            columns = columns.concat(r[1]);
+        if (chartDescriptor.details.query === undefined) {
+            //
+            // Convert from old definition
+            //
+            chartDescriptor.details.query = {
+                dataSource: chartDescriptor.dataSource
+            };
+
+            if (chartDescriptor.details.columns !== undefined) {
+                const pair = this.#fromDetailV2(chartDescriptor);
+                chartDescriptor.details.query.fields = pair[0];
+                chartDescriptor.details.columns = pair[1];
+            } else {
+                const pair = this.#fromDetailV1(chartDescriptor);
+                chartDescriptor.details.query.fields = pair[0];
+                chartDescriptor.details.columns = pair[1];
+            }
+
+            chartDescriptor.details.query.order = chartDescriptor.details.orderBy;
+            chartDescriptor.details.query.filters = chartDescriptor.details.filters;
+
+            if (chartDescriptor.details.groupBy !== undefined && chartDescriptor.details.groupBy.length > 0) {
+                chartDescriptor.details.query.type = "groupBy";
+            } else {
+                chartDescriptor.details.query.type = "list";
+                chartDescriptor.details.pagination = [25, 50, 100];
+            }
         }
 
-        const pageable = chartDescriptor.details.groupBy === undefined || chartDescriptor.details.groupBy.length === 0;
-        const detailView = this.#createDetailView(detailViewId,
-            chartComponent.getUIContainer(),
-            columns,
-            [{
+        //
+        // Use the format definition in the chart as default
+        //
+        for (let i = 0; i < chartDescriptor.details.columns.length; i++) {
+            let column = chartDescriptor.details.columns[i];
+            if (column.format !== undefined) {
+                continue;
+            }
+
+            let columnName;
+            if (typeof column === 'string') {
+                columnName = column;
+            } else {
+                columnName = column.name;
+            }
+
+            const chartColumn = chartDescriptor.columnMap[columnName];
+            if (chartColumn !== undefined && chartColumn.format !== undefined) {
+                if (typeof column === 'string') {
+                    chartDescriptor.details.columns[i] = {name: columnName};
+                    column = chartDescriptor.details.columns[i];
+                }
+                column.format = chartColumn.format;
+            } else {
+                // this column might be a dimension
+            }
+        }
+        if (chartDescriptor.details.query.dataSource === undefined) {
+            chartDescriptor.details.query.dataSource = chartDescriptor.dataSource;
+        }
+
+        let buttons = undefined;
+        if (chartDescriptor.details.tracing !== undefined) {
+            buttons = [{
                 title: "Tracing Log",
                 text: "Search...",
-                visible: chartDescriptor.details.tracing !== undefined,
                 onClick: (index, row, start, end) => this.#openTraceSearchPage(chartDescriptor, start, end, row)
-            }],
-            pageable,
-            chartDescriptor.details.orderBy);
+            }]
+        }
+
+        const chartComponent = this._chartComponents[chartDescriptor.id];
+
+        // Create component
+        const detailTableComponent = this.createTableComponent(detailViewId,
+            chartComponent.getUIContainer(),
+            chartDescriptor.details,
+            true,
+            buttons
+        )
+
+        // Bind event on parent component
         chartComponent.setSelectionHandler(
-            (option, start, end) => {
-                this.#refreshDetailView(chartDescriptor, detailView, fields, option, start, end);
+            (chartOption, startIndex, endIndex) => {
+                // get the time range
+                const start = chartOption.timestamp.start;
+                const interval = chartOption.timestamp.interval;
+
+                const startTimestamp = start + startIndex * interval;
+                const endTimestamp = start + endIndex * interval;
+
+                const startISO8601 = moment(startTimestamp).utc().toISOString();
+                const endISO8601 = moment(endTimestamp).utc().toISOString();
+
+                this.refreshTable(chartDescriptor.details.query,
+                    detailTableComponent,
+                    {
+                        start: startISO8601,
+                        end: endISO8601
+                    });
             },
             () => {
-                detailView.clear();
-                detailView.show();
+                detailTableComponent.clear();
+                detailTableComponent.show();
             },
             () => {
-                detailView.hide();
+                detailTableComponent.hide();
             },
             () => {
-                detailView.clear();
+                detailTableComponent.clear();
             });
     }
 
-    #createDetailViewColumns(detailViewId, chartDescriptor) {
-        const tableFields = [];
-        const tableColumns = []
+    #fromDetailV2(chartDescriptor) {
 
-        $.each(chartDescriptor.details.columns, (index, column) => {
-
+        const tableColumns = chartDescriptor.details.columns.map((column) => {
             let columnName;
-            let sortable = true;
             if (typeof column === 'object') {
                 columnName = column.name;
-                sortable = column.sortable || true;
             } else {
                 columnName = column;
             }
 
-            const tableColumn = {
-                field: columnName,
-                title: columnName,
-                align: 'center',
-                sortable: sortable
+            return {
+                name: columnName,
+                format: column.formatter,
+                sortable: column.sortable | true
             };
-
-            // set up lookup for this column
-            let lookupFn = (v) => v;
-            if (chartDescriptor.details.lookup !== undefined) {
-                const lookupTable = chartDescriptor.details.lookup[name];
-                if (lookupTable != null) {
-                    lookupFn = (val) => {
-                        const v = lookupTable[val];
-                        if (v != null) {
-                            return v + '(' + val + ')';
-                        } else {
-                            return val;
-                        }
-                    };
-                }
-            }
-
-            let formatterFn = (v) => v;
-            if (typeof column === 'object' && column.formatter !== undefined) {
-                if (column.formatter === 'template') {
-                    // a template based formatter
-                    formatterFn = (v) => {
-                        return column.template.replaceAll('{value}', v);
-                    }
-                } else {
-                    // a built-in formatter
-                    formatterFn = this._formatters[column.formatter];
-                    if (formatterFn == null) {
-                        console.log(`formatter ${column.formatter} is not a pre-defined one.`);
-                    }
-                }
-            }
-
-            if (typeof column === 'object' && column.view !== undefined) {
-                tableColumn.format = column.view;
-            }
-
-            tableColumn.formatter = (val) => formatterFn(lookupFn(val));
-
-            tableFields.push(columnName);
-            tableColumns.push(tableColumn);
         });
+
+        const tableFields = [];
+        chartDescriptor.details.groupBy.forEach((groupBy) => tableFields.push(groupBy));
+        chartDescriptor.details.aggregators.forEach((aggregator) => tableFields.push({
+            name: aggregator.name,
+            field: aggregator.field,
+            aggregator: aggregator.type
+        }));
 
         return [tableFields, tableColumns];
     }
 
     // create columns from groupBy/metrics/
-    #createColumnsLagecy(chartDescriptor) {
-        const fields = [];
-        const columns = []
+    #fromDetailV1(chartDescriptor) {
+        const fields = []
+        const columns = [];
 
         $.each(chartDescriptor.details.dimensions, (index, dimension) => {
             fields.push(dimension.name);
+            columns.push({
+                name: dimension.name,
+                format: dimension.formatter,
 
-            const column = {
-                field: dimension.name,
-                title: dimension.name,
-                align: 'center',
-                sortable: dimension.sortable || false
-            };
+                // a parameter from template formatter
+                template: dimension.template,
 
-            // set up lookup for this dimension
-            let lookupFn = (v) => v;
-            if (chartDescriptor.details.lookup !== undefined) {
-                const dimensionLookup = chartDescriptor.details.lookup[dimension];
-                if (dimensionLookup != null) {
-                    lookupFn = (val) => {
-                        const v = dimensionLookup[val];
-                        if (v != null) {
-                            return v + '(' + val + ')';
-                        } else {
-                            return val;
-                        }
-                    };
-                }
-            }
-
-            // there's a user defined formatter
-            let formatter = null;
-            if (dimension.formatter !== undefined) {
-                if (dimension.formatter === 'template') {
-                    // a template based formatter
-                    formatter = (v) => {
-                        return dimension.template.replaceAll('{value}', lookupFn(v));
-                    }
-                } else {
-                    // a built-in formatter
-                    formatter = this._formatters[dimension.formatter];
-                    if (formatter == null) {
-                        console.log(`formatter ${dimension.formatter} is not a pre-defined one.`);
-                    }
-                }
-            }
-
-            // set up a default one
-            if (formatter == null) {
-                formatter = lookupFn;
-            }
-            column.formatter = formatter;
-            columns.push(column);
+                sortable: dimension.sortable | true
+            });
         });
 
-        //
-        // create columns for grouped dimensions
-        // TODO: combine with dimensions
-        //
-        $.each(chartDescriptor.details.groupBy, (index, dimension) => {
-            let name;
-            if (typeof dimension === 'object') {
-                name = dimension.name;
+        $.each(chartDescriptor.details.groupBy, (index, groupBy) => {
+            if (typeof groupBy === 'object') {
+                fields.push(groupBy.name);
+                columns.push({name: groupBy.name, format: groupBy.formatter, sortable: true});
             } else {
-                name = dimension;
+                fields.push(groupBy);
+                columns.push({name: groupBy, sortable: true});
             }
-
-            const column = {
-                field: name,
-                title: name,
-                align: 'center',
-                sortable: true,
-                formatter: (v) => typeof v === 'string' ? v.htmlEncode() : v
-            };
-
-            // set up lookup for this dimension
-            if (chartDescriptor.details.lookup !== undefined) {
-                const dimensionLookup = chartDescriptor.details.lookup[name];
-                if (dimensionLookup != null) {
-                    column.formatter = (val) => {
-                        const v = dimensionLookup[val];
-                        if (v != null) {
-                            return v + '(' + val + ')';
-                        } else {
-                            return val;
-                        }
-                    };
-                }
-            }
-
-            columns.push(column);
-        });
-
-        $.each(chartDescriptor.details.aggregators, (index, aggregator) => {
-
-            const column = {
-                field: aggregator.name,
-                title: aggregator.name,
-                align: 'center',
-                sortable: true,
-                formatter: (v) => typeof v === 'string' ? v.htmlEncode() : v
-            };
-
-            if (aggregator.formatter !== undefined) {
-                const formatter = this._formatters[aggregator.formatter];
-                if (formatter != null) {
-                    column.formatter = (v) => formatter(v);
-                }
-            }
-            columns.push(column);
         });
 
         //
@@ -432,116 +370,15 @@ class Dashboard {
         $.each(chartDescriptor.details.metrics, (index, metric) => {
             let metricName;
             if (typeof metric === 'object') {
-                metricName = metric.name;
+                fields.push(metric.name);
+                columns.push({name: metric.name, format: metric.formatter, sortable: true});
             } else {
-                metricName = metric;
+                fields.push(metric);
+                columns.push({name: metric, sortable: true});
             }
-
-            fields.push(metricName);
-
-            // set up transformer and formatter for this metric
-            const column = {field: metricName, title: metricName, align: 'center', sortable: true};
-
-            // use the formatter of yAxis to format this metric
-            let formatterFn = null;
-            const metricDef = chartDescriptor.metricMap[metricName];
-            if (metricDef != null && chartDescriptor.yAxis !== undefined) {
-                const yAxis = metricDef.yAxis == null ? 0 : metricDef.yAxis;
-                formatterFn = this._formatters[chartDescriptor.yAxis[yAxis].format];
-            }
-            if (formatterFn == null) {
-                if (typeof metric === 'object' && metric.formatter !== undefined) {
-                    // see if the descriptor provides formatter
-                    formatterFn = this._formatters[metric.formatter];
-                }
-            }
-            if (formatterFn == null) {
-                // if this metric is not found, format in default ways
-                formatterFn = (v) => {
-                    return v === undefined ? "undefined" : v.formatCompactNumber();
-                };
-            }
-
-            let transformerFn = metricDef == null ? null : metricDef.transformer;
-            column.formatter = (val) => {
-                const t = transformerFn == null ? val : transformerFn(val);
-                return formatterFn == null ? t : formatterFn(t);
-            };
-
-            columns.push(column);
         });
 
         return [fields, columns];
-    }
-
-    #createDetailView(id, parent, columns, buttons, pageable, orderBy) {
-        return new TableComponent({
-            tableId: id,
-            parent: parent,
-            columns: columns,
-            buttons: buttons,
-            pagination: pageable,
-            order: orderBy == null ? null : orderBy.order,
-            orderBy: orderBy == null ? null : orderBy.name
-        });
-    }
-
-    #refreshDetailView(chartDescriptor, detailView, fields, chartOption, startIndex, endIndex) {
-        // get the time range
-        const start = chartOption.timestamp.start;
-        const interval = chartOption.timestamp.interval;
-
-        const startTimestamp = start + startIndex * interval;
-        const endTimestamp = start + endIndex * interval;
-
-        const startISO8601 = moment(startTimestamp).utc().toISOString();
-        const endISO8601 = moment(endTimestamp).utc().toISOString();
-
-        const filters = this.vFilter.getSelectedFilters();
-        if (chartDescriptor.filters != null) {
-            $.each(chartDescriptor.filters, (index, filter) => {
-                filters.push(filter);
-            });
-        }
-        if (chartDescriptor.details.filters != null) {
-            $.each(chartDescriptor.details.filters, (index, filter) => {
-                filters.push(filter);
-            });
-        }
-
-        let loadOptions;
-        if (chartDescriptor.details.groupBy !== undefined && chartDescriptor.details.groupBy.length > 0) {
-            loadOptions = {
-                url: apiHost + "/api/datasource/groupBy",
-                start: startTimestamp,
-                end: endTimestamp,
-                ajaxData: {
-                    dataSource: chartDescriptor.dataSource,
-                    startTimeISO8601: startISO8601,
-                    endTimeISO8601: endISO8601,
-                    filters: filters,
-                    metrics: chartDescriptor.details.metrics !== undefined ? chartDescriptor.details.metrics.map(m => typeof m === 'object' ? m.name : m) : [],
-                    groupBy: chartDescriptor.details.groupBy,
-                    aggregators: chartDescriptor.details.aggregators
-                }
-            };
-        } else {
-            // list option
-            loadOptions = {
-                url: apiHost + "/api/datasource/list",
-                ajaxData: {
-                    dataSource: chartDescriptor.dataSource,
-                    startTimeISO8601: startISO8601,
-                    endTimeISO8601: endISO8601,
-                    filters: filters,
-                    columns: fields,
-                    pageSize: 10,
-                    pageNumber: 0
-                }
-            };
-        }
-
-        detailView.load(loadOptions);
     }
 
     /**
@@ -566,9 +403,9 @@ class Dashboard {
      *    }
      *  }
      */
-    #openTraceSearchPage(chartDescriptor, start, end, row) {
-        const startTime = moment(start).local().format('yyyy-MM-DD HH:mm:ss');
-        const endTime = moment(end).local().format('yyyy-MM-DD HH:mm:ss');
+    #openTraceSearchPage(chartDescriptor, startTime, endTime, row) {
+        // const startTime = moment(start).local().format('yyyy-MM-DD HH:mm:ss');
+        // const endTime = moment(end).local().format('yyyy-MM-DD HH:mm:ss');
 
         let url = `/web/trace/search?appName=${g_SelectedApp}&`;
 
@@ -616,16 +453,25 @@ class Dashboard {
         window.open(url);
     }
 
-    createTableComponent(chartId, chartDescriptor) {
+    createTableComponent(chartId, parentElement, tableDescriptor, insertIndexColumn, buttons) {
 
-        const lookup = chartDescriptor.lookup;
+        const lookup = tableDescriptor.lookup;
+        const tableColumns = tableDescriptor.columns.map((column) => {
 
-        $.each(chartDescriptor.columns, (index, column) => {
+            const tableColumn = typeof column === 'object' ? Object.assign({
+                    field: column.name,
+                    title: column.title || column.name
+                }, column)
+                : {
+                    title: column,
+                    field: column
+                };
+
             // handle lookup
             let lookupFn = null;
-            if (lookup !== undefined && lookup !== null) {
-                const fieldLookupTable = lookup[column.field];
-                if (fieldLookupTable != null) {
+            if (lookup !== undefined) {
+                const fieldLookupTable = lookup[tableColumn.field];
+                if (fieldLookupTable !== undefined) {
                     lookupFn = (val) => {
                         const mapped = fieldLookupTable[val];
                         return mapped != null ? mapped + '(' + val + ')' : val;
@@ -635,105 +481,139 @@ class Dashboard {
 
             // handle format
             const formatterFn = this._formatters[column.format];
-            if (lookupFn != null || formatterFn != null) {
-                column.formatter = (v) => {
+            if (lookupFn != null || formatterFn !== undefined) {
+                tableColumn.formatter = (v) => {
                     if (lookupFn != null) {
                         v = lookupFn(v);
                     }
-                    if (formatterFn != null) {
+                    if (formatterFn !== undefined) {
                         v = formatterFn(v);
                     }
                     return v;
                 };
             }
+
+            // Default to sortable
+            if (tableColumn.sortable === undefined) {
+                tableColumn.sortable = true;
+            }
+
+            return tableColumn;
         });
 
-        const vParent = $('#' + chartId);
-
+        if (insertIndexColumn) {
+            tableColumns.unshift({
+                field: 'id',
+                title: 'No.',
+                align: 'center',
+                width: 20,
+                formatter: (cell, row, index) => {
+                    return (index + 1);
+                }
+            });
+        }
         const vTable = new TableComponent({
-                tableId: chartId + '_table',
-                parent: vParent,
-                columns: chartDescriptor.columns,
-                pagination: true,
+                tableId: chartId + "_table",
+                parent: parentElement,
+                columns: tableColumns,
+                pagination: tableDescriptor.pagination,
                 detailView: false,
 
+                buttons: buttons,
+
                 // default order
-                order: 'desc',
-                orderBy: 'timestamp',
+                order: tableDescriptor.query.orderBy?.order,
+                orderBy: tableDescriptor.query.orderBy?.name,
             }
         );
+        if (tableDescriptor.title !== undefined) {
+            vTable.header('<b>' + tableDescriptor.title + '</b>');
+        }
 
         this._chartComponents[chartId] = vTable;
 
         return vTable;
     }
 
-    refreshTable(chartDescriptor, tableComponent, interval) {
-        const filters = this.vFilter.getSelectedFilters();
-        if (chartDescriptor.filters != null) {
-            $.each(chartDescriptor.filters, (index, filter) => {
-                filters.push(filter);
-            });
-        }
-
-        const loadOptions = {
-            url: apiHost + "/api/datasource/list",
-            ajaxData: {
-                dataSource: chartDescriptor.dataSource,
-                startTimeISO8601: interval.start,
-                endTimeISO8601: interval.end,
-                filters: filters,
-                columns: chartDescriptor.columns.map(column => column.field),
-                pageSize: 10,
-                pageNumber: 0
-            }
-        };
-        tableComponent.load(loadOptions);
-    }
-
-    // PRIVATE
-    createChartComponent(chartId, chartDescriptor) {
-        if (chartDescriptor.type === 'list') {
-            return this.createTableComponent(chartId, chartDescriptor);
-        }
-
+    createLineComponent(chartId, chartDescriptor) {
         const chartOption = this.getDefaultChartOption();
-        chartOption.legend.data = chartDescriptor.metrics.map(metric => {
-            return {
-                name: metric.name,
+
+        // runtime properties
+        chartDescriptor.columnMap = {};
+
+        let yAxisFormatters = [];
+        if (chartDescriptor.yAxis === undefined) {
+            chartDescriptor.yAxis = [];
+        }
+        for (let i = 0, size = chartDescriptor.columns.length; i < size; i++) {
+            let column = chartDescriptor.columns[i];
+
+            // string type of column is allowed for simple configuration
+            // during rendering, it's turned into object for simple processing
+            if (typeof column === 'string') {
+                chartDescriptor.columns[i] = {name: column};
+                column = chartDescriptor.columns[i];
+            }
+
+            // Set up a map
+            chartDescriptor.columnMap[column.name] = column;
+
+            // legend
+            chartOption.legend.data.push({
+                name: column.name,
                 icon: 'circle'
+            });
+
+            // formatter
+            const yAxisIndex = column.yAxis || 0;
+            // Make sure the array has enough object for further access
+            while (chartDescriptor.yAxis.length < yAxisIndex + 1) {
+                chartDescriptor.yAxis.push({});
+            }
+            const yAxis = chartDescriptor.yAxis[yAxisIndex];
+            if (yAxis.format === undefined) {
+                yAxis.format = column.format === undefined ? 'compact_number' : column.format;
+            }
+
+            const yFormatter = this.getFormatter(yAxis.format);
+            yAxisFormatters.push(yFormatter);
+
+            if (yAxis.formatter === undefined) {
+                yAxis.formatter = yFormatter;
+            }
+        }
+
+        chartOption.yAxis = chartDescriptor.yAxis.map((yAxis, index) => {
+            return {
+                type: 'value',
+                min: 0 || yAxis.min,
+                minInterval: 1 || yAxis.minInterval,
+                interval: yAxis.interval,
+                inverse: yAxis.inverse === undefined ? false : yAxis.inverse,
+                splitLine: {show: true},
+                axisLine: {show: false},
+                scale: false,
+                axisTick: {
+                    show: false,
+                },
+                axisLabel: {
+                    formatter: yAxis.formatter
+                },
             }
         });
 
-        let yAxisFormatters = null;
-        if (chartDescriptor.yAxis != null) {
-            yAxisFormatters = chartDescriptor.yAxis.map(y => this.getFormatter(y.format));
-            for (let i = 1; i < yAxisFormatters.length; i++) {
-                if (yAxisFormatters[i] == null)
-                    yAxisFormatters[i] = yAxisFormatters[i - 1]; //default to prev config
-            }
-        }
         chartOption.tooltip.formatter = series => {
             const currentChartOption = this.getChartCurrentOption(chartId);
 
             const start = currentChartOption.timestamp.start;
             const interval = currentChartOption.timestamp.interval;
             const dataIndex = series[0].dataIndex;
-            const timeText = moment(start + dataIndex * interval).local().format('yyyy-MM-DD HH:mm:ss');
-
-            let tooltip = timeText;
+            let tooltip = moment(start + dataIndex * interval).local().format('yyyy-MM-DD HH:mm:ss');
             series.forEach(s => {
                 //Use the yAxis defined formatter to format the data
                 const yAxisIndex = currentChartOption.series[s.seriesIndex].yAxisIndex;
 
-                let formatterFn = null;
-                if (yAxisFormatters != null) {
-                    // use yAxis formatter, maybe null
-                    formatterFn = yAxisFormatters[yAxisIndex];
-                }
-                if (formatterFn == null) {
-                    formatterFn = this._formatters['compact_number'];
-                }
+                let formatterFn = yAxisFormatters[yAxisIndex];
 
                 const text = formatterFn(s.data);
 
@@ -743,39 +623,6 @@ class Dashboard {
             });
             return tooltip;
         };
-        if (chartDescriptor.yAxis != null) {
-            $.each(chartDescriptor.yAxis, (index, y) => {
-                chartOption.yAxis.push({
-                    type: 'value',
-                    min: 0 || y.min,
-                    minInterval: 1 || y.minInterval,
-                    interval: y.interval,
-                    inverse: y.inverse === undefined ? false : y.inverse,
-                    splitLine: {show: true},
-                    axisLine: {show: false},
-                    scale: false,
-                    axisTick: {
-                        show: false,
-                    },
-                    axisLabel: {
-                        formatter: yAxisFormatters[index]
-                    },
-                });
-            });
-        } else {
-            chartOption.yAxis = [{
-                type: 'value',
-                min: 0,
-                minInterval: 1,
-                scale: true,
-                splitLine: {show: true},
-                axisLine: {show: false},
-                axisTick: {
-                    show: false,
-                },
-                axisLabel: {},
-            }];
-        }
         if (chartOption.yAxis.length === 1) {
             chartOption.grid.right = 15;
         }
@@ -794,19 +641,143 @@ class Dashboard {
         }
         const chartComponent = new ChartComponent({
             containerId: chartId,
-            metrics: chartDescriptor.metrics.filter(metric => metric.aggregator === undefined).map(metric => metric.name),
-            aggregators: chartDescriptor.metrics.filter(metric => metric.aggregator !== undefined).map(metric => {
-                return {
-                    name: metric.name,
-                    type: metric.aggregator
-                };
-            }),
+
+            // Keep query object in the chart for further query
+            query: chartDescriptor.query
         }).header('<b>' + chartDescriptor.title + '</b>')
             .setChartOption(chartOption);
 
         this._chartComponents[chartId] = chartComponent;
 
         return chartComponent;
+    }
+
+    refreshTable(query, tableComponent, interval) {
+        const filters = this.vFilter.getSelectedFilters();
+        if (query.filters !== undefined) {
+            $.each(query.filters, (index, filter) => {
+                filters.push(filter);
+            });
+        }
+
+        const thisQuery = Object.assign({}, query);
+        thisQuery.interval = {
+            startISO8601: interval.start,
+            endISO8601: interval.end
+        };
+        thisQuery.filters = filters;
+
+        let path;
+        if (query.type === 'list') {
+            path = '/api/datasource/list/v2'
+        } else {
+            path = '/api/datasource/groupBy/v2';
+        }
+        const loadOptions = {
+            url: apiHost + path,
+            ajaxData: thisQuery,
+            responseHandler: (res) => {
+                return {
+                    total: res.total,
+                    rows: res.data
+                }
+            }
+        };
+        tableComponent.load(loadOptions);
+    }
+
+    // PRIVATE
+    createChartComponent(chartId, chartDescriptor) {
+        if (chartDescriptor.type === 'table') {
+            return this.createTableComponent(chartId, $('#' + chartId), chartDescriptor);
+        }
+
+        // Process legacy list type
+        if (chartDescriptor.type === 'list') {
+            // Convert old format to new format
+            const query = {
+                type: 'list',
+                dataSource: chartDescriptor.dataSource,
+                filters: chartDescriptor.filters
+            };
+            query.fields = chartDescriptor.columns.map((column) => {
+                if (typeof column === 'object') {
+                    return column.field;
+                }
+                return column;
+            });
+            chartDescriptor.query = query;
+            chartDescriptor.pagination = [25, 50, 100];
+            chartDescriptor.type = 'table';
+
+            return this.createTableComponent(chartId, $('#' + chartId), chartDescriptor);
+        }
+        if (chartDescriptor.type === 'line') {
+            return this.createLineComponent(chartId, chartDescriptor);
+        }
+
+        //
+        // Old timeseries chart format, convert it to the latest
+        //
+        const query = {
+            type: 'timeseries',
+            dataSource: chartDescriptor.dataSource,
+            fields: []
+        };
+
+        const columns = [];
+        chartDescriptor.metrics.forEach((metric) => {
+            query.fields.push(metric.name);
+
+            const column = {
+                name: metric.name,
+                format: metric.format
+            };
+            const yAxisIndex = metric.yAxis || 0;
+            if (chartDescriptor.yAxis !== undefined) {
+                const yAxis = chartDescriptor.yAxis[yAxisIndex];
+                if (yAxis.format !== undefined) {
+                    // Don't override the format set above
+                    column.format = yAxis.format;
+                }
+                column.yAxis = yAxisIndex;
+            }
+            if (metric.chartType !== undefined) {
+                column.chartType = metric.chartType;
+            }
+            if (metric.fill !== undefined) {
+                column.fill = metric.fill;
+            }
+            if (metric.displayName !== undefined) {
+                column.title = metric.displayName;
+            }
+            if (metric.selected !== undefined) {
+                column.selected = metric.selected;
+            }
+            columns.push(column);
+        });
+        delete chartDescriptor.metrics;
+
+        // predefined filter
+        if (chartDescriptor.dimensions !== undefined) {
+            query.filters = [];
+            $.each(chartDescriptor.dimensions, (name, value) => {
+                query.filters.push(value);
+            });
+
+            delete chartDescriptor.dimensions;
+        }
+
+        if (chartDescriptor.groupBy !== undefined) {
+            chartDescriptor.groupBy.forEach((groupBy) => query.fields.unshift(groupBy));
+            delete chartDescriptor.groupBy;
+        }
+
+        chartDescriptor.columns = columns;
+        chartDescriptor.query = query;
+        chartDescriptor.type = 'line';
+        console.log(JSON.stringify(chartDescriptor, null, 4));
+        return this.createLineComponent(chartId, chartDescriptor);
     }
 
     // PRIVATE
@@ -831,59 +802,57 @@ class Dashboard {
         // refresh each chart
         const interval = this.getSelectedTimeInterval();
         for (const id in this._chartComponents) {
-            this.refreshChart(this._chartDescriptors[id], this._chartComponents[id], interval);
+            const chartComponent = this._chartComponents[id];
+
+            const chartDescriptor = this._chartDescriptors[id];
+            if (chartDescriptor !== undefined) {
+                // detail view has no root descriptor, do not refresh
+                // this can be fixed to allow refresh the detail view if it's shown
+                this.refreshChart(chartDescriptor, chartComponent, interval);
+            }
         }
     }
 
-    refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
-        // const appFilter = this.vFilter.getSelectedFilter('appName');
-        // if (appFilter === undefined || appFilter === null) {
-        //     return;
-        // }
-
-        if (chartDescriptor.type === 'list') {
-            this.refreshTable(chartDescriptor, chartComponent, interval);
-            return;
-        }
-
-        if (metricNamePrefix == null) {
+    refreshLine(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
+        if (metricNamePrefix === undefined) {
             metricNamePrefix = '';
         }
 
-        if (mode === undefined) {
-            mode = 'refresh';
-        }
-
-        let dimensions = this.vFilter.getSelectedFilters();
-        if (chartDescriptor.dimensions !== undefined) {
-            $.each(chartDescriptor.dimensions, (index, filter) => {
-                dimensions.push(filter);
+        let filters = this.vFilter.getSelectedFilters();
+        if (chartDescriptor.query.filters !== undefined) {
+            $.each(chartDescriptor.query.filters, (index, filter) => {
+                filters.push(filter);
             });
         }
 
+        const thisQuery = Object.assign({}, chartDescriptor.query);
+        if (thisQuery.dataSource === undefined) {
+            thisQuery.dataSource = chartDescriptor.dataSource;
+        }
+        thisQuery.interval = {
+            startISO8601: interval.start,
+            endISO8601: interval.end
+        };
+        thisQuery.filters = filters;
+
+        const queryFieldsCount = chartDescriptor.query.fields.length;
+
         chartComponent.load({
-            url: apiHost + "/api/datasource/timeseries/v2",
-            ajaxData: JSON.stringify({
-                dataSource: chartDescriptor.dataSource,
-                interval: {
-                    startISO8601: interval.start,
-                    endISO8601: interval.end
-                },
-                filters: dimensions,
-                groupBy: chartDescriptor.groupBy === undefined ? [] : chartDescriptor.groupBy,
-                metrics: chartComponent.getOption().metrics,
-                aggregators: chartComponent.getOption().aggregators
-            }),
+            url: apiHost + "/api/datasource/timeseries/v3",
+            ajaxData: JSON.stringify(thisQuery),
             processResult: (data) => {
                 const timeLabels = [];
                 for (let t = data.startTimestamp; t <= data.endTimestamp; t += data.interval) {
                     timeLabels.push(moment(t).local().format('HH:mm:ss'));
                 }
+
                 const series = [];
-                $.each(data.metrics, (index, metric) => {
+                $.each(data.data, (index, metric) => {
                     let metricName = metric.tags[metric.tags.length - 1];
-                    let metricDef = chartDescriptor.metricMap[metricName];
-                    if (metricDef === undefined) {
+
+                    let column = chartDescriptor.columnMap[metricName];
+                    if (column === undefined) {
+                        console.warn(`Cant find definition of ${metricName}`);
                         return;
                     }
 
@@ -893,18 +862,18 @@ class Dashboard {
                         group += "-";
                     }
 
-                    const chartType = metricDef.chartType || 'line';
+                    const chartType = column.chartType || 'line';
                     const isLine = chartType === 'line';
-                    const isArea = isLine && (metricDef.fill === undefined ? true : metricDef.fill);
+                    const isArea = isLine && (column.fill === undefined ? true : column.fill);
 
-                    const n = metricNamePrefix + group + (metricDef.displayName === undefined ? metricDef.name : metricDef.displayName);
+                    const n = metricNamePrefix + group + (column.title === undefined ? column.name : column.title);
                     let s = {
                         id: n,
                         name: n,
                         type: chartType,
 
-                        data: metric.values.map(val => metricDef.transformer(val)),
-                        yAxisIndex: metricDef.yAxis == null ? 0 : metricDef.yAxis,
+                        data: metric.values.map(val => column.transformer(val)),
+                        yAxisIndex: column.yAxis || 0,
 
                         areaStyle: isArea ? {opacity: 0.3} : null,
                         lineStyle: isLine ? {width: 1} : null,
@@ -913,18 +882,19 @@ class Dashboard {
 
                         // selected is not a property of series
                         // this is used to render default selected state of legend by chart-component
-                        selected: metricDef.selected === undefined ? true : metricDef.selected
+                        selected: column.selected === undefined ? true : column.selected
                     };
                     series.push(s);
                 });
 
                 // a groupBy query might return empty data
                 if (series.length === 0) {
+                    const count = (data.endTimestamp - data.startTimestamp) / data.interval;
                     series.push({
                         id: 'empty',
                         name: 'empty',
                         type: 'line',
-                        data: new Array(data.count).fill(0),
+                        data: new Array(count).fill(0),
                         yAxisIndex: 0,
                         areaStyle: {opacity: 0.3},
                         lineStyle: {width: 1},
@@ -933,9 +903,19 @@ class Dashboard {
                     });
                 }
 
+                if (mode === undefined) {
+                    if (data.data.length === 0) {
+                        // no data returned
+                        mode = 'replace';
+                    } else {
+                        // If the returned count of series is less than the given fields count, that's a group-by.
+                        // In this case, we always replace the series because one group may not exist in a following query.
+                        mode = data.data.length < queryFieldsCount ? 'replace' : 'refresh'
+                    }
+                }
+
                 return {
-                    // for a groupBy query, always replace the series because one group may not exist in a following query
-                    refreshMode: chartDescriptor.groupBy !== undefined ? 'replace' : mode,
+                    refreshMode: mode,
 
                     // save the timestamp for further processing
                     timestamp: {
@@ -951,28 +931,40 @@ class Dashboard {
         });
     }
 
+    refreshChart(chartDescriptor, chartComponent, interval, metricNamePrefix, mode) {
+        if (chartDescriptor.type === 'table') {
+            this.refreshTable(chartDescriptor.query, chartComponent, interval);
+            return;
+        }
+        if (chartDescriptor.type === 'line') {
+            this.refreshLine(chartDescriptor, chartComponent, interval, metricNamePrefix, mode);
+            return;
+        }
+
+        console.log('Unknown chart type: ' + chartDescriptor.type);
+    }
+
     // Unit conversion
     // PRIVATE
     createTransformers(schema) {
         $.each(this._dashboard.charts, (index, chartDescriptor) => {
             if (chartDescriptor.dataSource === schema.name) {
                 // create transformers for those charts associated with this datasource
-                $.each(chartDescriptor.metrics, (metricIndex, metric) => {
-                    metric.transformer = this.createTransformer(schema, chartDescriptor, metricIndex);
+                $.each(chartDescriptor.columns, (columnIndex, column) => {
+                    column.transformer = this.createTransformer(schema, chartDescriptor, column);
                 });
             }
         });
     }
 
-    createTransformer(schema, chartDescriptor, metricIndex) {
+    createTransformer(schema, chartDescriptor, column) {
         if (chartDescriptor.yAxis != null) {
             // get yAxis config for this metric
-            const metricDescriptor = chartDescriptor.metrics[metricIndex];
-            const metricName = metricDescriptor.name;
-            const yIndex = metricDescriptor.yAxis == null ? 0 : metricDescriptor.yAxis;
+            const name = column.name;
+            const yIndex = column.yAxis || 0;
             if (yIndex < chartDescriptor.yAxis.length) {
                 const yAxis = chartDescriptor.yAxis[yIndex];
-                const metricSpec = schema.metricsSpec[metricName];
+                const metricSpec = schema.metricsSpec[name];
                 if (metricSpec != null && yAxis.format === 'millisecond' && metricSpec.unit === 'nanosecond') {
                     return (val) => val == null ? 0 : (val / 1000 / 1000);
                 }
@@ -1106,7 +1098,7 @@ class Dashboard {
                 const latestCharts = this.createChartComponent('latest_charts', chartDescriptor).height('400px');
                 const compareChart = this.createChartComponent('compare_charts', chartDescriptor).height('400px');
 
-                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                $('a[data-toggle="tab"]').on('shown.bs.tab', () => {
                     latestCharts.resize();
                     compareChart.resize();
                 })

@@ -11,18 +11,27 @@ class TableComponent {
      * @param option
      *     parent: p,
      *     columns: columns
-     *     pagination: [true/false]
+     *     pagination: either a list or an object. If it's an object, should be { pages: [], side: 'server' | 'client' }
      *     tableId: an unique id for the table component
      */
     constructor(option) {
         // view
-        this.vTableContainer = $(`<div></div>`);
+        this.vTableContainer = $(`<div class="card card-block chart-container"></div>`);
         this.vTable = this.vTableContainer.append(`<table id="${option.tableId}"></table>`).find('table');
         option.parent.append(this.vTableContainer);
 
         this.mColumns = option.columns;
         this.mCreated = false;
-        this.mPagination = option.pagination === undefined ? false : option.pagination;
+
+        this.mHasPagination = option.pagination !== undefined;
+        if(typeof option.pagination === 'object') {
+            this.mPagination = option.pagination.pages;
+            this.mPaginationSide = option.pagination.side;
+        } else {
+            this.mPagination = option.pagination;
+            this.mPaginationSide = 'server';
+        }
+
         this.mDetailViewField = null;
         this.mColumnMap = {};
 
@@ -38,6 +47,7 @@ class TableComponent {
             const column = this.mColumnMap[field];
             return column.template.replaceAll('{value}', val);
         };
+        this.mFormatters['timeDuration'] = (val) => val.formatTimeDuration();
 
         for (let i = 0; i < this.mColumns.length; i++) {
 
@@ -80,6 +90,14 @@ class TableComponent {
         window.gTableComponents[option.tableId] = this;
     }
 
+    header(text) {
+        if (this._header == null) {
+            this._header = $(this.vTableContainer).prepend('<div class="card-header"></div>').find('.card-header');
+        }
+        $(this._header).html(text);
+        return this;
+    }
+
     onButtonClick(rowIndex, buttonIndex) {
         const row = this.vTable.bootstrapTable('getData')[rowIndex];
         this.mButtons[buttonIndex].onClick(rowIndex, row, this.mStartTimestamp, this.mEndTimestamp);
@@ -100,8 +118,13 @@ class TableComponent {
     load(option) {
         console.log(option);
 
-        this.mStartTimestamp = option.start;
-        this.mEndTimestamp = option.end;
+        if (option.start !== undefined) {
+            this.mStartTimestamp = option.start;
+            this.mEndTimestamp = option.end;
+        } else {
+            this.mStartTimestamp = option.ajaxData.interval.startISO8601;
+            this.mEndTimestamp = option.ajaxData.interval.endISO8601;
+        }
         this.mQueryParam = option.ajaxData;
 
         if (!this.mCreated) {
@@ -112,11 +135,12 @@ class TableComponent {
                 method: 'post',
                 contentType: "application/json",
                 showRefresh: false,
+                responseHandler: option.responseHandler,
 
-                sidePagination: "server",
-                pagination: this.mPagination,
+                sidePagination: this.mPaginationSide,
+                pagination: this.mHasPagination,
 
-                serverSort: this.mPagination,
+                serverSort: this.mHasPagination,
                 sortName: this.mDefaultOrderBy,
                 sortOrder: this.mDefaultOrder,
 
@@ -133,12 +157,12 @@ class TableComponent {
                 stickyHeaderOffsetRight: parseInt($('body').css('padding-right'), 10),
                 theadClasses: 'thead-light'
             };
-            if (this.mPagination) {
+            if (this.mHasPagination) {
                 tableOption.paginationPreText = '<';
                 tableOption.paginationNextText = '>';
                 tableOption.pageNumber = 1;
                 tableOption.pageSize = 10;
-                tableOption.pageList = [10, 25, 50, 100];
+                tableOption.pageList = this.mPagination;
             }
 
             this.vTable.bootstrapTable(tableOption);
@@ -160,8 +184,17 @@ class TableComponent {
     }
 
     #getQueryParams(params) {
-        this.mQueryParam.pageNumber = params.pageNumber - 1;
-        this.mQueryParam.pageSize = params.pageSize;
+        if (this.mHasPagination && this.mPaginationSide === 'server') {
+            // Compatible with old interface
+            this.mQueryParam.pageNumber = params.pageNumber - 1;
+            this.mQueryParam.pageSize = params.pageSize;
+
+            this.mQueryParam.limit = {
+                limit: params.pageSize,
+                offset: this.mQueryParam.pageNumber * this.mQueryParam.pageSize
+            }
+        }
+
         if (params.sortName === undefined || params.sortName == null) {
             delete this.mQueryParam.orderBy;
         } else {

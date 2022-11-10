@@ -20,27 +20,18 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.bithon.component.commons.utils.Preconditions;
-import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionBaseVisitor;
-import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionLexer;
-import org.bithon.server.datasource.aggregator.ast.PostAggregatorExpressionParser;
 import org.bithon.server.storage.datasource.DataSourceSchema;
 import org.bithon.server.storage.datasource.aggregator.NumberAggregator;
-import org.bithon.server.storage.datasource.api.IQueryStageAggregator;
+import org.bithon.server.storage.datasource.query.ast.Expression;
+import org.bithon.server.storage.datasource.query.ast.ResultColumn;
+import org.bithon.server.storage.datasource.query.ast.SimpleAggregateExpression;
 import org.bithon.server.storage.datasource.typing.DoubleValueType;
 import org.bithon.server.storage.datasource.typing.IValueType;
 import org.bithon.server.storage.datasource.typing.LongValueType;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
-import java.util.Locale;
-import java.util.function.Supplier;
 
 /**
  * @author frankchen
@@ -64,15 +55,6 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
     @Getter
     private final boolean visible;
 
-    /**
-     * runtime property
-     */
-    @JsonIgnore
-    private final Supplier<PostAggregatorExpressionParser> parsers;
-
-    @JsonIgnore
-    private DataSourceSchema owner;
-
     @JsonCreator
     public PostAggregatorMetricSpec(@JsonProperty("name") @NotNull String name,
                                     @JsonProperty("displayText") @NotNull String displayText,
@@ -86,59 +68,6 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
         this.expression = Preconditions.checkArgumentNotNull("expression", expression).trim();
         this.valueType = "long".equalsIgnoreCase(valueType) ? LongValueType.INSTANCE : DoubleValueType.INSTANCE;
         this.visible = visible == null ? true : visible;
-
-        this.parsers = () -> {
-            PostAggregatorExpressionLexer lexer = new PostAggregatorExpressionLexer(CharStreams.fromString(expression));
-            lexer.getErrorListeners().clear();
-            lexer.addErrorListener(new BaseErrorListener() {
-                @Override
-                public void syntaxError(Recognizer<?, ?> recognizer,
-                                        Object offendingSymbol,
-                                        int line,
-                                        int charPositionInLine,
-                                        String msg,
-                                        RecognitionException e) {
-                    throw new InvalidExpressionException(expression, charPositionInLine, msg);
-                }
-            });
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            PostAggregatorExpressionParser parser = new PostAggregatorExpressionParser(tokens);
-            parser.getErrorListeners().clear();
-            parser.addErrorListener(new BaseErrorListener() {
-                @Override
-                public void syntaxError(Recognizer<?, ?> recognizer,
-                                        Object offendingSymbol,
-                                        int line,
-                                        int charPositionInLine,
-                                        String msg,
-                                        RecognitionException e) {
-                    throw new InvalidExpressionException(expression, charPositionInLine, msg);
-                }
-            });
-            parser.prog().accept(new PostAggregatorExpressionBaseVisitor<Void>() {
-                @Override
-                public Void visitTerminal(TerminalNode node) {
-                    if (node.getSymbol().getType() == PostAggregatorExpressionParser.ID) {
-                        if (!owner.containsMetric(node.getText())) {
-                            throw new IllegalStateException(String.format(Locale.ENGLISH,
-                                                                          "[%s] in [%s] not found in dataSchema",
-                                                                          node.getText(),
-                                                                          name));
-                        }
-                    }
-                    return null;
-                }
-
-                /**
-                 * an empty implementation to skip the visit of inner ID by the above {@link #visitTerminal(TerminalNode)} method
-                 */
-                @Override
-                public Void visitVariable(PostAggregatorExpressionParser.VariableContext ctx) {
-                    return null;
-                }
-            });
-            return parser;
-        };
     }
 
     @JsonIgnore
@@ -164,78 +93,12 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
 
     @JsonIgnore
     @Override
-    public IQueryStageAggregator getQueryAggregator() {
+    public SimpleAggregateExpression getAggregateExpression() {
         return null;
     }
 
     @Override
     public void setOwner(DataSourceSchema dataSource) {
-        this.owner = dataSource;
-    }
-
-    public void visitExpression(PostAggregatorExpressionVisitor visitor) {
-        PostAggregatorExpressionParser parser = this.parsers.get();
-        parser.reset();
-        // TODO: dead-loop detection if expression contains THIS metricSpec
-        parser.prog().accept(new PostAggregatorExpressionBaseVisitor<Void>() {
-            @Override
-            public Void visitExpression(PostAggregatorExpressionParser.ExpressionContext ctx) {
-                switch (ctx.getChildCount()) {
-                    case 1:
-                        return visitChildren(ctx);
-                    case 3: {
-                        String operator = ctx.getChild(1).getText();
-                        switch (operator) {
-                            case "+":
-                            case "-":
-                            case "/":
-                            case "*":
-                                ctx.getChild(0).accept(this);
-                                visitor.visitorOperator(operator);
-                                ctx.getChild(2).accept(this);
-                                return null;
-                            default:
-                                /*
-                                 * 此时只剩一种可能：(A)
-                                 */
-                                visitor.startBrace();
-                                visit(ctx.getChild(1));
-                                visitor.endBrace();
-                                return null;
-                        }
-                    }
-                    default:
-                        // no such case
-                        throw new IllegalStateException("ChildCount is "
-                                                        + ctx.getChildCount()
-                                                        + ", Text="
-                                                        + ctx.getText());
-                }
-            }
-
-            @Override
-            public Void visitTerminal(TerminalNode node) {
-                switch (node.getSymbol().getType()) {
-                    case PostAggregatorExpressionParser.NUMBER:
-                        visitor.visitNumber(node.getText());
-                        return null;
-                    case PostAggregatorExpressionParser.ID:
-                        visitor.visitMetric(owner.getMetricSpecByName(node.getText()));
-                        return null;
-                    default:
-                        throw new IllegalStateException("Terminal Node Type:"
-                                                        + node.getSymbol().getType()
-                                                        + ", Input Expression:"
-                                                        + expression);
-                }
-            }
-
-            @Override
-            public Void visitVariable(PostAggregatorExpressionParser.VariableContext ctx) {
-                visitor.visitVariable(ctx.getChild(1).getText());
-                return null;
-            }
-        });
     }
 
     @Override
@@ -250,5 +113,10 @@ public class PostAggregatorMetricSpec implements IMetricSpec {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public ResultColumn getResultColumn() {
+        return new ResultColumn(new Expression(this.expression), this.name);
     }
 }

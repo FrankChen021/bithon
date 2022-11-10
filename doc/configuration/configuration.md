@@ -1,11 +1,15 @@
 
 ## Agent Configuration
 
-See [Here](configuration-agent.md)
+See [Here](server/configuration-agent.md)
 
 ## Server Configuration
 
-- [Nacos](configuration-nacos.md)
-- [Collector](configuration-collector.md)
-- [Storage](configuration-storage.md)
-- [Tracing](configuration-tracing.md)
+- [Nacos](server/configuration-nacos.md)
+- [Collector](server/configuration-collector.md)
+- [Storage](server/configuration-storage.md)
+- [Tracing](server/configuration-tracing.md)
+
+## Dashboard Configuration
+
+- [Dashboard](webapp/configuration-dashboard.md)

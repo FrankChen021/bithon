@@ -29,9 +29,9 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.bithon.server.datasource.input.filter.FilterExpressionBaseVisitor;
-import org.bithon.server.datasource.input.filter.FilterExpressionLexer;
-import org.bithon.server.datasource.input.filter.FilterExpressionParser;
+import org.bithon.server.datasource.ast.FilterExpressionBaseVisitor;
+import org.bithon.server.datasource.ast.FilterExpressionLexer;
+import org.bithon.server.datasource.ast.FilterExpressionParser;
 import org.bithon.server.storage.datasource.input.IInputRow;
 import org.bithon.server.storage.datasource.spec.InvalidExpressionException;
 
@@ -91,7 +91,7 @@ public class ExpressionFilter implements IInputRowFilter {
                 throw new InvalidExpressionException(expression, charPositionInLine, msg);
             }
         });
-        delegation = parser.prog().expression().accept(new Builder(this.debug));
+        delegation = parser.parse().filterExpression().accept(new Builder(this.debug));
     }
 
     @Override
@@ -107,7 +107,7 @@ public class ExpressionFilter implements IInputRowFilter {
         }
 
         @Override
-        public IInputRowFilter visitExpression(FilterExpressionParser.ExpressionContext ctx) {
+        public IInputRowFilter visitFilterExpression(FilterExpressionParser.FilterExpressionContext ctx) {
             if (ctx.getChildCount() == 3) {
 
                 // case 1: '(' expression ')'
